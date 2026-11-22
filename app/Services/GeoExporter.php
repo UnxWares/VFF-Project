@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TileFields;
 use App\Models\Era;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\Lgv;
@@ -88,8 +89,11 @@ class GeoExporter
      *
      * Format binaire compact (10-100× plus léger que GeoJSON), idéal pour
      * MapLibre GL JS qui le lit nativement.
+     *
+     * `$fields` : toutes les propriétés documentées (défaut), ou seulement celles que lit la carte du
+     * site (TileFields::Map, voir mapColumnsSql).
      */
-    public function linesAsMvt(int $eraYear, int $z, int $x, int $y): string
+    public function linesAsMvt(int $eraYear, int $z, int $x, int $y, TileFields $fields = TileFields::All): string
     {
         $era = Era::where('year', $eraYear)->firstOrFail();
 
@@ -110,6 +114,27 @@ class GeoExporter
         // Tracés simplifiés à la tolérance d'affichage du zoom à partir du zoom 10 (MapTiles), puis découpés dans la tuile.
         $geom = MapTiles::lineGeomSql('part.g', $z);
         $extent = MapTiles::extent($z);
+        if ($fields === TileFields::Map) {
+            $columns = $this->mapColumnsSql($lgv, $drawRank);
+            // Tuile allégée : les tracés aux propriétés identiques (en général les portions voisines d'une même
+            // ligne dans le même état) forment une seule entité MultiLineString. Mêmes traits à l'écran, mais une
+            // seule fois les étiquettes, et moins d'entités à préparer pour MapLibre.
+            $group = implode(', ', TileFields::MAP_PROPERTIES);
+            $select = <<<SQL
+                SELECT ST_AsMVT(merged.*, 'vff-lines', {$extent}) AS tile FROM (
+                    SELECT {$group}, ST_Collect(part_geom.geom) AS geom
+                    FROM mvt_layer CROSS JOIN LATERAL ST_Dump(mvt_layer.geom) AS part_geom
+                    WHERE mvt_layer.geom IS NOT NULL
+                    GROUP BY {$group}
+                ) merged
+            SQL;
+        } else {
+            $columns = $this->allColumnsSql($lgv, $drawRank);
+            $select = <<<SQL
+                SELECT ST_AsMVT(mvt_layer.*, 'vff-lines', {$extent}) AS tile FROM mvt_layer
+                WHERE geom IS NOT NULL
+            SQL;
+        }
 
         // MATERIALIZED : sans lui, PostgreSQL recopie ST_AsMVTGeom dans le filtre `geom IS NOT NULL` et
         // découpe chaque tracé deux fois (10 % du temps de la tuile du zoom 4).
@@ -121,6 +146,28 @@ class GeoExporter
             ),
             mvt_layer AS MATERIALIZED (
                 SELECT
+                    {$columns}
+                    {$geom} AS geom
+                FROM line_segments ls
+                INNER JOIN lines l ON l.id = ls.line_id
+                CROSS JOIN bounds
+                {$parts}
+                WHERE ls.era_id = :era_id
+                  AND ls.geom && bounds.env_4326
+            )
+            {$select}
+        SQL, [
+            'era_id' => $era->id,
+            'z' => $z,
+            'x' => $x,
+            'y' => $y,
+        ]);
+    }
+
+    /** Colonnes de la couche `vff-lines` : toutes les propriétés documentées (réponse par défaut). */
+    private function allColumnsSql(string $lgv, string $drawRank): string
+    {
+        return <<<SQL
                     ls.id,
                     ls.line_id,
                     l.slug AS line_slug,
@@ -163,22 +210,43 @@ class GeoExporter
                     -- partie recouverte par une ligne plus active (non dessinée).
                     {$drawRank} AS draw_rank,
                     part.covered,
-                    {$geom} AS geom
-                FROM line_segments ls
-                INNER JOIN lines l ON l.id = ls.line_id
-                CROSS JOIN bounds
-                {$parts}
-                WHERE ls.era_id = :era_id
-                  AND ls.geom && bounds.env_4326
-            )
-            SELECT ST_AsMVT(mvt_layer.*, 'vff-lines', {$extent}) AS tile FROM mvt_layer
-            WHERE geom IS NOT NULL
-        SQL, [
-            'era_id' => $era->id,
-            'z' => $z,
-            'x' => $x,
-            'y' => $y,
-        ]);
+        SQL;
+    }
+
+    /**
+     * Colonnes de la couche `vff-lines` avec `fields=map` (TileFields::MAP_PROPERTIES) : ce que lisent les couches,
+     * les filtres de la légende, l'ordre de dessin et le clic de `RailMap.svelte` (et `lib/railStyle.js`), rien de plus.
+     *
+     * ST_AsMVT n'écrit pas une valeur NULL : un booléen faux, un rang de dessin nul, un écartement inconnu ou une
+     * tension sans électrification deviennent NULL, donc absents de l'entité. La carte les lit comme avant (ses
+     * expressions comparent à `true`, `coalesce` à 0 ou à `unknown`, et la tension ne sert que si la portion est
+     * électrifiée). `line_electrified` garde son `false` : le clic ne retombe sur `electrified` que si la valeur
+     * de la ligne manque.
+     */
+    private function mapColumnsSql(string $lgv, string $drawRank): string
+    {
+        return <<<SQL
+                    l.slug AS line_slug,
+                    l.name AS line_name,
+                    l.code AS line_code,
+                    NULLIF({$lgv}, FALSE) AS is_lgv,
+                    NULLIF(l.is_threatened, FALSE) AS is_threatened,
+                    CASE WHEN l.advocacy->>'kind' = 'reopening' THEN 'reopening' END AS advocacy_kind,
+                    l.network,
+                    ls.status,
+                    COALESCE(ls.traffic_type, 'unknown') AS traffic_type,
+                    NULLIF(ls.electrified, FALSE) AS electrified,
+                    CASE WHEN ls.electrified THEN ls.voltage_v END AS voltage_v,
+                    CASE WHEN ls.electrification_source = 'unknown' THEN 'unknown' END AS electrification_source,
+                    NULLIF(ls.gauge_class, 'unknown') AS gauge_class,
+                    NULLIF(ls.is_heritage, FALSE) AS is_heritage,
+                    CASE WHEN ls.is_heritage THEN ls.heritage_kind END AS heritage_kind,
+                    COALESCE(l.max_speed_kmh, ls.max_speed_kmh) AS line_max_speed,
+                    COALESCE(l.electrified, ls.electrified) AS line_electrified,
+                    COALESCE(l.voltage_v, ls.voltage_v) AS line_voltage_v,
+                    NULLIF({$drawRank}, 0) AS draw_rank,
+                    NULLIF(part.covered, FALSE) AS covered,
+        SQL;
     }
 
     /**

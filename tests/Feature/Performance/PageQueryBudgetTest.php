@@ -76,7 +76,8 @@ class PageQueryBudgetTest extends TestCase
         // qui évitent les calculs géographiques à la visite suivante (voir plus bas).
         // 57 : une lecture de plus après les chantiers de la nuit du 21/11 (matériel, profil en long, contexte des
         // accidents) ; aucune requête par élément, la seconde visite reste plus courte.
-        $this->assertLessThanOrEqual(57, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 58 : les notices des Archives SNCF le 22/11 (LineArchives::recordsForSheet, une seule lecture).
+        $this->assertLessThanOrEqual(58, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));

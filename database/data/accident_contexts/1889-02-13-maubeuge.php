@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision des express Paris - Bruxelles et Bruxelles - Paris près de la gare de Maubeuge, ligne de Creil à Jeumont, de février 1889 (recherche du 21/11/2026).
 return [
     'slug' => '1889-02-13-maubeuge',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1880' => [
             'provider' => 'wikipedia',
@@ -52,16 +52,16 @@ return [
         'course' => [
             [
                 'fr' => 'Le soir de l\'accident, près de la gare de Maubeuge, sur la ligne de Paris à Bruxelles, l\'express parti de Paris à 15 h 50 pour Bruxelles et l\'express venant de Bruxelles se sont pris en écharpe au passage d\'un aiguillage mal placé, dans un brouillard épais. Les deux machines ont déraillé et une voiture de première classe a été enfoncée.',
-                'en' => 'On the evening of the accident, near Maubeuge station on the Paris to Brussels line, the express that had left Paris at 3.50 pm for Brussels and the express from Brussels struck each other side-on at a wrongly set set of points, in thick fog. Both engines derailed and a first class coach was crushed.',
+                'en' => 'On the evening of the accident, near Maubeuge station on the Paris to Brussels line, the express that had left Paris at 3.50 pm for Brussels and the express from Brussels struck each other side-on at wrongly set points, in thick fog. Both engines derailed and a first class coach was crushed.',
                 'de' => 'Am Abend des Unfalls stießen nahe dem Bahnhof Maubeuge an der Strecke Paris-Brüssel der um 15.50 Uhr in Paris nach Brüssel abgefahrene Expresszug und der Expresszug aus Brüssel an einer falsch gestellten Weiche bei dichtem Nebel seitlich zusammen. Beide Lokomotiven entgleisten, ein Wagen erster Klasse wurde eingedrückt.',
                 'sources' => ['wp-liste-1880', 'ddb-1889-02-14-gladbach', 'ddb-1889-02-16-velbert'],
             ],
         ],
         'victims' => [
             [
-                'fr' => 'Un voyageur a été tué ; selon la liste de Wikipédia, il ne portait pas de blessure apparente. Quatre ou cinq autres personnes ont été blessées, dont deux agents selon une dépêche de Bruxelles.',
-                'en' => 'One passenger was killed; according to the Wikipedia list he had no visible injury. Four or five other people were injured, two of them railwaymen according to a Brussels dispatch.',
-                'de' => 'Ein Reisender wurde getötet; nach der Wikipedia-Liste hatte er keine sichtbare Verletzung. Vier oder fünf weitere Personen wurden verletzt, nach einer Brüsseler Depesche darunter zwei Zugbeamte.',
+                'fr' => 'Un voyageur a été tué ; selon la liste de Wikipédia, il ne portait pas de blessure apparente. Le nombre de blessés varie : quatre selon une dépêche de Bruxelles, plusieurs voyageurs et deux agents grièvement blessés selon une autre, cinq personnes contusionnées selon la liste.',
+                'en' => 'One passenger was killed; according to the Wikipedia list he had no visible injury. The number of injured varies: four according to one Brussels dispatch, several passengers and two railwaymen seriously injured according to another, five people bruised according to the list.',
+                'de' => 'Ein Reisender wurde getötet; nach der Wikipedia-Liste hatte er keine sichtbare Verletzung. Die Zahl der Verletzten schwankt: vier nach einer Brüsseler Depesche, mehrere Reisende und zwei schwer verletzte Zugbeamte nach einer anderen, fünf Personen mit Prellungen nach der Liste.',
                 'sources' => ['wp-liste-1880', 'ddb-1889-02-14-gladbach', 'ddb-1889-02-16-velbert'],
             ],
         ],

@@ -76,6 +76,12 @@
             host: 'gallica.bnf.fr',
         },
         {
+            titleKey: 'credits.media.partners.sncf_archives_title',
+            textKey: 'credits.media.partners.sncf_archives_text',
+            href: 'https://www.archives.sncf.com',
+            host: 'archives.sncf.com',
+        },
+        {
             titleKey: 'credits.media.partners.commons_title',
             textKey: 'credits.media.partners.commons_text',
             href: 'https://commons.wikimedia.org',

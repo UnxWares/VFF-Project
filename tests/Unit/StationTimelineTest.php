@@ -14,7 +14,8 @@ class StationTimelineTest extends TestCase
         $this->assertNull(T::statusFromEvents($events, 1880, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1900, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1930, false));
-        $this->assertNull(T::statusFromEvents($events, 1940, false));
+        // Fermée, même disparue (règle du 22/11/2026 : la carte ne la garde qu'à la première ère fermée, BuildStationEras::keepClosedOnlyAtClosingEra).
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1940, false));
     }
 
     public function test_closed_then_reopened_station_is_shown_closed_in_between(): void
@@ -35,8 +36,8 @@ class StationTimelineTest extends TestCase
         $events = [['type' => 'opening', 'date' => '1890-01-01'], ['type' => 'closure_passenger', 'date' => '1970-05-31']];
 
         $this->assertSame(T::FREIGHT, T::statusFromEvents($events, 1980, true));
-        // Disparue aujourd'hui, sans suite connue : la fermeture aux voyageurs clôt son existence.
-        $this->assertNull(T::statusFromEvents($events, 1980, false));
+        // Disparue aujourd'hui, sans suite connue : la fermeture aux voyageurs clôt sa vie, elle est fermée.
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, false));
     }
 
     public function test_unknown_opening_shows_only_the_decade_before_closure(): void
@@ -45,7 +46,7 @@ class StationTimelineTest extends TestCase
 
         $this->assertNull(T::statusFromEvents($events, 1920, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1930, false));
-        $this->assertNull(T::statusFromEvents($events, 1940, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1940, false));
     }
 
     public function test_station_cannot_be_more_active_than_its_lines(): void

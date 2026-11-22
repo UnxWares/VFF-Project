@@ -1047,16 +1047,20 @@ return [
             'type' => 'closure',
             'date' => $g[6],
             'precision' => $g[7],
-            'source_url' => $wp($g[2], $g[3]),
-            'quote' => $g[8],
-            'reason' => $g[7] === 'before'
+            'source_url' => ($g[10] ?? [])['source_url'] ?? $wp($g[2], $g[3]),
+            'quote' => ($g[10] ?? [])['quote'] ?? $g[8],
+            'reason' => ($g[10] ?? [])['reason'] ?? ($g[7] === 'before'
                 ? 'fermeture de la ligne selon l\'infobox : fin du fret de la gare au plus tard à cette date'
-                : 'fin du fret, donc de toute desserte, selon l\'infobox de l\'article de la gare',
+                : 'fin du fret, donc de toute desserte, selon l\'infobox de l\'article de la gare'),
         ],
     ], [
         // gare, Wikidata, article, révision, fin des voyageurs, précision, fin du fret, précision, champ cité,
         // fermetures retirées [source, type, date]
-        ['Angoville-sur-Ay', 'Q3095636', 'Gare d\'Angoville-sur-Ay', 237264528, '1970-01-01', 'year', '1988-01-24', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']]],
+        ['Angoville-sur-Ay', 'Q3095636', 'Gare d\'Angoville-sur-Ay', 237264528, '1970-01-01', 'year', '1973-05-14', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']], [
+            'source_url' => $wp('Ligne de Coutances à Sottevast', 240949203),
+            'quote' => 'La ligne est fermée au service marchandises : [...] section de Lessay à La Haye-du-Puits, le 14 mai 1973',
+            'reason' => 'la gare est entre Lessay et La Haye-du-Puits : le fret y cesse le 14/05/1973 (article de la ligne) ; le 24/01/1988 de l\'infobox de la gare est la fin des sections Coutances - Périers et La Haye-du-Puits - Sottevast',
+        ]],
         ['Anould', 'Q2175387', 'Gare d\'Anould', 195862206, '1939-01-08', 'day', '2010-02-01', 'day', 'Fermeture : 8 janvier 1939 (voyageurs) 1er février 2010 (fret)', [['wikidata', 'closure', '1939-01-01']]],
         ['Maison des Associations d\'Aubenas', 'Q2529671', 'Gare d\'Aubenas', 235981496, '1969-03-09', 'day', '1988-04-01', 'day', 'Fermeture : 9 mars 1969 (voyageurs) 1er avril 1988 (fret)', [['wikidata', 'closure', '1969-03-09']]],
         ['Aubignas-Alba', 'Q125889075', 'Gare d\'Aubignas - Alba', 237570555, '1969-03-09', 'day', '1971-12-01', 'day', 'Fermeture : 9 mars 1969 aux voyageurs 1 décembre 1971 aux frets', [['wikidata', 'closure', '1969-03-09']]],
@@ -1079,7 +1083,11 @@ return [
         ['La Chapelle-Gauthier', 'Q111828277', 'Gare de La Chapelle-Gauthier', 235032405, '1934-01-19', 'day', '1956-09-30', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 30 septembre 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
         ['La Chapelle-Yvon', 'Q111902817', 'Gare de La Chapelle-Yvon', 235032406, '1934-01-19', 'day', '1956-07-01', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 1 juillet 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
         ['Lessay', 'Q1966097', 'Gare de Lessay', 231943184, '1970-01-01', 'year', '1988-01-24', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']]],
-        ['Lincel - Saint-Martin', 'Q3096890', 'Gare de Lincel - Saint-Martin', 206958157, '1934-01-15', 'day', '1956-01-01', 'year', 'Fermeture : 15 janvier 1934 (voyageurs) 1956 (marchandises)', [['wikidata', 'closure', '1934-01-01']]],
+        ['Lincel - Saint-Martin', 'Q3096890', 'Gare de Lincel - Saint-Martin', 206958157, '1934-01-15', 'day', '1941-05-05', 'day', 'Fermeture : 15 janvier 1934 (voyageurs) 1956 (marchandises)', [['wikidata', 'closure', '1934-01-01']], [
+            'source_url' => 'https://www.lignes-oubliees.com/index.php?page=stmaime',
+            'quote' => 'Fermeture aux marchandises : Saignon - Biabaux : 05/05/1941',
+            'reason' => 'la gare (PK 62,9) est sur Saignon - Biabaux, déclassée le 30/11/1941 (loi, article de la ligne, oldid 241491046) ; le 1956 de l\'infobox est la fin du fret de Biabaux - Saint-Maime',
+        ]],
         ['Livarot', 'Q28496166', 'Gare de Livarot', 241104408, '1938-05-05', 'day', '1990-09-30', 'day', 'Fermeture : 5 mai 1938 (voyageurs) 30 septembre 1990 (marchandises)', [['wikidata', 'closure', '1938-01-01']]],
         ['Luxey', 'Q21980009', 'Gare de Luxey', 209217400, '1955-01-01', 'year', '1970-12-31', 'day', 'Fermeture : 1955 (voyageurs) 31 décembre 1970 (fermeture totale de la gare)', [['wikidata', 'closure', '1955-01-01']]],
         ['Lyon-Croix-Rousse', 'Q19406999', 'Gare de Lyon-Croix-Rousse', 235032836, '1953-01-01', 'year', '1975-01-01', 'year', 'Fermeture : 1953 (voyageurs) 1975 (marchandises)', [['wikidata', 'closure', '1953-01-01']]],
@@ -1697,13 +1705,23 @@ return [
             'ouverture estimée à 1840 par la ligne, antérieure à la section Bordeaux - Libourne (1852) ; Q675874 est bien la gare ; date de ligne, précision année'],
         ['Les Clairières-de-Verneuil', 'uic', '87386664', '1974-05-01', 'month', 'Q3098151', 'date de mise en service (P1619) : mai 1974',
             'ouverture estimée à 1843 par la ligne ; halte mise en service en mai 1974 (Wikidata, et infobox de l\'article Gare des Clairières de Verneuil, oldid 236348200)'],
-        ['Montauban-de-Bretagne', 'uic', '87471086', '1863-01-01', 'year', 'Q2270053', 'date de mise en service (P1619) : 1863',
-            'ouverture estimée à 1840 par la ligne ; 1863, ouverture de la section Rennes - Guingamp (l\'article Gare de Montauban-de-Bretagne, oldid 238688642, donne le 07/09/1863)'],
         ['Raedersheim', 'uic', '87182717', '1841-01-01', 'year', 'Q631405', 'date de mise en service (P1619) : 1841',
             'ouverture estimée à 1840 par la ligne, antérieure à la ligne de Strasbourg à Bâle (1841) ; Q631405 est bien la gare'],
         ['Gare embarcadère de Sceaux', 'wikidata', 'Q96605529', '1846-01-01', 'year', 'Q3097699', 'date de mise en service (P1619) : 1846',
             'aucune ouverture dans VFF ; mise en service en 1846 (Wikidata Q3097699, et infobox de l\'article Gare de Sceaux (ancienne), oldid 241389426)'],
     ]),
+    // Montauban-de-Bretagne : mise en service le 07/09/1863, jour de l'ouverture de Rennes - Guingamp (Wikidata P1619
+    // ne donne que l'année ; recherche-lignes-2, 22/11/2026).
+    [
+        'station' => ['name' => 'Montauban-de-Bretagne', 'uic' => '87471086'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-09-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montauban-de-Bretagne', 238688642),
+        'quote' => 'La station de Montauban-de-Bretagne est mise en service le 7 septembre 1863 par la Compagnie des chemins de fer de l\'Ouest',
+        'reason' => 'ouverture estimée à 1840 par la ligne ; le jour est celui de l\'ouverture de la section Rennes - Guingamp (article de la gare, d\'accord avec Wikidata P1619 pour l\'année 1863)',
+    ],
 
     // 11 e. Liens Wikidata faux (G2) : l'objet OHM de la gare porte le Q-id d'une autre gare (tag wikidata), la
     // fiche le prenait. Défaits au rattachement des sources (vff:consolidate-stations, action « unlink ») ; les
@@ -1735,5 +1753,451 @@ return [
         'source_url' => 'https://www.wikidata.org/wiki/Q13406478',
         'quote' => 'Ambert, gare ferroviaire française',
         'reason' => 'Q13406478 est la gare d\'Ambert, à 28 km ; le tag vient de l\'objet OHM n2135527207 (Gare de Courpière)',
+    ],
+
+    // ── 12. Questions ouvertes sur les gares (chantier « recherche-lignes », nuit du 22/11/2026) ──────────────
+    // Rapport storage/app/reports/agents/aprem-2111/recherche-lignes.md.
+
+    // Rion-des-Landes : ouverture estimée à 1841 par la première ouverture de la ligne (Bordeaux - La Teste) ;
+    // la gare est sur Lamothe - Dax (PK 122,043), ouverte à la circulation en septembre 1854 et mise en service
+    // officiellement le 12/11/1854 (déjà en base pour la ligne). L'article de la gare donne aussi 1854 (premier
+    // train le 15/08/1854, sans source) : année seule.
+    [
+        'station' => ['name' => 'Rion-des-Landes', 'uic' => '87673111'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Bordeaux-Saint-Jean à Irun', 241340665),
+        'quote' => 'La mise en service officielle se déroule le 12 novembre 1854.',
+        'reason' => 'gare de la section Lamothe - Dax, ouverte à la circulation en septembre 1854 (article de la ligne) ; l\'article Gare de Rion-des-Landes (oldid 217417111) date le premier train de 1854 ; VFF l\'ouvrait en 1841',
+    ],
+
+    // Vraincourt-Viéville : halte abandonnée au changement de service de décembre 2019 (cars à la place) ; les
+    // horaires GTFS SNCF lus le 19/11/2026 (jusqu'au 30/04/2027) n'y ont que des cars (P920 St Dizier - Chaumont).
+    [
+        'station' => ['name' => 'Vraincourt-Viéville', 'uic' => '87143024'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '2019-12-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Blesme - Haussignémont à Chaumont', 235341775),
+        'quote' => 'd\'autres (Eurville, Bayard, Fronville, Gudmont, Vraincourt-Vièville) ont vu leur desserte abandonnée',
+        'reason' => 'arrêt supprimé au service de décembre 2019, desserte reprise par autocar (source de l\'article : France 3 Grand Est, 29/10/2019) ; halte sans fret',
+    ],
+    [
+        'station' => ['name' => 'Vraincourt-Viéville', 'uic' => '87143024'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => 'https://transport.data.gouv.fr/datasets/horaires-sncf',
+        'quote' => 'arrêt desservi par la seule ligne d\'autocar P920 St Dizier - Chaumont du 19/11/2026 au 30/04/2027',
+        'reason' => 'plus aucun train de voyageurs ne s\'y arrête (horaires GTFS SNCF, station_services : bus_only)',
+    ],
+
+    // Le Perrier (ligne 785000, entre Courpière et Ambert) : gare fermée ; les autorails touristiques d'Agrivap
+    // ne roulent plus qu'au sud d'Ambert (Ambert - La Chaise-Dieu). VFF la notait touristique.
+    [
+        'station' => ['name' => 'Le Perrier', 'osm' => 'n13934829824'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => $wp('Gare d\'Ambert', 235030267),
+        'quote' => 'entre les gares aujourd\'hui fermées du Perrier et de Marsac-en-Livradois',
+        'reason' => 'gare fermée ; le seul train touristique de la ligne roule d\'Ambert à La Chaise-Dieu (site d\'Agrivap, 22/11/2026), au sud d\'Ambert ; au mieux un vélorail parti d\'Ambert, qui ne rend pas une gare touristique (règle 6)',
+    ],
+
+    // ── 13. Fin du fret des gares restées sans date en 9 (chantier « gares-fret-2 », nuit du 22/11/2026) ─────
+    // Suite de la section 9 : Wikidata (P3999, P576) ou OHM ferment la gare à la fin des voyageurs donnée par
+    // l'infobox, le fret a continué (rapport storage/app/reports/agents/aprem-2111/gares-fret-2.md). Fin du fret
+    // lue dans l'article de la gare, l'article de la ligne ou lignes-oubliées. « before » : seule la fin du fret
+    // de la section (ou la fermeture des voies de la gare) est datée, la gare a cessé le fret au plus tard à
+    // cette date ; posé seulement pour une gare (pas une halte) d'une section dont l'article dit qu'elle est
+    // restée ouverte au fret après les voyageurs. Onnaing est encore ouverte au fret : pas de fermeture.
+    ...array_merge(...array_map(fn (array $g) => array_values(array_filter([
+        ...array_map(fn (array $m) => [
+            'station' => ['name' => $g[0], 'wikidata' => $g[1]],
+            'action' => 'neutralize',
+            'match' => ['source' => $m[0], 'type' => $m[1], 'date' => $m[2]],
+            'source_url' => $wp($g[3][2], $g[3][3]),
+            'quote' => $g[3][4],
+            'reason' => 'la '.($m[1] === 'demolition' ? 'démolition' : 'fermeture').' '.($m[0] === 'ohm' ? 'OHM' : 'Wikidata').' est la fin du service des voyageurs ; le fret a continué',
+        ], $g[2]),
+        [
+            'station' => ['name' => $g[0], 'wikidata' => $g[1]],
+            'action' => 'add',
+            'type' => 'closure_passenger',
+            'date' => $g[3][0],
+            'precision' => $g[3][1],
+            'source_url' => $wp($g[3][2], $g[3][3]),
+            'quote' => $g[3][4],
+            'reason' => 'fin des voyageurs selon l\'infobox de l\'article de la gare',
+        ],
+        $g[4] === null ? null : [
+            'station' => ['name' => $g[0], 'wikidata' => $g[1]],
+            'action' => 'add',
+            'type' => 'closure',
+            'date' => $g[4][0],
+            'precision' => $g[4][1],
+            'source_url' => $g[4][2],
+            'quote' => $g[4][3],
+            'reason' => $g[4][4],
+        ],
+    ])), [
+        // gare, Wikidata, fermetures retirées [source, type, date],
+        // voyageurs [date, précision, article, révision, champ cité],
+        // fin du fret [date, précision, source_url, citation, raison] ou null (gare encore ouverte au fret)
+        ['Iguérande', 'Q115115074', [['ohm', 'closure', '1940-05-20']],
+            ['1940-05-20', 'day', 'Gare d\'Iguerande', 235030487, 'Fermeture : 20 mai 1940 (voyageurs)'],
+            ['1990-05-24', 'day', $wp('Ligne du Coteau à Montchanin', 235343208),
+                'le tronçon reliant Pouilly-sous-Charlieu à Iguerande est le premier à fermer, le 15 octobre 1954, puis le tronçon reliant Iguerande à Paray-le-Monial ferme le 24 mai 1990.',
+                'gare au bout de la section Iguerande - Paray-le-Monial, restée ouverte au fret jusqu\'au 24/05/1990 (article de la ligne ; lignes-oubliées, même date : Pouilly - Iguerande neutralisée en 1954 faute de trafic)']],
+        ['Melle', 'Q3097010', [['wikidata', 'closure', '1938-01-01']],
+            ['1938-01-01', 'year', 'Gare de Melle (France)', 195929402, 'Fermeture : 1938 (voyageurs)'],
+            ['1991-01-27', 'day', 'https://www.lignes-oubliees.com/index.php?page=ruffec',
+                'Fermeture aux marchandises : Melle - Chef-Boutonne : 25/05/1977 Prahecq - Melle : 27/01/1991',
+                'gare au bout des deux sections fermées au fret (PK 27,048) : Melle - Chef-Boutonne en 1977, Prahecq - Melle le 27/01/1991 ; l\'article de la ligne (oldid 235036250) dit le fret jusqu\'à Chef-Boutonne en 1972']],
+        ['Baupte', 'Q3095921', [['wikidata', 'closure', '1971-01-01']],
+            ['1971-09-26', 'day', 'Gare de Baupte', 238211244, 'Fermeture : 26 septembre 1971 (voyageurs)'],
+            ['1991-06-02', 'day', $wp('Ligne de Carentan à Carteret', 239830382),
+                'De Carentan à Baupte, le 2 juin 1991',
+                'gare au bout de la dernière section ouverte au fret, Carentan - Baupte, fermée le 02/06/1991 (article de la ligne ; lignes-oubliées, même date)']],
+        ['Sarrancolin', 'Q3097679', [['wikidata', 'closure', '1969-01-01']],
+            ['1969-01-01', 'year', 'Gare de Sarrancolin', 223819525, 'Fermeture : 1969 (voyageurs)'],
+            ['2004-12-12', 'day', $wp('Gare de Sarrancolin', 223819525),
+                'Le 12 décembre 2004 la gare est fermée au service des marchandises',
+                'fin du fret selon l\'article de la gare (site Fret SNCF) ; section Labarthe-Avezac - Sarrancolin fermée au fret fin 2005 (lignes-oubliées)']],
+        ['Uzès', 'Q3095856', [['wikidata', 'closure', '1938-01-01']],
+            ['1938-01-01', 'year', 'Gare d\'Uzès', 238708133, 'Fermeture : 1938 (voyageurs)'],
+            ['1959-01-01', 'year', $wp('Gare d\'Uzès', 238708133),
+                'Le trafic marchandises se poursuit jusqu\'en 1959 puis des « navettes très spécifiques » circulent jusqu\'aux années 1990.',
+                'fin du trafic marchandises selon l\'article de la gare ; la section Uzès - Montaren ferme le 31/05/1959 (article Ligne du Martinet à Beaucaire, oldid 227988999)']],
+        ['Onnaing', 'Q18761653', [['wikidata', 'closure', '1954-01-01']],
+            ['1954-01-01', 'year', 'Gare d\'Onnaing', 232234616, 'Fermeture : 1954 (voyageurs) ; C\'est une gare de la SNCF, ouverte au service de fret.'],
+            null],
+        ['Cadenet', 'Q135972044', [['wikidata', 'closure', '1940-05-22']],
+            ['1940-05-22', 'day', 'Gare de Cadenet', 241520676, 'Fermeture : 22 mai 1940 (voyageurs)'],
+            ['1989-12-31', 'before', $wp('Gare de Cadenet', 241520676),
+                'Le service marchandise s\'arrête à la fin des années 80',
+                'fin de la desserte locale marchandises à la fin des années 1980 (article de la gare ; fiche Trains d\'Europe de la gare, qu\'il cite) : au plus tard fin 1989']],
+        ['Scorbé-Clairvaux', 'Q19407015', [['wikidata', 'closure', '1946-01-01']],
+            ['1946-01-01', 'year', 'Gare de Scorbé-Clairvaux', 174424647, 'Fermeture : 1946 (voyageurs)'],
+            ['1980-09-26', 'before', $wp('Gare de Scorbé-Clairvaux', 174424647),
+                'La section de ligne, entre Lencloitre et Châteauneuf, est définitivement fermée à tout trafic le 26 septembre 1980',
+                'section restée au fret après les voyageurs (article Ligne de Loudun à Châtellerault, oldid 241462135 : reprise du fret sur toute la ligne en 1955), fermée à tout trafic le 26/09/1980']],
+        ['Brie-Comte-Robert', 'Q3096067', [['wikidata', 'closure', '1953-01-01']],
+            ['1953-05-18', 'day', 'Gare de Brie-Comte-Robert', 240496784, 'Fermeture : 18 mai 1953 (service voyageurs)'],
+            ['1969-12-31', 'before', $wp('Ligne de Paris-Bastille à Marles-en-Brie', 241097208),
+                'le tronçon de Boissy-Saint-Léger à Brie-Comte-Robert est à son tour fermé aux voyageurs. L\'activité de cette section est dès lors limitée au trafic des marchandises',
+                'section Boissy-Saint-Léger - Brie-Comte-Robert limitée au fret après 1953, fermée en 1969 avec la section de Boissy-Saint-Léger à Verneuil-l\'Étang (même article) : fin du fret de la gare au plus tard en 1969']],
+        ['Nielles-lès-Blequin', 'Q16508062', [['wikidata', 'closure', '1959-07-15']],
+            ['1959-07-15', 'day', 'Gare de Nielles-lès-Bléquin', 238683061, 'Fermeture : 15 juillet 1959 (voyageurs)'],
+            ['1969-11-30', 'before', $wp('Ligne de Saint-Omer à Hesdigneul', 236135719),
+                '30 novembre 1969 : fermeture marchandises de Lumbres à Lottinghen',
+                'gare de la section Lumbres - Lottinghen, restée au fret après les voyageurs (1959) jusqu\'au 30/11/1969']],
+        ['Lottinghen', 'Q16508007', [['wikidata', 'closure', '1959-07-15']],
+            ['1959-07-15', 'day', 'Gare de Lottinghen', 238683059, 'Fermeture : 15 juillet 1959 (voyageurs)'],
+            ['1969-11-30', 'before', $wp('Ligne de Saint-Omer à Hesdigneul', 236135719),
+                '30 novembre 1969 : fermeture marchandises de Lumbres à Lottinghen',
+                'gare au bout de la section Lumbres - Lottinghen, restée au fret après les voyageurs (1959) jusqu\'au 30/11/1969']],
+        ['St-Jores', 'Q3097548', [['wikidata', 'closure', '1971-01-01']],
+            ['1971-09-26', 'day', 'Gare de Saint-Jores', 166060752, 'Fermeture : 26 septembre 1971 (voyageurs)'],
+            ['1979-05-27', 'before', 'https://www.lignes-oubliees.com/index.php?page=carteret',
+                'Fermeture aux marchandises : Baupte - Carteret : 27/05/1979 Carentan - Baupte : 02/06/1991',
+                'gare de la section Baupte - La Haye-du-Puits, fermée au fret le 01/08/1976 selon l\'article de la ligne (oldid 239830382), le 27/05/1979 selon lignes-oubliées : au plus tard la date la plus tardive']],
+        ['Hèches', 'Q3096645', [['wikidata', 'closure', '1969-01-01']],
+            ['1969-01-01', 'year', 'Gare de Hèches', 235032181, 'Fermeture : 1969 (voyageurs)'],
+            ['2005-12-31', 'before', 'https://www.lignes-oubliees.com/index.php?page=arreau',
+                'Fermeture aux marchandises : Sarrancolin - Arreau-Cadéac : 01/02/1971 Labarthe-Avezac - Sarrancolin : fin 2005',
+                'gare de la section Labarthe-Avezac - Sarrancolin (PK 131,799), restée au fret après les voyageurs (1969) jusqu\'à fin 2005']],
+        ['La Châtre', 'Q24037401', [['wikidata', 'closure', '1969-01-01']],
+            ['1969-01-01', 'year', 'Gare de La Châtre', 235032416, 'Fermeture : 1969 (voyageurs)'],
+            ['2006-09-14', 'before', $wp('Ligne de Châteauroux à La Ville-Gozet', 240558838),
+                'En septembre 1969, la ligne est fermée au trafic voyageurs dans son intégralité, ainsi qu\'au trafic fret entre La Châtre et Champillet-Urciers.',
+                'seule la section au sud de La Châtre ferme au fret en 1969 ; la section des voies de la gare (PK 298,267 à 299,324) est fermée le 14/09/2006 (lignes-oubliées, déjà en base pour la ligne 696000) : fin du fret au plus tard à cette date']],
+        ['Xermaménil-Lamath', 'Q2278959', [['wikidata', 'closure', '1980-01-01']],
+            ['1980-06-01', 'day', 'Gare de Xermaménil - Lamath', 231986438, 'La fermeture totale du trafic voyageur a lieu le 1 juin 1980 et la fermeture totale de la ligne en 1982.'],
+            ['1988-06-01', 'before', $wp('Ligne de Mont-sur-Meurthe à Bruyères', 240775080),
+                'le 1 juin 1988, fin du service marchandises',
+                'fin du fret de la ligne le 01/06/1988 (article de la ligne) ; l\'article de la gare dit la ligne fermée en 1982 : au plus tard la date la plus tardive']],
+        ['La Motte', 'Q3096795', [['wikidata', 'closure', '2006-01-01']],
+            ['2006-10-02', 'day', 'Gare de La Motte', 196084222, 'Fermeture : 2 octobre 2006 (voyageurs)'],
+            ['2012-12-31', 'before', $wp('Ligne de Saint-Brieuc à Pontivy', 239795109),
+                '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
+                'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne) ; la fermeture Wikidata du 31/12/2011 (fin de validité du référentiel des gares voyageurs SNCF) reste']],
+        ['Le Pas', 'Q3098222', [['wikidata', 'closure', '2006-01-01'], ['wikidata', 'demolition', '2006-01-01']],
+            ['2006-01-01', 'year', 'Gare du Pas (France)', 196084346, 'Fermeture : 2006 (voyageurs)'],
+            ['2012-12-31', 'before', $wp('Ligne de Saint-Brieuc à Pontivy', 239795109),
+                '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
+                'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne) ; la fermeture Wikidata du 31/12/2011 (fin de validité du référentiel des gares voyageurs SNCF) reste']],
+        ['Ploeuc-L\'Hermitage', 'Q16508034', [['wikidata', 'closure', '2006-01-01'], ['wikidata', 'demolition', '2006-01-01']],
+            ['2006-01-01', 'year', 'Gare de Plœuc - L\'Hermitage', 235033800, 'Fermeture : 2006 (voyageurs)'],
+            ['2012-12-31', 'before', $wp('Ligne de Saint-Brieuc à Pontivy', 239795109),
+                '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
+                'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne) ; la fermeture Wikidata du 31/12/2011 (fin de validité du référentiel des gares voyageurs SNCF) reste']],
+        ['St-Julien (Côtes-d\'Armor)', 'Q3097552', [['wikidata', 'closure', '2006-01-01']],
+            ['2006-01-01', 'year', 'Gare de Saint-Julien (Côtes-d\'Armor)', 236325504, 'Fermeture : 2006 (voyageurs) ; Services : Fret SNCF'],
+            ['2012-12-31', 'before', $wp('Ligne de Saint-Brieuc à Pontivy', 239795109),
+                '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
+                'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne ; l\'infobox de la gare la dit encore desservie par Fret SNCF)']],
+    ])),
+
+    // ── Gares ouvertes avant leurs lignes (invariant stations.opened_before_lines, 22/11/2026,
+    // rapport storage/app/reports/agents/aprem-2111/gares-avant-lignes.md) ────────────────────────
+
+    // Haussmann - Saint-Lazare : le 12/07/1999 est l'inauguration de la ligne E par le Premier ministre ;
+    // la mise en service commerciale, donc l'ouverture au public de la gare, est le 14/07/1999 (article,
+    // OSM et chronologie de la ligne E). La date Wikidata du 12 est celle de la cérémonie.
+    [
+        'station' => ['name' => 'Haussmann-St-Lazare', 'wikidata' => 'Q800898'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1999-07-14',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Haussmann - Saint-Lazare', 137149820),
+        'quote' => 'mise en service le 14 juillet 1999',
+        'reason' => 'ouverture au public le 14/07/1999 ; le 12/07/1999 est l\'inauguration de la ligne E (Éole) par le Premier ministre',
+    ],
+
+    // Enghien-les-Bains : la ligne Paris - Lille ouvre le 20/06/1846 ; la gare est ouverte « moins d'un mois
+    // plus tard, le 11 juillet 1846 ». Le 14/06/1846 de Wikidata précède l'ouverture de la ligne.
+    [
+        'station' => ['name' => 'Enghien-les-Bains', 'wikidata' => 'Q3095740'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Enghien-les-Bains', 237632630),
+        'quote' => 'La gare d\'Enghien-les-Bains est ouverte moins d\'un mois plus tard, le 11 juillet 1846',
+        'reason' => 'gare ouverte après la ligne du Nord (20/06/1846), desservie « depuis le 11 juillet 1846 » ; le 14/06/1846 de Wikidata est antérieur à la ligne',
+    ],
+
+    // Dormans : section Meaux - Épernay ouverte le 26/08/1849 (gare d'Épernay, chronologie de 1849 de
+    // Wikipédia, notice Mérimée pour l'inauguration du 02/09/1849). Le 21/08/1849 vient de l'article de
+    // Meaux et de celui de Dormans, en contradiction avec ces trois sources.
+    [
+        'station' => ['name' => 'Dormans', 'wikidata' => 'Q1985272'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-08-26',
+        'precision' => 'day',
+        'source_url' => $wp('1849 dans les chemins de fer', 240921379),
+        'quote' => 'section de Meaux à Épernay',
+        'reason' => 'section Meaux - Épernay mise en service le 26/08/1849 (chronologie de 1849 et gare d\'Épernay, oldid 241441584) ; inauguration officielle le 02/09/1849 ; le 21/08 de Wikidata n\'est confirmé par aucune source indépendante',
+    ],
+
+    // Caudiès-de-Fenouillèdes : le 14/07/1901 est l'ouverture de Saint-Paul-de-Fenouillet à Rivesaltes ;
+    // Caudiès est sur le tronçon Quillan - Saint-Paul-de-Fenouillet, ouvert le 22/05/1904 (article de la
+    // gare et événement de la ligne).
+    [
+        'station' => ['name' => 'Caudiès', 'wikidata' => 'Q80921437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1904-05-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Caudiès-de-Fenouillèdes', 166070156),
+        'quote' => 'Cette gare a été mise en service le 22 mai 1904 lors de l\'ouverture du tronçon entre Quillan et Saint-Paul-de-Fenouillet.',
+        'reason' => 'gare du tronçon Quillan - Saint-Paul-de-Fenouillet (22/05/1904) ; le 14/07/1901 est l\'ouverture du tronçon Saint-Paul - Rivesaltes',
+    ],
+
+    // Saint-Hilaire (Indre) : la section La Trimouille - Le Blanc ouvre le 12/08/1888 (article de la ligne,
+    // qui cite le Journal officiel du 19/07/1889) ; l'article de la gare donne le 13/06/1888 sur une seule
+    // référence (Connaissance du rail), sans recoupement.
+    [
+        'station' => ['name' => 'St-Hilaire (Indre)', 'wikidata' => 'Q15948845'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Montmorillon à Saint-Aigny - Le Blanc', 239210121),
+        'quote' => 'La section de La Trimouille au Blanc, longue de 18 kilomètres, est mise en service le 12 août 1888.',
+        'reason' => 'gare de la section La Trimouille - Le Blanc (12/08/1888 selon la ligne, appuyée sur le Journal officiel) ; le 13/06/1888 de la gare n\'a qu\'une référence',
+    ],
+
+    // Chailvet-Urcel : la date OSM du 02/06/1862 est impossible, la section Soissons - Laon ouvre le
+    // 03/01/1866 (événement de la ligne, tableau des lignes de Laon en 1914). La date d'ouverture de la
+    // halte est inconnue : elle est retirée plutôt que remplacée.
+    [
+        'station' => ['name' => 'Chailvet-Urcel', 'osm' => 'n13648417951'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'osm', 'type' => 'opening', 'date' => '1862-06-02'],
+        'source_url' => 'https://www.rail4402.fr/PAGES/L_34/L34_02_LAO_01.htm',
+        'reason' => 'la section Soissons - Laon, qui porte la gare, ouvre le 03/01/1866 : une ouverture en 1862 est impossible',
+    ],
+
+    // ── 14. Gares ouvertes avant leurs lignes, suite (chantier « gares-avant-lignes-2 », nuit du 22/11/2026) ──
+    // Rapport : storage/app/reports/agents/aprem-2111/gares-avant-lignes-2.md.
+
+    // Loulay : la section Niort - Saint-Jean-d'Angély ouvre le 17/10/1881 (article de la ligne de Chartres à
+    // Bordeaux et page de la ligne Thouars - Saint-Jean-d'Angély de manche-ocean.fr) ; le 10/10/1881 de
+    // l'article de la gare (fiche d'inventaire) précède la section qui porte la gare.
+    [
+        'station' => ['name' => 'Loulay', 'wikidata' => 'Q2073351'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-10-17',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Chartres à Bordeaux-Saint-Jean', 241089765),
+        'quote' => 'Elle est ouverte le 17 octobre 1881.',
+        'reason' => 'section Niort - Saint-Jean-d\'Angély ouverte le 17/10/1881 (article de la ligne et manche-ocean.fr) ; le 10/10/1881 de l\'article de la gare est antérieur à la section',
+    ],
+
+    // Saint-Hippolyte (Haut-Rhin) : la section Benfeld - Colmar ouvre le 19/10/1840 (article de la gare de Colmar,
+    // qui cite Le Point Colmarien ; article de la gare de Sélestat, qui cite le guide de Duplessy de 1842). Le
+    // 18/10/1840 de l'article de la gare n'a qu'une référence (Palau).
+    [
+        'station' => ['name' => 'St-Hippolyte (Haut-Rhin)', 'wikidata' => 'Q14627841'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-10-19',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sélestat', 241545922),
+        'quote' => 'La « station de Schlestadt » est mise en service le 19 octobre 1840',
+        'reason' => 'section Benfeld - Colmar mise en service le 19/10/1840 (gares de Sélestat, d\'après Duplessy 1842, et de Colmar, d\'après Le Point Colmarien) ; le 18/10/1840 n\'a qu\'une référence',
+    ],
+
+    // Bray (Loiret) : la ligne d'Orléans à Gien ouvre le 03/11/1873 (article de la ligne, mairie des Bordes pour
+    // la gare des Bordes inaugurée ce jour-là) ; le 03/01/1873 de Wikidata est une inversion probable du jour et du mois.
+    [
+        'station' => ['name' => 'Bray', 'wikidata' => 'Q135971266'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-11-03',
+        'precision' => 'day',
+        'source_url' => $wp('Gare des Bordes', 235035255),
+        'quote' => 'le 3 novembre 1873',
+        'reason' => 'ligne d\'Orléans à Gien ouverte le 03/11/1873 (article de la ligne et de la gare des Bordes, mairie des Bordes) ; le 03/01/1873 de Wikidata précède l\'ouverture',
+    ],
+
+    // Ligne Frévent - Lens (chemins de fer économiques du Nord) : mise en service entière le 01/12/1895 (article de
+    // la ligne, d'après Le Pas-de-Calais au dix-neuvième siècle, 1900). Le 08/08/1890 d'OHM est la date de la loi
+    // d'utilité publique, recopiée sur les nœuds gare.
+    [
+        'station' => ['name' => 'Liencourt', 'wikidata' => 'Q64850499'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Liencourt', 235032627),
+        'quote' => 'La halte de Liencourt est mise en service le 1er décembre 1895',
+        'reason' => 'halte mise en service avec la ligne Lens - Frévent le 01/12/1895 ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Souchez', 'wikidata' => 'Q61726977'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent (1895 selon l\'article de la gare, 01/12/1895 selon celui de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Carency', 'wikidata' => 'Q61726849'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Camblain-l\'Abbé', 'wikidata' => 'Q56692247'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Camblain-l\'Abbé', 238683047),
+        'quote' => 'est mise en service en 1895',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+
+    // Fourvière Ouest-Lyonnais (lignes 3788 et 4205) : Lyon-Saint-Just - Vaugneray 19/04/1886 ; Le Tupinier - Messimy
+    // janvier 1887 (27 pour Wikipédia et ferro-lyon.net, 25 pour le forum des cheminots et le PLU de Saint-Laurent-d'Agny :
+    // seul le mois est retenu) ; Messimy - Mornant 11/07/1887 (Wikipédia, forum des cheminots) ; Vaugneray gare - Vaugneray
+    // bourg 06/08/1906 (décret, Bulletin des lois). OHM mettait le 19/04/1886 sur tous les nœuds gare de la ligne.
+    [
+        'station' => ['name' => 'Vaugneray-Bourg', 'near' => [4.6583, 45.7378, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1906-08-06',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '6 août 1906 : de Vaugneray gare à Vaugneray Bourg (1,3 km).',
+        'reason' => 'prolongement de Vaugneray gare au bourg ouvert le 06/08/1906 (Bulletin des lois, décret n° 39407, cité par l\'article) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray gare',
+    ],
+    [
+        'station' => ['name' => 'Pillardière', 'near' => [4.7040, 45.7309, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'section Le Tupinier - Messimy ouverte en janvier 1887 (le 27 pour Wikipédia et ferro-lyon.net, le 25 pour le forum des cheminots et le PLU de Saint-Laurent-d\'Agny) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Brindas', 'near' => [4.6966, 45.7183, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'section Le Tupinier - Messimy ouverte en janvier 1887 (le 27 pour Wikipédia et ferro-lyon.net, le 25 pour le forum des cheminots et le PLU de Saint-Laurent-d\'Agny) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Messimy (FOL)', 'near' => [4.6917, 45.7007, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'terminus de la section Le Tupinier - Messimy ouverte en janvier 1887 ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Soucieu-en-Jarrest', 'near' => [4.7057, 45.6783, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Orliénas', 'near' => [4.7021, 45.6691, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Saint-Laurent-d\'Agny', 'near' => [4.6917, 45.6422, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+
+    // Sections-dates (storage/app/reports/agents/aprem-2111/sections-dates.md) : Coussey (Vosges, ligne 026000 Bologne -
+    // Pagny-sur-Meuse, PK 55,146). La gare était datée de 1867 (année déduite de la ligne) ; elle se trouve sur la
+    // section Neufchâteau - Vaucouleurs, ouverte le 14/04/1873 (Bologne - Neufchâteau : 14/08/1867). Elle apparaissait
+    // en service en 1870 sans voie dessinée.
+    [
+        'station' => ['name' => 'Coussey', 'near' => [5.6876, 48.4013, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-04-14',
+        'precision' => 'day',
+        'source_url' => $wp('Liste des gares des Vosges', 240638671),
+        'quote' => 'Coussey | Gare | 026 : 55,146 | 14 avril 1873',
+        'reason' => 'gare de la section Neufchâteau - Vaucouleurs ouverte le 14/04/1873 (liste des gares des Vosges ; article Ligne de Bologne à Pagny-sur-Meuse : « de Neufchâteau à Vaucouleurs, le 14 avril 1873 »)',
     ],
 ];

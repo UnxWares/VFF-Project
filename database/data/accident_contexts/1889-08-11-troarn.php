@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un train à la halte de Bures-sur-Dives, ligne de Caen à Trouville, d'août 1889 (recherche du 21/11/2026).
 return [
     'slug' => '1889-08-11-troarn',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1880' => [
             'provider' => 'wikipedia',
@@ -33,6 +33,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Nouvelle de Paris : un train de l\'Ouest allant de Caen à Dozulé a déraillé près de la gare de cette dernière ville ; deux agents tués, trois autres agents et trois voyageurs blessés.',
         ],
+        'ddb-1889-08-15-aachener' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 12. August. (Erdstoß. Eisenbahnunfall.)',
+            'publisher' => 'Aachener Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1889-08-15',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/YZMIIAH7TGZJB6R4E76STSCAAVKOP7FR?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche de Paris du 12 août : la veille, le train no 101 de l\'Ouest, allant de Caen à Dozulé, a déraillé près de la gare de cette dernière ville ; deux agents tués, trois autres agents et trois voyageurs blessés, dont un très grièvement.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -53,10 +67,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La presse allemande place le déraillement près de la gare de Dozulé et compte deux agents tués, trois agents et trois voyageurs blessés.',
-                'en' => 'The German press places the derailment near Dozulé station and counts two railwaymen killed, three railwaymen and three passengers injured.',
-                'de' => 'Die deutsche Presse verortet die Entgleisung beim Bahnhof Dozulé und zählt zwei getötete Bedienstete sowie drei verletzte Bedienstete und drei verletzte Reisende.',
-                'sources' => ['ddb-1889-08-16-solingen', 'wp-liste-1880'],
+                'fr' => 'La dépêche de Paris du 12 août place le déraillement du train no 101, qui allait de Caen à Dozulé, près de la gare de Dozulé, et compte deux agents tués, trois agents et trois voyageurs blessés. La liste de Wikipédia le place à la halte de Bures-sur-Dives, juste après Troarn ; Bures-sur-Dives est aujourd\'hui une commune associée de Troarn.',
+                'en' => 'The Paris dispatch of 12 August places the derailment of train no. 101, running from Caen to Dozulé, near Dozulé station, and counts two railwaymen killed, three railwaymen and three passengers injured. The Wikipedia list places it at the Bures-sur-Dives halt, just after Troarn; Bures-sur-Dives is now an associated commune of Troarn.',
+                'de' => 'Die Pariser Depesche vom 12. August verlegt die Entgleisung des Zuges Nr. 101 von Caen nach Dozulé in die Nähe des Bahnhofs Dozulé und zählt zwei getötete Bahnbedienstete sowie drei verletzte Bedienstete und drei verletzte Reisende. Die Wikipedia-Liste verlegt sie an den Haltepunkt Bures-sur-Dives kurz hinter Troarn; Bures-sur-Dives ist heute eine assoziierte Gemeinde von Troarn.',
+                'sources' => ['ddb-1889-08-16-solingen', 'ddb-1889-08-15-aachener', 'wp-liste-1880'],
             ],
         ],
     ],

@@ -101,6 +101,7 @@
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
                 { path: '/api/v1/lines/{line}/archives', key: 'line_archives' },
+                { path: '/api/v1/lines/{line}/archive-records', key: 'line_archive_records' },
                 { path: '/api/v1/lines/{line}/stories/{event}', key: 'line_stories' },
                 {
                     path: '/api/v1/greenways/tiles/{z}/{x}/{y}.mvt',
@@ -162,6 +163,13 @@
             ],
         },
         {
+            key: 'journal',
+            items: [
+                { path: '/api/v1/journal', key: 'journal' },
+                { path: '/api/v1/journal/{slug}', key: 'journal_article' },
+            ],
+        },
+        {
             key: 'tools',
             items: [
                 { path: '/api/v1/search?q={query}', key: 'search' },
@@ -201,7 +209,9 @@
         'station_audits',
         'line_greenways',
         'line_archives',
+        'line_archive_records',
         'line_stories',
+        'journal',
         'line_materials',
         'locate_on_line',
         'signalling_history',
@@ -287,6 +297,291 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
     }
   }
 }`);
+
+    // Section « Audits, profils, images et accidents » : exemples des listes d'audit du réseau, de l'audit
+    // paginé d'une ligne, du profil en long par tranche de PK, des compteurs d'images et de la provenance
+    // des accidents, avec des réponses réelles du serveur (champs abrégés par « … » quand c'est long).
+    // Chaînes simples ou tableaux joints : un gabarit de texte interpréterait « ${...} ».
+    const BASE = 'https://vff-project.org';
+    const auditSegmentsCurl = `curl "${BASE}/api/v1/audits/segments?era=2030&grade=poor&department=29&limit=1"`;
+    const auditSegmentsResponse = `{
+  "era_year": 2030,
+  "total": 26,
+  "limit": 1,
+  "offset": 0,
+  "items": [
+    {
+      "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+      "line_code": null,
+      "line_name": "Ligne de Landerneau à Lesneven",
+      "segment_id": 9309008,
+      "status": "abandoned",
+      "traffic_type": "unknown",
+      "trace_source": "archeoferroviaire",
+      "length_m": 53,
+      "grades": { "classification": "fair", "placement": "poor", "accuracy": "poor", "trace": "poor" },
+      "worst_grade": "poor",
+      "score": 88,
+      "reasons": {
+        "classification": ["rule_track_unconfirmed", "weak_sources_only"],
+        "placement": ["median_over_tolerance"],
+        "accuracy": ["hole"],
+        "trace": ["precise_trace_available", "unused_trace_in_gap"]
+      },
+      "audited_at": "2026-11-21T10:45:56+01:00"
+    }
+  ]
+}`;
+    const auditSegmentsJs = [
+        'const url = new URL("https://vff-project.org/api/v1/audits/segments");',
+        'url.search = new URLSearchParams({ era: "2030", grade: "poor", department: "29", limit: "50", offset: "0" });',
+        '',
+        'const response = await fetch(url);',
+        'if (!response.ok) throw new Error(`HTTP ${response.status}`);',
+        'const body = await response.json();',
+        '',
+        'console.info(body.total, "segments, era", body.era_year);',
+        'for (const s of body.items) console.info(s.line_slug, s.segment_id, s.worst_grade, s.reasons);',
+        '// Next page: offset + limit, until you reach body.total.',
+    ].join('\n');
+    const auditSegmentsPy = [
+        'import requests',
+        '',
+        'response = requests.get(',
+        '    "https://vff-project.org/api/v1/audits/segments",',
+        '    params={"era": 2030, "grade": "poor", "department": "29", "limit": 50, "offset": 0},',
+        '    timeout=30,',
+        ')',
+        'response.raise_for_status()',
+        'body = response.json()',
+        '',
+        'print(body["total"], "segments, era", body["era_year"])',
+        'for s in body["items"]:',
+        '    print(s["line_slug"], s["segment_id"], s["worst_grade"], s["reasons"])',
+        '# Next page: offset + limit, until you reach body["total"].',
+    ].join('\n');
+    const auditStationsCurl = `curl "${BASE}/api/v1/audits/stations?grade=disagree&department=57&limit=1"`;
+    const auditStationsResponse = `{
+  "limit": 1,
+  "offset": 0,
+  "total": 5,
+  "items": [
+    {
+      "station_id": 18740,
+      "slug": "redange-moselle",
+      "name": "Rédange (Moselle)",
+      "department": "57",
+      "region": "Grand Est",
+      "status": "declassified",
+      "position_source": "sncf",
+      "placement_grade": "disagree",
+      "families": 2,
+      "nearest_agreeing_m": 12262,
+      "farthest_precise_m": null,
+      "track_offset_m": 1,
+      "opening_grade": "estimated",
+      "closure_grade": "estimated",
+      "passenger": "closed",
+      "freight": "closed",
+      "checks": ["freight_only_undated"],
+      "sources": ["sncf", "wikidata"]
+    }
+  ]
+}`;
+    const lineAuditCurl = `curl "${BASE}/api/v1/lines/rfn-405000/audit?era=2030&grade=good&limit=1&offset=0"`;
+    const lineAuditResponse = `{
+  "line": { "slug": "rfn-405000", "code": "405000", "name": "Ligne d'Argentan à Granville" },
+  "era_year": 2030,
+  "audited_at": "2026-11-21T10:45:17+01:00",
+  "grades": { "classification": "good", "placement": "good", "accuracy": "good", "trace": "good" },
+  "worst_grade": "good",
+  "score": 0,
+  "length_m": 130866,
+  "line_checks": { "reasons": ["no_defect"], "length_ratio": 0.999, "official_length_m": 131000 },
+  "segments_total": 34,
+  "limit": 1,
+  "offset": 0,
+  "segments": [
+    {
+      "segment_id": 9379222,
+      "status": "in_service",
+      "traffic_type": "mixed",
+      "trace_source": "bdtopo",
+      "length_m": 36415,
+      "worst_grade": "good",
+      "score": 0,
+      "evidence": { "trace": "…", "accuracy": "…", "placement": "…", "classification": "…" }
+    }
+  ]
+}`;
+    const profileCurl = `curl "${BASE}/api/v1/lines/rfn-420000/profile/points?pk_from_m=249000&pk_to_m=250000&max_points=10"`;
+    const profileResponse = `{
+  "line": { "slug": "rfn-420000", "code": "420000", "name": "Ligne de Paris-Montparnasse à Brest" },
+  "count": 4,
+  "points": [
+    { "pk_m": 249093, "altitude_m": 155.9, "source": "bdtopo", "interpolated": false, "lat": 48.175107, "lng": -0.161683 },
+    { "pk_m": 249344, "altitude_m": 155.4, "…": "…" },
+    { "pk_m": 249595, "altitude_m": 155.1, "…": "…" },
+    { "pk_m": 249845, "altitude_m": 153.9, "…": "…" }
+  ],
+  "provenance": { "provider": "ign", "name": "IGN (BD TOPO, BD ORTHO historique, RGE ALTI)", "license_status": "verified" }
+}`;
+    const mediaFacetsCurl = `curl "${BASE}/api/v1/media?featured=true&facets=true&per_page=1"`;
+    const mediaFacetsResponse = `{
+  "data": [ { "id": 2930, "type": "photo", "title": "…", "license": "…" } ],
+  "meta": {
+    "per_page": 1,
+    "facets": {
+      "total": 514,
+      "types": { "map": 4, "photo": 458, "postcard": 52 },
+      "licenses": [
+        { "license": "CC BY-SA 3.0", "count": 240 },
+        { "license": "CC BY-SA 4.0", "count": 105 }
+      ],
+      "authors": [ { "author": "Florian Pépellin", "count": 23 } ]
+    }
+  }
+}`;
+    const accidentCurl = `curl "${BASE}/api/v1/accidents/2017-12-14-millas"`;
+    const accidentResponse = `{
+  "data": {
+    "slug": "2017-12-14-millas",
+    "name": { "de": "Busunfall von Millas", "en": "Millas crash", "fr": "Accident de Millas" },
+    "kind": "level_crossing",
+    "date": "2017-12-14",
+    "provenance": {
+      "date": "wikidata",
+      "kind": "wikidata",
+      "name": "wikidata",
+      "deaths": "bea-tt",
+      "injuries": "wikidata",
+      "location": "wikidata"
+    },
+    "imported_at": "2026-11-19T12:54:57+01:00"
+  }
+}`;
+    const auditGraphql = `curl -X POST ${BASE}/graphql \\
+  -H "Content-Type: application/json" \\
+  -d @- <<'JSON'
+{
+  "query": "{ segmentAudits(era: 2030, grade: POOR, department: \\"29\\", limit: 1) { era_year total items { line_slug length_m worst_grade reasons } } stationAudits(grade: \\"disagree\\", department: \\"57\\", limit: 1) { total items { slug name placement_grade checks } } mediaFacets(filter: { featured: true }) { total } accident(slug: \\"2017-12-14-millas\\") { name provenance imported_at kind_label(lang: \\"fr\\") department_name } line(slug: \\"rfn-420000\\") { profile { samples(pk_from_m: 249000, pk_to_m: 250000, max_points: 10) { pk_m altitude_m } } } }"
+}
+JSON`;
+    const auditGraphqlResponse = `{
+  "data": {
+    "segmentAudits": {
+      "era_year": 2030,
+      "total": 26,
+      "items": [
+        {
+          "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+          "length_m": 53,
+          "worst_grade": "POOR",
+          "reasons": { "placement": ["median_over_tolerance"], "accuracy": ["hole"], "…": "…" }
+        }
+      ]
+    },
+    "stationAudits": {
+      "total": 5,
+      "items": [
+        { "slug": "redange-moselle", "name": "Rédange (Moselle)", "placement_grade": "disagree", "checks": ["freight_only_undated"] }
+      ]
+    },
+    "mediaFacets": { "total": 514 },
+    "accident": {
+      "name": "Accident de Millas",
+      "provenance": { "date": "wikidata", "deaths": "bea-tt", "…": "…" },
+      "imported_at": "2026-11-19 12:54:57",
+      "kind_label": "Passage à niveau",
+      "department_name": "Pyrénées-Orientales"
+    },
+    "line": { "profile": { "samples": [ { "pk_m": 249093, "altitude_m": 155.9 }, { "pk_m": 249344, "altitude_m": 155.4 } ] } }
+  }
+}`;
+    const auditMcp = `curl -s ${BASE}/mcp \\
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \\
+  -H 'MCP-Protocol-Version: 2025-06-18' \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"segment_audits","arguments":{"era":2030,"grade":"poor","department":"29","limit":1}}}'`;
+    const auditMcpResponse = `{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\\"era_year\\":2030,\\"total\\":26,\\"limit\\":1,\\"offset\\":0,\\"items\\":[{\\"line_slug\\":\\"archeo-ligne-de-landerneau-a-lesneven\\",\\"segment_id\\":9309008,\\"worst_grade\\":\\"poor\\",\\"…\\":\\"…\\"}],\\"vff_url\\":\\"https://vff-project.org/lines\\",\\"attribution\\":{\\"…\\":\\"…\\"}}"
+      }
+    ],
+    "isError": false
+  }
+}`;
+    const auditErrorCurl = `curl -i "${BASE}/api/v1/audits/segments?grade=excellent&limit=500"`;
+    const auditError422 = `HTTP/2 422
+content-type: application/json
+
+{
+  "message": "The selected grade is invalid. (and 1 more error)",
+  "errors": {
+    "grade": ["The selected grade is invalid."],
+    "limit": ["The limit field must be between 1 and 200."]
+  }
+}`;
+    const auditError429 = `HTTP/2 429
+retry-after: 37
+x-ratelimit-limit: 300
+x-ratelimit-remaining: 0
+content-type: application/json
+
+{ "message": "Too Many Attempts." }`;
+    // Réponses relevées sur le serveur de dev (POST /graphql avec 6 requêtes dans un lot, puis un corps de 2,1 Mio).
+    const auditError400 = `HTTP/2 400
+content-type: application/json
+
+{
+  "errors": [
+    {
+      "message": "A batch holds at most 5 operations: split it into several requests.",
+      "extensions": { "code": "batch_too_large", "max_batch": 5 }
+    }
+  ]
+}`;
+    const auditError413 = `HTTP/2 413
+content-type: application/json
+
+{
+  "errors": [
+    {
+      "message": "The request body is larger than 2097152 bytes.",
+      "extensions": { "code": "body_too_large", "max_body_bytes": 2097152 }
+    }
+  ]
+}`;
+    // Blocs de la section, dans l'ordre : légende (api.audit_examples.<key>) et code.
+    const auditBlocks = $derived([
+        { key: 'segments', code: auditSegmentsCurl },
+        { key: 'segments_response', code: auditSegmentsResponse },
+        { key: 'segments_js', code: auditSegmentsJs },
+        { key: 'segments_py', code: auditSegmentsPy },
+        { key: 'stations', code: auditStationsCurl },
+        { key: 'stations_response', code: auditStationsResponse },
+        { key: 'line_audit', code: lineAuditCurl },
+        { key: 'line_audit_response', code: lineAuditResponse },
+        { key: 'profile', code: profileCurl },
+        { key: 'profile_response', code: profileResponse },
+        { key: 'media_facets', code: mediaFacetsCurl },
+        { key: 'media_facets_response', code: mediaFacetsResponse },
+        { key: 'accident', code: accidentCurl },
+        { key: 'accident_response', code: accidentResponse },
+        { key: 'graphql', code: auditGraphql },
+        { key: 'graphql_response', code: auditGraphqlResponse },
+        { key: 'mcp', code: auditMcp },
+        { key: 'mcp_response', code: auditMcpResponse },
+        { key: 'errors', code: auditErrorCurl },
+        { key: 'error_422', code: auditError422 },
+        { key: 'error_429', code: auditError429 },
+        { key: 'error_400', code: auditError400 },
+        { key: 'error_413', code: auditError413 },
+    ]);
 
     // Section « Authentification et quotas » : mêmes requêtes avec et sans jeton (variable VFF_TOKEN).
     const authCurl = $derived(`# ${$i18n.t('api.auth.curl_without')}
@@ -781,6 +1076,24 @@ JSON`;
                 >
                 <a class="vff-link" href="/graphiql">{$i18n.t('api.docs.items.graphiql.title')}</a>
             </p>
+        </SectionBlock>
+
+        <SectionBlock
+            id="audit-examples"
+            kind="alt"
+            title={$i18n.t('api.audit_examples.title')}
+            intro={$i18n.t('api.audit_examples.intro')}
+            maxWidth="900px"
+        >
+            {#each auditBlocks as block (block.key)}
+                <p class="caption">{$i18n.t(`api.audit_examples.${block.key}`)}</p>
+                <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+                <pre
+                    class="code"
+                    role="group"
+                    tabindex="0"
+                    aria-label={$i18n.t('api.example.code_label')}><code>{block.code}</code></pre>
+            {/each}
         </SectionBlock>
 
         <SectionBlock

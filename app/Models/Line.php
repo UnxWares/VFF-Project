@@ -66,6 +66,18 @@ class Line extends Model
             ->orderByRaw('year IS NULL, year, exact_date NULLS LAST, title, id');
     }
 
+    /**
+     * Notices d'inventaire des fonds d'archives rattachées à la ligne (vff:import-sncf-archives), du plus
+     * ancien au plus récent, les notices sans date en dernier.
+     *
+     * @return HasMany<LineArchiveRecord, $this>
+     */
+    public function archiveRecords(): HasMany
+    {
+        return $this->hasMany(LineArchiveRecord::class)
+            ->orderByRaw('year IS NULL, year, exact_date NULLS LAST, title, id');
+    }
+
     /** @return MorphMany<Media, $this> */
     public function media(): MorphMany
     {

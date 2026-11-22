@@ -11,7 +11,9 @@ use App\Mcp\Tools\AccidentSheetTool;
 use App\Mcp\Tools\AccidentsTool;
 use App\Mcp\Tools\CompareErasTool;
 use App\Mcp\Tools\HistoricalRouteTool;
+use App\Mcp\Tools\JournalTool;
 use App\Mcp\Tools\LevelCrossingsTool;
+use App\Mcp\Tools\LineArchiveRecordsTool;
 use App\Mcp\Tools\LineArchivesTool;
 use App\Mcp\Tools\LineAuditTool;
 use App\Mcp\Tools\LineEventsTool;
@@ -51,7 +53,8 @@ VFF (Voies Ferrées de France, vff-project.org, édité par UnxWares) est une en
 Méthode : commencez par `search` pour obtenir l'identifiant (slug) d'une ligne ou d'une gare, puis `get_line`, `line_events`, `get_station` ; `network_at_era` pour l'état du réseau à une époque ; `historical_route` pour un trajet à une date ; `sources_and_licences` pour les licences.
 Listes et questions transversales : `list_lines` (annuaire des lignes : réseau, état, trafic, département, époque), `list_stations` (annuaire des gares : statut, département, époque), `network_events` (événements de toutes les lignes : par département, type, période), `media` (photos, cartes postales, plans d'une ligne, d'une gare, d'une série de matériel ou d'un événement, avec auteur et licence : affichez toujours l'attribution du média avec l'image). Ces outils paginent par curseur : repassez `next_cursor` dans `cursor`.
 Accidents : `accidents` (accidents et événements graves du rail, filtrés par ligne, période, nature, département, bilan ; pagination par curseur) puis `get_accident` (fiche avec les lignes rattachées, les sources lues et leur licence, les points à vérifier ; une fiche « à vérifier » ne se présente jamais comme sûre ; faits de Wikidata CC0, de Wikipédia CC BY-SA pour toute citation, du BEA-TT Licence Ouverte).
-Passages à niveau : `level_crossings` (PN publiés par SNCF Réseau, ODbL : classe, PK, commune ; par ligne, groupe, commune ou emprise ; état actuel seulement, sans dates). Signalisation : `get_line` (le cantonnement espace les trains, le contrôle de vitesse KVB n'est jamais un cantonnement ; sur la LGV Est, la LGV Bretagne - Pays de la Loire et la LGV SEA, l'ETCS niveau 2 et la TVM sont installés ensemble et comptent tous les deux). Relief : `line_profile` (profil en long d'une ligne : altitudes, dénivelés, déclivité la plus forte, gares ; IGN, Licence Ouverte 2.0). Voies vertes : `line_greenways` (voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue, longueur mesurée sur l'emprise ; OSM, ODbL). Archives : `line_archives` (documents numérisés dans Gallica dont le titre parle d'une ligne : projets, plans, mémoires, photographies ; métadonnées de la BnF sous Licence Ouverte et lien vers Gallica, jamais l'image) ; `line_stories` (histoire d'un événement : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années à dire au lecteur). Position : `locate_on_line` (point kilométrique d'un lieu donné par ses coordonnées, sur le tracé d'une ligne).
+Passages à niveau : `level_crossings` (PN publiés par SNCF Réseau, ODbL : classe, PK, commune ; par ligne, groupe, commune ou emprise ; état actuel seulement, sans dates). Signalisation : `get_line` (le cantonnement espace les trains, le contrôle de vitesse KVB n'est jamais un cantonnement ; sur la LGV Est, la LGV Bretagne - Pays de la Loire et la LGV SEA, l'ETCS niveau 2 et la TVM sont installés ensemble et comptent tous les deux). Relief : `line_profile` (profil en long d'une ligne : altitudes, dénivelés, déclivité la plus forte, gares ; IGN, Licence Ouverte 2.0). Voies vertes : `line_greenways` (voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue, longueur mesurée sur l'emprise ; OSM, ODbL). Archives : `line_archives` (documents numérisés dans Gallica dont le titre parle d'une ligne : projets, plans, mémoires, photographies ; métadonnées de la BnF sous Licence Ouverte et lien vers Gallica, jamais l'image) ; `line_archive_records` (notices des fonds d'archives qui désignent une ligne : dossiers, photographies et films des Archives SNCF ; ODbL, lien vers archives.sncf.com, ni description ni image) ; `line_stories` (histoire d'un événement : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années à dire au lecteur). Position : `locate_on_line` (point kilométrique d'un lieu donné par ses coordonnées, sur le tracé d'une ligne).
+Journal de bord : `journal` (articles longs de l'équipe sur des lignes emblématiques, avec leurs sources en notes ; texte CC BY-SA 4.0 ; reprenez la mention `disclosure` quand elle existe).
 Territoires : `list_departments` (codes INSEE et noms des régions et des départements, à passer dans `department` et `region` de list_lines, list_stations, network_events et accidents).
 Invites (prompts) : `present_line` (présenter une ligne avec ses sources), `compare_region_eras` (comparer deux époques d'une région), `station_story` (histoire d'une gare).
 Époques : `compare_eras` (kilomètres ouverts, fermés, déposés ou restés en service entre deux ères de la carte).
@@ -92,7 +95,9 @@ class VffServer extends Server
         StationAuditsTool::class,
         LineGreenwaysTool::class,
         LineArchivesTool::class,
+        LineArchiveRecordsTool::class,
         LineStoriesTool::class,
+        JournalTool::class,
         LineMaterialsTool::class,
         LocateOnLineTool::class,
         SignallingHistoryTool::class,

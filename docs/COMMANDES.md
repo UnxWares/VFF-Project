@@ -71,7 +71,8 @@ donnent le même résultat.
 Wikidata (ou OSM) de la même année devient la fin des voyageurs sur une gare fret seul, et une fermeture Wikidata, OSM
 ou OHM (ou une « démolition » Wikidata) de la même année aussi sur une gare fermée ou disparue dont une source plus sûre
 date la fin du fret une année postérieure (Livarot : voyageurs 1938, marchandises 1990). Après la fin du fret et celle
-des voyageurs, la gare est fermée, et une gare disparue sort de la carte. Les 80 gares de la section 9 de
+des voyageurs, la gare est fermée : montrée fermée à l'ère de la fin du fret, puis absente de la carte, qu'elle soit
+debout ou disparue (règle du 22/11). Les 80 gares de la section 9 de
 `database/data/gares_corrections.php` étaient corrigées à la main pour ce cas ; la règle en couvre 66.
 
 ### `vff:import-station-wikidata-dates`
@@ -105,7 +106,10 @@ contrôles croisés, dans `station_audits` (une ligne par gare). Méthode et rè
 ### `vff:build-station-eras`
 
 Gares par décennie (`station_eras`, statut plafonné par l'état des lignes de l'ère) et `line_stops`. Une gare rouverte
-n'est dite fermée avant sa réouverture que si toutes ses lignes l'étaient (règle du 21/11).
+n'est dite fermée avant sa réouverture que si toutes ses lignes l'étaient (règle du 21/11). Une gare fermée l'est à la
+seule ère de sa fermeture, puis disparaît des ères suivantes (debout, démolie ou réutilisée) jusqu'à une réouverture
+(règle du 22/11, voir [METHODE-CLASSIFICATION.md](METHODE-CLASSIFICATION.md)) : cette dernière étape relit toutes les
+ères, il faut donc relancer toutes les ères après un `--era=` sur une ère passée.
 
 | Option | Effet |
 |:-|:-|
@@ -205,6 +209,42 @@ règlent l'accueil :
 
 ## Contenus
 
+### `vff:import-accidents`
+
+Importe les accidents du rail français (Wikidata, bilan des enquêtes du BEA-TT, listes d'accidents de Wikipédia, fiches
+rédigées à la main) dans `accidents`, `accident_lines` et `accident_sources`. Idempotent : une fiche est retrouvée par
+son élément Wikidata ou par l'identifiant d'une de ses sources, jamais par son slug. N'écrit dans aucune table du moteur
+mais lit celui-ci pour rattacher chaque fiche aux lignes : ne pas le lancer pendant un recalcul du moteur.
+
+| Option | Effet |
+|:-|:-|
+| `--only=` | Source à lire, répétable : `wikidata`, `bea-tt`, `wikipedia-list`, `wikipedia-editions`, `manual` ; toutes par défaut. |
+| `--offline` | Cache local seulement, aucune requête réseau. |
+| `--refresh` | Ignore le cache et relit les sources. |
+| `--dry-run` | Calcule tout sans écrire en base. |
+| `--prune` | Retire les fiches absentes des sources (import complet seulement). |
+| `--report=` | Fichier JSON du bilan détaillé. |
+
+Deux fichiers de données versionnés complètent l'import :
+
+- **Noms de fiche retenus** : `database/data/accident_slugs.php`. Quand la date ou la commune d'une source est corrigée
+  d'après le contexte, la fiche change de slug (voir `vff:enrich-accidents`). À la création d'une fiche, l'import forme
+  le slug d'après la source, donc sur une base vide il redonnerait l'ancien nom et le fichier de contexte ne trouverait
+  plus sa fiche. Chaque ligne relie une source de la fiche (`fournisseur:identifiant`, ceux de `accident_sources`) au
+  slug retenu (`slug`), avec l'ancien nom (`from`, qui n'est plus donné à une autre fiche) et la raison. Renommer une
+  fiche : renommer le fichier de contexte et sa clé `slug`, changer le slug en base, puis ajouter ou mettre à jour la
+  ligne ici. Une base qui contient déjà la fiche n'est jamais modifiée (le slug n'est pas recalculé).
+- **Fiches rédigées à la main** : `database/data/accident_records_manual.php`, pour un accident qu'aucune source de
+  l'import ne décrit mais qu'un document lu appuie (presse d'époque, ouvrage). Lu comme une source de plus
+  (`--only=manual`) : la fiche passe par la localisation et le rattachement aux lignes, se fond dans une source
+  automatique si elle décrit un jour le même accident, reste « à vérifier » (note `place_from_manual`) et porte la
+  source citée (`accident_sources`, rôle `press`). Un enregistrement : `id` (AAAA-MM-JJ-commune), `date`, `commune` et
+  `department`, `kind`, `deaths` et `injuries` (ou `null`), `line_articles` (titres d'articles de Wikipédia des lignes),
+  `source` (`provider` déclaré dans `source_rights.php`, `title`, `url`, `licence`, `published`). Des faits et un lien,
+  jamais le texte du document. Le récit et ses sources vont dans le fichier de contexte, créé ensuite
+  (`database/data/accident_contexts/<slug>.php`) puis enregistré par `vff:enrich-accidents`. Le bilan retenu d'une
+  fiche rédigée à la main a pour `toll_source` la valeur `manual`.
+
 ### `vff:enrich-accidents`
 
 Enregistre le contexte sourcé des accidents (archives, presse, enquêtes, images de Commons, corrections de lieu, de
@@ -218,6 +258,13 @@ date, de nature et de bilan) depuis `database/data/accident_contexts` ; 359 fich
 | `--offline` | N'interroge pas Commons : métadonnées des images lues dans le cache. |
 | `--dir=` | Dossier des fichiers de contexte (`database/data/accident_contexts` par défaut). |
 | `--report=` | Fichier JSON du bilan détaillé. |
+
+Règles de rédaction validées par Baptiste (22/11/2026) :
+- bilan : quand la dépêche de presse compte moins de morts que la liste de Wikipédia, le chiffre de la liste est gardé
+  et l'écart est écrit dans la section des contradictions (`disagreements`), avec les deux sources ;
+- nom de fiche : une fiche dont la commune ou la date est corrigée prend le slug de la nouvelle commune ou de la
+  nouvelle date (règle de l'import : date, puis commune), sans alias tant que le site n'est pas en production ; le
+  fichier de contexte est renommé de même et sa clé `slug` suit.
 
 ### `vff:select-home-images`
 
@@ -239,6 +286,22 @@ Rattache aux lignes les documents numérisés de Gallica qui en parlent (métado
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de tous les documents jugés, retenus ou non, avec leur score et ses raisons. |
 
+### `vff:import-sncf-archives`
+
+Rattache aux lignes les notices du jeu de données « Archives SNCF » (dossiers, photographies et films du Service
+Archives Documentation du groupe SNCF, ressources.data.sncf.com, ODbL) dont le titre les désigne, avec le score de
+`vff:import-gallica` (table `line_archive_records`). Seuls le titre, le type, le classement, la boîte, la date et le
+lien vers archives.sncf.com sont gardés ; ni description, ni image. Chaque import remplace toutes les notices de la
+source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
+
+| Option | Effet |
+|:-|:-|
+| `--download` | Télécharge l'export JSON du jeu de données (une requête) dans `storage/app/data/archives-sncf/` ; sinon la copie locale est lue. |
+| `--file=` | Fichier JSON à lire à la place de la copie locale. |
+| `--threshold=` | Score minimal d'une notice rattachée (9 par défaut, sur 11). |
+| `--dry-run` | Calcule tout sans écrire. |
+| `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
+
 ### `vff:media-thumbnails`
 
 Crée les miniatures (320 et 1 280 px) des images déposées par les contributeurs ; `--force` refait aussi celles qui en
@@ -253,6 +316,34 @@ Options : `--era=` (année ou liste « 1930,1980 »), `--output=` (fichier du pl
 
 Prévient par courriel les membres dont un jeton d'API expire dans 30 jours. Option : `--dry-run` (nombre de comptes et de
 jetons concernés, sans envoi).
+
+### `vff:import-signalling-history` et `vff:import-signalling-sources`
+
+Historique daté de la signalisation : le premier lit les articles Wikipédia des lignes, le second les documents relevés
+dans `database/data/signalling_history_sources.php`. Les deux ne touchent que `line_signalling_events` et la carte par
+ère (`line_signalling_history_map`), et lisent le fichier des corrections sourcées
+`database/data/signalling_history_corrections.php` (contrôlé par `App\Services\Signalling\SignallingCorrectionsFile`).
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Affiche le bilan sans écrire (avec `-v`, les faits ; un fait corrigé y apparaît en fiabilité `hidden`). |
+| `--corrections=` | Autre fichier de corrections que celui de `database/data/`. |
+| `--line=`, `--limit=`, `--offline`, `--refresh`, `--cache-dir=` | Import Wikipédia seulement : lignes lues, articles du cache. |
+| `--file=` | Import des documents seulement : autre fichier de faits. |
+
+Une correction vise un fait par sa ligne, son système, sa date et sa portion, et porte une action, des sources (un
+document officiel ou deux sites différents), une citation et une raison :
+
+- `neutralize` : le fait reste en base (`confidence = 'hidden'`, colonne `correction`) mais n'est plus montré (fiche,
+  API, carte par ère) ; la raison et les sources se lisent dans la clé `corrections` de
+  `GET /api/v1/lines/{line}/signalling-history` ;
+- `replace` : idem, et le fait juste (`with`, au format du fichier des documents) est rangé par
+  `vff:import-signalling-sources`.
+
+Un fait visé introuvable est une erreur : l'import Wikipédia échoue après son bilan (article changé), celui des
+documents échoue sans rien écrire. Une correction d'une ligne absente de la base est ignorée. Un fait corrigé revient
+au prochain import si sa correction est retirée du fichier. Première correction : l'ETCS du 12/11/2024 de la LGV
+Sud-Est (752000), qui date du basculement des postes et du centre de commande de Lyon, pas de l'ETCS (visé pour 2026).
 
 ## Fond de carte libre
 

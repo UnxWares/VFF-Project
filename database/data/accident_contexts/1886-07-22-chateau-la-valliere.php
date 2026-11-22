@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un train sur la ligne de Saumur à Château-du-Loir, ouverte une semaine plus tôt, de juillet 1886 (recherche du 21/11/2026).
 return [
     'slug' => '1886-07-22-chateau-la-valliere',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1880' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Brève : jeudi dernier, sur la ligne nouvellement ouverte de Saumur à Château-du-Loir, le train a déraillé près d\'un lieu que l\'OCR donne « Chenebutte » ; le chauffeur tué sur place, le conducteur mort peu après l\'amputation d\'une jambe, un voyageur grièvement blessé.',
         ],
+        'ddb-1886-07-23-reichsanzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 22. Juli. (W. T. B.)',
+            'publisher' => 'Deutscher Reichsanzeiger und Preußischer Staatsanzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1886-07-23',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/FPDMQ4V7OCEYTNOGOEQ6VOAMM7XMONSR?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche de l\'agence Wolff, Paris, 22 juillet : ce matin, près de Saumur, non loin de Château-la-Vallière (Indre-et-Loire), un train des chemins de fer de l\'État a déraillé ; deux personnes tuées, plusieurs blessées.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -75,10 +89,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La liste de Wikipédia parle d\'un train mixte et place le déraillement entre Chenu et Château-la-Vallière ; le Dagblad van Zuidholland parle d\'un train de marchandises, l\'Algemeen Handelsblad d\'un lieu proche de Saumur que l\'OCR donne « Chenebutte ».',
-                'en' => 'The Wikipedia list speaks of a mixed train and places the derailment between Chenu and Château-la-Vallière; the Dagblad van Zuidholland speaks of a goods train, the Algemeen Handelsblad of a place near Saumur that the OCR gives as "Chenebutte".',
-                'de' => 'Die Wikipedia-Liste spricht von einem gemischten Zug und verortet die Entgleisung zwischen Chenu und Château-la-Vallière; das Dagblad van Zuidholland spricht von einem Güterzug, das Algemeen Handelsblad von einem Ort bei Saumur, den die Texterkennung als „Chenebutte“ wiedergibt.',
-                'sources' => ['wp-liste-1880', 'delpher-1886-07-24-zuidholland', 'delpher-1886-07-25-handelsblad'],
+                'fr' => 'La liste de Wikipédia parle d\'un train mixte, le Dagblad van Zuidholland d\'un train de marchandises. L\'Algemeen Handelsblad place l\'accident près d\'un lieu que l\'OCR donne « Chenebutte » ; la dépêche de l\'agence Wolff du 22 juillet le situe, comme la liste, non loin de Château-la-Vallière, sur la ligne qui part de Saumur.',
+                'en' => 'The Wikipedia list speaks of a mixed train, the Dagblad van Zuidholland of a goods train. The Algemeen Handelsblad places the accident near a place the OCR renders as "Chenebutte"; the Wolff agency dispatch of 22 July locates it, like the list, not far from Château-la-Vallière, on the line from Saumur.',
+                'de' => 'Die Wikipedia-Liste spricht von einem gemischten Zug, das Dagblad van Zuidholland von einem Güterzug. Das Algemeen Handelsblad nennt einen Ort, den die Texterkennung als „Chenebutte“ wiedergibt; die Depesche des Wolffschen Telegraphenbureaus vom 22. Juli verlegt den Unfall wie die Liste in die Nähe von Château-la-Vallière, an der von Saumur ausgehenden Strecke.',
+                'sources' => ['wp-liste-1880', 'delpher-1886-07-24-zuidholland', 'delpher-1886-07-25-handelsblad', 'ddb-1886-07-23-reichsanzeiger'],
             ],
         ],
     ],

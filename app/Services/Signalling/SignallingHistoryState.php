@@ -44,6 +44,38 @@ final class SignallingHistoryState
         return $kept;
     }
 
+    /**
+     * Retire les faits de Wikipédia qu'un fait daté par des documents (`source.provider = manual`) redit : même
+     * groupe (SignallingHistoryState::group), même année, et même portion (le document porte sur toute la ligne,
+     * l'article ne dit pas la portion, ou les deux citent les mêmes lieux). Le fait des documents est gardé : sa
+     * date est souvent plus précise (« 2007 » dans l'article, « 10 juin 2007 » dans le communiqué). Logique pure.
+     *
+     * @param  list<array<string, mixed>>  $facts  faits d'une ligne (LineSignallingHistory), dans leur ordre
+     * @return list<array<string, mixed>>
+     */
+    public static function withoutRestatements(array $facts): array
+    {
+        $manual = array_values(array_filter($facts, fn (array $f): bool => ($f['source']['provider'] ?? null) === 'manual'));
+        if ($manual === []) {
+            return $facts;
+        }
+        $places = fn (array $f): string => mb_strtolower(trim(($f['section']['from'] ?? '').'|'.($f['section']['to'] ?? '')));
+
+        return array_values(array_filter($facts, function (array $f) use ($manual, $places): bool {
+            if (($f['source']['provider'] ?? null) === 'manual') {
+                return true;
+            }
+            foreach ($manual as $m) {
+                if (self::group($m) === self::group($f) && substr((string) $m['date'], 0, 4) === substr((string) $f['date'], 0, 4)
+                    && ($m['scope'] === 'whole_line' || $f['scope'] !== 'section' || $places($m) === $places($f))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+    }
+
     /** Dernier jour d'une ère passée (31 décembre de l'année), ou aujourd'hui pour l'ère courante. */
     public static function until(int $year, bool $current, ?\DateTimeInterface $today = null): string
     {

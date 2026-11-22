@@ -70,7 +70,8 @@ class GtfsExportTest extends TestCase
             'stop_times.txt' => ['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence', 'shape_dist_traveled'],
             'shapes.txt' => ['shape_id', 'shape_pt_lat', 'shape_pt_lon', 'shape_pt_sequence', 'shape_dist_traveled'],
             'calendar.txt' => ['service_id', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'start_date', 'end_date'],
-            'feed_info.txt' => ['feed_publisher_name', 'feed_publisher_url', 'feed_lang', 'feed_start_date', 'feed_end_date', 'feed_version'],
+            'feed_info.txt' => ['feed_publisher_name', 'feed_publisher_url', 'feed_lang', 'feed_start_date', 'feed_end_date', 'feed_version', 'feed_contact_email', 'feed_contact_url'],
+            'attributions.txt' => ['attribution_id', 'organization_name', 'is_producer', 'is_operator', 'is_authority', 'attribution_url'],
         ];
         $this->assertEqualsCanonicalizing(array_keys($expected), array_keys($feed));
         foreach ($expected as $file => $header) {
@@ -99,11 +100,15 @@ class GtfsExportTest extends TestCase
         $this->assertSame([["L{$l}", 'service-2030', "T{$l}", "shape-{$l}", 'Versailles-Rive-Droite']],
             array_slice($feed['trips.txt'], 1));
 
-        // Horaires synthétiques : position N → 08:0N, séquence 1-based, PK = shape_dist_traveled.
-        $this->assertSame([
-            ["T{$l}", '08:01:00', '08:01:00', 'S'.$this->origin->id, '2', '0'],
-            ["T{$l}", '08:02:00', '08:02:00', 'S'.$this->destination->id, '3', '17250'],
-        ], array_slice($feed['stop_times.txt'], 1));
+        // Séquence 1-based ; distance des arrêts mesurée le long de la forme (pas le PK), horaires synthétiques à 60 km/h.
+        $stopTimes = array_slice($feed['stop_times.txt'], 1);
+        $this->assertCount(2, $stopTimes);
+        $this->assertSame(["T{$l}", 'S'.$this->origin->id, '2'], [$stopTimes[0][0], $stopTimes[0][3], $stopTimes[0][4]]);
+        $this->assertSame(["T{$l}", 'S'.$this->destination->id, '3'], [$stopTimes[1][0], $stopTimes[1][3], $stopTimes[1][4]]);
+        $this->assertSame('08:00:00', $stopTimes[0][1]);
+        $this->assertSame('0', $stopTimes[0][5]);
+        $this->assertEqualsWithDelta((float) end($feed['shapes.txt'])[4], (float) $stopTimes[1][5], 700);
+        $this->assertEqualsWithDelta((float) $stopTimes[1][5] / 1000 * 3600 / 60, $this->seconds($stopTimes[1][1]) - 8 * 3600, 1.0);
 
         $shape = array_slice($feed['shapes.txt'], 1);
         $this->assertCount(3, $shape, '3 sommets du tracé');
@@ -117,6 +122,20 @@ class GtfsExportTest extends TestCase
         $info = $feed['feed_info.txt'][1];
         $this->assertSame(['VFF - Voies Ferrées de France', 'https://vff-project.org', 'fr', '20300101', '20301231'], array_slice($info, 0, 5));
         $this->assertSame('vff-'.now()->format('Y-m-d'), $info[5]);
+        $this->assertSame(['contact@vff-project.org', 'https://vff-project.org/legal'], array_slice($info, 6, 2), 'contact du flux');
+
+        // Attributions : licence ODbL des sources.
+        $attributions = implode("\n", array_column(array_slice($feed['attributions.txt'], 1), 1));
+        $this->assertStringContainsString('OpenStreetMap', $attributions);
+        $this->assertStringContainsString('ODbL', $attributions);
+        $this->assertStringContainsString('SNCF', $attributions);
+    }
+
+    private function seconds(string $time): int
+    {
+        [$h, $m, $s] = array_map('intval', explode(':', $time));
+
+        return $h * 3600 + $m * 60 + $s;
     }
 
     public function test_every_trip_references_an_existing_route_and_shape(): void
@@ -167,6 +186,144 @@ class GtfsExportTest extends TestCase
             $this->assertContains($st[0], $tripIds, 'stop_time vers un trip absent');
             $this->assertContains($st[3], $stopIds, 'stop_time vers un arrêt absent');
         }
+    }
+
+    public function test_feed_has_the_minimal_gtfs_structure_on_a_test_network(): void
+    {
+        // Réseau d'essai : la ligne de base, une ligne d'un seul arrêt (pas de trajet) et une ligne dont les arrêts
+        // sont à l'envers du tracé.
+        $single = Line::factory()->create(['name' => 'Ligne à un arrêt', 'type' => 'passenger']);
+        $stray = Station::factory()->create(['geom' => Point::makeGeodetic(46.0, 1.0)]);
+        DB::table('line_stops')->insert([
+            'line_id' => $single->id, 'era_id' => $this->currentEra->id, 'station_id' => $stray->id,
+            'position' => 1, 'pk_m' => 0, 'effective_status' => 'active', 'is_terminal' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $feed = $this->feed(2030);
+
+        // Fichiers obligatoires (agency, routes, trips, stop_times, stops, calendar) et facultatifs déclarés.
+        foreach (['agency.txt', 'routes.txt', 'trips.txt', 'stop_times.txt', 'stops.txt', 'calendar.txt', 'feed_info.txt', 'shapes.txt', 'attributions.txt'] as $file) {
+            $this->assertArrayHasKey($file, $feed, "{$file} absent");
+        }
+
+        // Chaque ligne a autant de colonnes que l'en-tête, aucune colonne d'en-tête en double.
+        $tables = [];
+        foreach ($feed as $file => $rows) {
+            $header = $rows[0];
+            $this->assertSame(count($header), count(array_unique($header)), "{$file} : colonne en double");
+            foreach (array_slice($rows, 1) as $i => $row) {
+                $this->assertCount(count($header), $row, "{$file} ligne ".($i + 2));
+            }
+            $tables[$file] = array_map(fn ($row) => array_combine($header, $row), array_slice($rows, 1));
+        }
+
+        // Identifiants uniques.
+        $unique = fn (string $file, array $keys) => $this->assertSame(
+            count($tables[$file]),
+            count(array_unique(array_map(fn ($r) => implode('|', array_map(fn ($k) => $r[$k], $keys)), $tables[$file]))),
+            "{$file} : clé ".implode('+', $keys).' en double',
+        );
+        $unique('agency.txt', ['agency_id']);
+        $unique('routes.txt', ['route_id']);
+        $unique('stops.txt', ['stop_id']);
+        $unique('trips.txt', ['trip_id']);
+        $unique('calendar.txt', ['service_id']);
+        $unique('stop_times.txt', ['trip_id', 'stop_sequence']);
+        $unique('shapes.txt', ['shape_id', 'shape_pt_sequence']);
+        $unique('attributions.txt', ['attribution_id']);
+
+        // Références croisées.
+        $agencies = array_column($tables['agency.txt'], 'agency_id');
+        $routes = array_column($tables['routes.txt'], 'route_id');
+        $stops = array_column($tables['stops.txt'], 'stop_id');
+        $services = array_column($tables['calendar.txt'], 'service_id');
+        $shapeIds = array_column($tables['shapes.txt'], 'shape_id');
+        $trips = array_column($tables['trips.txt'], 'trip_id');
+        foreach ($tables['routes.txt'] as $r) {
+            $this->assertContains($r['agency_id'], $agencies);
+            $this->assertNotSame('', $r['route_short_name'].$r['route_long_name'], 'route sans nom');
+        }
+        foreach ($tables['trips.txt'] as $t) {
+            $this->assertContains($t['route_id'], $routes);
+            $this->assertContains($t['service_id'], $services);
+            if ($t['shape_id'] !== '') {
+                $this->assertContains($t['shape_id'], $shapeIds);
+            }
+        }
+        foreach ($tables['stop_times.txt'] as $st) {
+            $this->assertContains($st['trip_id'], $trips);
+            $this->assertContains($st['stop_id'], $stops);
+        }
+        // Un trajet a au moins deux arrêts ; l'arrêt, la route et le trajet d'une ligne à un seul arrêt n'existent pas.
+        $perTrip = array_count_values(array_column($tables['stop_times.txt'], 'trip_id'));
+        foreach ($trips as $trip) {
+            $this->assertGreaterThanOrEqual(2, $perTrip[$trip] ?? 0, "trajet {$trip} : moins de deux arrêts");
+        }
+        $this->assertNotContains("L{$single->id}", $routes);
+        $this->assertNotContains("S{$stray->id}", $stops);
+        // Chaque arrêt exporté est utilisé par un trajet, avec des coordonnées valides.
+        $this->assertEqualsCanonicalizing($stops, array_values(array_unique(array_column($tables['stop_times.txt'], 'stop_id'))));
+        foreach ($tables['stops.txt'] as $s) {
+            $this->assertNotSame('', $s['stop_name']);
+            $this->assertGreaterThanOrEqual(-90, (float) $s['stop_lat']);
+            $this->assertLessThanOrEqual(90, (float) $s['stop_lat']);
+            $this->assertNotSame('', $s['stop_lon']);
+        }
+
+        // Distances : strictement croissantes le long d'une forme et d'un trajet ; jamais négatives.
+        $previous = [];
+        foreach ($tables['shapes.txt'] as $p) {
+            $d = (float) $p['shape_dist_traveled'];
+            $this->assertGreaterThanOrEqual(0, $d);
+            $this->assertGreaterThan($previous[$p['shape_id']] ?? -1, $d, "forme {$p['shape_id']} : distance non croissante");
+            $previous[$p['shape_id']] = $d;
+        }
+        $previous = [];
+        foreach ($tables['stop_times.txt'] as $st) {
+            if ($st['shape_dist_traveled'] === '') {
+                continue;
+            }
+            $d = (float) $st['shape_dist_traveled'];
+            $this->assertGreaterThan($previous[$st['trip_id']] ?? -1, $d, "trajet {$st['trip_id']} : distance non croissante");
+            $previous[$st['trip_id']] = $d;
+        }
+
+        // Dates AAAAMMJJ, calendrier cohérent avec le flux.
+        $info = $tables['feed_info.txt'][0];
+        $this->assertMatchesRegularExpression('/^\d{8}$/', $info['feed_start_date']);
+        $this->assertLessThanOrEqual($info['feed_end_date'], $tables['calendar.txt'][0]['end_date']);
+        $this->assertSame('Europe/Paris', $tables['agency.txt'][0]['agency_timezone']);
+    }
+
+    public function test_stop_times_are_ordered_and_distances_are_all_or_nothing_per_trip(): void
+    {
+        // Arrêts dans l'ordre inverse du tracé : la forme est retournée pour suivre les positions.
+        $reverse = Line::factory()->create(['name' => 'Ligne inversée', 'type' => 'passenger']);
+        $from = Station::factory()->create(['geom' => Point::makeGeodetic(47.0, 1.1)]);
+        $to = Station::factory()->create(['geom' => Point::makeGeodetic(47.0, 1.0)]);
+        LineSegment::factory()->create([
+            'line_id' => $reverse->id, 'era_id' => $this->currentEra->id, 'status' => 'in_service',
+            'geom' => LineString::make([Point::makeGeodetic(47.0, 1.0), Point::makeGeodetic(47.0, 1.1)]),
+            'source' => 'osm',
+        ]);
+        foreach ([$from, $to] as $i => $station) {
+            DB::table('line_stops')->insert([
+                'line_id' => $reverse->id, 'era_id' => $this->currentEra->id, 'station_id' => $station->id,
+                'position' => $i + 1, 'pk_m' => $i * 7000, 'effective_status' => 'active', 'is_terminal' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $feed = $this->feed(2030);
+
+        $times = array_values(array_filter(array_slice($feed['stop_times.txt'], 1), fn ($r) => $r[0] === "T{$reverse->id}"));
+        $this->assertCount(2, $times);
+        $this->assertSame('0', $times[0][5], 'premier arrêt au début de la forme retournée');
+        $this->assertGreaterThan(7000, (float) $times[1][5]);
+        $this->assertGreaterThan($this->seconds($times[0][1]), $this->seconds($times[1][1]), 'horaires croissants');
+        $shape = array_values(array_filter(array_slice($feed['shapes.txt'], 1), fn ($r) => $r[0] === "shape-{$reverse->id}"));
+        $this->assertEqualsWithDelta(1.1, (float) $shape[0][2], 1e-6, 'la forme commence au premier arrêt');
     }
 
     public function test_era_without_stops_gives_header_only_files(): void

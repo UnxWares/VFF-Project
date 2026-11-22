@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un train pour Tours en gare de Beuxes, ligne des Sables-d'Olonne à Tours, de juillet 1895 (recherche du 21/11/2026).
 return [
     'slug' => '1895-07-14-beuxes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -71,6 +71,12 @@ return [
                 'en' => 'The Loudun telegram says the stoker was fatally injured; the Wikipedia list counts him among the injured and gives only one death.',
                 'de' => 'Das Telegramm aus Loudun nennt den Heizer tödlich verletzt; die Wikipedia-Liste zählt ihn zu den Verletzten und nennt nur einen Toten.',
                 'sources' => ['ddb-1895-07-20-hamburg', 'wp-liste-1890'],
+            ],
+            [
+                'fr' => 'Le télégramme de Loudun, daté du 16 juillet, place l\'accident « la nuit dernière », soit dans la nuit du 15 au 16 juillet ; la liste de Wikipédia le date du 14 juillet vers 23 h.',
+                'en' => 'The Loudun telegram, dated 16 July, places the accident "last night", that is the night of 15 to 16 July; the Wikipedia list dates it 14 July at about 11 pm.',
+                'de' => 'Das Telegramm aus Loudun vom 16. Juli setzt den Unfall in die „verflossene Nacht“, also die Nacht vom 15. auf den 16. Juli; die Wikipedia-Liste datiert ihn auf den 14. Juli gegen 23 Uhr.',
+                'sources' => ['ddb-1895-07-20-hamburg', 'ddb-1895-07-20-merkur', 'wp-liste-1890'],
             ],
         ],
     ],

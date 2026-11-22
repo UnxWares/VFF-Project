@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision du rapide Toulouse - Paris avec un train de marchandises en gare de Dieupentale, d'octobre 1905 (recherche du 21/11/2026).
 return [
     'slug' => '1905-10-03-dieupentale',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1905' => [
             'provider' => 'wikipedia',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Algemeen Handelsblad du 5 octobre 1905',
+            'title' => 'Buitenlandsche Kroniek',
             'publisher' => 'Algemeen Handelsblad',
             'author' => null,
             'published' => '1905-10-05',
@@ -31,13 +31,13 @@ return [
             'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010649680:mpeg21:a0075',
             'access' => 'open',
             'consulted_on' => '2026-11-21',
-            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dans la nuit de mardi, un rapide de Toulouse à Paris a heurté un train de marchandises en gare de Dieupentale ; beaucoup de blessés, plusieurs en danger de mort ; circulation interrompue.',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dans la nuit de mardi, un rapide de Toulouse à Paris a heurté un train de marchandises en gare de Dieupentale ; de nombreux blessés, dont beaucoup en danger de mort ; circulation interrompue.',
         ],
         'noord-brabanter-1905-10-06' => [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'De Noord Brabanter du 6 octobre 1905',
+            'title' => 'Frankrijk. Een treinenbotsing',
             'publisher' => 'De Noord Brabanter',
             'author' => null,
             'published' => '1905-10-06',
@@ -67,9 +67,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Les premières dépêches parues aux Pays-Bas ne parlent d\'aucun mort mais de nombreux blessés, plusieurs en danger de mort, là où la liste de Wikipédia compte un mort, trois blessés et des voyageurs indemnes.',
-                'en' => 'The first dispatches printed in the Netherlands mention no deaths but many injured, several in danger of their lives, where the Wikipedia list counts one dead, three injured and no passenger hurt.',
-                'de' => 'Die ersten in den Niederlanden gedruckten Meldungen nennen keine Toten, aber viele Verletzte, mehrere in Lebensgefahr; die Wikipedia-Liste zählt einen Toten, drei Verletzte und unverletzte Reisende.',
+                'fr' => 'Les premières dépêches parues aux Pays-Bas ne parlent d\'aucun mort mais de nombreux blessés, dont certains ou beaucoup en danger de mort, là où la liste de Wikipédia compte un mort, trois blessés et des voyageurs indemnes.',
+                'en' => 'The first dispatches printed in the Netherlands mention no deaths but many injured, some or many of them in danger of their lives, where the Wikipedia list counts one dead, three injured and no passenger hurt.',
+                'de' => 'Die ersten in den Niederlanden gedruckten Meldungen nennen keine Toten, aber viele Verletzte, einige oder viele davon in Lebensgefahr; die Wikipedia-Liste zählt einen Toten, drei Verletzte und unverletzte Reisende.',
                 'sources' => ['algemeen-handelsblad-1905-10-05', 'noord-brabanter-1905-10-06', 'wp-liste-1905'],
             ],
         ],

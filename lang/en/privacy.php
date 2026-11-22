@@ -39,6 +39,7 @@ return [
         'paragraph' => '<p>To send you the pages, the server necessarily receives your IP address, the page requested, the date and the identification of your browser. This information is recorded in technical logs, used only for the security of the service, error diagnosis and the fight against abuse, and kept for 12 months at most.</p>'
             .'<p>To protect the API, the number of requests from each IP address is counted for one minute (300 requests at most), then forgotten.</p>'
             .'<p>Your browser may also tell the site, without any action on your part, about a resource that a page loaded outside the site’s security rules (a "content security policy" report). The site keeps only the page address without its parameters, the rule concerned and the origin of the resource, without your IP address, browser or account, for 30 days.</p>'
+            .'<p>If a page crashes, the server or your browser may send an error report to a monitoring tool hosted by UnxWares. It holds the type of the error, its message, the line of code involved, the page address without its parameters and the site version. It holds no IP address, browser, cookie, account or request content. Reports are kept for 30 days at most. To check that the site is up, a service also polls a status page that contains no visitor data.</p>'
             .'<p>Legal basis: UnxWares\' legitimate interest in ensuring the security and proper functioning of the site.</p>',
     ],
 

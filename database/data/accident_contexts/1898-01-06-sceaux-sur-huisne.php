@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un train de marchandises entre Sceaux-sur-Huisne et La Ferté-Bernard, ligne du Mans à Paris, de janvier 1898 (recherche du 21/11/2026).
 return [
     'slug' => '1898-01-06-sceaux-sur-huisne',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -51,10 +51,10 @@ return [
     'sections' => [
         'circumstances' => [
             [
-                'fr' => 'Dans la nuit du 6 au 7 janvier 1898, vers minuit, un train de marchandises de Brest à Paris roulait sur la ligne du Mans à Paris, entre les gares de Sceaux-sur-Huisne et de La Ferté-Bernard.',
-                'en' => 'During the night of 6 to 7 January 1898, at about midnight, a Brest to Paris goods train was running on the Le Mans to Paris line between Sceaux-sur-Huisne and La Ferté-Bernard stations.',
-                'de' => 'In der Nacht vom 6. auf den 7. Januar 1898 gegen Mitternacht fuhr ein Güterzug Brest-Paris auf der Strecke Le Mans-Paris zwischen den Bahnhöfen Sceaux-sur-Huisne und La Ferté-Bernard.',
-                'sources' => ['wp-liste-1890', 'ddb-1898-01-07-hagen'],
+                'fr' => 'Le 6 janvier 1898, vers minuit, un train de marchandises de Brest à Paris roulait sur la ligne du Mans à Paris, entre les gares de Sceaux-sur-Huisne et de La Ferté-Bernard.',
+                'en' => 'On 6 January 1898, at about midnight, a Brest to Paris goods train was running on the Le Mans to Paris line between Sceaux-sur-Huisne and La Ferté-Bernard stations.',
+                'de' => 'Am 6. Januar 1898 gegen Mitternacht fuhr ein Güterzug Brest-Paris auf der Strecke Le Mans-Paris zwischen den Bahnhöfen Sceaux-sur-Huisne und La Ferté-Bernard.',
+                'sources' => ['wp-liste-1890', 'ddb-1898-01-07-hagen', 'ddb-1898-01-09-reichsbote'],
             ],
         ],
         'course' => [
@@ -79,6 +79,14 @@ return [
                 'en' => 'According to the Wikipedia list the guard\'s widow obtained an order against the owner of the animal for 10,000 francs in damages, by a ruling of the Paris court of appeal of 28 March 1901.',
                 'de' => 'Nach der Wikipedia-Liste erwirkte die Witwe des Zugführers mit einem Urteil des Pariser Berufungsgerichts vom 28. März 1901 die Verurteilung des Tierhalters zu 10 000 Francs Schadenersatz.',
                 'sources' => ['wp-liste-1890'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La dépêche du Mans est datée du 7 janvier dans un journal, qui place l\'accident « la nuit dernière », et du 6 janvier dans un autre : l\'accident a eu lieu dans la nuit du 5 au 6 ou du 6 au 7 janvier.',
+                'en' => 'The Le Mans dispatch is dated 7 January in one paper, which places the accident "last night", and 6 January in another: the accident happened during the night of 5 to 6 or of 6 to 7 January.',
+                'de' => 'Die Depesche aus Le Mans ist in einer Zeitung vom 7. Januar datiert, die den Unfall in die „vergangene Nacht“ setzt, in einer anderen vom 6. Januar: Der Unfall ereignete sich in der Nacht vom 5. auf den 6. oder vom 6. auf den 7. Januar.',
+                'sources' => ['ddb-1898-01-07-hagen', 'ddb-1898-01-09-reichsbote', 'wp-liste-1890'],
             ],
         ],
     ],

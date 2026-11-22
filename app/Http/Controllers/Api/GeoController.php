@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\EraTileRequest;
 use App\Models\Era;
 use App\Services\GeoExporter;
 use App\Services\MapDataCache;
@@ -10,6 +11,7 @@ use App\Services\TraceExport\LineTraceExport;
 use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -279,6 +281,21 @@ class GeoController extends Controller
      * paramètre `v` (version des données, comme le fait la carte VFF), une minute
      * sinon.
      *
+     * **Tuile allégée** (`fields=map`) : seulement les propriétés que lit la carte du site
+     * (`line_slug`, `line_name`, `line_code`, `is_lgv`, `is_threatened`, `network`,
+     * `status`, `traffic_type`, `electrified`, `voltage_v`, `electrification_source`, `gauge_class`,
+     * `is_heritage`, `heritage_kind`, `line_max_speed`, `line_electrified`, `line_voltage_v`,
+     * `draw_rank`, `covered`). Sans `id`, `line_id`, `max_speed_kmh`, `gauge_mm`, `electrified_year`,
+     * `operator`, `source`, `source_trace_id` ni `dismantled_at`. Une propriété sans valeur utile est
+     * absente de l'entité : booléen faux (sauf `line_electrified`), `draw_rank` nul, `gauge_class`
+     * `unknown`, `voltage_v` d'une portion non électrifiée, `heritage_kind` hors patrimoine ;
+     * `electrification_source` ne vaut que `unknown` (électrifiée aujourd'hui, date inconnue) ou manque.
+     * Les tracés aux propriétés identiques (en général les
+     * portions voisines d'une même ligne dans le même état) sont réunis en une entité `MultiLineString`.
+     * Le dessin ne change pas ; la tuile du zoom 4 qui couvre l'est de la France passe de 291 à 120 Ko
+     * compressés. Sans `fields` (ou avec `fields=all`), la tuile garde toutes ses propriétés, une entité
+     * par tronçon.
+     *
      * **Affichage, pas export** : les tuiles servent à afficher la carte du site et
      * la carte intégrable (`/embed/maps`). Elles dessinent tous les tracés, y compris
      * ceux d'une source dont la licence n'autorise pas la redistribution, mais ne
@@ -295,15 +312,26 @@ class GeoController extends Controller
     #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (au-delà, MapLibre agrandit la tuile 14).', example: 8)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ (0 à 2^z - 1).', example: 129)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ (0 à 2^z - 1, origine en haut à gauche).', example: 88)]
+    #[QueryParameter('fields', 'Propriétés des tracés : `all` (défaut, toutes) ou `map` (seulement celles que lit la carte du site, booléens écrits seulement quand ils sont vrais, tracés identiques réunis ; 60 % d\'octets en moins en vue d\'ensemble).', type: 'string', example: 'map')]
     #[ApiResponse(200, 'Tuile Mapbox Vector Tile binaire (protobuf), éventuellement vide.', mediaType: 'application/x-protobuf', type: 'string', format: 'binary')]
     #[ApiResponse(404, 'Tuile hors de la grille XYZ (x ou y >= 2^z) ou zoom supérieur à 14.')]
-    public function tile(Request $request, int $year, int $z, int $x, int $y): Response
+    #[ApiResponse(422, 'Valeur de `fields` inconnue (ni `all` ni `map`).', examples: [[
+        'message' => 'The selected fields is invalid.',
+        'errors' => ['fields' => ['The selected fields is invalid.']],
+    ]])]
+    public function tile(EraTileRequest $request, int $year, int $z, int $x, int $y): Response
     {
         // Tuile hors de la grille XYZ (ou zoom > 14) : elle n'existe pas. Sans ce
         // contrôle, ST_TileEnvelope lève « Invalid tile x value » (HTTP 500).
         abort_unless(MapTiles::onGrid($z, $x, $y), 404);
         abort_unless(Era::where('year', $year)->exists(), 404);
+        $fields = $request->fields();
 
-        return $this->cache->tile($request, "lines:{$year}:{$z}:{$x}:{$y}", $z, fn (): string => $this->exporter->linesAsMvt($year, $z, $x, $y));
+        return $this->cache->tile(
+            $request,
+            "lines:{$year}:{$z}:{$x}:{$y}{$fields->cacheSuffix()}",
+            $z,
+            fn (): string => $this->exporter->linesAsMvt($year, $z, $x, $y, $fields),
+        );
     }
 }

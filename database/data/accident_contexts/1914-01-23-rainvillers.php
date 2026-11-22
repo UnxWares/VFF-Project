@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de wagons à la dérive en gare de Rainvillers, ligne de Beauvais à Gisors, de janvier 1914 (recherche du 21/11/2026).
 return [
     'slug' => '1914-01-23-rainvillers',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1914' => [
             'provider' => 'wikipedia',
@@ -51,17 +51,17 @@ return [
     'sections' => [
         'circumstances' => [
             [
-                'fr' => 'Le 23 janvier 1914, vers 9 h, un train de marchandises chargé de charbon montait vers Labosse sur la ligne de Beauvais à Gisors. Selon la liste de Wikipédia, un attelage s\'est rompu dans la rampe et onze wagons ont dévalé la pente sur neuf kilomètres en direction de Beauvais.',
-                'en' => 'On 23 January 1914, at about 9 am, a goods train loaded with coal was climbing towards Labosse on the Beauvais to Gisors line. According to the Wikipedia list a coupling broke on the incline and eleven wagons ran back nine kilometres downhill towards Beauvais.',
-                'de' => 'Am 23. Januar 1914 gegen 9 Uhr fuhr ein mit Kohle beladener Güterzug auf der Strecke Beauvais-Gisors bergauf in Richtung Labosse. Nach der Wikipedia-Liste riss auf der Steigung eine Kupplung, und elf Wagen rollten neun Kilometer bergab in Richtung Beauvais.',
-                'sources' => ['wp-liste-1914', 'ddb-1914-01-25-volksblatt'],
+                'fr' => 'Le 23 janvier 1914, un train de marchandises chargé de charbon montait vers Labosse sur la ligne de Beauvais à Gisors. Selon la liste de Wikipédia, un attelage s\'est rompu dans la rampe et onze wagons ont dévalé la pente sur neuf kilomètres.',
+                'en' => 'On 23 January 1914 a goods train loaded with coal was climbing towards Labosse on the Beauvais to Gisors line. According to the Wikipedia list a coupling broke on the incline and eleven wagons ran back nine kilometres downhill.',
+                'de' => 'Am 23. Januar 1914 fuhr ein mit Kohle beladener Güterzug auf der Strecke Beauvais-Gisors bergauf in Richtung Labosse. Nach der Wikipedia-Liste riss auf der Steigung eine Kupplung, und elf Wagen rollten neun Kilometer bergab.',
+                'sources' => ['wp-liste-1914'],
             ],
         ],
         'course' => [
             [
-                'fr' => 'Les wagons de charbon ont percuté à Rainvillers un train de voyageurs qui roulait dans le même sens. Plusieurs voitures ont été détruites, et la ligne devait rester coupée au moins cinq jours.',
-                'en' => 'The coal wagons ran into a passenger train travelling in the same direction at Rainvillers. Several coaches were destroyed, and the line was expected to stay closed for at least five days.',
-                'de' => 'Die Kohlenwagen prallten in Rainvillers auf einen in derselben Richtung fahrenden Personenzug. Mehrere Wagen wurden zertrümmert, die Räumung der Strecke sollte mindestens fünf Tage dauern.',
+                'fr' => 'Vers 9 h, les wagons de charbon ont percuté à Rainvillers un train de voyageurs qui roulait dans le même sens. Plusieurs voitures ont été détruites, et la ligne devait rester coupée au moins cinq jours.',
+                'en' => 'At about 9 am the coal wagons ran into a passenger train travelling in the same direction at Rainvillers. Several coaches were destroyed, and the line was expected to stay closed for at least five days.',
+                'de' => 'Gegen 9 Uhr prallten die Kohlenwagen in Rainvillers auf einen in derselben Richtung fahrenden Personenzug. Mehrere Wagen wurden zertrümmert, die Räumung der Strecke sollte mindestens fünf Tage dauern.',
                 'sources' => ['wp-liste-1914', 'ddb-1914-01-24-reichsanzeiger', 'ddb-1914-01-25-volksblatt'],
             ],
         ],

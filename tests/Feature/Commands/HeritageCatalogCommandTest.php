@@ -170,6 +170,6 @@ class HeritageCatalogCommandTest extends TestCase
         fwrite(STDERR, File::get(storage_path('app/reports/heritage-exploitations.csv')));
         fwrite(STDERR, implode(', ', self::$fetched)."\n");
         fwrite(STDERR, implode("\n", array_map('basename', File::files(storage_path('app/sources/heritage'))))."\n");
-        $this->assertTrue(true);
+        $this->addToAssertionCount(1);
     }
 }

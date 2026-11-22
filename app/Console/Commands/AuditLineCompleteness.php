@@ -94,7 +94,7 @@ class AuditLineCompleteness extends Command
             if ($sncf < 100) {
                 continue;
             } // trop court côté SNCF, pas pertinent
-            $pct = $sncf > 0 ? ($vff * 100 / $sncf) : 0;
+            $pct = $vff * 100 / $sncf;
             if ($pct < $threshold) {
                 $deficient[] = (object) [
                     'slug' => $v->slug, 'code' => $v->code, 'name' => $v->name,

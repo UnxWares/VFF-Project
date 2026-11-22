@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de l'automobile broyée par un rapide au passage à niveau de Roissy-en-Brie, ligne de Paris à Mulhouse, de mai 1904 (recherche du 21/11/2026).
+return [
+    'slug' => '1904-05-01-roissy-en-brie',
+    'checked_on' => '2026-11-22',
+    'sources' => [
+        'wp-liste-1904' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1904',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Mai',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1904&oldid=240831504#Mai',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 1er mai 1904, d\'après Le Matin du 3 mai : vers 17 h 30, sur la ligne Paris - Belfort, près de Roissy-en-Brie, le garde-barrière n\'a eu le temps de fermer qu\'une des deux barrières de son passage à niveau à l\'approche d\'un rapide venant de Troyes quand une automobile arrive du côté opposé et s\'engage sur les voies ; ses six occupants sont tués.',
+        ],
+        'ddb-1904-05-02-tageblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Sechs Automobilisten vom Schnellzug getötet',
+            'publisher' => 'Berliner Tageblatt und Handels-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-05-02',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/BQ7Z4BY5RG4LIWCDKYKA7GBK5AV4ZDTY?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme de Paris : le dimanche, près de Roissy-en-Brie, une automobile qui faisait une promenade a voulu franchir la voie alors que l\'express Bâle - Paris approchait ; le garde-barrière n\'avait pas fermé la barrière ; la locomotive a projeté la voiture en l\'air ; le train s\'est arrêté, mais les six occupants avaient été tués sur le coup.',
+        ],
+        'ddb-1904-05-03-vorwaerts' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Sechs Automobilisten vom Schnellzug getötet',
+            'publisher' => 'Vorwärts (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-05-03',
+            'locator' => 'p. 10',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AFXN5TWOB7AD67SN33YAIZOZSJOAFFJ2?issuepage=10',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprise de la dépêche du Berliner Tageblatt : automobile heurtée par l\'express Bâle - Paris près de Roissy-en-Brie, barrière restée ouverte, six occupants tués sur le coup.',
+        ],
+        'ddb-1904-05-05-generalanzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 3. Mai',
+            'publisher' => 'General-Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-05-05',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/S4V7O2HPRYGM75XFF5UYSHLYIRW7H2CJ?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 3 mai, même récit : promenade en automobile, express Bâle - Paris, barrière non fermée par le garde, voiture projetée en l\'air.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 1er mai 1904, vers 17 h 30, une automobile transportant six personnes faisait une promenade près de Roissy-en-Brie, à l\'est de Paris. Sur la ligne de Paris à Mulhouse arrivait l\'express de Bâle à Paris, passé par Troyes.',
+                'en' => 'On Sunday 1 May 1904, at about 5.30 pm, a motor car carrying six people was out for a drive near Roissy-en-Brie, east of Paris. On the Paris to Mulhouse line the Basel to Paris express, which had come through Troyes, was approaching.',
+                'de' => 'Am Sonntag, dem 1. Mai 1904, gegen 17.30 Uhr war ein mit sechs Personen besetztes Automobil bei Roissy-en-Brie östlich von Paris auf einer Ausflugsfahrt. Auf der Strecke Paris-Mülhausen näherte sich der Schnellzug Basel-Paris, der über Troyes kam.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt', 'ddb-1904-05-03-vorwaerts'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'L\'automobile s\'est engagée sur le passage à niveau alors que le train approchait. La locomotive l\'a heurtée et projetée en l\'air ; le train s\'est arrêté.',
+                'en' => 'The car drove onto the level crossing as the train approached. The engine struck it and threw it into the air; the train stopped.',
+                'de' => 'Das Automobil fuhr auf den Bahnübergang, als der Zug herankam. Die Lokomotive erfasste es und schleuderte es in die Luft; der Zug hielt an.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt', 'ddb-1904-05-05-generalanzeiger'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les six occupants de l\'automobile ont été tués sur le coup.',
+                'en' => 'All six occupants of the car were killed outright.',
+                'de' => 'Alle sechs Insassen des Automobils waren sofort tot.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt', 'ddb-1904-05-03-vorwaerts'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le garde-barrière n\'avait eu le temps de fermer qu\'une des deux barrières et l\'automobile est arrivée du côté resté ouvert. Selon la presse allemande, il n\'avait pas fermé la barrière et le conducteur pensait passer avant le train.',
+                'en' => 'According to the Wikipedia list the crossing keeper had only had time to close one of the two barriers and the car came from the side left open. According to the German press he had not closed the barrier and the driver thought he could cross before the train.',
+                'de' => 'Nach der Wikipedia-Liste hatte der Schrankenwärter nur eine der beiden Schranken schließen können, und das Automobil kam von der offenen Seite. Nach der deutschen Presse hatte er die Schranke nicht geschlossen, und der Fahrer glaubte, noch vor dem Zug hinüberzukommen.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 6,
+            'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt'],
+            'fr' => 'Six occupants de l\'automobile tués selon la liste de Wikipédia (Le Matin du 3 mai 1904) et la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Six occupants of the car killed according to the Wikipedia list (Le Matin of 3 May 1904) and the German press; the record gave no number of deaths.',
+            'de' => 'Sechs Insassen des Automobils getötet nach der Wikipedia-Liste (Le Matin vom 3. Mai 1904) und der deutschen Presse; der Eintrag nannte keine Zahl von Toten.',
+        ],
+        [
+            'field' => 'commune_insee',
+            'value' => '77390',
+            'sources' => ['wp-liste-1904', 'ddb-1904-05-02-tageblatt'],
+            'fr' => 'L\'accident a eu lieu près de Roissy-en-Brie (Seine-et-Marne) selon la liste de Wikipédia et la presse allemande ; la fiche le plaçait à Troyes, d\'où venait le train.',
+            'en' => 'The accident happened near Roissy-en-Brie (Seine-et-Marne) according to the Wikipedia list and the German press; the record placed it at Troyes, where the train came from.',
+            'de' => 'Der Unfall ereignete sich nach der Wikipedia-Liste und der deutschen Presse bei Roissy-en-Brie (Seine-et-Marne); der Eintrag verortete ihn in Troyes, woher der Zug kam.',
+        ],
+    ],
+];

@@ -98,7 +98,7 @@ class CommonsMetadata
             'attribution_required' => $rights['attribution_required'],
             'attribution' => self::attribution($author, $rights, self::plainDashes(self::clean($ext['Attribution'] ?? null, 300))),
             'depicted_year' => $date['year'] ?? null,
-            'depicted_year_to' => $date['year_to'] ?? null,
+            'depicted_year_to' => null,
             'date_precision' => $date['precision'] ?? null,
             'captured_at' => $date['date'] ?? null,
             'date_raw' => self::clean($ext['DateTimeOriginal'] ?? null, 120),

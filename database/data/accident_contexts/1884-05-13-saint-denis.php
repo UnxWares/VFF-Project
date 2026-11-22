@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de la collision de la Plaine Saint-Denis (Landy) du soir du 13 mai 1884 (recherche du 21/11/2026).
+return [
+    'slug' => '1884-05-13-saint-denis',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1884',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064#1884',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste, datée du 14 mai 1884 et d\'après La Presse du 15 mai : sur la banlieue Nord, vers 22 h 55, avant Saint-Denis, un train de voyageurs percute un train de marchandises dont le mécanicien est tué ; 31 blessés.',
+        ],
+        'ddb-1884-05-15-norddeutsche' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, Mittwoch 14. Mai, Nachmittags',
+            'publisher' => 'Norddeutsche allgemeine Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1884-05-15',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IGNX265A7WRZPC57MUGM5JFW62IETLT5?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 14 mai : « hier soir » à 22 h, sur la ligne du Nord près de la station de Landy, dans la plaine de Saint-Denis, à un croisement de deux lignes superposées, un train de marchandises circulant sur la ligne supérieure tombe par erreur sur le train de voyageurs de la ligne inférieure ; le mécanicien est tué, 25 voyageurs et 5 agents sont blessés.',
+        ],
+        'ddb-1884-05-15-dortmunder' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 14. Mai (Eisenbahn-Unglück)',
+            'publisher' => 'Dortmunder Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1884-05-15',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/LPQJGSJOR7VFK6WLN2WCTW22WD7H2QR6?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : accident de la veille au soir, à 22 h, près de Landy ; un mécanicien tué, 25 voyageurs et 5 agents blessés, la plupart des voyageurs ont pu poursuivre leur route.',
+        ],
+        'ddb-1884-05-16-frankenberger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ein grausiges Schauspiel bot sich am 13. d. abends in der Ebene von St. Denis',
+            'publisher' => 'Frankenberger Tageblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1884-05-16',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/XI6B5HKKXYEUOER3MR5UJ5Z44R6WCAYS?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève datant l\'accident du 13 mai au soir : un mécanicien tué, 25 voyageurs et 4 agents blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'L\'accident s\'est produit le soir du mardi 13 mai 1884, vers 22 h, sur la ligne du Nord, près de la station de Landy, dans la plaine de Saint-Denis, à un croisement de deux lignes superposées. La liste de Wikipédia le date du 14 mai, mais les dépêches du 14 mai parlent de la veille au soir.',
+                'en' => 'The accident happened on the evening of Tuesday 13 May 1884, at about 10 pm, on the Nord line near Landy station in the plain of Saint-Denis, at a crossing of two lines on different levels. The Wikipedia list dates it to 14 May, but the dispatches of 14 May speak of the previous evening.',
+                'de' => 'Der Unfall ereignete sich am Abend des Dienstags, 13. Mai 1884, gegen 22 Uhr auf der Nordbahn nahe der Station Landy in der Ebene von Saint-Denis, an einer Kreuzung zweier übereinanderliegender Linien. Die Wikipedia-Liste datiert ihn auf den 14. Mai, die Depeschen vom 14. Mai sprechen aber vom Vorabend.',
+                'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-15-dortmunder', 'ddb-1884-05-16-frankenberger', 'wp-liste-1880'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un train de marchandises circulant sur la ligne supérieure est tombé, par suite d\'une erreur, sur un train de voyageurs qui passait en dessous. La liste de Wikipédia décrit une collision avec un train de marchandises avant Saint-Denis.',
+                'en' => 'A goods train running on the upper line fell, through an error, onto a passenger train passing below. The Wikipedia list describes a collision with a goods train before Saint-Denis.',
+                'de' => 'Ein Güterzug auf der oberen Linie stürzte aufgrund eines Versehens auf einen darunter fahrenden Personenzug. Die Wikipedia-Liste beschreibt einen Zusammenstoß mit einem Güterzug vor Saint-Denis.',
+                'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-15-dortmunder', 'wp-liste-1880'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien a été tué. Les dépêches comptent 25 voyageurs et 5 agents blessés, la plupart des voyageurs ayant pu poursuivre leur voyage ; la liste de Wikipédia donne 31 blessés.',
+                'en' => 'The driver was killed. The dispatches count 25 passengers and 5 staff injured, most passengers being able to continue their journey; the Wikipedia list gives 31 injured.',
+                'de' => 'Der Maschinist wurde getötet. Die Depeschen zählen 25 verletzte Reisende und 5 Bedienstete, die meisten Reisenden konnten die Fahrt fortsetzen; die Wikipedia-Liste nennt 31 Verletzte.',
+                'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-15-dortmunder', 'wp-liste-1880'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés diffère : 30 dans les dépêches du 14 mai (29 dans une brève du 16 mai), 31 dans la liste de Wikipédia. La date diffère aussi : 13 mai au soir dans la presse, 14 mai dans la liste.',
+                'en' => 'The number of injured differs: 30 in the dispatches of 14 May (29 in a brief of 16 May), 31 in the Wikipedia list. The date differs too: the evening of 13 May in the press, 14 May in the list.',
+                'de' => 'Die Zahl der Verletzten weicht ab: 30 in den Depeschen vom 14. Mai (29 in einer Meldung vom 16. Mai), 31 in der Wikipedia-Liste. Auch das Datum weicht ab: Abend des 13. Mai in der Presse, 14. Mai in der Liste.',
+                'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-16-frankenberger', 'wp-liste-1880'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1884-05-13',
+            'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-15-dortmunder', 'ddb-1884-05-16-frankenberger'],
+            'fr' => 'Trois journaux allemands datent l\'accident du soir du 13 mai 1884, vers 22 h ; la fiche portait le 14 mai, jour des dépêches.',
+            'en' => 'Three German newspapers date the accident to the evening of 13 May 1884, at about 10 pm; the record had 14 May, the day of the dispatches.',
+            'de' => 'Drei deutsche Zeitungen datieren den Unfall auf den Abend des 13. Mai 1884, gegen 22 Uhr; der Eintrag nannte den 14. Mai, den Tag der Depeschen.',
+        ],
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['ddb-1884-05-15-norddeutsche', 'ddb-1884-05-15-dortmunder', 'wp-liste-1880'],
+            'fr' => 'Un mécanicien tué, selon les dépêches du 14 mai 1884 et la liste de Wikipédia ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One driver killed, according to the dispatches of 14 May 1884 and the Wikipedia list; the record gave no number of deaths.',
+            'de' => 'Ein Maschinist getötet nach den Depeschen vom 14. Mai 1884 und der Wikipedia-Liste; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

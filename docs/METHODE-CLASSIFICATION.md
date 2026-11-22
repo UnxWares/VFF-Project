@@ -89,6 +89,31 @@ jamais par une écriture directe en base.
 9. Une gare ne se rapproche jamais d'un arrêt GTFS par son seul nom au-delà de quelques centaines de mètres :
    « Saint-Gervais-les-Bains » (Tramway du Mont-Blanc, en ville) n'est pas l'arrêt SNCF du Fayet (1,2 km).
 
+## Gare fermée sur la carte des époques (2026-11-22)
+
+Règle de Baptiste : une gare fermée ne disparaît jamais de la section des gares ni de la liste des gares de sa
+ligne ; sur la carte des époques, elle est marquée fermée dans la décennie où elle ferme, puis retirée des
+décennies suivantes, même si le bâtiment est toujours debout.
+
+1. Une ère est l'état au 31/12 de son année : la gare est « fermée » à la première ère qui suit sa fermeture
+   (fermée en 1955 : fermée en 1960, absente à partir de 1970), puis absente, qu'elle soit debout, démolie ou
+   réutilisée. Une gare jamais montrée ouverte garde sa première ère fermée.
+2. Toutes les façons de fermer comptent : fermeture totale, fin du fret après celle des voyageurs (ou l'inverse),
+   démolition, toutes les lignes fermées ou déposées, arrêt plus exploité. Une gare fret seul reste montrée tant
+   qu'elle a du fret, puis suit la même règle.
+3. Rouverte, la gare revient à l'ère de sa réouverture.
+4. La règle des 300 m reste : une gare fermée n'est dessinée que si une voie reste en place près d'elle ; sur
+   une ligne déposée, elle n'apparaît pas même à l'ère de sa fermeture (sa ligne la garde dans sa liste).
+5. La variante du 21/11 (fermée tant qu'elle est debout, absente tout de suite si elle a disparu) est retirée.
+
+Code : `StationTimeline::statusFromEvents` dit « fermée » après toute fermeture ; `vff:build-station-eras`
+(étape `keepClosedOnlyAtClosingEra`, après le calcul de toutes les ères) retire les ères fermées suivantes de
+`station_eras` et leurs `line_stops`. Lecteurs : la carte et l'API `eras/{année}/stations.geojson`, la section
+des gares filtrée par ère, la frise de la fiche gare et la vue « décennie par décennie » de la fiche ligne
+suivent `station_eras` ; la section des gares sans filtre d'ère, la fiche gare (`stations.status`, dates) et
+la liste des gares d'une ligne (`station_lines`) gardent toutes les gares. Dans la fiche ligne, `status_today`
+vaut `null` pour une gare absente de la carte d'aujourd'hui.
+
 ## Date de fermeture d'une gare et frise des ères (2026-11-19)
 
 La date de fermeture retenue (`stations.closed_at`) ne contredit jamais la frise, même aux ères « non
@@ -499,3 +524,13 @@ _Source FIABLE et déterministe pour le signal NÉGATIF 'ligne disparue/déposé
   Usage : Stratégie en cascade : (1) Extraire les villes-extrémités du nom (split sur espace, gérer '/' et '&'). (2) Matcher contre les endpoints des lignes VFF (premier/dernier toponyme de lines.name après 'Ligne de … à …') BORNÉ par région/département (rubrique_chain) pour réduire l'ambiguïté. (3) DÉSAMBIGUÏSER géométriquement : télécharger le GPX, buffer ~200 m, mesurer le % de recouvrement avec sncf_line_geometries.geom ; retenir le code_ligne le plus recouvert. (4) Si aucun recouvrement RFN significatif => ligne secondaire/industrielle absente du RFN : créer une nouvelle 'line' (type freight/secondaire/militaire selon qualificatifs) avec la géométrie GPX. Pour le 'partiellement déposé' : utiliser 'non déferrée entre A et B' pour scinder en segments status='abandoned' (rails) vs 'dismantled' (déposé).
   
   Pièges : Risque élevé de mauvais appariement par nom seul : homonymes de gares, lignes secondaires absentes du RFN (donc sans code), villes intermédiaires omises. TOUJOURS confirmer par la géométrie GPX avant d'écrire un statut sur une ligne VFF. Le statut SNCF (libelle) reste la SOURCE AUTORITAIRE pour les lignes du RFN : archeoferroviaire complète (dates fines, sous-tronçons déposés, lignes hors-RFN), il ne contredit pas le RFN exploité. Ne JAMAIS dériver 'fret-only' depuis archeoferroviaire (le site ne renseigne que des lignes disparues, pas l'état d'exploitation fret actuel).
+
+## Drapeau « électrifiée » d'une ligne (22/11/2026)
+
+`lines.electrified` n'est plus le « OU » des tronçons : App\Services\Traction\LineElectrificationAggregate le
+déduit de la part des tronçons en service électrifiés de l'ère courante, au seuil de l'état « marginal » de la
+fiche (LineStats::MARGINAL_ELECTRIFIED_PCT, 5 %). Les quelques centaines de mètres de voies d'une gare ou d'un
+raccordement (609 m sur Limoges - Angoulême, 279 m sur Andelot - La Cluse) ne rendent plus une ligne
+électrifiée. Valeur conservée si les tronçons sont muets ou si la ligne n'a aucune longueur en service.
+`vff:classify-lines` l'appelle en fin de passe ; `vff:aggregate-line-electrification [--dry-run]` le recalcule seul
+(ne touche que la table `lines`).

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de l'express Avricourt - Paris entre Fontenoy-sur-Moselle et Liverdun, ligne de Paris à Strasbourg, de mai 1914 (recherche du 21/11/2026).
 return [
     'slug' => '1914-05-10-fontenoy-sur-moselle',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1914' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche de Paris du 12 mai : collision de l\'express Nancy - Paris et d\'un train de marchandises près de la station de Liverdun ; sept personnes grièvement blessées, le mécanicien de l\'express mourant.',
         ],
+        'ddb-1914-05-11-mannheim' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schweres Eisenbahnunglück',
+            'publisher' => 'General-Anzeiger der Stadt Mannheim (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-05-11',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/565DTPGFFJMVU6DROOPC75FMJWFRYUCX?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche de Paris du 11 mai, d\'après Nancy : la veille, entre Fontenoy et Liverdun, un train de marchandises a déraillé et plusieurs wagons sont venus sur la voie voisine ; le train qui arrivait n\'a pas pu s\'arrêter à temps ; voie arrachée sur 50 m ; selon le texte, de lecture difficile, un agent du train a péri et un blessé a été conduit à l\'hôpital de Nancy ; les voyageurs n\'ont surtout que des blessures légères.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -73,10 +87,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Selon la liste de Wikipédia, le train de marchandises avait déraillé après une rupture d\'essieu et ses wagons couvraient les deux voies ; selon la presse allemande, l\'express a heurté par erreur un train arrêté sur la même voie, de marchandises ou de voyageurs selon les journaux. Le bilan diffère aussi : chef de train grièvement blessé et quelques voyageurs contusionnés dans la liste, mécanicien mourant et sept voyageurs grièvement blessés dans les dépêches de Paris du 12 mai.',
-                'en' => 'According to the Wikipedia list the goods train had derailed after an axle broke and its wagons covered both tracks; according to the German press the express ran by mistake into a train standing on the same track, a goods train or a passenger train depending on the paper. The toll also differs: guard seriously injured and a few passengers bruised in the list, driver dying and seven passengers seriously injured in the Paris dispatches of 12 May.',
-                'de' => 'Nach der Wikipedia-Liste war der Güterzug nach einem Achsbruch entgleist und seine Wagen versperrten beide Gleise; nach der deutschen Presse fuhr der Schnellzug durch ein Versehen auf einen auf demselben Gleis stehenden Zug auf, je nach Blatt einen Güter- oder Personenzug. Auch die Bilanz weicht ab: in der Liste ein schwer verletzter Zugführer und einige Reisende mit Prellungen, in den Pariser Meldungen vom 12. Mai ein sterbender Lokomotivführer und sieben schwer verletzte Reisende.',
-                'sources' => ['wp-liste-1914', 'ddb-1914-05-12-buerener', 'ddb-1914-05-12-grafschafter', 'ddb-1914-05-13-castrop'],
+                'fr' => 'La nature de l\'accident diffère. Selon la liste de Wikipédia et la dépêche de Nancy publiée le 11 mai à Mannheim, le train de marchandises avait déraillé et ses wagons encombraient la voie voisine ; selon d\'autres dépêches allemandes, l\'express a heurté par erreur un train arrêté sur la même voie. Le bilan diffère aussi : chef de train grièvement blessé et quelques voyageurs contusionnés dans la liste, un agent mort dans la dépêche de Nancy, mécanicien mourant et sept voyageurs grièvement blessés dans les dépêches de Paris du 12 mai. Aucune source lue ne donne le nombre définitif de morts.',
+                'en' => 'The nature of the accident differs. According to the Wikipedia list and the Nancy dispatch printed on 11 May in Mannheim, the goods train had derailed and its wagons blocked the adjacent track; according to other German dispatches, the express ran by mistake into a train standing on the same track. The toll also differs: guard badly injured and a few passengers bruised in the list, one railwayman dead in the Nancy dispatch, driver dying and seven passengers badly injured in the Paris dispatches of 12 May. No source read gives the final number of dead.',
+                'de' => 'Die Art des Unfalls ist strittig. Nach der Wikipedia-Liste und der am 11. Mai in Mannheim erschienenen Meldung aus Nancy war der Güterzug entgleist und seine Wagen versperrten das Nachbargleis; nach anderen deutschen Depeschen fuhr der Schnellzug irrtümlich auf einen auf demselben Gleis stehenden Zug. Auch die Opferzahl weicht ab: Zugführer schwer verletzt und einige Reisende geprellt in der Liste, ein Bediensteter tot in der Meldung aus Nancy, Lokomotivführer im Sterben und sieben Reisende schwer verletzt in den Pariser Depeschen vom 12. Mai. Keine gelesene Quelle nennt die endgültige Zahl der Toten.',
+                'sources' => ['wp-liste-1914', 'ddb-1914-05-11-mannheim', 'ddb-1914-05-12-buerener', 'ddb-1914-05-13-castrop'],
             ],
         ],
     ],

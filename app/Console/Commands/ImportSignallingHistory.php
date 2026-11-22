@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Signalling\SignallingCorrectionsFile;
 use App\Services\Signalling\SignallingHistoryExtractor;
 use App\Services\Signalling\SignallingHistoryMap;
 use App\Services\Signalling\SignallingSectionLocator;
@@ -23,7 +24,12 @@ use Illuminate\Support\Facades\DB;
  * que des faits peu fiables (jamais montrés).
  *
  * Rejouable : un fait a une empreinte stable (ligne, système, date, portion) ; les faits d'une ligne lue qui ne
- * sont plus extraits sont retirés (cette table seulement).
+ * sont plus extraits sont retirés (cette table seulement, faits de Wikipédia seulement : ceux datés par d'autres
+ * documents, `vff:import-signalling-sources`, ne sont jamais touchés).
+ *
+ * Corrections sourcées (`database/data/signalling_history_corrections.php`, SignallingCorrectionsFile) : un fait
+ * de Wikipédia qu'une correction vise reste en base mais n'est plus montré (`confidence = 'hidden'`, colonne
+ * `correction`) ; un fait visé introuvable est une erreur (la commande échoue après le bilan).
  *
  * Deuxième passe (soirée du 19/11/2026) : l'infobox et les tableaux sont lus aussi, la TVM d'une LGV est datée
  * de son ouverture (SignallingInfoboxReader), chaque portion nommée est placée sur la ligne par ses gares
@@ -42,12 +48,18 @@ class ImportSignallingHistory extends Command
         {--offline : n\'appelle jamais Wikipédia, lit le cache seulement}
         {--refresh : redemande les articles même s\'ils sont en cache}
         {--cache-dir= : dossier du cache des articles}
+        {--corrections= : fichier des corrections (défaut : database/data/signalling_history_corrections.php)}
         {--dry-run : n\'écrit rien en base, affiche le bilan (et les faits avec -v)}';
 
     protected $description = 'Range les mises en service de signalisation (BAL, BAPR, BM, CT, TVM, ETCS, KVB) datées dans les articles Wikipédia des lignes, les place sur le tracé et recalcule la carte par ère.';
 
     public function handle(WikimediaClient $wiki, SignallingHistoryExtractor $extractor, SignallingSectionLocator $locator, SignallingHistoryMap $map): int
     {
+        $loaded = $this->corrections();
+        if ($loaded === null) {
+            return self::FAILURE;
+        }
+        $this->corrections = $loaded;
         $lines = $this->lines();
         if ($lines === []) {
             $this->error('Aucune ligne avec un article Wikipédia.');
@@ -67,6 +79,7 @@ class ImportSignallingHistory extends Command
         $perTitle = DB::table('lines')->whereNotNull('wikipedia_title')->where('wikipedia_title', '!=', '')
             ->groupBy('wikipedia_title')->selectRaw('wikipedia_title, COUNT(*) AS n')->pluck('n', 'wikipedia_title')->map(fn ($n): int => (int) $n)->all();
         $readIds = [];
+        $readRefs = [];
         $stats = ['read' => 0, 'missing' => 0, 'rejected' => 0, 'with_facts' => 0, 'facts' => 0, 'removed' => 0, 'confidence' => [], 'system' => [], 'origin' => [], 'location' => []];
         $dry = (bool) $this->option('dry-run');
 
@@ -87,6 +100,7 @@ class ImportSignallingHistory extends Command
             }
             $stats['read']++;
             $readIds[] = $line['id'];
+            array_push($readRefs, ...array_filter([$line['code'], $line['slug']]));
             $facts = $extractor->extract($article['content'], $article['title'], lgv: $line['is_lgv']);
             if (count($codes) > 1) {
                 // Article de plusieurs lignes : on ne sait pas à laquelle le fait s'applique. Sauf la TVM d'une
@@ -116,8 +130,20 @@ class ImportSignallingHistory extends Command
 
         // Import complet : les faits d'une ligne qui n'est plus lue (article absent, rejeté, titre retiré) disparaissent.
         if ($this->option('line') === [] && ! $this->option('limit')) {
-            $orphans = DB::table('line_signalling_events')->whereNotIn('line_id', $readIds ?: [0]);
+            $orphans = DB::table('line_signalling_events')->where('source', 'wikipedia')->whereNotIn('line_id', $readIds ?: [0]);
             $stats['removed'] += $dry ? $orphans->count() : $orphans->delete();
+        }
+
+        // Une correction visant un fait de Wikipédia qui n'a pas été rencontré : l'article a changé, ou la ligne n'est plus lue.
+        $unused = [];
+        $whole = $this->option('line') === [] && ! $this->option('limit');
+        $known = DB::table('lines')->whereIn('code', array_column($this->corrections, 'line'))->orWhereIn('slug', array_column($this->corrections, 'line'))->pluck('code', 'slug');
+        foreach ($this->corrections as $i => $c) {
+            // Une ligne absente de la base (copie partielle) n'est pas une erreur : il n'y a rien à corriger.
+            $inBase = isset($known[$c['line']]) || $known->contains($c['line']);
+            if ($c['target']['source'] === 'wikipedia' && ! isset($this->applied[$i]) && $inBase && ($whole || in_array($c['line'], $readRefs, true))) {
+                $unused[] = SignallingCorrectionsFile::describe($c);
+            }
         }
 
         $this->info(sprintf('%s%d lignes lues, %d avec des faits, %d faits (%d retirés : disparus de l\'article, ou ligne qui n\'est plus lue).',
@@ -135,7 +161,49 @@ class ImportSignallingHistory extends Command
             $this->info('Carte par ère : '.$map->rebuild().' tracés (ères passées ; l\'ère courante garde l\'état de SNCF Réseau).');
         }
 
-        return self::SUCCESS;
+        foreach ($unused as $label) {
+            $this->error("Correction sans fait visé : {$label} (l'article a changé ?)");
+        }
+
+        return $unused === [] ? self::SUCCESS : self::FAILURE;
+    }
+
+    /** @var list<array<string, mixed>> */
+    private array $corrections = [];
+
+    /** @var array<int, true> corrections appliquées pendant cette passe (indices) */
+    private array $applied = [];
+
+    /**
+     * Corrections du fichier, ou null (erreur affichée) s'il est illisible ou contient une correction refusée.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function corrections(): ?array
+    {
+        $path = $this->option('corrections') ?: SignallingCorrectionsFile::defaultPath();
+        if (! is_file($path)) {
+            $this->error("Fichier de corrections introuvable : {$path}");
+
+            return null;
+        }
+        $entries = require $path;
+        if (! is_array($entries)) {
+            $this->error('Le fichier de corrections doit renvoyer une liste.');
+
+            return null;
+        }
+        ['corrections' => $corrections, 'errors' => $errors] = SignallingCorrectionsFile::parse(array_values($entries));
+        foreach ($errors as $error) {
+            $this->warn('  Refusée : '.$error);
+        }
+        if ($errors !== []) {
+            $this->error(count($errors).' correction(s) refusée(s) : corrigez le fichier, rien n\'est écrit.');
+
+            return null;
+        }
+
+        return $corrections;
     }
 
     /** @return list<array{id: int, code: ?string, slug: string, wikipedia_title: string, is_lgv: bool}> */
@@ -157,7 +225,7 @@ class ImportSignallingHistory extends Command
     }
 
     /**
-     * @param  array{id: int, code: ?string}  $line
+     * @param  array{id: int, code: ?string, slug: string}  $line
      * @param  array{title: string, revid: int}  $article
      * @param  list<array<string, mixed>>  $facts
      * @param  bool  $withGeometry  trace aussi la portion placée (pas en simulation)
@@ -172,6 +240,13 @@ class ImportSignallingHistory extends Command
             $fingerprint = sha1(implode('|', [$line['id'], $f['system'], $f['date'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']]));
             $place = $locator->locate($line['id'], $f['scope'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']);
             $geometry = $withGeometry && $place['pk_start_m'] !== null ? $locator->geometry($line['code'], $place['pk_start_m'], (int) $place['pk_end_m']) : null;
+            $correction = null;
+            foreach ($this->corrections as $i => $c) {
+                if (SignallingCorrectionsFile::matches($c, 'wikipedia', array_values(array_filter([$line['code'], $line['slug']])), $f['system'], $f['date'], $f['section_from'], $f['section_to'])) {
+                    $correction = $c;
+                    $this->applied[$i] = true;
+                }
+            }
             $rows[$fingerprint] = [
                 'line_id' => $line['id'],
                 'system' => $f['system'],
@@ -189,7 +264,8 @@ class ImportSignallingHistory extends Command
                 'located_pk_start_m' => $place['pk_start_m'],
                 'located_pk_end_m' => $place['pk_end_m'],
                 'section_geom' => $geometry,
-                'confidence' => $f['confidence'],
+                'confidence' => $correction === null ? $f['confidence'] : 'hidden',
+                'correction' => $correction === null ? null : SignallingCorrectionsFile::stored($correction),
                 'origin' => $f['origin'],
                 'source' => 'wikipedia',
                 'source_title' => $article['title'],
@@ -219,7 +295,7 @@ class ImportSignallingHistory extends Command
                 $rows = array_map(fn (array $r): array => array_diff_key($r, ['section_geom' => true]), $rows);
                 DB::table('line_signalling_events')->upsert($rows, ['fingerprint'], [
                     'role', 'date_precision', 'scope', 'section_location', 'from_station_id', 'to_station_id', 'located_pk_start_m', 'located_pk_end_m',
-                    'confidence', 'origin', 'source_title', 'source_revision', 'source_url', 'source_excerpt', 'updated_at',
+                    'confidence', 'correction', 'origin', 'source_title', 'source_revision', 'source_url', 'source_excerpt', 'updated_at',
                 ]);
                 foreach ($geometries as $fingerprint => $geometry) {
                     DB::update("UPDATE line_signalling_events SET section_geom = CASE WHEN ?::text IS NULL THEN NULL ELSE ST_GeomFromEWKB(decode(?, 'hex')) END WHERE fingerprint = ?",
@@ -227,7 +303,7 @@ class ImportSignallingHistory extends Command
                 }
             }
 
-            return DB::table('line_signalling_events')->where('line_id', $lineId)
+            return DB::table('line_signalling_events')->where('line_id', $lineId)->where('source', 'wikipedia')
                 ->whereNotIn('fingerprint', array_column($rows, 'fingerprint') ?: [''])
                 ->delete();
         });

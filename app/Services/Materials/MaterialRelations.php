@@ -77,25 +77,34 @@ final class MaterialRelations
 
     /**
      * @param  array<string, array{lines: list<int>, stops: list<string>, source: string}>  $itineraries  titre normalisé → lignes de VFF
+     * @param  list<array{relation: array{0: string, 1: string}, lines: list<int>}>  $ambiguousRelations  relations ambiguës dont les lignes sont fixées par une note
      */
     public function __construct(
         private readonly RelationRouter $router,
         private readonly MaterialPeriodExtractor $extractor,
         private readonly array $itineraries,
+        private readonly array $ambiguousRelations = [],
     ) {}
 
     /**
      * Itinéraires du fichier de données, codes de ligne remplacés par les identifiants (un code absent de la
      * base est ignoré).
      *
+     * Relations ambiguës de database/data/material_relation_lines.php, codes de ligne traduits de même.
+     *
      * @param  array<string, array{stops: list<string>, lines: list<string>, source: string}>|null  $data
+     * @param  list<array{relation: array{0: string, 1: string}, lines: list<string>, source: string, reason: string}>|null  $ambiguous
      */
-    public static function fromDatabase(?array $data = null): self
+    public static function fromDatabase(?array $data = null, ?array $ambiguous = null): self
     {
         $data ??= require database_path('data/wikipedia_itineraries.php');
+        $ambiguous ??= require database_path('data/material_relation_lines.php');
         $codes = [];
         foreach ($data as $itinerary) {
             array_push($codes, ...$itinerary['lines']);
+        }
+        foreach ($ambiguous as $note) {
+            array_push($codes, ...$note['lines']);
         }
         $ids = [];
         foreach (DB::table('lines')->whereIn('code', array_unique($codes))->get(['id', 'code']) as $row) {
@@ -110,7 +119,16 @@ final class MaterialRelations
             $itineraries[WikipediaMaterialSections::normalizeTitle($title)] = ['lines' => $lines, 'stops' => $itinerary['stops'], 'source' => $itinerary['source']];
         }
 
-        return new self(new RelationRouter, new MaterialPeriodExtractor(new WikipediaLineParser), $itineraries);
+        $notes = [];
+        foreach ($ambiguous as $note) {
+            $lines = [];
+            foreach ($note['lines'] as $code) {
+                array_push($lines, ...$ids[$code] ?? []);
+            }
+            $notes[] = ['relation' => $note['relation'], 'lines' => $lines];
+        }
+
+        return new self(new RelationRouter, new MaterialPeriodExtractor(new WikipediaLineParser), $itineraries, $notes);
     }
 
     /**
@@ -284,10 +302,16 @@ final class MaterialRelations
                 } elseif ($route['status'] === 'no_path') {
                     $this->stats['pairs_without_path']++;
                 }
-                // Relation ambiguë : rien, même si RelationRouter::route() donne les lignes communes à tous les
-                // itinéraires proches, sans les sorties de gare (essais du 21/11 : 322 puis 283 liens créés, dont
-                // encore des faux, comme BB 22200 sur Lens - Don-Sainghin pour Paris - Lille - Calais).
-                if ($route['status'] === 'ok') {
+                // Relation ambiguë : rien, sauf si une note de database/data/material_relation_lines.php fixe ses
+                // lignes (décision du 22/11/2026). Les lignes communes à tous les itinéraires proches, que donne
+                // RelationRouter::route(), ne suffisent pas : essais du 21/11, 322 puis 283 liens créés, dont
+                // des faux (BB 22200 sur Lens - Don-Sainghin pour Paris - Lille - Calais).
+                if ($route['status'] === 'ambiguous') {
+                    $noted = $this->notedLines($written[$k], $written[$k + 1]);
+                    if ($noted !== []) {
+                        array_push($lines, ...$noted);
+                    }
+                } elseif ($route['status'] === 'ok') {
                     array_push($lines, ...$route['lines']);
                     $chosen[$k] = $route['from'];
                     $chosen[$k + 1] = $route['to'];
@@ -323,6 +347,32 @@ final class MaterialRelations
         }
 
         return $out;
+    }
+
+    /**
+     * Lignes fixées par une note pour une relation ambiguë entre deux arrêts écrits dans la phrase (dans un sens
+     * ou dans l'autre ; un nom de ville vaut pour ses gares : « Saint-Gervais » pour « Saint-Gervais-les-Bains »).
+     *
+     * @return list<int>
+     */
+    private function notedLines(string $from, string $to): array
+    {
+        $ends = [RelationRouter::key($from), RelationRouter::key($to)];
+        $lines = [];
+        foreach ($this->ambiguousRelations as $note) {
+            [$a, $b] = array_map(RelationRouter::key(...), $note['relation']);
+            if ((self::named($a, $ends[0]) && self::named($b, $ends[1])) || (self::named($a, $ends[1]) && self::named($b, $ends[0]))) {
+                array_push($lines, ...$note['lines']);
+            }
+        }
+
+        return $lines;
+    }
+
+    /** Le lieu de la note (clé comparable) désigne-t-il l'arrêt écrit ? Nom exact ou début de nom (« lyon » : « lyon-part-dieu »). */
+    private static function named(string $place, string $stop): bool
+    {
+        return $place !== '' && ($stop === $place || str_starts_with($stop, $place.'-'));
     }
 
     /** Première famille de doute (WikipediaMaterialSections::UNCERTAIN) citée dans la phrase, ou null. */

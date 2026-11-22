@@ -288,6 +288,12 @@
                     licenseKey: 'bnf',
                     note: 'gallica',
                 },
+                {
+                    name: 'Archives SNCF',
+                    url: 'https://www.archives.sncf.com',
+                    license: 'ODbL',
+                    note: 'sncf_archives',
+                },
             ],
         },
     ];

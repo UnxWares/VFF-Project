@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Vite;
  *
  *   - scripts : ceux du site et les scripts en ligne qui portent le nonce de la requête (Vite le
  *     pose sur ses balises, les vues Blade sur leurs scripts en ligne). La référence GraphQL
- *     (Magidoc, pages statiques générées) a des scripts en ligne sans nonce : 'unsafe-inline' sur
- *     /docs/graphql seulement ;
+ *     (Magidoc, pages statiques générées) n'a plus de script en ligne (sortis en fichiers par
+ *     resources/docs/graphql/postbuild.mjs) : 'self' seul sur /docs/graphql ;
  *   - styles : ceux du site et les styles en ligne (attributs `style` de Svelte, MapLibre, Scalar,
- *     Swagger UI) ;
+ *     Swagger UI). Sur /docs/graphql, 'self' seul, plus les attributs `style` du rendu serveur
+ *     admis par empreinte (style-src-attr 'unsafe-hashes', liste de
+ *     resources/docs/graphql/csp-style-hashes.json) ;
  *   - images et connexions : le site, plus les origines de config/csp.php (fond de carte,
  *     Wikimedia Commons, Gallica) ; `data:` et `blob:` pour les images générées par la carte ;
  *   - MapLibre crée ses workers depuis un `blob:` ;
@@ -44,8 +46,9 @@ final class ContentSecurityPolicy
 
         $directives = [
             'default-src' => ["'self'"],
-            'script-src' => ["'self'", $magidoc ? "'unsafe-inline'" : "'nonce-{$nonce}'", ...$dev],
-            'style-src' => ["'self'", "'unsafe-inline'", ...$dev],
+            'script-src' => ["'self'", ...($magidoc ? [] : ["'nonce-{$nonce}'"]), ...$dev],
+            'style-src' => ["'self'", ...($magidoc ? [] : ["'unsafe-inline'"]), ...$dev],
+            ...($magidoc ? ['style-src-attr' => ["'unsafe-hashes'", ...self::magidocStyleHashes()]] : []),
             'img-src' => ["'self'", 'data:', 'blob:', ...($sources['img-src'] ?? [])],
             'font-src' => ["'self'", 'data:'],
             'connect-src' => ["'self'", ...($sources['connect-src'] ?? []), ...$dev, ...self::websockets($dev)],
@@ -67,6 +70,15 @@ final class ContentSecurityPolicy
             array_keys($directives),
             $directives,
         ));
+    }
+
+    /** @return list<string> empreintes `'sha256-…'` des attributs `style` des pages Magidoc (fichier écrit par postbuild.mjs) */
+    public static function magidocStyleHashes(): array
+    {
+        $file = resource_path('docs/graphql/csp-style-hashes.json');
+        $hashes = is_file($file) ? json_decode((string) file_get_contents($file), true) : [];
+
+        return array_map(fn (string $h): string => "'{$h}'", is_array($hashes) ? array_values($hashes) : []);
     }
 
     /** Valeur de l'en-tête Reporting-Endpoints (API Reporting, qui remplace report-uri). */

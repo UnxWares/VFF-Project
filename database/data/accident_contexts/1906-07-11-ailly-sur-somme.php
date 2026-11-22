@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Amiens, 12. Juli',
+            'title' => 'Der Zug Calais-Basel fuhr am Bahnhofe Ailly-sur-Somme in einen Güterzug',
             'publisher' => 'Hamburger Echo, édition du soir (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1906-07-13',

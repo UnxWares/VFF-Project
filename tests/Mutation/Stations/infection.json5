@@ -1,0 +1,21 @@
+// Tests de mutation (Infection) des gares : corrections, analyse des fermetures, CsvSafe, DateComparison.
+//   bin/php vendor/bin/infection -c tests/Mutation/Stations/infection.json5 --threads=4 --only-covering-test-cases --filter=Services/StationCorrections.php
+// 4 threads maximum, sous flock /tmp/claude-1000/vff-check.lock. Base : VFF_TEST_DB=vff_<sujet>_test.
+// Rapports : storage/app/reports/infection/stations/.
+{
+    "source": {
+        "directories": ["../../../app"],
+        "excludes": ["#^(?!(Services/(StationCorrections|StationClosureParser|StationAudit/DateComparison)|Support/CsvSafe)\\.php$)#"]
+    },
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 4,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/stations/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/stations/infection.log",
+        "json": "../../../storage/app/reports/infection/stations/infection.json",
+        "summary": "../../../storage/app/reports/infection/stations/summary.log"
+    },
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

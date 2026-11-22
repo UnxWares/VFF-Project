@@ -57,7 +57,7 @@ final class ElectrificationTimeline
     private ?string $bestScope = null;
 
     /**
-     * @param  array<int, array{date: string, kind: string, voltage_v?: ?int, scope: string}>  $events
+     * @param  array<int, array{date: string, kind: string, voltage_v?: ?int, voltage_hint?: ?int, scope: string}>  $events
      * @param  array{state: ?bool, voltage_v: ?int, source: ?string}  $current  état observé aujourd'hui (state null = inconnu)
      */
     public function __construct(

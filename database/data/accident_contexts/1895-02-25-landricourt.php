@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement entre Anizy-Pinon et Landricourt, ligne d'Anizy-Pinon à Chauny, de février 1895 (recherche du 21/11/2026).
 return [
     'slug' => '1895-02-25-landricourt',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -51,9 +51,9 @@ return [
     'sections' => [
         'circumstances' => [
             [
-                'fr' => 'Le 25 février 1895, vers 9 h, un train de voyageurs descendait vers Landricourt sur la ligne d\'Anizy-Pinon à Chauny, entre Anizy-Pinon et Landricourt.',
-                'en' => 'On 25 February 1895, at about 9 am, a passenger train was running downhill towards Landricourt on the Anizy-Pinon to Chauny line, between Anizy-Pinon and Landricourt.',
-                'de' => 'Am 25. Februar 1895 gegen 9 Uhr fuhr ein Personenzug auf der Strecke Anizy-Pinon-Chauny zwischen Anizy-Pinon und Landricourt bergab in Richtung Landricourt.',
+                'fr' => 'Le 25 février 1895, vers 9 h, un train de voyageurs roulait dans une descente sur la ligne d\'Anizy-Pinon à Chauny, entre Anizy-Pinon et Landricourt.',
+                'en' => 'On 25 February 1895, at about 9 am, a passenger train was running downhill on the Anizy-Pinon to Chauny line, between Anizy-Pinon and Landricourt.',
+                'de' => 'Am 25. Februar 1895 gegen 9 Uhr fuhr ein Personenzug auf der Strecke Anizy-Pinon-Chauny zwischen Anizy-Pinon und Landricourt bergab.',
                 'sources' => ['wp-liste-1890'],
             ],
         ],

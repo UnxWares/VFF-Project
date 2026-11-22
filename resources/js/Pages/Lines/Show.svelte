@@ -31,6 +31,7 @@
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import { Link } from '@inertiajs/svelte';
     import TraceDownload from '$components/Lines/TraceDownload.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
@@ -65,7 +66,9 @@
      *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
+     *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
+     *   journal?: Array<{ slug: string, title: string, lang: string }>,
      * }} */
     let {
         line,
@@ -99,8 +102,12 @@
         trace_export_eras = [],
         // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
         archives = { total: 0, fetched_on: null, items: [] },
+        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
+        archive_records = { total: 0, fetched_on: null, items: [] },
         // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
         story_events = [],
+        // Articles du journal de bord qui parlent de la ligne (App\Services\Journal\JournalRepository::aboutLine).
+        journal = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -678,6 +685,15 @@
                     {:else}
                         <p class="empty">{t('lines.no_description')}</p>
                     {/if}
+                    {#if journal.length}
+                        <p class="journal-link">
+                            {t('journal.line_link', { count: journal.length })}
+                            {#each journal as j, i (j.slug)}<Link
+                                    href={`/journal/${j.slug}`}
+                                    lang={j.lang === lang ? undefined : j.lang}>{j.title}</Link
+                                >{i < journal.length - 1 ? ', ' : ''}{/each}
+                        </p>
+                    {/if}
                 </div>
 
                 <section class="infobox" id="fiche" aria-labelledby="fiche-title">
@@ -1240,8 +1256,8 @@
             <LineAccidents {accidents} lineSlug={line.slug} />
         {/if}
 
-        {#if archives.items.length}
-            <LineArchives {archives} />
+        {#if archives.items.length || archive_records.items.length}
+            <LineArchives {archives} records={archive_records} />
         {/if}
 
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->
@@ -1508,6 +1524,13 @@
         font-size: var(--vff-fs-body);
         line-height: var(--vff-lh-body);
         color: var(--vff-text);
+    }
+    .journal-link {
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-4) 0 0;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.55;
+        color: var(--vff-text-muted);
     }
     .attribution {
         max-width: var(--vff-measure);

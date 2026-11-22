@@ -42,7 +42,7 @@ class NetworkStats
         return (float) (DB::selectOne(
             "SELECT COALESCE(SUM(ST_Length(geom::geography)) / 1000, 0) AS km
              FROM sncf_line_geometries WHERE libelle = 'Exploitée'",
-        )?->km ?? 0);
+        )->km ?? 0);
     }
 
     /**
@@ -176,7 +176,7 @@ class NetworkStats
         return (int) (DB::selectOne(
             'SELECT COUNT(*) AS n FROM eras e
              WHERE EXISTS (SELECT 1 FROM line_segments ls WHERE ls.era_id = e.id)',
-        )?->n ?? 0);
+        )->n ?? 0);
     }
 
     /**

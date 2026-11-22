@@ -106,6 +106,7 @@ class ImportStationClosures extends Command
                 'wikipedia-stations' => $this->fromStationArticles($only),
                 'wikipedia-lines' => $this->fromLineArticles($only),
                 'osm' => $this->fromOsm($only),
+                default => throw new \InvalidArgumentException("Source inconnue : {$source}"),
             };
             $this->line(sprintf('  %d événements', count($found)));
             array_push($events, ...$found);

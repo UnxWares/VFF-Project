@@ -1,0 +1,132 @@
+<?php
+
+// Contexte sourcé de l'accident de Sérézin (Rhône) du 16 octobre 1953 (recherche du 21/11/2026).
+// La fiche actuelle le place à Saint-Rambert-d'Albon (Drôme) : la gare où il a eu lieu est celle de Sérézin-du-Rhône.
+return [
+    'slug' => '1953-10-16-serezin-du-rhone',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1950' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1950',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1953, gare de Sérézin',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1950&oldid=235357701',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée sourcée (Le Monde du 17 octobre 1953 et Le Progrès) : heure, train, gare de Sérézin, onze morts. Elle ne cite pas Saint-Rambert-d\'Albon comme lieu, seulement comme origine de l\'omnibus.',
+        ],
+        'wp-gare-serezin' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare de Sérézin',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section sur l\'accident de 1953 ; légende de la photo de la plaque',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_S%C3%A9r%C3%A9zin&oldid=230267090',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Gare située sur la ligne de Paris-Lyon à Marseille-Saint-Charles ; décrit la collision et signale une plaque aux onze victimes en gare. La section est marquée incomplète.',
+        ],
+        'wp-commune-serezin' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Sérézin-du-Rhône',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Histoire',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=S%C3%A9r%C3%A9zin-du-Rh%C3%B4ne&oldid=240273524',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Commune du Rhône ; indique que l\'accident de 1953 à la gare a fait onze morts dont six habitants de la commune.',
+        ],
+        'progres-2014' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'EN IMAGES. Il y a 61 ans : la catastrophe ferroviaire de Sérézin-du-Rhône',
+            'publisher' => 'Le Progrès',
+            'author' => null,
+            'published' => '2014-10-16',
+            'locator' => 'chapeau et légendes des photographies',
+            'url' => 'https://www.leprogres.fr/rhone/2014/10/16/il-y-a-61-ans-la-catastrophe-ferroviaire-de-serezin-du-rhone',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article d\'anniversaire en images ; seuls le chapeau et les légendes sont lisibles sans abonnement (brouillard, signal rouge non vu, onze morts, six habitants de la commune, obsèques à Sérézin).',
+        ],
+        'lemonde-1953' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Neuf morts, une cinquantaine de blessés dans le tamponnement d\'un train ouvrier',
+            'publisher' => 'Le Monde',
+            'author' => null,
+            'published' => '1953-10-17',
+            'locator' => null,
+            'url' => 'https://www.lemonde.fr/archives/article/1953/10/17/neuf-morts-une-cinquantaine-de-blesses-dans-le-tamponnement-d-un-train-ouvrier_1984915_1819218.html',
+            'access' => 'paywall',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu du lendemain, derrière un accès payant, non lu ; son titre annonce neuf morts et une cinquantaine de blessés (bilan provisoire).',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 16 octobre 1953, vers 6 h 30, une locomotive haut-le-pied (circulant sans train) a percuté en gare de Sérézin, dans le Rhône, l\'omnibus 3462 de Saint-Rambert-d\'Albon à Lyon, arrêté à quai et rempli d\'ouvriers qui se rendaient à leur travail. La gare est située sur la ligne de Paris-Lyon à Marseille-Saint-Charles, sur le territoire de Sérézin-du-Rhône.',
+                'en' => 'On 16 October 1953, at about 6.30 am, a light engine (running without a train) struck the stationary 3462 stopping service from Saint-Rambert-d\'Albon to Lyon at Sérézin station, in the Rhône département. The train was full of workers on their way to work. The station is on the Paris-Lyon to Marseille-Saint-Charles line, in the commune of Sérézin-du-Rhône.',
+                'de' => 'Am 16. Oktober 1953 gegen 6.30 Uhr fuhr im Bahnhof Sérézin im Département Rhône eine Lokomotive ohne Zug auf den haltenden Personenzug 3462 von Saint-Rambert-d\'Albon nach Lyon auf, der mit Arbeitern auf dem Weg zur Arbeit besetzt war. Der Bahnhof liegt an der Strecke Paris-Lyon - Marseille-Saint-Charles auf dem Gebiet von Sérézin-du-Rhône.',
+                'sources' => ['wp-liste-1950', 'wp-gare-serezin', 'wp-commune-serezin'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le dernier wagon de l\'omnibus, en bois à revêtement métallique, a été écrasé et projeté sur le suivant. Selon Le Progrès, un épais brouillard couvrait la région et le conducteur de la locomotive n\'aurait pas vu le feu rouge qui lui imposait l\'arrêt.',
+                'en' => 'The last coach of the train, made of wood with a metal skin, was crushed and thrown onto the one ahead of it. According to Le Progrès, thick fog covered the area and the locomotive driver did not see the red signal ordering him to stop.',
+                'de' => 'Der letzte Wagen des Zuges, aus Holz mit Blechverkleidung, wurde zerdrückt und auf den davorstehenden Wagen geschleudert. Laut Le Progrès lag dichter Nebel über der Gegend, und der Lokführer habe das Haltsignal nicht gesehen.',
+                'sources' => ['wp-liste-1950', 'wp-gare-serezin', 'progres-2014'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident a fait onze morts et des dizaines de blessés, une cinquantaine selon le compte rendu du Monde du lendemain. Six des onze morts habitaient Sérézin-du-Rhône, où les obsèques ont rassemblé une foule nombreuse quelques jours plus tard.',
+                'en' => 'The accident killed eleven people and injured dozens, about fifty according to the next day\'s report in Le Monde. Six of the eleven dead lived in Sérézin-du-Rhône, where a large crowd attended the funerals a few days later.',
+                'de' => 'Bei dem Unfall starben elf Menschen, Dutzende wurden verletzt, nach dem Bericht von Le Monde vom Folgetag etwa fünfzig. Sechs der elf Toten wohnten in Sérézin-du-Rhône, wo wenige Tage später eine große Menschenmenge an den Trauerfeiern teilnahm.',
+                'sources' => ['wp-liste-1950', 'wp-gare-serezin', 'wp-commune-serezin', 'progres-2014'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'Une plaque portant le nom des onze victimes est apposée dans la gare de Sérézin, selon la légende d\'une photographie de l\'article de Wikipédia consacré à la gare.',
+                'en' => 'A plaque bearing the names of the eleven victims is fixed in Sérézin station, according to a photo caption in the Wikipedia article on the station.',
+                'de' => 'Im Bahnhof Sérézin hängt eine Tafel mit den Namen der elf Opfer, so die Bildunterschrift eines Fotos im Wikipedia-Artikel zum Bahnhof.',
+                'sources' => ['wp-gare-serezin'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Lieu : la fiche situe l\'accident à Saint-Rambert-d\'Albon (Drôme) et le rattache à la ligne de Saint-Rambert-d\'Albon à Rives. Les sources le placent en gare de Sérézin, dans le Rhône (commune de Sérézin-du-Rhône), sur la ligne de Paris-Lyon à Marseille-Saint-Charles ; Saint-Rambert-d\'Albon n\'est que l\'origine de l\'omnibus. Bilan : onze morts selon toutes les sources lues ; le titre du Monde en annonçait neuf, bilan provisoire probable.',
+                'en' => 'Place: the record puts the accident at Saint-Rambert-d\'Albon (Drôme) and attaches it to the Saint-Rambert-d\'Albon to Rives line. The sources place it at Sérézin station, in the Rhône département (commune of Sérézin-du-Rhône), on the Paris-Lyon to Marseille-Saint-Charles line; Saint-Rambert-d\'Albon is only where the train came from. Toll: eleven dead in all the sources read; the headline in Le Monde gave nine, probably a provisional figure.',
+                'de' => 'Ort: Die Datensatz-Angabe verlegt den Unfall nach Saint-Rambert-d\'Albon (Drôme) und ordnet ihn der Strecke Saint-Rambert-d\'Albon - Rives zu. Die Quellen nennen den Bahnhof Sérézin im Département Rhône (Gemeinde Sérézin-du-Rhône) an der Strecke Paris-Lyon - Marseille-Saint-Charles; Saint-Rambert-d\'Albon ist nur der Ausgangsort des Zuges. Opferzahl: elf Tote in allen gelesenen Quellen; die Schlagzeile von Le Monde nannte neun, wahrscheinlich eine vorläufige Zahl.',
+                'sources' => ['wp-liste-1950', 'wp-gare-serezin', 'progres-2014'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '69294',
+            'sources' => ['wp-gare-serezin', 'progres-2014', 'wp-commune-serezin'],
+            'fr' => 'L\'accident a eu lieu en gare de Sérézin, sur la commune de Sérézin-du-Rhône (Rhône, 69294) ; Saint-Rambert-d\'Albon (26325) n\'est que l\'origine de l\'omnibus.',
+            'en' => 'The accident happened at Sérézin station, in the commune of Sérézin-du-Rhône (Rhône, 69294); Saint-Rambert-d\'Albon (26325) is only where the train came from.',
+            'de' => 'Der Unfall ereignete sich im Bahnhof Sérézin in der Gemeinde Sérézin-du-Rhône (Rhône, 69294); Saint-Rambert-d\'Albon (26325) ist nur der Ausgangsort des Zuges.',
+        ],
+    ],
+];

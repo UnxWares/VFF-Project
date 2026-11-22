@@ -156,7 +156,7 @@ final class PlaceNames
      *
      * @return array{
      *   raw: string, clean: string, places: list<string>, pair: bool, junk: bool, generic: bool,
-     *   network_label: bool, gauge: ?int, period: ?string, kind: ?string, flags: list<string>
+     *   network_label: bool, gauge: ?int, period: ?string, kind: ?string, kind_phrase?: ?string, flags: list<string>
      * }
      */
     public static function parseLabel(?string $raw): array

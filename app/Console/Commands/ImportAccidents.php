@@ -23,12 +23,13 @@ use Illuminate\Support\Facades\File;
  *   vff:import-accidents --only=bea-tt --dry-run
  *   vff:import-accidents --only=wikipedia-list # listes d'accidents de Wikipédia seulement
  *   vff:import-accidents --only=wikipedia-editions # listes en anglais et en allemand : recoupent les fiches, n'en créent pas
+ *   vff:import-accidents --only=manual        # fiches rédigées à la main (database/data/accident_records_manual.php)
  *   vff:import-accidents --refresh --report=storage/app/data/accidents/dernier-import.json
  */
 class ImportAccidents extends Command
 {
     protected $signature = 'vff:import-accidents
-        {--only=* : Sources à lire : wikidata (avec ses articles de Wikipédia), bea-tt, wikipedia-list (listes d\'accidents de Wikipédia), wikipedia-editions (listes de Wikipédia en anglais et en allemand : seconde source des fiches existantes) ; toutes par défaut}
+        {--only=* : Sources à lire : wikidata (avec ses articles de Wikipédia), bea-tt, wikipedia-list (listes d\'accidents de Wikipédia), wikipedia-editions (listes de Wikipédia en anglais et en allemand : seconde source des fiches existantes), manual (fiches rédigées à la main, database/data/accident_records_manual.php) ; toutes par défaut}
         {--offline : N\'utilise que le cache local, aucune requête réseau}
         {--refresh : Ignore le cache et relit les sources (le cache est réécrit)}
         {--dry-run : Calcule tout sans écrire en base}
@@ -70,8 +71,8 @@ class ImportAccidents extends Command
             $this->warn($w);
         }
         $this->info(sprintf(
-            'Lus : %d (Wikidata), %d (BEA-TT), %d (listes de Wikipédia), %d (listes anglaise et allemande) ; %d rangée(s) du BEA-TT fusionnée(s) ; %d hors périmètre ; %d requête(s).',
-            $r->collected['wikidata'] ?? 0, $r->collected['bea-tt'] ?? 0, $r->collected['wikipedia-list'] ?? 0, $r->collected['wikipedia-editions'] ?? 0, $r->merged, count($r->skipped), $r->requests,
+            'Lus : %d (Wikidata), %d (BEA-TT), %d (listes de Wikipédia), %d (listes anglaise et allemande), %d (fiches rédigées à la main) ; %d rangée(s) du BEA-TT fusionnée(s) ; %d hors périmètre ; %d requête(s).',
+            $r->collected['wikidata'] ?? 0, $r->collected['bea-tt'] ?? 0, $r->collected['wikipedia-list'] ?? 0, $r->collected['wikipedia-editions'] ?? 0, $r->collected['manual'] ?? 0, $r->merged, count($r->skipped), $r->requests,
         ));
         $skippedBy = array_count_values(array_column($r->skipped, 'reason'));
         ksort($skippedBy);

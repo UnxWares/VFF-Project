@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Continuité et jonctions du tracé de référence d'une ligne, SUR LES VOIES
  * RÉELLES (étape de vff:build-line-references, après « un seul axe » et avant
- * le croisement des sources). Aucune géométrie n'est inventée (sauf la courbe
- * lissée de la règle 7 b, marquée « raccord-lisse ») : tout ajout suit
+ * le croisement des sources). Aucune géométrie n'est inventée (sauf les courbes
+ * lissées des règles 1 bis, 5 bis et 7, marquées « raccord-lisse ») : tout ajout suit
  * des voies précises du pool de recalage (BD TOPO, OSM, contributions ;
  * rattachées à la ligne, à une autre ligne ou à aucune), aiguillage par
  * aiguillage.
@@ -44,6 +44,12 @@ use Illuminate\Support\Facades\DB;
  *      vers une AUTRE ligne, à moins de GAP_MAX_M, est prolongé par les voies
  *      réelles jusqu'à la voie de cette ligne (aiguillage, déviation <=
  *      TURN_DEG à chaque nœud), écartements compatibles.
+ *   5 bis. Bout posé sur la voie d'une autre ligne L dessinée à côté : un bout
+ *      libre posé (SOURCE_JOIN_SNAP_M) sur une voie précise rattachée à L,
+ *      quand le dessin de L (autre voie, autre source) passe à au plus
+ *      SOURCE_JOIN_MAX_M et presque parallèle (SOURCE_JOIN_DEG), est raccordé
+ *      à ce dessin par une courbe lissée tangente estimée (« raccord-lisse »,
+ *      même calcul que 7 b) : la jonction de la source tombe à 0 m sur la carte.
  *   6. Dépassement : un tracé grossier (archeo, OHM, SNCF non recalé) qui
  *      croise la voie précise d'une autre ligne et s'arrête moins de
  *      OVERSHOOT_MAX_M plus loin est coupé au croisement.
@@ -81,6 +87,18 @@ use Illuminate\Support\Facades\DB;
  *      du faisceau, voie de gare) est retiré, sauf si une autre portion de la
  *      ligne ou une autre ligne s'y raccorde. Un vrai rebroussement, dont les
  *      deux branches s'écartent, reste.
+ *   8 bis. Raccords coudés qui ferment une boucle : un raccord droit de moins
+ *      de JOG_MAX_M qui fait un angle de plus de KINK_DEG avec une portion à
+ *      un de ses bouts, alors que ses deux bouts sont déjà reliés par le reste
+ *      de la ligne à moins de LOOP_JOG_WINDOW_M (courbe lissée posée à côté du
+ *      saut qu'elle remplace, boîte de deux sauts, raccord en double), n'est
+ *      pas une voie : il est retiré, avant les sauts (1) puis de nouveau après
+ *      les courbes lissées. Le bout de portion qu'il laissait en l'air (au
+ *      plus LOOP_STUB_MAX_M jusqu'au reste de la ligne) part avec lui. Le
+ *      raccord reste si une autre ligne finit sur lui, si le dessin d'une
+ *      autre ligne touche ce bout ou un bout du raccord que la ligne ne
+ *      toucherait plus, ou si le bout est plus long. Retirer une arête d'une boucle ne
+ *      détache rien : la ligne reste d'un seul tenant.
  *   9. Longs trous (de HOLE_MAX_M à LONG_GAP_MAX_M) d'une ligne disparue : depuis
  *      un bout libre, chemin sur les voies NON rattachées d'une voie abandonnée
  *      (OSM abandoned, razed, disused, dismantled ; BD TOPO « Sans objet ») vers
@@ -168,6 +186,19 @@ class JunctionRepair
 
     public const EXTEND_DETOUR = 1.3;
 
+    /**
+     * Règle 5 bis : bout posé à SOURCE_JOIN_SNAP_M (m) près sur la voie précise d'une autre ligne, dont le dessin passe à
+     * plus de SOURCE_JOIN_SNAP_M et au plus SOURCE_JOIN_MAX_M (m), écart de cap au plus SOURCE_JOIN_DEG (°) ; recul max
+     * (m) sur la portion du bout. SOURCE_JOIN_SNAP_M est le seuil de lines.junction_gap (DataInvariants::JUNCTION_GAP_M).
+     */
+    public const SOURCE_JOIN_SNAP_M = 0.5;
+
+    public const SOURCE_JOIN_MAX_M = 6.0;
+
+    public const SOURCE_JOIN_DEG = 30.0;
+
+    public const SOURCE_JOIN_BACK_M = 60.0;
+
     /** Dépassement d'un tracé grossier au-delà d'un croisement (m), angle min du croisement (°), reste min (m). */
     public const OVERSHOOT_MAX_M = 60.0;
 
@@ -218,6 +249,15 @@ class JunctionRepair
     public const SPUR_DEG = 30.0;
 
     public const SPUR_SHARE = 0.8;
+
+    /**
+     * Règle 8 bis : rayon (m) autour du raccord dans lequel on cherche le chemin qui relie déjà ses deux bouts (boucle
+     * courte : courbe lissée et reste de voie, boîte de deux sauts).
+     */
+    public const LOOP_JOG_WINDOW_M = 300.0;
+
+    /** Règle 8 bis : bout de portion laissé en l'air par le retrait du raccord, coupé avec lui jusqu'à cette longueur (m). */
+    public const LOOP_STUB_MAX_M = 150.0;
 
     /** Long trou (règle 9) : écart max entre les deux bouts (m) ; c'est aussi la longueur max du chemin. */
     public const LONG_GAP_MAX_M = 20000.0;
@@ -290,6 +330,11 @@ class JunctionRepair
 
     private const LEG_J_STEPS = [0, 10, 25, 50, 80, 120, 160, 200, 250, 300];
 
+    /** Règle 5 bis : recul D sur la portion du bout et avancée J sur le dessin de l'autre ligne essayés (m). */
+    private const SOURCE_JOIN_D_STEPS = [0, 10, 20, 30, 45, 60];
+
+    private const SOURCE_JOIN_J_STEPS = [0, 10, 20, 30, 45, 60, 80, 100, 130, 160, 200];
+
     private const MAX_EXPANSIONS = 20000;
 
     /** Chemin d'un long trou : états explorés au plus (fenêtre de 20 km de voies abandonnées). */
@@ -340,8 +385,9 @@ class JunctionRepair
      *
      * @return array<string, float|int> jog_removed, jog_restored, jog_smoothed (+ _m), hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
-     *                                  end_joined (+ _m), hole_smoothed (+ _m), spur_removed (+ _m), long_gap_filled (+ _m), long_gap_partial,
-     *                                  long_gap_left_m, long_gap_refused
+     *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
+     *                                  long_gap_filled (+ _m),
+     *                                  long_gap_partial, long_gap_left_m, long_gap_refused
      */
     public function repair(int $lineId): array
     {
@@ -353,9 +399,13 @@ class JunctionRepair
             'rerouted' => 0, 'rerouted_m' => 0.0,
             'stub_trimmed_m' => 0.0, 'remnant_removed_m' => 0.0, 'extended' => 0, 'extended_m' => 0.0, 'overshoot_trimmed_m' => 0.0,
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0,
-            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
+            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'drawing_joined' => 0, 'drawing_joined_m' => 0.0,
+            'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0];
 
+        // Raccords qui ferment déjà une boucle (8 bis) : retirés avant les sauts, pour que le saut qui reste d'une boîte
+        // soit traité comme un saut seul (bout sans issue coupé, S lissé).
+        $this->removeLoopJogs($stats);
         $jogs = $this->removeJogs();
         $stats['jog_removed'] = count($jogs);
         $this->freed = [];
@@ -377,6 +427,11 @@ class JunctionRepair
         $this->trimOvershoots($stats);
         $this->smoothLegs($stats);
         $this->smoothEnds($stats);
+        // Après les règles 5 et 7 c, qui posent aussi des bouts sur la voie d'une autre ligne.
+        $this->joinOtherLineDrawings($stats);
+        // De nouveau après les courbes lissées (1 bis, 5 bis, 7), qui peuvent fermer une boucle avec un raccord resté ; avant
+        // les allers-retours, qui coupent le bout que le raccord retiré laisse en l'air.
+        $this->removeLoopJogs($stats);
         $this->removeSpurs($stats);
         $this->fillLongGaps($stats);
 
@@ -544,7 +599,10 @@ class JunctionRepair
      * Un barreau entre deux voies qui continuent toutes les deux (aucune ne s'arrête sur le saut) reste tel quel.
      * Une portion qui ne dépasse le saut que d'un bout sans issue court (jogEnd) est coupée comme si elle s'y arrêtait :
      * sinon ce bout et la voie entre le saut et J doubleraient la courbe (tronçons en double, mesuré le 21/11 : 3283, 3786).
-     * De même pour le bras d'une boucle de deux sauts (802, 3614), dont le second raccord est retiré avec lui.
+     * De même pour le bras d'une boucle de deux sauts (802, 3614), dont le second raccord est retiré avec lui. Bout et bras
+     * sont coupés aussi quand la courbe est refusée (recul, autre ligne, rayon ou écart, doublon) et que le saut reste un
+     * raccord droit ; pas quand le sens ou le cap la refusent : la ligne fait alors demi-tour sur le saut, ou les deux
+     * voies divergent, et le bout ne longe pas l'autre voie.
      * Une portion qui continue vraiment au-delà du saut reste entière : la courbe s'y raccorde en Y, et ses derniers
      * mètres longent cette voie (fusion de deux voies, comme un aiguillage).
      */
@@ -584,14 +642,19 @@ class JunctionRepair
             [$sA, $dA] = $this->projectOn($a, $p, $f);
             [$sB, $dB] = $this->projectOn($b, $q, $f);
             // Le bout coupé doit être en aval de A et en amont de B dans le sens de marche (sinon la coupe emporterait le reste).
+            // Ni ce refus ni celui du cap ne coupent le bout sans issue : la ligne fait demi-tour sur le saut (le bout
+            // continue le sens d'arrivée) ou les deux voies divergent de plus de JOG_PARALLEL_DEG, et le bout ne longe pas
+            // l'autre voie (relevé du 21/11/2026 : sur tout le réseau, quatre bouts dans ces deux refus, 552, 891 et 4476
+            // pour le sens, 554 pour le cap, sans tronçon en double ; aucune boucle de deux sauts sur 148 lignes rejouées).
             if (($endA !== null && ($endA['k'] === 1) !== ($dA > 0)) || ($endB !== null && ($endB['k'] === 0) !== ($dB > 0))) {
-                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'sens'];
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'sens', 'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null], 'loop' => $loops];
 
                 continue;
             }
             // Courbe refusée plus bas (recul, autre ligne, rayon, doublon) : le saut reste un raccord droit, mais le bout
             // sans issue qui dépasse son pied est coupé quand même (sinon il longe l'autre voie et le nettoyage final en
-            // fait un V en double : Strasbourg, ligne 523, 20 m).
+            // fait un V en double : Strasbourg, ligne 523, 20 m), et le bras d'une boucle de deux sauts part avec son
+            // second raccord (sinon le triangle reste).
             $trimStubs = function () use ($endA, $endB, $e0, $e1, $sA0, $sB0, $la, $lb, $loops, &$stats): void {
                 foreach ([[$endA, $e0['sid'], $sA0, $la], [$endB, $e1['sid'], $sB0, $lb]] as [$end, $sid, $s0, $l]) {
                     if ($end !== null && $end['stub'] > 0) {
@@ -604,7 +667,7 @@ class JunctionRepair
             $ga = $this->unit($this->pointAlong($a, $sA - 10 * $dA), $this->pointAlong($a, $sA));
             $gb = $this->unit($this->pointAlong($b, $sB), $this->pointAlong($b, $sB + 10 * $dB));
             if ($this->angDiff(atan2($ga[0], $ga[1]), atan2($gb[0], $gb[1])) > deg2rad(self::JOG_PARALLEL_DEG)) {
-                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap'];
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap', 'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null], 'loop' => $loops];
 
                 continue;
             }
@@ -795,6 +858,169 @@ class JunctionRepair
               AND (ST_DWithin(ST_Transform(ST_StartPoint(d.geom), 2154), s.g, 1) OR ST_DWithin(ST_Transform(ST_EndPoint(d.geom), 2154), s.g, 1))
             LIMIT 1
             SQL, ['wkt' => $this->wkt($c), 'line' => $this->lineId]);
+    }
+
+    // ─── 8 bis. Raccords coudés qui ferment une boucle ─────────────────
+
+    /**
+     * Règle 8 bis (cf. docblock). Raccords examinés du plus coudé au moins coudé ; la boucle est recherchée sur l'état
+     * courant (un raccord retiré ne compte plus), si bien que de deux sauts d'une même boîte un seul part.
+     */
+    private function removeLoopJogs(array &$stats): void
+    {
+        $rows = DB::select(<<<'SQL'
+            SELECT c.sid, MAX(a.ang) AS kink
+            FROM jr_sub c
+            CROSS JOIN LATERAL (VALUES (ST_StartPoint(c.g)), (ST_EndPoint(c.g))) e(p)
+            CROSS JOIN LATERAL (
+                SELECT degrees(asin(LEAST(1, abs(sin(ST_Azimuth(ST_StartPoint(c.g), ST_EndPoint(c.g)) - z.az))))) AS ang
+                FROM jr_sub o
+                CROSS JOIN LATERAL (SELECT ST_LineLocatePoint(o.g, e.p) AS f, ST_Length(o.g) AS l) f
+                CROSS JOIN LATERAL (SELECT ST_Azimuth(ST_LineInterpolatePoint(o.g, GREATEST(0, f.f - 8 / f.l)), ST_LineInterpolatePoint(o.g, LEAST(1, f.f + 8 / f.l))) AS az) z
+                WHERE NOT o.conn AND NOT o.removed AND o.sid <> c.sid AND ST_DWithin(o.g, e.p, 0.5) AND f.l > 1
+            ) a
+            WHERE c.conn AND NOT c.removed AND ST_Length(c.g) BETWEEN 1 AND :max
+            GROUP BY c.sid
+            ORDER BY MAX(a.ang) DESC, c.sid
+            SQL, ['max' => self::JOG_MAX_M]);
+        foreach ($rows as $r) {
+            // Écart (0 à 90°) entre le raccord et la portion la plus coudée à ses bouts, comme pour les sauts (règle 1).
+            $kink = (float) $r->kink;
+            if ($kink <= self::KINK_DEG) {
+                continue;
+            }
+            $sid = (int) $r->sid;
+            $c = $this->subCoords($sid);
+            if (! $c || ! $this->closesLoop($sid)) {
+                continue;
+            }
+            $len = $this->plen($c);
+            // Une autre ligne qui finit sur le raccord (hors de ses bouts, que la ligne garde) resterait détachée.
+            if ($len > 4 && $this->holdsOtherLine($this->subLine($c, 2.0, $len - 2.0))) {
+                $this->debug && $this->log[] = ['loop_jog' => $sid, 'skip' => 'autre ligne sur le raccord'];
+
+                continue;
+            }
+            $this->removeSubs([$sid]);
+            // Bouts de portion que le retrait laisse en l'air : ils ne tenaient qu'au raccord et partent avec lui, jusqu'à
+            // leur premier raccord avec le reste de la ligne. Un bout plus long que LOOP_STUB_MAX_M, ou qui porte la jonction
+            // d'une autre ligne, pendrait : la boucle est alors gardée telle quelle, raccord compris.
+            $stubs = $this->freedStubs($c);
+            // Bout du raccord posé sur le dessin d'une autre ligne (jonction, même en son milieu) que plus rien de la ligne ne
+            // toucherait après le retrait : le contact à 0 m serait perdu (462 sur 856, 3.12058, 45.88845, rejeu du 22/11).
+            if ($stubs !== null && $this->losesContact($c, array_column($stubs, 0))) {
+                $stubs = null;
+            }
+            if ($stubs === null) {
+                DB::update('UPDATE jr_sub SET removed = FALSE WHERE sid = ?', [$sid]);
+                $this->debug && $this->log[] = ['loop_jog' => $sid, 'skip' => 'bout libéré trop long ou qui tient une autre ligne'];
+
+                continue;
+            }
+            foreach ($stubs as [$ssid, $k, $j, $l]) {
+                if ($j >= $l - 0.01) {
+                    $this->removeSubs([$ssid]);
+                } else {
+                    $k === 0 ? $this->cutSub($ssid, $j / $l, 1.0) : $this->cutSub($ssid, 0.0, 1 - $j / $l);
+                }
+                $stats['stub_trimmed_m'] += $j;
+            }
+            $stats['loop_jog_removed']++;
+            $stats['loop_jog_removed_m'] += $len;
+            $this->debug && $this->log[] = ['loop_jog' => $sid, 'kink' => round($kink), 'm' => round($len, 1)];
+        }
+    }
+
+    /**
+     * Après le retrait du raccord $c : portions dont un bout touchait $c et qui sont maintenant libres, avec la longueur
+     * (m) entre ce bout et leur premier raccord avec le reste de la ligne : [sid, k, longueur, longueur de la portion].
+     * Null si l'un de ces bouts dépasse LOOP_STUB_MAX_M ou porte la jonction d'une autre ligne.
+     *
+     * @return list<array{0: int, 1: int, 2: float, 3: float}>|null
+     */
+    private function freedStubs(array $c): ?array
+    {
+        $out = [];
+        foreach ([$c[0], end($c)] as $p) {
+            foreach (DB::select(<<<'SQL'
+                SELECT t.sid, CASE WHEN ST_DWithin(ST_StartPoint(t.g), x.p, 0.5) THEN 0 ELSE 1 END AS k
+                FROM jr_sub t, (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p) x
+                WHERE NOT t.removed AND (ST_DWithin(ST_StartPoint(t.g), x.p, 0.5) OR ST_DWithin(ST_EndPoint(t.g), x.p, 0.5))
+                ORDER BY t.sid
+                SQL, ['x' => $p[0], 'y' => $p[1]]) as $r) {
+                $sid = (int) $r->sid;
+                $k = (int) $r->k;
+                $full = $this->subCoords($sid);
+                if (! $full || ! $this->isFreeEnd($sid, $k)) {
+                    continue;
+                }
+                $toward = $k === 1 ? $full : array_reverse($full);
+                $len = $this->plen($toward);
+                $j = min($len, $this->nextJunction($sid, $toward, []));
+                // Bout qui touche le dessin d'une autre ligne (hors des 2 m qui le rattachent à la ligne) : il porte un contact
+                // à 0 m (jonction, voie commune) qui partirait avec lui (4320 sur 4474, rejeu du 22/11).
+                if ($j > self::LOOP_STUB_MAX_M || ($j > 2 && $this->touchesOtherLine($this->subLine($toward, $len - $j + 2.0, $len)))) {
+                    return null;
+                }
+                $out[$sid.':'.$k] = [$sid, $k, $j, $len];
+            }
+        }
+
+        return array_values($out);
+    }
+
+    /** Le dessin d'une autre ligne passe-t-il à 0,5 m (JUNCTION_GAP_M des invariants) de la polyligne ? */
+    private function touchesOtherLine(array $c): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_GeomFromText(:wkt, 2154) AS g)
+            SELECT 1 AS x FROM line_reference_parts o, s
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(s.g, 2), 4326) AND ST_DWithin(ST_Transform(o.geom, 2154), s.g, 0.5)
+            LIMIT 1
+            SQL, ['wkt' => $this->wkt($c), 'line' => $this->lineId]);
+    }
+
+    /**
+     * Un bout du raccord $c (déjà marqué retiré) touche-t-il (0,5 m) le dessin d'une autre ligne sans qu'aucun autre morceau
+     * gardé de la ligne, hors bouts $stubSids coupés avec lui, ne touche encore ce point ?
+     *
+     * @param  list<int>  $stubSids
+     */
+    private function losesContact(array $c, array $stubSids): bool
+    {
+        foreach ([$c[0], end($c)] as $p) {
+            $r = DB::selectOne(<<<'SQL'
+                WITH x AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p)
+                SELECT EXISTS (SELECT 1 FROM line_reference_parts o, x WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(x.p, 2), 4326)
+                                 AND ST_DWithin(ST_Transform(o.geom, 2154), x.p, 0.5)) AS other,
+                       EXISTS (SELECT 1 FROM jr_sub t, x WHERE NOT t.removed AND t.sid <> ALL(CAST(:stubs AS int[])) AND ST_DWithin(t.g, x.p, 0.5)) AS kept
+                SQL, ['x' => $p[0], 'y' => $p[1], 'line' => $this->lineId, 'stubs' => $this->ints($stubSids)]);
+            if ($r->other && ! $r->kept) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Les deux bouts du morceau $sid sont-ils reliés (à 0,5 m près) par les autres morceaux gardés, coupés au carré de
+     * LOOP_JOG_WINDOW_M autour de lui ? Le chemin doit tenir dans ce carré : deux portions qui ne se rejoignent que loin
+     * ne forment pas une boucle courte.
+     */
+    private function closesLoop(int $sid): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT g FROM jr_sub WHERE sid = :sid),
+            o AS (
+                SELECT x.g, ST_ClusterDBSCAN(x.g, 0.5, 1) OVER () AS k
+                FROM jr_sub o, c, LATERAL (SELECT ST_ClipByBox2D(o.g, ST_Expand(c.g, :win)) AS g) x
+                WHERE NOT o.removed AND o.sid <> :sid2 AND o.g && ST_Expand(c.g, :win2) AND NOT ST_IsEmpty(x.g)
+            ),
+            a AS (SELECT DISTINCT o.k FROM o, c WHERE ST_DWithin(o.g, ST_StartPoint(c.g), 0.5)),
+            b AS (SELECT DISTINCT o.k FROM o, c WHERE ST_DWithin(o.g, ST_EndPoint(c.g), 0.5))
+            SELECT EXISTS (SELECT 1 FROM a JOIN b USING (k)) AS x
+            SQL, ['sid' => $sid, 'sid2' => $sid, 'win' => self::LOOP_JOG_WINDOW_M, 'win2' => self::LOOP_JOG_WINDOW_M])->x;
     }
 
     // ─── 8. Allers-retours ─────────────────────────────────────────────
@@ -1739,6 +1965,140 @@ class JunctionRepair
             $this->addPath($path, $e['sid']);
             $stats['extended']++;
             $stats['extended_m'] += $path['len'];
+        }
+    }
+
+    /**
+     * Règle 5 bis (cf. docblock) : bout libre posé, à SOURCE_JOIN_SNAP_M près, sur une voie précise du pool rattachée à
+     * une AUTRE ligne L, alors que L est dessinée (son tracé de référence, pris sur une autre voie ou une autre source)
+     * à côté, de SOURCE_JOIN_SNAP_M à SOURCE_JOIN_MAX_M, presque parallèle (SOURCE_JOIN_DEG). La jonction est réelle
+     * (même voie dans la source) mais dessinée à quelques mètres : la règle 5 ne la voit pas (la voie de L est sous le
+     * bout, pas devant), build-shared-track non plus (arrivée parallèle à plus de 1,5 m). Pont-Cardinet : 170 (971000)
+     * finit sur la voie OSM de 455 (973000), dessinée sur la BD TOPO à 3,8 m.
+     * Courbe estimée (« raccord-lisse ») tangente à la portion du bout en D (recul d'au plus SOURCE_JOIN_BACK_M, sans
+     * passer une autre jonction de la portion ni couper sous le bout d'une autre ligne) et au dessin de L en J, devant
+     * la projection du bout : la plus courte dont le rayon atteint minRadius et qui reste partout à moins de l'écart
+     * + 1 m de la portion ou du dessin de L (pas de boucle vers l'extérieur). Refusée si elle double la ligne, si le
+     * bout croise déjà le dessin de L (dépassement, coupé par build-shared-track) ou si L ne peut pas partager la voie
+     * (écartements, réseaux : garde-fou de TraceConflation::junctionTrunk). Le nouveau bout est sur le dessin de L (0 m).
+     */
+    private function joinOtherLineDrawings(array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $rmin = self::minRadius($net, $this->gauge);
+        $narrow = in_array($net, TraceConflation::JUNCTION_NARROW_NETWORKS, true);
+        foreach ($this->freeEnds() as $e) {
+            if ($e['conn']) {
+                continue;
+            }
+            // Ligne L : voie du pool sous le bout, dessin le plus proche ; aucun dessin d'une autre ligne ne touche déjà le bout.
+            $t = DB::selectOne(<<<'SQL'
+                WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p),
+                src AS (
+                    SELECT DISTINCT p.line_id FROM cf_pool p, e
+                    WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND p.line_id IS NOT NULL AND p.line_id <> :line
+                      AND ST_DWithin(p.g, e.p, :snap)
+                ),
+                drawn AS (
+                    SELECT o.line_id, o.id, d.path[1] AS sub, ST_Transform(d.geom, 2154) AS g
+                    FROM line_reference_parts o, LATERAL ST_Dump(o.geom) d, e
+                    WHERE o.line_id <> :line2 AND o.geom && ST_Transform(ST_Expand(e.p, :max), 4326)
+                )
+                SELECT dr.line_id, ST_Distance(dr.g, e.p) AS d, ST_AsText(dr.g) AS wkt, l.gauge_mm_default AS gauge, l.network,
+                       (SELECT MIN(ST_Distance(x.g, e.p)) FROM drawn x) AS nearest
+                FROM drawn dr JOIN src ON src.line_id = dr.line_id JOIN lines l ON l.id = dr.line_id, e
+                WHERE ST_DWithin(dr.g, e.p, :max2)
+                ORDER BY ST_Distance(dr.g, e.p), dr.line_id, dr.id, dr.sub LIMIT 1
+                SQL, ['x' => $e['x'], 'y' => $e['y'], 'line' => $this->lineId, 'line2' => $this->lineId, 'snap' => self::SOURCE_JOIN_SNAP_M,
+                'max' => self::SOURCE_JOIN_MAX_M + 1, 'max2' => self::SOURCE_JOIN_MAX_M]);
+            if (! $t || (float) $t->d <= self::SOURCE_JOIN_SNAP_M || (float) $t->nearest <= self::SOURCE_JOIN_SNAP_M) {
+                continue;
+            }
+            if (($this->gauge !== null && $t->gauge !== null && (int) $t->gauge !== $this->gauge)
+                || (($this->gauge === null || $t->gauge === null) && $narrow && $t->network === 'principal')) {
+                continue;
+            }
+            $y = (float) $t->d;
+            $tc = $this->parseWkt($t->wkt);
+            // Dessin de L orienté dans le sens du bout, depuis sa projection ; presque parallèle au bout.
+            [$pos, $dir] = $this->projectOn($tc, [$e['x'], $e['y']], [sin($e['az']), cos($e['az'])]);
+            $qp = $dir > 0 ? $this->subLine($tc, $pos, $this->plen($tc)) : array_reverse($this->subLine($tc, 0, $pos));
+            $qlen = $this->plen($qp);
+            if ($qlen < 10) {
+                continue;
+            }
+            $u = $this->unit($qp[0], $this->pointAlong($qp, min($qlen, 15)));
+            if ($this->angDiff($e['az'], atan2($u[0], $u[1])) > deg2rad(self::SOURCE_JOIN_DEG)) {
+                $this->debug && $this->log[] = ['drawing_join' => $e['sid'], 'line' => (int) $t->line_id, 'd' => round($y, 1), 'skip' => 'cap'];
+
+                continue;
+            }
+            // Portion du bout, orientée vers lui.
+            $s = $this->subCoords($e['sid']);
+            if ($s === null) {
+                continue;
+            }
+            if ($e['k'] === 0) {
+                $s = array_reverse($s);
+            }
+            $slen = $this->plen($s);
+            // Bout qui croise déjà le dessin de L dans ses 30 derniers m : un dépassement, pas une arrivée parallèle.
+            for ($b = 0.0; $b <= min(30.0, $slen); $b += 2.0) {
+                if ($this->distToLine($tc, $this->pointAlong($s, $slen - $b)) <= self::SOURCE_JOIN_SNAP_M) {
+                    continue 2;
+                }
+            }
+            $back = min(self::SOURCE_JOIN_BACK_M, $slen - 5, $this->nextJunction($e['sid'], $s, []) - 5);
+            $cands = [];
+            foreach (self::SOURCE_JOIN_D_STEPS as $ld) {
+                foreach (self::SOURCE_JOIN_J_STEPS as $lj) {
+                    if ($ld + $lj > 0 && ($ld === 0 || $ld <= $back) && $lj <= $qlen - 5) {
+                        $cands[] = [$ld + $lj, $ld, $lj];
+                    }
+                }
+            }
+            sort($cands);
+            $best = null;
+            foreach ($cands as [, $ld, $lj]) {
+                $d = $this->pointAlong($s, $slen - $ld);
+                $u0 = $this->unit($this->pointAlong($s, max(0.0, $slen - $ld - 15)), $d);
+                $j = $this->pointAlong($qp, $lj);
+                $u1 = $this->unit($j, $this->pointAlong($qp, min($qlen, $lj + 15)));
+                if (hypot($j[0] - $d[0], $j[1] - $d[1]) < 2) {
+                    continue;
+                }
+                $pts = $this->hermite($d, $u0, $j, $u1);
+                if ($this->minCurveRadius($pts) < $rmin) {
+                    continue;
+                }
+                foreach ($pts as $pt) {
+                    if (min($this->distToLine($s, $pt), $this->distToLine($tc, $pt)) > $y + 1) {
+                        continue 2;
+                    }
+                }
+                if ($ld > 0 && $this->holdsOtherLine($this->subLine($s, $slen - $ld, $slen))) {
+                    continue;
+                }
+                $curve = ['coords' => $pts, 'len' => $this->plen($pts)];
+                if ($this->doubles($curve, [$e['sid']])) {
+                    continue;
+                }
+                $best = [$curve, $ld, $lj];
+                break;
+            }
+            $this->debug && $this->log[] = ['drawing_join' => $e['sid'], 'line' => (int) $t->line_id, 'd' => round($y, 1), 'back' => round($back),
+                'fit' => $best ? [$best[1], $best[2], round($best[0]['len'], 1)] : null];
+            if ($best === null) {
+                continue;
+            }
+            [$curve, $ld] = $best;
+            if ($ld > 0) {
+                $f = $ld / $slen;
+                $e['k'] === 1 ? $this->cutSub($e['sid'], 0.0, 1 - $f) : $this->cutSub($e['sid'], $f, 1.0);
+            }
+            $this->insertSmoothed($curve['coords'], $e['sid']);
+            $stats['drawing_joined']++;
+            $stats['drawing_joined_m'] += $curve['len'];
         }
     }
 

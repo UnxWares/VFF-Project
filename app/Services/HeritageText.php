@@ -456,9 +456,12 @@ class HeritageText
         $out = [];
         $region = null;
         $lines = preg_split('/\R/u', $wikitext);
+        /** @var list<string> $headers */
         $headers = [];
         $inTable = false;
+        /** @var list<array{int, string}> $row */
         $row = [];
+        /** @var array<int, array{int, string}> $pending */
         $pending = []; // colonne → [restant, valeur] (rowspan)
         $flush = function () use (&$row, &$out, &$headers, &$pending, &$region) {
             if (! $row) {

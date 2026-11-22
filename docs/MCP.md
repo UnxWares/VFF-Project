@@ -144,7 +144,9 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `station_audits` | Audit des gares de tout le réseau : note de placement, écarts, notes des dates, contrôles en échec, filtrés par note, contrôle, département, région, ligne ; paginés par `limit` et `offset`. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
+| `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
+| `journal` | Articles longs du journal de bord (liste, ou article complet avec son texte en HTML, ses sources en notes et les fiches citées). |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -653,7 +655,7 @@ rédigée) : `slug`, `wikidata_id`, `kind`, `date` à lire avec `date_precision`
 `place` (`commune`, `commune_insee`, `department_code`, `department`, `lat` et `lng` en WGS 84, `precision` de la
 position : `exact`, `level_crossing`, `station`, `commune` = lieu exact inconnu), `line` (`slug`, `code`, `name`,
 `confidence` du rattachement : `high`, `medium`, `low`), `deaths` et `injuries` (`null` : aucune source consultée ne
-les donne ; `0` : aucun), `toll_source` (`bea-tt`, `wikidata`, `wikipedia`), `review_status`, `url`. Aucune victime
+les donne ; `0` : aucun), `toll_source` (`bea-tt`, `wikidata`, `wikipedia`, `manual`), `review_status`, `url`. Aucune victime
 n'est nommée.
 
 **Prudence** : `review_status: "to_review"` (« à vérifier ») signale un point incertain (bilans ou dates qui diffèrent
@@ -770,7 +772,10 @@ suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`,
 ‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
 `tunnel`, `interpolated`, `rack` ; motif nul aussi si aucune portion de 1 km n'est exploitable) et méthode des dénivelés (`climb_method` : altitudes du terrain moyennées sur 1 km,
 puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
-publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `sourced_grade`
+(quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés : déclivité
+la plus forte selon le champ « pente » de l'infobox de Wikipédia, en ‰, avec le permalien de la révision lue ; null
+sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
@@ -945,6 +950,65 @@ d'utilisation de Gallica (non commerciale libre avec la mention de source, comme
 {"line": "rfn-340000", "type": "map"}
 ```
 
+### `line_archive_records` : notices des fonds d'archives d'une ligne (Archives SNCF)
+
+Même contenu que `GET /api/v1/lines/{line}/archive-records` (service `LineArchives`). Notices d'inventaire des fonds
+d'archives dont le titre désigne la ligne. Seule source à ce jour : le jeu de données « Archives SNCF »
+(`archives-sncf-sardo`, ressources.data.sncf.com, ODbL) du Service Archives Documentation du groupe SNCF, qui décrit
+les dossiers, photographies de la Médiathèque SNCF et films numérisés consultables sur archives.sncf.com. Les notices
+sont importées par `vff:import-sncf-archives` et rattachées par le même score que `line_archives` (tableau ci-dessus,
+seuil 9 sur 11), avec deux règles propres au fonds :
+
+- un nom de compagnie ne désigne pas une ligne : « Compagnie du chemin de fer de Paris à Orléans » est retiré du titre
+  avant le calcul ;
+- dans « située sur les lignes du Mans à Mézidon et d'Argentan à Granville », chaque trajet de la liste compte comme
+  une ligne (le document va aux deux lignes ; au-delà de deux, il est ambigu et ne va à aucune).
+
+Les notices des thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de
+personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise. Précision mesurée le
+22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse. Une liste vide ne
+veut pas dire que les archives de la SNCF n'ont rien sur la ligne : le jeu de données n'en décrit qu'une partie.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `type` | `document`, `image`, `video` | non | Ne garder qu'un type de notice : dossier d'archives, photographie ou affiche, film. Tous par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `total`, `records` (du plus ancien au plus récent, sans date en dernier : `source`, `reference`
+(numéro du dossier), `url`, `title`, `type`, `theme`, `sub_theme`, `holder` (service versant), `box`, `rights`, `date`
+avec `label`, `year`, `year_to`, `exact` et `precision` (`day`, `month`, `year`, `range`, `unknown`), `match` avec le
+score, le seuil, les raisons et les lieux reconnus, `fetched_at`), `provenance`, `method` (seuil et points) et
+`vff_url` (section de la fiche).
+
+Droits : le jeu de données est sous ODbL ; reprenez la mention « SNCF, Service Archives Documentation ». VFF ne sert ni
+description, ni image, ni document : renvoyez le lecteur vers `url`, dont la réutilisation suit les conditions
+d'archives.sncf.com.
+
+```json
+{"line": "rfn-430000", "type": "image"}
+```
+
+### `journal` : articles du journal de bord
+
+Même contenu que `GET /api/v1/journal` et `GET /api/v1/journal/{slug}`, et que les pages `/journal` du site. Les
+articles sont des fichiers Markdown versionnés (`resources/content/journal/<slug>.<langue>.md`) écrits par l'équipe ;
+un article sans traduction est renvoyé en français (`lang` dit la langue du texte renvoyé, `locales` celles qui
+existent).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `slug` | chaîne | non | Slug d'un article. Sans lui : la liste. |
+| `line` | code à 6 chiffres | non | Liste : seulement les articles qui parlent de cette ligne. |
+| `lang` | `fr`, `en`, `de` | non | Langue souhaitée (et des messages). |
+
+Liste : `total` et `articles` (`slug`, `title`, `date`, `updated`, `summary`, `lang`, `locales`, `image`, `lines` :
+codes RFN, `stations` : slugs, `path`, `vff_url`). Article : les mêmes champs, plus `author` (toujours l'équipe),
+`disclosure` (lien d'intérêts déclaré, à reprendre avec l'article), `html` (texte, liens internes relatifs au site,
+sources en notes de fin), `toc`, `lines` et `stations` remplacés par les fiches citées qui existent, `words`,
+`reading_minutes`, `license` et `license_url` (texte sous CC BY-SA 4.0 ; l'image garde sa licence). Erreur :
+`journal_not_found`.
+
 ### `line_stories` : histoires d'événements d'une ligne
 
 Même contenu que `GET /api/v1/lines/{line}/stories` et `GET /api/v1/lines/{line}/stories/{event}` (service
@@ -1021,7 +1085,9 @@ Le lieu est ramené au centre de sa maille de 0,001 degré (environ 110 m sur 75
 
 Mêmes faits que `GET /api/v1/lines/{line}/signalling-history` (service `LineSignallingHistory`) : mises en service
 datées de BAL, BAPR, block manuel, cantonnement téléphonique, TVM, ETCS et KVB, relevées dans l'article Wikipédia de
-la ligne (texte, listes, tableaux, infobox). Les champs de chaque fait sont décrits avec `get_line` ci-dessus. Aucune
+la ligne (texte, listes, tableaux, infobox) ou dans d'autres documents datés relevés par VFF (`source.provider` :
+`manual`, avec `source.verification` et `source.documents` : éditeur, titre, lien, date de publication ;
+`origin` : `document`). Les champs de chaque fait sont décrits avec `get_line` ci-dessus. Aucune
 phrase de l'article n'est renvoyée (décision Q22) : le permalien de la révision lue suffit pour vérifier.
 
 | Paramètre | Type | Obligatoire | Description |
@@ -1120,6 +1186,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
 | « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
+| « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 | « Jusqu'à quand les X 4300 ont-ils roulé sur Lunéville - Saint-Dié ? » | `line_materials {"line": "rfn-67000", "type": "autorail"}` : période de chaque série |
 
@@ -1205,6 +1272,10 @@ X-RateLimit-Remaining: 1197
 - **Débit** : 300 requêtes par minute et par adresse IP sans jeton, davantage avec un jeton
   personnel, sur un compteur commun à l'API REST et à GraphQL (voir « Authentification et quotas »).
   Au-delà : HTTP 429.
+- **Corps de requête** : 2 Mio au plus (`API_MAX_BODY_BYTES`, `api.max_body_bytes`). Au-delà : HTTP 413, avant tout
+  traitement, avec une erreur JSON-RPC : `{"jsonrpc": "2.0", "id": null, "error": {"code": -32600, "message": "The request body is larger than 2097152 bytes."}}`.
+  Les lots JSON-RPC (une liste de requêtes) ne sont pas acceptés : une requête par appel. La limite des lots de
+  GraphQL (5 opérations, 400 `batch_too_large`) est décrite dans `docs/API.md`.
 - **Taille** : 48 000 octets au plus par réponse (`MCP_MAX_RESPONSE_BYTES`). Au-delà, les listes les
   plus longues (événements, phases, gares…) sont raccourcies par la fin, et `truncated` le dit :
   réduisez la période, les types ou `max_events`. Les outils de liste ne perdent rien : leur

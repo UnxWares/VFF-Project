@@ -30,6 +30,7 @@ class LineSignallingController extends Controller
             'provider' => 'wikipedia', 'title' => 'Ligne de Saint-Cloud à Saint-Nom-la-Bretèche - Forêt-de-Marly',
             'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Cloud_%C3%A0_Saint-Nom-la-Bret%C3%A8che_-_For%C3%AAt-de-Marly&oldid=240844633',
             'revision' => 240844633, 'excerpt' => 'En juin 1962, le block automatique lumineux est étendu de Garches à Saint-Nom-la-Bretèche.',
+            'verification' => null, 'documents' => [],
         ],
     ];
 
@@ -118,8 +119,11 @@ class LineSignallingController extends Controller
      * Historique de la signalisation d'une ligne.
      *
      * Mises en service **datées** de systèmes de signalisation, relevées dans l'article Wikipédia de la
-     * ligne (`vff:import-signalling-history`) : texte, listes, tableaux et infobox. Un fait par système, date
-     * et portion. C'est un historique à part : l'état actuel de la ligne reste `GET /lines/{line}/signalling`
+     * ligne (`vff:import-signalling-history`) : texte, listes, tableaux et infobox ; ou dans d'autres documents
+     * datés, relevés par VFF (`vff:import-signalling-sources` : communiqués de SNCF Réseau, rapports du BEA-TT
+     * et de l'EPSF, Journal officiel, presse ; `source.provider: manual`). Un fait par système, date
+     * et portion. Un fait de Wikipédia que redit un fait daté par des documents (même groupe, même année, même
+     * portion) n'est pas répété. C'est un historique à part : l'état actuel de la ligne reste `GET /lines/{line}/signalling`
      * (SNCF Réseau), que ces faits ne corrigent pas. Liste vide si l'article ne date aucune mise en service.
      *
      * Pour chaque fait :
@@ -133,13 +137,15 @@ class LineSignallingController extends Controller
      *   sont complétés par `01`, ne les lisez pas comme une date exacte) ;
      * - `reliability` : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine
      *   comme « la même année » ou « à cette occasion », qui peut être au jour, ou date déduite de l'ouverture,
-     *   voir `origin: opening` ; la précision est dans `date_precision`). Les faits douteux (date approximative « vers 1937 », plusieurs dates dans la
+     *   voir `origin: opening` ; la précision est dans `date_precision`). Fait daté par des documents : même
+     *   règle (`high` au jour ou au mois, `medium` à l'année). Les faits douteux (date approximative « vers 1937 », plusieurs dates dans la
      *   même phrase, période « de 1968 à 1984 », article de plusieurs lignes) sont gardés en interne et jamais
      *   exposés ;
      * - `origin` : où l'article donne le fait : `text` (phrase), `list` (liste à puces), `table` (ligne d'un
      *   tableau), `infobox` (champ « signalisation » daté), `opening` (TVM d'une ligne à grande vitesse : elle
      *   n'a pas de signaux latéraux et ne roule pas sans sa TVM, en service dès l'ouverture ; date = première
-     *   mise en service de l'infobox, version de l'infobox ou `TVM` si une autre version a précédé) ;
+     *   mise en service de l'infobox, version de l'infobox ou `TVM` si une autre version a précédé),
+     *   `document` (daté hors de l'article par les documents de `source.documents`) ;
      * - `scope` : `whole_line` (l'article dit toute la ligne), `section` (portion nommée) ou `unspecified`
      *   (l'article ne dit pas) ;
      * - `section` (portion nommée seulement, sinon null) : `from`, `to` (lieux tels qu'écrits), `location`
@@ -147,14 +153,26 @@ class LineSignallingController extends Controller
      *   `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
      *   inventé), `pk_start_m` et `pk_end_m` (PK de la portion placée, en mètres, null sinon), `from_station`
      *   et `to_station` (`slug`, `name`, `pk_m` de chaque gare retenue, null sinon) ;
-     * - `source` : `provider` (`wikipedia`), `title` de l'article, `url` (permalien de la révision lue),
-     *   `revision` et `excerpt`, une courte phrase de l'article (200 caractères au plus) pour relire le fait.
+     * - `source` : `provider` (`wikipedia`, ou `manual` pour un fait daté par des documents), `title` de
+     *   l'article ou du premier document, `url` (permalien de la révision lue, ou lien du premier document),
+     *   `revision` (null pour un document), `excerpt` (courte phrase de l'article, 200 caractères au plus, pour
+     *   relire le fait ; pour un document, le fait résumé par VFF), `verification` (`official` : au moins un
+     *   document d'un organisme officiel, SNCF Réseau, État, région, EPSF, BEA-TT, Journal officiel ;
+     *   `two_sources` : deux documents de sites différents ; null pour Wikipédia) et `documents` (`publisher`,
+     *   `title`, `url`, `published` au format `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA`, null si inconnue ; liste vide
+     *   pour Wikipédia).
      *
      * Avec `era`, la réponse ajoute `era_year` et `in_force` : les faits encore en vigueur à la fin de l'ère
      * (31 décembre de l'année ; aujourd'hui pour 2030), ceux que dessine la carte de l'époque
      * (`GET /eras/{year}/signalling/tiles/…`). Un fait plus récent du même groupe (cantonnement, TVM, ETCS,
      * KVB) qui porte sur toute la ligne ou recouvre sa portion placée le remplace ; un remplacement que
      * l'article ne date pas reste invisible.
+     *
+     * `corrections` : les faits relevés que des documents contredisent (fichier `signalling_history_corrections.php`,
+     * action `neutralize` ou `replace`). Ils ne sont **jamais** dans `history` ni dans `in_force` ; chaque entrée
+     * dit lequel (`system`, `date`, `date_precision`, `section`, `original` : `provider`, `title`, `url`), ce qui est
+     * fait (`action`), pourquoi (`reason`), une citation (`quote`) et les documents qui contredisent le fait
+     * (`sources` : `publisher`, `title`, `url`, `published`). Liste vide s'il n'y en a aucune.
      *
      * Relevé limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Le texte des
      * articles est sous CC BY-SA 4.0 : reproduisez la mention du champ `attribution` ; seuls des faits sont
@@ -165,6 +183,7 @@ class LineSignallingController extends Controller
     #[ApiResponse(200, "Mises en service de signalisation datées de la ligne (liste vide s'il n'y en a aucune).", examples: [[
         'line' => ['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de St-Cloud à St-Nom-la-Bretèche-Forêt-de-Marly'],
         'history' => [self::EXAMPLE_FACT],
+        'corrections' => [],
         'era_year' => 1970,
         'in_force' => [self::EXAMPLE_FACT],
         'attribution' => LineSignallingHistory::ATTRIBUTION,
@@ -180,6 +199,7 @@ class LineSignallingController extends Controller
         $body = [
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'history' => $facts,
+            'corrections' => $this->history->corrections($line),
         ];
         if ($request->filled('era')) {
             $era = Era::where('year', $request->integer('era'))->first();

@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un train de voyageurs entre Bayon et Charmes, ligne de Blainville - Damelevières à Lure, de février 1903 (recherche du 21/11/2026).
 return [
     'slug' => '1903-02-14-virecourt',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1903' => [
             'provider' => 'wikipedia',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Het nieuws van den dag du 17 février 1903',
+            'title' => 'Buitenlandsch nieuws',
             'publisher' => 'Het nieuws van den dag',
             'author' => null,
             'published' => '1903-02-17',
@@ -45,9 +45,9 @@ return [
         ],
         'causes' => [
             [
-                'fr' => 'Selon la presse néerlandaise, l\'accident était attribué à un acte de malveillance et une enquête judiciaire avait été ouverte.',
-                'en' => 'According to the Dutch press, the accident was put down to malicious action and a judicial inquiry had been opened.',
-                'de' => 'Nach der niederländischen Presse wurde der Unfall auf Böswilligkeit zurückgeführt; eine gerichtliche Untersuchung war eingeleitet.',
+                'fr' => 'Selon la presse néerlandaise, l\'accident était probablement dû à la malveillance, et une enquête judiciaire avait été ouverte.',
+                'en' => 'According to the Dutch press, the accident was probably due to malicious action, and a judicial inquiry had been opened.',
+                'de' => 'Nach der niederländischen Presse ging der Unfall vermutlich auf Böswilligkeit zurück; eine gerichtliche Untersuchung war eingeleitet.',
                 'sources' => ['nieuws-van-den-dag-1903-02-17'],
             ],
         ],

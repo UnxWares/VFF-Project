@@ -186,7 +186,11 @@ class StationCorrectionsTest extends TestCase
         // Pas de réouverture déduite pour la halte que ses sources disent désaffectée.
         $this->assertFalse(DB::table('station_events')->where('station_id', $halt->id)->where('type', 'reopening')->exists());
         $this->assertTrue(DB::table('station_events')->where('station_id', $served->id)->where('type', 'reopening')->exists());
-        $this->assertSame([StationTimeline::CLOSED, 'active'], [$this->eraStatus($halt, $this->current), $this->eraStatus($served, $this->current)]);
+        // Halte fermée en 2018 : fermée à l'ère 2020, puis absente de la carte d'aujourd'hui (règle du 22/11/2026),
+        // toujours « fermée » sur sa fiche.
+        $this->assertSame([StationTimeline::CLOSED, null, 'active'],
+            [$this->eraStatus($halt, $this->past), $this->eraStatus($halt, $this->current), $this->eraStatus($served, $this->current)]);
+        $this->assertSame(StationTimeline::CLOSED, $halt->fresh()->status->value);
         // Date retenue : la correction (22/12/2018), pas Wikidata (14/12/2018).
         $this->assertSame(['2018-12-22', 'day', StationTimeline::CORRECTION],
             [$halt->fresh()->closed_at?->format('Y-m-d'), $halt->fresh()->closed_precision, $halt->fresh()->provenance['closed_at'] ?? null]);

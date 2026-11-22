@@ -323,7 +323,7 @@ class ImportLignesOubliees extends Command
     /**
      * Fiche détaillée → caractéristiques, événements par section, gares.
      *
-     * @param  array{name: string, code: ?string, page: ?string}  $row
+     * @param  array{name: string, code: ?string, page: ?string, length_m?: ?int, regions?: list<string>}  $row
      */
     private function parseFiche(string $html, array $row): array
     {
@@ -334,7 +334,7 @@ class ImportLignesOubliees extends Command
         $xp = new \DOMXPath($dom);
         $url = self::BASE.'index.php?page='.$row['page'];
 
-        $title = $this->text($xp->query('//div[@id="contenu"]/h1')->item(0)?->textContent ?? '');
+        $title = $this->text($xp->query('//div[@id="contenu"]/h1')->item(0)->textContent ?? '');
 
         // Caractéristiques (dt → liste de dd)
         $carac = [];
@@ -737,10 +737,10 @@ class ImportLignesOubliees extends Command
         }
         if (preg_match("/(debut|fin|mi-?|courant)?\s*({$mon})\s+(\d{4})/", $t, $m, PREG_OFFSET_CAPTURE)) {
             $candidates[] = [$m[0][1], $this->mkDate((int) $m[3][0], self::MONTHS[$m[2][0]], 1), 'month',
-                ($approx || ($m[1][0] ?? '') !== '') ? 'low' : 'medium'];
+                ($approx || $m[1][0] !== '') ? 'low' : 'medium'];
         }
         if (preg_match('/(debut|milieu|fin)?\s*(?:des\s+)?annees\s+((?:18|19|20)\d0)/', $t, $m, PREG_OFFSET_CAPTURE)) {
-            $y = (int) $m[2][0] + match ($m[1][0] ?? '') {
+            $y = (int) $m[2][0] + match ($m[1][0]) {
                 'debut' => 1, 'fin' => 8, default => 5
             };
             $candidates[] = [$m[0][1], $this->mkDate($y, 1, 1), 'year', 'low'];

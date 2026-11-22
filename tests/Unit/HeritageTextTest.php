@@ -174,11 +174,11 @@ class HeritageTextTest extends TestCase
             ['type' => 'closure', 'date' => '1969-12-01', 'source' => 'lignes-oubliees'],
             ['type' => 'heritage_start', 'date' => '1982-06-03', 'source' => 'heritage', 'heritage_kind' => 'tourist_train'],
         ]);
-        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $portion->stateAt(1970));
-        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $portion->stateAt(1980));
-        $this->assertSame('tourist_train', $portion->stateAt(1990)['heritage']);
-        $this->assertSame('in_service', $portion->stateAt(1990)['status']);
-        $this->assertSame('tourist_train', $portion->stateAt(2026, true)['heritage']);
+        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $this->state($portion, 1970));
+        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $this->state($portion, 1980));
+        $this->assertSame('tourist_train', $this->state($portion, 1990)['heritage']);
+        $this->assertSame('in_service', $this->state($portion, 1990)['status']);
+        $this->assertSame('tourist_train', $this->state($portion, 2026, true)['heritage']);
 
         // Vélorail : voie en place, plus de trains → « abandoned », mais exploitée par une association.
         $velorail = new EraTimeline([
@@ -186,7 +186,7 @@ class HeritageTextTest extends TestCase
             ['type' => 'closure', 'date' => '1955-05-22'],
             ['type' => 'heritage_start', 'date' => '2001-01-01', 'source' => 'heritage', 'heritage_kind' => 'velorail'],
         ]);
-        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown', 'heritage' => 'velorail'], $velorail->stateAt(2010));
+        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown', 'heritage' => 'velorail'], $this->state($velorail, 2010));
 
         // Interruption 2008 - 2013 (Chemin de fer du Vivarais) : fermée sur la carte de 2010.
         $vivarais = new EraTimeline([
@@ -196,8 +196,16 @@ class HeritageTextTest extends TestCase
             ['type' => 'heritage_end', 'date' => '2008-01-01', 'source' => 'heritage', 'heritage_kind' => 'tourist_train'],
             ['type' => 'heritage_start', 'date' => '2013-07-02', 'source' => 'heritage', 'heritage_kind' => 'tourist_train'],
         ]);
-        $this->assertSame('tourist_train', $vivarais->stateAt(2000)['heritage']);
-        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $vivarais->stateAt(2010));
-        $this->assertSame('tourist_train', $vivarais->stateAt(2020)['heritage']);
+        $this->assertSame('tourist_train', $this->state($vivarais, 2000)['heritage']);
+        $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $this->state($vivarais, 2010));
+        $this->assertSame('tourist_train', $this->state($vivarais, 2020)['heritage']);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function state(EraTimeline $timeline, int $year, bool $isCurrent = false): array
+    {
+        return $timeline->stateAt($year, $isCurrent) ?? [];
     }
 }

@@ -427,6 +427,30 @@ return [
             'domaines' => ['gallica.bnf.fr', 'catalogue.bnf.fr'],
             'lu_le' => '2026-11-20',
         ],
+        // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives, table line_archive_records) : métadonnées
+        // du jeu de données « archives-sncf-sardo » et lien vers archives.sncf.com, jamais l'image ni le document numérisés.
+        'sncf-archives' => [
+            'nom' => 'Archives SNCF (Service Archives Documentation du groupe SNCF, jeu de données « archives-sncf-sardo »)',
+            'statut' => 'sur',
+            'licence' => 'Jeu de données : ODbL 1.0 ; documents numérisés : conditions d\'utilisation du site archives.sncf.com (droits indiqués sur chaque notice, « SNCF-MEDIATHEQUE » pour les photographies)',
+            'accord' => null,
+            // Les pages de ressources.data.sncf.com (métadonnées du jeu, licence) sont rangées chez le fournisseur `sncf` :
+            // elles sont citées dans `remarques`.
+            'preuve' => [
+                'https://www.data.gouv.fr/api/1/datasets/archives-sncf-sardo/',
+            ],
+            'citation' => '"license": "Open Database License (ODbL)", "license_url": "https://data.sncf.com/pages/licence", "publisher": "SNCF", 12 447 notices, modifié le 2023-12-21 (métadonnées du jeu lues le 2026-11-22) ; '
+                .'« license » : « odc-odbl » sur data.gouv.fr (même jour).',
+            'obligations' => 'Attribution « SNCF, Service Archives Documentation » avec le nom du jeu de données ; partage à l\'identique de la base dérivée (ODbL). '
+                .'Seuls le titre, le type, le classement, le service versant, la boîte, la date, le titulaire des droits et le lien sont repris. '
+                .'Aucune description (elle peut nommer des agents), aucune image ni document : le lien mène à la notice sur archives.sncf.com. '
+                .'Les thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de personnel) ne sont pas rattachés.',
+            'remarques' => 'Lu le 2026-11-22. Métadonnées du jeu : https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/archives-sncf-sardo ; FAQ de la licence : https://data.sncf.com/pages/licence. '
+                .'Export JSON du jeu lu en une requête (ressources.data.sncf.com, plateforme Opendatasoft), copie locale dans storage/app/data/archives-sncf. '
+                .'Le site archives.sncf.com lui-même n\'est jamais interrogé par VFF.',
+            'domaines' => ['archives.sncf.com'],
+            'lu_le' => '2026-11-22',
+        ],
         // Fournisseurs des documents cités par le contexte des accidents (vff:enrich-accidents), conditions lues le
         // 2026-11-21 (rapport storage/app/reports/agents/nuit-2111/accidents-archives.md). Faits seulement, avec lien.
         'retronews' => [
@@ -539,6 +563,74 @@ return [
             'domaines' => ['ina.fr'],
             'lu_le' => '2026-11-21',
         ],
+        // Presse ancienne lue par le texte pour le contexte des accidents (lots de presse du 21/11/2026) : sources de
+        // faits validées par Baptiste le 22/11/2026. Énoncés rédigés par VFF, lien vers la page du journal, aucun texte
+        // recopié, aucune image, aucun nom de victime privée.
+        'delpher' => [
+            'nom' => 'Delpher (presse néerlandaise numérisée, Koninklijke Bibliotheek)',
+            'statut' => 'incertain',
+            'licence' => 'Aucune licence ouverte trouvée : la KB demande une autorisation pour copier ou réutiliser ses contenus, et permet le lien seul ; matériel de plus de 140 ans copiable sans autorisation',
+            'accord' => null,
+            'preuve' => ['https://www.kb.nl/contact/auteursrecht', 'https://www.kb.nl/legal/gebruiksvoorwaarden-en-klachtregeling'],
+            'citation' => 'Als je iets van deze website wilt kopiëren en/of hergebruiken, dan moet je toestemming vragen via onze contactpagina.',
+            'obligations' => 'Faits seulement, avec le titre du journal, la date et un lien (resolver.kb.nl) vers l\'article. Aucun texte OCR recopié, aucune image, aucune extraction en masse.',
+            'remarques' => 'Les pages propres à Delpher (delpher.nl) refusent la machine de développement (403) : conditions lues sur kb.nl le 22/11/2026. Lu par l\'API SRU publique jsru.kb.nl (une requête à la fois).',
+            'domaines' => ['delpher.nl', 'resolver.kb.nl', 'kb.nl'],
+            'lu_le' => '2026-11-22',
+        ],
+        'ddb-zeitungsportal' => [
+            'nom' => 'Deutsches Zeitungsportal (Deutsche Digitale Bibliothek)',
+            'statut' => 'incertain',
+            'licence' => 'Conditions de la Deutsche Digitale Bibliothek : textes du site sous CC BY 4.0 ; droits des journaux numérisés propres à chaque objet (mention de droits de l\'objet)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.deutsche-digitale-bibliothek.de/content/newspaper/nutzungsbedingungen_dzp',
+                'https://www.deutsche-digitale-bibliothek.de/content/nutzungshinweise',
+            ],
+            'citation' => 'Es gelten die Nutzungsbedingungen der Deutschen Digitalen Bibliothek.',
+            'obligations' => 'Faits seulement, avec le titre du journal, la date, la page et un lien vers la page du portail. Aucun texte OCR recopié, aucune image ; la mention de droits de chaque objet décide de toute autre reprise.',
+            'remarques' => 'Lu le 22/11/2026. La FAQ du portail (content/newspaper/fragen-antworten) n\'a pas été lue. Recherche en plein texte par l\'API Solr publique du portail.',
+            'domaines' => ['deutsche-digitale-bibliothek.de'],
+            'lu_le' => '2026-11-22',
+        ],
+        'victimes-du-rail' => [
+            'nom' => 'Victimes du rail (relevés de presse ancienne sur les victimes d\'accidents ferroviaires)',
+            'statut' => 'incertain',
+            'licence' => 'Pas de licence : site personnel, éditeur non nommé, qui demande d\'être cité comme source',
+            'accord' => null,
+            'preuve' => ['https://www.victimesdurail.fr/pourquoi/', 'https://www.victimesdurail.fr/confidentialite-des-donnees/'],
+            'citation' => 'Merci de mentionner ce site comme source si vous utilisez les données publiées ici.',
+            'obligations' => 'Faits seulement (date, lieu, bilan, nature), avec la mention « Victimes du rail » et un lien vers la page lue. Aucun nom de victime repris, aucune transcription recopiée.',
+            'remarques' => 'Aucune page de mentions légales ni de conditions (lu le 22/11/2026). Les transcriptions du site citent la presse d\'époque : remonter au journal quand il est lisible.',
+            'domaines' => ['victimesdurail.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        // Presse européenne lue par le texte pour le contexte des accidents (agent accidents-europe, 22/11/2026) :
+        // faits seulement, lien vers la page, aucun texte ni image repris.
+        'anno' => [
+            'nom' => 'ANNO, AustriaN Newspapers Online (Österreichische Nationalbibliothek)',
+            'statut' => 'incertain',
+            'licence' => 'Pas de licence nommée : l\'ÖNB ne revendique aucun droit d\'exploitation sur ses contenus en ligne et consent à leur réutilisation ; droits des tiers à vérifier ; numérisations de Google limitées à l\'usage non commercial',
+            'accord' => null,
+            'preuve' => ['https://anno.onb.ac.at/node/11'],
+            'citation' => 'An allen Inhalten, die von der Österreichischen Nationalbibliothek (ÖNB) ins Netz gestellt werden, macht die ÖNB kein eigenes urheberrechtliches Verwertungsrecht geltend.',
+            'obligations' => 'Titre, date et page du journal avec la mention « ANNO/Österreichische Nationalbibliothek » ou le lien ANNO. Faits seulement, aucun texte OCR recopié, aucune image (les numérisations de Google sont réservées à l\'usage non commercial).',
+            'remarques' => 'Lu le 22/11/2026 (FAQ, rubrique Nachnutzung). Recherche par l\'API de la recherche plein texte (anno-suche/rest, permise par le robots.txt), une requête à la fois ; le texte intégral d\'une page passe par une vérification humaine, non contournée : seuls les extraits de la recherche sont lus.',
+            'domaines' => ['anno.onb.ac.at', 'data.onb.ac.at'],
+            'lu_le' => '2026-11-22',
+        ],
+        'eluxemburgensia' => [
+            'nom' => 'eluxemburgensia (presse luxembourgeoise numérisée, Bibliothèque nationale du Luxembourg)',
+            'statut' => 'incertain',
+            'licence' => 'Domaine public librement réutilisable, y compris à des fins commerciales (œuvres publiées avant le 31/12/1883 selon la règle prudente de la BnL en 2026) ; contenus plus récents protégés, limités aux exceptions du droit d\'auteur',
+            'accord' => null,
+            'preuve' => ['https://eluxemburgensia.lu/fr/support/copyrights'],
+            'citation' => 'Les contenus faisant partie du domaine public peuvent être utilisés à toutes fins, y compris à des fins commerciales.',
+            'obligations' => 'Titre du journal, date, page, mention « numérisé par la Bibliothèque nationale du Luxembourg, www.eluxemburgensia.lu » et lien direct (persist.lu). Faits seulement, aucun texte ni image repris pour les contenus protégés.',
+            'remarques' => 'Lu le 22/11/2026 (page Droits, servie par l\'API du site). Pas de robots.txt. Recherche par l\'API publique du visualiseur (viewer.eluxemburgensia.lu/api/viewer2/search), une requête à la fois ; seuls les extraits de la recherche sont lus.',
+            'domaines' => ['eluxemburgensia.lu', 'persist.lu'],
+            'lu_le' => '2026-11-22',
+        ],
     ],
 
     'sources' => [
@@ -549,6 +641,8 @@ return [
             'wikipedia-en' => 'wikipedia-en',
             'wikipedia-de' => 'wikipedia-de',
             'bea-tt' => 'bea-tt',
+            // Fiches rédigées à la main (accident_records_manual.php) : la source est le document de presse cité.
+            'delpher' => 'delpher',
         ],
         'line_events' => [
             'wikipedia' => 'wikipedia',
@@ -638,6 +732,8 @@ return [
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
         // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
         // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
+        // `manual` (vff:import-signalling-sources, database/data/signalling_history_sources.php) : faits datés par d'autres
+        // documents (SNCF Réseau, BEA-TT, EPSF, Journal officiel, presse), voir composites.
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
@@ -646,6 +742,8 @@ return [
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],
+        // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives) : métadonnées du jeu « archives-sncf-sardo » (ODbL) et lien.
+        'line_archive_records' => ['sncf-archives' => 'sncf-archives'],
         // Contexte sourcé des accidents (vff:enrich-accidents, database/data/accident_contexts/*.php) :
         // accident_references.provider. Énoncés rédigés par VFF, faits seulement avec lien ; une courte citation
         // exacte au plus par fiche, et seulement d'un rapport du BEA-TT ou d'un texte du Journal officiel (Licence
@@ -654,7 +752,7 @@ return [
         'accident_references' => [
             'bea-tt' => 'bea-tt', 'legifrance' => 'jorf', 'gallica' => 'gallica', 'commons' => 'commons',
             'wikipedia' => 'wikipedia', 'wikipedia-en' => 'wikipedia-en', 'wikipedia-de' => 'wikipedia-de', 'wikipedia-it' => 'wikipedia',
-            'wikidata' => 'wikidata', 'presse' => 'tiers-cites', 'ouvrages' => 'tiers-cites', 'sites-web' => 'tiers-cites',
+            'wikidata' => 'wikidata', 'ouvrages' => 'tiers-cites',
             'retronews' => 'retronews', 'assemblee-nationale' => 'assemblee-nationale', 'senat' => 'senat',
             'archives-nationales' => 'archives-nationales', 'francearchives' => 'francearchives',
             'archives-departementales' => 'archives-departementales', 'persee' => 'persee', 'europeana' => 'europeana', 'ina' => 'ina',
@@ -695,6 +793,18 @@ return [
         'station_events' => [
             // Corrections sourcées des dates de gares : le lien cité décide.
             'correction' => 'vff',
+        ],
+        'line_signalling_events' => [
+            // Mises en service datées par des documents, relevées à la main (database/data/signalling_history_sources.php) :
+            // le lien du premier document décide (Légifrance, BEA-TT, Wikipédia…) ; VFF à défaut (communiqués de SNCF Réseau,
+            // presse). Faits seulement : date, système, portion, résumé rédigé par VFF, lien ; aucun texte recopié.
+            'manual' => 'vff',
+        ],
+        'accident_references' => [
+            // Presse et sites web cités par le contexte des accidents : le lien cité décide (Delpher, Deutsches
+            // Zeitungsportal, Victimes du rail, Gallica…) ; sites tiers cités ponctuellement à défaut.
+            'presse' => 'tiers-cites',
+            'sites-web' => 'tiers-cites',
         ],
     ],
 ];
