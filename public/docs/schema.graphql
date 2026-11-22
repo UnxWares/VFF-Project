@@ -18,6 +18,13 @@ requête 25 301. Au-delà, la requête est refusée sans être exécutée : erre
 `extensions.max_depth`), avec un message en anglais, ou en français et en allemand selon l'en-tête
 `Accept-Language`. Demandez alors moins d'éléments par page ou découpez la requête.
 
+Deux autres limites jouent avant toute exécution. Un lot (un seul `POST` dont le corps JSON est une liste de
+requêtes) compte 5 opérations au plus : au-delà, HTTP 400 avec `extensions.code` `batch_too_large` et
+`extensions.max_batch`. Le corps d'une requête fait 2 Mio au plus (2 097 152 octets) : au-delà, HTTP 413 avec
+`extensions.code` `body_too_large` et `extensions.max_body_bytes`. Dans les deux cas la réponse est
+`{"errors": [{"message": …, "extensions": {…}}]}`. Le plafond de débit (HTTP 429, en-tête `Retry-After`) est
+commun à REST, GraphQL et MCP ; les mutations d'un lot sont comptées une à une.
+
 Données ouvertes : citez « VFF - Voies Ferrées de France » (https://vff-project.org) et
 respectez les licences des sources (SNCF Open Data et OpenStreetMap : ODbL ; IGN BD TOPO :
 Licence Ouverte 2.0 ; OpenHistoricalMap et Wikidata : CC0 ; Wikipédia : CC BY-SA).

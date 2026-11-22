@@ -204,6 +204,8 @@ return [
         'errors' => 'Errors: a parameter outside its allowed values, here an unknown grade and a page of 500.',
         'error_422' => '422, in JSON: errors gives one message per parameter.',
         'error_429' => '429 when the per-minute limit is exceeded: Retry-After gives the wait in seconds. Wait before trying again.',
+        'error_400' => '400 when a GraphQL batch holds more than 5 operations: extensions.code is batch_too_large and max_batch gives the ceiling. Send several requests instead.',
+        'error_413' => '413 when a request body is larger than 2 MiB (2,097,152 bytes), before any processing. GraphQL answers in errors[] with the code body_too_large; MCP answers with a JSON-RPC error (code -32600).',
     ],
 
     'graphql' => [
@@ -211,7 +213,7 @@ return [
         'text' => 'For richer queries, a single GraphQL endpoint, POST /graphql, returns a line with its segments and events in one go. Read the schema in the reference, or try your queries in GraphiQL.',
         'links' => 'GraphQL documentation',
         'example_comment' => 'A line with its events',
-        'limits' => 'Each query has a cost, worked out before it runs: 5,000 points and 15 levels of nesting at most. A field is worth 1 point, a paginated list multiplies its sub-fields by first, a list without pagination counts them for 10 items, and a sheet, a profile, a line audit or a route is worth 250 points. A hundred lines with their names fit in one query (301 points), a hundred line sheets do not (25,301). A query that costs too much is refused before it runs, with the code query_too_complex (or query_too_deep) and a message saying what to change. The full scale is in the GraphQL reference, on the Query type.',
+        'limits' => 'Each query has a cost, worked out before it runs: 5,000 points and 15 levels of nesting at most. A field is worth 1 point, a paginated list multiplies its sub-fields by first, a list without pagination counts them for 10 items, and a sheet, a profile, a line audit or a route is worth 250 points. A hundred lines with their names fit in one query (301 points), a hundred line sheets do not (25,301). A query that costs too much is refused before it runs, with the code query_too_complex (or query_too_deep) and a message saying what to change. The full scale is in the GraphQL reference, on the Query type. Two more limits apply before anything runs: a batch (a list of queries in a single POST) holds 5 operations at most, otherwise HTTP 400 with the code batch_too_large; a body larger than 2 MiB is refused with HTTP 413, code body_too_large. The mutations of a batch are counted one by one by the rate limit.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
@@ -263,7 +265,7 @@ return [
         'access_label' => 'Access',
         'access' => 'No account or key needed, read-only. No personal data is returned. A personal API token can also be sent in the Authorization header.',
         'limit_label' => 'Limits',
-        'limit' => 'The API limits, on the same counter: :count requests per minute per IP address without a token. A response is at most 48,000 bytes: beyond that, the longest lists are shortened and the response says so.',
+        'limit' => 'The API limits, on the same counter: :count requests per minute per IP address without a token. A response is at most 48,000 bytes: beyond that, the longest lists are shortened and the response says so. A body larger than 2 MiB is refused with HTTP 413, and batches are not accepted: one JSON-RPC request per call.',
         'lang_label' => 'Languages',
         'lang' => 'French, English or German (lang parameter). Proper names and quotations from sources stay in French.',
         'install_title' => 'Setting up a client',

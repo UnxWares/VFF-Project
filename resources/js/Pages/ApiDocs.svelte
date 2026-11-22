@@ -533,6 +533,29 @@ x-ratelimit-remaining: 0
 content-type: application/json
 
 { "message": "Too Many Attempts." }`;
+    // Réponses relevées sur le serveur de dev (POST /graphql avec 6 requêtes dans un lot, puis un corps de 2,1 Mio).
+    const auditError400 = `HTTP/2 400
+content-type: application/json
+
+{
+  "errors": [
+    {
+      "message": "A batch holds at most 5 operations: split it into several requests.",
+      "extensions": { "code": "batch_too_large", "max_batch": 5 }
+    }
+  ]
+}`;
+    const auditError413 = `HTTP/2 413
+content-type: application/json
+
+{
+  "errors": [
+    {
+      "message": "The request body is larger than 2097152 bytes.",
+      "extensions": { "code": "body_too_large", "max_body_bytes": 2097152 }
+    }
+  ]
+}`;
     // Blocs de la section, dans l'ordre : légende (api.audit_examples.<key>) et code.
     const auditBlocks = $derived([
         { key: 'segments', code: auditSegmentsCurl },
@@ -556,6 +579,8 @@ content-type: application/json
         { key: 'errors', code: auditErrorCurl },
         { key: 'error_422', code: auditError422 },
         { key: 'error_429', code: auditError429 },
+        { key: 'error_400', code: auditError400 },
+        { key: 'error_413', code: auditError413 },
     ]);
 
     // Section « Authentification et quotas » : mêmes requêtes avec et sans jeton (variable VFF_TOKEN).

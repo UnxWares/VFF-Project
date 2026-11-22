@@ -205,6 +205,8 @@ return [
         'errors' => 'Erreurs : un paramètre hors des valeurs permises, ici une note inconnue et une page de 500.',
         'error_422' => '422, en JSON : errors donne un message par paramètre.',
         'error_429' => '429 quand la limite par minute est dépassée : Retry-After donne l’attente en secondes. Attendez avant de recommencer.',
+        'error_400' => '400 quand un lot GraphQL dépasse 5 opérations : extensions.code vaut batch_too_large et max_batch donne le plafond. Envoyez plusieurs requêtes.',
+        'error_413' => '413 quand le corps d’une requête dépasse 2 Mio (2 097 152 octets), avant tout traitement. GraphQL répond dans errors[] avec le code body_too_large ; MCP répond par une erreur JSON-RPC (code -32600).',
     ],
 
     'graphql' => [
@@ -212,7 +214,7 @@ return [
         'text' => 'Pour les requêtes plus riches, un seul point d’accès GraphQL, POST /graphql, renvoie en une fois une ligne avec ses tronçons et ses événements. Lisez le schéma dans la référence, ou essayez vos requêtes dans GraphiQL.',
         'links' => 'Documentations GraphQL',
         'example_comment' => 'Une ligne avec ses événements',
-        'limits' => 'Chaque requête a un coût, calculé avant son exécution : 5 000 points et 15 niveaux d’imbrication au plus. Un champ vaut 1 point, une liste paginée multiplie ses sous-champs par first, une liste sans pagination les compte pour 10 éléments, et une fiche, un profil, un audit de ligne ou un itinéraire valent 250 points. Cent lignes avec leur nom tiennent dans une requête (301 points), cent fiches de ligne non (25 301). Une requête trop coûteuse est refusée avant d’être exécutée, avec le code query_too_complex (ou query_too_deep) et un message qui dit quoi changer. Le barème complet est dans la référence GraphQL, au type Query.',
+        'limits' => 'Chaque requête a un coût, calculé avant son exécution : 5 000 points et 15 niveaux d’imbrication au plus. Un champ vaut 1 point, une liste paginée multiplie ses sous-champs par first, une liste sans pagination les compte pour 10 éléments, et une fiche, un profil, un audit de ligne ou un itinéraire valent 250 points. Cent lignes avec leur nom tiennent dans une requête (301 points), cent fiches de ligne non (25 301). Une requête trop coûteuse est refusée avant d’être exécutée, avec le code query_too_complex (ou query_too_deep) et un message qui dit quoi changer. Le barème complet est dans la référence GraphQL, au type Query. Deux autres limites jouent avant l’exécution : un lot (une liste de requêtes dans un seul POST) compte 5 opérations au plus, sinon HTTP 400 avec le code batch_too_large ; un corps de plus de 2 Mio est refusé en HTTP 413, code body_too_large. Les mutations d’un lot sont comptées une à une par la limite de débit.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
@@ -264,7 +266,7 @@ return [
         'access_label' => 'Accès',
         'access' => 'Sans compte ni clé, en lecture seule. Aucune donnée personnelle n’est renvoyée. Un jeton personnel de l’API s’utilise aussi, dans l’en-tête Authorization.',
         'limit_label' => 'Limites',
-        'limit' => 'Les limites de l’API, avec le même compteur : :count requêtes par minute et par adresse IP sans jeton. Une réponse fait 48 000 octets au plus : au-delà, les listes les plus longues sont raccourcies, et la réponse le signale.',
+        'limit' => 'Les limites de l’API, avec le même compteur : :count requêtes par minute et par adresse IP sans jeton. Une réponse fait 48 000 octets au plus : au-delà, les listes les plus longues sont raccourcies, et la réponse le signale. Un corps de plus de 2 Mio est refusé en HTTP 413, et les lots ne sont pas acceptés : une requête JSON-RPC par appel.',
         'lang_label' => 'Langues',
         'lang' => 'Français, anglais ou allemand (paramètre lang). Les noms propres et les citations de sources restent en français.',
         'install_title' => 'Installation dans un client',

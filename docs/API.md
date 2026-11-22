@@ -17,6 +17,17 @@ sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénér
 - Débit : 300 requêtes par minute sans jeton, 1 200 avec un jeton personnel (`config/api.php`).
 - GraphQL : 5 000 points de complexité et 15 niveaux au plus, refus avant exécution (`query_too_complex`,
   `query_too_deep`) ; barème dans la description du type `Query`.
+- Lots GraphQL : un `POST /graphql` dont le corps est une liste de requêtes compte 5 opérations au plus
+  (`api.graphql_max_batch`, `API_GRAPHQL_MAX_BATCH`). Au-delà : HTTP 400, `extensions.code` `batch_too_large` et
+  `extensions.max_batch`. Les mutations d'un lot sont comptées une à une par le limiteur de débit. MCP n'accepte pas
+  les lots : une requête JSON-RPC par appel.
+- Taille du corps : 2 Mio au plus pour `/graphql` et `/mcp` (`api.max_body_bytes`, `API_MAX_BODY_BYTES`). Au-delà :
+  HTTP 413 avant tout traitement, au format GraphQL (`errors[].extensions.code` `body_too_large`, `max_body_bytes`)
+  ou JSON-RPC pour MCP (`error.code` -32600). Les deux refus (`App\Http\Middleware\LimitApiRequest`) sont couverts par
+  `tests/Feature/GraphQL/RequestLimitsTest.php`. Le serveur web doit laisser passer 2 Mio (`docs/DEPLOIEMENT-NGINX.md`).
+- Authentification du site (formulaires web, pas l'API) : connexion 20 requêtes par minute et par adresse IP (en plus
+  de 5 par minute pour un couple e-mail et IP), inscription 10 par heure, demande et réinitialisation de mot de passe
+  20 par heure ; au-delà HTTP 429 (`AppServiceProvider`, `tests/Feature/Web/AuthIpThrottleTest.php`).
 - Pagination : par curseur (`cursor`, `next_cursor`) pour les annuaires, les événements, les médias et le matériel ;
   par page (`page`) pour les accidents et les passages à niveau ; par `limit` et `offset` pour l'audit des tronçons
   (50 par défaut, 200 au plus, la même règle dans les trois interfaces : `App\Services\SegmentAudit\AuditPage`).
