@@ -26,6 +26,9 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 - Export GTFS (`/eras/{year}/gtfs.zip`) : `shape_dist_traveled` de `stop_times.txt` est la distance de la gare le long du tracé (même unité que
   `shapes.txt`), plus le point kilométrique ; les tracés sont orientés dans le sens du trajet ; un trajet exige au moins deux gares desservies ;
   les heures sont calculées à 60 km/h ; le flux contient en plus `attributions.txt` et un contact dans `feed_info.txt`.
+- Export GTFS : quand le tracé d'une ligne s'arrête au début d'une voie qu'elle partage avec une autre ligne (tronc commun jusqu'à la gare
+  terminus, comme à Gannat ou Neuf-Brisach), la forme de `shapes.txt` continue le long de cette voie jusqu'à la gare, sans segment droit ;
+  `shape_dist_traveled` des arrêts est désormais mesuré en mètres sur l'ellipsoïde, comme celui de `shapes.txt`.
 - Gares d'une fiche de ligne : `status_today` vaut `null` aussi pour une gare absente de la carte d'aujourd'hui ou fermée avant la décennie en
   cours ; `eras` vaut `null` à une ère où la gare n'est pas sur la carte.
 

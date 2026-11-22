@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Era;
+use App\Services\Gtfs\SharedTrackRouter;
 use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Support\Facades\DB;
 use ZipArchive;
@@ -40,6 +41,42 @@ class GtfsExporter
 
     /** Vitesse des horaires synthétiques (m/h), pour que les durées entre arrêts restent plausibles. */
     private const SYNTHETIC_SPEED_M_H = 60_000;
+
+    /*
+     * Prolongement de la forme sur une voie partagée (sharedTrackExtension) : le tracé d'une ligne
+     * s'arrête au début du tronc commun qu'elle partage avec une autre ligne, ses trains vont
+     * jusqu'à la gare.
+     */
+
+    /** Gare terminus à plus de ça (m) de la forme : on cherche un prolongement. */
+    private const SHARED_MIN_GAP_M = 30.0;
+
+    /** La gare est au-delà du bout : sa distance au bout dépasse d'au plus ça (m) sa distance à la forme. */
+    private const SHARED_ATTACH_M = 1.0;
+
+    /**
+     * Écart (m) toléré entre le bout de la forme et la voie qui la prolonge : le seul raccord droit
+     * du prolongement (bifurcations dont les deux tracés ne se touchent pas tout à fait).
+     */
+    private const SHARED_JOIN_M = 10.0;
+
+    /** Le prolongement doit finir à au plus ça (m) de la gare. */
+    private const SHARED_REACH_M = 50.0;
+
+    /** Longueur (m) maximale du prolongement. */
+    private const SHARED_MAX_M = 2_500.0;
+
+    /** Le prolongement mesure au plus ce multiple de la distance à vol d'oiseau du bout à la gare (plus SHARED_REACH_M). */
+    private const SHARED_DETOUR = 2.0;
+
+    /** Changement de cap (°) maximal au départ du prolongement et à chacun de ses sommets. */
+    private const SHARED_TURN_DEG = 60.0;
+
+    /** Longueur (m) de la fin de la forme sur laquelle se lit son cap d'arrivée. */
+    private const SHARED_HEADING_M = 30.0;
+
+    /** Marge (degrés) de la recherche des voies autour du segment bout - gare (environ 1 km). */
+    private const SHARED_SEARCH_DEG = 0.01;
 
     /** Règle des droits des tracés ; résolue à l'usage quand l'exporteur est construit sans conteneur. */
     public function __construct(private readonly ?LineTraceExport $traceRights = null) {}
@@ -119,7 +156,7 @@ class GtfsExporter
                 'vff',
                 $l->code ?? '',
                 $l->name,
-                self::ROUTE_TYPE_MAP[$l->type] ?? 2,
+                self::ROUTE_TYPE_MAP[$l->type ?? ''] ?? 2,
             ];
         }
 
@@ -234,17 +271,20 @@ class GtfsExporter
     }
 
     /**
-     * Stream shapes : 1 SQL par ligne avec ST_X/ST_Y + cumDist en SQL.
+     * Formes des trajets, une par ligne, écrites point par point.
      *
      * Règle des droits (LineTraceExport) : une forme est un tracé continu, elle n'est donc écrite
      * que si TOUS les tronçons exploités de la ligne à l'ère viennent d'une source qui autorise la
      * redistribution. Sinon la ligne n'a pas de forme (son trajet garde ses arrêts, sans
      * `shape_id`) : une forme amputée de ses parties retenues serait fausse.
      *
+     * La forme suit ce que parcourt le train (tripShape) : le tracé de la ligne, prolongé au besoin
+     * sur la voie d'une autre ligne jusqu'à la gare terminus.
+     *
      * Remplit aussi `$stopDistances` : pour chaque ligne dont la forme est une seule polyligne, la
-     * distance de chaque arrêt le long de la forme, orientée dans le sens des positions. Si cet ordre
-     * n'est pas croissant (tracé replié, gare hors tracé), la ligne n'y figure pas : GTFS exige des
-     * distances croissantes et, pour un trajet, toutes ou aucune.
+     * distance de chaque arrêt le long de la forme, dans le sens des positions. Si cet ordre n'est
+     * pas strictement croissant (tracé replié, gare hors tracé), la ligne n'y figure pas : GTFS
+     * exige des distances croissantes et, pour un trajet, toutes ou aucune.
      *
      * @param  array<int, array<int, float>>  $stopDistances
      * @return array<int, true> lignes dont le tracé a au moins un point
@@ -254,7 +294,7 @@ class GtfsExporter
         $fp = fopen($path, 'w');
         fputcsv($fp, ['shape_id', 'shape_pt_lat', 'shape_pt_lon', 'shape_pt_sequence', 'shape_dist_traveled'], ',', '"', '\\');
 
-        // Seulement les lignes qui auront un trip (au moins un arrêt desservi).
+        // Seulement les lignes qui auront un trip (au moins deux arrêts desservis).
         $lineIds = DB::table('line_stops')
             ->join('stations', 'stations.id', '=', 'line_stops.station_id')
             ->where('line_stops.era_id', $era->id)
@@ -270,15 +310,14 @@ class GtfsExporter
             if (isset($withheld[(int) $lineId])) {
                 continue;
             }
-            // Sens de la forme : celui des positions des arrêts (la fusion des tronçons n'en impose aucun).
-            [$distances, $reversed] = $this->stopDistancesAlongShape((int) $lineId, $era);
+            $shape = $this->tripShape((int) $lineId, $era);
+            if ($shape === null) {
+                continue;
+            }
+            [$geometry, $distances] = $shape;
             $pts = DB::select(<<<'SQL'
                 WITH dumped AS (
-                    SELECT (ST_DumpPoints(CASE WHEN ?::boolean THEN ST_Reverse(ST_LineMerge(ST_Collect(geom))::geometry)
-                                               ELSE ST_LineMerge(ST_Collect(geom))::geometry END)).geom AS g
-                    FROM line_segments
-                    WHERE line_id = ? AND era_id = ?
-                      AND status IN ('in_service','single_track')
+                    SELECT (ST_DumpPoints(?::geometry)).geom AS g
                 ),
                 indexed AS (
                     SELECT ST_X(g) AS lng, ST_Y(g) AS lat, g,
@@ -299,7 +338,7 @@ class GtfsExporter
                 FROM cumulated
                 WHERE seq = 1 OR step_m >= 0.1
                 ORDER BY seq
-                SQL, [$reversed ? 'true' : 'false', $lineId, $era->id]);
+                SQL, [$geometry]);
 
             // Points à moins de 10 cm du précédent écartés : GTFS veut des distances strictement croissantes.
             foreach ($pts as $i => $p) {
@@ -318,23 +357,151 @@ class GtfsExporter
     }
 
     /**
-     * Distance (m) de chaque arrêt desservi le long de la forme de la ligne, par position, et si la
-     * forme doit être inversée pour suivre le sens des positions. Distances `[]` quand elles ne
-     * peuvent pas être données proprement (forme en plusieurs morceaux, ordre non strictement
-     * croissant).
+     * Forme du trajet d'une ligne (géométrie en EWKB hexadécimal) et distance de chaque arrêt le long
+     * d'elle, par position ; null quand la ligne n'a aucun tronçon exploité.
+     *
+     * La forme part du tracé de la ligne (fusion de ses tronçons exploités), orienté dans le sens des
+     * positions des arrêts (la fusion n'en impose aucun). Quand ce tracé s'arrête avant la gare
+     * terminus parce que les trains finissent le trajet sur la voie d'une autre ligne (tronc commun :
+     * Gannat, Neuf-Brisach), il est prolongé le long de cette voie jusqu'à la gare, à chaque bout
+     * (sharedTrackExtension). Le prolongement ne rapproche que des arrêts de la forme : chaque arrêt
+     * reste à la même distance de la forme, ou s'en rapproche.
+     *
+     * @return array{0: string, 1: array<int, float>}|null
+     */
+    private function tripShape(int $lineId, Era $era): ?array
+    {
+        $own = DB::selectOne(<<<'SQL'
+            SELECT ST_LineMerge(ST_Collect(geom))::geometry AS g,
+                   GeometryType(ST_LineMerge(ST_Collect(geom))) AS kind
+            FROM line_segments
+            WHERE line_id = ? AND era_id = ? AND status IN ('in_service','single_track')
+            SQL, [$lineId, $era->id]);
+        if ($own === null || $own->g === null) {
+            return null;
+        }
+        $geometry = (string) $own->g;
+        [$distances, $reversed] = $this->stopDistancesAlongShape($geometry, $lineId, $era);
+        if ($reversed) {
+            $geometry = (string) DB::selectOne('SELECT ST_Reverse(?::geometry) AS g', [$geometry])->g;
+        }
+        if ($own->kind !== 'LINESTRING') {
+            return [$geometry, $distances];
+        }
+
+        $terminals = DB::select(<<<'SQL'
+            (SELECT ls.station_id FROM line_stops ls JOIN stations s ON s.id = ls.station_id AND s.geom IS NOT NULL
+             WHERE ls.line_id = ? AND ls.era_id = ? AND ls.effective_status IN ('active', 'tourist', 'no_commercial')
+             ORDER BY ls.position LIMIT 1)
+            UNION ALL
+            (SELECT ls.station_id FROM line_stops ls JOIN stations s ON s.id = ls.station_id AND s.geom IS NOT NULL
+             WHERE ls.line_id = ? AND ls.era_id = ? AND ls.effective_status IN ('active', 'tourist', 'no_commercial')
+             ORDER BY ls.position DESC LIMIT 1)
+            SQL, [$lineId, $era->id, $lineId, $era->id]);
+        if (count($terminals) !== 2) {
+            return [$geometry, $distances];
+        }
+
+        $extended = false;
+        // Bout d'arrivée, puis bout de départ (traité sur la forme retournée, puis remise à l'endroit).
+        $tail = $this->sharedTrackExtension($geometry, (int) $terminals[1]->station_id, $lineId, $era);
+        if ($tail !== null) {
+            $geometry = (string) DB::selectOne('SELECT ST_MakeLine(?::geometry, ST_GeomFromEWKT(?)) AS g', [$geometry, $tail])->g;
+            $extended = true;
+        }
+        $reverse = (string) DB::selectOne('SELECT ST_Reverse(?::geometry) AS g', [$geometry])->g;
+        $head = $this->sharedTrackExtension($reverse, (int) $terminals[0]->station_id, $lineId, $era);
+        if ($head !== null) {
+            $geometry = (string) DB::selectOne('SELECT ST_Reverse(ST_MakeLine(?::geometry, ST_GeomFromEWKT(?))) AS g', [$reverse, $head])->g;
+            $extended = true;
+        }
+        if ($extended) {
+            [$distances] = $this->stopDistancesAlongShape($geometry, $lineId, $era, false);
+        }
+
+        return [$geometry, $distances];
+    }
+
+    /**
+     * Prolongement de la forme au-delà de son bout d'arrivée, le long des voies d'AUTRES lignes,
+     * jusqu'à la gare `$stationId` (EWKT, orienté depuis le bout), ou null.
+     *
+     * Le prolongement n'est cherché que si la gare est au-delà du bout (le point de la forme le plus
+     * proche d'elle est le bout, à SHARED_ATTACH_M près) et à plus de SHARED_MIN_GAP_M de la forme.
+     * Il suit, sommet par sommet (SharedTrackRouter), les tronçons exploités à l'ère des autres
+     * lignes autour du bout et de la gare, et seulement ceux dont la source autorise la
+     * redistribution : une forme ne contient jamais de géométrie retenue, et sans chemin libre la
+     * forme reste celle de la ligne. Le chemin part à au plus SHARED_JOIN_M du bout, dans son
+     * prolongement, ne rebrousse jamais (SHARED_TURN_DEG à chaque sommet), mesure au plus
+     * SHARED_MAX_M et au plus SHARED_DETOUR fois la distance à vol d'oiseau du bout à la gare, et
+     * finit à au plus SHARED_REACH_M de la gare. Aucune droite n'est tirée vers la gare.
+     */
+    private function sharedTrackExtension(string $geometry, int $stationId, int $lineId, Era $era): ?string
+    {
+        $tip = DB::selectOne(<<<'SQL'
+            WITH k AS (
+                SELECT ?::geometry AS own, s.geom::geometry AS st
+                FROM stations s
+                WHERE s.id = ? AND s.geom IS NOT NULL
+            )
+            SELECT ST_X(ST_EndPoint(own)) AS ex, ST_Y(ST_EndPoint(own)) AS ey,
+                   ST_X(b) AS bx, ST_Y(b) AS by, ST_X(st) AS sx, ST_Y(st) AS sy,
+                   ST_Distance(ST_EndPoint(own)::geography, st::geography) AS crow,
+                   ST_AsEWKT(ST_MakeLine(ST_EndPoint(own), st)) AS span
+            FROM k, LATERAL (SELECT ST_LineInterpolatePoint(own, GREATEST(0, 1 - ? / ST_Length(own::geography))) AS b) h
+            WHERE ST_Length(own::geography) > 0
+              AND ST_Distance(own::geography, st::geography) > ?
+              AND ST_Distance(ST_EndPoint(own)::geography, st::geography) - ST_Distance(own::geography, st::geography) <= ?
+            SQL, [$geometry, $stationId, self::SHARED_HEADING_M, self::SHARED_MIN_GAP_M, self::SHARED_ATTACH_M]);
+        if ($tip === null || (float) $tip->crow > self::SHARED_MAX_M) {
+            return null;
+        }
+
+        $redistributable = ($this->traceRights ?? app(LineTraceExport::class))->sqlRedistributable('source');
+        $tracks = array_map(
+            fn (object $r): array => array_map(fn (array $c): array => [(float) $c[0], (float) $c[1]], json_decode($r->g, true)['coordinates']),
+            DB::select(<<<SQL
+                SELECT ST_AsGeoJSON(geom) AS g
+                FROM line_segments
+                WHERE era_id = ? AND line_id <> ? AND status IN ('in_service','single_track')
+                  AND geom && ST_Expand(ST_GeomFromEWKT(?), ?)
+                  AND COALESCE({$redistributable}, FALSE)
+                SQL, [$era->id, $lineId, $tip->span, self::SHARED_SEARCH_DEG]),
+        );
+        if ($tracks === []) {
+            return null;
+        }
+
+        $router = new SharedTrackRouter(
+            joinM: self::SHARED_JOIN_M,
+            reachM: self::SHARED_REACH_M,
+            maxM: min(self::SHARED_MAX_M, self::SHARED_DETOUR * (float) $tip->crow + self::SHARED_REACH_M),
+            turnDeg: self::SHARED_TURN_DEG,
+        );
+        $path = $router->route($tracks, [(float) $tip->ex, (float) $tip->ey], [(float) $tip->bx, (float) $tip->by], [(float) $tip->sx, (float) $tip->sy]);
+        if ($path === null) {
+            return null;
+        }
+
+        return 'SRID=4326;LINESTRING('.implode(',', array_map(fn (array $c): string => sprintf('%.9F %.9F', $c[0], $c[1]), $path)).')';
+    }
+
+    /**
+     * Distance (m) de chaque arrêt desservi le long de la forme `$geometry` (EWKB hexadécimal), par
+     * position, et si la forme doit être inversée pour suivre le sens des positions (toujours faux
+     * quand `$orient` est faux : la forme est déjà orientée). Distances `[]` quand elles ne peuvent
+     * pas être données proprement (forme en plusieurs morceaux, ordre non strictement croissant).
      *
      * @return array{0: array<int, float>, 1: bool}
      */
-    private function stopDistancesAlongShape(int $lineId, Era $era): array
+    private function stopDistancesAlongShape(string $geometry, int $lineId, Era $era, bool $orient = true): array
     {
         $rows = DB::select(<<<'SQL'
             WITH merged AS (
-                SELECT ST_LineMerge(ST_Collect(geom))::geometry AS g
-                FROM line_segments
-                WHERE line_id = ? AND era_id = ? AND status IN ('in_service','single_track')
+                SELECT ?::geometry AS g
             )
             SELECT ls.position,
-                   ST_LineLocatePoint(m.g, s.geom::geometry) * ST_Length(m.g::geography) AS dist_m,
+                   ST_Length(ST_LineSubstring(m.g, 0, ST_LineLocatePoint(m.g, s.geom::geometry))::geography) AS dist_m,
                    ST_Length(m.g::geography) AS length_m
             FROM line_stops ls
             JOIN stations s ON s.id = ls.station_id
@@ -344,13 +511,13 @@ class GtfsExporter
               AND s.geom IS NOT NULL
               AND GeometryType(m.g) = 'LINESTRING'
             ORDER BY ls.position
-            SQL, [$lineId, $era->id, $lineId, $era->id]);
+            SQL, [$geometry, $lineId, $era->id]);
         if ($rows === []) {
             return [[], false];
         }
 
         $values = array_map(fn ($r) => (float) $r->dist_m, $rows);
-        $reversed = count($values) > 1 && $values[0] > $values[count($values) - 1];
+        $reversed = $orient && count($values) > 1 && $values[0] > $values[count($values) - 1];
         if ($reversed) {
             $length = (float) $rows[0]->length_m;
             $values = array_map(fn (float $v) => $length - $v, $values);

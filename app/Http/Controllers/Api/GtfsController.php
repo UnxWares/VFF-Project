@@ -26,7 +26,9 @@ class GtfsController extends Controller
      * ayant au moins deux gares desservies, de la première à la dernière),
      * `stop_times.txt`, `shapes.txt` (tracé de la ligne, orienté dans le sens du
      * trajet ; `shape_dist_traveled` en mètres le long du tracé, strictement
-     * croissant), `calendar.txt`, `feed_info.txt` (avec le contact du flux) et
+     * croissant ; quand le tracé s'arrête au début d'une voie partagée avec une
+     * autre ligne, la forme suit cette voie jusqu'à la gare terminus, 2,5 km au
+     * plus, sans jamais tirer de segment droit), `calendar.txt`, `feed_info.txt` (avec le contact du flux) et
      * `attributions.txt` (VFF, OpenStreetMap et SNCF, licence ODbL 1.0).
      *
      * **Horaires synthétiques** : VFF décrit l'infrastructure, pas les
@@ -46,7 +48,9 @@ class GtfsController extends Controller
      * lignes dont tous les tronçons exploités à l'ère viennent d'une source à
      * licence ouverte vérifiée. Quand une partie du tracé vient d'une source
      * dont la licence n'autorise pas la redistribution, la ligne n'a pas de
-     * forme : son trajet (`trips.txt`) garde ses arrêts, sans `shape_id`. Le
+     * forme : son trajet (`trips.txt`) garde ses arrêts, sans `shape_id`. Une
+     * voie partagée n'est suivie que si ses tronçons sont eux aussi
+     * redistribuables ; sinon la forme s'arrête au bout du tracé de la ligne. Le
      * GeoJSON de l'ère (`/eras/{year}/lines.geojson`) dit quels tronçons sont
      * concernés (`geometry_withheld`, résumé `withheld`).
      *

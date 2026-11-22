@@ -326,6 +326,34 @@ class GtfsExportTest extends TestCase
         $this->assertEqualsWithDelta(1.1, (float) $shape[0][2], 1e-6, 'la forme commence au premier arrêt');
     }
 
+    public function test_stop_distance_is_measured_in_metres_along_the_shape_like_shapes_txt(): void
+    {
+        // Tracé en équerre : 0,1° vers le nord (11,1 km) puis 0,1° vers l'est (7,6 km à 47°). La gare du
+        // coude est à 59 % de la longueur, pas à la moitié (fraction lue en degrés) : sa distance doit
+        // être celle du sommet du coude dans shapes.txt.
+        $corner = Line::factory()->create(['name' => 'Ligne en équerre', 'type' => 'passenger']);
+        LineSegment::factory()->create([
+            'line_id' => $corner->id, 'era_id' => $this->currentEra->id, 'status' => 'in_service', 'source' => 'osm',
+            'geom' => LineString::make([Point::makeGeodetic(47.0, 1.0), Point::makeGeodetic(47.1, 1.0), Point::makeGeodetic(47.1, 1.1)]),
+        ]);
+        foreach ([[47.0, 1.0], [47.1, 1.0], [47.1, 1.1]] as $i => [$lat, $lng]) {
+            DB::table('line_stops')->insert([
+                'line_id' => $corner->id, 'era_id' => $this->currentEra->id,
+                'station_id' => Station::factory()->create(['geom' => Point::makeGeodetic($lat, $lng)])->id,
+                'position' => $i + 1, 'pk_m' => $i * 1000, 'effective_status' => 'active', 'is_terminal' => $i !== 1,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $feed = $this->feed(2030);
+
+        $shape = array_values(array_filter(array_slice($feed['shapes.txt'], 1), fn ($r) => $r[0] === "shape-{$corner->id}"));
+        $times = array_values(array_filter(array_slice($feed['stop_times.txt'], 1), fn ($r) => $r[0] === "T{$corner->id}"));
+        $this->assertCount(3, $shape);
+        $this->assertEqualsWithDelta((float) $shape[1][4], (float) $times[1][5], 1.0, 'gare du coude');
+        $this->assertEqualsWithDelta((float) $shape[2][4], (float) $times[2][5], 1.0, 'terminus');
+    }
+
     public function test_era_without_stops_gives_header_only_files(): void
     {
         $feed = $this->feed(1960);
