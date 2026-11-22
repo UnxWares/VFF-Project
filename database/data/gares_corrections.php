@@ -2596,4 +2596,649 @@ return [
         'quote' => 'La gare est ouverte au service de fret',
         'reason' => 'gare fermée aux voyageurs en 1954 et encore desservie par le fret aujourd\'hui (deux installations terminales embranchées)',
     ],
+
+    // ── 18. Gares sans date d'ouverture : audit-gares-suite, après-midi du 22/11/2026.
+    // Rapport : storage/app/reports/agents/aprem-2111/audit-gares-suite.md.
+
+    // Ligne 838000 Saint-Julien (Troyes) - Gray : l'article de la ligne donne les mises en service par section (Troyes -
+    // Bar-sur-Seine 20/07/1862, Bar-sur-Seine - Châtillon-sur-Seine 19/10/1868, Châtillon-sur-Seine - Is-sur-Tille
+    // 09/12/1882, Is-sur-Tille - Gray 27/10/1888), la fermeture aux voyageurs de Châtillon-sur-Seine - Gray le 02/03/1969
+    // et de Troyes - Châtillon-sur-Seine le 31/05/1980, la fin du fret entre Mirebeau et Champagne le 30/05/1975. Aucune
+    // de ces gares n'a d'article propre : la date est celle de la section, lue d'après l'ordre des PK. Les événements de
+    // la ligne manquent en base (le gabarit de date de l'article n'est pas lu), les gares n'avaient donc aucune ouverture.
+    // Gares laissées de côté, à faire dater par une source propre : Prusly-sur-Ource et Coulmier-le-Sec (codes UIC de haltes
+    // récentes, doublon probable de Prusly-Vilotte pour la première), Mirebeau-sur-Bèze (jonction avec la ligne de Dijon,
+    // ouverte en 1891), Saint-Julien-les-Villas.
+    ...array_merge(...array_map(function (array $s) use ($wp) {
+        [$section, $date, $quote, $stations] = $s;
+        $src = $wp('Ligne de Saint-Julien (Troyes) à Gray', 239109653);
+
+        return array_map(fn (array $g) => [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'add',
+            'type' => 'opening',
+            'date' => $date,
+            'precision' => 'day',
+            'source_url' => $src,
+            'quote' => $quote,
+            'reason' => "gare de la section {$section}, mise en service le ".implode('/', array_reverse(explode('-', $date))).' (article de la ligne) ; pas d\'article propre à la gare, la date est celle de la section',
+        ], $stations);
+    }, [
+        ['Troyes - Bar-sur-Seine', '1862-07-20', 'Troyes - Bar-sur-Seine le 20/7/1862', [
+            ['Buchères-Verrières', '87118430'], ['St-Thibault (Aube)', '87118448'], ['Clérey', '87118455'],
+            ['St-Parres-lès-Vaudes', '87118463'], ['Fouchères-Vaux', '87118471'], ['Courtenot-Lenclos', '87118489'],
+            ['Bar-sur-Seine', '87118497'],
+        ]],
+        ['Bar-sur-Seine - Châtillon-sur-Seine', '1868-10-19', 'Bar-sur-Seine - Châtillon-sur-Seine le 19/10/1868', [
+            ['Polisot', '87118505'], ['Gyé-sur-Seine', '87118513'], ['Plaines', '87118521'],
+            ['Mussy-sur-Seine', '87118539'], ['Pothières', '87118547'],
+        ]],
+        ['Châtillon-sur-Seine - Is-sur-Tille', '1882-12-09', 'Châtillon-sur-Seine - Is-sur-Tille le 9/12/1882', [
+            ['Grancey-le-Château', '87143289'], ['Prusly-Vilotte', '87143073'], ['Vanvey-Villiers', '87142869'],
+            ['Leuglay-Voulaines', '87142851'], ['Recey-sur-Ource', '87142844'], ['Villars-Santenoge', '87142836'],
+            ['Poinson-lès-Grancey', '87143131'], ['Poinson-Beneuvre', '87142828'], ['Pavillon-lès-Grancey', '87142810'],
+            ['Marey-sur-Tille', '87142802'], ['Villey-Crécey', '87142794'],
+        ]],
+        ['Is-sur-Tille - Gray', '1888-10-27', 'Is-sur-Tille et Gray est mise en service le 27/10/1888', [
+            ['Tilchâtel', '87142786'], ['Lux', '87142778'], ['Bèze', '87142760'], ['Oisilly-Renève', '87142745'],
+            ['Champagne-sur-Vingeanne', '87142737'], ['Autrey-lès-Gray', '87142729'],
+        ]],
+    ])),
+    ...array_merge(...array_map(function (array $s) use ($wp) {
+        [$section, $date, $stations] = $s;
+
+        return array_map(fn (array $g) => [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'add',
+            'type' => 'closure_passenger',
+            'date' => $date,
+            'precision' => 'day',
+            'source_url' => $wp('Ligne de Saint-Julien (Troyes) à Gray', 239109653),
+            'quote' => 'La ligne ferme au service voyageurs le 2/3/1969 pour la section Châtillon-sur-Seine - Gray et le 31 mai 1980 pour la section Troyes - Châtillon-sur-Seine.',
+            'reason' => "fin du service voyageurs de la section {$section} le ".implode('/', array_reverse(explode('-', $date))).' (article de la ligne)',
+        ], $stations);
+    }, [
+        ['Troyes - Châtillon-sur-Seine', '1980-05-31', [
+            ['Buchères-Verrières', '87118430'], ['St-Thibault (Aube)', '87118448'], ['Clérey', '87118455'],
+            ['St-Parres-lès-Vaudes', '87118463'], ['Fouchères-Vaux', '87118471'], ['Courtenot-Lenclos', '87118489'],
+            ['Bar-sur-Seine', '87118497'], ['Polisot', '87118505'], ['Gyé-sur-Seine', '87118513'], ['Plaines', '87118521'],
+            ['Mussy-sur-Seine', '87118539'], ['Pothières', '87118547'],
+        ]],
+        ['Châtillon-sur-Seine - Gray', '1969-03-02', [
+            ['Grancey-le-Château', '87143289'], ['Prusly-Vilotte', '87143073'], ['Vanvey-Villiers', '87142869'],
+            ['Leuglay-Voulaines', '87142851'], ['Recey-sur-Ource', '87142844'], ['Villars-Santenoge', '87142836'],
+            ['Poinson-lès-Grancey', '87143131'], ['Poinson-Beneuvre', '87142828'], ['Pavillon-lès-Grancey', '87142810'],
+            ['Marey-sur-Tille', '87142802'], ['Villey-Crécey', '87142794'], ['Tilchâtel', '87142786'], ['Lux', '87142778'],
+            ['Bèze', '87142760'], ['Oisilly-Renève', '87142745'], ['Champagne-sur-Vingeanne', '87142737'],
+            ['Autrey-lès-Gray', '87142729'],
+        ]],
+    ])),
+    // Oisilly-Renève est entre Mirebeau et Champagne-sur-Vingeanne : fin du trafic marchandises le 30/05/1975.
+    [
+        'station' => ['name' => 'Oisilly-Renève', 'uic' => '87142745'],
+        'action' => 'add',
+        'type' => 'closure_freight',
+        'date' => '1975-05-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Julien (Troyes) à Gray', 239109653),
+        'quote' => 'Le trafic marchandises cesse entre Villars et Poinson et entre Mirebeau-sur-Bèze et Champagne-sur-Vingeanne le 30/5/1975.',
+        'reason' => 'gare entre Mirebeau et Champagne-sur-Vingeanne, section fermée au fret le 30/05/1975 (article de la ligne)',
+    ],
+
+    // Ligne 791000 Le Puy - Lalevade-d'Ardèche (transcévenole) : ligne jamais ouverte. Travaux commencés en 1911, suspendus
+    // en 1914 puis arrêtés en 1939 (plateforme, gares et installations prêtes jusqu'à la limite des deux départements),
+    // ligne déclassée le 30/11/1941 sans avoir reçu de train (article de la ligne, lignes-oubliées : « arrêt des travaux
+    // vers 1939 »). Les 14 gares prévues entre Lantriac et Pont-de-Labeaume sont « projetées ». Lalevade-d'Ardèche (gare
+    // réelle de la ligne Vogüé - Lalevade, ouverte en 1879) et Brives-Charensac (gare de la ligne du Puy à Langogne) restent.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'near' => [$g[1], $g[2], 0.3]],
+        'action' => 'kind',
+        'kind' => 'projected',
+        'source_url' => $wp('Ligne transcévenole', 241145861),
+        'quote' => 'En 1939, la plateforme de la ligne, les gares et toutes les installations sont prêtes jusqu\'à la limite des deux départements. [...] Le 30 novembre 1941 dans les chemins de fer, la ligne est déclassée par une loi.',
+        'reason' => 'gare prévue sur la ligne du Puy à Nieigles-Prades (transcévenole), jamais mise en service : travaux arrêtés vers 1939, ligne déclassée le 30/11/1941 sans avoir reçu de train',
+    ], [
+        ['Lantriac', 3.9921, 44.9985], ['Laussonne', 4.0169, 44.9616], ['Le Monastier-sur-Gazeille', 3.9953, 44.9418],
+        ['Présailles', 4.0337, 44.8843], ['Issarlès', 4.0340, 44.8524], ['Le Plô', 4.0456, 44.8307],
+        ['Lac d\'Issarlès', 4.0561, 44.8231], ['La Palisse', 4.1020, 44.7810], ['Saint-Cirgues-en-Montagne', 4.0958, 44.7548],
+        ['Le Roux', 4.1291, 44.7042], ['Montpezat', 4.2041, 44.6943], ['Thueyts', 4.2248, 44.6784],
+        ['Meyras-Burzet', 4.2672, 44.6869], ['Pont-de-Labeaume', 4.2923, 44.6615],
+    ]),
+
+    // Ligne 684000 Étampes - Beaune-la-Rolande : arrêts du vélorail de la Juine (exploitation de loisir mise en service le
+    // 09/07/2022 sur 13 km de la ligne), entrés par des objets OSM : ce ne sont pas des gares.
+    [
+        'station' => ['name' => 'Arrivée du vélorail (gare d\'Etampes)', 'osm' => 'n534896944'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Ligne d\'Étampes à Beaune-la-Rolande', 239193697),
+        'quote' => 'mise en place d\'un vélorail circulant sur les 13 km de la ligne d\'Étampes à Méréville',
+        'reason' => 'point d\'arrivée du vélorail de la Juine (loisir), pas une gare',
+    ],
+    [
+        'station' => ['name' => 'Départ du vélorail de la Juine', 'osm' => 'n534916303'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Ligne d\'Étampes à Beaune-la-Rolande', 239193697),
+        'quote' => 'mise en place d\'un vélorail circulant sur les 13 km de la ligne d\'Étampes à Méréville',
+        'reason' => 'point de départ du vélorail de la Juine (loisir), pas une gare',
+    ],
+    // ── 19. Gares sans date d'ouverture dont l'article de la gare donne les dates (audit-gares-suite, 22/11/2026).
+    // Aucune ne portait de date propre : Wikidata sans P1619, aucun événement Wikipédia en base. Règle : ouverture lue
+    // dans l'infobox ou le texte de l'article de la gare ; fin des voyageurs ou du fret seulement quand l'infobox ou le
+    // texte la nomme (« voyageurs », « marchandises ») ou quand la ligne secondaire a fermé d'un bloc (suppression de la
+    // ligne, section déclassée). Une fermeture d'infobox sans qualificatif sur une ligne qui garde du fret n'est pas posée.
+    // Le 27/09/1969 de l'infobox des gares de la section Évreux - Glos-Montfort et le 26/09/1969 du texte de ces mêmes
+    // articles divergent : précision au mois. Boynes (article recopié de Méréville, fermée en 1939 selon la ligne) et
+    // Vers (aucun article) restent sans date.
+    ...array_merge(...array_map(function (array $g) use ($wp) {
+        [$name, $qid, $title, $oldid, $events] = $g;
+        $labels = ['opening' => 'ouverture', 'closure_passenger' => 'fin du service voyageurs', 'closure_freight' => 'fin du trafic marchandises', 'closure' => 'fermeture'];
+
+        return array_map(fn (array $e) => [
+            'station' => ['name' => $name, 'wikidata' => $qid],
+            'action' => 'add',
+            'type' => $e[0],
+            'date' => $e[1],
+            'precision' => $e[2],
+            'source_url' => $wp($title, $oldid),
+            'quote' => $e[3],
+            'reason' => $labels[$e[0]].' de la gare, d\'après l\'article de la gare (infobox et texte)',
+        ], $events);
+    }, [
+        ['Marseille-Maritime-Arenc', 'Q105540959', 'Gare de Marseille-Maritime-Arenc', 241260050, [['opening', '1896-01-01', 'year', 'Mise en service : 1896']]],
+        ['La Chapelle-St-Laurent', 'Q65153888', 'Gare de La Chapelle-Saint-Laurent', 236682565, [['opening', '1887-06-05', 'day', 'La gare de La Chapelle-Saint-Laurent est mise en service le 5 juin 1887']]],
+        ['Méréville', 'Q123498082', 'Gare de Méréville', 235033427, [['opening', '1905-02-19', 'day', 'La gare est inaugurée le 19 février 1905 lors de l\'ouverture de la ligne'], ['closure_passenger', '1969-11-04', 'day', 'Fermeture : 4 novembre 1969 (voyageurs)']]],
+        ['Le Musée La Mine Image', 'Q108409128', 'Gare du Musée La Mine Image', 209163842, [['opening', '2021-07-20', 'day', 'Un quai pré-existait déjà au niveau de la gare avant sa mise en service le 20 juillet 2021']]],
+        ['Toulouse-Roguet', 'Q56311143', 'Gare de Toulouse-Roguet', 240777604, [['opening', '1900-01-01', 'year', 'La gare a été mise en service en 1900 par la CFSO, puis fermée en 1949'], ['closure', '1949-12-31', 'day', 'Fermeture : 31 décembre 1949']]],
+        ['La Motte-d\'Aveillans', 'Q108388622', 'Gare de La Motte-d\'Aveillans', 233873844, [['opening', '1888-08-01', 'day', 'La gare de La Motte-d\'Aveillans a été mise en service le 1er août 1888 et a été fermée en 1950 aux voyageurs'], ['closure_passenger', '1950-01-01', 'year', 'fermée en 1950 aux voyageurs']]],
+        ['Notre-Dame-de-Commiers', 'Q108388471', 'Gare de Notre-Dame-de-Commiers', 209163834, [['opening', '1888-08-01', 'day', 'La gare de Notre-Dame-de-Commiers a été mise en service le 1er août 1888 et a été fermée en 1950 aux voyageurs'], ['closure_passenger', '1950-01-01', 'year', 'fermée en 1950 aux voyageurs']]],
+        ['Buzet-sur-Tarn', 'Q48757113', 'Gare de Buzet-sur-Tarn', 220839043, [['opening', '1884-12-15', 'day', 'La gare de Buzet-sur-Tarn est mise en service le 15 décembre 1884']]],
+        ['La Châtaigneraie', 'Q135426465', 'Gare de La Châtaigneraie', 235082686, [['opening', '1890-05-28', 'day', 'La gare de La Châtaigneraie est inaugurée le 28 mai 1890']]],
+        ['Harcourt - La Neuville-du-Bosc', 'Q113835965', 'Gare d\'Harcourt - La Neuville-du-Bosc', 211562284, [['opening', '1888-07-01', 'day', 'mise en service : 1 juillet 1888 jusqu\'à Glos-Montfort'], ['closure_passenger', '1969-09-01', 'month', 'Fermeture : 27 septembre 1969 (voyageurs)'], ['closure_freight', '1971-02-01', 'day', 'Fermeture : 1 février 1971 (marchandises)']]],
+        ['Calleville', 'Q113835985', 'Gare de Calleville', 207791430, [['opening', '1888-07-01', 'day', 'mise en service : 1 juillet 1888 jusqu\'à Glos-Montfort'], ['closure_passenger', '1969-09-01', 'month', 'Fermeture : 27 septembre 1969 (voyageurs)'], ['closure_freight', '1971-02-01', 'day', 'Fermeture : 1 février 1971 (marchandises)']]],
+        ['Neubourg', 'Q113836016', 'Gare du Neubourg', 193670823, [['opening', '1888-01-02', 'day', 'mise en service le 2 janvier 1888 entre Évreux et Le Neubourg'], ['closure_passenger', '1969-09-01', 'month', 'Fermeture : 27 septembre 1969 (voyageurs)'], ['closure_freight', '1990-09-30', 'day', 'Fermeture : 30 septembre 1990 (marchandises)']]],
+        ['Bacquepuis', 'Q113835973', 'Gare de Bacquepuis', 240379951, [['opening', '1888-01-02', 'day', 'le 2 janvier 1888 entre Évreux et Le Neubourg, comprenant la gare de Bacquepuis'], ['closure_passenger', '1969-09-01', 'month', 'Fermeture : 27 septembre 1969 (voyageurs)'], ['closure_freight', '1990-11-30', 'day', 'Fermeture : 30 novembre 1990 (marchandises)']]],
+        ['Quittebeuf', 'Q113836009', 'Gare de Quittebeuf', 241531539, [['opening', '1888-01-02', 'day', 'le 2 janvier 1888 entre Évreux et Le Neubourg, comprenant la gare de Quittebeuf'], ['closure_passenger', '1969-09-01', 'month', 'Fermeture : 27 septembre 1969 (voyageurs)'], ['closure_freight', '1990-11-30', 'day', 'Fermeture : 30 novembre 1990 (marchandises)']]],
+        ['Gimouille', 'Q115867420', 'Gare de Gimouille', 239346753, [['opening', '1868-05-01', 'day', 'Mise en service : 1 mai 1868']]],
+        ['Coulonges-sur-l’Autize', 'Q135426476', 'Gare de Coulonges-sur-l’Autize', 235082769, [['opening', '1868-12-28', 'day', 'Cette gare fut inaugurée le 28 décembre 1868']]],
+        ['Moncoutant', 'Q135426482', 'Gare de Moncoutant', 235082928, [['opening', '1869-01-01', 'year', 'Mise en service : 1869']]],
+        ['Aspet-Sarradère', 'Q60847561', 'Gare d\'Aspet-Sarradère', 240986739, [['opening', '1906-01-01', 'day', 'Il faut attendre encore trois mois pour la mise en service le 1 janvier 1906'], ['closure', '1936-01-10', 'day', 'Fermeture : 10 janvier 1936']]],
+        ['Brosville', 'Q113835983', 'Gare de Brosville', 241492570, [['opening', '1872-05-10', 'day', 'La ligne est ouverte le 10 mai 1872, comprenant la gare de Brosville'], ['closure_passenger', '1940-03-01', 'day', 'Le service voyageurs est supprimé le 1 mars 1940 sur toute la ligne'], ['closure_freight', '1959-05-31', 'day', 'le 31 mai 1959 entre Brosville et Acquigny, ce qui entraîne la fermeture définitive de la gare']]],
+        ['Boullay-les-Troux', 'Q106409694', 'Gare de Boullay-les-Troux', 234386399, [['opening', '1867-08-26', 'day', 'Le prolongement et les nouvelles gares de Boullay-les-Troux et de Limours sont inaugurés le 26 août 1867']]],
+        ['Neuville-de-Poitou', 'Q135426470', 'Gare de Neuville-de-Poitou', 241417330, [['opening', '1874-05-15', 'day', 'Mise en service : 15 mai 1874']]],
+        ['Aizenay', 'Q135439734', 'Gare d\'Aizenay', 235030242, [['opening', '1880-09-20', 'day', 'La gare d\'Aizenay fut inaugurée le 20 septembre 1880']]],
+        ['Derval', 'Q135426518', 'Gare de Derval', 236876402, [['opening', '1882-01-01', 'year', 'La gare de Derval est officiellement inaugurée en 1882']]],
+        ['Hondeghem', 'Q60846716', 'Gare d\'Hondeghem', 235030477, [['opening', '1894-01-01', 'year', 'La gare d\'Hondeghem est mise en service en 1894'], ['closure', '1954-01-01', 'year', 'Elle est fermée en 1954 lors de la suppression de la ligne']]],
+        ['Urville-en-Hague', 'Q3095851', 'Gare d\'Urville-en-Hague', 235030593, [['opening', '1911-01-01', 'year', 'Mise en service : 1911'], ['closure', '1945-10-01', 'month', 'Fermeture : octobre 1945']]],
+        ['Bierne', 'Q60847116', 'Gare de Bierne', 231973301, [['opening', '1914-01-01', 'year', 'La gare de Bierne est mise en service en 1914'], ['closure', '1951-01-01', 'year', 'Elle est fermée en 1951 lors de la suppression de la ligne']]],
+        ['L\'Étang-Salé', 'Q3096741', 'Gare de L\'Étang-Salé', 229991127, [['opening', '1882-01-01', 'year', 'Mise en service : 1882']]],
+        ['Segré', 'Q135439750', 'Gare de Segré', 236080863, [['opening', '1876-01-01', 'year', 'La gare de Segré fut inaugurée en 1876']]],
+        ['Montaigut', 'Q60847730', 'Gare de Montaigut (Haute-Garonne)', 205932339, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1946-01-01', 'year', 'Fermeture : 1946']]],
+        ['Mondonville', 'Q60847696', 'Gare de Mondonville', 239737173, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1946-01-01', 'year', 'Fermeture : 1946']]],
+        ['Lévignac', 'Q60847655', 'Gare de Lévignac', 220839113, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1946-01-01', 'year', 'Fermeture : 1946']]],
+        ['Daux', 'Q60847769', 'Gare de Daux', 240844720, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1946-01-01', 'year', 'Fermeture : 1946']]],
+        ['Saint-Cézert', 'Q60847803', 'Gare de Saint-Cézert', 188279973, [['opening', '1903-01-01', 'year', 'Mise en service : 1903']]],
+        ['Grenade', 'Q60847657', 'Gare de Grenade (Haute-Garonne)', 188267795, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1947-01-01', 'year', 'Fermeture : 1947']]],
+        ['Cornebarrieu', 'Q56311192', 'Gare de Cornebarrieu', 220839059, [['opening', '1903-01-01', 'year', 'Mise en service : 1903'], ['closure', '1947-01-01', 'year', 'Fermeture : 1947']]],
+        ['Arcambal', 'Q113630410', 'Gare d\'Arcambal', 239161289, [['opening', '1886-07-14', 'day', 'Mise en service : 14 juillet 1886'], ['closure_passenger', '1980-09-28', 'day', 'Fermeture : 28 septembre 1980 (voyageurs)']]],
+        ['St-Géry', 'Q113496362', 'Gare de Saint-Géry', 239161409, [['opening', '1886-07-14', 'day', 'Mise en service : 14 juillet 1886'], ['closure_passenger', '1980-09-28', 'day', 'Fermeture : 28 septembre 1980 (voyageurs)']]],
+        ['Conduché', 'Q113626017', 'Gare de Conduché', 196437962, [['opening', '1886-07-14', 'day', 'Mise en service : 14 juillet 1886'], ['closure_passenger', '1980-09-28', 'day', 'Fermeture : 28 septembre 1980 (voyageurs)']]],
+        ['St-Cirq-Lapopie', 'Q113463484', 'Gare de Saint-Cirq-Lapopie', 239161404, [['opening', '1886-07-14', 'day', 'Mise en service : 14 juillet 1886'], ['closure_passenger', '1980-09-28', 'day', 'Fermeture : 28 septembre 1980 (voyageurs)']]],
+        ['Toirac', 'Q113461799', 'Gare de Toirac', 237878078, [['opening', '1886-07-14', 'day', 'Mise en service : 14 juillet 1886'], ['closure_passenger', '1980-09-28', 'day', 'Fermeture : 28 septembre 1980 (voyageurs)']]],
+    ])),
+
+    // Gares dont l'ouverture est annoncée pour plus tard (infobox : 2028, 2030, 2033) : projetées, jamais fermées.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'wikidata' => $g[1]],
+        'action' => 'kind',
+        'kind' => 'projected',
+        'source_url' => $wp($g[2], $g[3]),
+        'quote' => $g[4],
+        'reason' => 'gare pas encore ouverte : '.$g[4].' (infobox de l\'article de la gare)',
+    ], [
+        ['Labège-La Cadène', 'Q56309868', 'Gare de Labège-La Cadène', 237129357, 'Mise en service : 2028'],
+        ['Bry - Villiers - Champigny', 'Q60176208', 'Gare de Villiers - Champigny - Bry', 239922586, 'Mise en service : 2030'],
+        ['Sartrouville-Val Notre-Dame', 'Q3097682', 'Gare de Sartrouville-Val Notre-Dame', 231484737, 'Mise en service : 2033'],
+    ]),
+
+    // Gares d'Algérie (lignes d'Oran à Kenadsa et de Moulay Slissen à Saïda) entrées par Wikidata : hors du réseau décrit.
+    [
+        'station' => ['name' => 'Duveyrier', 'wikidata' => 'Q123498565'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Gare de Duveyrier', 239959848),
+        'quote' => 'ancienne ligne à voie étroite d\'Oran à Kenadsa via Saïda',
+        'reason' => 'gare d\'Algérie (ligne d\'Oran à Kenadsa), hors du réseau ferré de France',
+    ],
+    [
+        'station' => ['name' => 'Saïda', 'wikidata' => 'Q123498604'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Gare de Saïda', 222099981),
+        'quote' => 'lors de l\'inauguration de la ligne de Moulay Slissen à Saïda',
+        'reason' => 'gare d\'Algérie (ligne de Moulay Slissen à Saïda), hors du réseau ferré de France',
+    ],
+
+    // Ligne 838000 Saint-Julien (Troyes) - Gray, suite : Châtillon-sur-Seine et Sainte-Colombe-sur-Seine.
+    // Les deux articles datent la fin des voyageurs de mai 1980 (Sainte-Colombe : « fermée au service voyageurs depuis le
+    // 31 mai 1980 », comme la section Troyes - Châtillon de l'article de la ligne). Châtillon est encore une gare de fret
+    // (infobox : Fret SNCF, Fret Europorte Proximité ; « seuls des trains de marchandises circulent encore ») : le 1994
+    // de Wikidata n'est pas sa fermeture.
+    [
+        'station' => ['name' => 'Ste-Colombe-sur-Seine', 'uic' => '87142562'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sainte-Colombe-sur-Seine', 235034325),
+        'quote' => 'La gare est fermée au service voyageurs depuis le 31 mai 1980.',
+        'reason' => 'fin du service voyageurs de la gare (article de la gare ; même date pour la section Troyes - Châtillon dans l\'article de la ligne)',
+    ],
+    [
+        'station' => ['name' => 'Châtillon-sur-Seine', 'uic' => '87142554'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-05-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Châtillon-sur-Seine', 241279211),
+        'quote' => 'La gare de Châtillon-sur-Seine est fermée au trafic voyageurs en mai 1980.',
+        'reason' => 'fin du service voyageurs en mai 1980 (article de la gare ; 31/05/1980 pour la section Troyes - Châtillon dans l\'article de la ligne)',
+    ],
+    [
+        'station' => ['name' => 'Châtillon-sur-Seine', 'uic' => '87142554'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'closure', 'date' => '1994-01-01'],
+        'source_url' => $wp('Gare de Châtillon-sur-Seine', 241279211),
+        'quote' => 'Seuls des trains de marchandises pour les coopératives agricoles circulent encore sur les voies de la gare.',
+        'reason' => 'la gare reçoit toujours du fret (Europorte Proximité, gare-bois) : le 1994 de Wikidata n\'est pas sa fermeture',
+    ],
+    [
+        'station' => ['name' => 'Châtillon-sur-Seine', 'uic' => '87142554'],
+        'action' => 'current',
+        'status' => 'no_commercial',
+        'source_url' => $wp('Gare de Châtillon-sur-Seine', 241279211),
+        'quote' => 'Seuls des trains de marchandises pour les coopératives agricoles circulent encore sur les voies de la gare.',
+        'reason' => 'fermée aux voyageurs en 1980, encore desservie par le fret aujourd\'hui',
+    ],
+    // ── 20. Ligne 405000 Argentan - Granville : ouvertures par section et dates des gares fermées (audit-gares-suite, 22/11/2026).
+    // L'article de la ligne (oldid 240174253) donne trois mises en service : Argentan - Flers le 02/07/1866, Flers - Vire le
+    // 16/09/1867, Vire - Granville le 03/07/1870. Les gares fermées de la ligne portaient l'année 1866 de la première section
+    // (déduite de la ligne), même au-delà de Flers et de Vire. L'article de Cerisy-Belle-Étoile confirme le 16/09/1867.
+    // Les huit haltes fermées sans date de fin (Fromentel, Cerisy-Belle-Étoile, Montsecret-Vassy, Bernières-le-Patry,
+    // Viessoix, Mesnil-Clinchamps, Saint-Aubin-des-Bois, Saint-Planchers) restent sans date de fermeture : aucun de leurs
+    // articles ni celui de la ligne ne la donne, il faut une autre source (presse, indicateurs).
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'uic' => $g[1]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => $g[2],
+        'precision' => 'day',
+        'source_url' => $g[3] === 'Gare de Cerisi-Belle-Étoile' ? $wp('Gare de Cerisi-Belle-Étoile', 213901826) : $wp('Ligne d\'Argentan à Granville', 240174253),
+        'quote' => $g[3] === 'Gare de Cerisi-Belle-Étoile'
+            ? 'La gare ouvre en 1867 quand la ligne reliant la gare d\'Argentan et celle de Flers est prolongée jusqu\'à Vire.'
+            : $g[4],
+        'reason' => $g[3] === 'Gare de Cerisi-Belle-Étoile'
+            ? 'gare de la section Flers - Vire, mise en service le 16/09/1867 (article de la gare et de la ligne) ; l\'année 1866 était celle de la première section'
+            : 'gare de la section '.$g[5].', mise en service le '.implode('/', array_reverse(explode('-', $g[2]))).' (article de la ligne) ; l\'année 1866 était celle de la première section, pas de cette gare',
+    ], [
+        ['Cerisi-Belle-Étoile', '87448118', '1867-09-16', 'Gare de Cerisi-Belle-Étoile', '', 'Flers - Vire'],
+        ['Montsecret-Vassy', '87448126', '1867-09-16', 'Ligne', '16 septembre 1867 : Flers à Vire', 'Flers - Vire'],
+        ['Bernières-le-Patry', '87448134', '1867-09-16', 'Ligne', '16 septembre 1867 : Flers à Vire', 'Flers - Vire'],
+        ['Viessoix', '87448142', '1867-09-16', 'Ligne', '16 septembre 1867 : Flers à Vire', 'Flers - Vire'],
+        ['Mesnil-Clinchamps', '87447722', '1870-07-03', 'Ligne', '3 juillet 1870 : Vire à Granville', 'Vire - Granville'],
+        ['St-Aubin-des-Bois', '87447706', '1870-07-03', 'Ligne', '3 juillet 1870 : Vire à Granville', 'Vire - Granville'],
+        ['St-Planchers', '87447672', '1870-07-03', 'Ligne', '3 juillet 1870 : Vire à Granville', 'Vire - Granville'],
+    ]),
+    // Messei : plus aucun train de voyageurs depuis 1973, fret (petits colis) jusqu'en 1988 (article de la gare).
+    [
+        'station' => ['name' => 'Messei', 'uic' => '87448100'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1973-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Messei', 232257623),
+        'quote' => 'Plus aucun train de voyageurs ne dessert cette gare depuis 1973',
+        'reason' => 'fin du service voyageurs en 1973 (article de la gare)',
+    ],
+    [
+        'station' => ['name' => 'Messei', 'uic' => '87448100'],
+        'action' => 'add',
+        'type' => 'closure_freight',
+        'date' => '1988-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Messei', 232257623),
+        'quote' => 'le service des marchandises (notamment les petits colis) ayant quant à lui été assuré jusqu\'en 1988',
+        'reason' => 'fin du fret en 1988 (article de la gare)',
+    ],
+    // Bellou-en-Houlme : halte sans bâtiment voyageurs, plus aucun train depuis 1970 ; le 31/12/2011 de Wikidata est la date
+    // de sortie du référentiel SNCF des gares de voyageurs, pas une fermeture.
+    [
+        'station' => ['name' => 'Bellou-en-Houlme', 'uic' => '87448092'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1970-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Bellou-en-Houlme', 165650460),
+        'quote' => 'Depuis 1970, aucun train ne s\'arrête plus à la halte de Bellou-en-Houlme.',
+        'reason' => 'halte sans bâtiment voyageurs, arrêt supprimé en 1970 (article de la gare)',
+    ],
+    [
+        'station' => ['name' => 'Bellou-en-Houlme', 'uic' => '87448092'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'closure', 'date' => '2011-12-31'],
+        'source_url' => $wp('Gare de Bellou-en-Houlme', 165650460),
+        'quote' => 'Depuis 1970, aucun train ne s\'arrête plus à la halte de Bellou-en-Houlme.',
+        'reason' => 'le 31/12/2011 est la date de sortie du référentiel SNCF des gares de voyageurs, l\'arrêt est supprimé depuis 1970',
+    ],
+
+    // Ligne 633000 Cahors - Moissac : ligne jamais achevée (plateforme réceptionnée en 1932, travaux abandonnés en 1934,
+    // déclassée le 30/11/1941 : article de la ligne, lignes-oubliées). Gares prévues, jamais ouvertes ; les trois autres gares
+    // citées par la liste (Saint-Pantaléon, Miramont-Montesquieu, Castelsagrat) ne sont pas en base.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'near' => [$g[1], $g[2], 0.3]],
+        'action' => 'kind',
+        'kind' => 'projected',
+        'source_url' => $wp('Ligne de Cahors à Moissac', 226856040),
+        'quote' => 'ligne de chemin de fer française qui ne fut jamais achevée, les travaux ayant été arrêtés en 1934',
+        'reason' => 'gare prévue sur la ligne de Cahors à Moissac, jamais ouverte (travaux abandonnés en 1934, ligne déclassée le 30/11/1941)',
+    ], [
+        ['Montcuq', 1.1872, 44.3336], ['Lauzerte', 1.1298, 44.2591], ['Villesèque', 1.3224, 44.3860],
+    ]),
+    // ── 21. Fins des voyageurs et du fret lues dans le texte des articles de gare (audit-gares-suite, 22/11/2026).
+    // Gares fermées ou « fret seul » sans date de fin de service, dont l'article donne une phrase explicite sur les voyageurs
+    // ou les marchandises (l'infobox sans qualificatif, les phrases sur une ligne entière ou « avant 2011 » ne sont pas
+    // retenues). Le texte des articles n'est pas lu par vff:import-station-passenger-ends (infobox seulement).
+    ...array_merge(...array_map(function (array $g) use ($wp) {
+        [$name, $qid, $title, $oldid, $events] = $g;
+        $labels = ['closure_passenger' => 'fin du service voyageurs', 'closure_freight' => 'fin du trafic marchandises'];
+
+        return array_map(fn (array $e) => [
+            'station' => ['name' => $name, 'wikidata' => $qid],
+            'action' => 'add',
+            'type' => $e[0],
+            'date' => $e[1],
+            'precision' => $e[2],
+            'source_url' => $wp($title, $oldid),
+            'quote' => $e[3],
+            'reason' => $labels[$e[0]].' de la gare, d\'après le texte de l\'article de la gare',
+        ], $events);
+    }, [
+        ['Sézanne', 'Q3097814', 'Gare de Sézanne', 240934925, [['closure_passenger', '1972-01-01', 'year', 'La gare est fermée au trafic voyageurs depuis 1972']]],
+        ['Héming', 'Q17355272', 'Gare de Héming', 238409807, [['closure_passenger', '1975-01-01', 'year', 'Au service d\'été 1975, plus aucun train de voyageurs ne s\'arrête en gare de Héming.']]],
+        ['Pithiviers', 'Q3097274', 'Gare de Pithiviers', 239956556, [['closure_passenger', '1969-10-04', 'day', 'La fermeture du service voyageurs intervient le 4 octobre 1969']]],
+        ['Wissous', 'Q3098083', 'Gare de Wissous', 236227929, [['closure_passenger', '1939-05-15', 'day', 'La gare est fermée au trafic des voyageurs avec l\'essentiel de la Grande Ceinture, le 15 mai 1939']]],
+        ['Laluque', 'Q2524762', 'Gare de Laluque', 241007075, [['closure_passenger', '1950-04-27', 'day', 'Le 27 avril 1950, la gare est fermée aux voyageurs avec l\'ensemble de la ligne Tartas-Saint-Girons.']]],
+        ['Ribeauvillé', 'Q3097407', 'Gare de Ribeauvillé', 240407982, [['closure_passenger', '2011-12-11', 'day', 'fermée au service des voyageurs en 2011 par la SNCF (infobox : 11 décembre 2011)']]],
+        ['St-Cyr-Grande-Ceinture', 'Q3097507', 'Gare de Saint-Cyr-Grande-Ceinture', 219957684, [['closure_passenger', '1939-05-15', 'day', 'Le trafic des voyageurs prend fin le 15 mai 1939']]],
+        ['St-Laurent-sur-Sèvre', 'Q28057996', 'Gare de Saint-Laurent-sur-Sèvre', 235034256, [['closure_passenger', '1939-01-01', 'year', 'La gare est fermée en 1939 au service des voyageurs'], ['closure_freight', '1992-01-01', 'year', 'et en 1992 pour le trafic de marchandises']]],
+        ['St-Girons', 'Q3097535', 'Gare de Saint-Girons', 221735608, [['closure_passenger', '1969-01-01', 'year', 'fermée aux voyageurs en 1969 et aux marchandises en 1991'], ['closure_freight', '1991-01-01', 'year', 'fermée aux voyageurs en 1969 et aux marchandises en 1991']]],
+        ['Auzits-Aussibals', 'Q114384695', 'Gare d\'Auzits-Aussibal', 238728008, [['closure_passenger', '2006-12-10', 'day', 'La gare est fermée au service des voyageurs le 10 décembre 2006.']]],
+        ['Nuces', 'Q123498020', 'Gare de Nuces', 204906584, [['closure_passenger', '2006-10-30', 'day', 'Elle est fermée au service des voyageurs le 30 octobre 2006.']]],
+        ['Allanche', 'Q1843663', 'Gare d\'Allanche', 229440543, [['closure_passenger', '1990-01-01', 'year', 'La SNCF a fermé le service voyageurs en 1990 et le trafic marchandise en 1991.'], ['closure_freight', '1991-01-01', 'year', 'La SNCF a fermé le service voyageurs en 1990 et le trafic marchandise en 1991.']]],
+        ['Arreau', 'Q3095671', 'Gare d\'Arreau - Cadéac', 223819644, [['closure_passenger', '1969-01-01', 'year', 'Fermée au service des voyageurs en 1969 [...] jusqu\'à sa complète fermeture en 1971']]],
+        ['Arlanc', 'Q30739934', 'Gare d\'Arlanc', 235030324, [['closure_passenger', '1980-09-28', 'day', '1980 (fermeture au trafic voyageur de la section Pont-de-Dore - Arlanc) ; infobox : 28 septembre 1980']]],
+        ['Marcellaz-Hauteville', 'Q88308374', 'Gare de Marcellaz - Hauteville', 234117440, [['closure_passenger', '1993-01-01', 'year', 'Elle est fermée au trafic voyageurs en 1993.']]],
+        ['Lovagny-Gorges-du-Fier', 'Q97366108', 'Gare de Lovagny-Gorges-du-Fier', 217416126, [['closure_passenger', '1993-01-01', 'year', 'Elle est fermée au trafic voyageurs en 1993.']]],
+        ['Privas', 'Q54392628', 'Gare de Privas', 235033935, [['closure_passenger', '1938-12-01', 'month', 'La gare est fermée au service voyageurs en décembre 1938.']]],
+        ['Axat (Aude)', 'Q81074887', 'Gare d\'Axat', 238872420, [['closure_passenger', '1939-04-18', 'day', 'La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 avril 1939.']]],
+        ['Maury', 'Q80795009', 'Gare de Maury', 228759382, [['closure_passenger', '1939-04-18', 'day', 'La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 avril 1939.']]],
+        ['Estagel', 'Q28710943', 'Gare d\'Estagel', 235030441, [['closure_passenger', '1939-04-18', 'day', 'La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 avril 1939.']]],
+        ['Chaumes', 'Q110656059', 'Gare de Chaumes', 240458718, [['closure_passenger', '1939-04-18', 'day', 'La gare de Chaumes-en-Brie fut fermée au trafic de voyageurs dès le 18 avril 1939 du fait de sa faible desserte.']]],
+        ['Salelles-du-Bosc', 'Q18380045', 'Gare de Salelles-du-Bosc', 231200164, [['closure_passenger', '1939-05-15', 'day', 'cette dernière la ferme à son propre trafic voyageurs le 15 mai 1939 sur la section Paulhan - Lodève']]],
+        ['La Forge del Mitg', 'Q83160711', 'Gare de La Forge del Mitg', 209217055, [['closure_passenger', '1937-06-01', 'day', 'fermée au service des voyageurs en 1937 par la CFPO (infobox : 1 juin 1937)']]],
+        ['Saint-Laurent-de-Cerdans', 'Q83160923', 'Gare de Saint-Laurent-de-Cerdans', 232363855, [['closure_passenger', '1937-06-01', 'day', 'fermée au service des voyageurs en 1937 par la CFPO (infobox : 1 juin 1937)']]],
+    ])),
+    // ── 22. Ouvertures au jour lues dans l'article de la gare (audit-gares-suite, 22/11/2026).
+    // Les gares dont l'ouverture n'était connue qu'à l'année (Wikidata, même année que l'article) ou déduite de la ligne
+    // (année de la première section, parfois 1827 ou 1846 pour des gares ouvertes en 1861 ou 1893) reçoivent la date de
+    // l'infobox ou de la phrase « mise en service le … » de leur article. Les cas où l'article contredit une date de Wikidata
+    // ou d'OHM, les ouvertures récentes (réouvertures, nouvelles gares après 1950), Ravezies (deux dates d'infobox),
+    // Heugnes et La Foulquetière (« probablement vers 1902 ») ne sont pas posés : liste au rapport.
+    ...array_map(function (array $g) use ($wp) {
+        [$name, $qid, $title, $oldid, $date, $precision, $quote, $replaces] = $g;
+        $old = $replaces === 'wikidata' ? 'l\'année de Wikidata' : 'une année déduite de la ligne';
+
+        return [
+            'station' => ['name' => $name, 'wikidata' => $qid],
+            'action' => 'add',
+            'type' => 'opening',
+            'date' => $date,
+            'precision' => $precision,
+            'source_url' => $wp($title, $oldid),
+            'quote' => $quote,
+            'reason' => 'ouverture de la gare au jour d\'après l\'article de la gare ; précise '.$old,
+        ];
+    }, [
+        ['Grandpuits', 'Q3096569', 'Gare de Grandpuits', 234804937, '1857-04-25', 'day', 'La Compagnie des chemins de fer de l\'Est met en service la station de Grandpuits, lors de l\'ouverture au service commercial de la section de à Nangis, le 25 avril 1857.', 'wikidata'],
+        ['Ste-Colombe-sur-Seine', 'Q107208772', 'Gare de Sainte-Colombe-sur-Seine', 235034325, '1864-09-26', 'day', 'La gare de Sainte-Colombe est mise en service le 26 septembre 1864 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsque celle-ci ouvre à l\'exploitation sa ligne de [...]', 'wikidata'],
+        ['Chèvremont', 'Q2690835', 'Gare de Chèvremont', 222743828, '1858-02-15', 'day', 'La station de Chèvremont est mise en service le 15 février 1858 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section de Dannemarie à Belfort de sa ligne de Paris à Mulhouse.', 'wikidata'],
+        ['Gray', 'Q3096574', 'Gare de Gray', 240407912, '1863-09-24', 'day', 'Mise en service : 24 septembre 1863', 'wikidata'],
+        ['Mont-St-Martin', 'Q2780113', 'Gare de Mont-Saint-Martin', 240831070, '1863-02-12', 'day', 'Construite et appartenant à la Compagnie des chemins de fer des Ardennes, la gare de Mont-Saint-Martin est mise en service le 12 février 1863 par la Grande compagnie du Luxembourg, en application de la convention [...]', 'wikidata'],
+        ['Héming', 'Q17355272', 'Gare de Héming', 238409807, '1852-07-17', 'day', 'Mise en service : 17 juillet 1852', 'wikidata'],
+        ['St-Pierre-du-Vauvray', 'Q2371169', 'Gare de Saint-Pierre-du-Vauvray', 235034294, '1843-05-09', 'day', 'Mise en service : 9 mai 1843', 'wikidata'],
+        ['Loudéac', 'Q2307126', 'Gare de Loudéac', 237984471, '1872-07-01', 'day', 'La mise en service de la gare, par la Compagnie des chemins de fer de l\'Ouest, a lieu le 1 juillet 1872 avec l\'ouverture de la section Quintin - Loudéac de la ligne de Saint-Brieuc à Pontivy.', 'wikidata'],
+        ['Concarneau', 'Q2936693', 'Gare de Concarneau', 238688313, '1883-06-30', 'day', 'Deux jours avant l\'ouverture, qui intervient le 30 juin 1883, les Concarnois sont présents en nombre devant leur gare, bien qu\'édifiée sur la commune voisine de Beuzec-Conq, la gare toute neuve est décorée par des [...]', 'wikidata'],
+        ['Dinan', 'Q2381874', 'Gare de Dinan', 238141648, '1879-12-29', 'day', 'La section à voie unique de la gare de Dol-de-Bretagne à la gare de Lamballe, sur laquelle se situe Dinan, est mise en service le 29 décembre 1879 par la Compagnie des chemins de fer de l\'Ouest.', 'wikidata'],
+        ['Allonnes-Boisville', 'Q108112779', 'Gare d\'Allonnes - Boisville', 206513601, '1865-12-28', 'day', 'Mise en service : 28 décembre 1865', 'wikidata'],
+        ['Wissous', 'Q3098083', 'Gare de Wissous', 236227929, '1886-10-18', 'day', 'La gare est mise en service le 18 octobre 1886 avec la ligne dite de Grande Ceinture stratégique, ouverte sur exigence de l\'armée.', 'deduite'],
+        ['Bon-Encontre', 'Q18214174', 'Gare de Bon-Encontre', 223773100, '1865-11-16', 'day', 'La station de Bon-Encontre est mise en service le 16 novembre 1865 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne (Midi), lorsqu\'elle ouvre à l\'exploitation la section d\'Agen à Auch de [...]', 'wikidata'],
+        ['Pont-du-Casse', 'Q1813789', 'Gare de Pont-du-Casse', 235033845, '1863-08-03', 'day', 'La « station de Pont-du-Casse » est mise en service le 3 août 1863 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la ligne à voie unique de Niversac à Agen.', 'wikidata'],
+        ['Vaulry', 'Q1856227', 'Gare de Vaulry', 195455617, '1880-12-31', 'day', 'Cette gare a été ouverte le 31 décembre 1880.', 'wikidata'],
+        ['Bourganeuf', 'Q21707892', 'Gare de Bourganeuf', 240069333, '1883-08-05', 'day', 'La gare de Bourganeuf, construite par l\'administration des chemins de fer de l\'État, est mise en service le 5 août 1883 par la Compagnie du chemin de fer de Paris à Orléans (PO) lorsqu\'elle ouvre à l\'exploitation [...]', 'deduite'],
+        ['Malause', 'Q2087859', 'Gare de Malause', 240578680, '1856-08-30', 'day', 'La station de Malause est mise en service le 30 août 1856 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne (Midi), lorsqu\'elle ouvre à l\'exploitation la section de Valence-d\'Agen à [...]', 'wikidata'],
+        ['Hyères', 'Q2542662', 'Gare d\'Hyères', 236832145, '1875-12-06', 'day', 'Mise en service : 6 décembre 1875', 'wikidata'],
+        ['Le Pouzin', 'Q54398971', 'Gare du Pouzin', 235035368, '1862-02-17', 'day', 'Mise en service : 17 février 1862', 'deduite'],
+        ['Le Teil', 'Q3098232', 'Gare du Teil', 238077467, '1876-05-22', 'day', 'La mise en service de la gare intervient le 22 mai 1876.', 'wikidata'],
+        ['Monteux', 'Q16508048', 'Gare de Monteux', 241561892, '1863-05-18', 'day', 'La gare de Monteux est mise en service le 18 mai 1863.', 'deduite'],
+        ['Ozouer-le-Voulgis', 'Q3095845', 'Gare d\'Ozouer-le-Voulgis', 200511320, '1857-04-25', 'day', 'La Compagnie des chemins de fer de l\'Est met en service la station d\'Ozouer lors de l\'ouverture au service commercial, le 25 avril 1857, de la section de Nogent - Le Perreux à Nangis.', 'wikidata'],
+        ['Herme', 'Q3095767', 'Gare d\'Hermé', 200511360, '1857-04-25', 'day', 'Mise en service : 25 avril 1857', 'wikidata'],
+        ['Dounoux', 'Q3096392', 'Gare de Dounoux', 220251634, '1863-09-24', 'day', 'La station de Dounoux est mise en service le 24 septembre 1863 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section d\'Épinal à Aillevillers.', 'wikidata'],
+        ['Ribeauvillé', 'Q3097407', 'Gare de Ribeauvillé', 240407982, '1840-10-19', 'day', 'La « station de Ribeauvillé » est mise en service le 19 octobre 1840 par la Compagnie du chemin de fer de Strasbourg à Bâle, lorsqu\'elle ouvre à l\'exploitation la section de Benfeld à Colmar.', 'deduite'],
+        ['Eguisheim', 'Q16507956', 'Gare d\'Eguisheim', 166039441, '1841-08-15', 'day', 'La « station d\'Eguisheim » est mise en service le 15 août 1841 par la Compagnie du chemin de fer de Strasbourg à Bâle, lorsqu\'elle ouvre à l\'exploitation la section de Colmar à Mulhouse.', 'wikidata'],
+        ['Colombier', 'Q3096267', 'Gare de Colombier', 240876591, '1858-04-26', 'day', 'La « station de Colombier » est mise en service le 26 avril 1858 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section de Vesoul à Belfort qui permet la mise en service de la [...]', 'wikidata'],
+        ['Creveney-Saulx', 'Q3096323', 'Gare de Creveney - Saulx', 229508622, '1858-04-26', 'day', 'La « station de Creveney » est mise en service le 26 avril 1858 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section de Vesoul à Belfort qui permet la mise en service de la [...]', 'wikidata'],
+        ['Genevreuille', 'Q3096528', 'Gare de Genevreuille', 229508646, '1858-04-26', 'day', 'La « station de Genevreuille » est mise en service le 26 avril 1858 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section de Vesoul à Belfort qui permet la mise en service de [...]', 'wikidata'],
+        ['Corbenay', 'Q3096280', 'Gare de Corbenay', 231761080, '1878-04-25', 'day', 'La « halte de Corbenay », ouverte aux voyageurs et aux marchandises, est mise en service le 25 avril 1878 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation la section d\'Aillevillers à Lure.', 'wikidata'],
+        ['Cons-la-Grandville', 'Q18706764', 'Gare de Cons-la-Grandville', 235031436, '1863-09-03', 'day', 'La station de Cons-la-Grandville est mise en service le 3 septembre 1863 par la Compagnie des chemins de fer des Ardennes lorsqu\'elle ouvre à l\'exploitation la section de longuyon à longwy de sa ligne de Longuyon à [...]', 'wikidata'],
+        ['Mietesheim', 'Q86680707', 'Gare de Mietesheim', 235033112, '1864-12-19', 'day', 'La halte de Mietesheim est mise en service par la Compagnie des chemins de fer de l\'Est, le 19 décembre 1864, lorsqu\'elle ouvre à l\'exploitation sa ligne de Niederbronn à Haguenau.', 'deduite'],
+        ['Canaples', 'Q3096120', 'Gare de Canaples', 166057494, '1874-04-11', 'day', 'La station de Canaples est mise en service le 11 avril 1874 par la Compagnie de Frévent à Gamaches, lorsqu\'elle ouvre à l\'exploitation le tronçon de Doullens à Longpré.', 'wikidata'],
+        ['Les Loges-Vaucottes-sur-Mer', 'Q113836014', 'Gare des Loges - Vaucottes-sur-Mer', 238330311, '1895-06-22', 'day', 'La ligne des Ifs à Étretat a été déclarée d\'intérêt public le 17 août 1885, sous la forme d\'un embranchement se détachant en gare des Ifs de la ligne de Bréauté - Beuzeville à Fécamp ; elle a été mise en service le [...]', 'deduite'],
+        ['Pont-Authou', 'Q16948015', 'Gare de Pont-Authou', 201001367, '1865-07-24', 'day', 'La station de Pont-Authou est mise en service le 24 juillet 1865 par la Compagnie des chemins de fer de l\'Ouest, lorsqu\'elle ouvre à l\'exploitation l\'embranchement de Serquigny à Rouen de la ligne de Paris à Caen et à Cherbourg.', 'wikidata'],
+        ['La Rivière-Thibouville', 'Q16939298', 'Gare de La Rivière-Thibouville', 208185042, '1865-07-24', 'day', 'La station de La Rivière-Thibouville est mise en service le 24 juillet 1865 par la Compagnie des chemins de fer de l\'Ouest, lorsqu\'elle ouvre à l\'exploitation l\'embranchement de Serquigny à Rouen de la ligne de [...]', 'wikidata'],
+        ['Quetteville', 'Q86685175', 'Gare de Quetteville', 235033986, '1862-07-07', 'day', 'La première gare de Quetteville est mise en service le 7 juillet 1862 par la Compagnie des chemins de fer de l\'Ouest, lorsqu\'elle ouvre à l\'exploitation les de la deuxième section, de Pont l\'Évêque à Honfleur, de sa .', 'deduite'],
+        ['Mortagne-au-Perche', 'Q109945175', 'Gare de Mortagne-au-Perche', 234442336, '1873-05-06', 'day', 'La gare de Mortagne-au-Perche est mise en service le 6 mai 1873 par la compagnie des chemins de fer de l\'Orne, lorsqu\'elle ouvre à l\'exploitation sa ligne d\'Alençon à Condé-sur-Huisne.', 'deduite'],
+        ['Belval', 'Q3095954', 'Gare de Belval', 237264574, '1878-12-30', 'day', 'La « halte de Belval » est mise en service le 30 décembre 1878, lorsque la compagnie ouvre à l\'exploitation la section de Saint-Lô à Coutances.', 'wikidata'],
+        ['Canisy', 'Q2373682', 'Gare de Canisy', 237264597, '1878-12-30', 'day', 'La « station de Canisy » est mise en service le 30 décembre 1878, lorsque la compagnie ouvre à l\'exploitation la section de Saint-Lô à Coutances.', 'wikidata'],
+        ['La Meauffe', 'Q3096794', 'Gare de La Meauffe', 217033308, '1860-05-01', 'day', 'La « station de La Meauffe » est mise en service le 1 mai 1860 par la Compagnie des chemins de fer de l\'Ouest, lorsqu\'elle ouvre à l\'exploitation sa ligne de Lison à Saint-Lô, .', 'wikidata'],
+        ['Airel', 'Q3095595', 'Gare d\'Airel', 238325992, '1860-05-01', 'day', 'La « station d\'Airel » est mise en service le 1 mai 1860 par la Compagnie des chemins de fer de l\'Ouest, lorsqu\'elle ouvre à l\'exploitation sa ligne de Lison à Saint-Lô, .', 'wikidata'],
+        ['Servon-Tanis', 'Q3097721', 'Gare de Servon - Tanis', 166061483, '1878-12-30', 'day', 'La « station de Servon - Tanis » est mise en service le 30 décembre 1878, lors de l\'ouverture à l\'exploitation de la section d\'Avranches à Dol-de-Bretagne.', 'wikidata'],
+        ['St-Jacut', 'Q2027874', 'Gare de Saint-Jacut', 196093107, '1862-09-26', 'day', 'Mise en service : 26 septembre 1862', 'wikidata'],
+        ['La Motte', 'Q3096795', 'Gare de La Motte', 196084222, '1872-07-01', 'day', 'Mise en service : 1er juillet 1872', 'wikidata'],
+        ['Elven', 'Q16781921', 'Gare d\'Elven', 229525508, '1862-09-21', 'day', 'La station d\'Elven est mise en service le 21 septembre 1862 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle inaugure et ouvre à l\'exploitation la ligne de Savenay à Lorient.', 'wikidata'],
+        ['La Vraie-Croix', 'Q16779633', 'Gare de La Vraie-Croix', 224524112, '1895-07-01', 'day', 'La halte de La Vraie-Croix est mise en service le 1 juillet 1895, par la Compagnie du chemin de fer de Paris à Orléans (PO).', 'wikidata'],
+        ['St-Martin-de-la-Place', 'Q2528912', 'Gare de Saint-Martin-de-la-Place', 230619180, '1849-08-01', 'day', 'Mise en service : 1er août 1849', 'wikidata'],
+        ['St-Clément-des-Levées', 'Q954401', 'Gare de Saint-Clément-des-Levées', 141415268, '1849-08-01', 'day', 'Mise en service : 1er août 1849', 'wikidata'],
+        ['St-Jean-de-Braye', 'Q3097547', 'Gare de Saint-Jean-de-Braye', 219118175, '1873-11-03', 'day', 'Mise en service : 3 novembre 1873', 'deduite'],
+        ['Paray-Douaville', 'Q117041736', 'Gare de Paray-Douaville', 241252741, '1865-12-28', 'day', 'La gare de Paray-Douaville est mise en service le 28 décembre 1865, par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la première section, de Brétigny à Vendôme de sa [...]', 'deduite'],
+        ['St-Hilaire-la-Gravelle', 'Q84321640', 'Gare de Saint-Hilaire-la-Gravelle', 182447334, '1865-12-28', 'day', 'Mise en service : 28 décembre 1865', 'deduite'],
+        ['Écueillé', 'Q3095868', 'Gare d\'Écueillé', 233821975, '1902-10-06', 'day', 'Sa mise en service intervient en 1902, peu après la livraison de l\'infrastructure de la ligne, entre la gare de Romorantin-Lanthenay et la gare d\'Écueillé, le 6 octobre 1902', 'wikidata'],
+        ['Lafox', 'Q18173049', 'Gare de Lafox', 231935011, '1856-05-29', 'day', 'La station de Sauveterre est mise en service le 29 mai 1856 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne (Midi), lorsqu\'elle ouvre à l\'exploitation la section de Tonneins à [...]', 'wikidata'],
+        ['Cuzorn', 'Q18214488', 'Gare de Cuzorn', 238374370, '1863-08-03', 'day', 'La « station de Cuzorn » est mise en service le 3 août 1863 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la ligne à voie unique de Niversac à Agen.', 'wikidata'],
+        ['Thiat-Oradour', 'Q28952371', 'Gare de Thiat - Oradour', 141467129, '1867-12-23', 'day', 'La gare de Thiat - Oradour est mise en service le 23 décembre 1867 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la ligne.', 'deduite'],
+        ['Estivaux', 'Q28531257', 'Gare d\'Estivaux', 208182850, '1893-07-01', 'day', 'La gare d\'Estivaux est mise en service le 1 juillet 1893 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la section entre Limoges-Bénédictins et Brive via Uzerche.', 'wikidata'],
+        ['La Gélie', 'Q18214818', 'Gare de La Gélie', 235032446, '1863-08-03', 'day', 'La « station de La Gélie » est mise en service le 3 août 1863 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la ligne à voie unique de Niversac à Agen.', 'deduite'],
+        ['Castelnaud-Fayrac', 'Q18380200', 'Gare de Castelnaud-Fayrac', 223772964, '1882-07-02', 'day', 'La station de Castelnaud est mise en service le 2 juillet 1882, sur le territoire de la commune de Castelnaud-Fayrac, par la compagnie du chemin de fer de Paris à Orléans (PO) lorsqu\'elle ouvre à l\'exploitation la [...]', 'wikidata'],
+        ['Vézac-Beynac', 'Q18380051', 'Gare de Vézac - Beynac', 240406490, '1882-07-02', 'day', 'La station de « Vézac » est mise en service le 2 juillet 1882, sur le territoire de la commune de Vézac, à proximité du village de Beynac, par la compagnie du chemin de fer de Paris à Orléans (PO) lorsqu\'elle ouvre [...]', 'wikidata'],
+        ['Le Got', 'Q18196367', 'Gare du Got', 223773158, '1863-08-03', 'day', 'La « station du Got » est mise en service le 3 août 1863 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la ligne à voie unique de Niversac à Agen.', 'wikidata'],
+        ['St-Paul-St-Antoine', 'Q2096997', 'Gare de Saint-Paul-Saint-Antoine', 220838675, '1888-04-22', 'day', 'Mise en service : 22 avril 1888', 'wikidata'],
+        ['St-Girons', 'Q3097535', 'Gare de Saint-Girons', 221735608, '1866-02-15', 'day', 'La gare de Saint-Girons est mise en service le 15 février 1866 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne lorsqu\'elle ouvre la ligne de Boussens à Saint-Girons, qui permet la [...]', 'wikidata'],
+        ['Monferran', 'Q60847868', 'Gare de Monferran', 190876776, '1877-10-22', 'day', 'Mise en service : 22 octobre 1877', 'wikidata'],
+        ['Le Pournel', 'Q18215090', 'Gare du Pournel', 229517816, '1862-11-10', 'day', 'La station du Pournel est mise en service le 10 novembre 1862 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation la section de Brive à Capdenac.', 'wikidata'],
+        ['St-Martin-de-Bouillac', 'Q114419392', 'Gare de Saint-Martin-de-Bouillac', 197515944, '1858-08-30', 'day', 'La gare de Saint-Martin est mise en service le 30 août 1858, lorsque la Compagnie du chemin de fer de Paris à Orléans (PO) ouvre à l\'exploitation la première section de de son embranchement de Capdenac à Saint-Christophe.', 'deduite'],
+        ['Penchot', 'Q114423133', 'Gare de Penchot', 241039988, '1858-08-30', 'day', 'La gare de Saint-Martin est mise en service le 30 août 1858, lorsque la Compagnie du chemin de fer de Paris à Orléans (PO) ouvre à l\'exploitation la première section de de son embranchement de Capdenac à Saint-Christophe.', 'wikidata'],
+        ['Lugarde-Marchastel', 'Q98908851', 'Gare de Lugarde - Marchastel', 235032803, '1908-10-15', 'day', 'Mise en service : 15 octobre 1908', 'deduite'],
+        ['Arreau', 'Q3095671', 'Gare d\'Arreau - Cadéac', 223819644, '1897-08-01', 'day', 'La gare est mise en service le 1 août 1897 par la Compagnie du Midi.', 'wikidata'],
+        ['Créchy', 'Q3096329', 'Gare de Créchy', 177444472, '1854-06-19', 'day', 'Mise en service : 19 juin 1854', 'wikidata'],
+        ['Millay', 'Q108337741', 'Gare de Millay', 235791830, '1867-09-16', 'day', 'Mise en service : 16 septembre 1867', 'wikidata'],
+        ['La Boisse', 'Q3096750', 'Gare de La Boisse', 229433803, '1894-05-29', 'day', 'Mise en service : 29 mai 1894', 'wikidata'],
+        ['Pressins', 'Q3097344', 'Gare de Pressins', 193987061, '1884-09-10', 'day', 'Mise en service : 10 septembre 1884', 'deduite'],
+        ['Rossillon', 'Q97030233', 'Gare de Rossillon', 222214189, '1857-05-07', 'day', 'Mise en service : 7 mai 1857', 'wikidata'],
+        ['Oex', 'Q3095846', 'Gare d\'Oëx', 197253065, '1898-06-15', 'day', 'La « station d\'Oëx » est mise en service le 15 juin 1898 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) lorsqu\'elle ouvre à l\'exploitation la section de Cluses à Saint-Gervais-les-Bains-Le Fayet.', 'wikidata'],
+        ['Peipin', 'Q17347043', 'Gare de Peipin', 223194570, '1872-11-25', 'day', 'Mise en service : 25 novembre 1872', 'wikidata'],
+        ['Château-Arnoux-Mairie', 'Q17347042', 'Gare de Château-Arnoux - Volonne', 200708700, '1872-11-25', 'day', 'Mise en service : 25 novembre 1872', 'wikidata'],
+        ['Peyruis-Les Mées', 'Q20971052', 'Gare de Peyruis - Les Mées', 200706854, '1872-11-25', 'day', 'Mise en service : 25 novembre 1872', 'wikidata'],
+        ['Lurs', 'Q20971048', 'Gare de Lurs', 200773051, '1872-11-25', 'day', 'Mise en service : 25 novembre 1872', 'wikidata'],
+        ['Ste-Tulle', 'Q20971053', 'Gare de Sainte-Tulle', 200643994, '1872-07-08', 'day', 'Mise en service : 8 juillet 1872', 'wikidata'],
+        ['Corbières', 'Q20971046', 'Gare de Corbières', 200582441, '1872-07-08', 'day', 'La gare de Corbières est mise en service par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) le 8 juillet 1872.', 'wikidata'],
+        ['Eurre', 'Q71562130', 'Gare de Pont-de-Livron', 229441013, '1871-09-25', 'day', 'Dénommée initialement Pont-de-la-Drôme, la gare devint Pont-de-Livron avant sa mise en service le 25 septembre 1871 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre [...]', 'deduite'],
+        ['Allex-Grane', 'Q71556895', 'Gare d\'Allex - Grane', 229307142, '1871-09-25', 'day', 'La gare d\'Allex est mise en service le 25 septembre 1871 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la section de Livron à Crest de sa ligne [...]', 'deduite'],
+        ['Privas', 'Q54392628', 'Gare de Privas', 235033935, '1862-02-17', 'day', 'Les installations de la station sont achevées lorsque la compagnie met en service sa nouvelle ligne avec l\'ouverture du service des marchandises le 17 février 1862.', 'deduite'],
+        ['Vogüé', 'Q3098029', 'Gare de Vogüé', 235034986, '1876-05-22', 'day', 'Mise en service : 22 mai 1876', 'wikidata'],
+        ['Faugères', 'Q16746564', 'Gare de Faugères', 233460022, '1858-09-20', 'day', 'La gare de Faugères est mise en service le 20 septembre 1858 par la Compagnie du chemin de fer de Graissessac à Béziers, lorsqu\'elle ouvre à l\'exploitation sa ligne de Béziers à Bédarieux.', 'wikidata'],
+        ['Noailles', 'Q16638586', 'Gare de Noailles', 240304744, '1893-12-23', 'day', 'Mise en service : 23 décembre 1893', 'wikidata'],
+        ['La Frayère', 'Q3096781', 'Gare de La Frayère', 228569394, '1978-05-27', 'day', 'La halte de La Frayère, est un nouvel arrêt mis en service le 27 mai 1978 lors de la réouverture partielle de la ligne entre Cannes-La-Bocca et Ranguin.', 'wikidata'],
+        ['Le Bosquet', 'Q1958124', 'Gare du Bosquet', 229517765, '1978-05-27', 'day', 'La halte du Bosquet, est un nouvel arrêt mis en service le 27 mai 1978 lors de la réouverture partielle de la ligne entre Cannes-La-Bocca et Ranguin.', 'wikidata'],
+        ['Grasse', 'Q954856', 'Gare de Grasse', 235031967, '1871-11-13', 'day', 'La gare de Grasse est mise en service le 13 novembre 1871 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation sa ligne d\'embranchement de Cannes-la-Bocca à Grasse.', 'wikidata'],
+        ['Chabrières', 'Q2630711', 'Gare de Chabrières', 235031213, '1892-05-15', 'day', 'Mise en service : 15 mai 1892', 'wikidata'],
+        ['Barrême', 'Q2328223', 'Gare de Barrême', 215358514, '1892-05-15', 'day', 'La gare de Barrême est mise en service le 15 mai 1892.', 'wikidata'],
+        ['Gaubert - Le Chaffaut', 'Q2319399', 'Gare de Gaubert-Le Chaffaut', 200688708, '1891-08-14', 'day', 'Mise en service : 14 août 1891', 'wikidata'],
+        ['Chaudon Norante', 'Q2599416', 'Gare de Chaudon-Norante', 235031267, '1892-05-15', 'day', 'La station de Chaudon-Norante est mise en service le 15 mai 1892 par la Compagnie des chemins de fer du Sud de la France (SF), lorsqu\'elle ouvre à l\'exploitation la section de Digne à Saint-André-les-Alpes.', 'wikidata'],
+        ['Mézel - Châteauredon', 'Q2711635', 'Gare de Mézel - Châteauredon', 200697993, '1891-08-14', 'day', 'Mise en service : 14 août 1891', 'wikidata'],
+        ['La Chapelle-sur-Erdre', 'Q17037253', 'Gare de La Chapelle-sur-Erdre', 240590582, '1877-12-23', 'day', 'La gare de La Chapelle-sur-Erdre est mise en service le 23 décembre 1877 par la Compagnie du chemin de fer de Paris à Orléans lorsqu\'elle ouvre à l\'exploitation la ligne de Châteaubriant à Nantes.', 'wikidata'],
+        ['Santeny - Servon', 'Q3097670', 'Gare de Santeny - Servon', 231601559, '1892-07-01', 'day', 'Mise en service : 1er juillet 1892', 'wikidata'],
+        ['Nogent-Vincennes', 'Q16508029', 'Gare de Nogent - Vincennes', 232775017, '1859-09-22', 'day', 'Mise en service : 22 septembre 1859', 'wikidata'],
+        ['Falaise', 'Q3027216', 'Gare de Falaise', 235031712, '1859-11-01', 'day', 'Mise en service : 1er novembre 1859', 'wikidata'],
+        ['Chalmaison', 'Q3126233', 'Halte de Chalmaison', 217427769, '1857-04-25', 'day', 'Mise en service : 25 avril 1857', 'wikidata'],
+        ['Coubert - Soignolles', 'Q3096301', 'Gare de Coubert - Soignolles', 201370846, '1892-07-01', 'day', 'Mise en service : 1er juillet 1892', 'wikidata'],
+        ['Néris-les-Bains', 'Q2384817', 'Gare de Néris-les-Bains', 240306940, '1931-05-15', 'day', 'Un retard de livraison de pierres de taille fait que les travaux de la gare ne sont pas terminés lors de sa mise en service, le 15 mai 1931.', 'wikidata'],
+        ['Marennes', 'Q21114365', 'Gare de Marennes', 231132624, '1889-02-17', 'day', 'Mise en service : 17 février 1889', 'deduite'],
+        ['Solterre', 'Q115288308', 'Gare de Solterre', 229547164, '1861-09-21', 'day', 'La gare de Solterre est mise en service le 21 septembre 1861 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation les de la première section de sa ligne [...]', 'wikidata'],
+        ['Melz', 'Q3097013', 'Gare de Melz', 207988724, '1857-04-25', 'day', 'Mise en service : 25 avril 1857', 'wikidata'],
+        ['Peyrat', 'Q28952461', 'Gare de Peyrat', 221713259, '1880-12-31', 'day', 'La gare de Peyrat est mise en service le 31 décembre 1880 par l\'État, à l\'ouverture de la ligne.', 'deduite'],
+        ['Grisy-Suisnes', 'Q3096582', 'Gare de Grisy-Suisnes', 207275260, '1892-07-01', 'day', 'La Compagnie des chemins de fer de l\'Est met en service la gare lors de l\'ouverture du prolongement de la ligne de Vincennes jusqu\'à Verneuil-l’Étang le 1er juillet 1892.', 'wikidata'],
+        ['Saint-Just-Luzac', 'Q83706898', 'Gare de Saint-Just-Luzac', 219026349, '1889-02-17', 'day', 'Mise en service : 17 février 1889', 'deduite'],
+        ['Bricon', 'Q79594987', 'Gare de Bricon', 235031033, '1857-04-25', 'day', 'Mise en service : 25 avril 1857', 'deduite'],
+        ['Villiers-le-Sec', 'Q86683659', 'Gare de Villiers-le-Sec', 230477739, '1857-04-25', 'day', 'La station de Villiers-le-Sec est mise en service le 25 avril 1857 par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle ouvre à l\'exploitation le quatrième tronçon, de Troyes à Chaumont, de sa ligne de Paris à Mulhouse.', 'deduite'],
+        ['Creutzwald', 'Q86680528', 'Gare de Creutzwald', 227852295, '1882-05-01', 'day', 'La section et la gare sont inaugurées le 1 mai 1882.', 'deduite'],
+        ['Dercy-Mortiers', 'Q38298768', 'Gare de Dercy - Mortiers', 221474815, '1869-10-30', 'day', 'La gare est mise en service le 30 octobre 1869 par la Compagnie des chemins de fer du Nord, lorsqu\'elle inaugure la section de Laon à Vervins de sa ligne de Soissons à la frontière Belge.', 'deduite'],
+        ['Conchil-le-Temple', 'Q3096274', 'Gare de Conchil-le-Temple', 238682929, '1879-09-01', 'day', 'En 1880, la Compagnie des chemins de fer du Nord achève les travaux d\'installation de la « station de Conchil-le-Temple » mise en service le 1 septembre 1879.', 'deduite'],
+        ['Aytré', 'Q83381893', 'Gare d\'Aytré', 207040743, '1887-07-01', 'day', 'La halte d\'Aytré est mise en service le 1 juillet 1887.', 'deduite'],
+        ['Mazières-Verruyes', 'Q83239647', 'Gare de Mazières - Verruyes', 166560555, '1882-10-16', 'day', 'La station de Mazières est mise en service le 16 octobre 1882, par l\'Administration des chemins de fer de l\'État (État), lorsqu\'elle ouvre à l\'exploitation la ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['Airvault-Gare', 'Q82746143', 'Gare d\'Airvault-Gare', 235030236, '1882-10-16', 'day', 'La gare d\'Airvault est mise en service le 16 octobre 1882 par l\'Administration des chemins de fer de l\'État, lorsqu\'elle ouvre à l\'exploitation sa ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['Parthenay', 'Q3097255', 'Gare de Parthenay', 232432482, '1882-10-16', 'day', 'La gare de Parthenay est établie à l\'est du centre-ville peu après le viaduc sur le Thouet, elle est mise en service le 16 octobre 1882, par l\'Administration des chemins de fer de l\'État (État), lorsqu\'elle ouvre à [...]', 'deduite'],
+        ['Châtillon-sur-Loire', 'Q115830199', 'Gare de Châtillon-sur-Loire', 229546603, '1861-09-21', 'day', 'La « gare de Châtillon » est mise en service le 21 septembre 1861 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation les de la deuxième partie de la [...]', 'deduite'],
+        ['Neuvy-sur-Loire', 'Q106924734', 'Gare de Neuvy-sur-Loire', 200298472, '1861-09-21', 'day', 'La « gare de Neuvy-sur-Loire » est mise en service le 21 septembre 1861 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation les de la deuxième partie [...]', 'deduite'],
+        ['Bagnols', 'Q113573952', 'Gare de Bagnols-sur-Cèze', 241181596, '1880-08-30', 'day', 'Mise en service : 30 août 1880', 'deduite'],
+        ['Frenelle-la-Grande-Puzieux', 'Q78604584', 'Gare de Frenelle-la-Grande - Puzieux', 235031809, '1879-12-22', 'day', 'La station de Frenelle-la-Grande - Puzieux est mise en service le 22 décembre 1879 par', 'deduite'],
+        ['La Chapelle-devant-Bruyères', 'Q60852655', 'Gare de La Chapelle', 208268217, '1874-07-11', 'day', 'La gare de Corcieux - Vanémont est mise en service le 11 juillet 1874 par la Compagnie des Chemins de fer de l\'Est lors de l\'inauguration de la section de Laveline à de la ligne d\'Épinal à Saint-Dié.', 'deduite'],
+        ['Carling', 'Q76469068', 'Gare de Carling', 228675684, '1866-05-01', 'day', 'La gare de Carling est mise en service par la Compagnie des chemins de fer de l\'Est, lorsqu\'elle met en service, le 1 mai 1866, la section de Béning à Carling via Sarreguemines.', 'deduite'],
+        ['Rédange (Moselle)', 'Q106074182', 'Gare de Rédange (France)', 223006410, '1880-04-01', 'day', 'Construit par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL), l\'embranchement d\'Audun-le-Tiche à Rédange est inauguré le 1 avril 1880, tout comme la ligne d\'Esch-sur-Alzette à Audun-le-Tiche.', 'deduite'],
+        ['St-Gobert-Rougeries', 'Q38298762', 'Gare de Saint-Gobert - Rougeries', 231067682, '1869-10-30', 'day', 'La gare est mise en service le 30 octobre 1869 par la Compagnie des chemins de fer du Nord, lorsqu\'elle inaugure la section de Laon à Vervins de sa ligne de Soissons à la frontière Belge.', 'deduite'],
+        ['St-Josse', 'Q3097550', 'Gare de Saint-Josse', 238683066, '1877-08-17', 'day', 'Le 17 août 1877, une halte pour voyageurs est ouverte à l\'exploitation par la Compagnie des chemins de fer du Nord.', 'deduite'],
+        ['St-Germain-en-Laye-Bel-Air-Fourqueux', 'Q3097533', 'Gare de Saint-Germain-en-Laye-Bel-Air - Fourqueux', 238757435, '1882-09-04', 'day', 'Située sur la ligne de Grande ceinture, la gare de Fourqueux ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères.', 'deduite'],
+        ['St-Germain-en-Laye-Grande-Ceinture', 'Q3097540', 'Gare de Saint-Germain-en-Laye-Grande-Ceinture', 240770886, '1882-09-04', 'day', 'Située sur la Grande ceinture, la gare de Saint-Germain-en-Laye-Grande-Ceinture ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères.', 'deduite'],
+        ['Mareil-Marly', 'Q2434089', 'Gare de Mareil-Marly', 237782854, '1882-09-04', 'day', 'Mise en service : 4 septembre 1882', 'deduite'],
+        ['St-Cyr-Grande-Ceinture', 'Q3097507', 'Gare de Saint-Cyr-Grande-Ceinture', 219957684, '1882-09-04', 'day', 'Mise en service : 4 septembre 1882', 'deduite'],
+        ['Orval-Hyenville', 'Q2690852', 'Gare d\'Orval - Hyenville', 234730951, '1879-12-29', 'day', 'Mise en service : 29 décembre 1879', 'deduite'],
+        ['Andilly-St-Ouen', 'Q117086364', 'Gare d\'Andilly - Saint-Ouen', 235881938, '1872-06-17', 'day', 'Mise en service : 17 juin 1872', 'deduite'],
+        ['La Jarne-St-Rogatien', 'Q86724990', 'Gare de La Jarne - Saint-Rogatien', 231940707, '1904-07-01', 'day', 'Mise en service : 1er juillet 1904', 'deduite'],
+        ['Frontenay-Rohan', 'Q86724948', 'Gare de Frontenay-Rohan-Rohan', 240821169, '1857-09-07', 'day', 'Mise en service : 7 septembre 1857', 'deduite'],
+        ['Cherveux', 'Q86724874', 'Gare de Cherveux', 170615044, '1882-10-16', 'day', 'La station de Cherveux est mise en service le 16 octobre 1882, par l\'Administration des chemins de fer de l\'État (État), lorsqu\'elle ouvre à l\'exploitation la ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['Champdeniers-St-Christophe', 'Q86724865', 'Gare de Champdeniers - Saint-Christophe', 170614997, '1882-10-16', 'day', 'La station de Champdeniers est mise en service le 16 octobre 1882, par l\'Administration des chemins de fer de l\'État (État), lorsqu\'elle ouvre à l\'exploitation la ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['St-Pardoux', 'Q83181281', 'Gare de Saint-Pardoux-en-Gâtine', 166560601, '1882-10-16', 'day', 'La station de Saint-Pardoux est mise en service le 16 octobre 1882, par l\'Administration des chemins de fer de l\'État (État), lorsqu\'elle ouvre à l\'exploitation la ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['St-Jean-de-Thouars', 'Q86724695', 'Gare de Saint-Jean-de-Thouars', 166561030, '1882-10-16', 'day', 'La gare de Saint-Jean-de-Thouars est mise en service le 16 octobre 1882 par l\'Administration des chemins de fer de l\'État, lorsqu\'elle ouvre à l\'exploitation sa ligne de Niort à Montreuil-Bellay.', 'deduite'],
+        ['Merpins', 'Q106869993', 'Gare de Merpins', 235033084, '1899-04-16', 'day', 'Mise en service : 16 avril 1899', 'deduite'],
+        ['Salon-la-Tour', 'Q28952366', 'Gare de Salon-la-Tour', 208183190, '1893-07-01', 'day', 'La gare de Salon-la-Tour est mise en service le 1 juillet 1893 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la section entre Limoges-Bénédictins et Brive via Uzerche.', 'deduite'],
+        ['Donzenac', 'Q28537243', 'Gare de Donzenac', 228313772, '1893-07-01', 'day', 'La gare de Donzenac est mise en service le 1 juillet 1893 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la section entre Limoges-Bénédictins et Brive via Uzerche.', 'deduite'],
+        ['Ussac', 'Q28952370', 'Gare d\'Ussac', 228313536, '1893-07-01', 'day', 'Mise en service : 1er juillet 1893', 'deduite'],
+        ['Chasteaux', 'Q28952372', 'Gare de Chasteaux', 169851707, '1893-07-01', 'day', 'Mise en service : 1er juillet 1893', 'deduite'],
+        ['Marcillac', 'Q123498017', 'Gare de Marcillac', 241400523, '1860-11-05', 'day', 'La gare de Marcillac est mise en service le 5 novembre 1860, lorsque la Compagnie du chemin de fer de Paris à Orléans (PO), met en service deuxième section, de Saint-Christophe à Rodez de sa Capdenac à Rodez.', 'deduite'],
+        ['Nuces', 'Q123498020', 'Gare de Nuces', 204906584, '1860-11-05', 'day', 'La gare de Nuces est mise en service le 5 novembre 1860, lorsque la Compagnie du chemin de fer de Paris à Orléans (PO), met en service deuxième section, de Saint-Christophe à Rodez de sa Capdenac à Rodez.', 'deduite'],
+        ['Borredon', 'Q22998882', 'Gare de Borredon', 232043879, '1884-04-10', 'day', 'La Compagnie du PO met en service l\'exploitation de la ligne de Montauban à Cahors le 10 avril 1884.', 'deduite'],
+        ['Riom-ès-Montagnes', 'Q112264716', 'Gare de Riom-ès-Montagnes', 235034081, '1908-10-15', 'day', 'Mise en service : 15 octobre 1908', 'deduite'],
+        ['Eauze', 'Q123498148', 'Gare d\'Eauze', 205225771, '1888-07-05', 'day', 'La gare d\'Eauze est mise en service le 5 juillet 1888 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne, lorsqu\'elle ouvre à l\'exploitation la section de Condom à Eauze de la ligne de [...]', 'deduite'],
+        ['St-Didier-sur-Arroux', 'Q138917638', 'Gare de Saint-Didier-sur-Arroux', 233384687, '1867-09-16', 'day', 'Mise en service : 16 septembre 1867', 'deduite'],
+        ['Bonny', 'Q106923536', 'Gare de Bonny', 240975771, '1861-09-21', 'day', 'La « gare de Bonny » est mise en service le 21 septembre 1861 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation les de la deuxième partie de la [...]', 'deduite'],
+        ['Mars', 'Q115913560', 'Gare de Mars', 235032995, '1853-05-15', 'day', 'La « station de Mars » est mise en service le 15 mai 1853 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre à l\'exploitation les de la section du Guétin à Moulins, .', 'deduite'],
+        ['Billy-Marcenat', 'Q2388160', 'Gare de Billy - Marcenat', 216438782, '1925-12-10', 'day', 'La station est mise en service le 10 décembre 1925.', 'deduite'],
+        ['Chignin-les-Marches', 'Q47095408', 'Gare de Chignin - Les Marches', 240674166, '1857-08-31', 'day', 'Mise en service : 31 août 1857', 'deduite'],
+        ['Aouste-sur-Sye', 'Q71557471', 'Gare d\'Aouste-sur-Sye', 229307155, '1885-09-01', 'day', 'Mise en service : 1er septembre 1885', 'deduite'],
+        ['Piegros-La Clastre', 'Q71561168', 'Gare de Piégros-la-Clastre - Blacons', 190388268, '1894-08-01', 'day', 'Le chantier débute après le paiement de sa part par la municipalité et après la fin des travaux la nouvelle halte est mise en service le 1 août 1894 avec l\'arrêt d\'un premier train.', 'deduite'],
+        ['Vercheny', 'Q71563003', 'Gare de Vercheny', 229517833, '1885-09-01', 'day', 'Mise en service : 1er septembre 1885', 'deduite'],
+        ['Pont-de-Quart-Châtillon', 'Q69377417', 'Gare de Pont-de-Quart - Châtillon', 199794591, '1894-06-01', 'day', 'La gare de Pont-de-Quart - Châtillon est mise en service le 1 juin 1894 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la section de Die à [...]', 'deduite'],
+        ['Recoubeau', 'Q69485702', 'Gare de Recoubeau', 208183072, '1894-06-01', 'day', 'La gare de Recoubeau est mise en service le 1 juin 1894 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la section de Die à Aspres-sur-Buëch de sa [...]', 'deduite'],
+        ['Lesches-Beaumont', 'Q71560134', 'Gare de Lesches - Beaumont', 183566768, '1894-06-01', 'day', 'La gare de Lesches - Beaumont est mise en service le 1 juin 1894 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la section de Die à [...]', 'deduite'],
+        ['La Beaume', 'Q71559820', 'Gare de La Beaume', 201200073, '1894-06-01', 'day', 'La gare de La Beaume est mise en service le 1 juin 1894 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la section de Die à Aspres-sur-Buëch.', 'deduite'],
+        ['St-Pierre-d\'Argençon', 'Q71562457', 'Gare de Saint-Pierre-d\'Argençon', 229519327, '1894-06-01', 'day', 'Mise en service : 1er juin 1894', 'deduite'],
+        ['Moriez', 'Q2413539', 'Gare de Moriez', 200726046, '1892-05-15', 'day', 'Mise en service : 15 mai 1892', 'deduite'],
+        ['Les Choux - Boismorand', 'Q115526468', 'Gare des Choux - Boismorand', 240746321, '1885-07-01', 'day', 'La gare des Choux - Boismorand est mise en service le 1 juillet 1885 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), sur la section de Montargis à Nevers, ouverte depuis 1861, de sa [...]', 'deduite'],
+        ['La Trinité-de-Réville', 'Q106812949', 'Gare de La Trinité-de-Réville', 235032503, '1881-12-22', 'day', 'La ligne d\'Échauffour à Bernay a été déclarée d\'intérêt public le 16 décembre 1875, et a été mise en service le 22 décembre 1881, incluant la gare de La Trinité-de-Réville.', 'deduite'],
+        ['Marmoutier', 'Q123617324', 'Gare de Marmoutier', 238409495, '1877-08-01', 'day', 'La section de Wasselonne à Saverne est mise en service le 1 août 1877 par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL) qui inaugure le même jour la section de Barr à Sélestat [...]', 'deduite'],
+    ]),
+
+    // ── Restes de la fiche gare (storage/app/reports/agents/aprem-2111/restes-fiches.md) : gares dont la date retenue
+    // venait d'une autre ligne ou d'une décision administrative tardive.
+
+    // Vigny (Moselle), ancienne gare de la ligne 099000 Metz-Ville - Château-Salins (PK 25,5 du schéma de l'article).
+    // Placée au PK interpolé 2,838 (« entre Metz-Ville et Liocourt »), elle tombait dans la section Montigny-lès-Metz -
+    // Augny dont la fermeture du 17/10/2023 lui était donnée ; elle est aussi rattachée à la LGV Est qui la survole (rattachement
+    // de proximité). La section Metz - Delme est fermée aux voyageurs le 04/10/1953 et Delme - Augny au fret le 03/04/1972.
+    [
+        'station' => ['name' => 'Vigny', 'near' => [6.2523635, 48.9584031, 0.3]],
+        'action' => 'pk',
+        'line' => '099000',
+        'pk_m' => 25500,
+        'source_url' => $wp('Ligne de Metz-Ville à Château-Salins', 239700629),
+        'quote' => '{{BS3ebis||exBHF|FLUG|25,5|[[Vigny (Moselle)|Vigny]]}}',
+        'reason' => 'PK 25,5 du schéma de l\'article (le PK interpolé de 2,838 venait du placement par commune)',
+    ],
+    [
+        'station' => ['name' => 'Vigny', 'near' => [6.2523635, 48.9584031, 0.3]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1953-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Metz-Ville à Château-Salins', 239700629),
+        'quote' => 'De Metz à Delme, le 4 octobre 1953.',
+        'reason' => 'fermeture aux voyageurs de la section Metz - Delme, qui porte la gare (PK 25,5)',
+    ],
+    [
+        'station' => ['name' => 'Vigny', 'near' => [6.2523635, 48.9584031, 0.3]],
+        'action' => 'add',
+        'type' => 'closure_freight',
+        'date' => '1972-04-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Metz-Ville à Château-Salins', 239700629),
+        'quote' => 'La section Delme - Augny a été fermée au trafic marchandises le 3 avril 1972.',
+        'reason' => 'fermeture au fret de la section Delme - Augny, qui porte la gare (PK 25,5)',
+    ],
+
+    // Le Crouais (Ille-et-Vilaine), halte de la ligne Saint-Méen - Loudéac (schéma de l'article : halte fermée entre La
+    // Brohinière et Saint-Méen). Elle recevait la fermeture 2018 de la ligne 472000 Ploërmel - La Brohinière, rattachée à
+    // tort (PK interpolé 72,504). Une halte ne survit pas au service des voyageurs de sa ligne, fermé le 04/10/1953.
+    [
+        'station' => ['name' => 'Le Crouais', 'near' => [-2.1427191, 48.2105341, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1953-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Méen à Loudéac', 240929645),
+        'quote' => 'Elle est fermée au trafic voyageurs le 4 octobre 1953 et au trafic marchandises le 3 juillet 1967',
+        'reason' => 'halte de la ligne Saint-Méen - Loudéac, fermée avec le service des voyageurs de la ligne le 04/10/1953 (la fermeture de 2018 est celle d\'une autre ligne)',
+    ],
+
+    // Villebois (Ain), terminus de la section Lagnieu - Villebois : fermée en décembre 1989 (Wikipédia), « vers 1989 »
+    // (lignes-oubliees, fermeture aux marchandises). La date de 2006 est la décision administrative de RFF sur une section
+    // sans trafic depuis 1989 (déclassée le 09/12/2002, voie déposée en 2013) ; aucun train touristique sur cette section.
+    [
+        'station' => ['name' => 'Villebois', 'uic' => '87743831'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1989-12-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne d\'Ambérieu à Montalieu-Vercieu', 240595980),
+        'quote' => 'La section Lagnieu - Villebois ferme à son tour en décembre 1989.',
+        'reason' => 'fin du trafic de la section Lagnieu - Villebois en décembre 1989 (lignes-oubliees : fermeture aux marchandises vers 1989) ; la fermeture du 14/09/2006 est la décision administrative de RFF',
+    ],
 ];
