@@ -1318,7 +1318,6 @@ return [
         'reason' => 'phrase de la section « Fermeture au service des voyageurs » : la section reste au fret jusqu\'en 1988 (fin des voyageurs déjà ajoutée par lignes-oubliees)',
     ],
 
-
     // Retranchements annulés par le Conseil d'État (storage/app/reports/agents/aprem-2111/faits-juridiques.md).
     // Avant 2007, une section fermée était retranchée du réseau ferré national par décret au Journal officiel.
     // La FNAUT a obtenu l'annulation de plusieurs de ces décrets pour vice de procédure (décisions ci-dessous) :

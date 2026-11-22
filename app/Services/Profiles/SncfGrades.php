@@ -62,7 +62,7 @@ final class SncfGrades
      * pour la valeur, pas pour la longueur.
      *
      * @param  iterable<array<string, mixed>>  $records
-     * @return array<int|string, array{max_grade_permil: float, type: string, track: string, pk_from: string, pk_to: string, segments: int, covered_m: int, name: string}>  clé : code de ligne (entier pour PHP quand il ne commence pas par 0)
+     * @return array<int|string, array{max_grade_permil: float, type: string, track: string, pk_from: string, pk_to: string, segments: int, covered_m: int, name: string}> clé : code de ligne (entier pour PHP quand il ne commence pas par 0)
      */
     public static function aggregate(iterable $records): array
     {
