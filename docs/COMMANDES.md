@@ -223,6 +223,13 @@ date, de nature et de bilan) depuis `database/data/accident_contexts` ; 359 fich
 | `--dir=` | Dossier des fichiers de contexte (`database/data/accident_contexts` par défaut). |
 | `--report=` | Fichier JSON du bilan détaillé. |
 
+Règles de rédaction validées par Baptiste (22/11/2026) :
+- bilan : quand la dépêche de presse compte moins de morts que la liste de Wikipédia, le chiffre de la liste est gardé
+  et l'écart est écrit dans la section des contradictions (`disagreements`), avec les deux sources ;
+- nom de fiche : une fiche dont la commune ou la date est corrigée prend le slug de la nouvelle commune ou de la
+  nouvelle date (règle de l'import : date, puis commune), sans alias tant que le site n'est pas en production ; le
+  fichier de contexte est renommé de même et sa clé `slug` suit.
+
 ### `vff:select-home-images`
 
 Retient des images anciennes de Commons pour « Le rail en images » de l'accueil (tirage renouvelé toutes les 30

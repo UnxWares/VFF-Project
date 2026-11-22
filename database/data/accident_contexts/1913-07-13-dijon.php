@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de la collision en gare de Dijon du 13 juillet 1913 (recherche du 21/11/2026).
+return [
+    'slug' => '1913-07-13-dijon',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1913' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1913',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1913&oldid=233727923#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'À 1 h 15, à l\'entrée en gare de Dijon, le train postal de Paris, en retard, aiguillé par erreur sur une voie où était garé un convoi de sept locomotives ; wagon-poste pour Pontarlier broyé, un mort et vingt-sept blessés parmi le personnel.',
+        ],
+        'delpher-nieuwecourant-1913-07-14' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk (dépêche de Dijon)',
+            'publisher' => 'De Nieuwe Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-07-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000785034:mpeg21:a00035',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche du 13 juillet : un train-poste est entré en collision avec un groupe de sept machines, un blessé, deux graves et 27 légers.',
+        ],
+        'delpher-handelsblad-1913-07-14' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsingen',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-07-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010651193:mpeg21:a0033',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche Reuter de Dijon du 13 juillet : un tué, deux blessés graves, 27 blessés.',
+        ],
+        'delpher-nrc-1913-07-14' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève de France',
+            'publisher' => 'Nieuwe Rotterdamsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-07-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010032911:mpeg21:a0121',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dans la gare de Dijon, un train-poste est entré dans un groupe de sept locomotives : un fonctionnaire des postes tué, un autre et un chef de train gravement blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Dans la nuit du 12 au 13 juillet 1913, à 1 h 15 selon la liste de Wikipédia, le train postal venant de Paris, en retard, entrait en gare de Dijon. La presse néerlandaise du 14 juillet situe l\'accident à la gare de Dijon.',
+                'en' => 'In the night of 12 to 13 July 1913, at 1.15 am according to the Wikipedia list, the mail train from Paris, running late, was entering Dijon station. The Dutch press of 14 July places the accident at Dijon station.',
+                'de' => 'In der Nacht vom 12. auf den 13. Juli 1913, nach der Wikipedia-Liste um 1.15 Uhr, fuhr der verspätete Postzug aus Paris in den Bahnhof Dijon ein. Die niederländische Presse vom 14. Juli verortet den Unfall im Bahnhof Dijon.',
+                'sources' => ['wp-liste-1913', 'delpher-nrc-1913-07-14', 'delpher-handelsblad-1913-07-14'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train postal a été aiguillé par erreur sur une voie où avait été garé un convoi de sept locomotives, qu\'il a heurté ; le wagon-poste destiné à Pontarlier a été broyé par un fourgon, selon la liste de Wikipédia. Les dépêches néerlandaises parlent d\'un train-poste entré en collision avec un groupe de sept locomotives.',
+                'en' => 'The mail train was routed by mistake onto a track where a group of seven locomotives had been parked, and ran into it; the mail van for Pontarlier was crushed by a van, according to the Wikipedia list. The Dutch dispatches speak of a mail train colliding with a group of seven locomotives.',
+                'de' => 'Der Postzug wurde irrtümlich auf ein Gleis geleitet, auf dem ein Verband aus sieben Lokomotiven abgestellt war, und fuhr auf ihn auf; der Postwagen nach Pontarlier wurde nach der Wikipedia-Liste von einem Packwagen zerdrückt. Die niederländischen Depeschen sprechen von einem Postzug, der mit einer Gruppe von sieben Lokomotiven zusammenstieß.',
+                'sources' => ['wp-liste-1913', 'delpher-nieuwecourant-1913-07-14', 'delpher-handelsblad-1913-07-14'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un fonctionnaire des postes a été tué ; un autre et un chef de train ont été grièvement blessés, selon le Nieuwe Rotterdamsche Courant. Les dépêches comptent un mort, deux blessés graves et 27 blessés ; la liste de Wikipédia compte un mort et vingt-sept blessés parmi le personnel du train, surtout des postiers ambulants.',
+                'en' => 'A postal official was killed; another and a train conductor were seriously injured, according to the Nieuwe Rotterdamsche Courant. The dispatches count one dead, two seriously injured and 27 injured; the Wikipedia list counts one dead and twenty-seven injured among the train\'s staff, mostly travelling postal clerks.',
+                'de' => 'Ein Postbeamter wurde getötet; ein weiterer und ein Zugführer wurden schwer verletzt, nach der Nieuwe Rotterdamsche Courant. Die Depeschen zählen einen Toten, zwei Schwerverletzte und 27 Verletzte; die Wikipedia-Liste zählt einen Toten und siebenundzwanzig Verletzte unter dem Zugpersonal, vor allem Bahnpostbeamte.',
+                'sources' => ['delpher-nrc-1913-07-14', 'delpher-handelsblad-1913-07-14', 'delpher-nieuwecourant-1913-07-14', 'wp-liste-1913'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '21231',
+            'sources' => ['wp-liste-1913', 'delpher-nrc-1913-07-14', 'delpher-handelsblad-1913-07-14'],
+            'fr' => 'La liste de Wikipédia et la presse néerlandaise du 14 juillet 1913 situent l\'accident en gare de Dijon (21231) ; Pontarlier n\'est que la destination du wagon-poste.',
+            'en' => 'The Wikipedia list and the Dutch press of 14 July 1913 place the accident at Dijon station (21231); Pontarlier is only the destination of the mail van.',
+            'de' => 'Die Wikipedia-Liste und die niederländische Presse vom 14. Juli 1913 verorten den Unfall im Bahnhof Dijon (21231); Pontarlier ist nur das Ziel des Postwagens.',
+        ],
+    ],
+];

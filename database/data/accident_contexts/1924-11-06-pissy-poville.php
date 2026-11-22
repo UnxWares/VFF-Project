@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de l'accident du tunnel de Pissy-Pôville du 6 novembre 1924 (recherche du 21/11/2026).
+return [
+    'slug' => '1924-11-06-pissy-poville',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1924' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1924',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Novembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1924&oldid=233501493#Novembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 6 novembre, vers 22 h, tunnel de Pissy-Pôville entre Malaunay et Barentin, déraillement d\'un bogie du wagon-restaurant du rapide Paris-Le Havre puis collision avec un train de marchandises, 2 morts et 8 blessés.',
+        ],
+        'delpher-1924-11-07a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Noord-Frankrijk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1924-11-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010495196:mpeg21:a0224',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche du Havre du 7 novembre : sneltrein Paris-Le Havre en collision avec un train de marchandises dans le tunnel de Pissy-Pôville, une dizaine de blessés graves, rumeur de 2 morts.',
+        ],
+        'delpher-1924-11-07b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1924-11-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010529788:mpeg21:a0103',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Rouen : train de voyageurs et train de marchandises en collision dans le tunnel, environ dix blessés, deux morts selon la rumeur.',
+        ],
+        'delpher-1924-11-07c' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing in Frankrijk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1924-11-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010009379:mpeg21:a0125',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche Belga : une douzaine de voyageurs gravement blessés, rumeur de 2 morts.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Dans la soirée du jeudi 6 novembre 1924 (vers 22 heures selon la liste de Wikipédia), le rapide Paris-Le Havre est entré en collision avec un train de marchandises dans le tunnel de Pissy-Pôville, entre les gares de Malaunay et de Barentin.',
+                'en' => 'In the evening of Thursday 6 November 1924 (at about 10 p.m. according to the Wikipedia list), the Paris-Le Havre express collided with a goods train in the Pissy-Pôville tunnel, between Malaunay and Barentin stations.',
+                'de' => 'Am Abend des Donnerstags, 6. November 1924 (laut Wikipedia-Liste gegen 22 Uhr), stieß der Schnellzug Paris-Le Havre im Tunnel von Pissy-Pôville zwischen den Bahnhöfen Malaunay und Barentin mit einem Güterzug zusammen.',
+                'sources' => ['delpher-1924-11-07a', 'delpher-1924-11-07b', 'wp-liste-1924'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le mauvais état de la voie a fait dérailler un bogie du wagon-restaurant, qui s\'est couché sur la voie opposée avec les trois dernières voitures et le fourgon de queue ; l\'ensemble a été percuté peu après par un train de marchandises venant en sens inverse, dont le mécanicien n\'avait pu être averti à temps.',
+                'en' => 'According to the Wikipedia list, the poor state of the track made a bogie of the dining car derail; it fell onto the opposite track with the last three coaches and the rear van, and the whole was struck shortly afterwards by a goods train coming the other way, whose driver could not be warned in time.',
+                'de' => 'Laut Wikipedia-Liste ließ der schlechte Gleiszustand ein Drehgestell des Speisewagens entgleisen; es kippte mit den letzten drei Wagen und dem Schlussgepäckwagen auf das Gegengleis, und das Ganze wurde kurz darauf von einem entgegenkommenden Güterzug gerammt, dessen Lokführer nicht rechtzeitig gewarnt werden konnte.',
+                'sources' => ['wp-liste-1924'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les dépêches néerlandaises du 7 novembre comptent une dizaine ou une douzaine de voyageurs grièvement blessés et rapportent la rumeur de deux morts. La liste de Wikipédia compte deux morts et huit blessés.',
+                'en' => 'The Dutch dispatches of 7 November count ten or a dozen seriously injured travellers and report a rumour of two deaths. The Wikipedia list counts two dead and eight injured.',
+                'de' => 'Die niederländischen Meldungen vom 7. November zählen zehn oder ein Dutzend schwer verletzte Reisende und berichten von dem Gerücht zweier Toter. Die Wikipedia-Liste zählt zwei Tote und acht Verletzte.',
+                'sources' => ['delpher-1924-11-07a', 'delpher-1924-11-07b', 'delpher-1924-11-07c', 'wp-liste-1924'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '76503',
+            'sources' => ['wp-liste-1924', 'delpher-1924-11-07a'],
+            'fr' => 'Le déraillement et la collision ont eu lieu dans le tunnel de Pissy-Pôville, commune de Pissy-Pôville, et non à Barentin.',
+            'en' => 'The derailment and collision took place in the Pissy-Pôville tunnel, in the commune of Pissy-Pôville, not at Barentin.',
+            'de' => 'Entgleisung und Kollision ereigneten sich im Tunnel von Pissy-Pôville in der Gemeinde Pissy-Pôville, nicht in Barentin.',
+        ],
+    ],
+];

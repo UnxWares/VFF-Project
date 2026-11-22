@@ -1,0 +1,132 @@
+<?php
+
+// Contexte sourcé de la collision du 9 septembre 1855 près de la gare Montparnasse, sur la ligne de Versailles
+// rive gauche (recherche du 21/11/2026).
+return [
+    'slug' => '1855-09-09-paris',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1850' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1850',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1855, 9 septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1850&oldid=233367195#1855',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Source de la fiche, d\'après La Presse du 10 septembre 1855.',
+        ],
+        'vdr-vaugirard' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => '1855, Ligne de l\'Ouest, accident de Vaugirard',
+            'publisher' => 'Victimes du rail en France au XIXe siècle',
+            'author' => null,
+            'published' => '2026-11-07',
+            'locator' => null,
+            'url' => 'https://www.victimesdurail.fr/1855-vaugirard/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Site de généalogie ; transcrit l\'article de La Presse du 10 septembre 1855 et la liste des blessés du Siècle du 22 décembre 1855. Seules les transcriptions de presse sont reprises ici.',
+        ],
+        'vdr-vaugirard-justice' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => '1855, Suites judiciaires de l\'accident de Vaugirard',
+            'publisher' => 'Victimes du rail en France au XIXe siècle',
+            'author' => null,
+            'published' => '2026-10-25',
+            'locator' => null,
+            'url' => 'https://www.victimesdurail.fr/1855-vaugirard-justice/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Transcrit le jugement du tribunal correctionnel de la Seine (décembre 1855).',
+        ],
+        'wp-plaisance' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Quartier de Plaisance',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Histoire',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Quartier_de_Plaisance&oldid=239885097',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Territoire partagé avant 1860 entre Vaugirard et Montrouge, annexé à Paris en 1860 (14e arrondissement).',
+        ],
+        'la-presse-1855-09-10' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Presse du 10 septembre 1855',
+            'publisher' => 'La Presse',
+            'author' => null,
+            'published' => '1855-09-10',
+            'locator' => 'p. 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k477069w/f2.item',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article d\'origine, lu seulement dans sa transcription.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 9 septembre 1855, le train de voyageurs parti de Versailles à 18 h 30 sur la ligne de Versailles rive gauche, rattachée depuis peu aux lignes fusionnées de l\'Ouest, n\'était plus qu\'à un kilomètre de la gare Montparnasse.',
+                'en' => 'On 9 September 1855, the passenger train that had left Versailles at 6.30 pm on the Versailles left bank line, recently merged into the Western railway network, was only one kilometre from Montparnasse station.',
+                'de' => 'Am 9. September 1855 war der Personenzug, der um 18.30 Uhr in Versailles auf der Strecke Versailles Rive Gauche abgefahren war, die kurz zuvor in das fusionierte Westnetz eingegliedert worden war, nur noch einen Kilometer vom Bahnhof Montparnasse entfernt.',
+                'sources' => ['vdr-vaugirard', 'wp-liste-1850'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'À 19 h 15, une fausse manœuvre de l\'aiguille d\'entrée de la gare des marchandises l\'a engagé sur la voie d\'un train de marchandises qui partait en sens inverse. Le choc a eu lieu entre les passages de la Providence et des Bœufs, à Plaisance : le fourgon à bagages a été broyé, une voiture de troisième classe brisée et deux autres très endommagées.',
+                'en' => 'At 7.15 pm, a wrongly set facing point at the entrance to the goods station sent it onto the track of a freight train leaving in the opposite direction. The collision happened between the Providence and Bœufs crossings, at Plaisance: the luggage van was crushed, a third-class coach smashed and two others badly damaged.',
+                'de' => 'Um 19.15 Uhr leitete eine falsch gestellte Einfahrweiche des Güterbahnhofs ihn auf das Gleis eines Güterzugs, der in Gegenrichtung abfuhr. Der Zusammenstoß ereignete sich zwischen den Übergängen de la Providence und des Bœufs in Plaisance: Der Gepäckwagen wurde zermalmt, ein Wagen dritter Klasse zertrümmert und zwei weitere schwer beschädigt.',
+                'sources' => ['vdr-vaugirard', 'wp-liste-1850'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Neuf voyageurs ont été tués sur le coup ou sont morts peu après : deux hommes, trois femmes et quatre enfants, de familles ouvrières selon La Presse. Les mécaniciens et les chauffeurs des deux trains n\'ont eu que des contusions.',
+                'en' => 'Nine passengers were killed outright or died shortly afterwards: two men, three women and four children, from working-class families according to La Presse. The drivers and firemen of both trains had only bruises.',
+                'de' => 'Neun Reisende waren sofort tot oder starben kurz darauf: zwei Männer, drei Frauen und vier Kinder aus Arbeiterfamilien, so La Presse. Die Lokführer und Heizer beider Züge erlitten nur Prellungen.',
+                'sources' => ['vdr-vaugirard'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le tribunal correctionnel de la Seine a jugé en décembre 1855 l\'aiguilleur et deux chefs de gare. Selon le jugement transcrit, l\'aiguilleur et un chef de gare ont été condamnés à cinq ans de prison et 300 francs d\'amende chacun, le troisième prévenu à deux mois et 50 francs, et l\'administration du chemin de fer a été déclarée civilement responsable.',
+                'en' => 'In December 1855 the Seine criminal court tried the pointsman and two stationmasters. According to the transcribed judgment, the pointsman and one stationmaster were each sentenced to five years in prison and a 300-franc fine, the third defendant to two months and 50 francs, and the railway administration was held civilly liable.',
+                'de' => 'Im Dezember 1855 verhandelte das Strafgericht des Seine-Departements gegen den Weichenwärter und zwei Bahnhofsvorsteher. Nach dem wiedergegebenen Urteil erhielten der Weichenwärter und ein Bahnhofsvorsteher je fünf Jahre Gefängnis und 300 Franc Geldstrafe, der dritte Angeklagte zwei Monate und 50 Franc; die Bahnverwaltung wurde zivilrechtlich haftbar erklärt.',
+                'sources' => ['vdr-vaugirard-justice'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Les blessés graves sont 17 selon La Presse du 10 septembre ; Le Siècle du 22 décembre 1855, au moment du procès, parle de 29 blessés, dont 17 nommés.',
+                'en' => 'La Presse of 10 September gives 17 seriously injured; Le Siècle of 22 December 1855, at the time of the trial, speaks of 29 injured, 17 of them named.',
+                'de' => 'La Presse vom 10. September nennt 17 Schwerverletzte; Le Siècle vom 22. Dezember 1855 spricht zur Zeit des Prozesses von 29 Verletzten, von denen 17 namentlich genannt werden.',
+                'sources' => ['vdr-vaugirard', 'vdr-vaugirard-justice'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '75056',
+            'sources' => ['wp-liste-1850', 'vdr-vaugirard', 'wp-plaisance'],
+            'fr' => 'Le train venait de Versailles, mais la collision a eu lieu à un kilomètre de la gare Montparnasse, à Plaisance, territoire annexé à Paris en 1860.',
+            'en' => 'The train came from Versailles, but the collision happened one kilometre from Montparnasse station, at Plaisance, an area annexed to Paris in 1860.',
+            'de' => 'Der Zug kam aus Versailles, der Zusammenstoß ereignete sich aber einen Kilometer vor dem Bahnhof Montparnasse in Plaisance, einem Gebiet, das 1860 nach Paris eingemeindet wurde.',
+        ],
+    ],
+];

@@ -135,6 +135,8 @@ class WikipediaListReaderTest extends TestCase
         yield 'train heurté puis voyageurs' => ['un rapide heurte un omnibus et fauche les voyageurs qui en descendaient', AccidentKind::Collision];
         yield 'deux trains se télescopent' => ['deux trains se télescopent, écrasant des voyageurs', AccidentKind::Collision];
         yield 'piéton fauché' => ['un train fauche un piéton qui traversait les voies', AccidentKind::PersonStruck];
+        yield 'train percuté au passif' => ['un train de voyageurs arrêté par suite de l\'avarie d\'une de ses deux machines est percuté par celui qui le suivait. Dans le train tamponné, un voyageur est tué, six sont blessés', AccidentKind::Collision];
+        yield 'train tamponné' => ['le train tamponné, deux voyageurs sont tués', AccidentKind::Collision];
     }
 
     #[DataProvider('kinds')]

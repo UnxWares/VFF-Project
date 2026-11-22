@@ -1,0 +1,173 @@
+<?php
+
+// Contexte sourcé de l'accident de Velars du 5 septembre 1888 (recherche du 21/11/2026).
+return [
+    'slug' => '1888-09-05-velars-sur-ouche',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr-velars' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Velars',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_de_Velars&oldid=235868544',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, très abondamment référencé : presse de 1888 à 1890 numérisée sur Gallica, revue Le Génie civil du 29 septembre 1888, Code annoté des chemins de fer. Source principale de cette fiche ; les documents cités n\'ont pas été relus.',
+        ],
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1888, 5 septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée référencée par Le Temps du 7 septembre 1888 (Gallica) : « près de Velars », vers 2 h, déformation des rails, neuf morts, une dizaine de blessés graves.',
+        ],
+        'wikidata-velars' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Catastrophe ferroviaire de Velars du 5 septembre 1888 (Q19606254)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q19606254',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Fiche de données : 9 morts, 12 blessés, localisation administrative Velars-sur-Ouche (Q23935), coordonnées au voisinage de Velars.',
+        ],
+        'gallica-temps-1888-09-07' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Temps du 7 septembre 1888, p. 2',
+            'publisher' => 'Le Temps',
+            'author' => null,
+            'published' => '1888-09-07',
+            'locator' => 'p. 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k231892q/f2.image.r=Velars.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu de presse contemporain, cité par Wikipédia ; non lu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 5 septembre 1888, vers 2 h 20, un déraillement suivi presque aussitôt d\'une collision s\'est produit en Côte-d\'Or, sur la ligne de Paris-Lyon à Marseille de la Compagnie PLM, au kilomètre 303, entre les gares de Mâlain et de Velars, après la sortie sud du tunnel de Blaisy-Bas. La voie y descend vers Dijon, dans une courbe à gauche de 1 000 m de rayon qui commence à environ 1,5 km de la gare de Velars.',
+                'en' => 'On 5 September 1888, at about 2.20 am, a derailment followed almost at once by a collision occurred in the Côte-d\'Or, on the Paris-Lyon to Marseille line of the PLM company, at kilometre 303, between Mâlain and Velars stations, just south of the Blaisy-Bas tunnel. The line there runs downhill towards Dijon, in a left-hand curve of 1,000 m radius that starts about 1.5 km before Velars station.',
+                'de' => 'Am 5. September 1888, gegen 2.20 Uhr, kam es in der Côte-d\'Or auf der Strecke Paris-Lyon - Marseille der Gesellschaft PLM bei Kilometer 303 zwischen den Bahnhöfen Mâlain und Velars, kurz hinter dem Südportal des Tunnels von Blaisy-Bas, zu einer Entgleisung mit fast unmittelbar folgendem Zusammenstoß. Die Strecke fällt dort Richtung Dijon, in einer Linkskurve mit 1 000 m Halbmesser, die etwa 1,5 km vor dem Bahnhof Velars beginnt.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'Deux trains de voyageurs étaient en cause : le n° 11, express Paris - Genève par Culoz, parti de Paris à 21 h 25 (locomotive, tender et onze véhicules), et le n° 276, rapide venant d\'Italie par Modane et remontant vers Paris par Mâcon (neuf voitures, dont deux fourgons en tête).',
+                'en' => 'Two passenger trains were involved: no. 11, the Paris - Geneva express via Culoz, which had left Paris at 9.25 pm (locomotive, tender and eleven vehicles), and no. 276, the fast train from Italy via Modane running up to Paris via Mâcon (nine vehicles, including two vans at the head).',
+                'de' => 'Beteiligt waren zwei Reisezüge: der Zug Nr. 11, Schnellzug Paris - Genf über Culoz, um 21.25 Uhr in Paris abgefahren (Lokomotive, Tender und elf Wagen), und der Zug Nr. 276, Schnellzug aus Italien über Modane auf dem Weg nach Paris über Mâcon (neun Wagen, darunter zwei Packwagen an der Spitze).',
+                'sources' => ['wp-fr-velars'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La locomotive du n° 11 a quitté les rails et roulé une cinquantaine de mètres dans l\'entrevoie avant de heurter le n° 276, qui arrivait en sens inverse sur l\'autre voie. La machine et le tender du 276 ont été projetés sur le remblai et renversés ; plusieurs voitures ont déraillé ou se sont télescopées, dont une voiture de 2e classe écrasée par la voiture-lits qui la suivait. La presse a d\'abord inversé l\'ordre des faits, en disant que le 276 avait déraillé le premier.',
+                'en' => 'The locomotive of no. 11 left the rails and ran for about fifty metres between the tracks before hitting no. 276, which was coming the other way on the other track. The engine and tender of 276 were thrown onto the embankment and overturned; several coaches derailed or telescoped, including a second-class coach crushed by the sleeping car behind it. The press at first reversed the order of events, saying that 276 had derailed first.',
+                'de' => 'Die Lokomotive des Zuges Nr. 11 verließ die Schienen und rollte etwa fünfzig Meter im Gleisabstand weiter, bevor sie mit dem Zug Nr. 276 zusammenstieß, der auf dem anderen Gleis entgegenkam. Lokomotive und Tender des 276 wurden auf den Damm geschleudert und stürzten um; mehrere Wagen entgleisten oder schoben sich ineinander, darunter ein Wagen 2. Klasse, der vom folgenden Schlafwagen zerdrückt wurde. Die Presse vertauschte anfangs die Reihenfolge und meldete, der 276 sei zuerst entgleist.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'Les poteaux télégraphiques ayant été abattus, le block ne pouvait plus fonctionner. L\'agent de Velars, alerté par le bruit, a prévenu son chef de gare, et le chauffeur blessé du n° 11 est parti donner l\'alerte. Des ouvriers du chantier du monument de Notre-Dame d\'Étang sont descendus au village, où le tocsin a appelé les habitants à secourir les victimes.',
+                'en' => 'With the telegraph poles brought down, the block system could no longer work. The staff member at Velars, alerted by the noise, woke his station master, and the injured fireman of no. 11 set off to raise the alarm. Workers from the Notre-Dame d\'Étang monument site went down to the village, where the tocsin called the inhabitants to help the victims.',
+                'de' => 'Da die Telegrafenmasten umgerissen waren, konnte die Blockstrecke nicht mehr arbeiten. Der Bedienstete in Velars, vom Lärm alarmiert, weckte seinen Bahnhofsvorsteher, und der verletzte Heizer des Zuges Nr. 11 machte sich auf, Alarm zu geben. Arbeiter der Baustelle des Denkmals Notre-Dame d\'Étang liefen ins Dorf hinunter, wo die Sturmglocke die Einwohner zur Hilfe rief.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'Un premier train de secours venu de Dijon est arrivé vers 5 h avec du matériel de levage, des médecins et le directeur de la compagnie, Gustave Noblemaire, qui a pris la direction des opérations. Une voie de chantier a été posée dès midi, le télégraphe a été rétabli vers 14 h et un premier train a franchi le site sur une voie unique provisoire à 17 h 20.',
+                'en' => 'A first relief train from Dijon arrived at about 5 am with lifting gear, doctors and the company\'s director, Gustave Noblemaire, who took charge of operations. A temporary track was laid by noon, the telegraph was restored at about 2 pm and a first train passed the site on a provisional single track at 5.20 pm.',
+                'de' => 'Ein erster Hilfszug aus Dijon traf gegen 5 Uhr mit Hebegerät, Ärzten und dem Direktor der Gesellschaft, Gustave Noblemaire, ein, der die Leitung der Arbeiten übernahm. Schon mittags wurde ein Baugleis verlegt, gegen 14 Uhr war der Telegraf wieder in Betrieb, und um 17.20 Uhr fuhr der erste Zug auf einem provisorischen eingleisigen Betrieb durch die Unfallstelle.',
+                'sources' => ['wp-fr-velars'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident a fait neuf morts : le mécanicien du n° 11, sept voyageurs de la voiture de 2e classe écrasée et une voyageuse de 1re classe. Douze blessés sont recensés, dont huit graves. Les dégâts matériels sont estimés à 500 000 francs environ. Les victimes ont été réparties entre l\'hôpital et trois hôtels de Dijon.',
+                'en' => 'The accident killed nine people: the driver of no. 11, seven passengers from the crushed second-class coach and one first-class passenger. Twelve injured are recorded, eight of them seriously. Material damage is put at about 500,000 francs. The victims were distributed between the hospital and three hotels in Dijon.',
+                'de' => 'Der Unfall forderte neun Todesopfer: den Lokführer des Zuges Nr. 11, sieben Reisende des zerdrückten Wagens 2. Klasse und eine Reisende der 1. Klasse. Zwölf Verletzte sind verzeichnet, davon acht schwer. Der Sachschaden wird auf etwa 500 000 Francs geschätzt. Die Opfer wurden auf das Krankenhaus und drei Hotels in Dijon verteilt.',
+                'sources' => ['wp-fr-velars', 'wikidata-velars'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Deux thèses se sont affrontées : un journaliste affirmait que la voie était en travaux et que le train roulait trop vite, tandis que le directeur des chemins de fer au ministère des Travaux publics jugeait la voie en parfait état et l\'accident imprévisible. L\'étude des lieux a montré une vitesse d\'environ 70 km/h, sous la limite de 72 km/h fixée par le PLM, et une voie déformée en S sur environ 80 m, avec une flèche de 26 cm.',
+                'en' => 'Two theses clashed: a journalist claimed that the track was under repair and that the train was going too fast, whereas the railways director at the Ministry of Public Works judged the track to be in perfect condition and the accident unforeseeable. Examination of the site showed a speed of about 70 km/h, below the 72 km/h limit set by the PLM, and a track bent into an S shape over about 80 m, with a deflection of 26 cm.',
+                'de' => 'Zwei Thesen standen sich gegenüber: Ein Journalist behauptete, das Gleis sei in Arbeit gewesen und der Zug zu schnell gefahren, während der Eisenbahndirektor im Ministerium für öffentliche Arbeiten das Gleis für einwandfrei und den Unfall für unvorhersehbar hielt. Die Untersuchung der Stelle ergab eine Geschwindigkeit von etwa 70 km/h, unter der von der PLM festgesetzten Grenze von 72 km/h, und ein auf etwa 80 m S-förmig verformtes Gleis mit einer Pfeilhöhe von 26 cm.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'Le rapport officiel, remis le 2 octobre 1888 par un inspecteur des mines, attribue le déraillement à un mouvement de lacet de la locomotive, sans trancher clairement sur le rôle de la déformation de la voie. La liste de Wikipédia de 1880 à 1889 parle, d\'après Le Temps du 7 septembre, d\'une déformation des rails, à une vitesse de 60 km/h.',
+                'en' => 'The official report, delivered on 2 October 1888 by a mining inspector, attributes the derailment to a hunting (yawing) movement of the locomotive, without clearly deciding on the part played by the track deformation. The Wikipedia list for the 1880s speaks, citing Le Temps of 7 September, of a deformation of the rails at a speed of 60 km/h.',
+                'de' => 'Der amtliche Bericht, den ein Bergwerksinspektor am 2. Oktober 1888 vorlegte, führt die Entgleisung auf eine Schlingerbewegung der Lokomotive zurück, ohne die Rolle der Gleisverformung klar zu entscheiden. Die Wikipedia-Liste der 1880er Jahre spricht unter Berufung auf Le Temps vom 7. September von einer Schienenverformung bei 60 km/h.',
+                'sources' => ['wp-fr-velars', 'wp-liste-1880'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Aucune poursuite pénale n\'a été engagée : l\'inspecteur concluait que l\'accident ne pouvait pas être prévu. Deux familles ont refusé l\'indemnisation amiable proposée par le PLM et saisi le tribunal de commerce de Dijon, qui a statué le 20 juillet 1889 puis le 11 janvier 1890.',
+                'en' => 'No criminal proceedings were brought: the inspector concluded that the accident could not have been foreseen. Two families refused the out-of-court compensation offered by the PLM and went to the Dijon commercial court, which ruled on 20 July 1889 and 11 January 1890.',
+                'de' => 'Es wurde kein Strafverfahren eingeleitet: Der Inspektor kam zu dem Schluss, der Unfall sei nicht vorhersehbar gewesen. Zwei Familien lehnten die von der PLM angebotene außergerichtliche Entschädigung ab und riefen das Handelsgericht Dijon an, das am 20. Juli 1889 und am 11. Januar 1890 entschied.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'À la Chambre des députés, Numa Gilly a accusé des membres de la commission du budget d\'avoir été achetés par les compagnies ; il a été condamné le 19 avril 1889 à six mois de prison et 1 000 francs d\'amende pour diffamation. Une sous-commission a réclamé des mesures de sécurité (surveillance de nuit des voies, dispositif d\'alarme), sans que sa proposition de loi soit votée.',
+                'en' => 'In the Chamber of Deputies, Numa Gilly accused members of the budget committee of having been bought by the railway companies; on 19 April 1889 he was sentenced to six months in prison and a 1,000 franc fine for defamation. A sub-committee called for safety measures (night patrols of the track, an alarm system), but its bill was never passed.',
+                'de' => 'In der Abgeordnetenkammer beschuldigte Numa Gilly Mitglieder des Haushaltsausschusses, von den Bahngesellschaften bestochen worden zu sein; am 19. April 1889 wurde er wegen Verleumdung zu sechs Monaten Haft und 1 000 Francs Geldstrafe verurteilt. Ein Unterausschuss forderte Sicherheitsmaßnahmen (nächtliche Gleisüberwachung, Alarmeinrichtung), sein Gesetzentwurf wurde jedoch nie verabschiedet.',
+                'sources' => ['wp-fr-velars'],
+            ],
+            [
+                'fr' => 'Sur le plan technique, le PLM est passé en 1889 à un rail de 47 kg/m ; les locomotives de type 121, critiquées pour leur mauvaise inscription en courbe, ont conduit à l\'étude d\'un bogie directeur, et le PLM n\'a eu ses premiers prototypes à bogie qu\'en 1892.',
+                'en' => 'On the technical side, the PLM moved to a 47 kg/m rail in 1889; the type 121 (2-4-2) locomotives, criticised for poor curving, led to a study of a guiding bogie, and the PLM only had its first bogie prototypes in 1892.',
+                'de' => 'Technisch ging die PLM 1889 zu einer Schiene von 47 kg/m über; die wegen schlechten Bogenlaufs kritisierten Lokomotiven der Bauart 121 führten zur Untersuchung eines Führungsdrehgestells, und die PLM erhielt erst 1892 erste Prototypen mit Drehgestell.',
+                'sources' => ['wp-fr-velars'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Lieu : la fiche actuelle place l\'accident à Baulme-la-Roche, mais l\'article de Wikipédia, la liste des accidents des années 1880 (« près de Velars ») et Wikidata (Velars-sur-Ouche) le situent entre les gares de Mâlain et de Velars, à environ 1,5 km de cette dernière. La commune de Velars-sur-Ouche est donc retenue.',
+                'en' => 'Place: the current record puts the accident at Baulme-la-Roche, but the Wikipedia article, the list of accidents of the 1880s ("near Velars") and Wikidata (Velars-sur-Ouche) place it between Mâlain and Velars stations, about 1.5 km from the latter. The commune of Velars-sur-Ouche is therefore used.',
+                'de' => 'Ort: Der aktuelle Datensatz verortet den Unfall in Baulme-la-Roche, doch der Wikipedia-Artikel, die Unfallliste der 1880er Jahre („bei Velars“) und Wikidata (Velars-sur-Ouche) legen ihn zwischen die Bahnhöfe Mâlain und Velars, etwa 1,5 km vor Letzterem. Es wird daher die Gemeinde Velars-sur-Ouche verwendet.',
+                'sources' => ['wp-fr-velars', 'wp-liste-1880', 'wikidata-velars'],
+            ],
+            [
+                'fr' => 'Détails : vers 2 h pour la liste et 2 h 20 pour l\'article ; 60 km/h pour la liste, environ 70 km/h pour l\'article ; « une dizaine de blessés graves » pour la liste, douze blessés dont huit graves pour l\'article et Wikidata.',
+                'en' => 'Details: about 2 am in the list and 2.20 am in the article; 60 km/h in the list, about 70 km/h in the article; "about ten seriously injured" in the list, twelve injured including eight seriously in the article and Wikidata.',
+                'de' => 'Einzelheiten: etwa 2 Uhr in der Liste, 2.20 Uhr im Artikel; 60 km/h in der Liste, etwa 70 km/h im Artikel; „etwa zehn Schwerverletzte“ in der Liste, zwölf Verletzte, davon acht schwer, im Artikel und bei Wikidata.',
+                'sources' => ['wp-liste-1880', 'wp-fr-velars', 'wikidata-velars'],
+            ],
+            [
+                'fr' => 'À ne pas confondre : l\'article de Wikipédia signale qu\'un accident beaucoup plus meurtrier (trente-neuf morts) a eu lieu soixante-quatorze ans plus tard au même endroit, en 1962.',
+                'en' => 'Not to be confused with: the Wikipedia article notes that a far deadlier accident (thirty-nine dead) occurred at the same place seventy-four years later, in 1962.',
+                'de' => 'Nicht zu verwechseln: Der Wikipedia-Artikel weist darauf hin, dass sich vierundsiebzig Jahre später, 1962, am selben Ort ein weit folgenschwererer Unfall (neununddreißig Tote) ereignete.',
+                'sources' => ['wp-fr-velars'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '21661',
+            'sources' => ['wp-fr-velars', 'wp-liste-1880', 'wikidata-velars'],
+            'fr' => 'Le déraillement a eu lieu entre les gares de Mâlain et de Velars, près de Velars (Velars-sur-Ouche) ; rien dans les sources lues ne le place à Baulme-la-Roche.',
+            'en' => 'The derailment took place between Mâlain and Velars stations, near Velars (Velars-sur-Ouche); nothing in the sources read places it at Baulme-la-Roche.',
+            'de' => 'Die Entgleisung ereignete sich zwischen den Bahnhöfen Mâlain und Velars, nahe Velars (Velars-sur-Ouche); nichts in den gelesenen Quellen verortet sie in Baulme-la-Roche.',
+        ],
+    ],
+];
