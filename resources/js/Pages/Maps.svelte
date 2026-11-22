@@ -21,6 +21,7 @@
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
     import { readTint, writeTint } from '$lib/eraTint.js';
+    import { readMapView, writeMapView } from '$lib/mapView.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -167,6 +168,23 @@
     // aujourd'hui, mises en service datées (Wikipédia) aux époques passées.
     const showLevelCrossings = $derived(drawn.levelCrossings);
     const showSignalling = $derived(drawn.signalling);
+    // Vue (centre et zoom) demandée par l'adresse, lue avant la création de la carte : elle remplace
+    // alors le cadrage de la France entière. `currentView` suit la carte (lien « Intégrer »).
+    const urlView = typeof window === 'undefined' ? null : readMapView(window.location.search);
+    const hasUrlView = Boolean(urlView?.center) || urlView?.zoom != null;
+    let mapCenter = $state(urlView?.center ?? [2.5, 47.0]);
+    let mapStartZoom = $state(urlView?.zoom ?? 5.5);
+    let currentView = $state.raw(null);
+
+    // L'adresse suit la vue à la fin de chaque déplacement : replaceState, donc sans entrée dans
+    // l'historique du navigateur ni rechargement de la page.
+    function writeViewToUrl(next) {
+        currentView = next;
+        const url = writeMapView(window.location.href, next);
+        if (url !== window.location.href)
+            window.history.replaceState(window.history.state, '', url);
+    }
+
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -264,7 +282,9 @@
             view === 'compare'
                 ? { view, era: compareFrom, compare: compareTo }
                 : { view, era: selectedEra };
-        const next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        let next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        // La vue ferroviaire a son propre cadrage : ni centre ni zoom dans son adresse.
+        if (view === 'schema') next = writeMapView(next, null);
         if (next !== window.location.href) {
             window.history.replaceState(window.history.state, '', next);
         }
@@ -435,12 +455,15 @@
                             signalling={showSignalling}
                             greenways={drawn.greenways}
                             onZoomChange={(z) => (mapZoom = z)}
+                            onViewChange={writeViewToUrl}
+                            center={mapCenter}
+                            zoom={mapStartZoom}
                             {dataVersion}
                             {flyTarget}
                             {route}
                             {earlierRoute}
                             height="100%"
-                            fitBounds={FRANCE_BOUNDS}
+                            fitBounds={hasUrlView ? null : FRANCE_BOUNDS}
                             {fitPadding}
                             selectedLine={drawerLine?.slug ?? null}
                             fullscreenContainer={mapFrameEl}
@@ -500,6 +523,8 @@
             <EmbedCodeModal
                 bind:open={embedModalOpen}
                 defaultEra={selectedEra}
+                mapView={currentView ??
+                    (hasUrlView ? { center: mapCenter, zoom: mapStartZoom } : null)}
                 {eras}
                 currentEra={currentEraYear}
             />

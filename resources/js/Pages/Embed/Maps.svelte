@@ -8,6 +8,7 @@
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers } from '$lib/mapLayers.js';
     import { readTint } from '$lib/eraTint.js';
+    import { readMapView } from '$lib/mapView.js';
 
     /**
      * Page d'intégration iframe - pleine fenêtre, sans en-tête ni pied de page.
@@ -64,7 +65,11 @@
     let zoom = $state(5.5);
     // Sans ?center ni ?zoom : la France entière, quel que soit le format du cadre (lu avant la
     // création de la carte, qui se fait au montage de RailMap, avant celui de cette page).
-    const fitFrance = readParam('center') === null && readParam('zoom') === null;
+    const fitFrance = (() => {
+        if (typeof window === 'undefined') return true;
+        const asked = readMapView(window.location.search);
+        return asked.center === null && asked.zoom === null;
+    })();
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showAttribution = $state(true);
@@ -136,14 +141,9 @@
         ormLayer = layers.orm;
         if (layers.data.includes('accidents')) loadAccidents();
 
-        const centerParam = readParam('center');
-        if (centerParam) {
-            const [lng, lat] = centerParam.split(',').map(Number);
-            if (Number.isFinite(lng) && Number.isFinite(lat)) center = [lng, lat];
-        }
-
-        const zoomParam = Number.parseFloat(readParam('zoom'));
-        if (Number.isFinite(zoomParam)) zoom = zoomParam;
+        const view = readMapView(window.location.search);
+        if (view.center) center = view.center;
+        if (view.zoom !== null) zoom = view.zoom;
 
         const theme = readParam('theme');
         if (theme === 'dark' || theme === 'light') {

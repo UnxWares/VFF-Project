@@ -6,7 +6,13 @@
     import { page, router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
-    import { applyBasemapTheme, basemapStyle, MAP_MAX_ZOOM, usesBasemap } from '$lib/basemap.js';
+    import {
+        applyBasemapTheme,
+        basemapStyle,
+        boldLabelFont,
+        MAP_MAX_ZOOM,
+        usesBasemap,
+    } from '$lib/basemap.js';
     import { afterPaint } from '$lib/afterPaint.js';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
@@ -193,6 +199,9 @@
         // Rappelé avec le zoom à la fin de chaque déplacement (le parent affiche alors une aide,
         // par exemple « zoomez pour voir les passages à niveau »).
         onZoomChange = null,
+        // Rappelé avec { center: [lon, lat], zoom } à la fin de chaque déplacement fait après le
+        // chargement (pas au cadrage d'ouverture) : le parent écrit la vue dans l'adresse.
+        onViewChange = null,
         // Teinte d'époque du fond (lib/eraTint.js) voulue par le visiteur. Coupée aussi quand le
         // système demande un contraste renforcé, hors de la vue « une décennie » et sous un fond
         // historique de l'IGN (rendu d'origine).
@@ -713,7 +722,7 @@
                 'text-size': 13,
                 'text-offset': [0, 1.2],
                 'text-anchor': 'top',
-                'text-font': ['Noto Sans Bold'],
+                'text-font': boldLabelFont(map.getStyle().glyphs),
             },
             paint: {
                 'text-color': '#1a1a1a',
@@ -1050,6 +1059,12 @@
             applySignalling(signalling, signallingYear);
             applyGreenways(greenways);
             map.on('zoomend', () => syncStations());
+            if (typeof onViewChange === 'function') {
+                map.on('moveend', () => {
+                    const c = map.getCenter();
+                    onViewChange({ center: [c.lng, c.lat], zoom: map.getZoom() });
+                });
+            }
             if (typeof onZoomChange === 'function') {
                 onZoomChange(map.getZoom());
                 map.on('zoomend', () => onZoomChange(map.getZoom()));
@@ -1701,7 +1716,7 @@
                     'text-size': ['case', ['==', ['get', 'kind'], 'end'], 14, 13],
                     'text-offset': [0, 1.2],
                     'text-anchor': 'top',
-                    'text-font': ['Noto Sans Bold'],
+                    'text-font': boldLabelFont(map.getStyle().glyphs),
                 },
                 paint: {
                     'text-color': '#111827',

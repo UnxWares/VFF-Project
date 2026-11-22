@@ -2,6 +2,7 @@
     import Field from '$components/ui/Field.svelte';
     import { i18n } from '$lib/i18n.js';
     import { MAP_MODES } from '$lib/railStyle.js';
+    import { writeMapView } from '$lib/mapView.js';
 
     /**
      * Fenêtre « Intégrer la carte » : réglages de la carte intégrable (/embed/maps) et code
@@ -9,13 +10,15 @@
      * focus, ferme à Échap et rend le focus au bouton « Intégrer » ; un clic hors de la fenêtre
      * la ferme aussi (closedby="any", avec repli pour les navigateurs qui l'ignorent).
      *
-     * Props : open (bindable), defaultEra (décennie affichée par la carte), eras, currentEra.
+     * Props : open (bindable), defaultEra (décennie affichée par la carte), eras, currentEra,
+     * mapView ({ center, zoom } de la carte affichée, ou null : option « Reprendre la vue »).
      */
     let {
         open = $bindable(false),
         defaultEra = 2030,
         eras = [1990, 2000, 2010, 2020, 2030],
         currentEra = null,
+        mapView = null,
     } = $props();
 
     const uid = $props.id();
@@ -32,6 +35,7 @@
     let showLegend = $state(true);
     let showVanished = $state(false);
     let showAttribution = $state(true);
+    let useView = $state(false);
     // '' | 'copied' | 'failed'
     let copyState = $state('');
     let previewOpen = $state(false);
@@ -97,8 +101,9 @@
             ...(showVanished && { showVanished: '1' }),
             ...(!showAttribution && { attribution: '0' }),
         };
-        const s = new URLSearchParams(params).toString();
-        return s ? `?${s}` : '';
+        const base = `${baseUrl}${Object.keys(params).length ? `?${new URLSearchParams(params)}` : ''}`;
+        const full = useView && mapView ? writeMapView(base, mapView) : base;
+        return full.slice(baseUrl.length);
     });
 
     const embedUrl = $derived(`${baseUrl}${queryString}`);
@@ -224,6 +229,12 @@
                 <input type="checkbox" bind:checked={showVanished} />
                 {t('maps.embed.show_vanished')}
             </label>
+            {#if mapView}
+                <label class="vff-check">
+                    <input type="checkbox" bind:checked={useView} />
+                    {t('maps.embed.use_view')}
+                </label>
+            {/if}
             <label class="vff-check">
                 <input type="checkbox" bind:checked={showAttribution} />
                 {t('maps.embed.show_attribution')}

@@ -185,3 +185,16 @@ describe('registerPmtilesProtocol', () => {
         expect(registerPmtilesProtocol(null)).toBe(false);
     });
 });
+
+describe('police grasse des étiquettes', () => {
+    it('prend Medium sur les polices de VFF (pas de Bold) et Bold ailleurs', async () => {
+        const { boldLabelFont } = await import('$lib/basemap.js');
+        expect(
+            boldLabelFont('https://vff-project.org/basemap/fonts/{fontstack}/{range}.pbf'),
+        ).toEqual(['Noto Sans Medium']);
+        expect(
+            boldLabelFont('https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf'),
+        ).toEqual(['Noto Sans Bold']);
+        expect(boldLabelFont(undefined)).toEqual(['Noto Sans Bold']);
+    });
+});

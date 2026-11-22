@@ -23,6 +23,21 @@ export const MAP_MAX_ZOOM = 19;
 /** Polices du fond libre, servies par VFF (gardées par le service worker, « cache d'abord »). */
 export const BASEMAP_GLYPHS = '/basemap/fonts/{fontstack}/{range}.pbf';
 
+/**
+ * Police grasse des étiquettes de VFF (noms de gares). Le fond libre de VFF ne sert que Regular,
+ * Medium et Italic (protomaps/basemaps-assets n'a pas de Bold) : sur ce fond, Medium remplace Bold,
+ * sinon MapLibre demande un fichier absent (404). Les glyphes d'OpenFreeMap ont, eux, un Bold.
+ * @param {string | undefined} glyphs gabarit `glyphs` du style de la carte
+ * @returns {string[]} valeur de `text-font`
+ */
+export function boldLabelFont(glyphs) {
+    return [
+        typeof glyphs === 'string' && glyphs.includes('/basemap/fonts/')
+            ? 'Noto Sans Medium'
+            : 'Noto Sans Bold',
+    ];
+}
+
 /** Couches à pictogrammes, retirées : points d'intérêt, cartouches de routes, flèches de sens unique. */
 const ICON_LAYERS = new Set(['pois', 'roads_shields', 'roads_oneway']);
 

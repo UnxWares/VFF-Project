@@ -204,6 +204,7 @@ return [
         'show_timeline' => 'Zeitleiste der Epochen',
         'show_legend' => 'Legende',
         'show_vanished' => 'Stillgelegte und abgebaute Strecken',
+        'use_view' => 'Aktuelle Ansicht übernehmen (Position und Zoom)',
         'show_attribution' => 'Link zu VFF (empfohlen)',
         'snippet_label' => 'In Ihre Seite einzufügender Code',
         'copy' => 'Code kopieren',

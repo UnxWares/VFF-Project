@@ -204,6 +204,7 @@ return [
         'show_timeline' => 'Era timeline',
         'show_legend' => 'Legend',
         'show_vanished' => 'Closed and lifted lines',
+        'use_view' => 'Keep the current view (position and zoom)',
         'show_attribution' => 'Link to VFF (recommended)',
         'snippet_label' => 'Code to paste into your page',
         'copy' => 'Copy the code',

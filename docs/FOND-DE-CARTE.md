@@ -174,3 +174,19 @@ Le même service worker garde les images des fiches déjà affichées, dans le c
 
 Le cache des images et celui du fond de carte ne changent pas à chaque déploiement : leurs noms portent un numéro de
 format, pas la version du site.
+
+## Polices : pas de Bold
+
+Les polices du fond libre viennent de <https://github.com/protomaps/basemaps-assets> (dossier `fonts`, Noto Sans,
+SIL Open Font License 1.1, texte dans `public/basemap/fonts/OFL.txt`). Cette source ne publie que `Noto Sans Regular`,
+`Noto Sans Medium` et `Noto Sans Italic` : aucune plage `Noto Sans Bold` n'existe chez elle, donc aucune n'est
+ajoutee (pas de source de la meme licence a copier sans changer de provenance). Les etiquettes de VFF (noms de gares)
+demandent `Noto Sans Bold` ; `boldLabelFont` (`resources/js/lib/basemap.js`) la remplace par `Noto Sans Medium`
+quand les glyphes sont ceux de `/basemap/fonts`, et garde `Bold` avec les glyphes d'OpenFreeMap. Plus de 404 sur
+`Noto Sans Bold/0-255.pbf`.
+
+## Position et zoom dans l'adresse
+
+`/maps` lit et ecrit `?center=lon,lat&zoom=z` (format de `/embed/maps`, `resources/js/lib/mapView.js` : zoom borne de
+0 a 19, centre refuse hors de lon 180 et lat 85). L'adresse est mise a jour a la fin de chaque deplacement par
+`history.replaceState` (aucune entree d'historique). Le code d'integration peut reprendre la vue courante.

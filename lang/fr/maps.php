@@ -204,6 +204,7 @@ return [
         'show_timeline' => 'Frise des époques',
         'show_legend' => 'Légende',
         'show_vanished' => 'Lignes fermées et déposées',
+        'use_view' => 'Reprendre la vue actuelle (position et zoom)',
         'show_attribution' => 'Lien vers VFF (recommandé)',
         'snippet_label' => 'Code à coller dans votre page',
         'copy' => 'Copier le code',
