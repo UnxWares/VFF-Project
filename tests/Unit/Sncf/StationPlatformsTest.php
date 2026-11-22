@@ -63,4 +63,30 @@ class StationPlatformsTest extends TestCase
         $this->assertSame([5_100, 5_300, 210], [$platforms[0]['pk_start_m'], $platforms[0]['pk_end_m'], $platforms[0]['length_m']]);
         $this->assertSame(['count' => 0, 'longest_m' => null, 'total_length_m' => 0], StationPlatforms::summary([]));
     }
+
+    public function test_an_extent_far_beyond_the_length_is_an_error_of_the_dataset(): void
+    {
+        $this->assertTrue(StationPlatforms::plausibleExtent(425, 316));
+        $this->assertTrue(StationPlatforms::plausibleExtent(425, 1_475));
+        $this->assertFalse(StationPlatforms::plausibleExtent(425, 10_425));
+        $this->assertFalse(StationPlatforms::plausibleExtent(145, 6_774));
+        $this->assertTrue(StationPlatforms::plausibleExtent(null, 10_000));
+    }
+
+    public function test_pk_extent_of_platforms_ignores_those_without_pk(): void
+    {
+        $this->assertSame([861_764, 862_112], StationPlatforms::pkExtent([
+            self::row('J/K', 340, 861_764, 862_104), self::row('L/M', 290, null, null), self::row('N', 245, 861_822, 862_112),
+        ]));
+        $this->assertNull(StationPlatforms::pkExtent([self::row('1', 100, null, null)]));
+    }
+
+    public function test_two_groups_are_on_the_same_site_when_their_pk_overlap(): void
+    {
+        $this->assertTrue(StationPlatforms::sameSite([861_764, 862_112], [861_648, 862_104]));
+        $this->assertTrue(StationPlatforms::sameSite([100, 200], [240, 300]), 'écart de 40 m : toléré');
+        $this->assertFalse(StationPlatforms::sameSite([100, 200], [400, 500]));
+        $this->assertFalse(StationPlatforms::sameSite([0, 256_026], [0, 125]), 'un site de 256 km est une erreur de PK');
+        $this->assertFalse(StationPlatforms::sameSite([100, 200], null));
+    }
 }

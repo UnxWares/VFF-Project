@@ -51,6 +51,54 @@ final class StationPlatforms
         return $km === null ? null : (int) round($km * 1000);
     }
 
+    /** Étendue (en mètres, PK ou coordonnées) d'un quai au plus égale à ce multiple de sa longueur, plus la marge. */
+    public const PLAUSIBLE_FACTOR = 3;
+
+    public const PLAUSIBLE_MARGIN_M = 200;
+
+    /**
+     * Une étendue (écart des PK, ou distance entre les deux bouts) compatible avec la longueur du quai : le jeu
+     * contient des enregistrements dont un bout est faux (PK « 010+299 » pour 425 m, bout à 8 km). Sans longueur
+     * connue, rien ne permet de juger : plausible.
+     */
+    public static function plausibleExtent(?int $lengthM, int $extentM): bool
+    {
+        return $lengthM === null || $extentM <= self::PLAUSIBLE_FACTOR * $lengthM + self::PLAUSIBLE_MARGIN_M;
+    }
+
+    /**
+     * Bornes PK extrêmes d'une liste de quais regroupés, null si aucun PK n'est connu.
+     *
+     * @param  list<array{pk_start_m: ?int, pk_end_m: ?int}>  $platforms
+     * @return array{0: int, 1: int}|null
+     */
+    public static function pkExtent(array $platforms): ?array
+    {
+        $lo = $hi = null;
+        foreach ($platforms as $p) {
+            if ($p['pk_start_m'] === null || $p['pk_end_m'] === null) {
+                continue;
+            }
+            $lo = $lo === null ? $p['pk_start_m'] : min($lo, $p['pk_start_m']);
+            $hi = $hi === null ? $p['pk_end_m'] : max($hi, $p['pk_end_m']);
+        }
+
+        return $lo === null ? null : [$lo, $hi];
+    }
+
+    /**
+     * Deux groupes de quais d'une même ligne sont-ils au même endroit ? Leurs bornes PK se recoupent à 50 m près, et
+     * ni l'un ni l'autre n'est plus long que 3 000 m (un « quai » de 10 km est une erreur de PK, pas un site).
+     *
+     * @param  array{0: int, 1: int}  $a
+     * @param  array{0: int, 1: int}|null  $b
+     */
+    public static function sameSite(array $a, ?array $b): bool
+    {
+        return $b !== null && $a[1] - $a[0] <= 3000 && $b[1] - $b[0] <= 3000
+            && $a[0] <= $b[1] + self::SAME_PLATFORM_GAP_M && $a[1] >= $b[0] - self::SAME_PLATFORM_GAP_M;
+    }
+
     /** Clé d'un libellé de quai : casse, espaces et barre oblique ignorés (« Quai 20/ 21 » = « quai 20/21 »). */
     public static function labelKey(string $label): string
     {

@@ -40,8 +40,11 @@ class ImportSncfPlatforms extends Command
     /** Écart (m) entre une gare rattachée par son code UIC et le milieu de son quai, signalé au-delà. */
     public const UIC_FAR_M = 2000;
 
-    /** Statuts de gare de VFF qui contredisent l'existence de quais en service. */
-    private const CLOSED_STATUSES = ['declassified', 'gone', 'planned'];
+    /** Distance (m) au plus entre les quais d'une fiche fermée et une gare ouverte dont elle partage les quais. */
+    public const SAME_SITE_M = 250;
+
+    /** Statuts de gare de VFF qui contredisent l'existence de quais en service (« excluded » : fiche écartée, nature `excluded`). */
+    private const CLOSED_STATUSES = ['declassified', 'gone', 'planned', 'excluded'];
 
     public function handle(SncfOpenDataCache $cache): int
     {
@@ -61,6 +64,7 @@ class ImportSncfPlatforms extends Command
 
         // Regroupement par gare SNCF et ligne : un seul rattachement par groupe, au milieu de ses quais.
         $groups = [];
+        $implausible = ['pk' => 0, 'coords' => 0];
         foreach ($data['records'] as $r) {
             $name = trim((string) ($r['lib_gare'] ?? ''));
             $line = trim((string) ($r['code_ligne'] ?? ''));
@@ -68,34 +72,53 @@ class ImportSncfPlatforms extends Command
             if ($line === '' || $label === '') {
                 continue;
             }
-            $lat = self::mid($r['y_d_wgs84'] ?? null, $r['y_f_wgs84'] ?? null);
-            $lon = self::mid($r['x_d_wgs84'] ?? null, $r['x_f_wgs84'] ?? null);
+            $length = is_numeric($r['longueur'] ?? null) ? (int) round((float) $r['longueur']) : null;
+            $pkStart = StationPlatforms::pkMetres($r['pkd'] ?? null);
+            $pkEnd = StationPlatforms::pkMetres($r['pkf'] ?? null);
+            $span = is_numeric($r['y_d_wgs84'] ?? null) && is_numeric($r['x_d_wgs84'] ?? null) && is_numeric($r['y_f_wgs84'] ?? null) && is_numeric($r['x_f_wgs84'] ?? null)
+                ? self::distance((float) $r['y_d_wgs84'], (float) $r['x_d_wgs84'], (float) $r['y_f_wgs84'], (float) $r['x_f_wgs84']) : null;
+            // Enregistrement dont une extrémité est fausse (PK « 010+299 » pour un quai de 425 m, bout du quai à 8 km) :
+            // la mesure fausse est écartée (la longueur du jeu reste), sans quoi le quai « s'éloigne » de sa gare.
+            if ($pkStart !== null && $pkEnd !== null && ! StationPlatforms::plausibleExtent($length, abs($pkEnd - $pkStart))) {
+                [$pkStart, $pkEnd] = [null, null];
+                $implausible['pk']++;
+            }
+            $coordsOk = $span === null || StationPlatforms::plausibleExtent($length, $span);
+            $coordsOk || $implausible['coords']++;
+            $lat = $coordsOk ? self::mid($r['y_d_wgs84'] ?? null, $r['y_f_wgs84'] ?? null) : null;
+            $lon = $coordsOk ? self::mid($r['x_d_wgs84'] ?? null, $r['x_f_wgs84'] ?? null) : null;
             $groups[$name.'|'.$line]['name'] = $name;
             $groups[$name.'|'.$line]['line'] = $line;
             $groups[$name.'|'.$line]['rows'][] = [
                 'label' => mb_substr($label, 0, 100), 'code_ligne' => $line,
                 'code_voie' => ($v = trim((string) ($r['code_voie'] ?? ''))) !== '' ? mb_substr($v, 0, 40) : null,
                 'rg_troncon' => is_numeric($r['rg_troncon'] ?? null) ? (int) $r['rg_troncon'] : null,
-                'length_m' => is_numeric($r['longueur'] ?? null) ? (int) round((float) $r['longueur']) : null,
-                'pk_start_m' => StationPlatforms::pkMetres($r['pkd'] ?? null),
-                'pk_end_m' => StationPlatforms::pkMetres($r['pkf'] ?? null),
+                'length_m' => $length,
+                'pk_start_m' => $pkStart,
+                'pk_end_m' => $pkEnd,
                 'lat' => $lat, 'lon' => $lon,
             ];
         }
 
-        $count = ['uic' => 0, 'name' => 0, 'none' => 0, 'no_name' => 0];
-        $matchedStations = ['uic' => [], 'name' => []];
+        $count = ['uic' => 0, 'name' => 0, 'site' => 0, 'none' => 0, 'no_name' => 0];
+        $matchedStations = ['uic' => [], 'name' => [], 'site' => []];
         $contradictions = ['closed' => [], 'uic_far' => [], 'length_pk' => 0, 'two_stations' => []];
         $insert = [];
         $csv = [];
         $platformCount = 0;
         $sncfToStation = [];
         $now = now();
-        foreach ($groups as $g) {
+        $resolved = [];
+        foreach ($groups as $key => $g) {
             $lat = self::avg(array_column($g['rows'], 'lat'));
             $lon = self::avg(array_column($g['rows'], 'lon'));
-            [$sid, $method, $distance] = $this->match($g['name'], $g['line'], $lat, $lon, $stations, $byUic, $byName, $sncfByNameLine, $sncfByName);
-            $platforms = StationPlatforms::group($g['rows']);
+            $resolved[$key] = ['lat' => $lat, 'lon' => $lon, 'platforms' => StationPlatforms::group($g['rows']),
+                'match' => $this->match($g['name'], $g['line'], $lat, $lon, $stations, $byUic, $byName, $sncfByNameLine, $sncfByName)];
+        }
+        $sameSite = $this->sameSite($groups, $resolved, $stations);
+        foreach ($groups as $key => $g) {
+            [$sid, $method, $distance] = $sameSite[$key] ?? $resolved[$key]['match'];
+            $platforms = $resolved[$key]['platforms'];
             $platformCount += count($platforms);
             foreach ($platforms as $p) {
                 $extent = $p['pk_start_m'] !== null ? $p['pk_end_m'] - $p['pk_start_m'] : null;
@@ -122,7 +145,9 @@ class ImportSncfPlatforms extends Command
                     $contradictions['uic_far'][] = $g['name'].' / '.$s['slug'].' : '.$distance.' m';
                     $note = trim($note.' ; gare VFF à '.$distance.' m', ' ;');
                 }
-                $sncfToStation[PlaceNames::normalize($g['name'])][$sid] = $s['slug'];
+                if ($method !== 'site') {
+                    $sncfToStation[PlaceNames::normalize($g['name'])][$sid] = $s['slug'];
+                }
             }
             $summary = StationPlatforms::summary($platforms);
             $csv[] = [$g['name'], $g['line'], $summary['count'], $summary['longest_m'] ?? '', $sid !== null ? $stations[$sid]['slug'] : '',
@@ -139,7 +164,7 @@ class ImportSncfPlatforms extends Command
             }
         }
 
-        $matched = array_keys($matchedStations['uic'] + $matchedStations['name']);
+        $matched = array_keys($matchedStations['uic'] + $matchedStations['name'] + $matchedStations['site']);
         $activeWithout = collect($stations)->filter(fn (array $s, int $id) => $s['status'] === 'active' && $s['uic_code'] !== null
             && ! in_array($id, $matched, true))->count();
         $sncfGares = count(array_unique(array_filter(array_column($groups, 'name'))));
@@ -148,6 +173,8 @@ class ImportSncfPlatforms extends Command
         $this->line(sprintf('Quais (enregistrements regroupés) : %d ; gares SNCF nommées : %d ; groupes gare et ligne : %d', $platformCount, $sncfGares, count($groups)));
         $this->line(sprintf('Rattachés par code UIC : %d groupes, %d gares VFF', $count['uic'], count($matchedStations['uic'])));
         $this->line(sprintf('Rattachés par nom et distance (%d m au plus) : %d groupes, %d gares VFF', self::NAME_MAX_DISTANCE_M, $count['name'], count($matchedStations['name'])));
+        $this->line(sprintf('Rattachés au même site qu\'une gare ouverte (quais d\'une fiche fermée, même ligne et mêmes PK) : %d groupes, %d gares VFF', $count['site'], count($matchedStations['site'])));
+        $this->line(sprintf('Enregistrements à extrémité fausse écartée (plus de 3 fois la longueur) : %d PK, %d coordonnées', $implausible['pk'], $implausible['coords']));
         $this->line(sprintf('Non rattachés : %d groupes (gare non nommée dans le jeu : %d)', $count['none'] + $count['no_name'], $count['no_name']));
         $this->line(sprintf('Gares VFF touchées : %d', count($matched)));
         $this->line(sprintf('Gares VFF ouvertes aux voyageurs (statut active, code UIC connu) sans quai connu : %d', $activeWithout));
@@ -191,6 +218,53 @@ class ImportSncfPlatforms extends Command
     }
 
     /**
+     * Groupes de quais d'une fiche fermée qui sont en réalité ceux d'une gare ouverte voisine : le jeu SNCF donne parfois
+     * aux mêmes quais un second libellé (« Direction Régionale Rhône-Alpes » pour Lyon-Perrache, « Grasse » pour
+     * Marseille-St-Charles, « Paris-Tolbiac » pour Bibliothèque-François-Mitterrand), et la fiche VFF de ce libellé
+     * (fermée, souvent née de la même erreur) recevrait des quais qui desservent aujourd'hui une autre gare.
+     * Rattachement refait quand le groupe est sur la même ligne que la gare ouverte, que ses PK recoupent ceux d'un de
+     * ses groupes (StationPlatforms::sameSite) et que ses quais sont à 250 m au plus de cette gare.
+     *
+     * @param  array<string, array<string, mixed>>  $groups
+     * @param  array<string, array<string, mixed>>  $resolved
+     * @param  array<int, array<string, mixed>>  $stations
+     * @return array<string, array{0: int, 1: string, 2: ?int}>
+     */
+    private function sameSite(array $groups, array $resolved, array $stations): array
+    {
+        $byLine = [];
+        foreach ($resolved as $key => $r) {
+            $sid = $r['match'][0];
+            if ($sid !== null && $stations[$sid]['status'] === 'active' && StationPlatforms::pkExtent($r['platforms']) !== null) {
+                $byLine[$groups[$key]['line']][] = [$key, $sid];
+            }
+        }
+        $out = [];
+        foreach ($resolved as $key => $r) {
+            $sid = $r['match'][0];
+            $extent = StationPlatforms::pkExtent($r['platforms']);
+            if ($sid === null || $extent === null || $r['lat'] === null || ! in_array($stations[$sid]['status'], self::CLOSED_STATUSES, true)) {
+                continue;
+            }
+            $best = null;
+            foreach ($byLine[$groups[$key]['line']] ?? [] as [$otherKey, $otherSid]) {
+                if ($otherSid === $sid || ! StationPlatforms::sameSite($extent, StationPlatforms::pkExtent($resolved[$otherKey]['platforms']))) {
+                    continue;
+                }
+                $d = self::distance($r['lat'], $r['lon'], $stations[$otherSid]['lat'], $stations[$otherSid]['lon']);
+                if ($d !== null && $d <= self::SAME_SITE_M && ($best === null || $d < $best[1])) {
+                    $best = [$otherSid, $d];
+                }
+            }
+            if ($best !== null) {
+                $out[$key] = [$best[0], 'site', $best[1]];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Gare de VFF d'un groupe de quais : code UIC du référentiel SNCF, sinon même nom au plus près.
      *
      * @param  array<int, array<string, mixed>>  $stations
@@ -198,7 +272,7 @@ class ImportSncfPlatforms extends Command
      * @param  array<string, list<int>>  $byName
      * @param  array<string, string>  $sncfByNameLine
      * @param  array<string, list<string>>  $sncfByName
-     * @return array{0: ?int, 1: ?string, 2: ?int} gare, méthode (uic | name), distance en mètres au milieu des quais
+     * @return array{0: ?int, 1: ?string, 2: ?int} gare, méthode (uic | name | site), distance en mètres au milieu des quais
      */
     private function match(string $name, string $line, ?float $lat, ?float $lon, array $stations, array $byUic, array $byName,
         array $sncfByNameLine, array $sncfByName): array
@@ -230,7 +304,7 @@ class ImportSncfPlatforms extends Command
         $stations = [];
         $byUic = [];
         $byName = [];
-        foreach (DB::select('SELECT id, slug, name, status, uic_code, ST_Y(geom) AS lat, ST_X(geom) AS lon FROM stations') as $s) {
+        foreach (DB::select("SELECT id, slug, name, CASE WHEN provenance->>'kind' = 'excluded' THEN 'excluded' ELSE status END AS status, uic_code, ST_Y(geom) AS lat, ST_X(geom) AS lon FROM stations") as $s) {
             $stations[(int) $s->id] = ['slug' => (string) $s->slug, 'status' => (string) $s->status,
                 'uic_code' => $s->uic_code !== null ? (string) $s->uic_code : null, 'lat' => (float) $s->lat, 'lon' => (float) $s->lon];
             if ($s->uic_code !== null && $s->uic_code !== '') {

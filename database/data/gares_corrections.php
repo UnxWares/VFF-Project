@@ -3202,4 +3202,38 @@ return [
         'quote' => 'La gare de Chasteaux est mise en service le 1er juillet 1891 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la section entre Brive et Cahors.',
         'reason' => 'gare au PK 512,9, entre Noailles et Gignac - Cressensac : sur la section Brive - Souillac ouverte le 01/06/1891 (article de la ligne), pas sur Limoges - Brive du 01/07/1893 que l\'infobox de la gare recopie ; le jour de la gare (01/07/1891 avec « référence nécessaire ») est incertain, seule l\'année est retenue ; remplace l\'année déduite de la ligne (1847)',
     ],
+
+    // ── 26. Audit des quais SNCF (quais-audit, 22/11/2026, rapport storage/app/reports/agents/aprem-2111/quais-audit.md) :
+    // gares dont la fermeture n'avait qu'une borne (« range » : fermée à une date inconnue, ramenée au jour) alors que l'article
+    // de la gare donne le jour, et fiche administrative de la liste des gares dont les quais sont ceux de Lyon-Perrache.
+    [
+        'station' => ['name' => 'Douzillac', 'wikidata' => 'Q3096398'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '2017-07-02',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Douzillac', 235031673),
+        'quote' => 'La gare a fermé le 2 juillet 2017.',
+        'reason' => 'fin du service voyageurs de la halte de la ligne Coutras - Tulle, d\'après le texte de l\'article de la gare ; remplace la fermeture sans date (borne basse 1860)',
+    ],
+    [
+        'station' => ['name' => 'Larche', 'wikidata' => 'Q3096856'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '2020-12-13',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Larche', 235032565),
+        'quote' => 'La gare de Larche a fermé ses portes le 13 décembre 2020 dans le cadre du plan du plan Optim’TER.',
+        'reason' => 'fin des arrêts des trains TER de la ligne Coutras - Tulle (plan Optim\'TER), d\'après le texte de l\'article de la gare ; remplace la fermeture sans date (borne basse 1860)',
+    ],
+    // « Direction Régionale Rhône-Alpes » de liste-des-gares (UIC 87950022, ligne 830000, PK 510+600, ni voyageurs ni fret) :
+    // un siège administratif, pas une gare. Ses quais du jeu « Liste des quais » sont ceux de Lyon-Perrache (mêmes libellés
+    // « Quai B/C », « Quai 3/A », « Quai D/E », mêmes PK 510+655 à 511+113).
+    [
+        'station' => ['name' => 'Direction Régionale Rhône-Alpes', 'uic' => '87950022'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-quais/table/?q=lyon-perrache',
+        'reason' => 'siège administratif de la SNCF placé au PK 510+600 de la ligne 830000 (ni voyageurs ni fret dans la liste des gares) : fiche erronée, ses quais sont ceux de Lyon-Perrache',
+    ],
 ];
