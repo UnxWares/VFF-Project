@@ -209,6 +209,42 @@ règlent l'accueil :
 
 ## Contenus
 
+### `vff:import-accidents`
+
+Importe les accidents du rail français (Wikidata, bilan des enquêtes du BEA-TT, listes d'accidents de Wikipédia, fiches
+rédigées à la main) dans `accidents`, `accident_lines` et `accident_sources`. Idempotent : une fiche est retrouvée par
+son élément Wikidata ou par l'identifiant d'une de ses sources, jamais par son slug. N'écrit dans aucune table du moteur
+mais lit celui-ci pour rattacher chaque fiche aux lignes : ne pas le lancer pendant un recalcul du moteur.
+
+| Option | Effet |
+|:-|:-|
+| `--only=` | Source à lire, répétable : `wikidata`, `bea-tt`, `wikipedia-list`, `wikipedia-editions`, `manual` ; toutes par défaut. |
+| `--offline` | Cache local seulement, aucune requête réseau. |
+| `--refresh` | Ignore le cache et relit les sources. |
+| `--dry-run` | Calcule tout sans écrire en base. |
+| `--prune` | Retire les fiches absentes des sources (import complet seulement). |
+| `--report=` | Fichier JSON du bilan détaillé. |
+
+Deux fichiers de données versionnés complètent l'import :
+
+- **Noms de fiche retenus** : `database/data/accident_slugs.php`. Quand la date ou la commune d'une source est corrigée
+  d'après le contexte, la fiche change de slug (voir `vff:enrich-accidents`). À la création d'une fiche, l'import forme
+  le slug d'après la source, donc sur une base vide il redonnerait l'ancien nom et le fichier de contexte ne trouverait
+  plus sa fiche. Chaque ligne relie une source de la fiche (`fournisseur:identifiant`, ceux de `accident_sources`) au
+  slug retenu (`slug`), avec l'ancien nom (`from`, qui n'est plus donné à une autre fiche) et la raison. Renommer une
+  fiche : renommer le fichier de contexte et sa clé `slug`, changer le slug en base, puis ajouter ou mettre à jour la
+  ligne ici. Une base qui contient déjà la fiche n'est jamais modifiée (le slug n'est pas recalculé).
+- **Fiches rédigées à la main** : `database/data/accident_records_manual.php`, pour un accident qu'aucune source de
+  l'import ne décrit mais qu'un document lu appuie (presse d'époque, ouvrage). Lu comme une source de plus
+  (`--only=manual`) : la fiche passe par la localisation et le rattachement aux lignes, se fond dans une source
+  automatique si elle décrit un jour le même accident, reste « à vérifier » (note `place_from_manual`) et porte la
+  source citée (`accident_sources`, rôle `press`). Un enregistrement : `id` (AAAA-MM-JJ-commune), `date`, `commune` et
+  `department`, `kind`, `deaths` et `injuries` (ou `null`), `line_articles` (titres d'articles de Wikipédia des lignes),
+  `source` (`provider` déclaré dans `source_rights.php`, `title`, `url`, `licence`, `published`). Des faits et un lien,
+  jamais le texte du document. Le récit et ses sources vont dans le fichier de contexte, créé ensuite
+  (`database/data/accident_contexts/<slug>.php`) puis enregistré par `vff:enrich-accidents`. Le bilan retenu d'une
+  fiche rédigée à la main a pour `toll_source` la valeur `manual`.
+
 ### `vff:enrich-accidents`
 
 Enregistre le contexte sourcé des accidents (archives, presse, enquêtes, images de Commons, corrections de lieu, de

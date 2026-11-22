@@ -653,7 +653,7 @@ rédigée) : `slug`, `wikidata_id`, `kind`, `date` à lire avec `date_precision`
 `place` (`commune`, `commune_insee`, `department_code`, `department`, `lat` et `lng` en WGS 84, `precision` de la
 position : `exact`, `level_crossing`, `station`, `commune` = lieu exact inconnu), `line` (`slug`, `code`, `name`,
 `confidence` du rattachement : `high`, `medium`, `low`), `deaths` et `injuries` (`null` : aucune source consultée ne
-les donne ; `0` : aucun), `toll_source` (`bea-tt`, `wikidata`, `wikipedia`), `review_status`, `url`. Aucune victime
+les donne ; `0` : aucun), `toll_source` (`bea-tt`, `wikidata`, `wikipedia`, `manual`), `review_status`, `url`. Aucune victime
 n'est nommée.
 
 **Prudence** : `review_status: "to_review"` (« à vérifier ») signale un point incertain (bilans ou dates qui diffèrent

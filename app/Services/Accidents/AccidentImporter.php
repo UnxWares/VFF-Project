@@ -42,9 +42,9 @@ final class AccidentImporter
     ];
 
     /** Ordre de préférence des sources pour le bilan : l'enquête officielle d'abord. */
-    private const DEATHS_PRIORITY = ['bea-tt', 'wikidata', 'wikipedia'];
+    private const DEATHS_PRIORITY = ['bea-tt', 'wikidata', 'wikipedia', ManualAccidentCollector::PROVIDER];
 
-    private const INJURIES_PRIORITY = ['wikidata', 'wikipedia'];
+    private const INJURIES_PRIORITY = ['wikidata', 'wikipedia', ManualAccidentCollector::PROVIDER];
 
     /** Deux fiches décrivent le même accident : dates à un jour près et lieux à moins de 20 km. */
     private const SAME_EVENT_MAX_M = 20000;
@@ -63,6 +63,8 @@ final class AccidentImporter
         private readonly BeaTtAccidentCollector $beaTt,
         private readonly WikipediaListCollector $list,
         private readonly WikipediaEditionCollector $editions,
+        private readonly ManualAccidentCollector $manual,
+        private readonly AccidentSlugTable $slugs,
         private readonly AccidentEditionMatcher $editionMatcher,
         private readonly AccidentLocator $locator,
         private readonly AccidentLineMatcher $matcher,
@@ -70,7 +72,7 @@ final class AccidentImporter
     ) {}
 
     /** Fournisseurs lus par défaut ; l'import complet les lit tous. */
-    public const SOURCES = ['wikidata', 'bea-tt', 'wikipedia-list', 'wikipedia-editions'];
+    public const SOURCES = ['wikidata', 'bea-tt', 'wikipedia-list', 'wikipedia-editions', 'manual'];
 
     /** Fournisseurs des listes de Wikipédia en anglais et en allemand (accident_sources.provider). */
     public const EDITION_PROVIDERS = ['wikipedia-en', 'wikipedia-de'];
@@ -78,7 +80,7 @@ final class AccidentImporter
     /**
      * @param  list<string>  $sources  fournisseurs à lire : wikidata (avec les articles de Wikipédia), bea-tt, wikipedia-list (listes
      *                                 d'accidents), wikipedia-editions (listes en anglais et en allemand, qui recoupent les fiches
-     *                                 existantes sans en créer)
+     *                                 existantes sans en créer), manual (fiches rédigées à la main, database/data/accident_records_manual.php)
      */
     public function run(AccidentSourceClient $client, array $sources = self::SOURCES, bool $dryRun = false, bool $prune = false): AccidentImportResult
     {
@@ -88,7 +90,8 @@ final class AccidentImporter
         $wd = in_array('wikidata', $sources, true) ? $this->wikidata->collect($client) : [];
         $bea = in_array('bea-tt', $sources, true) ? $this->beaTt->collect($client) : [];
         $listed = in_array('wikipedia-list', $sources, true) ? $this->list->collect($client) : [];
-        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed), 'wikipedia-editions' => 0];
+        $written = in_array('manual', $sources, true) ? $this->manual->collect() : [];
+        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed), 'wikipedia-editions' => 0, 'manual' => count($written)];
         $this->listIds = [];
         $this->relinked = [];
         foreach ($listed as $l) {
@@ -101,11 +104,12 @@ final class AccidentImporter
             $result->warnings[] = $this->beaTt->warning;
         }
 
-        foreach ([...$wd, ...$bea, ...$listed] as $c) {
+        foreach ([...$wd, ...$bea, ...$listed, ...$written] as $c) {
             $this->locator->locate($c);
         }
         [$candidates, $result->merged] = $this->merge($wd, $bea);
-        [$candidates, $known] = $this->mergeList($candidates, $listed, partial: count(array_intersect(['wikidata', 'bea-tt'], $sources)) < 2, result: $result);
+        // Les fiches rédigées à la main complètent les autres sources comme les puces des listes.
+        [$candidates, $known] = $this->mergeList($candidates, [...$listed, ...$written], partial: count(array_intersect(['wikidata', 'bea-tt'], $sources)) < 2, result: $result);
 
         $seen = [];
         foreach ($known as [$candidate, $accidentId]) {
@@ -578,7 +582,7 @@ final class AccidentImporter
         foreach ($priority as $provider) {
             if (isset($observations[$provider])) {
                 $distinct = array_unique(array_values($observations));
-                $labels = ['bea-tt' => 'BEA-TT', 'wikidata' => 'Wikidata', 'wikipedia' => 'Wikipédia'];
+                $labels = ['bea-tt' => 'BEA-TT', 'wikidata' => 'Wikidata', 'wikipedia' => 'Wikipédia', ManualAccidentCollector::PROVIDER => 'fiche rédigée'];
 
                 return [
                     'value' => $observations[$provider],
@@ -621,7 +625,7 @@ final class AccidentImporter
                 $accident->review_status = AccidentReviewStatus::Ok;
             }
             if ($created) {
-                $accident->slug = $this->uniqueSlug($c, $prepared['attributes']['name']['fr']);
+                $accident->slug = $this->retainedSlug($c) ?? $this->uniqueSlug($c, $prepared['attributes']['name']['fr']);
             }
             $accident->save();
             $result->count('written', $created ? 'created' : 'updated');
@@ -745,6 +749,17 @@ final class AccidentImporter
         }
     }
 
+    /**
+     * Slug retenu d'une fiche renommée (database/data/accident_slugs.php), s'il est libre : une base reconstruite
+     * redonne ainsi les noms actuels, que les fichiers de contexte portent.
+     */
+    private function retainedSlug(AccidentCandidate $c): ?string
+    {
+        $slug = $this->slugs->retained($c->sources);
+
+        return $slug !== null && ! Accident::query()->withoutGlobalScopes()->where('slug', $slug)->exists() ? $slug : null;
+    }
+
     /** Slug : date (selon sa précision) puis commune ou nom, suffixe numérique si déjà pris. */
     private function uniqueSlug(AccidentCandidate $c, string $name): string
     {
@@ -755,7 +770,7 @@ final class AccidentImporter
         };
         $base = Str::limit($date.'-'.Str::slug($c->communeName ?? $name), 150, '');
         $slug = $base;
-        for ($i = 2; Accident::query()->withoutGlobalScopes()->where('slug', $slug)->exists(); $i++) {
+        for ($i = 2; $this->slugs->isRetired($slug) || Accident::query()->withoutGlobalScopes()->where('slug', $slug)->exists(); $i++) {
             $slug = "{$base}-{$i}";
         }
 

@@ -163,7 +163,7 @@ class AccidentResource extends JsonResource
              */
             'injuries' => $this->injuries,
             /**
-             * Fournisseur dont vient le bilan retenu : `bea-tt` (enquête officielle, préférée), `wikidata`, `wikipedia`.
+             * Fournisseur dont vient le bilan retenu : `bea-tt` (enquête officielle, préférée), `wikidata`, `wikipedia`, `manual` (fiche rédigée à la main d'après un document cité).
              *
              * @example bea-tt
              */
