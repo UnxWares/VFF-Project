@@ -69,9 +69,19 @@ class MergeSplitLinesCommandTest extends TestCase
             [$line->id, $wkt, $wkt]);
     }
 
-    private function gare(string $code, string $name, ?float $lng = null, ?float $lat = null): void
+    private function gare(string $code, string $name, ?float $lng = null, ?float $lat = null, ?int $pk = null): void
     {
-        DB::table('sncf_gares')->insert(['code_ligne' => $code, 'libelle' => $name, 'lat' => $lat, 'lon' => $lng]);
+        DB::table('sncf_gares')->insert(['code_ligne' => $code, 'libelle' => $name, 'lat' => $lat, 'lon' => $lng, 'pk_m' => $pk]);
+    }
+
+    /** Gare VFF rattachée à la ligne par une source (Wikidata P81 par défaut). */
+    private function attachedStation(Line $line, string $name, float $lng, float $lat, string $method = 'wikidata_p81'): void
+    {
+        $id = DB::selectOne('INSERT INTO stations (slug, name, geom, created_at, updated_at)
+            VALUES (?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), now(), now()) RETURNING id',
+            [Str::slug($name).'-'.random_int(1000, 999999), $name, $lng, $lat])->id;
+        DB::table('station_lines')->insert(['station_id' => $id, 'line_id' => $line->id, 'method' => $method,
+            'created_at' => now(), 'updated_at' => now()]);
     }
 
     private function commune(string $insee, string $name, float $lng, float $lat): void
@@ -325,6 +335,203 @@ class MergeSplitLinesCommandTest extends TestCase
         $rejected = $this->rowFor($chatre->id);
         $this->assertSame(['rejeté', (string) $argenton->id, 'destination « La Châtre » étrangère à la ligne (part du terminus seulement)'],
             [$rejected['decision'], $rejected['target_id'], $rejected['detail']]);
+    }
+
+    public function test_sections_without_a_shared_end_are_merged_with_a_proof(): void
+    {
+        // Section du milieu (3180 dans 422000) : ses deux toponymes sont des gares de la ligne, l'écart de leurs PK
+        // (7,8 km) retrouve la longueur de la section (7,7 km), et ses deux bouts touchent le tracé connu.
+        $loupe = $this->line('Ligne de La Loupe à Prey', '422000', ['length_official_m' => 23500]);
+        $this->reference($loupe, 'MULTILINESTRING((2.0 46.0, 2.1 46.0), (2.2 46.0, 2.3 46.0))');
+        $this->gare('422000', 'Senonches', pk: 7700);
+        $this->gare('422000', 'Breteuil', pk: 15500);
+        $breteuil = $this->line('Ligne de Breteuil à Senonches', null, ['slug' => 'archeo-breteuil-senonches']);
+        $this->reference($breteuil, 'LINESTRING(2.2 46.0, 2.1 46.0)');
+        $t = $this->trace('archeoferroviaire', 'a-bs', 'LINESTRING(2.2 46.0, 2.1 46.0)', $breteuil->id, 'Breteuil Senonches', 'created');
+
+        // Nom de gare en origine (3268 dans 738000) : « Montauban » est le début de « Montauban-Ville-Bourbon ».
+        $this->commune('82121', 'Montauban', 2.0, 45.0);
+        $cremade = $this->line('Ligne de Montauban-Ville-Bourbon à La Crémade', '738000', ['length_official_m' => 16000]);
+        $this->reference($cremade, 'LINESTRING(2.1 45.0, 2.2 45.0)');
+        $this->gare('738000', 'St-Sulpice');
+        $montauban = $this->line('Ligne de Montauban à Saint-Sulpice', null, ['slug' => 'archeo-montauban-saint-sulpice']);
+        $this->reference($montauban, 'LINESTRING(2.0 45.0, 2.1 45.0)');
+
+        // Gares communes (3258 dans 553000) : « Massy » n'est pas un lieu connu de la ligne, mais trois gares que
+        // Wikidata rattache à la ligne sont sur la section, loin de son tracé connu.
+        $chartres = $this->line('Ligne d\'Ouest-Ceinture à Chartres', '553000', ['length_official_m' => 17000]);
+        $this->reference($chartres, 'LINESTRING(2.1 44.0, 2.2 44.0)');
+        $this->gare('553000', 'Gallardon-Pont');
+        foreach (['Ablis' => 2.02, 'Bonnelles' => 2.04, 'Limours-État' => 2.06] as $name => $lng) {
+            $this->attachedStation($chartres, $name, $lng, 44.0);
+        }
+        $massy = $this->line('Ligne de Massy à Gallardon', null, ['slug' => 'archeo-massy-gallardon']);
+        $this->reference($massy, 'LINESTRING(2.0 44.0, 2.1 44.0)');
+
+        // Prolongement (3165 dans 682000) : « Les Bornes » n'est pas un lieu de la ligne, mais l'autre bout est à
+        // Beaune-la-Rolande, cité par un événement de la ligne, et le bout des Bornes touche le tracé connu.
+        $this->commune('45025', 'Beaune-la-Rolande', 2.0, 45.5);
+        $bourges = $this->line('Ligne d\'Auxy-Juranville à Bourges', '682000', ['length_official_m' => 16000]);
+        $this->reference($bourges, 'LINESTRING(2.1 45.5, 2.2 45.5)');
+        $this->gare('682000', 'Les Bordes');
+        $this->event($bourges, 'wikipedia', 'https://fr.wikipedia.org/wiki/Ligne_d%27Auxy-Juranville_%C3%A0_Bourges',
+            ['type' => 'closure_freight', 'section_from' => 'Beaune-la-Rolande', 'section_to' => 'Lorris']);
+        $beaune = $this->line('Ligne de Beaune-la-Rolande aux Bornes', null, ['slug' => 'archeo-beaune-la-rolande-aux-bornes']);
+        $this->reference($beaune, 'LINESTRING(2.0 45.5, 2.1 45.5)');
+
+        // Sans longueur officielle (3237 dans 696000) : deux gares de la ligne et l'écart de leurs PK.
+        $gozet = $this->line('Ligne de Châteauroux à La Ville-Gozet', '696000');
+        $this->reference($gozet, 'LINESTRING(2.0 46.5, 2.1 46.5)');
+        $this->gare('696000', 'La Châtre', pk: 298800);
+        $this->gare('696000', 'La Ville-Gozet', pk: 306500);
+        $chatre = $this->line('Ligne de La Châtre à La Ville-Gozet', null, ['slug' => 'archeo-la-chatre-la-ville-gozet']);
+        $this->reference($chatre, 'LINESTRING(2.1 46.5, 2.2 46.5)');
+
+        // Refusée par la règle des extrémités partagées (3312 dans 719000 : « Saint-Denis-près-Martel » n'est ni une
+        // gare ni un nom de la ligne), prouvée par la portion d'un événement de la ligne : la ligne du rapport est remplacée.
+        $viescamp = $this->line('Ligne de Souillac à Viescamp-sous-Jallès', '719000', ['length_official_m' => 16000]);
+        $this->reference($viescamp, 'LINESTRING(2.1 44.5, 2.2 44.5)');
+        $this->event($viescamp, 'wikipedia', 'https://fr.wikipedia.org/wiki/Ligne_de_Souillac_%C3%A0_Viescamp-sous-Jall%C3%A8s',
+            ['section_from' => 'Souillac', 'section_to' => 'Saint-Denis-près-Martel']);
+        $denis = $this->line('Ligne de Souillac à Saint-Denis-près-Martel', null, ['slug' => 'archeo-souillac-saint-denis']);
+        $this->reference($denis, 'LINESTRING(2.0 44.5, 2.1 44.5)');
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
+            ->expectsOutputToContain('→ 1. Sections créées à part : 1')
+            ->expectsOutputToContain('→ 1 bis. Sections sans extrémité partagée prouvées : 6')
+            ->expectsOutputToContain('✓ Ligne de Breteuil à Senonches → Ligne de La Loupe à Prey : section sans extrémité partagée : section 7.7 km + tracé 15.5 km ≈ 23.5 km officiels ; deux toponymes sur la ligne ; PK 15.5 → 7.7 km')
+            ->expectsTable(['Passe : décision', 'Lignes'], [['sections : fusionné', '6']])
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('source_traces', ['id' => $t, 'line_id' => $loupe->id, 'match_method' => 'merged_section']);
+        foreach ([[$breteuil, $loupe], [$montauban, $cremade], [$massy, $chartres], [$beaune, $bourges], [$chatre, $gozet], [$denis, $viescamp]] as [$section, $target]) {
+            $this->assertDatabaseMissing('lines', ['id' => $section->id]);
+            $this->assertSame((string) $target->id, $this->rowFor($section->id)['target_id'], $section->name);
+            $alt = json_decode(DB::table('lines')->where('id', $target->id)->value('alt_names'), true);
+            $this->assertSame([$section->name], $alt['sections'], $section->name);
+        }
+        $this->assertStringEndsWith('≈ 16.0 km officiels ; deux toponymes sur la ligne ; 0 tracé(s), 0 événement(s) déplacé(s), 0 en double supprimé(s)',
+            $this->rowFor($montauban->id)['detail'], 'sans PK pour « Montauban » : pas d\'écart affiché');
+        $this->assertStringContainsString('3 gares de la ligne sur la section, loin du tracé connu (Ablis, Bonnelles, Limours-État)',
+            $this->rowFor($massy->id)['detail']);
+        $this->assertStringContainsString('prolonge le tracé connu jusqu\'à « Beaune-la-Rolande »', $this->rowFor($beaune->id)['detail']);
+        $this->assertStringContainsString('(sans longueur officielle) ; deux toponymes sur la ligne ; PK 298.8 → 306.5 km', $this->rowFor($chatre->id)['detail']);
+        $this->assertSame(['fusionné'], array_column(array_filter($this->csv(), fn (array $r) => $r['line_id'] === (string) $denis->id), 'decision'));
+        $this->assertCount(6, $this->csv());
+    }
+
+    public function test_sections_without_a_shared_end_never_merge_another_line(): void
+    {
+        // Autre ligne qui part d'une gare de la ligne (3844 « Mortagne à La Loupe » contre 422000) : refusée par la
+        // règle des extrémités partagées, la nouvelle règle n'y ajoute rien (La Loupe est le bout qui touche le tracé).
+        $this->commune('28214', 'La Loupe', 2.1, 46.0);
+        $this->commune('61293', 'Mortagne-au-Perche', 2.0, 46.0);
+        $loupe = $this->line('Ligne de La Loupe à Prey', '422000', ['length_official_m' => 18000]);
+        $this->reference($loupe, 'LINESTRING(2.1 46.0, 2.2 46.0)');
+        $this->gare('422000', 'La Loupe');
+        $mortagne = $this->line('Ligne de Mortagne à La Loupe', null, ['slug' => 'archeo-mortagne-la-loupe']);
+        $this->reference($mortagne, 'LINESTRING(2.0 46.0, 2.1 46.0)');
+
+        // Autre ligne qui aboutit au tracé (4104 « Thionville à Fontoy » contre 180000) : aucune extrémité partagée,
+        // Thionville est sur la ligne mais au bout qui touche son tracé ; Fontoy n'en est pas un lieu.
+        $this->commune('57672', 'Thionville', 2.1, 45.0);
+        $this->commune('57227', 'Fontoy', 2.0, 45.0);
+        $metz = $this->line('Ligne de Metz-Ville à Zoufftgen', '180000', ['length_official_m' => 16000]);
+        $this->reference($metz, 'LINESTRING(2.1 45.0, 2.2 45.0)');
+        $this->gare('180000', 'Thionville');
+        $fontoy = $this->line('Ligne de Thionville à Fontoy', null, ['slug' => 'archeo-thionville-fontoy']);
+        $this->reference($fontoy, 'LINESTRING(2.0 45.0, 2.1 45.0)');
+
+        // Section à relire (3170 « Bettrechies à Dour », Dour en Belgique) : même cas que Thionville.
+        $this->commune('59074', 'Bettrechies', 2.1, 44.5);
+        $gussignies = $this->line('Ligne d\'Escaudœuvres à Gussignies', '251000', ['length_official_m' => 16000]);
+        $this->reference($gussignies, 'LINESTRING(2.1 44.5, 2.2 44.5)');
+        $this->gare('251000', 'Bettrechies');
+        $dour = $this->line('Ligne de Bettrechies à Dour', null, ['slug' => 'archeo-bettrechies-dour']);
+        $this->reference($dour, 'LINESTRING(2.0 44.5, 2.1 44.5)');
+
+        // Section à relire (3325 « Villiers au Tronchot ») et autre ligne (3655 « Genève-Carouge à Etrembières ») :
+        // aucun toponyme sur la ligne (« Villiers » est une commune, « Villiers-St-Georges » aussi), pas de ligne au rapport.
+        $this->commune('36246', 'Villiers', 2.0, 44.0);
+        $this->commune('77518', 'Villiers-Saint-Georges', 2.1, 44.0);
+        $esternay = $this->line('Ligne de Longueville à Esternay', '003000', ['length_official_m' => 16000]);
+        $this->reference($esternay, 'LINESTRING(2.1 44.0, 2.2 44.0)');
+        $this->gare('003000', 'Villiers-St-Georges');
+        $tronchot = $this->line('Ligne de Villiers au Tronchot', null, ['slug' => 'archeo-villiers-au-tronchot']);
+        $this->reference($tronchot, 'LINESTRING(2.1 44.0, 2.0 44.0)');
+        $annemasse = $this->line('Ligne de Lausanne à Annemasse (frontière)', '894000', ['length_official_m' => 16000]);
+        $this->reference($annemasse, 'LINESTRING(2.1 43.5, 2.2 43.5)');
+        $geneve = $this->line('Ligne de Genève-Carouge à Etrembières', null, ['slug' => 'archeo-geneve-carouge-etrembieres']);
+        $this->reference($geneve, 'LINESTRING(2.0 43.5, 2.1 43.5)');
+
+        // Court morceau près d'une gare de la ligne (4103 « Thionville à Basse-Yutz » contre 180000) : la section
+        // comble moins de la moitié du manque.
+        $zoufftgen = $this->line('Ligne de Metz-Ville à Zoufftgen', '180000', ['length_official_m' => 65000]);
+        $this->reference($zoufftgen, 'LINESTRING(2.0 43.0, 2.65 43.0)');
+        $this->gare('180000', 'Thionville');
+        $yutz = $this->line('Ligne de Thionville à Basse-Yutz', null, ['slug' => 'archeo-thionville-basse-yutz']);
+        $this->reference($yutz, 'LINESTRING(2.65 43.0, 2.7 43.0)');
+
+        // Prolongement apparent (4340 « Bricon à Buxières-lès-Villiers » contre 840000) : Bricon est près du bout libre,
+        // mais déjà à moins de 1 km du tracé connu ; la section n'y mène pas.
+        $this->commune('52072', 'Bricon', 2.095, 41.5);
+        $chatillon = $this->line('Ligne de Bricon à Châtillon-sur-Seine', '840000', ['length_official_m' => 10000]);
+        $this->reference($chatillon, 'LINESTRING(2.1 41.5, 2.2 41.5)');
+        $buxieres = $this->line('Ligne militaire de Bricon à Buxières-lès-Villiers', null, ['slug' => 'archeo-bricon-buxieres']);
+        $this->reference($buxieres, 'LINESTRING(2.07 41.5, 2.1 41.5)');
+
+        // Deux gares de la ligne, mais la section reprend le tracé connu sur 1,7 km de ses 10 km : pas un morceau manquant.
+        $arcachon = $this->line('Ligne de Bordeaux à Arcachon', '655000', ['length_official_m' => 20000]);
+        $this->reference($arcachon, 'LINESTRING(2.1 41.0, 2.2 41.0)');
+        $this->gare('655000', 'Facture');
+        $this->gare('655000', 'Lamothe');
+        $lamothe = $this->line('Ligne de Facture à Lamothe', null, ['slug' => 'archeo-facture-lamothe']);
+        $this->reference($lamothe, 'LINESTRING(2.0 41.0, 2.12 41.0)');
+
+        // Deux gares de la ligne, mais l'écart de leurs PK (30 km) ne retrouve pas la section (7,7 km).
+        $pagny = $this->line('Ligne de Bologne à Pagny-sur-Meuse', '026000', ['length_official_m' => 24000]);
+        $this->reference($pagny, 'MULTILINESTRING((2.0 42.5, 2.1 42.5), (2.2 42.5, 2.3 42.5))');
+        $this->gare('026000', 'Coussey', pk: 10000);
+        $this->gare('026000', 'St-Germain-sur-Meuse', pk: 40000);
+        $coussey = $this->line('Ligne de Coussey à Saint-Germain-sur-Meuse', null, ['slug' => 'archeo-coussey-saint-germain']);
+        $this->reference($coussey, 'LINESTRING(2.1 42.5, 2.2 42.5)');
+
+        // Deux lignes à code prouvées pour la même section : à relire, rien n'est fusionné.
+        $first = $this->line('Ligne de Foix à Saint-Girons', '660000', ['length_official_m' => 16000]);
+        $this->reference($first, 'LINESTRING(2.0 42.0, 2.1 42.0)');
+        $second = $this->line('Ligne de Boussens à Saint-Girons', '661000', ['length_official_m' => 16000]);
+        $this->reference($second, 'LINESTRING(2.2 42.0, 2.3 42.0)');
+        foreach (['660000', '661000'] as $code) {
+            $this->gare($code, 'Lacourt-Haut');
+            $this->gare($code, 'Moulis-Bas');
+        }
+        $both = $this->line('Ligne de Lacourt-Haut à Moulis-Bas', null, ['slug' => 'archeo-lacourt-moulis']);
+        $this->reference($both, 'LINESTRING(2.1 42.0, 2.2 42.0)');
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
+            ->expectsOutputToContain('→ 1 bis. Sections sans extrémité partagée prouvées : 1')
+            ->expectsTable(['Passe : décision', 'Lignes'], [['sections : rejeté', '7'], ['sections : à relire', '2']])
+            ->doesntExpectOutputToContain('Relancer vff:build-line-references')
+            ->assertSuccessful();
+
+        foreach ([$mortagne, $fontoy, $dour, $tronchot, $geneve, $yutz, $buxieres, $lamothe, $coussey, $both] as $section) {
+            $this->assertDatabaseHas('lines', ['id' => $section->id]);
+        }
+        $this->assertSame('origine « Mortagne » étrangère à la ligne (arrive à l\'origine seulement)', $this->rowFor($mortagne->id)['detail']);
+        $this->assertSame('« Fontoy » étrangère à la ligne, « Thionville » au bout qui touche son tracé ou déjà sur ce tracé', $this->rowFor($fontoy->id)['detail']);
+        $this->assertSame('« Dour » étrangère à la ligne, « Bettrechies » au bout qui touche son tracé ou déjà sur ce tracé', $this->rowFor($dour->id)['detail']);
+        $this->assertSame('section plus courte que la moitié du tracé manquant', $this->rowFor($yutz->id)['detail']);
+        $this->assertSame('« Buxières-lès-Villiers » étrangère à la ligne, « Bricon » au bout qui touche son tracé ou déjà sur ce tracé',
+            $this->rowFor($buxieres->id)['detail']);
+        $this->assertStringStartsWith('recouvre le tracé connu sur 1', $this->rowFor($lamothe->id)['detail']);
+        $this->assertSame('écart des PK des deux toponymes incompatible avec la longueur de la section', $this->rowFor($coussey->id)['detail']);
+        $relire = array_values(array_filter($this->csv(), fn (array $r) => $r['line_id'] === (string) $both->id));
+        $this->assertSame([(string) $first->id, (string) $second->id], array_column($relire, 'target_id'));
+        $this->assertSame(['à relire', 'à relire'], array_column($relire, 'decision'));
+        $this->assertStringStartsWith('plusieurs lignes à code possibles ; section sans extrémité partagée', $relire[0]['detail']);
+        foreach ([$tronchot, $geneve] as $section) {
+            $this->assertSame([], array_filter($this->csv(), fn (array $r) => $r['line_id'] === (string) $section->id), $section->name);
+        }
     }
 
     // ─── 2. même article ─────────────────────────────────────────────────
