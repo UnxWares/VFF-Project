@@ -113,3 +113,46 @@ Tirés du second contrôle à la main de 100 gares (`storage/app/reports/agents/
 - Corrections sourcées des contrôles (`database/data/gares_corrections.php`, section 8) : 27 gares (3 exclusions, dates, fins des voyageurs ou du fret, 6 positions). Elles sont lues au prochain calcul des
   gares, avec les règles ci-dessus : `vff:consolidate-stations` puis `vff:stations-pipeline --from-attach --from-cache`.
 - Commandes et options : [COMMANDES.md](COMMANDES.md).
+
+## Invariant `stations.opened_before_lines` (règles du 22/11/2026)
+
+Signale une gare ouverte (date au jour, sourcée, non déduite des lignes) avant l'ouverture au jour de toutes ses
+lignes. Trois règles écartent les faux positifs relevés par les agents `gares-avant-lignes` et
+`gares-avant-lignes-2` (43 cas avant, 34 après sur `vff`) :
+
+- la gare n'est comparée qu'aux événements d'ouverture dont la section est résolue (`section_resolution` = `trace`
+  ou `places`) et qui la couvrent ; « whole_line », « unresolved » et « pending » ne disent pas quelle portion ils
+  visent ;
+- les rattachements `terminus_name` et ceux dont le PK est projeté (`pk_source` = `projected_raw`) ne comptent pas :
+  une gare ancienne, terminus d'une ligne secondaire plus tardive (Dormans, Plancoët), n'est pas ouverte « avant sa
+  ligne » ;
+- un écart de 3 jours au plus (`DataInvariants::STATION_OPENED_TOLERANCE_DAYS`) est toléré : inauguration la veille
+  de l'ouverture au public.
+
+Un cas qui reste est une contradiction à trancher (date de gare, date de ligne ou rattachement). Tests :
+`tests/Feature/StationServiceYearsTest.php`.
+
+## Invariants `stations.ohm_opened_before_lines` et `stations.ohm_opened_off_section` (22/11/2026)
+
+Détection seule, sans correction automatique : une date d'ouverture de gare venue d'OpenHistoricalMap (provenance
+`opened_at` = `ohm`, précision au jour) est parfois la date de la loi qui déclare la ligne d'utilité publique (Lens -
+Frévent : 08/08/1890 pour une mise en service le 01/12/1895), ou la date de la première section recopiée sur toute la
+ligne. Les deux règles sont des listes de travail pour la recherche de sources, ligne par ligne.
+
+- `stations.ohm_opened_before_lines` : gare dont l'ouverture OHM précède de plus de 6 mois
+  (`DataInvariants::STATION_OHM_LAW_GAP_MONTHS`) toute ouverture de section résolue (`trace` ou `places`) de ses lignes
+  à son PK. Mêmes rattachements que `stations.opened_before_lines` : ni `terminus_name`, ni PK projeté
+  (`projected_raw`) ; une ligne plus ancienne que la gare l'absout. Écartés : autre origine que OHM, date au mois ou à
+  l'année, sections `whole_line`, `unresolved` ou `pending`.
+- `stations.ohm_opened_off_section` (remplace `stations.ohm_opened_shared_date`, qui comptait les gares à la même date
+  sur une ligne et donnait surtout des faux positifs : des gares d'une même section partagent légitimement la date de
+  cette section) : gare dont l'ouverture OHM, au jour et sans source propre (provenance `opened_at` = `ohm` : une date
+  corrigée ou venue d'une autre source change la provenance), tombe plus de 6 mois avant
+  (`STATION_OHM_LAW_GAP_MONTHS`) ou plus de 2 ans après (`STATION_OHM_AFTER_SECTION_YEARS`) l'ouverture de la section
+  résolue (`trace` ou `places`) où tombe son PK, avec les mêmes rattachements (ni `terminus_name`, ni PK projeté). Une
+  section qui couvre la gare dans la fenêtre, sur n'importe laquelle de ses lignes, l'absout. Attrape la date de loi,
+  celle de la première section recopiée sur toute la ligne, ou celle d'une autre section. Liste de travail.
+
+Mesure sur `vff` (22/11/2026) : 5 gares pour la première règle (Andrézieux et St-Just-sur-Loire 1827, Aurec, Clermain,
+Etoile d'Alaï) ; l'ancienne règle `ohm_opened_shared_date` donnait 11 lignes, la nouvelle 25 gares (liste dans
+`storage/app/reports/agents/aprem-2111/invariant-section-gare.md`). Tests : `tests/Feature/OhmLawDateInvariantsTest.php`.

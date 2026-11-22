@@ -19,8 +19,11 @@ use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Sentry\Laravel\Integration;
@@ -32,7 +35,6 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
         // Dictionnaire de l'interface d'une langue, hors du groupe web (ni session ni cookie) : la même
         // réponse pour tous, gardée en cache par le navigateur (App\Http\Controllers\TranslationsController).
         then: function (): void {
@@ -48,6 +50,14 @@ return Application::configure(basePath: dirname(__DIR__))
             // cookie et gardé en cache par le navigateur (App\Http\Controllers\LinePortionsController).
             // État détaillé pour un moniteur de disponibilité (Uptime Kuma), jeton HEALTH_TOKEN, sans session
             // (App\Http\Controllers\HealthController). `/up` reste la sonde simple de Laravel.
+            // `/up` : sonde simple, texte brut sans ressource extérieure (la page de santé par défaut de Laravel
+            // charge Tailwind et des polices depuis des CDN que la CSP n'autorise pas). Comme celle de Laravel,
+            // elle déclenche DiagnosingHealth ; en maintenance, le noyau répond 503 avant d'arriver ici.
+            Route::middleware('web')->get('/up', function (): Response {
+                Event::dispatch(new DiagnosingHealth);
+
+                return response('OK', 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+            })->name('health.up');
             Route::get('/up/details', HealthController::class)->middleware('throttle:health')->name('health.details');
             Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])

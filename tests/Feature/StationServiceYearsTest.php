@@ -43,7 +43,7 @@ class StationServiceYearsTest extends TestCase
             ]);
         }
         DB::table('line_events')->insert(['line_id' => $this->line->id, 'type' => 'opening', 'event_date' => '1869-06-01', 'date_precision' => 'day',
-            'description' => 'Ouverture', 'confidence' => 'high', 'section_resolution' => 'whole_line', 'created_at' => now(), 'updated_at' => now()]);
+            'description' => 'Ouverture', 'confidence' => 'high', 'section_resolution' => 'trace', 'created_at' => now(), 'updated_at' => now()]);
     }
 
     /** @param  array<string, string>  $events  type => date */
@@ -196,6 +196,64 @@ class StationServiceYearsTest extends TestCase
         $this->assertSame(0, $this->violations('stations.opened_before_lines'));
         // Date déduite des lignes : pas une contradiction de sources.
         DB::table('stations')->where('id', $tgv->id)->update(['opened_at' => '1869-05-20', 'provenance' => json_encode(['opened_at' => 'inferred:lines'])]);
+        $this->assertSame(0, $this->violations('stations.opened_before_lines'));
+    }
+
+    /** Ligne annexe, rattachée à la gare par $method / $pkSource, avec une ouverture au jour résolue comme $resolution. */
+    private function secondLine(Station $station, string $date, string $resolution, string $method = 'sncf_pk', string $pkSource = 'sncf'): void
+    {
+        $line = Line::factory()->create(['code' => null, 'name' => 'Ligne annexe '.$station->id.$method]);
+        DB::table('line_events')->insert(['line_id' => $line->id, 'type' => 'opening', 'event_date' => $date, 'date_precision' => 'day',
+            'description' => 'Ouverture', 'confidence' => 'high', 'section_resolution' => $resolution, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $line->id, 'method' => $method, 'pk_m' => 0,
+            'pk_source' => $pkSource, 'distance_m' => 0, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    public function test_opened_before_lines_only_compares_with_resolved_sections(): void
+    {
+        // La ligne témoin ouvre le 01/06/1869 (section « trace ») ; gare du 20/05/1869 : cas réel gardé.
+        $station = $this->station('Résolue', 2.05, 4_000, [], 1869, null);
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1869-05-20', 'opened_precision' => 'day']);
+        $this->assertSame(1, $this->violations('stations.opened_before_lines'));
+        // Même événement mais section non résolue ou « toute la ligne » : on ne sait pas qu'il vise la gare.
+        foreach (['whole_line', 'unresolved', 'pending'] as $resolution) {
+            DB::table('line_events')->where('line_id', $this->line->id)->update(['section_resolution' => $resolution]);
+            $this->assertSame(0, $this->violations('stations.opened_before_lines'), $resolution);
+        }
+        DB::table('line_events')->where('line_id', $this->line->id)->update(['section_resolution' => 'places']);
+        $this->assertSame(1, $this->violations('stations.opened_before_lines'));
+    }
+
+    public function test_opened_before_lines_ignores_terminus_name_and_projected_raw_attachments(): void
+    {
+        // Dormans : gare ancienne, terminus d'une ligne secondaire datée plus tard (rattachée par le nom ou un PK projeté).
+        $station = $this->station('Terminus', 2.05, 4_000, [], 1869, null);
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1869-05-20', 'opened_precision' => 'day']);
+        DB::table('station_lines')->where('station_id', $station->id)->delete();
+        $this->secondLine($station, '1903-03-20', 'trace', 'terminus_name', 'name');
+        $this->assertSame(0, $this->violations('stations.opened_before_lines'));
+        DB::table('station_lines')->where('station_id', $station->id)->delete();
+        $this->secondLine($station, '1903-03-20', 'trace', 'segment', 'projected_raw');
+        $this->assertSame(0, $this->violations('stations.opened_before_lines'));
+        // Rattachement officiel : la contradiction compte.
+        DB::table('station_lines')->where('station_id', $station->id)->delete();
+        $this->secondLine($station, '1903-03-20', 'trace', 'sncf_pk', 'sncf');
+        $this->assertSame(1, $this->violations('stations.opened_before_lines'));
+        // Une ligne officielle plus ancienne que la gare absout, quel que soit le rattachement annexe.
+        $this->secondLine($station, '1869-01-01', 'trace', 'sncf_pk', 'sncf');
+        $this->assertSame(0, $this->violations('stations.opened_before_lines'));
+    }
+
+    public function test_opened_before_lines_tolerates_a_few_days(): void
+    {
+        // Ligne du 01/06/1869 : la veille, 3 jours avant (inauguration) tolérés ; 4 jours avant signalé.
+        $station = $this->station('Inaugurée', 2.05, 4_000, [], 1869, null);
+        foreach (['1869-05-31' => 0, '1869-05-29' => 0, '1869-05-28' => 1] as $opened => $expected) {
+            DB::table('stations')->where('id', $station->id)->update(['opened_at' => $opened, 'opened_precision' => 'day']);
+            $this->assertSame($expected, $this->violations('stations.opened_before_lines'), $opened);
+        }
+        // Date de gare à l'année ou au mois : jamais comparée.
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1869-01-01', 'opened_precision' => 'month']);
         $this->assertSame(0, $this->violations('stations.opened_before_lines'));
     }
 }

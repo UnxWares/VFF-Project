@@ -2111,6 +2111,111 @@ return [
         'reason' => 'gare ouverte avec la ligne Lens - Frévent le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
     ],
 
+    // Ligne Frévent - Lens, suite : les autres arrêts de la ligne entre Bouret et Villers-au-Bois (rapport
+    // storage/app/reports/agents/aprem-2111/frevent-lens.md). La ligne est ouverte d'un seul tenant le 01/12/1895 ;
+    // les gares sont dans l'ordre des PK de la ligne 3645 et aucune section n'a une autre date (l'article n'en
+    // donne pas). Le 08/08/1890 d'OHM est la date de la loi d'utilité publique.
+    [
+        'station' => ['name' => 'Villers-au-Bois', 'wikidata' => 'Q61726992'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Izel-les-Hameaux', 'wikidata' => 'Q61741602'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Noyelle-Vion', 'wikidata' => 'Q65157608'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Avesnes-le-Comte', 'wikidata' => 'Q56761839'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Estrée-Wamin', 'wikidata' => 'Q66377908'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Rebreuve-sur-Canche', 'wikidata' => 'Q86665133'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Savy', 'near' => [2.5648, 50.3491, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Tilloy', 'near' => [2.5504, 50.3283, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Bouret', 'near' => [2.3219, 50.2661, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Rebreuviette', 'near' => [2.3633, 50.2627, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'arrêt de la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+
     // Fourvière Ouest-Lyonnais (lignes 3788 et 4205) : Lyon-Saint-Just - Vaugneray 19/04/1886 ; Le Tupinier - Messimy
     // janvier 1887 (27 pour Wikipédia et ferro-lyon.net, 25 pour le forum des cheminots et le PLU de Saint-Laurent-d'Agny :
     // seul le mois est retenu) ; Messimy - Mornant 11/07/1887 (Wikipédia, forum des cheminots) ; Vaugneray gare - Vaugneray
@@ -2199,5 +2304,281 @@ return [
         'source_url' => $wp('Liste des gares des Vosges', 240638671),
         'quote' => 'Coussey | Gare | 026 : 55,146 | 14 avril 1873',
         'reason' => 'gare de la section Neufchâteau - Vaucouleurs ouverte le 14/04/1873 (liste des gares des Vosges ; article Ligne de Bologne à Pagny-sur-Meuse : « de Neufchâteau à Vaucouleurs, le 14 avril 1873 »)',
+    ],
+
+    // ── 15. Dates d'ouverture OHM partagées entre les gares d'une ligne ouverte par sections (chantier « dates-ohm-lignes »,
+    // matinée du 22/11/2026). Rapport : storage/app/reports/agents/aprem-2111/dates-ohm-lignes.md.
+    // Chaque gare est placée sur sa section par l'ordre des PK ; la date est celle de la section (article de la ligne).
+
+    // Ligne 785000 Saint-Germain-des-Fossés - Darsac : Courpière (PK 411,3) est sur la section Pont-de-Dore - Giroux, ouverte
+    // le 09/06/1883 ; le 05/05/1885 d'OHM est celui de la section Giroux - Ambert, deux gares plus loin.
+    [
+        'station' => ['name' => 'Courpière', 'uic' => '87734525'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-06-09',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Darsac', 235337759),
+        'quote' => 'de Pont-de-Dore à Giroux le 9 juin 1883',
+        'reason' => 'gare de la section Pont-de-Dore - Giroux ouverte le 09/06/1883 (article de la ligne) ; le 05/05/1885 d\'OHM est la date de la section Giroux - Ambert',
+    ],
+    [
+        'station' => ['name' => 'Courpière', 'uic' => '87734525'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1885-05-05'],
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Darsac', 235337759),
+        'reason' => 'date de la section Giroux - Ambert (05/05/1885), pas de la gare de Courpière, située avant Giroux',
+    ],
+
+    // Ligne 798000 Saint-Georges-d'Aurac - Saint-Étienne-Châteaucreux : le Chambon-Feugerolles et la Ricamarie (PK 126,6 et
+    // 129,6) sont sur la section Firminy - Saint-Étienne, ouverte le 30/05/1859 ; le 09/11/1863 d'OHM est celui de la section
+    // Pont-de-Lignon - Firminy. Semène (PK 116,6) est sur cette dernière section : sa date venait de l'année de la ligne.
+    [
+        'station' => ['name' => 'Le Chambon-Feugerolles', 'uic' => '87726711'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-05-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'quote' => 'le 30 mai 1859 entre Firminy et Saint-Étienne',
+        'reason' => 'gare de la section Firminy - Saint-Étienne ouverte le 30/05/1859 (article de la ligne) ; le 09/11/1863 d\'OHM est celui de la section Pont-de-Lignon - Firminy, plus loin',
+    ],
+    [
+        'station' => ['name' => 'Le Chambon-Feugerolles', 'uic' => '87726711'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1863-11-09'],
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'reason' => 'date de la section Pont-de-Lignon - Firminy (09/11/1863), pas de la gare, située entre Firminy et Saint-Étienne',
+    ],
+    [
+        'station' => ['name' => 'La Ricamarie', 'uic' => '87726703'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-05-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'quote' => 'le 30 mai 1859 entre Firminy et Saint-Étienne',
+        'reason' => 'gare de la section Firminy - Saint-Étienne ouverte le 30/05/1859 (article de la ligne) ; le 09/11/1863 d\'OHM est celui de la section Pont-de-Lignon - Firminy, plus loin',
+    ],
+    [
+        'station' => ['name' => 'La Ricamarie', 'uic' => '87726703'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1863-11-09'],
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'reason' => 'date de la section Pont-de-Lignon - Firminy (09/11/1863), pas de la gare, située entre Firminy et Saint-Étienne',
+    ],
+    [
+        'station' => ['name' => 'Semène', 'uic' => '87726752'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-11-09',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'quote' => 'le 9 novembre 1863 entre Pont-de-Lignon et Firminy',
+        'reason' => 'gare de la section Pont-de-Lignon - Firminy ouverte le 09/11/1863 (article de la ligne) ; la date de 1859 venait de l\'année de la ligne',
+    ],
+
+    // Ligne 770000 Moulins - Mâcon : Digoin, terminus de la section Digoin - Paray-le-Monial ouverte le 16/09/1867 (article de
+    // la gare : « mise en service le 16 septembre 1867 ») ; le 10/05/1869 d'OHM est celui de la section Moulins - Digoin.
+    [
+        'station' => ['name' => 'Digoin', 'uic' => '87694695'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-09-16',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Digoin', 235031626),
+        'quote' => 'La gare de Digoin est mise en service le 16 septembre 1867',
+        'reason' => 'gare mise en service avec la section Digoin - Paray-le-Monial (article de la gare et de la ligne) ; le 10/05/1869 d\'OHM est la date de la section Moulins - Digoin',
+    ],
+    [
+        'station' => ['name' => 'Digoin', 'uic' => '87694695'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1869-05-10'],
+        'source_url' => $wp('Gare de Digoin', 235031626),
+        'reason' => 'date de la section Moulins - Digoin (10/05/1869), postérieure à l\'ouverture de la gare le 16/09/1867',
+    ],
+
+    // Ligne 775000 Paray-le-Monial - Givors-Canal : Saint-Laurent-d'Oingt (PK 81,5) est sur la section Lozanne - Lamure-sur-Azergues,
+    // ouverte le 04/10/1895 ; sa date venait de l'année de la ligne (01/01/1895).
+    [
+        'station' => ['name' => 'St-Laurent-d\'Oingt', 'uic' => '87721795'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paray-le-Monial à Givors-Canal', 237061238),
+        'quote' => 'le 4 octobre 1895 mise en service de la section de Lozanne à Lamure-sur-Azergues.',
+        'reason' => 'gare de la section Lozanne - Lamure-sur-Azergues ouverte le 04/10/1895 (article de la ligne) ; la date de l\'année seule venait de la ligne entière',
+    ],
+
+    // Ligne 795000 Bonson - Sembadel : les gares sans date propre prenaient l'année de la ligne entière (1873). Sections de l'article
+    // de la ligne : Bonson - Saint-Bonnet-le-Château 04/10/1873, Saint-Bonnet-le-Château - Craponne-sur-Arzon 01/08/1897, Craponne-sur-Arzon -
+    // Sembadel 15/09/1902. Saint-Marcellin et Saint-Bonnet (PK 4,1 et 26,7) sont sur la première, Estivareilles et Usson-Saint-Pal (PK 31,6
+    // et 39,8) sur la deuxième, Jullianges (PK 58,2) sur la troisième.
+    [
+        'station' => ['name' => 'St-Marcellin (Loire)', 'uic' => '87726505'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bonson à Sembadel', 235341794),
+        'quote' => 'De Bonson à Saint-Bonnet-le-Château le 4 octobre 1873.',
+        'reason' => 'gare de la section Bonson - Saint-Bonnet-le-Château ouverte le 04/10/1873 (article de la ligne) ; la date de l\'année seule venait de la ligne entière',
+    ],
+    [
+        'station' => ['name' => 'Saint-Bonnet-le-Château', 'near' => [4.0667, 45.429, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bonson à Sembadel', 235341794),
+        'quote' => 'De Bonson à Saint-Bonnet-le-Château le 4 octobre 1873.',
+        'reason' => 'gare de la section Bonson - Saint-Bonnet-le-Château ouverte le 04/10/1873 (article de la ligne) ; la date de l\'année seule venait de la ligne entière',
+    ],
+    [
+        'station' => ['name' => 'Estivareilles', 'wikidata' => 'Q124055174'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-08-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bonson à Sembadel', 235341794),
+        'quote' => 'De Saint-Bonnet-le-Château à Craponne-sur-Arzon le 1er août 1897.',
+        'reason' => 'gare de la section Saint-Bonnet-le-Château - Craponne-sur-Arzon ouverte le 01/08/1897 (article de la ligne) ; la date de 1873 venait de l\'année de la ligne entière',
+    ],
+    [
+        'station' => ['name' => 'Usson-St-Pal', 'uic' => '87726588'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-08-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bonson à Sembadel', 235341794),
+        'quote' => 'De Saint-Bonnet-le-Château à Craponne-sur-Arzon le 1er août 1897.',
+        'reason' => 'gare de la section Saint-Bonnet-le-Château - Craponne-sur-Arzon ouverte le 01/08/1897 (article de la ligne) ; la date de 1873 venait de l\'année de la ligne entière',
+    ],
+    [
+        'station' => ['name' => 'Jullianges', 'uic' => '87726620'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1902-09-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bonson à Sembadel', 235341794),
+        'quote' => 'De Craponne-sur-Arzon à Sembadel le 15 septembre 1902.',
+        'reason' => 'gare de la section Craponne-sur-Arzon - Sembadel ouverte le 15/09/1902 (article de la ligne) ; la date de 1873 venait de l\'année de la ligne entière',
+    ],
+
+    // Ligne 784000 Clermont-Ferrand - Saint-Just-sur-Loire : les gares sans date propre prenaient la date de la ligne de 1827
+    // (Saint-Étienne - Andrézieux, 30/06/1827). Le tronçon de Clermont-Ferrand à Pont-de-Dore ouvre le 10/05/1869 (articles des gares de
+    // Vertaizon et de Pont-de-Dore) ; Thiers et Courty ouvrent le 15/05/1872 (article de la gare de Thiers). Seychalles-Moissat,
+    // Saint-Jean-d'Heurs et Lezoux (PK 19,8, 28,6 et 24,1) sont entre Vertaizon et Pont-de-Dore, Courty (PK 36,7) entre Pont-de-Dore
+    // et Thiers.
+    [
+        'station' => ['name' => 'Seychalles-Moissat', 'uic' => '87734434'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-05-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Vertaizon', 235034883),
+        'quote' => 'lors de l\'ouverture du tronçon de Clermont-Ferrand à Pont-de-Dore de la ligne de Clermont-Ferrand à Montbrisson',
+        'reason' => 'gare du tronçon Clermont-Ferrand - Pont-de-Dore ouvert le 10/05/1869 (article de la gare de Vertaizon) ; la date de 1827 était celle de la ligne de Saint-Étienne à Andrézieux',
+    ],
+    [
+        'station' => ['name' => 'St-Jean-d\'Heurs', 'uic' => '87731554'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-05-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Vertaizon', 235034883),
+        'quote' => 'lors de l\'ouverture du tronçon de Clermont-Ferrand à Pont-de-Dore de la ligne de Clermont-Ferrand à Montbrisson',
+        'reason' => 'gare du tronçon Clermont-Ferrand - Pont-de-Dore ouvert le 10/05/1869 (article de la gare de Vertaizon) ; la date de 1827 était celle de la ligne de Saint-Étienne à Andrézieux',
+    ],
+    [
+        'station' => ['name' => 'Lezoux', 'uic' => '87734442'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-05-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pont-de-Dore', 235994354),
+        'quote' => 'lorsqu\'elle ouvre à l\'exploitation le tronçon de Clermont-Ferrand à Pont-de-Dore',
+        'reason' => 'gare du tronçon Clermont-Ferrand - Pont-de-Dore ouvert le 10/05/1869 (articles des gares de Vertaizon et de Pont-de-Dore) ; Wikidata ne donne que l\'année 1869',
+    ],
+    [
+        'station' => ['name' => 'Lezoux', 'uic' => '87734442'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1869-01-01'],
+        'source_url' => $wp('Gare de Pont-de-Dore', 235994354),
+        'reason' => 'année seule, précédant l\'ouverture du tronçon Clermont-Ferrand - Pont-de-Dore le 10/05/1869',
+    ],
+    [
+        'station' => ['name' => 'Courty Gare', 'near' => [3.4876, 45.8652, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Thiers', 230264209),
+        'quote' => 'La gare ouvrit ses portes le 15 mai 1872',
+        'reason' => 'gare de Courty mise en service le 15/05/1872, avec celle de Thiers (article de la gare de Thiers) ; la date de 1827 était celle de la ligne de Saint-Étienne à Andrézieux',
+    ],
+
+    // Ligne de Montereau à Château-Landon (chemins de fer départementaux, voie métrique, sans code) : Montereau - Souppes ouvre le
+    // 01/10/1888 et Souppes - Château-Landon en janvier 1889 (01/01 pour le texte de l'article, 15/01 pour la liste des gares : le mois
+    // seul est retenu). Château-Landon est le terminus de la seconde section ; Égreville (PK 30,9, ouverte en 1888 selon les deux
+    // passages de l'article, le 30/09 ou le 01/10) avait la date OHM du 10/11/1901. Chaintraux et Fonteneilles-Coudray, entre
+    // Égreville et Souppes, ne sont pas corrigées : l'article place leur section en 1888 dans le texte et en 1889 dans la liste.
+    [
+        'station' => ['name' => 'Chateau Landon', 'near' => [2.6966, 48.1486, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1889-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Montereau à Château-Landon', 228407898),
+        'quote' => 'la deuxième section de Souppes à Château-Landon est mise en service le 1er janvier 1889',
+        'reason' => 'terminus de la section Souppes - Château-Landon, ouverte en janvier 1889 (article de la ligne) ; le 01/10/1888 d\'OHM est celui de la section Montereau - Souppes',
+    ],
+    [
+        'station' => ['name' => 'Chateau Landon', 'near' => [2.6966, 48.1486, 0.3]],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1888-10-01'],
+        'source_url' => $wp('Ligne de Montereau à Château-Landon', 228407898),
+        'reason' => 'date de la section Montereau - Souppes (01/10/1888), pas du terminus Château-Landon',
+    ],
+    [
+        'station' => ['name' => 'Egreville', 'near' => [2.872, 48.1788, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Montereau à Château-Landon', 228407898),
+        'quote' => 'La section de Montereau à Souppes est mise en service le 1er octobre 1888',
+        'reason' => 'gare de la section Montereau - Égreville, ouverte en 1888 (article de la ligne : 30/09 ou 01/10 selon le passage) ; le 10/11/1901 d\'OHM est postérieur à la section',
+    ],
+    [
+        'station' => ['name' => 'Egreville', 'near' => [2.872, 48.1788, 0.3]],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1901-11-10'],
+        'source_url' => $wp('Ligne de Montereau à Château-Landon', 228407898),
+        'reason' => 'date postérieure de 13 ans à l\'ouverture de la section Montereau - Égreville (1888)',
+    ],
+
+    // ── 16. Dates d'ouverture OHM hors de la section (chantier « gares-hors-section », matinée du 22/11/2026).
+    // Rapport : storage/app/reports/agents/aprem-2111/gares-hors-section.md.
+    // Saint-Étienne-Carnot : gare aérienne construite sur un viaduc pour désengorger Châteaucreux, mise en service le
+    // 28/09/1980 (article de la gare ; Wikidata P1619 donne 1980). Le 06/08/1905 d'OHM ne correspond à aucune gare à Carnot
+    // dans l'article : il est antérieur de 75 ans.
+    [
+        'station' => ['name' => 'St-Étienne-Carnot', 'uic' => '87726901'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Étienne-Carnot', 241233261),
+        'quote' => 'Cette gare est mise en service le 28 septembre 1980.',
+        'reason' => 'mise en service le 28/09/1980 (article de la gare, Wikidata P1619 : 1980) ; le 06/08/1905 d\'OHM est antérieur de 75 ans et sans autre source',
+    ],
+    [
+        'station' => ['name' => 'St-Étienne-Carnot', 'uic' => '87726901'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1905-08-06'],
+        'source_url' => $wp('Gare de Saint-Étienne-Carnot', 241233261),
+        'reason' => 'date de 1905 contredite par l\'article de la gare (mise en service le 28/09/1980) et par Wikidata (1980)',
     ],
 ];

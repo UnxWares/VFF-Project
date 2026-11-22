@@ -8,7 +8,7 @@ l'application écrit ses erreurs dans des journaux et répond à `/up` et `/up/d
 
 | Besoin | Mécanisme | Réglage |
 | --- | --- | --- |
-| Le site répond-il ? | `GET /up` (sonde simple de Laravel) | aucun |
+| Le site répond-il ? | `GET /up` (texte brut « OK », sans ressource extérieure) | aucun |
 | Tout va-t-il bien ? | `GET /up/details` (JSON) | `HEALTH_TOKEN` |
 | Erreurs du serveur | `sentry/sentry-laravel`, inactif sans adresse DSN (`config/sentry.php`) | `SENTRY_LARAVEL_DSN` |
 | Erreurs du serveur en fichier | canal de journal `json-errors` (`storage/logs/errors.json.log`, 30 jours) | `LOG_STACK=daily,json-errors` |
