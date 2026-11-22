@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision d'une locomotive poussant un wagon d'ouvriers et d'un train de wagons vides près de Saint-Méen, ligne de Ploërmel à La Brohinière en construction, de novembre 1883 (recherche du 21/11/2026).
 return [
     'slug' => '1883-11-29-saint-meen-le-grand',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1880' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même dépêche du 30 novembre : collision de deux trains près de Saint-Méen sur l\'embranchement de Ploërmel, 14 morts et 17 blessés graves.',
         ],
+        'delpher-1883-12-03-courrier-meuse' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Terrible accident de chemin de fer',
+            'publisher' => 'Le Courrier de la Meuse, Maastricht (presse numérisée, Delpher)',
+            'author' => null,
+            'published' => '1883-12-03',
+            'locator' => 'Article 41',
+            'url' => 'https://resolver.kb.nl/resolve?urn=MMCC01:048262130:mpeg21:a00041',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Collision près de Saint-Méen, sur la ligne de Ploërmel, d\'un train qui ramenait des ouvriers ; d\'après les renseignements parvenus à la Compagnie des chemins de fer de l\'État, dont dépend la ligne, dix-huit hommes tués sur le coup et quinze grièvement blessés.',
+        ],
+        'ddb-1883-12-01-dresdner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Auf der Bretagner Eisenbahn fand bei Saint-Meen ein Zusammenstoß statt',
+            'publisher' => 'Dresdner Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1883-12-01',
+            'locator' => 'p. 20',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/MXQEEKMKZ2FZKN7IMYAY27WO775QKIHI?issuepage=20',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Autre version de la dépêche de Paris du 30 novembre : collision de deux trains d\'ouvriers près de Saint-Méen, sur la ligne de Bretagne ; 18 tués et 17 blessés.',
+        ],
+        'ddb-1883-12-06-velbert' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück',
+            'publisher' => 'Velberter Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1883-12-06',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/EB7DYYT7JJR4F2L7UTGYKWOCMAWSKSD4?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Selon la Correspondance Havas, sur les 38 ouvriers d\'un wagon pris dans la collision du jeudi près de Saint-Méen, 37 ont été tués.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -75,10 +117,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La dépêche de Paris du 30 novembre donne 14 morts et 17 blessés graves, la liste de Wikipédia, d\'après Le Petit Parisien des 3 et 5 décembre, 18 morts sur le coup et 15 blessés graves, sans compter les blessés morts ensuite.',
-                'en' => 'The Paris dispatch of 30 November gives 14 dead and 17 seriously injured; the Wikipedia list, after Le Petit Parisien of 3 and 5 December, gives 18 killed outright and 15 seriously injured, not counting the injured who died later.',
-                'de' => 'Die Pariser Depesche vom 30. November nennt 14 Tote und 17 Schwerverletzte, die Wikipedia-Liste nach Le Petit Parisien vom 3. und 5. Dezember 18 sofort Getötete und 15 Schwerverletzte, die später Verstorbenen nicht eingerechnet.',
-                'sources' => ['ddb-1883-12-01-bonn', 'wp-liste-1880'],
+                'fr' => 'La dépêche de Paris du 30 novembre donne 14 morts et 17 blessés graves dans une version, 18 morts et 17 blessés dans une autre. La Compagnie des chemins de fer de l\'État, citée le 3 décembre, et la liste de Wikipédia, d\'après Le Petit Parisien des 3 et 5 décembre, comptent 18 morts sur le coup et 15 blessés graves, sans compter les blessés morts ensuite. Une note de l\'agence Havas reprise le 6 décembre parle de 37 tués sur 38 ouvriers ; aucune source française lue ne confirme ce chiffre.',
+                'en' => 'The Paris dispatch of 30 November gives 14 dead and 17 badly injured in one version, 18 dead and 17 injured in another. The State railways, cited on 3 December, and the Wikipedia list, after Le Petit Parisien of 3 and 5 December, count 18 killed outright and 15 badly injured, not counting the injured who died later. A Havas agency note carried on 6 December speaks of 37 killed out of 38 workers; no French source read confirms this figure.',
+                'de' => 'Die Pariser Depesche vom 30. November nennt in einer Fassung 14 Tote und 17 Schwerverletzte, in einer anderen 18 Tote und 17 Verwundete. Die Staatsbahnen, zitiert am 3. Dezember, und die Wikipedia-Liste nach Le Petit Parisien vom 3. und 5. Dezember zählen 18 sofort Getötete und 15 Schwerverletzte, ohne die später gestorbenen Verletzten. Eine am 6. Dezember übernommene Meldung der Agentur Havas spricht von 37 Getöteten unter 38 Arbeitern; keine gelesene französische Quelle bestätigt diese Zahl.',
+                'sources' => ['ddb-1883-12-01-bonn', 'ddb-1883-12-01-dresdner', 'delpher-1883-12-03-courrier-meuse', 'wp-liste-1880', 'ddb-1883-12-06-velbert'],
             ],
         ],
     ],

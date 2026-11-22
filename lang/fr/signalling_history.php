@@ -4,7 +4,7 @@
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
     'title' => 'Signalisation au fil du temps',
-    'intro' => 'Dates de mise en service relevées dans l’article Wikipédia de la ligne. Le relevé est partiel : un système absent de la liste a pu être mis en service sans que l’article en donne la date.',
+    'intro' => 'Dates de mise en service relevées dans l’article Wikipédia de la ligne et dans d’autres documents (décisions et rapports de l’EPSF, bilans de SNCF Réseau et de l’État, presse). Le relevé est partiel : un système absent de la liste a pu être mis en service sans qu’aucun de ces documents n’en donne la date.',
     'system' => [
         'BM' => 'BM, block manuel',
         'CT' => 'Cantonnement téléphonique',
@@ -30,5 +30,7 @@ return [
         'hint' => 'article « :title », nouvel onglet',
         'note_one' => 'Faits relevés dans l’article « :title » de Wikipédia (licence CC BY-SA 4.0). Le jour ou le mois n’apparaît que si l’article le donne.',
         'note_other' => 'Faits relevés dans les articles de Wikipédia « :title » (licence CC BY-SA 4.0). Le jour ou le mois n’apparaît que si l’article le donne.',
+        'document_hint' => ':title, nouvel onglet',
+        'note_documents' => 'Quand le lien porte le nom d’un éditeur, la date vient de ce document, confirmée par une source officielle ou par deux sources indépendantes. Le jour ou le mois n’apparaît que si ces documents le donnent.',
     ],
 ];

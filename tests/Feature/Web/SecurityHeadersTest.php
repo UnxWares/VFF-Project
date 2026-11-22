@@ -4,6 +4,7 @@ namespace Tests\Feature\Web;
 
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -205,7 +206,62 @@ class SecurityHeadersTest extends TestCase
 
     public function test_every_web_route_is_covered_by_the_security_headers(): void
     {
-        $this->assertContains(SecurityHeaders::class, app('router')->getMiddlewareGroups()['web']);
+        $this->assertTrue(app(Kernel::class)->hasMiddleware(SecurityHeaders::class));
         $this->assertTrue(Route::has('embed.maps'));
+    }
+
+    /** @return array<string, array{0: string, 1: string}> */
+    public static function responseFamilies(): array
+    {
+        return [
+            'page web' => ['GET', '/'],
+            'erreur 404 web' => ['GET', '/lines/inexistante'],
+            'REST' => ['GET', '/api/v1/lines'],
+            'REST introuvable' => ['GET', '/api/v1/nexiste-pas'],
+            'GraphQL' => ['GET', '/graphql'],
+            'MCP' => ['GET', '/mcp'],
+            'dictionnaire' => ['GET', '/i18n/fr/000000000000.json'],
+            'fond de carte' => ['GET', '/basemap/inexistant.pmtiles'],
+            'tracé de ligne' => ['GET', '/lines/inexistante/portions/abcdef.json'],
+        ];
+    }
+
+    #[DataProvider('responseFamilies')]
+    public function test_every_response_family_carries_the_baseline_headers(string $method, string $uri): void
+    {
+        $response = $this->call($method, $uri);
+
+        $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'), $uri);
+        $this->assertSame('strict-origin-when-cross-origin', $response->headers->get('Referrer-Policy'), $uri);
+        $this->assertSame(SecurityHeaders::PERMISSIONS_POLICY, $response->headers->get('Permissions-Policy'), $uri);
+        $this->assertSame('SAMEORIGIN', $response->headers->get('X-Frame-Options'), $uri);
+    }
+
+    public function test_hsts_is_sent_over_https_and_in_production_only(): void
+    {
+        $this->get('/')->assertHeaderMissing('Strict-Transport-Security');
+        $this->get('https://localhost/api/v1/lines')->assertHeader('Strict-Transport-Security', SecurityHeaders::HSTS);
+
+        $this->app['env'] = 'production';
+        $this->get('/')->assertHeader('Strict-Transport-Security', SecurityHeaders::HSTS);
+    }
+
+    public function test_the_permissions_policy_keeps_geolocation_for_the_map_only(): void
+    {
+        $policy = SecurityHeaders::PERMISSIONS_POLICY;
+        $this->assertStringContainsString('geolocation=(self)', $policy);
+        $this->assertStringContainsString('camera=()', $policy);
+        $this->assertStringContainsString('microphone=()', $policy);
+    }
+
+    public function test_session_and_csrf_cookies_are_http_only_same_site_and_secure_in_production(): void
+    {
+        $cookies = collect($this->get('/login')->headers->getCookies())->keyBy(fn ($c) => $c->getName());
+        $this->assertTrue($cookies[config('session.cookie')]->isHttpOnly());
+        $this->assertSame('lax', $cookies[config('session.cookie')]->getSameSite());
+        $this->assertSame('lax', $cookies['XSRF-TOKEN']->getSameSite());
+
+        $config = file_get_contents(base_path('config/session.php'));
+        $this->assertStringContainsString("env('APP_ENV') === 'production'", (string) $config);
     }
 }

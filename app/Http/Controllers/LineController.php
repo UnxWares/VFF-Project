@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
 use App\Services\Archives\LineArchives;
 use App\Services\Greenways\LineGreenways;
+use App\Services\Journal\JournalRepository;
 use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
@@ -149,10 +150,11 @@ class LineController extends Controller
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
      * comptent ; API : `/api/v1/lines/{slug}/gpx`), et les documents de Gallica qui en parlent (section « Dans
-     * les archives » ; API : `/api/v1/lines/{slug}/archives`), et les événements qui ont une histoire (lien
+     * les archives » ; API : `/api/v1/lines/{slug}/archives`) avec les notices des Archives SNCF
+     * (`/api/v1/lines/{slug}/archive-records`), et les événements qui ont une histoire (lien
      * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
         $page = $sheet->build($line, forPage: true);
 
@@ -168,9 +170,13 @@ class LineController extends Controller
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
             'trace_export_eras' => $traceExport->exportableEraYears($line),
             'archives' => $archives->forSheet($line),
+            // Notices des fonds d'archives (Archives SNCF), sous les documents de Gallica dans la même section.
+            'archive_records' => $archives->recordsForSheet($line),
             // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
             // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
             'story_events' => array_column($stories->available($line), 'event_ids'),
+            // Articles du journal de bord qui parlent de la ligne (lien sous la description).
+            'journal' => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
         ]);
     }
 }

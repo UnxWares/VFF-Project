@@ -38,7 +38,7 @@ class PasswordResetController extends Controller
     public function sendLink(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'max:254'],
         ]);
 
         $email = (string) $request->input('email');
@@ -87,9 +87,9 @@ class PasswordResetController extends Controller
     public function reset(Request $request): RedirectResponse
     {
         $request->validate([
-            'token' => ['required', 'string'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'token' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:254'],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)->max(1000)],
         ]);
 
         $status = Password::reset(

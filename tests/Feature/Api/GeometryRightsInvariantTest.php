@@ -145,7 +145,7 @@ class GeometryRightsInvariantTest extends TestCase
     private function restUrls(): array
     {
         $values = ['year' => '1930', 'other' => '2030', 'line' => $this->line->slug, 'station' => 'b', 'provider' => 'archeoferroviaire',
-            'event' => '1', 'media' => '1', 'material' => 'inconnu', 'accident' => 'inconnu', 'department' => '29', 'region' => '53'];
+            'event' => '1', 'media' => '1', 'material' => 'inconnu', 'accident' => 'inconnu', 'department' => '29', 'region' => '53', 'slug' => 'inconnu'];
         $query = '?geometry=true&era=1930&compare=2030&from=a&to=e&lat=48.0&lng=2.15&q=Ligne';
         $urls = [];
         foreach (Route::getRoutes()->getRoutes() as $route) {

@@ -1,0 +1,2 @@
+Articles d'essai du journal de bord (tests/Feature/JournalTest.php), écrits pour les tests par l'équipe VFF.
+Les fichiers qui ne suivent pas la forme <slug>.<langue>.md, comme celui-ci, sont ignorés par JournalRepository.

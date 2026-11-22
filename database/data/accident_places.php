@@ -10,7 +10,9 @@
  * rattachée à un lieu qui n'est plus le sien. Le lieu est celui que le texte de la puce nomme (« en gare de
  * Creil », « tunnel du Crozet ») ; il n'est jamais déduit d'une ligne ni d'un trajet. Une puce qui ne cite
  * que deux gares (« entre Moulins et Villeneuve ») ou une distance (« près de ») n'a pas de ligne ici : elle
- * reste écartée.
+ * reste écartée, sauf quand la presse d'époque lue nomme la commune et que Baptiste a validé la fiche (Jussey,
+ * 28/08/1881 : « près de Jussey », secours et service religieux à la gare de Jussey ; rapport
+ * storage/app/reports/agents/aprem-2111/accidents-jussey.md).
  *
  *   - date       : jour de la puce (AAAA-MM-JJ) ;
  *   - needle     : extrait du texte de la puce qui nomme le lieu ;
@@ -30,6 +32,7 @@ return [
     ['date' => '1869-07-03', 'needle' => 'en gare de creil', 'commune' => 'Creil', 'department' => '60', 'basis' => 'en gare de Creil'],
     ['date' => '1871-09-27', 'needle' => 'gare d eze', 'commune' => 'Èze', 'department' => '06', 'basis' => 'à proximité de la gare d\'Èze'],
     ['date' => '1872-06-16', 'needle' => 'gare de cherbourg', 'commune' => 'Cherbourg-en-Cotentin', 'department' => '50', 'basis' => 'à l\'approche de la gare de Cherbourg'],
+    ['date' => '1881-08-28', 'needle' => 'entre les gares de jussey et de montureux', 'commune' => 'Jussey', 'department' => '70', 'basis' => 'entre les gares de Jussey et de Montureux ; « près de Jussey » dans la presse (Hannoverscher Kurier, 30/08/1881)'],
     ['date' => '1884-05-14', 'needle' => 'avant saint denis', 'commune' => 'Saint-Denis', 'department' => '93', 'basis' => 'avant la gare de Saint-Denis'],
     ['date' => '1886-02-02', 'needle' => 'en gare de fontvielle', 'commune' => 'Fontvieille', 'department' => '13', 'basis' => 'en gare de Fontvielle (Fontvieille)'],
     ['date' => '1886-05-05', 'needle' => 'en gare d angers', 'commune' => 'Angers', 'department' => '49', 'basis' => 'en gare d\'Angers'],

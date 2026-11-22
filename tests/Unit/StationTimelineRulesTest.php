@@ -11,6 +11,8 @@ use PHPUnit\Framework\TestCase;
  *   - état au 31/12 de l'année : un événement de l'année compte ;
  *   - ouverture inconnue : gare montrée dans la seule décennie qui précède sa fermeture ;
  *   - fermeture aux voyageurs : fret seul tant que la gare existe ;
+ *   - fermée (fermeture totale, fin des voyageurs puis du fret, démolition) : « fermée » à toutes les
+ *     années suivantes, debout ou non ; la carte ne la garde qu'à la première ère (BuildStationEras) ;
  *   - une gare ne peut pas être plus active que ses lignes (fermées → fermée,
  *     fret seul → au mieux fret, ligne touristique → touristique).
  */
@@ -29,7 +31,9 @@ class StationTimelineRulesTest extends TestCase
         $this->assertNull(T::statusFromEvents($events, 1899, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1900, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1949, false));
-        $this->assertNull(T::statusFromEvents($events, 1950, false));
+        // Fermée, debout ou disparue : la chronologie dit « fermée », la carte ne la garde qu'à la première ère
+        // fermée (BuildStationEras::keepClosedOnlyAtClosingEra, règle du 22/11/2026).
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1950, false));
         $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1950, true), 'fermée mais existe encore');
     }
 
@@ -62,7 +66,7 @@ class StationTimelineRulesTest extends TestCase
 
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, $shown, false));
         $this->assertNull(T::statusFromEvents($events, $before, false));
-        $this->assertNull(T::statusFromEvents($events, $shown + 10, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, $shown + 10, false), 'fermée à l\'ère qui suit');
     }
 
     public function test_unknown_opening_with_passenger_closure_or_demolition(): void
@@ -70,7 +74,7 @@ class StationTimelineRulesTest extends TestCase
         $this->assertSame(T::ACTIVE, T::statusFromEvents(self::ev([['closure_passenger', '1955-01-01']]), 1950, true));
         $this->assertSame(T::FREIGHT, T::statusFromEvents(self::ev([['closure_passenger', '1955-01-01']]), 1960, true));
         $this->assertSame(T::ACTIVE, T::statusFromEvents(self::ev([['demolition', '1972-01-01']]), 1970, true));
-        $this->assertNull(T::statusFromEvents(self::ev([['demolition', '1972-01-01']]), 1980, true), 'démolie : n\'existe plus');
+        $this->assertSame(T::CLOSED, T::statusFromEvents(self::ev([['demolition', '1972-01-01']]), 1980, true), 'démolie : fermée');
     }
 
     public function test_unknown_opening_is_assumed_before_the_first_closure_only(): void
@@ -79,18 +83,20 @@ class StationTimelineRulesTest extends TestCase
 
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1950, false), 'ouverture supposée avant la PREMIÈRE fermeture');
         $this->assertSame(T::FREIGHT, T::statusFromEvents($events, 1960, false));
-        $this->assertNull(T::statusFromEvents($events, 1980, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, false));
     }
 
     public function test_events_after_a_closure_that_are_not_reopenings_do_not_revive_the_station(): void
     {
-        // Fermeture totale suivie d'une simple démolition : disparue dès la fermeture.
+        // Fermeture totale suivie d'une simple démolition : fermée dès la fermeture, jamais rouverte.
         $gone = self::ev([['opening', '1870-01-01'], ['closure', '1950-01-01'], ['demolition', '1960-01-01']]);
-        $this->assertNull(T::statusFromEvents($gone, 1955, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($gone, 1955, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($gone, 1970, false));
 
-        // Fermeture aux voyageurs suivie d'un événement sans effet (« other ») : pas une suite connue.
+        // Fermeture aux voyageurs suivie d'un événement sans effet (« other ») : pas une suite connue. Disparue
+        // aujourd'hui : plus aucun trafic connu, fermée ; encore là : fret seul.
         $other = self::ev([['opening', '1870-01-01'], ['closure_passenger', '1950-01-01'], ['other', '1960-01-01']]);
-        $this->assertNull(T::statusFromEvents($other, 1955, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($other, 1955, false));
         $this->assertSame(T::FREIGHT, T::statusFromEvents($other, 1955, true));
     }
 
@@ -114,9 +120,12 @@ class StationTimelineRulesTest extends TestCase
 
         $this->assertSame(T::FREIGHT, T::statusFromEvents($events, 1960, false), 'une suite est connue : la gare existe encore');
         $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, true));
-        // Plus aucun trafic après la fin du fret : comme une fermeture totale, une gare disparue sort de la carte
-        // (règle du 21/11/2026 ; avant, elle restait « fermée » à toutes les ères suivantes).
-        $this->assertNull(T::statusFromEvents($events, 1980, false));
+        // Plus aucun trafic après la fin du fret : fermée, encore debout ou disparue, comme une fermeture totale.
+        // La variante du 21/11/2026 (commit b47b5c3 : disparue, elle sortait de la carte dès la fin du fret ;
+        // debout, elle restait « fermée » à toutes les ères) est retirée le 22/11/2026 : la carte la montre
+        // fermée à la première ère, puis plus du tout (BuildStationEras::keepClosedOnlyAtClosingEra).
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 2000, true));
     }
 
     public function test_passenger_closure_followed_by_a_reopening_keeps_the_station(): void
@@ -131,7 +140,7 @@ class StationTimelineRulesTest extends TestCase
     {
         $gone = self::ev([['opening', '1870-01-01'], ['closure', '1950-01-01'], ['demolition', '1960-01-01']]);
         $this->assertSame(T::CLOSED, T::statusFromEvents($gone, 1950, true));
-        $this->assertNull(T::statusFromEvents($gone, 1960, true), 'démolie : disparue même si la gare « existe » ailleurs');
+        $this->assertSame(T::CLOSED, T::statusFromEvents($gone, 1960, true), 'démolie : fermée, jamais rouverte');
 
         $rebuilt = self::ev([['opening', '1870-01-01'], ['demolition', '1960-01-01'], ['opening', '2000-01-01']]);
         $this->assertSame(T::CLOSED, T::statusFromEvents($rebuilt, 1970, false));

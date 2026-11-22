@@ -51,6 +51,15 @@ body.dark-mode {
     --scalar-link-color: #ff9a52;
 }
 
+/* Coloration du code en thème clair : le gris clair des cartes de code reprend le fond de la page, et les
+   orange (#ff5800, 2,9:1) et vert (#00935d, 3,6:1) de Scalar y sont trop pâles. Orange = encre d'accent du
+   site (4,8:1 sur #f3f5f6), vert foncé 5,9:1. Les cartes sombres (.dark-mode) gardent leurs couleurs.
+   Le doublement de la classe passe devant la variante display-p3 de Scalar. */
+body.light-mode.light-mode {
+    --scalar-color-orange: var(--vff-accent-ink);
+    --scalar-color-green: #00693f;
+}
+
 /* Titres : polices du site. */
 .vff-docs--scalar .scalar-app h1,
 .vff-docs--scalar .scalar-app h2,

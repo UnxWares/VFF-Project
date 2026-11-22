@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement criminel d'un train de marchandises entre Héricourt et Belfort, ligne de Dole à Belfort, de mai 1913 (recherche du 21/11/2026).
 return [
     'slug' => '1913-05-16-hericourt',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1913' => [
             'provider' => 'wikipedia',
@@ -67,7 +67,7 @@ return [
             [
                 'fr' => 'Dans la nuit du 16 mai 1913, entre Héricourt et Belfort, sur la ligne de Dole à Belfort, un obstacle a été posé sur la voie par malveillance : un rail en travers des voies selon la liste de Wikipédia, un tas de pierres selon la presse allemande. D\'après la dépêche de Paris du 18 mai, les auteurs voulaient faire dérailler le train de luxe Berlin - Riviera pour dépouiller ses voyageurs ; ce train ne circulait plus depuis le 1er mai mais figurait encore à l\'horaire.',
                 'en' => 'During the night of 16 May 1913, between Héricourt and Belfort on the Dole to Belfort line, an obstacle was deliberately placed on the track: a rail laid across it according to the Wikipedia list, a pile of stones according to the German press. According to the Paris dispatch of 18 May, the culprits meant to derail the Berlin to Riviera luxury train and rob its passengers; that train had stopped running on 1 May but was still in the timetable.',
-                'de' => 'In der Nacht zum 16. Mai 1913 wurde zwischen Héricourt und Belfort an der Strecke Dole-Belfort böswillig ein Hindernis auf das Gleis gelegt: nach der Wikipedia-Liste eine quer gelegte Schiene, nach der deutschen Presse ein Haufen Steine. Nach der Pariser Depesche vom 18. Mai wollten die Täter den Luxuszug Berlin-Riviera zum Entgleisen bringen, um die Reisenden zu berauben; der Zug verkehrte seit dem 1. Mai nicht mehr, stand aber noch im Fahrplan.',
+                'de' => 'In der Nacht des 16. Mai 1913 wurde zwischen Héricourt und Belfort an der Strecke Dole-Belfort böswillig ein Hindernis auf das Gleis gelegt: nach der Wikipedia-Liste eine quer gelegte Schiene, nach der deutschen Presse ein Haufen Steine. Nach der Pariser Depesche vom 18. Mai wollten die Täter den Luxuszug Berlin-Riviera zum Entgleisen bringen, um die Reisenden zu berauben; der Zug verkehrte seit dem 1. Mai nicht mehr, stand aber noch im Fahrplan.',
                 'sources' => ['wp-liste-1913', 'ddb-1913-05-20-muenster', 'ddb-1913-05-20-coburg'],
             ],
         ],

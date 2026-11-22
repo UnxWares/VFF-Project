@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { articleTitles, historyRows, portionText, systemLabel } from '$lib/signallingHistory.js';
+import {
+    articleTitles,
+    hasDocumentFacts,
+    historyRows,
+    portionText,
+    systemLabel,
+} from '$lib/signallingHistory.js';
 
 // Traduction de test : la clé, avec les paramètres (« key|from=A|to=B »), sauf les libellés connus.
 const known = {
@@ -173,5 +179,47 @@ describe('origine et portion placée (deuxième passe)', () => {
         expect(text).toContain('16+714');
         expect(text).toContain('29+913');
         expect(text).toContain('from=Garches');
+    });
+});
+
+describe('faits datés par des documents', () => {
+    const doc = fact({
+        origin: 'document',
+        scope: 'whole_line',
+        section: null,
+        source: {
+            provider: 'manual',
+            title: 'Décision',
+            url: 'https://www.securite-ferroviaire.fr/a.pdf',
+            revision: null,
+            documents: [
+                {
+                    publisher: 'EPSF',
+                    title: 'Décision',
+                    url: 'https://www.securite-ferroviaire.fr/a.pdf',
+                    published: '2017-11-10',
+                },
+            ],
+        },
+    });
+
+    it('un lien par document, nommé par son éditeur ; aucun pour un fait de Wikipédia', () => {
+        const [row, wiki] = historyRows([doc, fact()], {
+            t,
+            lang: 'fr-FR',
+            pkWord: 'PK',
+        });
+        expect(row.documents).toEqual([
+            { url: 'https://www.securite-ferroviaire.fr/a.pdf', label: 'EPSF', title: 'Décision' },
+        ]);
+        expect(row.note).toBeNull();
+        expect(wiki.documents).toEqual([]);
+    });
+
+    it('la note de Wikipédia ne cite que les articles, la note des documents ne vient qu’avec eux', () => {
+        expect(articleTitles([doc, fact()])).toEqual(['Ligne de A à B']);
+        expect(articleTitles([doc])).toEqual([]);
+        expect(hasDocumentFacts([doc, fact()])).toBe(true);
+        expect(hasDocumentFacts([fact()])).toBe(false);
     });
 });

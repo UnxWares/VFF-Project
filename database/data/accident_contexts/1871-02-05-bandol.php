@@ -3,7 +3,7 @@
 // Contexte sourcé de l'explosion d'un train près de Bandol du 5 février 1871 (recherche du 21/11/2026).
 return [
     'slug' => '1871-02-05-bandol',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Récit de la Gazette du Midi, d\'après des blessés revenus à Marseille : l\'explosion a eu lieu en rase campagne, le train roulait vite ; la détonation a fait s\'effondrer des maisons éloignées et brisé des arbres.',
         ],
+        'delpher-1871-02-18-vaderland' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het Spoorwegongeluk te Ollioules',
+            'publisher' => 'Het Vaderland (presse néerlandaise numérisée, Delpher)',
+            'author' => null,
+            'published' => '1871-02-18',
+            'locator' => 'p. 3',
+            'url' => 'https://resolver.kb.nl/resolve?urn=MMKB23:001386042:mpeg21:a00025',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Récit tiré de la presse de Marseille et de Toulon : le train roulait à pleine vitesse entre les gares de Saint-Nazaire et d\'Ollioules ; on a compté 104 blessés et 80 cadavres ; un témoin cité par Le Toulonnais décrit les voitures broyées et l\'incendie qui a suivi l\'explosion.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -103,11 +117,21 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le bilan diffère : 60 morts et 100 blessés dans la dépêche du 5 février, au moins 80 morts et plus de 200 blessés dans la liste de Wikipédia. Dix jours après, la presse ignorait encore si les quatre wagons contenaient de la poudre, des cartouches ou des obus chargés.',
-                'en' => 'The toll differs: 60 dead and 100 injured in the dispatch of 5 February, at least 80 dead and more than 200 injured in the Wikipedia list. Ten days later the press still did not know whether the four wagons held gunpowder, cartridges or loaded shells.',
-                'de' => 'Die Opferzahl weicht ab: 60 Tote und 100 Verwundete in der Depesche vom 5. Februar, mindestens 80 Tote und über 200 Verletzte in der Wikipedia-Liste. Zehn Tage später wusste die Presse noch nicht, ob die vier Wagen Pulver, Patronen oder geladene Bomben enthielten.',
-                'sources' => ['ddb-1871-02-11-riedlinger', 'wp-liste-1870', 'ddb-1871-02-18-koenigsberger'],
+                'fr' => 'La dépêche de Toulon du 5 février annonce 60 morts et 100 blessés. Le récit tiré de la presse de Toulon, paru le 18 février, compte 80 cadavres et 104 blessés, et la liste de Wikipédia donne au moins 80 morts et plus de 200 blessés : le chiffre de 60 était un premier bilan. Dix jours après, la presse ignorait encore si les quatre wagons contenaient de la poudre, des cartouches ou des obus chargés.',
+                'en' => 'The Toulon dispatch of 5 February reported 60 dead and 100 injured. The account drawn from the Toulon press, printed on 18 February, counts 80 bodies and 104 injured, and the Wikipedia list gives at least 80 dead and more than 200 injured: the figure of 60 was an early count. Ten days later the press still did not know whether the four wagons held gunpowder, cartridges or loaded shells.',
+                'de' => 'Die Depesche aus Toulon vom 5. Februar meldete 60 Tote und 100 Verwundete. Der am 18. Februar erschienene Bericht nach der Presse von Toulon zählt 80 Leichen und 104 Verwundete, und die Wikipedia-Liste nennt mindestens 80 Tote und über 200 Verletzte: Die Zahl 60 war eine erste Zählung. Zehn Tage später wusste die Presse noch nicht, ob die vier Wagen Pulver, Patronen oder geladene Bomben enthielten.',
+                'sources' => ['ddb-1871-02-11-riedlinger', 'delpher-1871-02-18-vaderland', 'wp-liste-1870', 'ddb-1871-02-18-koenigsberger'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 80,
+            'sources' => ['wp-liste-1870', 'delpher-1871-02-18-vaderland'],
+            'fr' => 'Au moins 80 morts selon la liste de Wikipédia (Le Temps du 11 février, Le Constitutionnel du 15 février 1871) ; 80 cadavres comptés selon le récit tiré de la presse de Toulon paru le 18 février ; la première dépêche en annonçait 60 ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'At least 80 dead according to the Wikipedia list (Le Temps of 11 February, Le Constitutionnel of 15 February 1871); 80 bodies counted according to the account from the Toulon press printed on 18 February; the first dispatch reported 60; the record gave no number of deaths.',
+            'de' => 'Mindestens 80 Tote nach der Wikipedia-Liste (Le Temps vom 11. Februar, Le Constitutionnel vom 15. Februar 1871); 80 gezählte Leichen nach dem am 18. Februar erschienenen Bericht nach der Presse von Toulon; die erste Depesche meldete 60; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

@@ -1,6 +1,7 @@
 // Frise « Signalisation au fil du temps » de la fiche ligne : mises en service datées lues dans
-// Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet). Logique pure, testée par
-// tests/js/signallingHistory.test.js.
+// Wikipédia ou dans d'autres documents relevés par VFF (`source.provider` : `manual`, avec
+// `source.documents`) (App\Services\Signalling\LineSignallingHistory::forSheet). Logique pure, testée
+// par tests/js/signallingHistory.test.js.
 //
 // Le KVB est un contrôle de vitesse, jamais un cantonnement : son rôle (`speed_control`) lui donne
 // le libellé « Contrôle de vitesse », comme sur la grille des tranches actuelles.
@@ -10,6 +11,7 @@ import { tieUnits } from './typo.js';
 
 /** Origines qui reçoivent une note sous la portion (`text` et `list` : phrase ou puce, sans note). */
 const ORIGIN_NOTES = ['opening', 'infobox', 'table'];
+// `document` : fait daté hors de l'article, par les documents liés sur la ligne (pas de note).
 
 /** Libellé de rôle, déjà traduit par la grille des tranches (`lines.signalling.*`, avec les deux-points). */
 const ROLE_KEYS = {
@@ -79,12 +81,28 @@ export function historyRows(facts, { t, lang, pkWord }) {
         portion: portionText(f, t, pkWord),
         url: f.source.url,
         title: f.source.title,
+        // Fait daté par des documents (communiqué, rapport, presse) : un lien par document, nommé par son éditeur.
+        documents:
+            f.source.provider === 'manual'
+                ? (f.source.documents ?? []).map((d) => ({
+                      url: d.url,
+                      label: d.publisher,
+                      title: d.title,
+                  }))
+                : [],
         // Fait lu ailleurs que dans une phrase : date d'ouverture d'une LGV, infobox, tableau.
         note: ORIGIN_NOTES.includes(f.origin) ? t(`signalling_history.origin.${f.origin}`) : null,
     }));
 }
 
-/** Titres distincts des articles dont viennent les faits, dans l'ordre. */
+/** Titres distincts des articles de Wikipédia dont viennent les faits, dans l'ordre. */
 export function articleTitles(facts) {
-    return [...new Set(facts.map((f) => f.source.title))];
+    return [
+        ...new Set(facts.filter((f) => f.source.provider !== 'manual').map((f) => f.source.title)),
+    ];
+}
+
+/** Au moins un fait daté par des documents relevés par VFF (et non par Wikipédia) ? */
+export function hasDocumentFacts(facts) {
+    return facts.some((f) => f.source.provider === 'manual');
 }

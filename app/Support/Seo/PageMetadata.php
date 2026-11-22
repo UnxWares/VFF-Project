@@ -45,8 +45,46 @@ final class PageMetadata
             'Materials/Show' => isset($props['material']['slug']) ? $this->material($origin, $props['material']) : null,
             'Accidents/Show' => isset($props['accident']['slug']) ? $this->accident($origin, $props['accident']) : null,
             'Lines/Story' => isset($props['story']['line']['slug'], $props['story']['event']['id']) ? $this->story($origin, $props['story']) : null,
+            'Journal/Index' => $this->journalIndex($origin, (int) ($props['pagination']['current'] ?? 1)),
+            'Journal/Show' => isset($props['article']['slug'], $props['article']['json_ld']) ? $this->journalArticle($origin, $props['article']) : null,
             default => null,
         };
+    }
+
+    /** Liste du journal de bord (Pages/Journal/Index.svelte) : page 2 et suivantes ont leur propre adresse. */
+    private function journalIndex(string $origin, int $page): ShareMetadata
+    {
+        $title = __('journal.meta_title');
+
+        return $this->build($origin, $page > 1 ? '/journal?page='.$page : '/journal', $title.' - VFF', $title,
+            __('journal.meta_description'), 'website', null, [
+                StructuredData::breadcrumb($origin, [
+                    ['name' => __('common.app_full'), 'path' => '/'],
+                    ['name' => __('journal.index.title'), 'path' => '/journal'],
+                ]),
+            ]);
+    }
+
+    /**
+     * Article du journal (Pages/Journal/Show.svelte) : données structurées Article déjà calculées par
+     * le contrôleur (JournalPresenter::jsonLd), photo de l'article.
+     *
+     * @param  array<string, mixed>  $article
+     */
+    private function journalArticle(string $origin, array $article): ShareMetadata
+    {
+        $path = '/journal/'.$article['slug'];
+        $image = is_array($article['image'] ?? null) ? ['url' => (string) $article['image']['src'], 'alt' => $article['image']['alt'] ?? null] : null;
+
+        return $this->build($origin, $path, $article['title'].' - '.__('journal.meta_title').' - VFF', (string) $article['title'],
+            (string) $article['summary'], 'article', $image, [
+                (array) $article['json_ld'],
+                StructuredData::breadcrumb($origin, [
+                    ['name' => __('common.app_full'), 'path' => '/'],
+                    ['name' => __('journal.index.title'), 'path' => '/journal'],
+                    ['name' => (string) $article['title'], 'path' => $path],
+                ]),
+            ]);
     }
 
     private function lang(): string

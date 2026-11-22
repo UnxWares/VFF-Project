@@ -22,14 +22,21 @@ class GtfsController extends Controller
      * `2030` = réseau d'aujourd'hui). Fichiers : `agency.txt`, `routes.txt`
      * (une route par ligne ; `route_type` 2 pour une ligne voyageurs ou mixte,
      * 100 pour une ligne fret), `stops.txt` (gares desservies à l'ère : statuts
-     * `active`, `tourist`, `no_commercial`), `trips.txt` (un trajet par ligne,
-     * de la première à la dernière gare), `stop_times.txt`, `shapes.txt`
-     * (tracé de la ligne, `shape_dist_traveled` en mètres = point kilométrique),
-     * `calendar.txt` et `feed_info.txt`.
+     * `active`, `tourist`, `no_commercial`), `trips.txt` (un trajet par ligne
+     * ayant au moins deux gares desservies, de la première à la dernière),
+     * `stop_times.txt`, `shapes.txt` (tracé de la ligne, orienté dans le sens du
+     * trajet ; `shape_dist_traveled` en mètres le long du tracé, strictement
+     * croissant), `calendar.txt`, `feed_info.txt` (avec le contact du flux) et
+     * `attributions.txt` (VFF, OpenStreetMap et SNCF, licence ODbL 1.0).
      *
      * **Horaires synthétiques** : VFF décrit l'infrastructure, pas les
-     * services. Les heures de `stop_times.txt` ne servent qu'à ordonner les
-     * arrêts ; les données spatiales (gares, tracés, distances) sont exactes.
+     * services. Les heures de `stop_times.txt` sont calculées à 60 km/h le long
+     * du tracé (à vol d'oiseau entre gares quand le trajet n'a pas de distance) :
+     * elles ne servent qu'à ordonner les arrêts ; les données spatiales (gares,
+     * tracés) sont celles de VFF. `shape_dist_traveled` des arrêts est la
+     * distance de la gare le long du tracé (même unité que `shapes.txt`, et non
+     * le point kilométrique) ; il est vide pour tout le trajet quand la ligne n'a
+     * pas de forme ou que l'ordre des gares ne suit pas le tracé.
      * `feed_info.txt` couvre l'année de l'ère (du 01/01 au 31/12). Données
      * ouvertes : citez « VFF - Voies Ferrées de France » et respectez les
      * licences des sources (ODbL pour la part issue d'OpenStreetMap et de la

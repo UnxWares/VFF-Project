@@ -278,7 +278,7 @@ class EraTimelineRulesTest extends TestCase
                 $seen = $seen || $state !== null;
             }
         }
-        $this->assertTrue(true);
+        $this->addToAssertionCount(1);
     }
 
     // ─── Patrimoine ──────────────────────────────────────────────────────
@@ -304,14 +304,14 @@ class EraTimelineRulesTest extends TestCase
 
         $this->assertSame('abandoned', $t->stateAt(1960)['status']);
         $this->assertSame(['status' => $status, 'traffic' => 'unknown', 'heritage' => $kind], $t->stateAt(1990));
-        $this->assertSame($kind, $t->stateAt(2030, true, 2020)['heritage']);
+        $this->assertSame($kind, $this->state($t, 2030, true, 2020)['heritage']);
     }
 
     public function test_heritage_kind_defaults_to_tourist_train(): void
     {
         $t = new EraTimeline([self::ev('opening', '1890-01-01'), self::ev('closure', '1955-01-01'), self::ev('heritage_start', '1985-01-01')]);
 
-        $this->assertSame('tourist_train', $t->stateAt(1990)['heritage']);
+        $this->assertSame('tourist_train', $this->state($t, 1990)['heritage']);
     }
 
     public function test_end_of_heritage_operation_closes_the_portion_again(): void
@@ -323,7 +323,7 @@ class EraTimelineRulesTest extends TestCase
             self::ev('heritage_end', '2012-10-01'),
         ]);
 
-        $this->assertSame('tourist_train', $t->stateAt(2010)['heritage']);
+        $this->assertSame('tourist_train', $this->state($t, 2010)['heritage']);
         $this->assertSame(['status' => 'abandoned', 'traffic' => 'unknown'], $t->stateAt(2020));
     }
 
@@ -810,5 +810,13 @@ class EraTimelineRulesTest extends TestCase
         }
 
         return $out;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function state(EraTimeline $timeline, int $year, bool $isCurrent = false, ?int $previousYear = null): array
+    {
+        return $timeline->stateAt($year, $isCurrent, $previousYear) ?? [];
     }
 }

@@ -8,8 +8,12 @@
      * La page écrit `<thead>` et `<tbody>` dans `children` ; les cellules portent `data-label` et, pour
      * la cellule vide d'une ligne, la classe `blank` (masquée sur téléphone).
      *
+     * Quand le CSS change l'`display` des éléments (cartes), `tableRoles` pose les rôles ARIA de tableau.
+     *
      * Props : `label` (nom de la zone défilante), `caption` (légende lue par les lecteurs d'écran).
      */
+    import { tableRoles } from '$lib/actions/tableRoles.js';
+
     /** @type {{ label: string, caption: string, children: import('svelte').Snippet }} */
     let { label, caption, children } = $props();
 </script>
@@ -17,7 +21,7 @@
 <!-- Zone défilante : focalisable pour pouvoir la faire défiler au clavier (guide, section 5.8). -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div class="vff-table-wrap directory-table" role="region" aria-label={label} tabindex="0">
-    <table class="vff-table">
+    <table class="vff-table" {@attach tableRoles}>
         <caption class="vff-sr-only">{caption}</caption>
         {@render children()}
     </table>

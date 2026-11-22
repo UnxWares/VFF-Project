@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'un train militaire en gare de Critot dans la nuit du 3 au 4 octobre 1870 (recherche du 21/11/2026).
 return [
     'slug' => '1870-10-04-critot',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même récit d\'après le Journal de Rouen : accident du 3 octobre à Critot, entre Clères et Buchy, train de 333 chasseurs à pied et trois officiers.',
         ],
+        'normandie-tourisme-monument-critot' => [
+            'provider' => 'sites-web',
+            'kind' => 'memorial',
+            'reliability' => 'local_history',
+            'title' => 'Monument commémoratif de Critot',
+            'publisher' => 'Normandie Tourisme',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Fiche du monument',
+            'url' => 'https://en.normandie-tourisme.fr/museums-and-heritage-sites/monument-commemoratif-de-critot/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Fiche du comité régional de tourisme sur le monument élevé en 1890 : dans la nuit du 3 au 4 octobre 1870, l\'accident a fait 14 morts et une centaine de blessés.',
+        ],
+        'delpher-1870-10-10-haarlem' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Tours, 3 October',
+            'publisher' => 'Opregte Haarlemsche Courant (presse néerlandaise numérisée, Delpher)',
+            'author' => null,
+            'published' => '1870-10-10',
+            'locator' => 'p. 1',
+            'url' => 'https://resolver.kb.nl/resolve?urn=MMKB12:000013087:mpeg21:a00003',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Nouvelle officielle de Tours : dans la nuit du 3 au 4 octobre, un train qui transportait les hommes du 20e bataillon de chasseurs a déraillé à la gare de Critot, sur l\'embranchement qui relie près de Rouen le réseau du Nord à celui de l\'Ouest ; 9 hommes tués et 60 blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -103,11 +131,21 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le nombre de morts diffère selon les sources : 15 dans la dépêche du 4 octobre, 12 dans le récit du Journal de Rouen, 14 dans la liste de Wikipédia. La date aussi : le récit place l\'accident le 3 octobre, la dépêche « cette nuit » à la date du 4, la liste peu après minuit le 4.',
-                'en' => 'The death toll differs between sources: 15 in the dispatch of 4 October, 12 in the Journal de Rouen account, 14 in the Wikipedia list. So does the date: the account places the accident on 3 October, the dispatch dated the 4th says "last night", the list says shortly after midnight on the 4th.',
-                'de' => 'Die Zahl der Toten weicht je nach Quelle ab: 15 in der Depesche vom 4. Oktober, 12 im Bericht des Journal de Rouen, 14 in der Wikipedia-Liste. Ebenso das Datum: Der Bericht nennt den 3. Oktober, die Depesche vom 4. spricht von „dieser Nacht“, die Liste von kurz nach Mitternacht am 4.',
-                'sources' => ['ddb-1870-10-05-staats-anzeiger', 'ddb-1870-10-13-sueddeutscher-telegraph', 'wp-liste-1870'],
+                'fr' => 'Le nombre de morts diffère selon les sources : 9 dans la nouvelle officielle de Tours, 15 dans la dépêche de Rouen du 4 octobre, 12 dans le récit du Journal de Rouen, 14 dans la liste de Wikipédia et sur le monument de 1890. La date aussi : le récit place l\'accident le 3 octobre, la dépêche « cette nuit » à la date du 4, la nouvelle de Tours et le monument dans la nuit du 3 au 4, la liste peu après minuit le 4.',
+                'en' => 'The number of dead differs between sources: 9 in the official report from Tours, 15 in the Rouen dispatch of 4 October, 12 in the Journal de Rouen account, 14 in the Wikipedia list and on the 1890 monument. The date too: the account places the accident on 3 October, the dispatch "tonight" under the date of the 4th, the Tours report and the monument in the night of 3 to 4 October, the list shortly after midnight on the 4th.',
+                'de' => 'Die Zahl der Toten weicht je nach Quelle ab: 9 in der amtlichen Meldung aus Tours, 15 in der Depesche aus Rouen vom 4. Oktober, 12 im Bericht des Journal de Rouen, 14 in der Wikipedia-Liste und auf dem Denkmal von 1890. Auch das Datum: Der Bericht legt den Unfall auf den 3. Oktober, die Depesche auf „diese Nacht“ unter dem Datum des 4., die Meldung aus Tours und das Denkmal auf die Nacht vom 3. auf den 4., die Liste kurz nach Mitternacht am 4.',
+                'sources' => ['delpher-1870-10-10-haarlem', 'ddb-1870-10-05-staats-anzeiger', 'wp-liste-1870', 'normandie-tourisme-monument-critot'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 14,
+            'sources' => ['wp-liste-1870', 'normandie-tourisme-monument-critot'],
+            'fr' => 'Quatorze morts selon la liste de Wikipédia et le monument élevé en 1890 ; les premières nouvelles en comptaient 9, 12 ou 15 ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Fourteen dead according to the Wikipedia list and the monument erected in 1890; the first reports gave 9, 12 or 15; the record gave no number of deaths.',
+            'de' => 'Vierzehn Tote nach der Wikipedia-Liste und dem 1890 errichteten Denkmal; die ersten Meldungen nannten 9, 12 oder 15; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

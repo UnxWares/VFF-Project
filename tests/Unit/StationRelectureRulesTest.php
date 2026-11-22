@@ -68,11 +68,11 @@ class StationRelectureRulesTest extends TestCase
             $this->assertSame(StationTimeline::FREIGHT, StationTimeline::statusFromEvents($timeline, 1940, $existsToday));
             $this->assertSame(StationTimeline::FREIGHT, StationTimeline::statusFromEvents($timeline, 1980, $existsToday));
         }
-        // Après la fin du fret : fermée si la gare est encore debout, absente de la carte si elle a disparu.
+        // Après la fin du fret : fermée, encore debout ou disparue (règle du 22/11/2026 : la carte ne la garde qu'à la première ère fermée, BuildStationEras::keepClosedOnlyAtClosingEra).
         $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($timeline, 2000, true));
-        $this->assertNull(StationTimeline::statusFromEvents($timeline, 2000, false));
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($timeline, 2000, false));
         // Sans la règle, la fermeture Wikidata fermait tout en 1938.
-        $this->assertNull(StationTimeline::statusFromEvents(StationTimeline::forTimeline(StationTimeline::dedupeClosures($events)), 1940, false));
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents(StationTimeline::forTimeline(StationTimeline::dedupeClosures($events)), 1940, false));
     }
 
     public function test_freight_later_rule_covers_ohm_ends_wikidata_demolitions_and_a_better_total_closure(): void
@@ -126,7 +126,7 @@ class StationRelectureRulesTest extends TestCase
         $events = [$this->ev('opening', '1900-01-01', 'wikidata'), $this->ev('closure_freight', '2009-11-02', 'wikipedia', 'day'),
             $this->ev('closure_passenger', '2011-12-01', 'wikipedia', 'month')];
         $this->assertSame(StationTimeline::ACTIVE, StationTimeline::statusFromEvents($events, 2010, false));
-        $this->assertNull(StationTimeline::statusFromEvents($events, 2020, false));
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($events, 2020, false));
         $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($events, 2020, true));
         // Gare rouverte ensuite : présente à la réouverture.
         $reopened = [...$events, $this->ev('reopening', '2024-01-01', 'wikidata')];
@@ -188,7 +188,7 @@ class StationRelectureRulesTest extends TestCase
         // Paris-Tolbiac : fermeture voyageurs et fermeture totale le même mois → fermée, pas fret seul.
         $tolbiac = [$this->ev('opening', '1840-01-01', 'wikidata'), $this->ev('closure', '2001-06-01', StationTimeline::CORRECTION, 'month'),
             $this->ev('closure_passenger', '2001-06-01', 'wikipedia', 'month')];
-        $this->assertNull(StationTimeline::statusFromEvents($tolbiac, 2010, false));
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($tolbiac, 2010, false));
         $this->assertSame(StationTimeline::CLOSED, StationTimeline::currentStatus('no_commercial', $tolbiac, '2026-10-20',
             ['status_source' => 'sncf', 'sncf_freight' => true])[0]);
     }

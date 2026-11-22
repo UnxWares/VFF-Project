@@ -1,5 +1,4 @@
 <script>
-    import maplibregl from '$lib/maplibre.js';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
     import { MediaQuery } from 'svelte/reactivity';
@@ -8,6 +7,8 @@
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { applyBasemapTheme, basemapStyle, usesBasemap } from '$lib/basemap.js';
+    import { afterPaint } from '$lib/afterPaint.js';
+    import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { colon, formatNumber } from '$lib/typo.js';
@@ -404,6 +405,13 @@
     let wrapperEl = $state();
     let map = null;
     let popup = null;
+    // MapLibre (environ 1 Mo), chargé après la première peinture de la page (lib/afterPaint.js,
+    // lib/loadMaplibre.js) : le titre, la barre d'outils, la légende et la frise s'affichent sans
+    // l'attendre. Null jusque-là.
+    /** @type {typeof import('maplibre-gl') | null} */
+    let maplibregl = null;
+    // Composant détruit avant l'arrivée de MapLibre : la carte n'est alors jamais créée.
+    let destroyed = false;
 
     const TILES_BASE = '/api/v1/eras';
     const FADE_MS = 350;
@@ -983,6 +991,19 @@
     }
 
     onMount(() => {
+        afterPaint()
+            .then(() => (destroyed ? null : loadMaplibre()))
+            .then((loaded) => {
+                if (!loaded || destroyed) return;
+                maplibregl = loaded;
+                createMap();
+            })
+            // Échec du téléchargement : la place de la carte reste réservée (fond uni), comme hors ligne
+            // sans tuiles ; le reste de la page fonctionne.
+            .catch(() => {});
+    });
+
+    function createMap() {
         appliedView = viewKey(center, zoom);
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
@@ -1029,7 +1050,7 @@
                 map.on('zoomend', () => onZoomChange(map.getZoom()));
             }
         });
-    });
+    }
 
     // Mode d'affichage (légende) : couleur des tracés selon le trafic (couleur propre de
     // chaque couche, relevée à sa création), l'électrification ou l'écartement ; le trait
@@ -1736,6 +1757,7 @@
     $effect(() => applyRoutes(route, earlierRoute));
 
     onDestroy(() => {
+        destroyed = true;
         releasePartialMap?.();
         popup?.remove();
         map?.remove();

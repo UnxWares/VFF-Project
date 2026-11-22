@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de Serquigny du 29 février 1916 (recherche du 21/11/2026).
 return [
     'slug' => '1916-02-29-serquigny',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1916' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche de Genève du 2 mars, d\'après Le Petit Parisien : un général anglais qui voyageait dans l\'un des trains tamponnés en gare de Serquigny a été grièvement blessé.',
         ],
+        'petit-havre-1916-03-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Un terrible tamponnement sur la ligne de Serquigny. Plusieurs de nos concitoyens sont parmi les victimes',
+            'publisher' => 'Le Petit Havre (numérisé par la bibliothèque municipale du Havre, Nutrisco)',
+            'author' => null,
+            'published' => '1916-03-01',
+            'locator' => 'p. 3, col. 1',
+            'url' => 'https://nutrisco-patrimoine.lehavre.fr/ark:/12148/bpt6k172790p/f3.item',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Récit du lendemain : la veille, à 10 h 02, le train 323 de Paris au Havre par Rouen, arrêté derrière un train de marchandises en face de Launay, a été tamponné par un autre express ; deux voitures ont brûlé ; trois morts retirés des décombres, un blessé mort à son arrivée à l\'hôpital de Bernay ; de nombreux blessés, dont huit gravement atteints et un général de l\'armée canadienne.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -143,14 +157,22 @@ return [
                 'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
             ],
             [
-                'fr' => 'La dépêche de Paris du 3 mars confirme les 3 morts de la liste mais compte 18 blessés. Datée du 3 mars, elle place la collision « hier », alors que la liste la date du 29 février, et que les journaux allemands du 3 mars citent déjà Le Petit Parisien.',
-                'en' => 'The Paris dispatch of 3 March confirms the 3 dead of the list but counts 18 injured. Dated 3 March, it places the collision “yesterday”, whereas the list dates it to 29 February, and German papers of 3 March already quote Le Petit Parisien.',
-                'de' => 'Die Pariser Meldung vom 3. März bestätigt die 3 Toten der Liste, zählt aber 18 Verletzte. Sie ist vom 3. März datiert und verlegt den Zusammenstoß auf „gestern“, während die Liste ihn auf den 29. Februar datiert und deutsche Zeitungen vom 3. März bereits den Petit Parisien zitieren.',
-                'sources' => ['ddb-1916-03-03-reichsbote', 'ddb-1916-03-03-bielefelder', 'wp-liste-1916'],
+                'fr' => 'La dépêche de Paris du 3 mars compte 3 morts et 18 blessés et place la collision « hier ». Le Petit Havre du 1er mars la date pourtant de la veille, le 29 février à 10 h 02, comme la liste de Wikipédia : la dépêche est une reprise tardive. Les 3 morts de la liste et de la dépêche sont ceux retirés des décombres ; Le Petit Havre ajoute un blessé mort à l\'hôpital de Bernay, d\'où les quatre morts de l\'article de la gare.',
+                'en' => 'The Paris dispatch of 3 March counts 3 dead and 18 injured and places the collision "yesterday". Le Petit Havre of 1 March, however, dates it the day before, 29 February at 10.02 am, like the Wikipedia list: the dispatch is a late reprint. The 3 dead of the list and the dispatch are those taken from the wreckage; Le Petit Havre adds an injured man who died on arrival at Bernay hospital, hence the four dead in the station article.',
+                'de' => 'Die Pariser Depesche vom 3. März zählt 3 Tote und 18 Verletzte und legt den Zusammenstoß auf „gestern“. Le Petit Havre vom 1. März datiert ihn aber auf den Vortag, den 29. Februar um 10.02 Uhr, wie die Wikipedia-Liste: Die Depesche ist ein verspäteter Nachdruck. Die 3 Toten der Liste und der Depesche sind die aus den Trümmern geborgenen; Le Petit Havre nennt dazu einen Verletzten, der bei der Ankunft im Krankenhaus von Bernay starb, daher die vier Toten im Artikel über den Bahnhof.',
+                'sources' => ['ddb-1916-03-03-reichsbote', 'petit-havre-1916-03-01', 'wp-liste-1916', 'wp-gare-serquigny'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 4,
+            'sources' => ['petit-havre-1916-03-01', 'wp-gare-serquigny'],
+            'fr' => 'Quatre morts : trois retirés des décombres et un blessé mort à son arrivée à l\'hôpital de Bernay, selon Le Petit Havre du 1er mars 1916, comme dans l\'article de Wikipédia sur la gare ; la fiche en comptait trois, d\'après la liste de Wikipédia.',
+            'en' => 'Four dead: three taken from the wreckage and an injured man who died on arrival at Bernay hospital, according to Le Petit Havre of 1 March 1916, as in the Wikipedia article on the station; the record counted three, after the Wikipedia list.',
+            'de' => 'Vier Tote: drei aus den Trümmern geborgen und ein Verletzter, der bei der Ankunft im Krankenhaus von Bernay starb, nach Le Petit Havre vom 1. März 1916, wie im Wikipedia-Artikel über den Bahnhof; der Eintrag zählte nach der Wikipedia-Liste drei.',
+        ],
         [
             'field' => 'kind',
             'value' => 'collision',

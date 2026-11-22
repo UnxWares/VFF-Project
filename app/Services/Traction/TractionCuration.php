@@ -51,7 +51,7 @@ final class TractionCuration
         ], 'note' => 'Wikipédia, Ligne de Puteaux à Issy-Plaine (rév. 241186256) : troisième rail 650 V (1928), 750 V après 1933, fin en 1993'],
     ];
 
-    /** @var array<string, array{year: int, from_mm: int, to_mm: int, note: string}> code RFN => conversion */
+    /** @var array<int, array{year: int, from_mm: int, to_mm: int, note: string}> code RFN => conversion */
     public const GAUGE_CONVERSIONS = [
         // Réseau breton : Carhaix - Guingamp mise à l'écartement standard du 14 février au 3 juillet 1967.
         '485000' => ['year' => 1967, 'from_mm' => 1000, 'to_mm' => 1435, 'note' => 'Wikipédia, Réseau breton § Fin de la voie métrique'],

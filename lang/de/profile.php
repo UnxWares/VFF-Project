@@ -39,6 +39,7 @@ return [
     'rack_braking' => 'Die Zahnstange diente nur zum Bremsen.',
     'rack_not_measured' => 'Das Profil misst ihre Neigung nicht: Die Berechnung verwirft Neigungen über 120 ‰, die keine Adhäsionsbahn erreicht.',
     'rack_source' => 'Größte Neigung laut Wikipedia',
+    'sourced_grade' => 'Das Profil misst diese Neigung hier nicht. Wert aus der Infobox des Wikipedia-Artikels',
     'terrain_legend' => 'Geländehöhe (RGE ALTI), nicht die Gleishöhe',
     'show_table' => 'Höhe der Bahnhöfe (:count)',
     'table_caption' => 'Höhe der Bahnhöfe im Höhenprofil',

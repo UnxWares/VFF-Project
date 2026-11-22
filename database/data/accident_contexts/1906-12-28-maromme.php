@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de deux trains de marchandises en gare de Maromme, ligne de Paris au Havre, de décembre 1906 (recherche du 21/11/2026).
 return [
     'slug' => '1906-12-28-maromme',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1906' => [
             'provider' => 'wikipedia',
@@ -81,9 +81,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La plupart des dépêches allemandes comptent deux cheminots grièvement blessés, d\'autres un seul, comme la liste de Wikipédia.',
-                'en' => 'Most German dispatches count two railwaymen seriously injured, others only one, as does the Wikipedia list.',
-                'de' => 'Die meisten deutschen Meldungen zählen zwei schwer verletzte Eisenbahner, andere wie die Wikipedia-Liste nur einen.',
+                'fr' => 'Deux des dépêches allemandes citées comptent deux cheminots grièvement blessés, la troisième un seul, comme la liste de Wikipédia.',
+                'en' => 'Two of the German dispatches cited count two railwaymen seriously injured, the third only one, as does the Wikipedia list.',
+                'de' => 'Zwei der angeführten deutschen Meldungen zählen zwei schwer verletzte Eisenbahner, die dritte wie die Wikipedia-Liste nur einen.',
                 'sources' => ['ddb-1906-12-29-hannover', 'ddb-1906-12-30-allgemeine', 'ddb-1906-12-30-dorfzeitung', 'wp-liste-1906'],
             ],
         ],
@@ -95,7 +95,7 @@ return [
             'sources' => ['wp-liste-1906', 'ddb-1906-12-29-hannover'],
             'fr' => 'Deux trains de marchandises se sont heurtés, selon la liste de Wikipédia et la presse allemande ; la fiche portait la nature « autre ».',
             'en' => 'Two goods trains collided, according to the Wikipedia list and the German press; the record had the kind "other".',
-            'de' => 'Zwei Güterzüge stießen nach der Wikipedia-Liste und der deutschen Presse zusammen; der Eintrag führte die Art "sonstige".',
+            'de' => 'Zwei Güterzüge stießen nach der Wikipedia-Liste und der deutschen Presse zusammen; der Eintrag führte die Art „sonstige“.',
         ],
         [
             'field' => 'deaths',

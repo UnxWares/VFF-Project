@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement du train de Paris à Saint-Malo entre Vitré et Châteaubourg, du 12 juillet 1878 (recherche du 21/11/2026).
 return [
     'slug' => '1878-07-12-saint-malo',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Dépêche de Paris du 13 juillet (chemin de fer de l\'Ouest)',
+            'title' => 'Ein schweres Eisenbahnunglück',
             'publisher' => 'Hamburgischer Correspondent (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1878-07-16',
@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Eisenbahnunglück auf der Westlinie zwischen Vitré und Châteaubourg',
+            'title' => 'Französische Blätter bringen Näheres über das bereits kurz erwähnte Eisenbahnunglück',
             'publisher' => 'Berliner Börsen-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1878-07-18',
@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Récit du Journal d\'Ille-et-Vilaine sur l\'accident entre Vitré et Châteaubourg',
+            'title' => 'Ueber ein auf der französischen Westeisenbahn zwischen Vitré und Châteaubourg vorgekommenes Eisenbahnunglück',
             'publisher' => 'Großenhainer Unterhaltungs- & Anzeigeblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1878-07-23',
@@ -65,17 +65,17 @@ return [
     'sections' => [
         'circumstances' => [
             [
-                'fr' => 'Le 12 juillet 1878, le train de voyageurs de Paris à Saint-Malo, parti dans la matinée, circulait sur la ligne de Bretagne de la Compagnie de l\'Ouest entre Vitré et Châteaubourg (Ille-et-Vilaine). Le lieu de l\'accident est donc entre ces deux gares, non à Saint-Malo, destination du train.',
-                'en' => 'On 12 July 1878 the passenger train from Paris to Saint-Malo, which had left in the morning, was running on the Compagnie de l\'Ouest Brittany line between Vitré and Châteaubourg (Ille-et-Vilaine). The accident therefore happened between those two stations, not at Saint-Malo, the train\'s destination.',
-                'de' => 'Am 12. Juli 1878 fuhr der am Vormittag in Paris abgefahrene Personenzug nach Saint-Malo auf der Bretagne-Linie der Compagnie de l\'Ouest zwischen Vitré und Châteaubourg (Ille-et-Vilaine). Der Unfall ereignete sich also zwischen diesen beiden Bahnhöfen, nicht in Saint-Malo, dem Ziel des Zuges.',
+                'fr' => 'Le 12 juillet 1878, le train de voyageurs de Paris à Saint-Malo, parti dans la matinée, circulait sur la ligne de Bretagne de la Compagnie de l\'Ouest entre Vitré et Châteaubourg (Ille-et-Vilaine).',
+                'en' => 'On 12 July 1878 the passenger train from Paris to Saint-Malo, which had left in the morning, was running on the Compagnie de l\'Ouest Brittany line between Vitré and Châteaubourg (Ille-et-Vilaine).',
+                'de' => 'Am 12. Juli 1878 fuhr der am Vormittag in Paris abgefahrene Personenzug nach Saint-Malo auf der Bretagne-Linie der Compagnie de l\'Ouest zwischen Vitré und Châteaubourg (Ille-et-Vilaine).',
                 'sources' => ['wp-liste-1870', 'ddb-1878-07-16-hamburger', 'ddb-1878-07-18-boersen'],
             ],
         ],
         'course' => [
             [
-                'fr' => 'La locomotive a quitté les rails dans une courbe, alors que le train roulait à grande vitesse. Les voitures ont été projetées par-dessus la machine, qui s\'est retrouvée derrière elles, et plusieurs ont été détruites. Le télégraphe étant lui aussi endommagé, les secours ont tardé : la nouvelle est arrivée à Rennes peu avant 18 h et un train de secours est parti avec des ouvriers et des médecins. La cause n\'était pas connue au moment des premiers récits.',
-                'en' => 'The locomotive left the rails in a curve while the train was running at speed. The coaches were thrown over the engine, which ended up behind them, and several were wrecked. The telegraph was damaged too, so help was slow: word reached Rennes shortly before 6 pm and a relief train left with workers and doctors. The cause was not known when the first accounts were written.',
-                'de' => 'Die Lokomotive sprang in einer Kurve aus den Schienen, während der Zug mit hoher Geschwindigkeit fuhr. Die Wagen wurden über die Maschine hinausgeschleudert, die dann hinter ihnen lag, und mehrere wurden zertrümmert. Da auch der Telegraf beschädigt war, kam die Hilfe spät: Die Nachricht erreichte Rennes kurz vor 18 Uhr, und ein Hilfszug fuhr mit Arbeitern und Ärzten ab. Die Ursache war bei den ersten Berichten nicht bekannt.',
+                'fr' => 'La locomotive a quitté les rails dans une courbe, alors que le train roulait à grande vitesse. Les voitures ont été projetées par-dessus la machine, qui s\'est retrouvée derrière elles, et plusieurs ont été détruites. Le télégraphe étant lui aussi endommagé, les secours ont tardé : la nouvelle, avec une demande urgente de médecins, est arrivée à Rennes peu avant 18 h, et un train de secours est parti avec de nombreux ouvriers. La cause n\'était pas connue au moment des premiers récits.',
+                'en' => 'The locomotive left the rails in a curve while the train was running at speed. The coaches were thrown over the engine, which ended up behind them, and several were wrecked. The telegraph was damaged too, so help was slow: word reached Rennes shortly before 6 pm with an urgent request for doctors, and a relief train left with many workers. The cause was not known when the first accounts were written.',
+                'de' => 'Die Lokomotive sprang in einer Kurve aus den Schienen, während der Zug mit hoher Geschwindigkeit fuhr. Die Wagen wurden über die Maschine hinausgeschleudert, die dann hinter ihnen lag, und mehrere wurden zertrümmert. Da auch der Telegraf beschädigt war, kam die Hilfe spät: Die Nachricht erreichte Rennes kurz vor 18 Uhr mit der dringenden Bitte um Ärzte, und ein Hilfszug fuhr mit zahlreichen Arbeitern ab. Die Ursache war bei den ersten Berichten nicht bekannt.',
                 'sources' => ['ddb-1878-07-18-boersen', 'ddb-1878-07-23-grossenhain'],
             ],
         ],

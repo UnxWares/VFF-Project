@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Comparison operation "\>" between int\<100, max\> and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 1
-			path: app/Console/Commands/AuditLineCompleteness.php
-
-		-
 			message: '#^Method App\\Console\\Commands\\BuildEraSegments\:\:buildLine\(\) has parameter \$allEras with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
@@ -175,37 +169,7 @@ parameters:
 			path: app/Console/Commands/ImportLignesOubliees.php
 
 		-
-			message: '#^Offset ''length_m'' on array\{name\: string, code\: string\|null, page\: string\|null\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ImportLignesOubliees.php
-
-		-
-			message: '#^Offset ''regions'' on array\{name\: string, code\: string\|null, page\: string\|null\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ImportLignesOubliees.php
-
-		-
-			message: '#^Offset 0 on array\{''''\|''courant''\|''debut''\|''fin''\|''mi''\|''mi\-'', int\<\-1, max\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ImportLignesOubliees.php
-
-		-
-			message: '#^Offset 0 on array\{''''\|''debut''\|''fin''\|''milieu'', int\<\-1, max\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ImportLignesOubliees.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\OutputStyle\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Console/Commands/ImportLignesOubliees.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>textContent" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Console/Commands/ImportLignesOubliees.php
@@ -221,12 +185,6 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: app/Console/Commands/ImportOsmGreenways.php
-
-		-
-			message: '#^Match expression does not handle remaining values\: string\|null$#'
-			identifier: match.unhandled
-			count: 1
-			path: app/Console/Commands/ImportStationClosures.php
 
 		-
 			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(mixed\)\: bool\)\|null, Closure\(mixed\)\: array given\.$#'
@@ -301,24 +259,6 @@ parameters:
 			path: app/Console/Commands/OhmEvents.php
 
 		-
-			message: '#^Comparison operation "\>" between 3000\|9500\|17000\|19000\|20000\|24000\|28000\|30000\|32000\|33000\|34000\|36000\|38000\|40000\|40500\|41500\|42500 and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 1
-			path: app/Services/ConsistencyChecker.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/ConsistencyChecker.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>year" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/ConsistencyChecker.php
-
-		-
 			message: '#^Left side of && is always false\.$#'
 			identifier: booleanAnd.leftAlwaysFalse
 			count: 1
@@ -355,76 +295,16 @@ parameters:
 			path: app/Services/EraTimeline.php
 
 		-
-			message: '#^Anonymous function has an unused use \$headers\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Anonymous function has an unused use \$out\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Anonymous function has an unused use \$pending\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Anonymous function has an unused use \$region\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Offset ''year_to'' on array\{year\: int, precision\: string, date\: string\|null\}\|null on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/Media/CommonsMetadata.php
-
-		-
 			message: '#^Anonymous function has an unused use \$find\.$#'
 			identifier: closure.unusedUse
 			count: 1
 			path: app/Services/NetworkGraph/StationGraph.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>km" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/NetworkStats.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>n" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/NetworkStats.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between numeric\-string and '''' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: app/Services/OhmDate.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between non\-empty\-array\<string, mixed\> and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: app/Services/PassengerPortions.php
 
 		-
 			message: '#^Cannot access property \$id on object\|false\.$#'
@@ -449,60 +329,6 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: app/Services/PathfindingService.php
-
-		-
-			message: '#^Anonymous function has an unused use \$carry\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Anonymous function has an unused use \$rows\.$#'
-			identifier: closure.unusedUse
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Method App\\Services\\SecondaryNetworkParser\:\:articleBack\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Method App\\Services\\SecondaryNetworkParser\:\:splitCellAttributes\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
-
-		-
-			message: '#^Variable \$term on left side of \?\? always exists and is always null\.$#'
-			identifier: nullCoalesce.variable
-			count: 1
-			path: app/Services/SecondaryNetworkParser.php
 
 		-
 			message: '#^If condition is always false\.$#'
@@ -535,12 +361,6 @@ parameters:
 			path: app/Services/SingleAxis.php
 
 		-
-			message: '#^Offset 0 on array\{''''\|''désaffectation''\|''fermeture''\|''suppression'', int\<\-1, max\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/StationClosureParser.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between non\-falsy\-string&numeric\-string and '''' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
@@ -559,76 +379,10 @@ parameters:
 			path: app/Services/TraceSplitter.php
 
 		-
-			message: '#^Comparison operation "\<" between 20000 and 20000 is always false\.$#'
-			identifier: smaller.alwaysFalse
-			count: 1
-			path: app/Services/Traction/ElectrificationTimeline.php
-
-		-
 			message: '#^Negated boolean expression is always true\.$#'
 			identifier: booleanNot.alwaysTrue
 			count: 1
 			path: app/Services/Traction/ElectrificationTimeline.php
-
-		-
-			message: '#^Offset ''voltage_hint'' on array\{date\: string, kind\: string, voltage_v\: null, scope\: ''curated''\|''line''\|''located''\|''neighbour''\|''unlocated''\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/Traction/ElectrificationTimeline.php
-
-		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 2
-			path: app/Services/Traction/ElectrificationTimeline.php
-
-		-
-			message: '#^PHPDoc tag @var for constant App\\Services\\Traction\\TractionCuration\:\:GAUGE_CONVERSIONS with type array\<string, array\{year\: int, from_mm\: int, to_mm\: int, note\: string\}\> is incompatible with value array\{485000\: array\{year\: 1967, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Réseau…''\}, 486000\: array\{year\: 1924, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Ligne de…''\}\}\.$#'
-			identifier: classConstant.phpDocType
-			count: 1
-			path: app/Services/Traction/TractionCuration.php
-
-		-
-			message: '#^Left side of && is always true\.$#'
-			identifier: booleanAnd.leftAlwaysTrue
-			count: 1
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Offset ''list_type'' on array\{section\?\: array\|null, date\?\: array\|null\}\|null on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Offset ''quote'' on array\{from\: non\-falsy\-string, to\: non\-falsy\-string, pk_start\: int\|null, pk_end\: int\|null, whole_line\: bool, other_line\: bool, only_to\: bool, quote\: string\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 7
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Right side of && is always false\.$#'
-			identifier: booleanAnd.rightAlwaysFalse
-			count: 1
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between ''''\|''Réduction de la…'' and ''Déclaration d…'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Services/WikipediaLineParser.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between \*NEVER\* and ''closure'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Services/WikipediaLineParser.php
 
 		-
 			message: '#^Parameter \#1 \$array \(array\{0\: array\{station\: array\{name\: ''Chailly\-Boissy\-Le…''\|''Chauffry''\|''Jouy\-sur\-Morin\-Le…''\|''Saint\-Rémy\-la\-Vanne''\|''St\-Siméon'', uic\: ''87116343''\|''8711635''\|''87116368''\|''8711637''\|''87116384''\}, action\: ''add'', type\: ''closure'', date\: ''2002\-11\-11'', precision\: ''day'', source_url\: non\-falsy\-string, quote\: ''11 novembre 2002 \:…'', reason\: ''gare de la section…''\}, 1\?\: array\{station\: array\{name\: ''Chailly\-Boissy\-Le…''\|''Jouy\-sur\-Morin\-Le…''\|''St\-Siméon'', uic\: ''87116343''\|''87116368''\|''87116384''\}, action\: ''neutralize'', match\: array\{source\: ''wikidata'', type\: ''closure'', date\: ''2011\-12\-31''\}, source_url\: ''https\://www…'', reason\: ''P3999 du 31/12/2011…''\}\}\) of array_values is already a list, call has no effect\.$#'
@@ -691,18 +445,6 @@ parameters:
 			path: tests/Feature/Commands/DryRunCommandsTest.php
 
 		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Feature/Commands/HeritageCatalogCommandTest.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: tests/Feature/Commands/LineSheetCommandsTest.php
-
-		-
 			message: '#^Static method Illuminate\\Http\\Client\\Factory\:\:assertSentCount\(\) invoked with 2 parameters, 1 required\.$#'
 			identifier: arguments.count
 			count: 1
@@ -713,12 +455,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/Feature/Commands/SourceImportCommandsTest.php
-
-		-
-			message: '#^Parameter \#2 \$value of static method Tests\\Feature\\Commands\\WikidataLinesCommandTest\:\:statement\(\) expects array\<string, mixed\>, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Commands/WikidataLinesCommandTest.php
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with 0 and 0 will always evaluate to true\.$#'
@@ -747,12 +483,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\LineGeometry\:\:\$geom\.$#'
 			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Property App\\Models\\LineSegment\:\:\$status \(App\\Enums\\SegmentStatus\) does not accept string\.$#'
-			identifier: assign.propertyType
 			count: 1
 			path: tests/Feature/Models/ModelsTest.php
 
@@ -804,62 +534,3 @@ parameters:
 			count: 1
 			path: tests/Feature/Web/TraceEditorRoutesTest.php
 
-		-
-			message: '#^Offset ''heritage'' on array\{status\: string, traffic\: string, reuse\?\: string\}\|null on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 6
-			path: tests/Unit/EraTimelineHeritageWholeTest.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between null and ''tourist_train'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: tests/Unit/EraTimelineHeritageWholeTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/EraTimelineRulesTest.php
-
-		-
-			message: '#^Offset ''heritage'' does not exist on array\{status\: string, traffic\: string, reuse\?\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: tests/Unit/EraTimelineRulesTest.php
-
-		-
-			message: '#^Offset ''heritage'' does not exist on array\{status\: string, traffic\: string, reuse\?\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: tests/Unit/EraTimelineTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/ExampleTest.php
-
-		-
-			message: '#^Offset ''heritage'' does not exist on array\{status\: string, traffic\: string, reuse\?\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 4
-			path: tests/Unit/HeritageTextTest.php
-
-		-
-			message: '#^Parameter \#3 \$data of method Tests\\Unit\\I18nCheckerDetailsTest\:\:writeLang\(\) expects array\<string, mixed\>, array\<int\|string, array\<string, int\|string\>\|string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Unit/I18nCheckerDetailsTest.php
-
-		-
-			message: '#^Offset ''kind_phrase'' does not exist on array\{raw\: string, clean\: string, places\: array\{''Harbouey''\}, pair\: bool, junk\: bool, generic\: bool, network_label\: bool, gauge\: int\|null, \.\.\.\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: tests/Unit/PlaceNamesTest.php
-
-		-
-			message: '#^Offset ''closed'' does not exist on array\{start\: array\|null, end\: array\|null, events\: list\<array\>, last_start\: array\|null, spread\: int, last_closure\: array\|null, closure_spread\: int, statement\: array\|null, \.\.\.\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: tests/Unit/SecondaryNetworkParserTest.php

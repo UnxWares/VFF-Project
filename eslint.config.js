@@ -45,6 +45,7 @@ export default defineConfig([
             'scripts/**/*.{js,mjs}',
             'resources/docs/**/*.mjs',
             'tests/js/**/*.js',
+            'tests/e2e/**/*.js',
         ],
         languageOptions: {
             globals: { ...globals.node },

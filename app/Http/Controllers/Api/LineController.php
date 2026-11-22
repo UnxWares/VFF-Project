@@ -246,7 +246,9 @@ class LineController extends Controller
      * ligne qui la donne, voir `/events/{id}` ; `null` quand seules les années
      * sont sûres, mêmes règles que la fiche gare ; ex. Saint-Calais sur
      * `lo-507000` : du 31/03/1879, événement 416, au 15/05/1938, événement 417),
-     * `status_today` (`null` : disparue), `eras` : statut à chaque décennie.
+     * `status_today` (`null` : absente de la carte d'aujourd'hui, fermée avant la
+     * décennie en cours ou disparue), `eras` : statut à chaque décennie (`null` :
+     * absente de la carte de l'ère ; une gare fermée n'y figure qu'à l'ère de sa fermeture).
      * **Sections nommées** (`sections`) : PK de début et de fin, années
      * d'ouverture, description, source, et `stages` : les mises en service
      * datées de ses années d'ouverture (`phase` : indice dans `phases`,

@@ -23,6 +23,7 @@ return [
             'bea-tt' => 'BEA-TT (französische Untersuchungsstelle für Landverkehrsunfälle), Licence Ouverte 2.0 (Etalab); Gesamtübersicht der Untersuchungen und Links zu den Berichten, mit dem Aktualisierungsdatum der Übersicht',
             'insee' => 'INSEE, Code officiel géographique (Codes und Namen der französischen Departements und Regionen), Licence Ouverte 2.0',
             'gallica' => 'Quelle: gallica.bnf.fr / BnF; Katalogdaten der Bibliothèque nationale de France, Licence Ouverte, mit dem Abrufdatum (digitalisierte Dokumente: Nutzungsbedingungen von Gallica)',
+            'sncf-archives' => 'Quelle: SNCF, Archiv- und Dokumentationsdienst der SNCF-Gruppe (Datensatz „Archives SNCF“), Open Database License (ODbL); digitalisierte Dokumente: Nutzungsbedingungen von archives.sncf.com',
         ],
     ],
 
@@ -35,6 +36,7 @@ return [
         'station_not_found' => 'Bahnhof nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug search (Vorschläge anbei).',
         'material_not_found' => 'Fahrzeugbaureihe nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search oder materials (Vorschläge anbei).',
         'accident_not_found' => 'Unfall nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug accidents (Filter q).',
+        'journal_not_found' => 'Logbuch-Artikel nicht gefunden: „:query“. Rufen Sie das Werkzeug journal ohne Argumente auf, um die Artikel aufzulisten.',
         'era_not_found' => 'Keine Netzkarte für :year (siehe verfügbare Epochen).',
         'same_era' => 'Beide Jahre liegen in derselben Epoche der Karte (:year): Wählen Sie zwei verschiedene Jahrzehnte (siehe verfügbare Epochen).',
         'graph_not_built' => 'Der Streckengraph dieser Epoche ist noch nicht berechnet: derzeit keine Route möglich.',

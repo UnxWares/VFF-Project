@@ -9,6 +9,7 @@
     import EmptyState from '$components/ui/EmptyState.svelte';
     import Field from '$components/ui/Field.svelte';
     import StationAuditMap from '$components/Validate/StationAuditMap.svelte';
+    import { tableRoles } from '$lib/actions/tableRoles.js';
     import { reportDate } from '$lib/errorReport.js';
     import { formatDistance, formatPk, latestRequest } from '$lib/graphAdmin.js';
     import { i18n } from '$lib/i18n.js';
@@ -491,7 +492,7 @@
                             aria-busy={busy}
                             tabindex="0"
                         >
-                            <table class="vff-table queue">
+                            <table class="vff-table queue" {@attach tableRoles}>
                                 <caption id="audit-queue-caption" class="vff-sr-only">
                                     {A('queue.caption', {
                                         page: num(stations.page),
@@ -1304,8 +1305,13 @@
         .queue td {
             display: block;
         }
+        /* En-tête masqué à la vue seulement : les intitulés restent dans l'arbre d'accessibilité. */
         .queue thead {
-            display: none;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
         }
         .queue tbody {
             display: flex;

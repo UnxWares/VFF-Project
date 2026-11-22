@@ -37,7 +37,8 @@ class StationCoverageRulesTest extends TestCase
         $events = [['type' => 'closure', 'date' => '1938-10-02'], ['type' => 'opening', 'date' => '1881-06-01']];
 
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1900, false));
-        $this->assertNull(T::statusFromEvents($events, 1940, false));
+        // Fermée, même disparue (règle du 22/11/2026 : la carte ne la garde qu'à la première ère fermée, BuildStationEras::keepClosedOnlyAtClosingEra).
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1940, false));
     }
 
     public function test_station_still_standing_today_is_closed_rather_than_gone(): void
@@ -52,7 +53,8 @@ class StationCoverageRulesTest extends TestCase
         $events = [['type' => 'opening', 'date' => '1880-01-01'], ['type' => 'demolition', 'date' => '1950-01-01']];
 
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1940, true));
-        $this->assertNull(T::statusFromEvents($events, 1960, true));
+        // Démolie : fermée, quoi qu'en disent les sources du jour (règle du 22/11/2026 : la carte ne la garde qu'à la première ère fermée, BuildStationEras::keepClosedOnlyAtClosingEra).
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1960, true));
     }
 
     public function test_freight_closure_alone_keeps_passengers(): void
@@ -93,7 +95,7 @@ class StationCoverageRulesTest extends TestCase
 
         $this->assertNull(T::statusFromEvents($events, 1910, false));
         $this->assertSame(T::ACTIVE, T::statusFromEvents($events, 1920, false));
-        $this->assertNull(T::statusFromEvents($events, 1930, false));
+        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1930, false));
     }
 
     public function test_unknown_opening_with_a_passenger_closure(): void

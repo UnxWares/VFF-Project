@@ -4,7 +4,9 @@ namespace App\Services\Archives;
 
 use App\Models\Line;
 use App\Models\LineArchiveDocument;
+use App\Models\LineArchiveRecord;
 use App\Services\Api\Provenance;
+use App\Services\Archives\Sncf\SncfArchivesImporter;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,6 +21,9 @@ final class LineArchives
 {
     /** Mention de source demandée par la BnF, à reproduire avec la date de récupération. */
     public const ATTRIBUTION = 'Source : gallica.bnf.fr / BnF. Métadonnées des notices du catalogue général de la Bibliothèque nationale de France, Licence Ouverte (Etalab).';
+
+    /** Mention des notices des fonds d'archives (jeu de données « Archives SNCF », ODbL). */
+    public const RECORDS_ATTRIBUTION = 'Source : SNCF, Service Archives Documentation du groupe SNCF (jeu de données « Archives SNCF », ressources.data.sncf.com), Open Database License (ODbL).';
 
     public function __construct(private readonly Provenance $provenance) {}
 
@@ -118,5 +123,104 @@ final class LineArchives
     public function provenance(): array
     {
         return $this->provenance->for('line_archive_documents', GallicaImporter::SOURCE);
+    }
+
+    /**
+     * Notices d'inventaire des fonds d'archives (vff:import-sncf-archives), du plus ancien au plus récent.
+     *
+     * @param  ?string  $type  document, image ou video ; null pour tous
+     * @param  ?string  $source  fonds (LineArchiveRecord::SOURCES) ; null pour tous
+     * @return Collection<int, LineArchiveRecord>
+     */
+    public function records(Line $line, ?string $type = null, ?string $source = null): Collection
+    {
+        return $line->archiveRecords()
+            ->when($type !== null, fn ($q) => $q->where('doc_type', $type))
+            ->when($source !== null, fn ($q) => $q->where('source', $source))
+            ->get();
+    }
+
+    /**
+     * Notices des fonds pour la fiche : regroupées quand plusieurs portent le même titre, la même date et le même
+     * type (six photographies d'un même viaduc), avec leurs autres liens ; date de récupération la plus ancienne.
+     *
+     * @return array{total: int, fetched_on: ?string, items: list<array{title: string, type: string, source: string,
+     *     date: ?string, year: ?int, year_to: ?int, exact: ?string, date_precision: string, reference: ?string,
+     *     url: string, more_urls: list<string>}>}
+     */
+    public function recordsForSheet(Line $line): array
+    {
+        $records = $this->records($line);
+        $items = [];
+        foreach ($records as $r) {
+            $key = mb_strtolower($r->title).'|'.$r->date_label.'|'.$r->doc_type;
+            if (isset($items[$key])) {
+                $items[$key]['more_urls'][] = $r->url;
+
+                continue;
+            }
+            $items[$key] = [
+                'title' => $r->title,
+                'type' => $r->doc_type,
+                'source' => $r->source,
+                'date' => $r->date_label,
+                'year' => $r->year,
+                'year_to' => $r->year_to,
+                'exact' => $r->exact_date?->toDateString(),
+                'date_precision' => $r->date_precision,
+                'reference' => $r->reference,
+                'url' => $r->url,
+                'more_urls' => [],
+            ];
+        }
+
+        return [
+            'total' => $records->count(),
+            'fetched_on' => $records->sortBy('fetched_at')->first()?->fetched_at->toDateString(),
+            'items' => array_values($items),
+        ];
+    }
+
+    /**
+     * Une notice dans l'API REST (et l'outil MCP) : fonds, cote, classement, date et précision, lien, raisons du
+     * rattachement.
+     *
+     * @return array<string, mixed>
+     */
+    public function recordToApi(LineArchiveRecord $r): array
+    {
+        return [
+            'source' => $r->source,
+            'reference' => $r->reference,
+            'url' => $r->url,
+            'title' => $r->title,
+            'type' => $r->doc_type,
+            'theme' => $r->theme,
+            'sub_theme' => $r->sub_theme,
+            'holder' => $r->holder,
+            'box' => $r->box,
+            'rights' => $r->rights,
+            'date' => [
+                'label' => $r->date_label,
+                'year' => $r->year,
+                'year_to' => $r->year_to,
+                'exact' => $r->exact_date?->toDateString(),
+                'precision' => $r->date_precision,
+            ],
+            'match' => [
+                'score' => $r->score,
+                'threshold' => ArchiveMatcher::THRESHOLD,
+                'max_score' => ArchiveMatcher::MAX_SCORE,
+                'reasons' => $r->score_reasons,
+                'places' => $r->matched_places,
+            ],
+            'fetched_at' => $r->fetched_at->toIso8601String(),
+        ];
+    }
+
+    /** @return array{provider: ?string, name: ?string, license: ?string, license_status: ?string} */
+    public function recordsProvenance(): array
+    {
+        return $this->provenance->for('line_archive_records', SncfArchivesImporter::SOURCE);
     }
 }

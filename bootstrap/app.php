@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BasemapArchiveController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\LinePortionsController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
@@ -22,6 +23,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -44,6 +46,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->name('basemap.archive');
             // Tracé de la carte d'une fiche de ligne, lu par la page quand la carte s'affiche, sans session ni
             // cookie et gardé en cache par le navigateur (App\Http\Controllers\LinePortionsController).
+            // État détaillé pour un moniteur de disponibilité (Uptime Kuma), jeton HEALTH_TOKEN, sans session
+            // (App\Http\Controllers\HealthController). `/up` reste la sonde simple de Laravel.
+            Route::get('/up/details', HealthController::class)->middleware('throttle:health')->name('health.details');
             Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
                 ->name('lines.portions');
@@ -59,9 +64,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Pages publiques qu'un visiteur non connecté peut relire hors ligne (service worker).
             MarkOfflineReadable::class,
         ]);
-        // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy. En tête du
-        // groupe web pour couvrir aussi les 404 de liaison de modèle et les 419.
-        $middleware->web(prepend: [SecurityHeaders::class]);
+        // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy, Permissions-Policy, HSTS. Dans la pile
+        // globale pour couvrir toutes les familles de réponses (web, API, GraphQL, MCP, dictionnaires, fond
+        // de carte, tracés) et aussi les 404 de liaison de modèle, les 419 et les 429 du limiteur.
+        $middleware->prepend(SecurityHeaders::class);
 
         // API publique : erreurs de validation en anglais (pas de langue de page).
         $middleware->api(prepend: [ApiLocale::class]);
@@ -84,6 +90,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(AuthenticatesRequests::class, AuthenticateApiToken::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Envoi des erreurs à un outil auto-hébergé qui parle le protocole Sentry (GlitchTip, Bugsink),
+        // seulement si SENTRY_LARAVEL_DSN est renseigné (config/sentry.php, docs/SUIVI-ERREURS.md).
+        Integration::handles($exceptions);
+
         // L'API REST répond toujours en JSON (validation 422, 404, 429, 500), quel que soit l'en-tête
         // Accept : sans cela, un paramètre invalide sans `Accept: application/json` redirigeait vers l'accueil.
         // Les pages web, /graphql et /mcp ne sont pas concernés.

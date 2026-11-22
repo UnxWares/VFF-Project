@@ -3,7 +3,7 @@
 // Contexte sourcé du heurtoir enfoncé par un express venant de Paris en gare du Havre, de juin 1907 (recherche du 21/11/2026).
 return [
     'slug' => '1907-06-17-le-havre',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1907' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même dépêche, datée du 21 juin : l\'express n° 145 arrivant de Paris, freins défaillants « la nuit dernière », heurtoir détruit, locomotive enfoncée dans les locaux de la douane, dix voyageurs blessés.',
         ],
+        'petit-havre-1907-06-18' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Un accident en gare. Un train qui dépasse le but. Sauve qui peut. Dix blessés',
+            'publisher' => 'Le Petit Havre (numérisé par la bibliothèque municipale du Havre, Nutrisco)',
+            'author' => null,
+            'published' => '1907-06-18',
+            'locator' => 'p. 2',
+            'url' => 'https://nutrisco-patrimoine.lehavre.fr/ark:/12148/bd6t56883958/f2.item',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Le journal du Havre du mardi 18 juin rapporte l\'accident survenu « cette nuit, vers minuit », en gare du Havre : l\'express no 145 de dix véhicules, parti de Paris à 7 h 52 du soir, a dépassé le but ; dix blessés.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -67,10 +81,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Date : la liste de Wikipédia donne le 17 juin 1907. Les dépêches allemandes, datées du Havre les 20 et 21 juin, placent l\'accident « la nuit dernière », donc dans la nuit du 19 au 20 ou du 20 au 21 juin.',
-                'en' => 'Date: the Wikipedia list gives 17 June 1907. The German dispatches, datelined Le Havre on 20 and 21 June, place the accident "last night", so in the night of 19 to 20 or 20 to 21 June.',
-                'de' => 'Datum: Die Wikipedia-Liste nennt den 17. Juni 1907. Die deutschen Meldungen aus Le Havre vom 20. und 21. Juni legen den Unfall in die „vergangene Nacht“, also in die Nacht zum 20. oder zum 21. Juni.',
-                'sources' => ['wp-liste-1907', 'ddb-1907-06-21-koeln', 'ddb-1907-06-22-hamburg'],
+                'fr' => 'Les dépêches allemandes, datées du Havre les 20 et 21 juin, placent l\'accident « la nuit dernière ». Le Petit Havre du mardi 18 juin le rapporte déjà, survenu « cette nuit, vers minuit » : la date du 17 juin, donnée par la liste de Wikipédia, est la bonne, et les dépêches allemandes sont des reprises tardives.',
+                'en' => 'The German dispatches, dated from Le Havre on 20 and 21 June, place the accident "last night". Le Petit Havre of Tuesday 18 June already reports it as having happened "tonight, around midnight": the date of 17 June given by the Wikipedia list is correct, and the German dispatches are late reprints.',
+                'de' => 'Die deutschen Depeschen, datiert aus Le Havre vom 20. und 21. Juni, legen den Unfall auf „letzte Nacht“. Le Petit Havre vom Dienstag, dem 18. Juni, meldet ihn aber schon als „heute Nacht gegen Mitternacht“ geschehen: Das Datum der Wikipedia-Liste, der 17. Juni, stimmt, die deutschen Depeschen sind verspätete Nachdrucke.',
+                'sources' => ['ddb-1907-06-21-koeln', 'petit-havre-1907-06-18', 'wp-liste-1907'],
             ],
         ],
     ],

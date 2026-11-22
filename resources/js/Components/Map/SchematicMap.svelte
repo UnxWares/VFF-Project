@@ -1,10 +1,10 @@
 <script>
-    import maplibregl from '$lib/maplibre.js';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount, untrack } from 'svelte';
     import { get } from 'svelte/store';
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
+    import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { MAP_GLYPHS } from '$lib/offlineMap.svelte.js';
     import { mapControlsLocale } from '$lib/mapControls.js';
@@ -66,6 +66,11 @@
     /** @type {import('maplibre-gl').Map | null} */
     let map = null;
     let popup = null;
+    // MapLibre, chargé à l'ouverture de la vue (lib/loadMaplibre.js, déjà là si la carte l'a chargé).
+    /** @type {typeof import('maplibre-gl') | null} */
+    let maplibregl = null;
+    // Composant détruit avant l'arrivée de MapLibre : le plan n'est alors jamais créé.
+    let destroyed = false;
     // Style prêt (source et couches ajoutées) : les effets ne touchent pas la carte avant.
     let ready = $state(false);
     // loading | ready | error
@@ -184,6 +189,16 @@
     }
 
     onMount(() => {
+        loadMaplibre()
+            .then((loaded) => {
+                if (destroyed) return;
+                maplibregl = loaded;
+                createMap();
+            })
+            .catch(() => {});
+    });
+
+    function createMap() {
         const dark = theme.isDark;
         const w = container.clientWidth;
         const h = container.clientHeight;
@@ -241,9 +256,10 @@
             );
             ready = true;
         });
-    });
+    }
 
     onDestroy(() => {
+        destroyed = true;
         popup?.remove();
         map?.remove();
         map = null;

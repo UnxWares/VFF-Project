@@ -64,6 +64,7 @@ return [
             'lignes_oubliees' => 'L. Dagallier: dates and kilometre points of vanished lines',
             'wikipedia' => 'Line and rolling stock histories',
             'gallica' => 'Catalogue records of digitised documents about a line (Open Licence), with a link to Gallica; no images reused',
+            'sncf_archives' => 'Records of files, photographs and films from the SNCF group archives that refer to a line (ODbL), with a link to archives.sncf.com; no description or image reused',
         ],
         'ai' => [
             'title' => 'Routes realigned by a neural network',
@@ -124,6 +125,8 @@ return [
             'home_map_text' => 'Cropped, sepia-toned detail of the “Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs” (special railway map of France and Germany for travellers), drawn by Alexandre Vuillemin and published by A. Logerot (Paris, 1865). Copy held by the Library of Congress (Washington), public domain.',
             'gallica_title' => 'BnF Gallica',
             'gallica_text' => 'Digitised documents about a line: project reports, plans, photographs. VFF only reuses their catalogue record (title, date, shelfmark; Open Licence) and links to Gallica to view them. The documents themselves can be reused under the BnF’s conditions.',
+            'sncf_archives_title' => 'SNCF archives',
+            'sncf_archives_text' => 'Files, photographs and films from the SNCF group archives whose title refers to a line. VFF reuses their record (title, date, file number; dataset under the ODbL) and links to archives.sncf.com to view them.',
             'commons_title' => 'Wikipedia and Wikimedia Commons',
             'commons_text' => 'Archive photographs and illustrations, each under its own licence (most often CC BY-SA).',
             'contributors_title' => 'VFF contributors',

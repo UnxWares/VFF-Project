@@ -11,13 +11,16 @@ namespace App\Services;
  *                 voyageur, il y a du fret ») ;
  *   tourist       ouverte, ligne touristique ;
  *   no_commercial fret seul : plus de voyageurs, fret sur une ligne en service ;
- *   declassified  fermée (la gare existe encore mais n'est plus desservie) ;
- *   null          la gare n'existe pas à cette date (pas encore ouverte, ou
- *                 fermée définitivement / démolie).
+ *   declassified  fermée (plus aucun trafic, qu'elle soit encore debout,
+ *                 démolie ou réutilisée) ;
+ *   null          la gare n'existe pas encore à cette date.
  *
  * Règle d'existence : ouverture ≤ année < fermeture (années civiles). Une gare
  * dont on ne connaît que la fermeture est montrée dans la seule décennie qui
- * la précède (ouverture inconnue mais antérieure).
+ * la précède (ouverture inconnue mais antérieure). Après sa fermeture, la
+ * chronologie la dit « fermée » à toutes les années ; vff:build-station-eras ne
+ * garde ensuite que la première ère fermée et retire la gare des ères
+ * suivantes (règle de Baptiste du 22/11/2026, BuildStationEras::keepClosedOnlyAtClosingEra).
  */
 final class StationTimeline
 {
@@ -75,7 +78,6 @@ final class StationTimeline
                 break;
             }
             $later = array_slice($events, $i + 1);
-            $reopensLater = (bool) array_filter($later, fn ($x) => in_array($x['type'], ['opening', 'reopening'], true));
             switch ($e['type']) {
                 case 'opening':
                 case 'reopening':
@@ -83,33 +85,25 @@ final class StationTimeline
                     break;
                 case 'closure_passenger':
                     $passenger = false;
-                    // Sans suite connue (ni fermeture totale, ni réouverture) et
-                    // disparue aujourd'hui : la fermeture aux voyageurs clôt
-                    // l'existence connue de la gare.
+                    // Sans suite connue (ni fermeture totale, ni fin du fret, ni réouverture) et
+                    // disparue aujourd'hui : la fermeture aux voyageurs clôt la vie connue de la
+                    // gare, elle est fermée (pas « fret seul » jusqu'à aujourd'hui).
                     $hasSequel = (bool) array_filter($later, fn ($x) => in_array($x['type'], ['closure', 'closure_freight', 'demolition', 'opening', 'reopening'], true));
                     if (! $existsToday && ! $hasSequel) {
-                        $exists = false;
-                    }
-                    // Fret déjà fermé : plus aucun trafic, comme une fermeture totale.
-                    if (! $freight) {
-                        $exists = $existsToday || $reopensLater;
+                        $freight = false;
                     }
                     break;
                 case 'closure_freight':
+                    // Fin du fret après celle des voyageurs (Livarot : 1938 puis 30/09/1990) :
+                    // plus aucun trafic, la gare est fermée, comme une fermeture totale.
                     $freight = false;
-                    // Fin du fret après celle des voyageurs (Livarot : 1938 puis 30/09/1990) : plus
-                    // aucun trafic, la gare est fermée, et une gare disparue sort de la carte.
-                    if (! $passenger) {
-                        $exists = $existsToday || $reopensLater;
-                    }
                     break;
                 case 'closure':
-                    [$passenger, $freight] = [false, false];
-                    $exists = $existsToday || $reopensLater;
-                    break;
                 case 'demolition':
+                    // Fermée, qu'elle soit encore debout, démolie ou réutilisée : la carte la
+                    // montre fermée à la première ère qui suit, puis plus du tout
+                    // (BuildStationEras::keepClosedOnlyAtClosingEra) ; une réouverture la remet.
                     [$passenger, $freight] = [false, false];
-                    $exists = $reopensLater;
                     break;
             }
         }

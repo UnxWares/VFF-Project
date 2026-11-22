@@ -15,6 +15,7 @@ use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LineStoryController;
 use App\Http\Controllers\LocaleController;
@@ -88,6 +89,14 @@ Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contrib
 Route::get('/contribute/reputation', fn (ReputationLevels $levels) => Inertia::render('Contribute/Reputation', ['levels' => $levels->all()]))->name('contribute.reputation');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
+// Journal de bord : articles Markdown versionnés (resources/content/journal), flux Atom et RSS, plan du site.
+Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
+Route::get('/journal/atom.xml', [JournalController::class, 'atom'])->name('journal.atom');
+Route::get('/journal/rss.xml', [JournalController::class, 'rss'])->name('journal.rss');
+Route::get('/journal/sitemap.xml', [JournalController::class, 'sitemap'])->name('journal.sitemap');
+Route::get('/journal/{slug}', [JournalController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('journal.show');
+Route::get('/sitemap.xml', [JournalController::class, 'sitemapIndex'])->name('sitemap');
+
 Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
 // Date de la version en vigueur (config/legal.php), affichée en haut de la page.
 Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDocument::Privacy->currentVersion()]))->name('privacy');
@@ -150,16 +159,16 @@ Route::middleware('iframe.embed')->prefix('embed')->name('embed.')->group(functi
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth-login-ip');
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth-register-ip');
 
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:auth-password-ip')->name('password.email');
 
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:auth-password-ip')->name('password.update');
 });
 
 Route::middleware('auth')->group(function (): void {

@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'une rame de coke sur le chemin de fer de ceinture de Nancy, près de Jarville, de septembre 1907 (recherche du 21/11/2026).
 return [
     'slug' => '1907-09-01-jarville-la-malgrange',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1907' => [
             'provider' => 'wikipedia',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Provinciale Noordbrabantsche en \'s-Hertogenbossche courant du 3 septembre 1907',
+            'title' => 'Laatste berichten. Derailiement',
             'publisher' => 'Provinciale Noordbrabantsche en \'s-Hertogenbossche courant',
             'author' => null,
             'published' => '1907-09-03',
@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Het huisgezin du 3 septembre 1907',
+            'title' => 'Buitenland. Frankrijk',
             'publisher' => 'Het huisgezin',
             'author' => null,
             'published' => '1907-09-03',
@@ -67,9 +67,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Date : la liste de Wikipédia et la brève du 3 septembre qui dit « hier » placent l\'accident le dimanche 1er septembre ou le 2 ; Het huisgezin parle de samedi, soit le 31 août.',
-                'en' => 'Date: the Wikipedia list and the item of 3 September saying "yesterday" place the accident on Sunday 1 September or on the 2nd; Het huisgezin says Saturday, which was 31 August.',
-                'de' => 'Datum: Die Wikipedia-Liste und die Kurzmeldung vom 3. September („gestern“) legen den Unfall auf Sonntag, den 1. September, oder den 2.; Het huisgezin nennt Samstag, also den 31. August.',
+                'fr' => 'Date : le dimanche 1er septembre selon la liste de Wikipédia ; « hier », soit le 2 septembre, dans la brève de la Provinciale Noordbrabantsche du 3 septembre ; samedi, soit le 31 août, dans Het huisgezin.',
+                'en' => 'Date: Sunday 1 September according to the Wikipedia list; "yesterday", that is 2 September, in the Provinciale Noordbrabantsche item of 3 September; Saturday, that is 31 August, in Het huisgezin.',
+                'de' => 'Datum: Sonntag, der 1. September, nach der Wikipedia-Liste; „gestern“, also der 2. September, in der Kurzmeldung der Provinciale Noordbrabantsche vom 3. September; Samstag, also der 31. August, in Het huisgezin.',
                 'sources' => ['wp-liste-1907', 'noordbrabantsche-1907-09-03', 'huisgezin-1907-09-03'],
             ],
         ],

@@ -7,6 +7,8 @@ use App\Models\Accident;
 use App\Models\Line;
 use App\Services\Accidents\AccidentCandidate;
 use App\Services\Accidents\AccidentImporter;
+use App\Services\Accidents\AccidentSlugTable;
+use App\Services\Accidents\ManualAccidentCollector;
 use App\Services\Accidents\WikipediaEditionCollector;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -74,6 +76,9 @@ class ImportAccidentsCommandTest extends TestCase
 
         $this->fakeSources();
         $this->cacheBeaTtConversion();
+        // Ni fiche rédigée à la main ni nom retenu des données réelles : les tests qui en veulent les posent.
+        $this->app->instance(ManualAccidentCollector::class, new ManualAccidentCollector([]));
+        $this->app->instance(AccidentSlugTable::class, new AccidentSlugTable([]));
     }
 
     public function test_imports_merges_and_links_accidents(): void
@@ -203,7 +208,7 @@ class ImportAccidentsCommandTest extends TestCase
         $this->artisan('vff:import-accidents', ['--report' => $path])->assertSuccessful();
 
         $report = json_decode((string) File::get($path), true);
-        $this->assertSame(['wikidata' => 1, 'bea-tt' => 2, 'wikipedia-list' => 0, 'wikipedia-editions' => 0], $report['collected']);
+        $this->assertSame(['wikidata' => 1, 'bea-tt' => 2, 'wikipedia-list' => 0, 'wikipedia-editions' => 0, 'manual' => 0], $report['collected']);
         $this->assertSame(1, $report['merged']);
         $this->assertArrayHasKey('2026-01-11-millas', $report['toReview']);
         $this->assertSame(['outside_france' => 1, 'other_mode' => 1], $report['rejected']['bea-tt']);
@@ -449,6 +454,62 @@ class ImportAccidentsCommandTest extends TestCase
             "Liste d'accidents ferroviaires en France" => ['title' => "Liste d'accidents ferroviaires en France", 'revid' => 240000000, 'content' => $home],
             "Liste d'accidents ferroviaires en France dans les années 2010" => ['title' => "Liste d'accidents ferroviaires en France dans les années 2010", 'revid' => 240000001, 'content' => $decade],
         ];
+    }
+
+    public function test_an_import_on_an_empty_base_gives_the_retained_slugs_and_an_existing_base_is_left_alone(): void
+    {
+        $this->app->instance(AccidentSlugTable::class, new AccidentSlugTable([
+            ['key' => 'wikidata:Q45757847', 'from' => '2017-12-14-millas', 'slug' => '2017-12-13-saint-feliu-davall', 'reason' => 'date et commune corrigées'],
+            // Fiche absente des sources : son ancien nom reste pourtant réservé.
+            ['key' => 'wikidata:Q0', 'from' => '2026-01-11-millas', 'slug' => '2026-01-11-bompas', 'reason' => 'commune corrigée'],
+        ]));
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $this->assertSame('2017-12-13-saint-feliu-davall', $millas->slug);
+        $this->assertSame(['2017-12-13-saint-feliu-davall'], Accident::query()->where('wikidata_id', 'Q45757847')->pluck('slug')->all());
+        $other = Accident::query()->whereNull('wikidata_id')->firstOrFail();
+        // Un ancien nom n'est plus donné à une autre fiche.
+        $this->assertSame('2026-01-11-millas-2', $other->slug);
+        $slugs = Accident::query()->pluck('slug', 'id')->all();
+
+        // Base existante : le slug n'est jamais recalculé, même si la table change.
+        $this->app->instance(AccidentSlugTable::class, new AccidentSlugTable([
+            ['key' => 'wikidata:Q45757847', 'from' => '2017-12-14-millas', 'slug' => '2017-12-14-autre', 'reason' => 'x'],
+        ]));
+        $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame($slugs, Accident::query()->pluck('slug', 'id')->all());
+    }
+
+    public function test_a_hand_written_record_is_imported_as_one_more_source(): void
+    {
+        $record = [
+            'id' => '2012-06-20-millas', 'date' => '2012-06-20', 'commune' => 'Millas', 'department' => '66', 'kind' => 'collision',
+            'deaths' => 5, 'injuries' => null, 'line_articles' => ['Ligne de Perpignan à Villefranche-Vernet-les-Bains'],
+            'source' => ['provider' => 'delpher', 'title' => 'Gemengde berigten', 'url' => 'https://resolver.kb.nl/resolve?urn=X', 'licence' => 'Faits seulement', 'published' => '1872-06-24'],
+        ];
+        $this->app->instance(ManualAccidentCollector::class, new ManualAccidentCollector([$record]));
+
+        $this->artisan('vff:import-accidents', ['--only' => ['manual']])->assertSuccessful();
+
+        $accident = Accident::query()->whereDate('occurred_on', '2012-06-20')->firstOrFail();
+        $this->assertSame('2012-06-20-millas', $accident->slug);
+        $this->assertSame('collision', $accident->kind->value);
+        $this->assertSame(5, $accident->deaths);
+        $this->assertSame('manual', $accident->toll_source);
+        $this->assertSame('https://resolver.kb.nl/resolve?urn=X', $accident->toll_source_url);
+        $this->assertSame('to_review', $accident->review_status->value);
+        $this->assertContains('place_from_manual', array_column($accident->review_notes ?? [], 'code'));
+        $this->assertSame('66108', $accident->commune_insee);
+        $source = $accident->sources()->firstOrFail();
+        $this->assertSame(['delpher', 'press', '2012-06-20-millas'], [$source->provider, $source->role, $source->external_id]);
+        $this->assertSame($this->line->id, $accident->lineLinks()->firstOrFail()->line_id);
+
+        // Idempotent : rien n'est créé ni dupliqué.
+        $this->artisan('vff:import-accidents', ['--only' => ['manual'], '--offline' => true])->assertSuccessful();
+        $this->assertSame(1, Accident::count());
+        $this->assertSame(1, $accident->sources()->count());
     }
 
     private function fakeSources(): void

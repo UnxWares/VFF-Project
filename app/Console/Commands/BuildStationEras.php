@@ -59,6 +59,10 @@ use Symfony\Component\Process\Process;
  * 5. line_stops : rattachements (station_lines) dont la période couvre l'ère,
  *    gare présente à l'ère, ligne en service près de la gare si l'ère a des
  *    tronçons ; ordre = PK.
+ * 6. Gare fermée (règle du 22/11/2026, keepClosedOnlyAtClosingEra) : montrée
+ *    « fermée » à la seule ère de sa fermeture, puis retirée des ères
+ *    suivantes (debout, démolie ou réutilisée) jusqu'à une réouverture ; elle
+ *    reste dans la section des gares et dans la liste des gares de sa ligne.
  *
  * --parallel=N : les dates déduites sont calculées une fois, puis chaque ère
  * (station_eras + line_stops) est traitée par un processus enfant
@@ -325,6 +329,7 @@ class BuildStationEras extends Command
             $this->resolveClosures();
             $this->alignErasWithClosure();
             $this->reconcileServiceYears();
+            $this->keepClosedOnlyAtClosingEra();
         }
 
         return self::SUCCESS;
@@ -395,6 +400,7 @@ class BuildStationEras extends Command
             $this->resolveClosures();
             $this->alignErasWithClosure();
             $this->reconcileServiceYears();
+            $this->keepClosedOnlyAtClosingEra();
         }
 
         return $failed === [] ? self::SUCCESS : self::FAILURE;
@@ -512,18 +518,67 @@ class BuildStationEras extends Command
                    OR (sl.first_year IS NOT NULL AND sl.first_year > e.year AND NOT e.is_current))
         SQL);
         if ($stops > 0) {
-            // Arrêts restants renumérotés et extrémités recalculées, comme buildLineStops : sinon l'API exposait
-            // des positions à trous et une ligne sans gare d'extrémité quand l'arrêt retiré en était une.
-            DB::statement(<<<'SQL'
-                UPDATE line_stops ls SET position = r.position, is_terminal = r.is_terminal
-                FROM (SELECT id, ROW_NUMBER() OVER w - 1 AS position,
-                             COUNT(*) OVER (PARTITION BY line_id, era_id) > 1
-                             AND (ROW_NUMBER() OVER w = 1 OR ROW_NUMBER() OVER w = COUNT(*) OVER (PARTITION BY line_id, era_id)) AS is_terminal
-                      FROM line_stops WINDOW w AS (PARTITION BY line_id, era_id ORDER BY pk_m, station_id)) r
-                WHERE r.id = ls.id AND (ls.position IS DISTINCT FROM r.position OR ls.is_terminal IS DISTINCT FROM r.is_terminal)
-            SQL);
+            $this->renumberLineStops();
         }
         $this->info("Années de desserte bornées par les dates des gares : {$first} débuts, {$last} fins, {$never} jamais desservies ; {$stops} arrêts hors période retirés");
+    }
+
+    /**
+     * Arrêts restants renumérotés et extrémités recalculées, comme buildLineStops : sinon l'API exposait
+     * des positions à trous et une ligne sans gare d'extrémité quand l'arrêt retiré en était une.
+     */
+    private function renumberLineStops(): void
+    {
+        DB::statement(<<<'SQL'
+            UPDATE line_stops ls SET position = r.position, is_terminal = r.is_terminal
+            FROM (SELECT id, ROW_NUMBER() OVER w - 1 AS position,
+                         COUNT(*) OVER (PARTITION BY line_id, era_id) > 1
+                         AND (ROW_NUMBER() OVER w = 1 OR ROW_NUMBER() OVER w = COUNT(*) OVER (PARTITION BY line_id, era_id)) AS is_terminal
+                  FROM line_stops WINDOW w AS (PARTITION BY line_id, era_id ORDER BY pk_m, station_id)) r
+            WHERE r.id = ls.id AND (ls.position IS DISTINCT FROM r.position OR ls.is_terminal IS DISTINCT FROM r.is_terminal)
+        SQL);
+    }
+
+    /**
+     * Gare fermée sur la carte des époques (règle de Baptiste du 22/11/2026) : « marquée comme fermée dans
+     * la décennie où elle ferme puis enlevée sur les décennies suivantes même si toujours debout ». Une
+     * ère est l'état au 31/12 de son année : la gare est fermée à la première ère qui suit sa fermeture
+     * (fermeture totale, fin du fret après celle des voyageurs, démolition, lignes toutes fermées,
+     * plus exploitée…), puis absente des ères suivantes, qu'elle soit debout, démolie ou réutilisée. Une
+     * gare fret seul reste montrée tant qu'elle a du fret. Rouverte, elle revient à l'ère de sa
+     * réouverture (ère ouverte), et la règle repart de là. Une gare jamais montrée ouverte garde sa
+     * première ère fermée.
+     *
+     * Toutes les ères sont relues : cette étape suit le calcul de chaque ère (processus enfants de
+     * --parallel) et la date de fermeture retenue (resolveClosures lit la frise complète). Les arrêts
+     * de ligne (line_stops) des ères retirées partent avec. La gare reste dans la section des gares, sa
+     * fiche (dates, stations.status) et la liste des gares de sa ligne (LineStations : station_lines).
+     */
+    private function keepClosedOnlyAtClosingEra(): void
+    {
+        [$eras, $stops] = DB::transaction(function (): array {
+            $eras = DB::affectingStatement(<<<'SQL'
+                DELETE FROM station_eras se USING (
+                    SELECT se.id, se.status,
+                           MAX(CASE WHEN se.status <> 'declassified' THEN e.year END) OVER w AS last_open,
+                           MAX(CASE WHEN se.status = 'declassified' THEN e.year END) OVER w AS last_closed
+                    FROM station_eras se JOIN eras e ON e.id = se.era_id
+                    WINDOW w AS (PARTITION BY se.station_id ORDER BY e.year ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)
+                ) f
+                WHERE f.id = se.id AND f.status = 'declassified' AND f.last_closed IS NOT NULL
+                  AND (f.last_open IS NULL OR f.last_open < f.last_closed)
+            SQL);
+            $stops = $eras === 0 ? 0 : DB::affectingStatement(<<<'SQL'
+                DELETE FROM line_stops ls
+                WHERE NOT EXISTS (SELECT 1 FROM station_eras se WHERE se.station_id = ls.station_id AND se.era_id = ls.era_id)
+            SQL);
+            if ($stops > 0) {
+                $this->renumberLineStops();
+            }
+
+            return [$eras, $stops];
+        });
+        $this->info("Gares fermées montrées à la seule ère de leur fermeture : {$eras} couples gare × ère suivants retirés, {$stops} arrêts de ligne avec");
     }
 
     /**

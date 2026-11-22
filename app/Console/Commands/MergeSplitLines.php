@@ -19,12 +19,18 @@ use Illuminate\Support\Facades\DB;
  *    (« Ligne de X à Y », sans code) est fusionnée dans une ligne existante
  *    « Ligne de A à Y » si TOUT est vrai :
  *      - elles partagent le terminus d'arrivée Y (ou l'origine : « Mézidon à Dives »,
- *        première section de « Mézidon à Trouville-Deauville », 2026-10-19) ;
+ *        première section de « Mézidon à Trouville-Deauville », 2026-10-19), ou la
+ *        section est nommée dans l'autre sens : son origine est l'arrivée de la ligne
+ *        (« Abbeville à Saint-Pol », section de « Fives à Abbeville ») ou son arrivée en
+ *        est l'origine (« Bressuire à Parthenay », section de « Neuville-de-Poitou à
+ *        Bressuire », 2026-11-22) ;
  *      - le tracé de la ligne existante est incomplet (< 85 % de sa longueur officielle) ;
  *      - la ligne créée touche une EXTRÉMITÉ de ce tracé (< 300 m) ;
  *      - les deux longueurs additionnées retrouvent la longueur officielle (± 15 %) ;
- *      - l'autre extrémité de la section (X, ou Y si l'origine est partagée) est un
- *        lieu de la ligne existante (nom, gares).
+ *      - l'autre extrémité de la section (celle que les deux lignes ne partagent pas)
+ *        est un lieu de la ligne existante (nom, gares).
+ *    « au » et « aux » valent « à le » et « à les » dans les deux noms (« Ligne de
+ *    Port-de-Piles au Blanc », section de « Port-de-Piles à Argenton-sur-Creuse »).
  *
  * 2. MÊME ARTICLE (article) : une ligne créée par vff:link-traces (sans code)
  *    porte le même article Wikipédia qu'une ligne à code, de même catégorie,
@@ -168,45 +174,71 @@ class MergeSplitLines extends Command
 
     private function sections(): void
     {
-        $pairs = DB::select(<<<'SQL'
+        // « au » et « aux » contractent « à le » et « à les » : ramenés à « à » pour le découpage, dans les deux noms
+        // (« Ligne de Port-de-Piles au Blanc », « Ligne de Laon au Cateau »), seulement quand le nom n'a pas de « à ».
+        $named = "CASE WHEN l.name LIKE '% à %' THEN l.name
+                       WHEN l.name LIKE '% aux %' THEN regexp_replace(l.name, '\\s+aux\\s+', ' à les ')
+                       WHEN l.name LIKE '% au %' THEN regexp_replace(l.name, '\\s+au\\s+', ' à le ')
+                       ELSE l.name END";
+        // La ligne existante part de $place (« Ligne de/d'/du/des/de la $place à … ») ou y arrive.
+        $from = fn (string $place) => "(e.uname LIKE 'ligne de ' || {$place} || ' a %' OR e.uname LIKE 'ligne d''' || {$place} || ' a %'
+                OR e.uname LIKE 'ligne du ' || {$place} || ' a %' OR e.uname LIKE 'ligne des ' || {$place} || ' a %'
+                OR e.uname LIKE 'ligne de la ' || {$place} || ' a %')";
+        $to = fn (string $place) => "e.uname LIKE '% a ' || {$place} || '%'";
+        $pairs = DB::select(<<<SQL
             WITH created AS (
                 SELECT l.id, l.name, r.geom, r.length_m,
-                       lower(unaccent(split_part(l.name, ' à ', 2))) AS dest,
-                       lower(unaccent(regexp_replace(split_part(l.name, ' à ', 1), '^Ligne (de la |de l''|du |des |de |d'')', ''))) AS orig
+                       lower(unaccent(split_part({$named}, ' à ', 2))) AS dest,
+                       lower(unaccent(regexp_replace(split_part({$named}, ' à ', 1), '^Ligne (de la |de l''|du |des |de |d'')', ''))) AS orig
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND l.name LIKE '% à %'
+                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND {$named} LIKE '% à %'
             ),
             existing AS (
                 SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m,
-                       lower(unaccent(l.name)) AS uname
+                       lower(unaccent({$named})) AS uname
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
                 WHERE l.slug NOT LIKE 'archeo-%' AND l.length_official_m > 0
                   AND r.length_m < 0.85 * l.length_official_m
             )
             SELECT DISTINCT ON (c.id) c.id AS created_id, c.name AS created_name, ROUND(c.length_m / 1000.0, 1) AS created_km,
                    e.id AS target_id, e.name AS target_name, ROUND(e.length_m / 1000.0, 1) AS target_km, ROUND(e.off / 1000.0, 1) AS official_km,
-                   (c.dest <> '' AND e.uname LIKE '% a ' || c.dest || '%') AS by_dest
+                   -- extrémité partagée : même terminus, même origine, puis section nommée dans l'autre sens
+                   CASE WHEN c.dest <> '' AND {$to('c.dest')} THEN 'dest'
+                        WHEN c.orig <> '' AND {$from('c.orig')} THEN 'orig'
+                        WHEN c.orig <> '' AND {$to('c.orig')} THEN 'orig_dest'
+                        ELSE 'dest_orig' END AS link
             FROM created c JOIN existing e
               ON abs((e.length_m + c.length_m) - e.off) < 0.15 * e.off
-             AND ((c.dest <> '' AND e.uname LIKE '% a ' || c.dest || '%')
+             AND ((c.dest <> '' AND {$to('c.dest')})
                   -- même ORIGINE (« Mézidon à Dives », première section de « Mézidon à Trouville-Deauville »)
-                  OR (c.orig <> '' AND (e.uname LIKE 'ligne de ' || c.orig || ' a %' OR e.uname LIKE 'ligne d''' || c.orig || ' a %'
-                      OR e.uname LIKE 'ligne du ' || c.orig || ' a %' OR e.uname LIKE 'ligne des ' || c.orig || ' a %'
-                      OR e.uname LIKE 'ligne de la ' || c.orig || ' a %')))
+                  OR (c.orig <> '' AND {$from('c.orig')})
+                  -- autre sens : l'origine de la section est l'arrivée de la ligne (« Abbeville à Saint-Pol »,
+                  -- section de « Fives à Abbeville »), ou son arrivée en est l'origine
+                  OR (c.orig <> '' AND {$to('c.orig')})
+                  OR (c.dest <> '' AND {$from('c.dest')}))
              AND ST_DWithin(ST_Boundary(e.geom)::geography, c.geom::geography, 300)
-            ORDER BY c.id, (c.dest <> '' AND e.uname LIKE '% a ' || c.dest || '%') DESC, abs((e.length_m + c.length_m) - e.off)
+            ORDER BY c.id, CASE WHEN c.dest <> '' AND {$to('c.dest')} THEN 0 WHEN c.orig <> '' AND {$from('c.orig')} THEN 1 ELSE 2 END,
+                     abs((e.length_m + c.length_m) - e.off)
             SQL);
 
         $this->info('→ 1. Sections créées à part : '.count($pairs));
         foreach ($pairs as $p) {
             // L'autre extrémité de la section doit être un lieu de la ligne (nom, gares) : sinon c'est une autre
-            // ligne qui aboutit au même terminus (« Armentières à Halluin » n'est pas une section de Somain à Halluin)
-            // ou qui part de la même gare (« Chalon-sur-Saône à Mâcon » n'est pas une section de Chalon à Bourg).
+            // ligne qui aboutit au même terminus (« Armentières à Halluin » n'est pas une section de Somain à Halluin),
+            // qui part de la même gare (« Chalon-sur-Saône à Mâcon » n'est pas une section de Chalon à Bourg) ou qui
+            // part de son terminus (« Argenton-sur-Creuse à La Châtre » n'est pas une section de Port-de-Piles à Argenton).
             $places = PlaceNames::parseLineName($p->created_name)['places'] ?? [];
-            $other = ($p->by_dest ? ($places[0] ?? '') : ($places[1] ?? ''));
+            $otherIsOrigin = in_array($p->link, ['dest', 'dest_orig'], true);
+            $other = $otherIsOrigin ? ($places[0] ?? '') : ($places[1] ?? '');
             if ($this->placeOn($other, (int) $p->target_id) !== true) {
+                $shared = match ($p->link) {
+                    'dest' => 'même terminus seulement',
+                    'orig' => 'même origine seulement',
+                    'orig_dest' => 'part du terminus seulement',
+                    default => 'arrive à l\'origine seulement',
+                };
                 $this->row('sections', 'rejeté', (object) ['cid' => $p->created_id, 'cname' => $p->created_name, 'lid' => $p->target_id,
-                    'lname' => $p->target_name, 'code' => ''], ($p->by_dest ? 'origine' : 'destination')." « {$other} » étrangère à la ligne (même ".($p->by_dest ? 'terminus' : 'origine').' seulement)');
+                    'lname' => $p->target_name, 'code' => ''], ($otherIsOrigin ? 'origine' : 'destination')." « {$other} » étrangère à la ligne ({$shared})");
 
                 continue;
             }

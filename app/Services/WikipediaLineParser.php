@@ -761,7 +761,7 @@ class WikipediaLineParser
 
     /**
      * @param  'bullet'|'prose'  $mode
-     * @param  array{section?: ?array, date?: ?array}|null  $ctx  contexte hérité (puce parente, phrase précédente)
+     * @param  array{section?: ?array, date?: ?array, list_type?: ?string}|null  $ctx  contexte hérité (puce parente, phrase précédente)
      * @return array{events: list<array>, section: ?array, date: ?array}
      */
     private function analyze(string $text, string $mode, string $heading, array $ends, ?array $ctx): array
@@ -1153,7 +1153,7 @@ class WikipediaLineParser
     /**
      * Repère les mots-clés d'événements dans une proposition.
      *
-     * @return list<array{type: string, pos: int}>
+     * @return list<array{type: string, pos: int, label?: string}>
      */
     private function detectTypes(string $clause, string $mode): array
     {
@@ -1708,7 +1708,7 @@ class WikipediaLineParser
         }
 
         return ['from' => $rest[0], 'to' => $rest[1], 'pk_start' => null, 'pk_end' => null, 'whole_line' => false,
-            'other_line' => false, 'only_to' => false, 'quote' => $kept['quote'] ?? ''];
+            'other_line' => false, 'only_to' => false, 'quote' => $kept['quote']];
     }
 
     /**
@@ -2068,7 +2068,7 @@ class WikipediaLineParser
         // Ligne d'en-tête = première ligne majoritairement en « ! ».
         $headerIdx = null;
         foreach ($rows as $i => $r) {
-            if ($r && count(array_filter($r, fn ($c) => $c['header'])) >= max(2, count($r) / 2)) {
+            if (count(array_filter($r, fn ($c) => $c['header'])) >= max(2, count($r) / 2)) {
                 $headerIdx = $i;
                 break;
             }

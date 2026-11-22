@@ -23,6 +23,7 @@ return [
             'bea-tt' => 'BEA-TT (French land transport accident investigation bureau), Open Licence 2.0 (Etalab); general overview of investigations and report links, with the overview’s update date',
             'insee' => 'INSEE, Code officiel géographique (codes and names of French departments and regions), Open Licence 2.0',
             'gallica' => 'Source: gallica.bnf.fr / BnF; catalogue records of the Bibliothèque nationale de France, Open Licence, with the retrieval date (digitised documents: Gallica terms of use)',
+            'sncf-archives' => 'Source: SNCF, Archives and Documentation Department of the SNCF group (“Archives SNCF” dataset), Open Database License (ODbL); digitised documents: archives.sncf.com terms of use',
         ],
     ],
 
@@ -35,6 +36,7 @@ return [
         'station_not_found' => 'Station not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'material_not_found' => 'Rolling stock class not found: “:query”. Look up its identifier with the search or materials tool (suggestions attached).',
         'accident_not_found' => 'Accident not found: “:query”. Look up its identifier with the accidents tool (q filter).',
+        'journal_not_found' => 'Logbook article not found: “:query”. Call the journal tool without arguments to list the articles.',
         'era_not_found' => 'No network map for :year (see the available eras).',
         'same_era' => 'Both years fall in the same map era (:year): choose two different decades (see the available eras).',
         'graph_not_built' => 'The rail graph for this period has not been computed yet: no route can be calculated for now.',

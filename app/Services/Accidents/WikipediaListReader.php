@@ -45,8 +45,12 @@ final class WikipediaListReader
      */
     private const PERSON_STRUCK = '/\b(?:percut|heurt|fauch|happ|ecras|renvers|tamponn)(?!\w*ant\b)\w*\s+(?:(?:mortellement|fatalement|grievement|violemment)\s+)?(?:un |une |le |la |les |des |deux |trois |quatre |cinq |six |\d+ )?(?:jeunes? |vieux |vieille |autres? )?(?:pietons?|personnes?|hommes?|femmes?|dames?|enfants?|cyclistes?|ouvriers?|cheminots?|agents?|salaries?|promeneurs?|randonneurs?|passants?|adolescents?|voyageurs?|gamins?|fillettes?|garcons?|riverains?|techniciens?)\b/';
 
-    /** Un train ou un véhicule heurté, ou deux trains qui se rencontrent : collision, jamais un heurt de personne. */
-    private const VEHICLE_STRUCK = '/\b(?:(?:percut|heurt|tamponn|prend|prennent)\w*\s+(?:(?:de plein fouet|en echarpe|par l arriere)\s+)?(?:un |une |le |la |les |l |des )?(?:autre |second |deuxieme )?(?:train|express|rapide|convoi|omnibus|locomotive|machine|rame|autorail|wagon|tgv|ter|marchandises|camion|autocar|car|bus|tracteur|voiture)\w*|se telescop\w*|en echarpe|collision)\b/';
+    /**
+     * Un train ou un véhicule heurté, ou deux trains qui se rencontrent : collision, jamais un heurt de personne. Aussi
+     * un train « tamponné », ou un train sujet d'un verbe de choc au passif (« un train de voyageurs [...] est percuté
+     * par celui qui le suivait ») : les voyageurs cités ensuite sont ses victimes (Jussey, 28/08/1881).
+     */
+    private const VEHICLE_STRUCK = '/\b(?:(?:percut|heurt|tamponn|prend|prennent)\w*\s+(?:(?:de plein fouet|en echarpe|par l arriere)\s+)?(?:un |une |le |la |les |l |des )?(?:autre |second |deuxieme )?(?:train|express|rapide|convoi|omnibus|locomotive|machine|rame|autorail|wagon|tgv|ter|marchandises|camion|autocar|car|bus|tracteur|voiture)\w*|(?:train|express|rapide|convoi|omnibus|rame)s? tamponn\w*|(?:train|express|rapide|convoi|omnibus|rame)s?(?: \w+){0,15} (?:est|sont|fut|furent) (?:percut|heurt|tamponn|pris en echarpe)\w* par|se telescop\w*|en echarpe|collision)\b/';
 
     /** @var array<string, string> nom normalisé d'un département → code */
     private static array $departments = [];

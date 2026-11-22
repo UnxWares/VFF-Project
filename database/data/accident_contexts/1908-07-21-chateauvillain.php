@@ -3,13 +3,13 @@
 // Contexte sourcé de l'accident du 21 juillet 1908 près de Châteauvillain (recherche du 21/11/2026).
 return [
     'slug' => '1908-07-21-chateauvillain',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'ddb-1908-07-22-reichsanzeiger' => [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Dépêche de Paris du 22 juillet 1908 sur un accident près de Châteauvillain',
+            'title' => 'Paris, 22. Juli. (W. T. B.)',
             'publisher' => 'Deutscher Reichsanzeiger und Preußischer Staatsanzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1908-07-22',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Dépêche de Paris du 22 juillet 1908 sur un accident près de Châteauvillain',
+            'title' => 'Paris, 22. Juli. (W. T. B.)',
             'publisher' => 'Vorwärts (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1908-07-23',

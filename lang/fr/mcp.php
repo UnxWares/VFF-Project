@@ -24,6 +24,7 @@ return [
             'bea-tt' => 'BEA-TT (Bureau d’enquêtes sur les accidents de transport terrestre), Licence Ouverte 2.0 (Etalab) ; bilan général des enquêtes et liens des rapports, avec la date de mise à jour du bilan',
             'insee' => 'INSEE, Code officiel géographique (codes et noms des départements et des régions), Licence Ouverte 2.0',
             'gallica' => 'Source : gallica.bnf.fr / BnF ; métadonnées des notices de la Bibliothèque nationale de France, Licence Ouverte, avec la date de récupération (documents numérisés : conditions d’utilisation de Gallica)',
+            'sncf-archives' => 'Source : SNCF, Service Archives Documentation du groupe SNCF (jeu de données « Archives SNCF »), Open Database License (ODbL) ; documents numérisés : conditions d’utilisation d’archives.sncf.com',
         ],
     ],
 
@@ -36,6 +37,7 @@ return [
         'station_not_found' => 'Gare introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'material_not_found' => 'Série de matériel introuvable : « :query ». Cherchez son identifiant avec l’outil search ou materials (suggestions jointes).',
         'accident_not_found' => 'Accident introuvable : « :query ». Cherchez son identifiant avec l’outil accidents (filtre q).',
+        'journal_not_found' => 'Article du journal introuvable : « :query ». La liste des articles s’obtient avec l’outil journal sans argument.',
         'era_not_found' => 'Pas de carte du réseau pour :year (voir les ères disponibles).',
         'same_era' => 'Les deux années tombent dans la même ère de la carte (:year) : choisissez deux décennies différentes (voir les ères disponibles).',
         'graph_not_built' => 'Le graphe ferroviaire de cette époque n’est pas encore calculé : itinéraire impossible pour le moment.',

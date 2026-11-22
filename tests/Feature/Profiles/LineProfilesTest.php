@@ -561,4 +561,42 @@ class LineProfilesTest extends TestCase
         $this->getJson('/api/v1/lines/ligne-a-adherence/profile')->assertOk()->assertJsonPath('rack', null);
         $this->assertNotSame('rack', $profile->refresh()->max_grade_withheld);
     }
+
+    public function test_a_withheld_grade_is_replaced_by_the_sourced_one_but_never_a_measured_one(): void
+    {
+        // La ligne de test devient Argentan - Granville, déclarée dans database/data/sourced_grades.php (10 ‰).
+        $slug = 'rfn-405000';
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => $slug]);
+        $this->fakeIgn();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$slug]])->assertSuccessful();
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $profile->update(['max_grade_permil' => null, 'max_grade_from_m' => null, 'max_grade_to_m' => null, 'max_grade_direction' => null, 'max_grade_withheld' => 'terrain_only']);
+
+        $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
+            ->assertJsonPath('summary.max_grade_permil', null)
+            ->assertJsonPath('summary.max_grade_withheld', 'terrain_only')
+            ->assertJsonPath('sourced_grade.max_grade_permil', 10)
+            ->assertJsonPath('sourced_grade.source.provider', 'wikipedia')
+            ->assertJsonPath('sourced_grade.source.license', 'CC BY-SA 4.0')
+            ->assertJsonPath('rack', null);
+
+        $data = $this->postJson('/graphql', ['query' => '{ line(slug: "'.$slug.'") { profile { sourced_grade { max_grade_permil source { provider title url license } } } } }'])
+            ->assertOk()->json('data.line.profile.sourced_grade');
+        $this->assertSame(10.0, (float) $data['max_grade_permil']);
+        $this->assertStringContainsString('oldid=', $data['source']['url']);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+                'name' => 'line_profile', 'arguments' => ['line' => $slug, 'max_points' => 10],
+            ]])->assertOk()->json('result');
+        $payload = json_decode($result['content'][0]['text'], true);
+        $this->assertEqualsWithDelta(10.0, $payload['profile']['sourced_grade']['max_grade_permil'], 0.001);
+        $this->assertStringContainsString('Wikip', json_encode($payload['attribution'], JSON_UNESCAPED_UNICODE) ?: '');
+
+        // Déclivité mesurée publiée : la source ne la remplace pas.
+        $profile->update(['max_grade_permil' => 12.3, 'max_grade_from_m' => 0, 'max_grade_to_m' => 1000, 'max_grade_direction' => 'up', 'max_grade_withheld' => null]);
+        $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
+            ->assertJsonPath('summary.max_grade_permil', 12.3)
+            ->assertJsonPath('sourced_grade', null);
+    }
 }

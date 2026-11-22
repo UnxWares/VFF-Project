@@ -33,14 +33,14 @@ class EraTimelineHeritageWholeTest extends TestCase
         $t = self::crotoy([self::ev('heritage_start', '2026-01-01', ['source' => 'heritage', 'whole' => false, 'heritage_kind' => 'tourist_train'])]);
 
         foreach ([1980, 1990, 2020] as $year) {
-            $this->assertSame('tourist_train', $t->stateAt($year)['heritage'] ?? null, "ère {$year}");
+            $this->assertSame('tourist_train', $this->state($t, $year)['heritage'] ?? null, "ère {$year}");
         }
         $this->assertSame('abandoned', $t->stateAt(1970)['status']);
     }
 
     public function test_without_localized_event_the_whole_line_date_applies(): void
     {
-        $this->assertSame('tourist_train', self::crotoy([])->stateAt(1980)['heritage'] ?? null);
+        $this->assertSame('tourist_train', $this->state(self::crotoy([]), 1980)['heritage'] ?? null);
     }
 
     public function test_localized_event_of_the_same_source_still_wins(): void
@@ -52,7 +52,7 @@ class EraTimelineHeritageWholeTest extends TestCase
         ]))->heritageEndsCommercialTraffic();
 
         $this->assertNull($t->stateAt(1990));
-        $this->assertSame('tourist_train', $t->stateAt(2000)['heritage'] ?? null);
+        $this->assertSame('tourist_train', $this->state($t, 2000)['heritage'] ?? null);
     }
 
     /** @return array<string, array{0: string, 1: string, 2: bool}> */
@@ -78,8 +78,8 @@ class EraTimelineHeritageWholeTest extends TestCase
             self::ev('heritage_start', '2005-01-01', ['source' => $localSource, 'whole' => false, 'heritage_kind' => 'tourist_train']),
         ]))->heritageEndsCommercialTraffic();
 
-        $this->assertSame($wholeWins, ($t->stateAt(1990)['heritage'] ?? null) === 'tourist_train');
-        $this->assertSame('tourist_train', $t->stateAt(2010)['heritage'] ?? null);
+        $this->assertSame($wholeWins, ($this->state($t, 1990)['heritage'] ?? null) === 'tourist_train');
+        $this->assertSame('tourist_train', $this->state($t, 2010)['heritage'] ?? null);
     }
 
     public function test_heritage_end_follows_the_same_rule(): void
@@ -89,7 +89,7 @@ class EraTimelineHeritageWholeTest extends TestCase
             self::ev('heritage_end', '2026-01-01', ['source' => 'heritage', 'whole' => false]),
         ]);
 
-        $this->assertSame('tourist_train', $t->stateAt(2000)['heritage'] ?? null);
+        $this->assertSame('tourist_train', $this->state($t, 2000)['heritage'] ?? null);
         $this->assertArrayNotHasKey('heritage', $t->stateAt(2010) ?? []);
     }
 
@@ -116,5 +116,13 @@ class EraTimelineHeritageWholeTest extends TestCase
         $this->assertSame('1983-09-25', EraTimeline::completionOpening([
             ['type' => 'opening', 'date' => '1981-09-27'], ['type' => 'opening', 'date' => '1981-01-01'], ['type' => 'opening', 'date' => '1983-09-25'],
         ])['date']);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function state(EraTimeline $timeline, int $year, bool $isCurrent = false, ?int $previousYear = null): array
+    {
+        return $timeline->stateAt($year, $isCurrent, $previousYear) ?? [];
     }
 }
