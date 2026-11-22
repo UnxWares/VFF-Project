@@ -2558,4 +2558,27 @@ return [
         'source_url' => $wp('Ligne de Montereau à Château-Landon', 228407898),
         'reason' => 'date postérieure de 13 ans à l\'ouverture de la section Montereau - Égreville (1888)',
     ],
+
+    // ── 16. Dates d'ouverture OHM hors de la section (chantier « gares-hors-section », matinée du 22/11/2026).
+    // Rapport : storage/app/reports/agents/aprem-2111/gares-hors-section.md.
+    // Saint-Étienne-Carnot : gare aérienne construite sur un viaduc pour désengorger Châteaucreux, mise en service le
+    // 28/09/1980 (article de la gare ; Wikidata P1619 donne 1980). Le 06/08/1905 d'OHM ne correspond à aucune gare à Carnot
+    // dans l'article : il est antérieur de 75 ans.
+    [
+        'station' => ['name' => 'St-Étienne-Carnot', 'uic' => '87726901'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Étienne-Carnot', 241233261),
+        'quote' => 'Cette gare est mise en service le 28 septembre 1980.',
+        'reason' => 'mise en service le 28/09/1980 (article de la gare, Wikidata P1619 : 1980) ; le 06/08/1905 d\'OHM est antérieur de 75 ans et sans autre source',
+    ],
+    [
+        'station' => ['name' => 'St-Étienne-Carnot', 'uic' => '87726901'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1905-08-06'],
+        'source_url' => $wp('Gare de Saint-Étienne-Carnot', 241233261),
+        'reason' => 'date de 1905 contredite par l\'article de la gare (mise en service le 28/09/1980) et par Wikidata (1980)',
+    ],
 ];
