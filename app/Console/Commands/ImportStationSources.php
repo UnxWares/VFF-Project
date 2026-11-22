@@ -48,6 +48,7 @@ class ImportStationSources extends Command
     protected $signature = 'vff:import-station-sources
         {--source=* : communes | sncf | osm | ohm | wikidata | pk (défaut : toutes, dans cet ordre)}
         {--from-cache : Rejoue les réponses déjà téléchargées, sans requête réseau}
+        {--cache-only : (wikidata) Télécharge les réponses dans le cache disque, sans rien écrire dans la base}
         {--region=* : (osm) Limite aux régions ISO 3166-2 données, ex. FR-BRE}
         {--pause=20 : Pause (s) entre deux requêtes Overpass}
         {--line=* : (pk) Limite aux lignes données (id ou code), sans supprimer les autres}
@@ -88,11 +89,24 @@ class ImportStationSources extends Command
 
     private bool $fromCache = false;
 
+    private bool $wikidataComplete = true;
+
     public function handle(): int
     {
         ini_set('memory_limit', '2G');
         $this->fromCache = (bool) $this->option('from-cache');
         @mkdir($this->cacheDir(), 0775, true);
+
+        if ($this->option('cache-only')) {
+            if ($this->option('source') !== ['wikidata'] || $this->fromCache) {
+                $this->error('--cache-only : seulement avec --source=wikidata, sans --from-cache');
+
+                return self::FAILURE;
+            }
+            $this->info('── wikidata (cache seul, base non touchée)');
+
+            return $this->fillWikidataCache();
+        }
 
         $sources = (array) $this->option('source') ?: ['communes', 'sncf', 'osm', 'ohm', 'wikidata', 'pk'];
         // --dry-run, --line et --validate ne valent que pour la source pk : jamais d'écriture des autres sources.
@@ -463,19 +477,65 @@ class ImportStationSources extends Command
 
     private function importWikidata(): void
     {
+        $records = [];
+        foreach ($this->wikidataResponses() as $raw) {
+            foreach (json_decode($raw ?? '{}', true)['entities'] ?? [] as $qid => $ent) {
+                if ($rec = $this->parseWikidata($qid, $ent)) {
+                    $records[] = $rec;
+                }
+            }
+        }
+        // Liste ou lot d'entités en échec : rien n'est supprimé (avant : gares « disparues »).
+        $this->upsertSource('wikidata', $records, $this->wikidataComplete);
+    }
+
+    /**
+     * Remplit le cache Wikidata (storage/app/sources/stations/wikidata) sans écrire dans la base : c'est ce
+     * cache que lit vff:import-station-closures (--source=wikidata, --from-cache). Requêtes groupées, pause entre
+     * elles, User-Agent du robot VFF.
+     */
+    private function fillWikidataCache(): int
+    {
+        $batches = 0;
+        foreach ($this->wikidataResponses() as $_) {
+            $batches++;
+        }
+        $files = count(glob($this->cacheDir().'/wikidata/entities-*.json') ?: []);
+        $this->info(sprintf('  cache Wikidata : %d lots d\'entités, %d fichiers%s', $batches, $files, $this->wikidataComplete ? '' : ' (INCOMPLET : relancer)'));
+
+        return $this->wikidataComplete ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Liste des éléments par classe puis déclarations par lots de 50, via le cache disque.
+     *
+     * @return \Generator<int, string|null> réponses brutes des lots d'entités ; $wikidataComplete dit si tout a répondu
+     */
+    private function wikidataResponses(): \Generator
+    {
+        $this->wikidataComplete = true;
+        $dir = $this->cacheDir().'/wikidata';
+        @mkdir($dir, 0775, true);
+        // Cache régénérable : hors sauvegarde (convention .nobackup du poste de développement).
+        if (! is_file($dir.'/.nobackup')) {
+            @touch($dir.'/.nobackup');
+        }
         // 1. Liste des éléments par classe (CirrusSearch, paginé par 500).
         $ids = [];
-        $complete = true;
         foreach (self::WD_CLASSES as $cls) {
             $offset = 0;
             do {
-                $raw = $this->cachedHttp("wikidata/search-{$cls}-{$offset}.json", fn () => Http::withHeaders(['User-Agent' => self::USER_AGENT])
-                    ->timeout(60)->retry(3, 5000)->get('https://www.wikidata.org/w/api.php', [
-                        'action' => 'query', 'list' => 'search', 'format' => 'json', 'srprop' => '',
-                        'srsearch' => "haswbstatement:P31={$cls} haswbstatement:P17=Q142",
-                        'srlimit' => 500, 'sroffset' => $offset,
-                    ]));
-                $complete = $complete && $raw !== null;
+                $raw = $this->cachedHttp("wikidata/search-{$cls}-{$offset}.json", function () use ($cls, $offset) {
+                    Sleep::usleep(500_000);
+
+                    return Http::withHeaders(['User-Agent' => self::USER_AGENT])
+                        ->timeout(60)->retry(3, 5000)->get('https://www.wikidata.org/w/api.php', [
+                            'action' => 'query', 'list' => 'search', 'format' => 'json', 'srprop' => '',
+                            'srsearch' => "haswbstatement:P31={$cls} haswbstatement:P17=Q142",
+                            'srlimit' => 500, 'sroffset' => $offset,
+                        ]);
+                });
+                $this->wikidataComplete = $this->wikidataComplete && $raw !== null;
                 $d = $raw ? json_decode($raw, true) : [];
                 foreach ($d['query']['search'] ?? [] as $hit) {
                     $ids[$hit['title']] = true;
@@ -485,14 +545,22 @@ class ImportStationSources extends Command
         }
         $ids = array_keys($ids);
         $this->line('  '.count($ids).' éléments Wikidata');
+        // L'index de recherche en oublie (mesure du 22/11/2026 : 41 des 5 114 gares déjà importées, dont Bordeaux-Bastide,
+        // Q1494165, de classe Q55488). Sans eux, le cache perdrait leurs fermetures et un import complet les supprimerait
+        // comme « disparus de la source » : on redemande les éléments déjà connus mais non renvoyés.
+        $known = DB::table('station_sources')->where('source', 'wikidata')->pluck('source_ref')->all();
+        $extra = array_values(array_diff($known, $ids));
+        sort($extra);
+        if ($extra !== []) {
+            $this->line('  + '.count($extra).' éléments déjà importés, absents de la recherche');
+        }
+        $ids = [...$ids, ...$extra];
 
         // 2. Déclarations complètes par lots de 50 (qualificatifs + précisions).
-        $records = [];
-        $stateLabels = [];
-        foreach (array_chunk($ids, 50) as $i => $batch) {
+        foreach (array_chunk($ids, 50) as $batch) {
             $key = md5(implode('|', $batch));
             $raw = $this->cachedHttp("wikidata/entities-{$key}.json", function () use ($batch) {
-                Sleep::usleep(300000);
+                Sleep::usleep(500_000);
 
                 return Http::withHeaders(['User-Agent' => self::USER_AGENT])->timeout(90)->retry(3, 5000)
                     ->get('https://www.wikidata.org/w/api.php', [
@@ -500,15 +568,10 @@ class ImportStationSources extends Command
                         'props' => 'labels|aliases|claims|sitelinks', 'languages' => 'fr|en', 'sitefilter' => 'frwiki',
                     ]);
             });
-            $complete = $complete && $raw !== null;
-            foreach (json_decode($raw ?? '{}', true)['entities'] ?? [] as $qid => $ent) {
-                if ($rec = $this->parseWikidata($qid, $ent)) {
-                    $records[] = $rec;
-                }
-            }
+            $this->wikidataComplete = $this->wikidataComplete && $raw !== null;
+
+            yield $raw;
         }
-        // Liste ou lot d'entités en échec : rien n'est supprimé (avant : gares « disparues »).
-        $this->upsertSource('wikidata', $records, $complete);
     }
 
     /**
