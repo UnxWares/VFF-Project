@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Een feestmaal met een droevigen afloop (rubrique Spoorwegongeluk in Frankrijk)',
+            'title' => 'Een feestmaal met een droevigen afloop',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1919-06-11',

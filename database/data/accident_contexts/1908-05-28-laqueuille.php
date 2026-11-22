@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Brève de Clermont-Ferrand (rubrique des nouvelles étrangères)',
+            'title' => 'De Maasbode du 30 mai 1908',
             'publisher' => 'De Maasbode (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1908-05-30',

@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Buitenlandsche Berichten : Weer een spoorwegongeluk in Frankrijk',
+            'title' => 'Buitenlandsche Berichten',
             'publisher' => 'Delftsche Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1910-09-19',

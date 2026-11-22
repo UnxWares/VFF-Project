@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Chronique (rubrique \'n loterij zonder nieten)',
+            'title' => 'Middelburgsche Courant du 12 août 1902',
             'publisher' => 'Middelburgsche Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1902-08-12',

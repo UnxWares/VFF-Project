@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Frankrijk. Een treinenbotsing',
+            'title' => 'Frankrijk',
             'publisher' => 'De Noord Brabanter',
             'author' => null,
             'published' => '1905-10-06',
