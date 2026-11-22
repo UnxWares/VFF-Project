@@ -196,6 +196,63 @@ class CommonsClient
     }
 
     /**
+     * Métadonnées d'un lot de fichiers désignés par leur titre (« File:Nom.jpg »), 50 par requête,
+     * redirections de fichiers renommés suivies.
+     *
+     * @param  list<string>  $titles
+     * @return array<int, array{title: string, info: array<string, mixed>}> pageid → page brute
+     */
+    public function fileInfoByTitles(array $titles): array
+    {
+        $out = [];
+        foreach (array_chunk(array_values(array_unique($titles)), 50) as $chunk) {
+            $out += $this->imageInfo(['titles' => implode('|', $chunk), 'redirects' => 1]);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Fichiers d'une catégorie avec leurs métadonnées, en une seule requête (générateur
+     * `categorymembers`), et noms des sous-catégories rencontrées. Les `$max` premiers fichiers
+     * seulement (50 au plus) : pas de suite de pagination.
+     *
+     * @return array{files: array<int, array{title: string, info: array<string, mixed>}>, subcats: list<string>}
+     */
+    public function categoryFiles(string $category, int $max = 40): array
+    {
+        $data = $this->commons([
+            'action' => 'query',
+            'generator' => 'categorymembers',
+            'gcmtitle' => $category,
+            'gcmtype' => 'file|subcat',
+            'gcmlimit' => max(1, min(50, $max)),
+            'prop' => 'imageinfo',
+            'iiprop' => 'extmetadata|url|size|mime',
+            'iiurlwidth' => self::THUMB_WIDTH,
+            'iiextmetadatalanguage' => 'fr',
+            'iiextmetadatafilter' => self::EXTMETADATA,
+        ]);
+        $pages = $data['query']['pages'] ?? [];
+        usort($pages, fn (array $a, array $b): int => ($a['index'] ?? 0) <=> ($b['index'] ?? 0));
+        $files = [];
+        $subcats = [];
+        foreach ($pages as $p) {
+            if (($p['ns'] ?? 0) === 14) {
+                $subcats[] = $p['title'];
+
+                continue;
+            }
+            if (empty($p['imageinfo'][0]) || ! isset($p['pageid'])) {
+                continue;
+            }
+            $files[(int) $p['pageid']] = ['title' => $p['title'], 'info' => $p['imageinfo'][0]];
+        }
+
+        return ['files' => $files, 'subcats' => $subcats];
+    }
+
+    /**
      * @param  array<string, scalar>  $selector  `pageids` ou `titles`
      * @return array<int, array{title: string, info: array<string, mixed>}> pageid → page brute
      */

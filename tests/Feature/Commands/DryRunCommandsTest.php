@@ -34,7 +34,7 @@ class DryRunCommandsTest extends TestCase
     public const COVERED = [
         'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-commons-stations', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:commons-allowlist', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
-        'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
+        'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-candidates', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-panoramax-media', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
         'vff:import-station-closures', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
@@ -59,6 +59,8 @@ class DryRunCommandsTest extends TestCase
         'vff:enrich-accidents' => ['--offline' => true],
         'vff:place-listed-stations' => ['--no-places' => true],
         'vff:import-panoramax-media' => ['--cache-only' => true],
+        // Fichier de candidats d'une gare absente de la base : lu, rien à écrire.
+        'vff:import-commons-candidates' => ['file' => 'tests/Fixtures/Commons/candidates-extrait.jsonl'],
         'vff:import-signalling-history' => ['--offline' => true],
         'vff:import-material-periods' => ['--offline' => true],
         'vff:import-gallica' => ['--offline' => true],
