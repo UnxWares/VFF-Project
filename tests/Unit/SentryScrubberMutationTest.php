@@ -103,4 +103,28 @@ class SentryScrubberMutationTest extends TestCase
         $this->assertSame("https://h.org/{$t32}.html", RedactedUrl::of("https://h.org/{$t32}.html"));
         $this->assertSame("https://h.org/x{$t32}é", RedactedUrl::of("https://h.org/x{$t32}é"));
     }
+
+    public function test_redacted_url_keeps_long_word_slugs_of_lines_and_accidents(): void
+    {
+        $line = 'archeo-ligne-de-boulogne-ville-a-bonningues';
+        $accident = 'accident-ferroviaire-de-bretigny-sur-orge-2013';
+        $this->assertGreaterThanOrEqual(32, strlen($line));
+        $this->assertSame("https://h.org/lines/$line", RedactedUrl::of("https://h.org/lines/$line"));
+        $this->assertSame("https://h.org/accidents/$accident/x", RedactedUrl::of("https://h.org/accidents/$accident/x"));
+    }
+
+    public function test_redacted_url_masks_token_like_segments(): void
+    {
+        $this->assertSame('https://h.org/reset-password/[token]', RedactedUrl::of('https://h.org/reset-password/'.str_repeat('a1b2c3d4e5', 4)));
+        $this->assertSame('https://h.org/x/[token]', RedactedUrl::of('https://h.org/x/'.str_repeat('Ab3dE', 8)));
+        $this->assertSame('https://h.org/x/[token]', RedactedUrl::of('https://h.org/x/3f2504e0-4f89-11d3-9a0c-0305e82c3301'));
+        $this->assertSame('https://h.org/x/[token]', RedactedUrl::of('https://h.org/x/Tr0ub4dor-Mixed-Case-Token_with_Under-scores'));
+    }
+
+    public function test_redacted_url_drops_the_signed_url_signature(): void
+    {
+        $url = RedactedUrl::of('https://h.org/email/verify/12/abc?expires=1&signature='.str_repeat('f', 64));
+        $this->assertSame('https://h.org/email/verify/12/abc', $url);
+        $this->assertStringNotContainsString('signature', (string) $url);
+    }
 }

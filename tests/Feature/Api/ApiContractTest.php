@@ -69,4 +69,42 @@ class ApiContractTest extends TestCase
         $this->assertSame(['rest field GET /x 200 b : integer => string', 'gql Line.name : String! => String'], $breaking['changed']);
         $this->assertSame(['removed' => [], 'changed' => []], ApiContract::breaking($recorded, $recorded));
     }
+
+    public function test_a_parameter_that_became_optional_is_compatible_but_a_response_field_is_not(): void
+    {
+        $recorded = [
+            'rest param GET /x query:era' => 'string!',
+            'mcp tool find.q' => 'string!',
+            'mcp prompt p.a' => 'argument!',
+            'gql Query.line(slug)' => 'String!',
+            'gql Line.name' => 'String!',
+        ];
+        $current = [
+            'rest param GET /x query:era' => 'string',
+            'mcp tool find.q' => 'string',
+            'mcp prompt p.a' => 'argument',
+            'gql Query.line(slug)' => 'String',
+            'gql Line.name' => 'String',
+        ];
+
+        $this->assertSame(['gql Line.name : String! => String'], ApiContract::breaking($recorded, $current)['changed']);
+        // Devenir obligatoire reste cassant.
+        $this->assertSame(['rest param GET /x query:era : string => string!'], ApiContract::breaking(['rest param GET /x query:era' => 'string'], ['rest param GET /x query:era' => 'string!'])['changed']);
+    }
+
+    public function test_mcp_enum_values_are_tracked_and_a_removed_one_is_refused(): void
+    {
+        $tool = ['name' => 'find', 'inputSchema' => ['properties' => [
+            'kind' => ['type' => 'string', 'enum' => ['line', 'station']],
+            'kinds' => ['type' => 'array', 'items' => ['enum' => ['a']]],
+        ], 'required' => ['kind']]];
+        $contract = ApiContract::mcp([$tool], []);
+
+        $this->assertSame('value', $contract['mcp enum find.kind=line']);
+        $this->assertSame('value', $contract['mcp enum find.kind=station']);
+        $this->assertSame('value', $contract['mcp enum find.kinds=a']);
+
+        $tool['inputSchema']['properties']['kind']['enum'] = ['line'];
+        $this->assertSame(['mcp enum find.kind=station'], ApiContract::breaking($contract, ApiContract::mcp([$tool], []))['removed']);
+    }
 }

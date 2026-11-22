@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
  * contrôleur vient de construire (composant et propriétés) : accueil, fiches ligne, gare, matériel
  * et accident, histoires d'événements. Les autres pages gardent le `<head>` générique du gabarit.
  *
+ * Les adresses absolues (canonique, Open Graph, JSON-LD) viennent de SiteOrigin, pas de l'en-tête `Host`.
+ * Le navigateur n'en lit que le chemin (serverSeo.js), donc le serveur de dev et la navigation n'en dépendent pas.
+ *
  * Titres, descriptions et images suivent exactement ceux que les composants Svelte posent dans le
  * navigateur (Components/SeoHead.svelte) : le serveur écrit les balises une fois pour les robots
  * qui n'exécutent pas le JavaScript, et le navigateur les reprend telles quelles au démarrage.
@@ -36,7 +39,8 @@ final class PageMetadata
     public function forPage(array $page): ?ShareMetadata
     {
         $props = (array) ($page['props'] ?? []);
-        $origin = $this->request->getSchemeAndHttpHost();
+        // Origine fixe (app.url), jamais l'en-tête Host : un cache partagé ne doit pas servir une adresse étrangère.
+        $origin = SiteOrigin::get();
 
         return match ($page['component'] ?? null) {
             'Home' => $this->home($origin),

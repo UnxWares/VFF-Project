@@ -14,7 +14,8 @@ use GraphQL\Type\Schema;
  *
  * Clés : `rest op GET /lines/{line}`, `rest param GET /lines/{line} query:era`, `rest status GET /x 422`,
  * `rest field GET /x 200 data[].slug` (champ de la réponse), `rest enum … =valeur` ; `gql Type.champ`,
- * `gql Type.champ(argument)`, `gql Enum=VALEUR`, `gql Union=Membre` ; `mcp tool nom`, `mcp tool nom.paramètre`.
+ * `gql Type.champ(argument)`, `gql Enum=VALEUR`, `gql Union=Membre` ; `mcp tool nom`, `mcp tool nom.paramètre`,
+ * `mcp enum nom.paramètre=valeur` (valeur d'énumération d'un paramètre d'outil).
  * Valeur : le type, suivi de `!` (paramètre obligatoire) et de ` @deprecated` (retrait annoncé).
  *
  * Fichier versionné : `tests/Fixtures/api-contract.json`, mis à jour par `php artisan vff:api-contract`. Le test
@@ -58,12 +59,25 @@ final class ApiContract
 
                 continue;
             }
-            if (self::bare($type) !== self::bare($current[$key])) {
+            if (self::bare($type) !== self::bare($current[$key]) && ! self::becameOptional($key, self::bare($type), self::bare($current[$key]))) {
                 $changed[] = "{$key} : ".self::bare($type).' => '.self::bare($current[$key]);
             }
         }
 
         return ['removed' => $removed, 'changed' => $changed];
+    }
+
+    /**
+     * Un paramètre d'entrée (REST, outil ou prompt MCP, argument GraphQL) qui passe d'obligatoire à facultatif
+     * ne casse aucun client. Les champs de réponse gardent la règle stricte (`String!` vers `String` est
+     * cassant pour qui lit).
+     */
+    private static function becameOptional(string $key, string $recorded, string $current): bool
+    {
+        $isInput = str_starts_with($key, 'rest param ') || str_starts_with($key, 'mcp tool ') || str_starts_with($key, 'mcp prompt ')
+            || (str_starts_with($key, 'gql ') && str_ends_with($key, ')'));
+
+        return $isInput && str_ends_with($recorded, '!') && substr($recorded, 0, -1) === $current;
     }
 
     private static function bare(string $type): string
@@ -239,7 +253,7 @@ final class ApiContract
      * @param  list<array<string, mixed>>  $prompts
      * @return array<string, string>
      */
-    private static function mcp(array $tools, array $prompts): array
+    public static function mcp(array $tools, array $prompts): array
     {
         $out = [];
         foreach ($tools as $tool) {
@@ -249,6 +263,12 @@ final class ApiContract
             foreach ((array) ($tool['inputSchema']['properties'] ?? []) as $param => $schema) {
                 $type = is_array($schema['type'] ?? null) ? implode('|', $schema['type']) : (string) ($schema['type'] ?? 'mixed');
                 $out["mcp tool {$name}.{$param}"] = $type.(in_array($param, $required, true) ? '!' : '');
+                $enum = (array) ($schema['enum'] ?? $schema['items']['enum'] ?? []);
+                foreach ($enum as $value) {
+                    if ($value !== null) {
+                        $out["mcp enum {$name}.{$param}={$value}"] = 'value';
+                    }
+                }
             }
         }
         foreach ($prompts as $prompt) {
