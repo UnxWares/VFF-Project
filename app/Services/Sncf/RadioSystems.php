@@ -47,7 +47,7 @@ final class RadioSystems
      * TrackRegime::summarize.
      *
      * @param  iterable<array<string, mixed>>  $records
-     * @return array<string, array<string, float>> code => [système => km], systèmes dans l'ordre de SYSTEMS
+     * @return array<array-key, array<string, float>> code (entier si numérique) => [système => km], systèmes dans l'ordre de SYSTEMS
      */
     public static function summarize(iterable $records): array
     {

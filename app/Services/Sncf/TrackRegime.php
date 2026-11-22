@@ -66,7 +66,7 @@ final class TrackRegime
      * Un enregistrement dont le PK est illisible pèse 1 km : il compte sans dominer une vraie longueur.
      *
      * @param  iterable<array<string, mixed>>  $records
-     * @return array<string, array{tracks: int, share: float, uniform: bool, regimes: list<string>, km: float, name: string, records: int}>
+     * @return array<array-key, array{tracks: int, share: float, uniform: bool, regimes: list<string>, km: float, name: string, records: int}>
      */
     public static function summarize(iterable $records): array
     {
