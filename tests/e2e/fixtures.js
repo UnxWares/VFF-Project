@@ -13,16 +13,6 @@ export const DEFAUTS_CONNUS = [
         cible: '.lang-trigger',
         note: 'Le nom accessible du bouton de langue ne contient pas son texte visible (WCAG 2.5.3).',
     },
-    {
-        regle: 'color-contrast',
-        cible: '.hljs',
-        note: 'Contraste insuffisant de la coloration syntaxique des exemples de code de /docs/api (Scalar).',
-    },
-    {
-        regle: 'scrollable-region-focusable',
-        cible: '.language-',
-        note: 'Blocs de code défilables de /docs/api sans accès au clavier.',
-    },
 ];
 
 export const test = base.extend({
