@@ -87,11 +87,19 @@ return [
                 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares-archive',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/caracteristique-des-voies-et-declivite',
+                'https://data.sncf.com/api/explore/v2.1/catalog/datasets/regime-dexploitation-des-lignes',
+                'https://data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-quais',
+                'https://data.sncf.com/api/explore/v2.1/catalog/datasets/lignes-equipees-de-liaison-radio-sol-train',
             ],
             'citation' => '"license": "Open Database License (ODbL)" (métadonnées des 12 jeux utilisés, lues le 2026-10-20) ; '
                 .'« licence » : « odc-odbl » pour horaires-sncf et horaires-des-lignes-transilien-1 (API transport.data.gouv.fr, lue le 2026-11-18) ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-passages-a-niveau, mode-de-cantonnement-des-lignes et lignes-equipees-de-kvb (lus le 2026-11-20) ; '
-                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (2025) et frequentation-gares-archive (2015-2024), lus le 2026-11-21 (database/data/frequentation_gares_405000.php ; les deux jeux ne sont pas comparables entre eux, avertissement de SNCF)',
+                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (2025) et frequentation-gares-archive (2015-2024), lus le 2026-11-21 (database/data/frequentation_gares_405000.php ; les deux jeux ne sont pas comparables entre eux, avertissement de SNCF) ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour caracteristique-des-voies-et-declivite, lu le 2026-11-22 (database/data/sourced_grades_sncf.php, vff:import-sncf-grades, qui revérifie la licence à chaque téléchargement) ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-quais (modifié le 2020-05-26), lu le 2026-11-22 (vff:import-sncf-platforms, table station_platforms, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour regime-dexploitation-des-lignes (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-track-regime, tables line_track_portions et lines.nb_voies_default, trace line_sources « sncf-regime ») ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour lignes-equipees-de-liaison-radio-sol-train (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-radio, table line_radio_portions) ; les deux commandes revérifient la licence et l\'éditeur à chaque téléchargement',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -708,7 +716,7 @@ return [
             'inferred:line_event' => 'vff', 'inferred:trace' => 'vff',
         ],
         'line_sources' => [
-            'sncf-classification' => 'sncf', 'gtfs-voyageurs' => 'sncf', 'wikipedia-intro' => 'wikipedia', 'wikidata' => 'wikidata',
+            'sncf-classification' => 'sncf', 'gtfs-voyageurs' => 'sncf', 'sncf-regime' => 'sncf', 'wikipedia-intro' => 'wikipedia', 'wikidata' => 'wikidata',
         ],
         // Flux GTFS de vff:import-station-service (evidence[].feed), cf. database/data/station_service_feeds.php.
         'station_services' => [
@@ -729,6 +737,11 @@ return [
         // Voies vertes OSM rattachées aux lignes (vff:link-greenways) : way, géométrie et mesure tirés d'OpenStreetMap (ODbL).
         'line_greenways' => ['osm' => 'osm'],
         'line_signalling' => ['sncf' => 'sncf'],
+        // Quais des gares (vff:import-sncf-platforms) : jeu « Liste des quais » de SNCF Réseau (ODbL), colonne source = sncf.
+        'station_platforms' => ['sncf' => 'sncf'],
+        // Voies par portion de PK (vff:import-sncf-track-regime) et radio sol-train (vff:import-sncf-radio) : SNCF Réseau, ODbL.
+        'line_track_portions' => ['sncf' => 'sncf'],
+        'line_radio_portions' => ['sncf' => 'sncf'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
         // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
         // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.

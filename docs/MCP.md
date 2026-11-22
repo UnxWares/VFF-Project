@@ -143,6 +143,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `segment_audits` | Audit des tronçons de tout le réseau à une époque, les plus mal notés d'abord, filtrés par note, contrôle, raison, état, département, région, ligne ; paginés par `limit` et `offset`. |
 | `station_audits` | Audit des gares de tout le réseau : note de placement, écarts, notes des dates, contrôles en échec, filtrés par note, contrôle, département, région, ligne ; paginés par `limit` et `offset`. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
+| `line_infrastructure` | Nombre de voies et liaison radio sol-train (GSM-R…) d'une ligne par portion de PK, aujourd'hui : SNCF Réseau, ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
@@ -291,6 +292,12 @@ de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variab
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
 et `position` (`source`, `spread_m`, `flagged` = position à vérifier). `media_count` donne le nombre
 d'images publiées de la gare : l'outil `media` avec `station` les renvoie, avec leurs crédits.
+`platforms` reprend la clé `platforms` de `GET /api/v1/stations/{station}` : quais de la gare d'après le jeu
+« Liste des quais » de SNCF Réseau (ODbL, état actuel, `vff:import-sncf-platforms`), avec `count` (quais distincts ;
+un quai central qui borde deux voies compte une fois), `longest_m`, `total_length_m`, `items` (`label` SNCF,
+`code_ligne` de la voie bordée, `length_m`, `pk_start_m` et `pk_end_m` en mètres), `dataset_modified`, `attribution`
+(mention « SNCF Réseau » à reproduire) et `provenance`. Elle vaut `null` quand le jeu ne donne aucun quai pour la gare,
+ce qui ne prouve pas qu'elle n'en a pas.
 `audit` reprend `GET /api/v1/stations/{station}/audit` (contrôles croisés `checks[].code`, dont `outlier_source`, une source précise isolée loin des autres, et `closure_sncf_referential`, fermeture tirée du référentiel SNCF) (nul tant que la gare n'a pas été auditée,
 voir docs/AUDIT-GARES.md) : `placement` (`grade` : `agree` une source indépendante à moins de
 20 m, `close` entre 20 et 100 m, `isolated` aucune source indépendante proche, `disagree` une
@@ -774,8 +781,10 @@ suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`,
 puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
 publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `sourced_grade`
 (quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés : déclivité
-la plus forte selon le champ « pente » de l'infobox de Wikipédia, en ‰, avec le permalien de la révision lue ; null
-sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+la plus forte selon une source écrite, en ‰, avec `covered_share`, part de la ligne décrite par la source, et `source` :
+`wikipedia`, infobox ou texte de l'article, permalien de la révision lue, CC BY-SA 4.0 ; ou `sncf`, segment le plus
+raide du jeu « Caractéristique des voies et déclivité » de SNCF Réseau, ODbL 1.0, attribution « SNCF Réseau » à citer ;
+null sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
@@ -862,6 +871,31 @@ Renvoie `total` (après les filtres), `limit`, `offset` et `items` : par gare `s
 
 ```json
 {"grade": "disagree", "region": "28", "limit": 20}
+```
+
+### `line_infrastructure` : voies et radio sol-train d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/infrastructure` (service `LineInfrastructure`). Réseau d'aujourd'hui, par
+portion de points kilométriques, d'après deux jeux de SNCF Réseau (ODbL) importés par `vff:import-sncf-track-regime` et
+`vff:import-sncf-radio` : ni ère, ni date de mise en service.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `include_portions` | booléen | non | Garde le détail par portion (vrai par défaut) ; faux : résumés seulement. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `tracks` et `radio`, `provenance` (avec `mention`) et `vff_url`. `tracks.summary` (nul sans portion au
+nombre établi) donne le nombre de voies dominant en longueur (`tracks` : 1 voie unique ou navette, 2 double voie),
+`uniform` (90 % de la longueur ou plus), `dominant_share`, `dominant_length_m`, `length_m_by_tracks` et
+`banalised_length_m` ; `tracks.portions` donne `pk_start_label`, `pk_end_label`, `length_m`, `tracks`, `regime` (libellé
+SNCF tel quel) et `banalised`. La voie banalisée ne dit pas le nombre de voies (`tracks` nul) : ne pas en déduire une
+double voie. `radio.systems` donne la longueur par système (`gsm-r`, `gsm-gfu`, `rst-data`, `rst-id`, `rst`), `gsm_r` et
+`gsm_r_length_m` résument le GSM-R, `radio.portions` le détail avec `system` et `label`. Une ligne absente des jeux renvoie
+des listes vides. Raccourcissement : `tracks.portions` et `radio.portions` (`truncated`).
+
+```json
+{"line": "rfn-579000"}
 ```
 
 ### `line_greenways` : voies vertes d'une ancienne ligne
@@ -1187,6 +1221,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
+| « La ligne de Beillant à Angoulême est-elle à voie unique, et équipée du GSM-R ? » | `line_infrastructure {"line": "rfn-579000"}` : `tracks.summary`, `radio.systems` ; citer « SNCF Réseau » |
 | « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |

@@ -5,6 +5,8 @@ namespace Tests;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\ParallelTesting;
+use PDO;
+use PDOException;
 use RuntimeException;
 
 trait CreatesApplication
@@ -25,6 +27,7 @@ trait CreatesApplication
         }
 
         $this->guardAgainstNonTestDatabase($app);
+        $this->ensureBaseTestDatabaseExists($app);
 
         // Tests parallèles (artisan test --parallel, Infection) : Laravel bascule
         // ensuite chaque processus sur « <base>_test_<n> ». On revérifie APRÈS cette
@@ -33,6 +36,47 @@ trait CreatesApplication
         ParallelTesting::setUpTestCase(fn () => $this->guardAgainstNonTestDatabase($app));
 
         return $app;
+    }
+
+    /**
+     * Crée la base de test nommée par VFF_TEST_DB si elle n'existe pas encore.
+     *
+     * Laravel (artisan test --parallel) se connecte à cette base pour créer « <base>_test_<n> » :
+     * absente, chaque test échoue à la mise en place (« database ... does not exist »), des centaines
+     * d'erreurs pour une base jamais créée (21/11/2026). Le nom a déjà passé le garde-fou (suffixe
+     * _test ou _test_<n>) ; les extensions PostGIS viennent de la migration. Une fois par processus.
+     */
+    protected function ensureBaseTestDatabaseExists(Application $app): void
+    {
+        static $checked = [];
+
+        $connection = $app['config']->get('database.default');
+        $config = (array) $app['config']->get("database.connections.{$connection}");
+        $database = (string) ($config['database'] ?? '');
+
+        if (($config['driver'] ?? '') !== 'pgsql' || isset($checked[$database]) || ! self::isTestDatabaseName($database)) {
+            return;
+        }
+        $checked[$database] = true;
+
+        try {
+            $pdo = new PDO(
+                sprintf('pgsql:host=%s;port=%s;dbname=postgres', $config['host'] ?? '127.0.0.1', $config['port'] ?? 5432),
+                (string) ($config['username'] ?? ''),
+                (string) ($config['password'] ?? ''),
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION],
+            );
+            $exists = $pdo->prepare('SELECT 1 FROM pg_database WHERE datname = ?');
+            $exists->execute([$database]);
+
+            if ($exists->fetchColumn() === false) {
+                // Le nom est sûr (^[A-Za-z0-9_]+$, vérifié ci-dessus), donc cité sans risque.
+                $pdo->exec('CREATE DATABASE "'.$database.'"');
+            }
+        } catch (PDOException) {
+            // Base créée entre-temps par un autre processus, serveur arrêté ou droits insuffisants :
+            // le premier test qui touche la base le signale avec son propre message.
+        }
     }
 
     /**

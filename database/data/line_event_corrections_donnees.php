@@ -1195,4 +1195,313 @@ return [
         'quote' => 'La mise en service de cette phase est réalisée le 3 juillet 2016.',
         'reason' => 'seconde phase de la LGV Est, de Baudrecourt à Vendenheim (106 km, raccordement à la ligne de Strasbourg à Wissembourg à Eckwersheim), mise en service le 03/07/2016 ; la première phase (300 km) était en service depuis 2007',
     ],
+
+    // Mesure de l'analyse des chronologies Wikipédia (storage/app/reports/agents/aprem-2111/chronologie-mesure.md) :
+    // quatre erreurs relevées en relisant les événements gagnés par l'analyse des dates et des étapes.
+
+    // 915000 Veynes - Briançon : « Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et
+    // entre La Freissinouse et Gap le 6 février 1893 » (l'article dit juste avant « Elle sera mise en service en
+    // deux étapes », « elle » étant la mise à double voie). Ce sont deux poses de seconde voie sur une ligne
+    // ouverte en 1875 (Veynes - Gap, 1er février 1875), pas des ouvertures. Confirmé par Rail Passion n°171 (« une
+    // seconde voie est posée de Veynes à La Freissinouse en mars 1883 ») et la page de la gare de Gap (doublement
+    // de la voie vers Veynes en 1893).
+    [
+        'line' => '915000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1883-03-28'],
+        'label' => 'Pose de la seconde voie entre Veynes et La Freissinouse',
+        'source_url' => $wp('Ligne de Veynes à Briançon', 240049469),
+        'quote' => 'Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et entre La Freissinouse et Gap le 6 février 1893.',
+        'reason' => 'mise à double voie d\'une section ouverte le 1er février 1875, pas une ouverture',
+    ],
+    [
+        'line' => '915000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1893-02-06'],
+        'label' => 'Pose de la seconde voie entre La Freissinouse et Gap',
+        'source_url' => $wp('Ligne de Veynes à Briançon', 240049469),
+        'quote' => 'Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et entre La Freissinouse et Gap le 6 février 1893.',
+        'reason' => 'mise à double voie d\'une section ouverte le 1er février 1875, pas une ouverture',
+    ],
+
+    // 766000 Dijon - Épinac : « En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et
+    // Gissey-sur-Ouche. Ce tronçon ferme en 1967 » : c'est la fin de ce service voyageurs (la section de Plombières-Canal
+    // à Velars restait au fret jusqu'en 1971, de Dijon à Plombières-Canal jusqu'en 1989), pas la fermeture du tronçon. La
+    // réouverture de 1952 n'était pas lue. Confirmé par le wiki Routes (réouverture voyageurs le 1er mai 1952,
+    // fermeture en 1967) ; lignes-oubliees évoque un « train des pêcheurs » jusqu'au milieu des années 1960.
+    [
+        'line' => '766000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1967-01-01'],
+        'label' => 'Fin du service voyageurs entre Dijon-Ville et Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et Gissey-sur-Ouche. Ce tronçon ferme en 1967',
+        'reason' => 'le tronçon ne ferme qu\'aux voyageurs (il reste exploité au fret) : l\'événement typé est ajouté ci-dessous',
+    ],
+    [
+        'line' => '766000',
+        'action' => 'add',
+        'type' => 'reopening_passenger',
+        'date' => '1952-01-01',
+        'precision' => 'year',
+        'from' => 'Dijon-Ville',
+        'to' => 'Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et Gissey-sur-Ouche.',
+        'reason' => 'réouverture aux voyageurs après la fermeture du 6 février 1939 (wiki Routes : 1er mai 1952)',
+    ],
+    [
+        'line' => '766000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1967-01-01',
+        'precision' => 'year',
+        'from' => 'Dijon-Ville',
+        'to' => 'Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'Ce tronçon ferme en 1967, et la section complète entre Velars-la-Cude et Ivry - Cussy est neutralisée en 1968, puis déclassée en 1969.',
+        'reason' => 'fin du service voyageurs rouvert en 1952 (wiki Routes : 1967) ; le fret continue (Velars - Ivry-Cussy jusqu\'en 1968, Plombières - Velars jusqu\'en 1971, Dijon - Plombières jusqu\'en 1989)',
+    ],
+
+    // 985000 Choisy-le-Roi - Massy - Verrières : « La ligne ferme le 15 mai 1939. Le 25 septembre 1977, elle rouvre
+    // aux voyageurs entre Pont de Rungis et Massy - Palaiseau. » C'est la fin du service voyageurs de la Grande
+    // Ceinture stratégique (les pages des gares d'Orly-Ville et de Massy - Palaiseau donnent la même date ; le wiki
+    // Routes : « 15 05 1939 : section Orly-Ville - Massy-Palaiseau (service voyageurs) »), pas une fermeture de la
+    // ligne, qui sert au fret et à la branche du RER C. La réouverture de 1977 n'était pas lue : sans elle, la ligne
+    // resterait sans voyageurs jusqu'en 2030.
+    [
+        'line' => '985000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1939-05-15'],
+        'label' => 'Fin du service voyageurs de la Grande Ceinture stratégique',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'La ligne ferme le 15 mai 1939. Le 25 septembre 1977, elle rouvre aux voyageurs entre Pont de Rungis et Massy - Palaiseau.',
+        'reason' => 'la ligne ne ferme qu\'aux voyageurs (l\'article la dit rouverte aux voyageurs en 1977) : l\'événement typé est ajouté ci-dessous',
+    ],
+    [
+        'line' => '985000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'from' => 'Choisy-le-Roi',
+        'to' => 'Massy - Verrières',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'La ligne ferme le 15 mai 1939.',
+        'reason' => 'fin du service voyageurs de la Grande Ceinture stratégique (Wikipédia ; pages des gares d\'Orly-Ville et de Massy - Palaiseau ; wiki Routes)',
+    ],
+    [
+        'line' => '985000',
+        'action' => 'add',
+        'type' => 'reopening_passenger',
+        'date' => '1977-09-25',
+        'precision' => 'day',
+        'from' => 'Pont de Rungis',
+        'to' => 'Massy - Palaiseau',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'Le 25 septembre 1977, elle rouvre aux voyageurs entre Pont de Rungis et Massy - Palaiseau.',
+        'reason' => 'réouverture aux voyageurs de la section parcourue depuis par la branche Massy - Pont de Rungis du RER C',
+    ],
+
+    // 785000 Saint-Germain-des-Fossés - Darsac : « Fermeture au service des voyageurs. Les sections de Vichy à Courty
+    // et d'Arlanc à Darsac sont fermées le 26 novembre 1971, la section de Pont-de-Dore à Arlanc le 28 septembre 1980. »
+    // La phrase est sous le titre « Fermeture au service des voyageurs » : la lecture sans trafic faisait fermer la
+    // section à tout trafic en 1980, alors qu'elle reste au fret (Courpière - Arlanc jusqu'au 5 février 1988). La fin
+    // des voyageurs du 28/09/1980 est déjà posée par lignes-oubliees.
+    [
+        'line' => '785000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1980-09-28'],
+        'label' => 'Fin du service voyageurs entre Pont-de-Dore et Arlanc',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Darsac', 235337759),
+        'quote' => 'la section de Pont-de-Dore à Arlanc le 28 septembre 1980.',
+        'reason' => 'phrase de la section « Fermeture au service des voyageurs » : la section reste au fret jusqu\'en 1988 (fin des voyageurs déjà ajoutée par lignes-oubliees)',
+    ],
+
+    // Retranchements annulés par le Conseil d'État (storage/app/reports/agents/aprem-2111/faits-juridiques.md).
+    // Avant 2007, une section fermée était retranchée du réseau ferré national par décret au Journal officiel.
+    // La FNAUT a obtenu l'annulation de plusieurs de ces décrets pour vice de procédure (décisions ci-dessous) :
+    // un décret annulé est réputé n'avoir jamais existé, la section reste dans le réseau ferré national. Les
+    // articles de lignes (Wikipédia) et le fichier de lignes-oubliees datent pourtant ces retranchements comme des
+    // déclassements en vigueur : chaque événement devient un simple fait (« other »), sans effet sur la carte,
+    // et garde la décision qui l'annule.
+    [
+        'line' => '460000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-02-12'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'Châteaubriant - Saint-Vincent-des-Landes (PK 359,200 à 364,442) : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '728000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-02-12'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'Tournemire - Roquefort - Saint-Affrique, totalité (PK 524,927 à 539,590) : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '856000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-02-12'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'section de Vesoul (PK 468,579 à 469,344) : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '523000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-02-12'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'Bressuire - Breuil-Barret (PK 88,900 à 118,810) : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '511000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-02-12'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'sections de Gouis (PK 36,374 à 36,931) et de La Flèche (PK 47,100 à 48,417) : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '380000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-01-01'],
+        'label' => 'Retranchement du 12 février 2001 annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183/',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'section au départ de Caen (PK 0,000 à 2,365), datée seulement de 2001 par l\'article : décret annulé en totalité (avis de communes non adoptés par délibération du conseil municipal, procédure irrégulière)',
+    ],
+    [
+        'line' => '712000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2001-10-17'],
+        'label' => 'Retranchement du 17 octobre 2001 annulé par le Conseil d\'État (décision n° 241137 du 4 août 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-08-04/241137',
+        'quote' => 'Le décret du 17 octobre 2001 est annulé en tant qu\'il porte retranchement de sections des lignes Sablé-Montoir et Chaugey-Lons le Saulnier et des sections de ligne Fécamp-Saint-Vaast, Serqueux-Dieppe et La Courtine-Ussel.',
+        'reason' => 'La Courtine - Ussel (PK 447,900 à 466,050) : décret annulé en tant qu\'il retranche cette section : la fermeture de La Courtine - Ussel avait été annulée par jugement définitif du tribunal administratif de Limoges du 31 décembre 2002, la section ne pouvait donc être retranchée',
+    ],
+    [
+        'line' => '007000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'lignes-oubliees', 'type' => 'declassification', 'date' => '2002-12-09'],
+        'label' => 'Retranchement du 9 décembre 2002 annulé par le Conseil d\'État (décision n° 253607 du 28 juillet 2004)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2004-07-28/253607',
+        'quote' => 'Le décret du 9 décembre 2002 est annulé.',
+        'reason' => 'Fère-Champenoise - Lenharrée (PK 0,815 à 9,000) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '889000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2002-12-09'],
+        'label' => 'Retranchement du 9 décembre 2002 annulé par le Conseil d\'État (décision n° 253607 du 28 juillet 2004)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2004-07-28/253607',
+        'quote' => 'Le décret du 9 décembre 2002 est annulé.',
+        'reason' => 'Lagnieu - Villebois (PK 7,000 à 15,769) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '317000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2002-10-15'],
+        'label' => 'Retranchement du 15 octobre 2002 annulé par le Conseil d\'État (décision n° 252670 du 28 juillet 2004)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008155063',
+        'quote' => 'Le décret du 15 octobre 2002 est annulé.',
+        'reason' => 'Ressons-le-Long - Ambleny-Fontenoy (PK 86,100 à 89,870) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '926000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2002-10-15'],
+        'label' => 'Retranchement du 15 octobre 2002 annulé par le Conseil d\'État (décision n° 252670 du 28 juillet 2004)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008155063',
+        'quote' => 'Le décret du 15 octobre 2002 est annulé.',
+        'reason' => 'Carpentras - Pernes (PK 23,602 à 28,390) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '411000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2003-06-12'],
+        'label' => 'Retranchement du 12 juin 2003 annulé par le Conseil d\'État (décision n° 259398 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/259398',
+        'quote' => 'Le décret du 12 juin 2003 est annulé.',
+        'reason' => 'Cahan - Berjou (PK 27,182 à 29,317) : décret annulé en totalité (avis de collectivités non adoptés par leur assemblée délibérante, procédure irrégulière)',
+    ],
+    [
+        'line' => '007000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'lignes-oubliees', 'type' => 'declassification', 'date' => '2003-11-10'],
+        'label' => 'Retranchement du 10 novembre 2003 annulé par le Conseil d\'État (décision n° 263468 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/263468',
+        'quote' => 'Le décret du 10 novembre 2003 est annulé.',
+        'reason' => 'Sompuis - Huiron (PK 37,641 à 47,876) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '342000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'declassification', 'date' => '2003-11-10'],
+        'label' => 'Retranchement du 10 novembre 2003 annulé par le Conseil d\'État (décision n° 263468 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/263468',
+        'quote' => 'Le décret du 10 novembre 2003 est annulé.',
+        'reason' => 'Gisors - Étrépagny (PK 0,344 à 15,380) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+    [
+        'line' => '607000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'lignes-oubliees', 'type' => 'declassification', 'date' => '2003-11-10'],
+        'label' => 'Retranchement du 10 novembre 2003 annulé par le Conseil d\'État (décision n° 263468 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/263468',
+        'quote' => 'Le décret du 10 novembre 2003 est annulé.',
+        'reason' => 'Charroux - Civray (PK 423,800 à 433,800) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
+    ],
+
+    // Faits juridiques, suite (storage/app/reports/agents/aprem-2111/faits-juridiques-2.md, 22/11/2026).
+
+    // 460000 Sablé - Montoir-de-Bretagne : OpenHistoricalMap date de « fermeture tout trafic » (53,3 km) le jour
+    // du décret du 12/02/2001, annulé en totalité par le Conseil d'État (3/12/2003, n° 232574). La fin du
+    // trafic de Segré à Châteaubriant est antérieure (fermeture de Sablé à Châteaubriant le 03/03/1969, déjà en
+    // base) : la date du décret n'est pas une fermeture.
+    [
+        'line' => '460000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '2001-02-12'],
+        'label' => 'Date du décret de retranchement du 12 février 2001, annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'portion de 53,3 km : la date reprend celle du décret annulé, la fermeture de Sablé à Châteaubriant date du 3 mars 1969 (Wikipédia, déjà en base)',
+    ],
+
+    // 096000 Pompey - Nomény : fermeture OpenHistoricalMap de Custines à Leyr datée du jour du décret du
+    // 10/11/2003, annulé en totalité (Conseil d'État, 18/01/2006, n° 263468). Le décret visait Leyr - Nomény
+    // (PK 12,332 à 22,058) ; la ligne est officiellement fermée en janvier 1982 (Wikipédia, Wikidata, déjà en base).
+    [
+        'line' => '096000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '2003-11-10'],
+        'label' => 'Date du décret de retranchement du 10 novembre 2003, annulé par le Conseil d\'État (décision n° 263468 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/263468',
+        'quote' => 'Le décret du 10 novembre 2003 est annulé.',
+        'reason' => 'Custines - Leyr : la date reprend celle du décret annulé, la ligne est fermée depuis janvier 1982 (déjà en base)',
+    ],
+
+    // 804000 Le Pouzin - Privas : déclassement par RFF du 26/05/2008 (PK 640,962 à 658,900) annulé par le
+    // tribunal administratif de Lyon (16/11/2010, n° 0806228, recours de la FNAUT), jugement confirmé par la
+    // cour administrative d'appel de Lyon (3/11/2011, n° 11LY00160) : RFF devait consulter la région Rhône-Alpes
+    // avant de déclasser, plus de cinq ans après l'autorisation de fermeture. Le retranchement du 15/04/2002
+    // n'est pas en cause et reste en base.
+    [
+        'line' => '804000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'lignes-oubliees', 'type' => 'declassification', 'date' => '2008-05-26'],
+        'label' => 'Déclassement du 26 mai 2008 annulé par le tribunal administratif de Lyon (jugement n° 0806228 du 16 novembre 2010, confirmé par la cour administrative d\'appel de Lyon, arrêt n° 11LY00160 du 3 novembre 2011)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000024802236',
+        'quote' => 'au terme d\'une procédure irrégulière',
+        'reason' => 'Le Pouzin - Privas (PK 640,962 à 658,900) : décision de déclassement de RFF annulée faute de consultation de la région Rhône-Alpes (article 49 du décret du 5 mai 1997)',
+    ],
 ];

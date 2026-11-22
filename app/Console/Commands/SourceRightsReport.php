@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Support\SourceRights;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Droits des sources (registre database/data/source_rights.php, cf. App\Support\SourceRights).
@@ -66,6 +67,9 @@ class SourceRightsReport extends Command
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
+        'station_platforms' => 'SELECT DISTINCT source AS v FROM station_platforms',
+        'line_track_portions' => 'SELECT DISTINCT source AS v FROM line_track_portions',
+        'line_radio_portions' => 'SELECT DISTINCT source AS v FROM line_radio_portions',
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
         'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',
@@ -96,6 +100,12 @@ class SourceRightsReport extends Command
     {
         $errors = self::registryErrors($rights);
         foreach (self::PROVENANCE_QUERIES as $table => $sql) {
+            // Table d'une migration pas encore appliquée (créée, en attente) : rien à contrôler, signalé.
+            if (preg_match('/\bFROM (\w+)/', $sql, $m) && ! Schema::hasTable($m[1])) {
+                $this->warn("{$table} : table {$m[1]} absente (migration non appliquée), non contrôlée.");
+
+                continue;
+            }
             foreach (DB::select($sql) as $row) {
                 if (! $rights->knows($table, (string) $row->v)) {
                     $errors[] = "{$table} : provenance « {$row->v} » absente du registre database/data/source_rights.php";

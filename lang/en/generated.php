@@ -217,6 +217,7 @@ return [
         'label_item' => ':label (:item)',
         'note_item' => 'according to Wikidata, for this part of the line only',
         'note_sncf_today' => 'today, according to SNCF Réseau (nominal speed)',
+        'note_sncf_tracks' => 'today, according to SNCF Réseau (operating regime)',
         'note_sncf_era' => 'in :year, according to SNCF Réseau (nominal speed)',
         'note_sncf_today_part' => 'today, on only :km km of the line, according to SNCF Réseau',
         'note_sncf_era_part' => 'in :year, on only :km km of the line, according to SNCF Réseau',

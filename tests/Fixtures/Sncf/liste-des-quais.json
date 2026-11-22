@@ -1,0 +1,8 @@
+{"dataset":"liste-des-quais","fetched_at":"2026-11-22 15:47:00","license":"Open Database License (ODbL)","modified":"2020-05-26","records":[
+{"code_ligne":"420000","code_voie":"420000-1-A","pkd":"622+096","pkf":"622+315","libelle":"Quai A/B","longueur":219.0,"rg_troncon":1,"lib_gare":"Brest","x_d_wgs84":-4.4795,"y_d_wgs84":48.3880,"x_f_wgs84":-4.4780,"y_f_wgs84":48.3870},
+{"code_ligne":"420000","code_voie":"420000-1-B","pkd":"622+096","pkf":"622+408","libelle":"Quai A/B","longueur":312.0,"rg_troncon":1,"lib_gare":"Brest","x_d_wgs84":-4.4795,"y_d_wgs84":48.3880,"x_f_wgs84":-4.4775,"y_f_wgs84":48.3868},
+{"code_ligne":"420000","code_voie":"420000-1-E","pkd":"622+017","pkf":"622+404","libelle":"Quai E/F","longueur":387.0,"rg_troncon":1,"lib_gare":"Brest","x_d_wgs84":-4.4800,"y_d_wgs84":48.3882,"x_f_wgs84":-4.4776,"y_f_wgs84":48.3867},
+{"code_ligne":"100000","code_voie":"100000-1-V1","pkd":"017+000","pkf":"017+150","libelle":"Quai 1","longueur":150.0,"rg_troncon":1,"lib_gare":"Bravo","x_d_wgs84":2.4000,"y_d_wgs84":48.9000,"x_f_wgs84":2.4010,"y_f_wgs84":48.9006},
+{"code_ligne":"100000","code_voie":"100000-1-V2","pkd":"017+010","pkf":"017+140","libelle":"Quai 2","longueur":130.0,"rg_troncon":1,"lib_gare":"Bravo","x_d_wgs84":2.4001,"y_d_wgs84":48.9001,"x_f_wgs84":2.4009,"y_f_wgs84":48.9005},
+{"code_ligne":"100000","code_voie":"100000-1-V1","pkd":"009+000","pkf":"009+100","libelle":"Quai","longueur":100.0,"rg_troncon":1,"lib_gare":null,"x_d_wgs84":2.35,"y_d_wgs84":48.85,"x_f_wgs84":2.351,"y_f_wgs84":48.851}
+]}

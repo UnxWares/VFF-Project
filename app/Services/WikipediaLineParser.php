@@ -431,7 +431,16 @@ class WikipediaLineParser
             }
         }
 
-        $events = array_merge($events, $this->infoboxEvents($infobox, $events));
+        // Les événements des lectures ajoutées (étapes, date commune, verbe au présent) ne masquent pas le
+        // repli de l'infobox : ses autres dates restent (Cavaillon - Apt « ouvre en 1877 » n'efface pas
+        // « mise en service2 = 1890 ») ; une même année en double est retirée par dedupe().
+        $shadowing = array_filter($events, fn ($e) => ! isset($e[self::ADDED_READING]));
+        $events = array_map(function ($e) {
+            unset($e[self::ADDED_READING]);
+
+            return $e;
+        }, $events);
+        $events = array_merge($events, $this->infoboxEvents($infobox, $shadowing));
 
         return $this->dedupe($events);
     }
@@ -888,7 +897,10 @@ class WikipediaLineParser
             $sentenceUndated = [];
             // Réaffectation de l'emprise (voie verte, vélorail…) : pas d'ouverture ferroviaire.
             $greenway = (bool) preg_match('/piétons|cycl|voie verte|promenade|coulée verte|randonn|vélo|draisine|vélorail|musée/u', $lcSentence);
-            $clauses = $this->splitClauses($sentence);
+            // « Les sections de A à B et de B à C sont fermées respectivement le D1 et le D2 » : une
+            // proposition par portion, dans l'ordre (cf. respectiveStages()).
+            $respective = $this->respectiveStages($sentence, $ends);
+            $clauses = $respective ?? $this->splitClauses($sentence);
             // Texte de la phrase hors propositions qui portent leur propre ÉVÉNEMENT et leur propre
             // portion : cette portion est extraite, elle ne rend pas « inconnue » celle d'une autre
             // proposition (cf. makeEvent : « La ligne est fermée au trafic voyageurs le 9 janvier
@@ -902,7 +914,16 @@ class WikipediaLineParser
                 || ! ($this->detectTypes($c, $mode)
                     || preg_match('/^(?:et\s+)?(?:au|aux|des)\s+(?:(?:trafic|service)\s+(?:des\s+)?)?(?:marchandises|voyageurs|fret)\b/u', mb_strtolower($c))
                     || preg_match('/^(?:et\s+)?(?:(?:le|du)\s+(?:1er|\d{1,2})\s+\p{L}+\s+\d{4}|en\s+\d{4}|(?:de|d[\'’])\s*\p{Lu}|entre\s+\p{Lu})/u', $c))));
-            foreach ($clauses as $clause) {
+            // Étapes énumérées dans une même proposition (« Troyes - Bar-sur-Seine le 20 juillet 1862,
+            // Bar-sur-Seine - Châtillon-sur-Seine le 19 octobre 1868 ») : une proposition par étape,
+            // qui hérite du verbe de la première (cf. stagedItems()).
+            $staged = $respective !== null
+                ? array_map(fn ($c, $i) => ['text' => $c, 'added' => $i > 0], $clauses, array_keys($clauses))
+                : $this->splitStagedClauses($clauses, $ends);
+            $clauses = array_column($staged, 'text');
+            foreach ($clauses as $ci => $clause) {
+                // Événement lu grâce aux étapes, à la date commune ou au verbe au présent (cf. ADDED_READING).
+                $added = $staged[$ci]['added'];
                 $dates = $this->findDates($clause);
                 $section = $this->findSection($clause, $ends);
                 $lc = mb_strtolower($clause);
@@ -984,6 +1005,12 @@ class WikipediaLineParser
                     // « Le service voyageurs entre X et Y … cesse à ce moment » : date de la phrase qui précède.
                     $dates = [['pos' => mb_strlen(substr($lc, 0, $same[0][1]))] + $paraLastDate];
                 }
+                if (! $dates && $section && ! $section['whole_line'] && ! $section['only_to'] && ($shared = $this->sharedStageDate($clauses, $ci, $ends, $mode)) !== null) {
+                    // « Le trafic marchandises cesse entre Villars et Poinson et entre Mirebeau-sur-Bèze et
+                    // Champagne-sur-Vingeanne le 30 mai 1975 » : une date pour les deux portions.
+                    $dates = [['pos' => mb_strlen($clause)] + $shared];
+                    $added = true;
+                }
                 if (! $dates) {
                     if ($isClosure) {
                         $sentenceUndated = array_values(array_filter($types, fn ($t) => str_starts_with($t['type'], 'closure')));
@@ -1052,8 +1079,13 @@ class WikipediaLineParser
                         && preg_match('/\b(?:à partir de|dès)\s+(?:l[\'’]année\s+|l[\'’]an\s+)?$/u', mb_substr($lc, max(0, $date['pos'] - 25), min(25, $date['pos'])))) {
                         continue;
                     }
-                    $events[] = $this->makeEvent($t['type'], $date, $section, $mode, $heading, $clause, $sentence,
+                    // Propositions recomposées de « respectivement » : la citation reste la phrase de l'article.
+                    $event = $this->makeEvent($t['type'], $date, $section, $mode, $heading, $respective !== null ? $sentence : $clause, $sentence,
                         ($t['label'] ?? null) === self::SERVICE_REDUCTION_LABEL ? $t['label'] : null, $unsectioned);
+                    if ($added || preg_match(self::PRESENT_VERB_RX, mb_substr($lc, $t['pos'], 8))) {
+                        $event[self::ADDED_READING] = true;
+                    }
+                    $events[] = $event;
                 }
             }
             $undatedClosures = $sentenceUndated;
@@ -1119,6 +1151,299 @@ class WikipediaLineParser
     }
 
     /**
+     * Verbe au présent (« La ligne ferme au service voyageurs le 2 mars 1969 », « Elle ouvre au trafic des
+     * voyageurs le 18 octobre 1886 », « ouvre en 1877 ») : retenu seulement suivi de sa date complète,
+     * au plus après le trafic. Sans elle, « ferme » et « ouvre » sont trop vagues (« ouvre la voie à »,
+     * « s'ouvre », « ferme le 24 août et ne rouvre … le 1 février 1915 », date d'une parenthèse voisine).
+     */
+    private const PRESENT_VERB_RX = '/^(?:ferme(?:nt)?|ouvr(?:e|ent))\b/u';
+
+    private const PRESENT_VERB_DATE = '(?=\s+(?:(?:au|aux)\s+(?:(?:service|trafic)\s+(?:des\s+)?)?(?:voyageurs|marchandises|fret)\s+)?(?:(?:le|dès le|à partir du)\s+(?:1er|\d{1,2})\s+\p{L}+\s+(?:1[89]\d\d|20[0-3]\d)|en\s+(?:\p{L}+\s+)?(?:1[89]\d\d|20[0-3]\d))\b)';
+
+    /** Clé interne (retirée avant le retour de parseChronology()) des événements des lectures ajoutées. */
+    private const ADDED_READING = "\0added";
+
+    /** Rang d'une étape (« le second le 23 juillet 1959 jusqu'à … »). */
+    private const STAGE_ORDINAL = '(?:premier|première|second|seconde|deuxième|troisième|quatrième|cinquième|dernier|dernière|suivant|suivante)';
+
+    /** Séparateur entre deux étapes d'une énumération (« , », « et », « , et enfin », « ; », « puis »). */
+    private const STAGE_SEP = '(?:,\s+(?:et\s+|puis\s+)?(?:enfin\s+)?|\s+et\s+(?:enfin\s+)?|\s+puis\s+|\s*;\s*)';
+
+    /**
+     * Découpe les propositions qui énumèrent des étapes (cf. stagedItems()) et sépare « entre X et Y
+     * et entre Z et T » en deux propositions (la date commune est retrouvée par sharedStageDate()).
+     *
+     * Le premier morceau d'une proposition coupée garde la lecture d'avant (même portion, même date) ;
+     * les suivants sont des lectures ajoutées (`added`, cf. ADDED_READING).
+     *
+     * @param  list<string>  $clauses
+     * @param  list<string>  $ends
+     * @return list<array{text: string, added: bool}>
+     */
+    private function splitStagedClauses(array $clauses, array $ends): array
+    {
+        $out = [];
+        foreach ($clauses as $clause) {
+            $parts = [];
+            foreach ($this->stagedItems($clause, $ends) ?? [$clause] as $item) {
+                array_push($parts, ...$this->splitBetweenPairs($item, $ends));
+            }
+            foreach ($parts as $i => $part) {
+                $out[] = ['text' => $part, 'added' => $i > 0];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Étapes d'une proposition qui porte plusieurs dates, chacune avec sa portion :
+     *   - portion puis date : « Troyes - Bar-sur-Seine le 20 juillet 1862, Bar-sur-Seine -
+     *     Châtillon-sur-Seine le 19 octobre 1868, Châtillon-sur-Seine - Is-sur-Tille le 9 décembre 1882 »,
+     *     « entre Sargé et Montoire le 2 janvier 1893, entre Montoire et Château-Renault le 15 octobre
+     *     1893 et entre Château-Renault et Vouvray le 29 juillet 1894 » ;
+     *   - date puis portion : « fermée au trafic voyageurs le 15 mai 1939 de Pithiviers à
+     *     Beaune-la-Rolande, le 4 novembre 1969 d'Étampes à Pithiviers ».
+     * Chaque étape devient une proposition, qui hérite du verbe de la première (structure parallèle
+     * d'analyze()). Sans cela, une seule portion et une seule date étaient lues par mot-clé.
+     *
+     * Règle stricte : chaque morceau porte exactement une date et une portion (partielle, de cette
+     * ligne), du même côté de la date pour tous, et rien d'autre ne cite de portion hors des morceaux.
+     * Sinon (une date sans portion, une portion de trop, un autre trafic énuméré au milieu), la
+     * proposition reste entière : mieux vaut une étape de moins qu'une portion datée à tort.
+     *
+     * @param  list<string>  $ends
+     * @return list<string>|null
+     */
+    private function stagedItems(string $clause, array $ends): ?array
+    {
+        $all = $this->findDates($clause);
+        if (count($all) < 2 || array_filter($all, fn ($d) => $d['precision'] === 'decade')) {
+            return null;
+        }
+        $n = count($all);
+        $spans = [];
+        foreach ($all as $d) {
+            if (! preg_match('/^(?:(?:1er|\d{1,2})\s*(?:er)?\s+)?(?:\p{L}+\s+)?\d{4}/u', mb_substr($clause, $d['pos']), $m)) {
+                return null;
+            }
+            $spans[] = [$d['pos'], $d['pos'] + mb_strlen($m[0])];
+        }
+        $len = mb_strlen($clause);
+
+        // Portion puis date : coupe juste après chaque date (sauf la dernière), sur un séparateur.
+        $cutsAfter = [];
+        for ($i = 0; $i < $n - 1; $i++) {
+            $rest = mb_substr($clause, $spans[$i][1], $spans[$i + 1][0] - $spans[$i][1]);
+            if (! preg_match('/^(\s*\([^()]{0,80}\))?('.self::STAGE_SEP.')/u', $rest, $m)) {
+                $cutsAfter = null;
+                break;
+            }
+            $start = $spans[$i][1] + mb_strlen($m[1]);
+            $cutsAfter[] = [$start, $start + mb_strlen($m[2])];
+        }
+        // Date puis portion : coupe juste avant chaque date (sauf la première), sur un séparateur suivi
+        // au plus d'un « le », « en », « depuis le »...
+        $cutsBefore = [];
+        for ($i = 1; $i < $n; $i++) {
+            $head = mb_substr($clause, $spans[$i - 1][1], $spans[$i][0] - $spans[$i - 1][1]);
+            // « , le second le 23 juillet 1959 jusqu'à Don - Sainghin », « , le 04 novembre 1969 d'Étampes à Pithiviers ».
+            if (! preg_match('/('.self::STAGE_SEP.')((?:(?:le|la)\s+'.self::STAGE_ORDINAL.'\s+)?(?:(?:depuis|dès|à partir d[ue]|à compter d[ue])\s+)?(?:le|les|en|au|du)\s+(?:0\d\s+)?)?$/u', $head, $m, PREG_OFFSET_CAPTURE)) {
+                $cutsBefore = null;
+                break;
+            }
+            $start = $spans[$i - 1][1] + mb_strlen(substr($head, 0, $m[1][1]));
+            $cutsBefore[] = [$start, $start + mb_strlen($m[1][0])];
+        }
+
+        $found = null;
+        foreach (['after' => $cutsAfter, 'before' => $cutsBefore] as $order => $cuts) {
+            if ($cuts === null) {
+                continue;
+            }
+            $items = [];
+            $from = 0;
+            foreach ([...$cuts, [$len, $len]] as $i => [$cutStart, $cutEnd]) {
+                $text = mb_substr($clause, $from, $cutStart - $from);
+                $dateAt = $spans[$i][0] - $from;
+                $sec = $this->findSection($text, $ends);
+                if (! $sec || $sec['other_line'] || $sec['whole_line'] || ($sec['only_to'] && $i === 0) || $sec['quote'] === '') {
+                    continue 2;
+                }
+                $secAt = mb_strpos($text, $sec['quote']);
+                if ($secAt === false) {
+                    continue 2;
+                }
+                // La portion du bon côté de la date, et aucune autre de l'autre côté.
+                $other = $order === 'after' ? mb_substr($text, $dateAt) : mb_substr($text, 0, $dateAt);
+                if (($order === 'after' ? $secAt >= $dateAt : $secAt < $dateAt) || $this->findSection($other, $ends) !== null) {
+                    continue 2;
+                }
+                if ($i > 0 && ! $this->isBareStage($text, $sec['quote'], $secAt, $dateAt, $spans[$i][1] - $spans[$i][0]) && ! $this->detectTypes($text, 'prose')) {
+                    // « La portion A - B ayant été fermée en 1990, seule la portion C - D est exploitée en 2005 » :
+                    // un autre verbe, sans mot-clé à lui. Ce n'est pas une étape de la même énumération.
+                    continue 2;
+                }
+                $items[] = trim($text);
+                $from = $cutEnd;
+            }
+            if ($found !== null) {
+                return null; // les deux lectures tiennent : ambigu
+            }
+            $found = $items;
+        }
+
+        return $found;
+    }
+
+    /**
+     * « Les sections de Chaussin à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars
+     * 1969 et le 2 juin 1971 » : autant de portions avant « respectivement » que de dates après, appariées
+     * dans l'ordre. Rend une proposition par portion : la première garde le verbe (« Les sections de
+     * Chaussin à Pleure et de Pleure à Bletterans sont fermées le 1 mars 1969 », où findSection() lit la
+     * première portion), les suivantes (« de Pleure à Bletterans le 2 juin 1971 ») en héritent.
+     * Nombres différents, date avant « respectivement », portion après, ou rien d'autre que des dates et
+     * des mots de liaison après : null, la phrase suit la lecture ordinaire.
+     *
+     * @param  list<string>  $ends
+     * @return list<string>|null
+     */
+    private function respectiveStages(string $sentence, array $ends): ?array
+    {
+        if (! preg_match('/^(?<pre>.*?)[\s,]*\brespectivement\b[\s,]*(?<post>.*)$/u', $sentence, $m)) {
+            return null;
+        }
+        $pre = $m['pre'];
+        $post = $m['post'];
+        $dates = $this->findDates($post);
+        if (count($dates) < 2 || $this->findDates($pre) || $this->findSection($post, $ends) !== null
+            || array_filter($dates, fn ($d) => $d['precision'] === 'decade') || ! $this->detectTypes($pre, 'prose')) {
+            return null;
+        }
+        // Les dates : seules, séparées par « , », « et », « puis », précédées au plus de « le », « en »...
+        $texts = [];
+        $from = 0;
+        foreach ($dates as $d) {
+            $gap = mb_substr($post, $from, $d['pos'] - $from);
+            if (! preg_match('/^(?:\s*(?:,|et|puis|le|les|en|au|du|dès|depuis|à partir d[ue]))*\s*$/u', $gap)
+                || ! preg_match('/^(?:(?:1er|\d{1,2})\s*(?:er)?\s+)?(?:\p{L}+\s+)?\d{4}/u', mb_substr($post, $d['pos']), $dm)) {
+                return null;
+            }
+            $texts[] = trim($gap.' '.$dm[0], ' ,');
+            $from = $d['pos'] + mb_strlen($dm[0]);
+        }
+        // Les portions, dans l'ordre du texte.
+        $quotes = [];
+        $rest = $pre;
+        while (($sec = $this->findSection($rest, $ends)) !== null && $sec['quote'] !== '' && ($at = mb_strpos($rest, $sec['quote'])) !== false) {
+            if ($sec['other_line'] || $sec['whole_line'] || $sec['only_to']) {
+                return null;
+            }
+            $quotes[] = $sec['quote'];
+            $rest = mb_substr($rest, $at + mb_strlen($sec['quote']));
+        }
+        if (count($quotes) !== count($texts)) {
+            return null;
+        }
+        $clauses = [trim($pre).' '.$texts[0]];
+        for ($i = 1; $i < count($quotes); $i++) {
+            $clauses[] = $quotes[$i].' '.$texts[$i];
+        }
+
+        return $clauses;
+    }
+
+    /**
+     * Étape « nue » d'une énumération : sa portion, sa date et des mots de liaison seulement (« le 8 avril
+     * 1955 entre La Châtaigneraie et Fontenay-le-Comte », « Bar-sur-Seine - Châtillon-sur-Seine le 19
+     * octobre 1868 », « suivi par celui de Port-de-Piles au Blanc, le 27 juin 1940 », « prolongé jusqu'à
+     * Grenoble le 1 juillet 1858 »). Ce qui suit la
+     * dernière des deux (portion ou date) est la fin de la phrase et n'est pas lu ; une parenthèse non plus.
+     */
+    private function isBareStage(string $text, string $quote, int $secAt, int $dateAt, int $dateLen): bool
+    {
+        $secEnd = $secAt + mb_strlen($quote);
+        $core = $secAt < $dateAt
+            ? mb_substr($text, 0, $secAt).' '.mb_substr($text, $secEnd, $dateAt - $secEnd)
+            : mb_substr($text, 0, $dateAt).' '.mb_substr($text, $dateAt + $dateLen, max(0, $secAt - $dateAt - $dateLen));
+        $core = (string) preg_replace('/\([^()]*\)/u', ' ', mb_strtolower($core));
+        $words = preg_split('/[^\p{L}]+/u', $core, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return ! array_diff($words, ['le', 'la', 'les', 'l', 'en', 'au', 'aux', 'du', 'de', 'd', 'des', 'depuis', 'dès', 'à', 'partir',
+            'compter', 'pour', 'sur', 'puis', 'et', 'enfin', 'ensuite', 'section', 'sections', 'tronçon', 'tronçons', 'partie',
+            'portion', 'ligne', 'celle', 'celui', 'ceux', 'celles', 'cette', 'ce', 'par', 'suivi', 'suivie', 'suivis', 'suivies',
+            'prolongé', 'prolongée', 'prolongés', 'prolongées', 'premier', 'première', 'second', 'seconde', 'deuxième', 'troisième',
+            'quatrième', 'cinquième', 'dernier', 'dernière', 'suivant', 'suivante']);
+    }
+
+    /**
+     * « … cesse entre Villars et Poinson et entre Mirebeau-sur-Bèze et Champagne-sur-Vingeanne le 30 mai
+     * 1975 » : deux portions « entre X et Y » coordonnées, coupées en deux propositions.
+     *
+     * @param  list<string>  $ends
+     * @return list<string>
+     */
+    private function splitBetweenPairs(string $clause, array $ends): array
+    {
+        if (! preg_match('/^(.*?\bentre\s+[^,;]+?\s+et\s+[^,;]+?)(?:,\s+|\s+)et\s+(entre\s+\p{Lu}.*)$/u', $clause, $m)) {
+            return [$clause];
+        }
+        if (substr_count($m[1], '(') !== substr_count($m[1], ')')) {
+            return [$clause]; // « (notamment entre X et Y et entre Z et T) » : un exemple entre parenthèses, pas l'objet du verbe
+        }
+        if ($this->findDates($m[1]) || ! $this->detectTypes($m[1], 'prose')) {
+            // Date avant les portions (« le 22 avril 1959 entre A et B et entre C et D ») : elle n'est pas
+            // commune à coup sûr (sharedStageDate() ne lit que la date finale), la proposition reste entière.
+            // « Le service voyageurs entre A et B … et entre E et F cesse » : le verbe suit, il vaut pour toutes.
+            return [$clause];
+        }
+        $a = $this->findSection($m[1], $ends);
+        $b = $this->findSection($m[2], $ends);
+        if (! $a || ! $b || $a['other_line'] || $b['other_line'] || $a['whole_line'] || $b['whole_line']) {
+            return [$clause];
+        }
+
+        return [$m[1], ...$this->splitBetweenPairs($m[2], $ends)];
+    }
+
+    /**
+     * Date commune d'une énumération de portions sans date propre (« fermée de X à Y et de Z à T le
+     * 1er mars 1950 », « entre X et Y et entre Z et T le 30 mai 1975 ») : celle de la dernière portion
+     * énumérée. Chaque proposition suivante doit n'être qu'une portion (« de Z à T », « entre Z et T »),
+     * sans mot-clé à elle ; la dernière porte une seule date, placée après sa portion, et rien après.
+     *
+     * @param  list<string>  $clauses
+     * @param  list<string>  $ends
+     * @return array{date: string, year: int, precision: string}|null
+     */
+    private function sharedStageDate(array $clauses, int $index, array $ends, string $mode): ?array
+    {
+        for ($j = $index + 1; $j < count($clauses); $j++) {
+            $c = $clauses[$j];
+            if (! preg_match('/^(?:et\s+)?(?:entre|de|du|des|d[\'’])\s*\p{Lu}/u', $c) || $this->detectTypes($c, $mode)) {
+                return null;
+            }
+            $sec = $this->findSection($c, $ends);
+            if (! $sec || $sec['other_line'] || $sec['whole_line'] || $sec['only_to'] || $sec['quote'] === '') {
+                return null;
+            }
+            $dates = $this->findDates($c);
+            if (! $dates) {
+                continue;
+            }
+            $at = mb_strpos($c, $sec['quote']);
+            if (count($dates) !== 1 || $dates[0]['precision'] === 'decade' || $at === false || $dates[0]['pos'] < $at + mb_strlen($sec['quote'])
+                || ! preg_match('/^(?:(?:1er|\d{1,2})\s*(?:er)?\s+)?(?:\p{L}+\s+)?\d{4}\s*(?:\([^()]{0,80}\))?\s*[.,;]?\s*$/u', mb_substr($c, $dates[0]['pos']))) {
+                return null;
+            }
+
+            return ['date' => $dates[0]['date'], 'year' => $dates[0]['year'], 'precision' => $dates[0]['precision']];
+        }
+
+        return null;
+    }
+
+    /**
      * @return list<array{pos: int, date: string, year: int, precision: string}>
      */
     public function findDates(string $s): array
@@ -1126,7 +1451,7 @@ class WikipediaLineParser
         $months = implode('|', array_keys(self::MONTHS));
         $found = [];
         $mask = $s;
-        if (preg_match_all('/\b(1er|[12]?\d|3[01])\s*(?:er)?\s+('.$months.')\s+(1[89]\d\d|20[0-3]\d)\b/iu', $s, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
+        if (preg_match_all('/\b(1er|0?[1-9]|[12]\d|3[01])\s*(?:er)?\s+('.$months.')\s+(1[89]\d\d|20[0-3]\d)\b/iu', $s, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
             foreach ($mm as $m) {
                 $day = $m[1][0] === '1er' ? 1 : (int) $m[1][0];
                 $month = self::MONTHS[mb_strtolower($m[2][0])];
@@ -1250,6 +1575,10 @@ class WikipediaLineParser
         $topic = fn (int $pos) => (bool) preg_match('/\b(?:sur|pour|en faveur d[eu]|contre|dossiers? d[eu]|projets? d[eu]|perspective d[\'’]une?|études? d[eu]|en vue d[eu]|cadre d[eu])\s+(?:la |l[\'’]|une |sa |son |leur )?$/u', $before($pos, 30));
         // « 4 engins AMG 800 sont remis en service » : le matériel, pas la ligne.
         $material = fn (int $pos) => (bool) preg_match('/\b(?:engins?|autorails?|automotrices?|rames?|locomotives?|locotracteurs?|voitures?|wagons?|matériels?|draisines?)\b[^.;,]{0,30}$/u', $before($pos, 40));
+        // « la ⟦ligne de la grande ceinture de Paris⟧ dont le tronçon occidental ouvre le 4 septembre 1882 » : le
+        // verbe au présent a pour sujet une autre ligne (lien vers son article) citée juste avant.
+        $linkedSubject = fn (int $pos) => preg_match(self::PRESENT_VERB_RX, mb_substr($lc, $pos, 8))
+            && preg_match('/⟦[^⟦⟧]*⟧[^.;⟦⟧]{0,60}$/u', $before($pos, 140));
         $this->currentClause = $clause;
 
         // Dépose : exige un contexte voie / ligne (« plainte déposée » n'en est pas une).
@@ -1280,7 +1609,7 @@ class WikipediaLineParser
         if ($reopen !== null) {
             $types[] = ['type' => $this->qualify('reopening', $lc, $reopen), 'pos' => $reopen];
         }
-        $close = $hit('/\b(fermeture|fermée?s?|neutralis(?:ation|ée?s?)|suppression (?:du|des) (?:service|trafic)(?:\s+(?:des\s+)?(?:voyageurs|marchandises|fret))?|(?<=service |trafic |voyageurs |marchandises |fret )(?:(?:est|a été|fut|sont|ont été)\s+)?supprimée?s?|cess(?:e|ent|ation)|abandon(?:née?s?)?|dernier train|derniers trains|désaffect(?:ation|ée?s?)|(?:transf[ée]r(?:é|ée|ement)|report(?:é|ée)|basculée?) sur (?:la )?route|remplacée? par (?:des |un service d[\'’])?(?:auto)?cars?|fin de l[\'’]exploitation|plus (?:aucun|de) (?:trafic|train|service|circulation)|n[\'’](?:est|était) plus (?:exploitée?|utilisée?|parcourue?|circulée?|desservie?)|plus exploitée?|renon(?:ce|cent|ça)(?=[^.;]{0,40}\b(?:au|à)\s+(?:trafic|service|l[\'’]exploitation)))\b/u');
+        $close = $hit('/\b(fermeture|fermée?s?|ferme(?:nt)?'.self::PRESENT_VERB_DATE.'|neutralis(?:ation|ée?s?)|suppression (?:du|des) (?:service|trafic)(?:\s+(?:des\s+)?(?:voyageurs|marchandises|fret))?|(?<=service |trafic |voyageurs |marchandises |fret )(?:(?:est|a été|fut|sont|ont été)\s+)?supprimée?s?|cess(?:e|ent|ation)|abandon(?:née?s?)?|dernier train|derniers trains|désaffect(?:ation|ée?s?)|(?:transf[ée]r(?:é|ée|ement)|report(?:é|ée)|basculée?) sur (?:la )?route|remplacée? par (?:des |un service d[\'’])?(?:auto)?cars?|fin de l[\'’]exploitation|plus (?:aucun|de) (?:trafic|train|service|circulation)|n[\'’](?:est|était) plus (?:exploitée?|utilisée?|parcourue?|circulée?|desservie?)|plus exploitée?|renon(?:ce|cent|ça)(?=[^.;]{0,40}\b(?:au|à)\s+(?:trafic|service|l[\'’]exploitation)))\b/u');
         if ($close !== null && preg_match('/^\S+\s+depuis\s+(?!le\b|l[\'’]|\d|1er|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)/u', mb_substr($lc, $close, 40))) {
             $close = null; // « section fermée depuis plusieurs années » : état, pas événement
         }
@@ -1300,7 +1629,7 @@ class WikipediaLineParser
         if ($close !== null && preg_match('/\b(?:documentaire|film|reportage|livre|roman|émission|album|chanson|bande dessinée)\b/u', $lc)) {
             $close = null; // « la fermeture de la ligne fait l'objet du documentaire Voyage à Bessèges » : mention, pas un événement
         }
-        if ($close !== null && ($negated($close) || ($mode === 'prose' && $anchor($close)))) {
+        if ($close !== null && ($negated($close) || ($mode === 'prose' && $anchor($close)) || $linkedSubject($close))) {
             $close = null;
         }
         if ($close !== null && preg_match('/^\S+(?:\s+\S+){0,3}\s+que\s+(?:par|pour|au|aux)\b/u', mb_substr($lc, $close, 60))) {
@@ -1322,7 +1651,10 @@ class WikipediaLineParser
             || preg_match('/\b(?:délibèr\w*|apprend\w*)\b/u', $before($close, 90)))) {
             $close = null; // « le conseil municipal délibère sur la suppression du service » : débat, pas un fait
         }
-        if ($close === null && ($p = $hit('/\b(?:perdur\w*|subsist\w*|se maint(?:ient|iennent|int|inrent|enait|enaient)|continu(?:e|ent|a|èrent|ait|aient)|demeur(?:e|ent|a|èrent|ait|aient))\b(?=[^.;]{0,140}\bjusqu[\'’](?:au|à|en)\s+(?:(?:1er|\d{1,2})\s+\p{L}+\s+)?(?:1[89]\d\d|20[0-3]\d)\b)/u')) !== null
+        // « La ligne ferme au trafic voyageurs le 15 mai 1938, à l'exception d'un train … qui perdure jusqu'en
+        // 1953 » : le trafic qui survit dit la vraie fin ; le verbe au présent ne la masque pas.
+        $present = $close !== null && preg_match(self::PRESENT_VERB_RX, mb_substr($lc, $close, 8));
+        if (($close === null || $present) && ($p = $hit('/\b(?:perdur\w*|subsist\w*|se maint(?:ient|iennent|int|inrent|enait|enaient)|continu(?:e|ent|a|èrent|ait|aient)|demeur(?:e|ent|a|èrent|ait|aient))\b(?=[^.;]{0,140}\bjusqu[\'’](?:au|à|en)\s+(?:(?:1er|\d{1,2})\s+\p{L}+\s+)?(?:1[89]\d\d|20[0-3]\d)\b)/u')) !== null
             && ($q = $this->trafficQualifier($lc)) !== null && ! $negated($p)) {
             // Un trafic qui SURVIT jusqu'à une date (« alors que le trafic marchandise perdura entre
             // Pontarlier et les Hôpitaux-Neufs jusqu'au 3 novembre 1969 », 876000) : la date est la
@@ -1332,6 +1664,7 @@ class WikipediaLineParser
             $types[] = ['type' => match ($q) {
                 'passenger' => 'closure_passenger', 'freight' => 'closure_freight', default => 'closure'
             }, 'pos' => $p];
+            $close = null;
         }
         if ($close !== null && ! preg_match('/\b(ouverte|rouverte|maintenue|conservée) (?:au|aux)\b.*\bjusqu/u', $lc)) {
             $type = $this->qualify('closure', $lc, $close);
@@ -1359,7 +1692,7 @@ class WikipediaLineParser
         }
         $hasConcession = (bool) preg_match('/\b(concédée?s?|concession|utilité publique)\b/u', $lc);
         // « Les premiers trains commencent à circuler entre Ajaccio et Bocognano le 1er décembre 1888 ».
-        if (preg_match('/\b(ouverture|ouverte?s?|mise?s? en (?:service|exploitation)|inaugur(?:ation|ée?s?)|livrée?s? à l[\'’]exploitation|prolongement|prolongée?s?|livrée?s? (?:au trafic|à la circulation)|premiers trains (?:de voyageurs |réguliers |commerciaux )?(?:commencent à |commencèrent à )?circul\w*)\b/u', $lc, $om, PREG_OFFSET_CAPTURE)) {
+        if (preg_match('/\b(ouverture|ouverte?s?|(?<!s[\'’])ouvr(?:e|ent)'.self::PRESENT_VERB_DATE.'|mise?s? en (?:service|exploitation)|inaugur(?:ation|ée?s?)|livrée?s? à l[\'’]exploitation|prolongement|prolongée?s?|livrée?s? (?:au trafic|à la circulation)|premiers trains (?:de voyageurs |réguliers |commerciaux )?(?:commencent à |commencèrent à )?circul\w*)\b/u', $lc, $om, PREG_OFFSET_CAPTURE)) {
             $open = mb_strlen(substr($lc, 0, $om[0][1]));
             $kw = $om[1][0];
         } else {
@@ -1371,7 +1704,7 @@ class WikipediaLineParser
             || preg_match('/\b(service|trains?|desserte|relations?|ter|tgv|missions?|navettes?)\b[^.;]{0,25}$/u', $before($open, 40)))) {
             $open = null; // « le prolongement … est concédé », « le service est prolongé »
         }
-        if ($open !== null && ($anchor($open) || $negated($open))) {
+        if ($open !== null && ($anchor($open) || $negated($open) || $linkedSubject($open))) {
             $open = null; // « jusqu'à la mise en service du RER », « depuis l'ouverture »
         }
         if ($open !== null && ($topic($open) || (str_starts_with($kw, 'mis') && $material($open)))) {
@@ -2052,6 +2385,8 @@ class WikipediaLineParser
             $name = $gm[1] === 'du ' ? 'Le '.$gm[2] : ($gm[1] === 'des ' ? 'Les '.$gm[2] : $gm[2]);
         }
         $name = (string) preg_replace('/^(?:Section|Tronçon)\s+(?=\p{Lu})/u', '', $name);
+        // « Celui de Gisors-Boisgeloup à Gasny ferme … » (le tronçon) : le lieu est Gisors-Boisgeloup.
+        $name = (string) preg_replace('/^(?:Celui|Celle|Ceux|Celles)\s+(?:de\s+|d[’\'])(?=\p{Lu})/u', '', $name);
         $name = preg_replace('/\s+(?:de|du|des|la|le|les|sur|sous|en|et|à|d[’\']|l[’\'])$/u', '', $name);
         if ($name === '' || mb_strlen($name) < 2) {
             return null;

@@ -1359,7 +1359,7 @@
 
     /* En-tête (SheetHero) : noms, exploitant, rail de la ligne aujourd'hui */
     .alt-names {
-        max-width: 46.4em; /* 80ch de Lato 400 (« 0 » = 0,58 em), en em : indépendant de la police de repli */
+        max-width: 80ch;
         margin: 4px 0 0;
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);

@@ -75,6 +75,7 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 | [DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md) | Configuration nginx de référence pour la production. |
 | [SECURITE-CSP.md](docs/SECURITE-CSP.md) | Politique de sécurité du contenu. |
 | [SUIVI-ERREURS.md](docs/SUIVI-ERREURS.md) | Page de santé, erreurs du serveur et du navigateur. |
+| [TESTS.md](docs/TESTS.md) | Suites PHPUnit ciblées et parallèles (`bin/test`), pièges de l'ordre des options et de la base de départ. |
 | [TESTS-E2E.md](docs/TESTS-E2E.md) | Suite Playwright de fumée, en local et en CI. |
 | `A-FAIRE-*.md` | Chantiers ouverts : fiche ligne, fiche gare, jonctions à 3 m. |
 | [AUDIT-2026-05-29.md](docs/AUDIT-2026-05-29.md) | Audit complet de mai 2026 (historique). |

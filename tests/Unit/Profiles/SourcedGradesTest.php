@@ -4,6 +4,7 @@ namespace Tests\Unit\Profiles;
 
 use App\Services\Profiles\ProfileStats;
 use App\Services\Profiles\RackRailways;
+use App\Services\Profiles\SncfGrades;
 use App\Services\Profiles\SourcedGrades;
 use Tests\TestCase;
 
@@ -23,9 +24,20 @@ class SourcedGradesTest extends TestCase
             $this->assertMatchesRegularExpression('/^[a-z0-9-]+$/', $slug);
             $this->assertGreaterThanOrEqual(1, $entry['max_grade_permil'], $slug);
             $this->assertLessThanOrEqual(ProfileStats::MAX_PLAUSIBLE_GRADE * 1000, $entry['max_grade_permil'], $slug);
-            $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', $entry['source_url'], $slug);
+            // Chaque entrée porte son fournisseur et la licence de ce fournisseur.
+            $this->assertArrayHasKey($entry['provider'], SourcedGrades::PROVIDERS, $slug);
+            $this->assertSame(SourcedGrades::PROVIDERS[$entry['provider']]['license'], $entry['license'], $slug);
+            if ($entry['provider'] === 'wikipedia') {
+                $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', $entry['source_url'], $slug);
+                $this->assertStringStartsWith('pente = ', $entry['quote'], $slug);
+            } else {
+                $this->assertSame('SNCF Réseau', $entry['attribution'] ?? null, $slug);
+                $this->assertMatchesRegularExpression('#^https://data\.sncf\.com/explore/dataset/caracteristique-des-voies-et-declivite/table/\?refine\.code_ligne=\d{6}$#', $entry['source_url'], $slug);
+                $this->assertMatchesRegularExpression('/^(RAMPE|PENTE) /', $entry['quote'], $slug);
+                $this->assertGreaterThanOrEqual(SncfGrades::MIN_COVERAGE, $entry['covered_share'] ?? 0, $slug);
+                $this->assertLessThanOrEqual(SncfGrades::MAX_PLAIN_PERMIL, $entry['max_grade_permil'], $slug);
+            }
             $this->assertNotSame('', $entry['source_title'], $slug);
-            $this->assertStringStartsWith('pente = ', $entry['quote'], $slug);
             $this->assertStringNotContainsString('<ref', $entry['quote'], $slug);
             $this->assertStringNotContainsString('—', $entry['quote'].$entry['source_title']);
             // Une ligne à crémaillère a sa propre fiche (rack_railways.php).
@@ -41,12 +53,40 @@ class SourcedGradesTest extends TestCase
             $this->assertSame(10.0, $grade['max_grade_permil']);
             $this->assertSame('wikipedia', $grade['source']['provider']);
             $this->assertSame('CC BY-SA 4.0', $grade['source']['license']);
+            $this->assertSame('Wikipédia', $grade['source']['attribution']);
+            $this->assertNull($grade['covered_share']);
             $this->assertStringContainsString('oldid=240174253', $grade['source']['url']);
         }
         // Mesure publiée, parcours trop court (motif nul) ou crémaillère : rien.
         $this->assertNull(SourcedGrades::present('rfn-405000', null));
         $this->assertNull(SourcedGrades::present('rfn-405000', 'rack'));
         $this->assertNull(SourcedGrades::present('ligne-inconnue', 'terrain_only'));
+    }
+
+    public function test_both_providers_are_present_and_sncf_serves_its_licence_and_share(): void
+    {
+        $providers = array_count_values(array_column(SourcedGrades::all(), 'provider'));
+        $this->assertGreaterThanOrEqual(450, $providers['wikipedia'] ?? 0);
+        $this->assertGreaterThan(0, $providers['sncf'] ?? 0);
+
+        // Ligne de Mézidon à Trouville-Deauville : la SNCF (36,2 ‰) dépasse Wikipédia (25 ‰) et reste cohérente avec le terrain.
+        $grade = SourcedGrades::present('rfn-379000', 'terrain_only');
+        $this->assertNotNull($grade);
+        $this->assertSame('sncf', $grade['source']['provider']);
+        $this->assertSame('ODbL 1.0', $grade['source']['license']);
+        $this->assertSame('SNCF Réseau', $grade['source']['attribution']);
+        $this->assertStringEndsWith('refine.code_ligne=379000', $grade['source']['url']);
+        $this->assertIsFloat($grade['covered_share']);
+        $this->assertGreaterThan(0.1, $grade['covered_share']);
+        $this->assertNull(SourcedGrades::present('rfn-379000', null));
+    }
+
+    public function test_the_aberrant_sncf_values_are_not_in_the_files(): void
+    {
+        $all = SourcedGrades::all();
+        // 90 ‰ sur Hirson - Amagne-Lucquy, 96 ‰ sur Lutterbach - Rixheim : écartés, Wikipédia reste.
+        $this->assertSame('wikipedia', $all['rfn-212000']['provider'] ?? 'wikipedia');
+        $this->assertArrayNotHasKey('rfn-125000', array_filter($all, fn (array $e): bool => $e['provider'] === 'sncf'));
     }
 
     public function test_decimal_values_are_kept(): void

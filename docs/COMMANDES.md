@@ -195,6 +195,86 @@ la fois, une seconde de pause), réponses gardées par tuile dans `storage/app/d
 Une ligne dont le profil ne peut plus être calculé (tracé retiré, aucune altitude) perd son ancien profil, et la sortie
 le signale. Lecture : `GET /api/v1/lines/{line}/profile`, `/profile/points`, `/altitude?pk_m=` ([API.md](API.md)).
 
+### `vff:import-sncf-grades`
+
+Déclivités du jeu SNCF Open Data « Caractéristique des voies et déclivité » (SNCF Réseau, ODbL) : segment le plus raide
+de chaque ligne du RFN, confronté à Wikipédia (`database/data/sourced_grades.php`) et au profil mesuré en base, puis écrit
+dans `database/data/sourced_grades_sncf.php`, lu par la fiche et l'API (`sourced_grade`). La base n'est jamais modifiée.
+Le jeu ne décrit qu'une partie des voies : une ligne couverte à moins de 10 % est laissée de côté. Une valeur au-dessus
+de 60 ‰ hors ligne de montagne connue, ou de plus de 3 fois la déclivité mesurée, est écartée et listée. Si Wikipédia
+donne une valeur proche, elle est gardée ; si les deux divergent, la SNCF n'est retenue que si elle reste cohérente avec
+la voie et dépasse Wikipédia, ou couvre presque toute la ligne. Deux requêtes (métadonnées, dont la licence vérifiée,
+puis export), jeu gardé dans `storage/app/sources/sncf-declivites/` (dossier `.nobackup`). Le fichier est réécrit trié :
+relancer la commande sur les mêmes données donne le même fichier.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement, aucun fichier écrit. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--min-coverage=0.1` | Part de la ligne (0 à 1) que les segments du jeu doivent couvrir. |
+| `--cache-dir=` | Dossier du cache. |
+| `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
+| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
+
+### `vff:import-sncf-track-regime`
+
+Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par
+portion de PK. Chaque tronçon rattaché à une ligne de VFF par son code va dans `line_track_portions`, libellé SNCF tel quel
+(toutes les portions `sncf` sont remplacées d'un coup). « Voie banalisée » et « _Autre » ne disent pas le nombre de voies :
+leurs portions sont gardées avec un nombre nul et ne comptent pas. Le nombre de voies de la fiche (`lines.nb_voies_default`)
+n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus) et seulement si le champ est vide ou vient
+déjà de cette commande (`line_sources` « sncf-regime ») : une valeur d'une autre source n'est jamais remplacée, un nombre
+différent est listé comme contradiction. Une ligne qui mêle voie unique et double voie garde un champ vide ; sa fiche dit le
+nombre dominant et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
+`storage/app/sources/sncf-regime/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Servi par
+`GET /api/v1/lines/{line}/infrastructure`, `Line.infrastructure` et l'outil MCP `line_infrastructure`.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : lignes touchées, portions, nombres écrits, confirmés, contradictions, régimes partagés, contrôle Wikidata. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Rapport détaillé par ligne (action prévue pour chacune). |
+
+### `vff:import-sncf-radio`
+
+Importe le jeu SNCF Open Data « Lignes équipées de liaison radio sol-train » (SNCF Réseau, ODbL) dans `line_radio_portions` :
+système par portion de PK (`gsm-r` GSM-R, `gsm-gfu` GSM d'opérateur public en groupe fermé d'utilisateurs, `rst` radio
+sol-train analogique sans données, `rst-data` avec données, `rst-id` avec identification), libellé SNCF tel quel. Un libellé
+inconnu est écarté et signalé. Toutes les portions `sncf` sont remplacées d'un coup ; aucune autre table n'est écrite. Cache
+`storage/app/sources/sncf-radio/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Mêmes points d'accès
+que le régime d'exploitation.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : lignes touchées, portions, lignes au GSM-R, longueur par système. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Rapport par ligne (km par système). |
+
+### `vff:import-sncf-platforms`
+
+Importe les quais des gares de voyageurs du jeu SNCF Open Data « Liste des quais » (SNCF Réseau, ODbL) dans
+`station_platforms` : un enregistrement par voie bordée, avec sa longueur et ses PK. Le jeu n'a pas de code UIC : la gare
+est cherchée par son nom et sa ligne dans le référentiel des gares SNCF (`sncf_gares`), puis par son seul nom, pour le code
+UIC qui la relie à `stations` ; à défaut, la gare de VFF de même nom la plus proche du milieu des quais, à 1,5 km au plus.
+Un enregistrement sans gare est gardé, `station_id` nul. L'import remplace toutes les lignes `source = 'sncf'` de la table
+dans une transaction et ne touche aucune autre table. Les quais sont servis par `GET /api/v1/stations/{station}`
+(`platforms`), `Station.platforms` en GraphQL et `get_station` en MCP. Le jeu est gardé dans `storage/app/sources/sncf-quais/`
+(dossier `.nobackup`), licence et éditeur revérifiés à chaque téléchargement.
+
+La passe à blanc compte les rattachements (code UIC, nom), les gares non rattachées, les gares de VFF ouvertes aux voyageurs
+sans quai connu, et les contradictions : gare de VFF fermée, disparue ou projetée qui a des quais dans le jeu, gare rattachée
+par son code UIC à plus de 2 km de ses quais, quai dont la longueur s'écarte de l'étendue de ses PK, nom SNCF rattaché à
+plusieurs gares.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement, aucune écriture en base. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache (défaut : `storage/app/sources/sncf-quais`). |
+| `--csv=` | Rapport détaillé par gare SNCF et ligne (quais, plus long, gare de VFF, rattachement, distance, note). |
+
 ### `vff:build-line-references`
 
 Fusionne les tracés de chaque ligne (IGN, OSM, OHM, SNCF…), recale les morceaux peu précis sur la voie réelle et croise

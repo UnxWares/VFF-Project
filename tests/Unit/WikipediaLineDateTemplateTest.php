@@ -109,4 +109,20 @@ class WikipediaLineDateTemplateTest extends TestCase
             fn (array $e) => $e['type'] === 'opening',
         ));
     }
+
+    public function test_a_day_written_with_a_leading_zero_keeps_its_day(): void
+    {
+        $text = "== Histoire ==\nLa ligne est ouverte le 01 juillet 1899 entre [[Gare de Test|Test]] et [[Gare d'Exemple|Exemple]].\n";
+        $events = (new WikipediaLineParser)->parseChronology($text, 'Ligne de Test à Exemple');
+
+        $this->assertContains('1899-07-01', array_column($events, 'date'));
+    }
+
+    public function test_day_zero_is_not_a_day(): void
+    {
+        $text = "== Histoire ==\nLa ligne est ouverte le 0 juillet 1899 entre [[Gare de Test|Test]] et [[Gare d'Exemple|Exemple]].\n";
+        $events = (new WikipediaLineParser)->parseChronology($text, 'Ligne de Test à Exemple');
+
+        $this->assertNotContains('1899-07-00', array_column($events, 'date'));
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Sncf\LineInfrastructure;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -62,8 +63,13 @@ final class LineFacts
         } elseif ($encyclopedia->gauge_mm_default) {
             $facts[] = $wd(['key' => 'gauge', 'mm' => (int) $encyclopedia->gauge_mm_default]);
         }
-        if ($encyclopedia->nb_voies_default) {
-            $facts[] = $wd(['key' => 'tracks', 'n' => (int) $encyclopedia->nb_voies_default]);
+        // Nombre de voies : régime d'exploitation de SNCF Réseau (aujourd'hui) quand il l'établit et ne contredit pas
+        // la fiche ; sinon le nombre de la fiche, avec sa source.
+        $known = $encyclopedia->nb_voies_default ? (int) $encyclopedia->nb_voies_default : null;
+        if ($tracks = app(LineInfrastructure::class)->trackFact((int) $line->id, $known)) {
+            $facts[] = $tracks;
+        } elseif ($known !== null) {
+            $facts[] = $wd(['key' => 'tracks', 'n' => $known]);
         }
         $speed = $stats['max_speed_kmh'] ?? null;
         if ($speed) {
@@ -124,6 +130,7 @@ final class LineFacts
         }
         $note = match (true) {
             $f['scope'] === 'item' => $g('note_item'),
+            $f['source'] === 'sncf' && $f['key'] === 'tracks' && ($f['km'] ?? null) === null => $g('note_sncf_tracks'),
             $f['source'] === 'sncf' && ($f['km'] ?? null) !== null => $g($f['as_of'] === 'today' ? 'note_sncf_today_part' : 'note_sncf_era_part',
                 ['km' => $num((float) $f['km']), 'year' => (string) $f['as_of']]),
             $f['source'] === 'sncf' => $g($f['as_of'] === 'today' ? 'note_sncf_today' : 'note_sncf_era', ['year' => (string) $f['as_of']]),

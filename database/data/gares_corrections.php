@@ -1082,7 +1082,11 @@ return [
         ['Godewaersvelde', 'Q3096551', 'Gare de Godewaersvelde', 218605271, '1954-05-23', 'day', '1970-09-26', 'day', 'Fermeture : 23 mai 1954 voyageurs 26 septembre 1970 marchandises', [['wikidata', 'closure', '1954-01-01']]],
         ['La Chapelle-Gauthier', 'Q111828277', 'Gare de La Chapelle-Gauthier', 235032405, '1934-01-19', 'day', '1956-09-30', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 30 septembre 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
         ['La Chapelle-Yvon', 'Q111902817', 'Gare de La Chapelle-Yvon', 235032406, '1934-01-19', 'day', '1956-07-01', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 1 juillet 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
-        ['Lessay', 'Q1966097', 'Gare de Lessay', 231943184, '1970-01-01', 'year', '1988-01-24', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']]],
+        ['Lessay', 'Q1966097', 'Gare de Lessay', 231943184, '1970-01-01', 'year', '1987-05-31', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']], [
+            'source_url' => $wp('Ligne de Coutances à Sottevast', 240949203),
+            'quote' => 'La ligne est fermée au service marchandises : [...] section de Périers-en-Cotentin à Lessay, le 31 mai 1987 [...] section de Lessay à La Haye-du-Puits, le 14 mai 1973',
+            'reason' => 'Lessay n\'est plus relié que par la section Périers - Lessay, fermée au fret le 31/05/1987 (chronologie de l\'article de la ligne, reprise par Wikimanche) ; le 24/01/1988 de l\'infobox de la gare est la fin des sections Coutances - Périers et La Haye-du-Puits - Sottevast, seules exploitées en 1988 (Argentan Web Ferroviaire)',
+        ]],
         ['Lincel - Saint-Martin', 'Q3096890', 'Gare de Lincel - Saint-Martin', 206958157, '1934-01-15', 'day', '1941-05-05', 'day', 'Fermeture : 15 janvier 1934 (voyageurs) 1956 (marchandises)', [['wikidata', 'closure', '1934-01-01']], [
             'source_url' => 'https://www.lignes-oubliees.com/index.php?page=stmaime',
             'quote' => 'Fermeture aux marchandises : Saignon - Biabaux : 05/05/1941',
@@ -3102,4 +3106,100 @@ return [
         ['St-Cergues-les-Voirons', 'Q3097501', 'Gare de Saint-Cergues-Les Voirons', 229485470, [['closure_freight', '2009-11-03', 'day', 'La gare est fermée au service des marchandises Fret SNCF le 3 novembre 2009.']]],
         ['Hondouville', 'Q113835969', 'Gare d\'Hondouville', 238868671, [['closure_freight', '1959-05-31', 'day', 'Le service marchandises est supprimé le 31 mai 1959 entre Brosville et Acquigny, ce qui entraîne la fermeture de la gare.']]],
     ])),
+
+    // ── 24. Pont-Saint-Vincent - Vittel : fin du service voyageurs du 18/12/2016 (lignes-2027, 22/11/2026). Les
+    // gares sont « fermées au service des voyageurs du fait de la suspension de ce service » ; aucun train voyageurs
+    // n'y circule en 2027 : horaires GTFS SNCF lus le 19/11/2026 (jusqu'au 30/04/2027) sans aucun arrêt (service
+    // « none », sauf Mirecourt, cars seuls) ; travaux de la concession Nancy - Contrexéville lancés le 17/12/2025
+    // et menés « jusqu'à décembre 2027 », réouverture annoncée pour le 12/12/2027 (service 2028) ; l'Assemblée
+    // nationale (QANR5L15QOSD39) parle d'une ligne « neutralisée depuis décembre 2016 ».
+    ...array_map(function (array $g) use ($wp) {
+        [$name, $qid, $title, $oldid, $kind] = $g;
+
+        return [
+            'station' => ['name' => $name, 'wikidata' => $qid],
+            'action' => 'add',
+            'type' => 'closure_passenger',
+            'date' => '2016-12-18',
+            'precision' => 'day',
+            'source_url' => $wp($title, $oldid),
+            'quote' => 'Le 18 décembre 2016, la '.$kind.' de '.$name.' est fermée au service des voyageurs du fait de la suspension de ce service, entre Pont-Saint-Vincent et Vittel.',
+            'reason' => 'fin du service voyageurs de la gare, d\'après le texte de l\'article de la gare ; aucun train voyageurs en 2027 (travaux de la ligne Nancy - Contrexéville jusqu\'en décembre 2027, réouverture annoncée le 12/12/2027)',
+        ];
+    }, [
+        ['Bainville-sur-Madon', 'Q3095895', 'Gare de Bainville', 240395209, 'gare'],
+        ['Xeuilley', 'Q3098095', 'Gare de Xeuilley', 240648263, 'gare'],
+        ['Pierreville', 'Q3097271', 'Gare de Pierreville', 235033782, 'gare'],
+        ['Pulligny-Autrey', 'Q3097353', 'Gare de Pulligny - Autrey', 235033959, 'gare'],
+        ['Ceintrey', 'Q3096152', 'Gare de Ceintrey', 235031196, 'gare'],
+        ['Tantonville', 'Q3097834', 'Gare de Tantonville', 232001028, 'gare'],
+        ['Vézelise', 'Q3098048', 'Gare de Vézelise', 240037324, 'gare'],
+        ['Praye-sous-Vaudémont', 'Q3097343', 'Gare de Praye-sous-Vaudémont', 235033930, 'halte'],
+        ['Diarville', 'Q3096361', 'Gare de Diarville', 240332572, 'gare'],
+        ['Poussay', 'Q3097337', 'Gare de Poussay', 235033927, 'gare'],
+        ['Mirecourt', 'Q2788266', 'Gare de Mirecourt', 235452660, 'gare'],
+    ]),
+
+    // ── 25. Dates d'ouverture de gares laissées en relecture, tranchées par une seconde source (gares-relecture-2, 22/11/2026,
+    // rapport storage/app/reports/agents/aprem-2111/gares-relecture-2.md). Au mois ou à l'année quand les sources ne donnent pas le même jour.
+    [
+        'station' => ['name' => 'Brion-près-Thouet', 'wikidata' => 'Q3096069'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-10-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Brion-près-Thouet', 184079464),
+        'quote' => 'La station de Brion est mise en service le 16 octobre 1882 par l\'Administration des chemins de fer de l\'État, lorsqu\'elle ouvre à l\'exploitation la ligne de Niort à Montreuil-Bellay.',
+        'reason' => 'ouverture en octobre 1882, avec la ligne Niort - Montreuil-Bellay : l\'article donne trois jours selon les sources (le 16 d\'après le Journal des transports du 21/10/1882, le 22 d\'après l\'ingénieur de l\'État, le 23 d\'après Banaudo), seul le mois est commun ; remplace l\'année déduite de la ligne (1874)',
+    ],
+    [
+        'station' => ['name' => 'L\'Orme-St-Pantaléon', 'wikidata' => 'Q114288117'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1916-11-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de L\'Orme-Saint-Pantaléon', 236929352),
+        'quote' => 'Elle est ouverte en novembre 1916 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), soit quasiment cinquante ans après l\'ouverture de la section reliant Autun à Épinac, sur laquelle elle est implantée.',
+        'reason' => 'halte créée en 1916 (accord du conseil municipal de Saint-Pantaléon pour les ouvriers des schistes bitumineux d\'Autun), bien après la ligne de 1867 ; le jour (01/11/1916, infobox et article) n\'a qu\'une source, seul le mois est retenu ; remplace l\'année déduite de la ligne (1867)',
+    ],
+    [
+        'station' => ['name' => 'Laroque-d\'Olmes', 'wikidata' => 'Q66281642'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1903-08-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Laroque-d\'Olmes', 220838895),
+        'quote' => 'Mise en service : 25 août 1903',
+        'reason' => 'gare de la section Chalabre - Lavelanet de la ligne de Moulin-Neuf à Lavelanet, ouverte en août 1903 (article de la ligne : le 25 août dans le corps du texte et l\'infobox de la gare, le 15 août dans l\'historique d\'après L\'Express du Midi du 15/08/1903) ; seul le mois est commun ; remplace l\'année 1902 déduite de la ligne',
+    ],
+    [
+        'station' => ['name' => 'Lavelanet', 'wikidata' => 'Q109037573'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1903-08-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Lavelanet', 220838865),
+        'quote' => 'Mise en service : 25 août 1903',
+        'reason' => 'terminus de la section Chalabre - Lavelanet de la ligne de Moulin-Neuf à Lavelanet, ouverte en août 1903 (article de la ligne : le 25 août dans le corps du texte et l\'infobox de la gare, le 15 août dans l\'historique d\'après L\'Express du Midi du 15/08/1903) ; seul le mois est commun ; remplace l\'année 1902 déduite de la ligne',
+    ],
+    [
+        'station' => ['name' => 'Vers', 'wikidata' => 'Q28040140'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1890-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Vers', 232264716),
+        'quote' => 'Elle est mise en service en 1890, en tant qu\'arrêt, par la Compagnie des chemins de fer du Nord.',
+        'reason' => 'arrêt créé en 1890 à la demande du conseil municipal de Vers, bien après la ligne de 1867 (infobox : 1er décembre 1890, d\'après les archives municipales de Vers-sur-Selle, source unique : seule l\'année est retenue) ; remplace l\'année déduite de la ligne (1867)',
+    ],
+    [
+        'station' => ['name' => 'Chasteaux', 'wikidata' => 'Q28952372'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1891-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Chasteaux', 169851707),
+        'quote' => 'La gare de Chasteaux est mise en service le 1er juillet 1891 par la compagnie du chemin de fer de Paris à Orléans, à l\'ouverture de la section entre Brive et Cahors.',
+        'reason' => 'gare au PK 512,9, entre Noailles et Gignac - Cressensac : sur la section Brive - Souillac ouverte le 01/06/1891 (article de la ligne), pas sur Limoges - Brive du 01/07/1893 que l\'infobox de la gare recopie ; le jour de la gare (01/07/1891 avec « référence nécessaire ») est incertain, seule l\'année est retenue ; remplace l\'année déduite de la ligne (1847)',
+    ],
 ];

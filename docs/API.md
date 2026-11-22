@@ -44,12 +44,15 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 |---|---|---|---|
 | Audit des tronçons d'une ligne (4 notes, preuves) | `GET /lines/{line}/audit?era&grade&limit&offset` | `Line.audit(era)` : `segments(grade, limit, offset)`, `segments_total(grade)` | `line_audit` (`era`, `grade`, `limit`, `offset`) |
 | Audit d'une gare (placement, dates, services) | `GET /stations/{station}/audit` | `Station.audit` | clé `audit` de `get_station` |
+| Nombre de voies et radio sol-train (GSM-R) d'une ligne par portion de PK, aujourd'hui (SNCF Réseau, ODbL) | `GET /lines/{line}/infrastructure` | `Line.infrastructure` | `line_infrastructure` |
+| Quais d'une gare (nombre, longueurs, PK ; SNCF Réseau, ODbL) | clé `platforms` de `GET /stations/{station}` | `Station.platforms` | clé `platforms` de `get_station` |
 | Audit des tronçons de tout le réseau (liste, filtres, tri, total) | `GET /audits/segments?era&grade&check&reason&status&department&region&line&q&sort&limit&offset` | `segmentAudits(...)` : `total`, `items` | `segment_audits` (mêmes paramètres) |
 | Audit des gares de tout le réseau (liste, filtres, tri, total) | `GET /audits/stations?grade&check&opening&closure&department&region&line&q&sort&limit&offset` | `stationAudits(...)` : `total`, `items` | `station_audits` (mêmes paramètres) |
 | Profil en long | `GET /lines/{line}/profile?max_points` | `Line.profile(max_points)` | `line_profile` (`max_points`) |
 | Référentiel d'altitude entre deux PK | `GET /lines/{line}/profile/points?pk_from_m&pk_to_m&max_points` | `LineProfile.samples(pk_from_m, pk_to_m, max_points)` | `line_profile` (`pk_from_m`, `pk_to_m`, résultat `samples`) |
 | Altitude à un PK | `GET /lines/{line}/altitude?pk_m` | `LineProfile.altitude_at(pk_m)` | `line_profile` (`pk_m`, résultat `altitude_at_pk`) |
 | Crémaillère (`rack`) et déclivité publiée | `profile.rack` | `LineProfile.rack` | `profile.rack` de `line_profile` |
+| Déclivité d'une source écrite (Wikipédia, SNCF Réseau), fournisseur, licence, attribution, part couverte | `profile.sourced_grade` | `LineProfile.sourced_grade` | `profile.sourced_grade` de `line_profile` |
 | Contexte sourcé, documents, images et corrections d'un accident | `GET /accidents/{accident}` (`context`) | `Accident.context` | `get_accident` (sans citation) |
 | Provenance des champs d'un accident | `provenance` | `Accident.provenance` | `provenance` de `get_accident` |
 | Matériel d'une ligne, photo, fin de circulation, relations | `GET /lines/{line}/materials` (`image`, `end`, `relations`) | `Line.material_links` (`end`, `relations`), `LineSheet.materials` | `line_materials` |

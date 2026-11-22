@@ -48,6 +48,14 @@
             <link rel="preload" href="{{ $page['props']['translations_url'] }}" as="fetch" crossorigin="anonymous" />
         @endif
         {{--
+            Polices du premier écran préchargées (app/Support/FontPreloads) : le texte s'écrit dans la bonne police
+            dès le premier rendu, sans décalage au remplacement. L'attribut crossorigin est obligatoire pour une
+            police, même du même site.
+        --}}
+        @foreach (\App\Support\FontPreloads::urls() as $__fontUrl)
+            <link rel="preload" href="{{ $__fontUrl }}" as="font" type="font/woff2" crossorigin />
+        @endforeach
+        {{--
             Composant de la page (et ses dépendances, CSS compris) annoncé avec les scripts communs : sans cela,
             le navigateur ne le découvre qu'après avoir exécuté app.js (un aller-retour de plus).
         --}}
