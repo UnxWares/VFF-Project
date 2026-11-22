@@ -1461,4 +1461,48 @@ return [
         'quote' => 'Le décret du 10 novembre 2003 est annulé.',
         'reason' => 'Charroux - Civray (PK 423,800 à 433,800) : décret annulé en totalité (consultation des organisations nationales d\'usagers non menée, procédure irrégulière)',
     ],
+
+    // Faits juridiques, suite (storage/app/reports/agents/aprem-2111/faits-juridiques-2.md, 22/11/2026).
+
+    // 460000 Sablé - Montoir-de-Bretagne : OpenHistoricalMap date de « fermeture tout trafic » (53,3 km) le jour
+    // du décret du 12/02/2001, annulé en totalité par le Conseil d'État (3/12/2003, n° 232574). La fin du
+    // trafic de Segré à Châteaubriant est antérieure (fermeture de Sablé à Châteaubriant le 03/03/1969, déjà en
+    // base) : la date du décret n'est pas une fermeture.
+    [
+        'line' => '460000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '2001-02-12'],
+        'label' => 'Date du décret de retranchement du 12 février 2001, annulé par le Conseil d\'État (décision n° 232574 du 3 décembre 2003)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000008186183',
+        'quote' => 'Le décret du 12 février 2001 est annulé.',
+        'reason' => 'portion de 53,3 km : la date reprend celle du décret annulé, la fermeture de Sablé à Châteaubriant date du 3 mars 1969 (Wikipédia, déjà en base)',
+    ],
+
+    // 096000 Pompey - Nomény : fermeture OpenHistoricalMap de Custines à Leyr datée du jour du décret du
+    // 10/11/2003, annulé en totalité (Conseil d'État, 18/01/2006, n° 263468). Le décret visait Leyr - Nomény
+    // (PK 12,332 à 22,058) ; la ligne est officiellement fermée en janvier 1982 (Wikipédia, Wikidata, déjà en base).
+    [
+        'line' => '096000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '2003-11-10'],
+        'label' => 'Date du décret de retranchement du 10 novembre 2003, annulé par le Conseil d\'État (décision n° 263468 du 18 janvier 2006)',
+        'source_url' => 'https://www.conseil-etat.fr/fr/arianeweb/CE/decision/2006-01-18/263468',
+        'quote' => 'Le décret du 10 novembre 2003 est annulé.',
+        'reason' => 'Custines - Leyr : la date reprend celle du décret annulé, la ligne est fermée depuis janvier 1982 (déjà en base)',
+    ],
+
+    // 804000 Le Pouzin - Privas : déclassement par RFF du 26/05/2008 (PK 640,962 à 658,900) annulé par le
+    // tribunal administratif de Lyon (16/11/2010, n° 0806228, recours de la FNAUT), jugement confirmé par la
+    // cour administrative d'appel de Lyon (3/11/2011, n° 11LY00160) : RFF devait consulter la région Rhône-Alpes
+    // avant de déclasser, plus de cinq ans après l'autorisation de fermeture. Le retranchement du 15/04/2002
+    // n'est pas en cause et reste en base.
+    [
+        'line' => '804000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'lignes-oubliees', 'type' => 'declassification', 'date' => '2008-05-26'],
+        'label' => 'Déclassement du 26 mai 2008 annulé par le tribunal administratif de Lyon (jugement n° 0806228 du 16 novembre 2010, confirmé par la cour administrative d\'appel de Lyon, arrêt n° 11LY00160 du 3 novembre 2011)',
+        'source_url' => 'https://www.legifrance.gouv.fr/ceta/id/CETATEXT000024802236',
+        'quote' => 'au terme d\'une procédure irrégulière',
+        'reason' => 'Le Pouzin - Privas (PK 640,962 à 658,900) : décision de déclassement de RFF annulée faute de consultation de la région Rhône-Alpes (article 49 du décret du 5 mai 1997)',
+    ],
 ];
