@@ -20,7 +20,7 @@ return [
             'note' => 'À Bordeaux, un train de voyageurs de l\'État venant de La Rochelle, après avoir quitté la gare de l\'État pour Bordeaux-Saint-Jean, pris en écharpe par une machine rentrant au dépôt de La Bastide qui défonce une voiture de troisième classe, un mort et six blessés.',
         ],
         'delpher-delftsche-1910-09-19' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',

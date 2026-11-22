@@ -905,11 +905,15 @@
                             <a
                                 class="vff-btn secondary small advocacy-cta"
                                 href={line.advocacy.cta_url}
-                                target="_blank"
                                 rel="noopener noreferrer"
                                 lang={line.advocacy.lang?.cta_label}
                             >
-                                {line.advocacy.cta_label || t('lines.act')}{@render ext()}
+                                {line.advocacy.cta_label || t('lines.act')}<i
+                                    class="bi bi-box-arrow-up-right vff-ext"
+                                    aria-hidden="true"
+                                ></i><span class="vff-sr-only">
+                                    ({t('common.external_same_tab')})</span
+                                >
                             </a>
                         {/if}
                     </section>
@@ -1362,7 +1366,7 @@
 
     /* En-tête (SheetHero) : noms, exploitant, rail de la ligne aujourd'hui */
     .alt-names {
-        max-width: 80ch;
+        max-width: 46.4em;
         margin: 4px 0 0;
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);
@@ -1505,7 +1509,7 @@
     /* À propos + fiche */
     /* Texte à gauche, fiche à droite ; la campagne remplit le bas de la colonne de texte
        (sur téléphone : texte, fiche, puis campagne). */
-    /* Colonne de texte à sa largeur de lecture (60ch, comme .description) : tout le reste va à la
+    /* Colonne de texte à sa largeur de lecture (34,8em, comme .description) : tout le reste va à la
        fiche, plus large, donc moins haute (moins de vide sous le texte quand la fiche est longue). */
     .about-grid {
         display: grid;

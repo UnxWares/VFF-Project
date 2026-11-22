@@ -2322,6 +2322,9 @@ type AccidentCorrection {
         "Langue : `fr` (par défaut), `en` ou `de`."
         lang: String = "fr"
     ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
+
+    "Vrai quand la valeur ne repose que sur une source (la liste des accidents de Wikipédia) et reste à confirmer."
+    single_source: Boolean!
 }
 
 "Rattachement d'un accident à une ligne VFF, sur le tracé de l'époque de l'accident."

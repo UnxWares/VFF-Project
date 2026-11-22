@@ -20,7 +20,7 @@ return [
             'note' => 'Train transatlantique de Cherbourg contre un train de marchandises, dépêche erronée au poste d\'aiguillage, trois morts, quatre blessés graves ; renvoie à Le Petit Parisien du 2 mai 1906 (non lu).',
         ],
         'delpher-courant-1906-05-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêches du 30 avril et du 1er mai : collision à 20 h 40 en gare d\'Andrésy, aide-cuisinier tué, bilan relevé ensuite.',
         ],
         'delpher-nieuwecourant-1906-05-02' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -48,7 +48,7 @@ return [
             'note' => 'Aiguillage mal placé, wagon-restaurant renversé avec une vingtaine de convives indemnes, mécanicien, chauffeur et cuisinier tués, quatre employés de wagons-lits blessés.',
         ],
         'delpher-venloosche-1906-05-02' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland. België',
@@ -62,7 +62,7 @@ return [
             'note' => 'Collision à 20 h 40 ; premier bilan d\'un mort, puis décès du mécanicien et du chauffeur.',
         ],
         'delpher-landenvolk-1906-05-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -76,7 +76,7 @@ return [
             'note' => 'Dépêche du 1er mai : situe le train transatlantique « vers Cherbourg » ; décès du mécanicien et du chauffeur annoncé par un second télégramme.',
         ],
         'delpher-bredasche-1906-05-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dépêches du 1er mai',

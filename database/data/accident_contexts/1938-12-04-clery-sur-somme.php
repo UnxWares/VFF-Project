@@ -20,11 +20,11 @@ return [
             'note' => 'Place l\'accident vers 20 h près de Cléry-sur-Somme, sur la ligne à voie métrique des Chemins de fer départementaux de la Somme entre Albert et Péronne : trois morts et dix blessés graves ; cite Le Matin du 5 décembre 1938.',
         ],
         'limburger-koerier-1938-12-09' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Limburger koerier du 9 décembre 1938',
-            'publisher' => 'Limburger koerier',
+            'publisher' => 'Limburger koerier (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1938-12-09',
             'locator' => null,

@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne de Mazamet à Bédarieux, collision frontale entre un train de militaires pour les grandes manoeuvres et un train de vendangeurs lancé par erreur en sens contraire sur la voie unique, trois morts et quatorze blessés ; renvoie à Le Petit Parisien du 8 septembre 1913 (non lu).',
         ],
         'delpher-courant-1913-09-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche Reuter de Mazamet du 7 septembre : deux trains se heurtent en gare de Saint-Amans-Soult, trois morts, six soldats grièvement blessés.',
         ],
         'delpher-maasbode-1913-09-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Maasbode du 8 septembre 1913',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même dépêche, avec d\'autres voyageurs légèrement blessés.',
         ],
         'delpher-overijsselsche-1913-09-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dépêches du 7 septembre',

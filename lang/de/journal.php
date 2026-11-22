@@ -33,7 +33,7 @@ return [
         'reading_other' => ':count Minuten Lesezeit',
         'toc' => 'Inhalt des Artikels',
         'fallback' => 'Diesen Artikel gibt es noch nicht auf Deutsch: Hier ist der französische Originaltext.',
-        'disclosure_title' => 'Interessenbindung',
+        'disclosure_title' => 'Engagement',
         'cited' => 'In der Enzyklopädie',
         'cited_lines' => 'Strecken',
         'cited_stations' => 'Bahnhöfe',

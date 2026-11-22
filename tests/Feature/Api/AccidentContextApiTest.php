@@ -72,6 +72,8 @@ class AccidentContextApiTest extends TestCase
         $this->assertSame('Jean Dupont, CC BY-SA 4.0, via Wikimedia Commons', $context['images'][0]['attribution']);
         $this->assertSame(['field' => 'deaths', 'before' => 43, 'value' => 49], array_intersect_key($context['corrections'][0], array_flip(['field', 'before', 'value'])));
         $this->assertArrayNotHasKey('before_meta', $context['corrections'][0]);
+        // Fiche enregistrée avant la marque « source unique » : fausse par défaut.
+        $this->assertFalse($context['corrections'][0]['single_source']);
     }
 
     public function test_a_sheet_without_context_has_empty_lists(): void

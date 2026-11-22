@@ -20,7 +20,7 @@ return [
             'note' => 'Gare de Recquignies, ligne de Creil à Jeumont, 16 h 15, rapide Calais-Bâle contre un train de marchandises de Charleroi, trois morts (cheminots), une douzaine de blessés ; renvoie à Le Figaro du 26 février 1909 (non lu).',
         ],
         'delpher-courant-1909-02-26' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Reuter-telegrammen',
@@ -34,7 +34,7 @@ return [
             'note' => 'Série de dépêches du 25 février (Charleroi, Paris, Avesnes) avec des bilans successifs très différents.',
         ],
         'delpher-nieuwecourant-1909-02-26' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -48,7 +48,7 @@ return [
             'note' => 'Mêmes dépêches : correspondance avec l\'express Paris-Cologne à Erquelinnes, collision à Recquignies près de Maubeuge.',
         ],
         'delpher-delftsche-1909-02-26' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',
@@ -62,7 +62,7 @@ return [
             'note' => 'Express Calais-Bruxelles contre un train de voyageurs, tous les trains en retard ; bilans d\'un mort et quatre blessés, ou trois morts et dix blessés, tous agents de la compagnie.',
         ],
         'delpher-haarlemsche-1909-02-26' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide Berichten',

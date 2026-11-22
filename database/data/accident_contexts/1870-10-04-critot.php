@@ -90,11 +90,11 @@ return [
             'note' => 'Fiche du comité régional de tourisme sur le monument élevé en 1890 : dans la nuit du 3 au 4 octobre 1870, l\'accident a fait 14 morts et une centaine de blessés.',
         ],
         'delpher-1870-10-10-haarlem' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Tours, 3 October',
-            'publisher' => 'Opregte Haarlemsche Courant (presse néerlandaise numérisée, Delpher)',
+            'publisher' => 'Opregte Haarlemsche Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1870-10-10',
             'locator' => 'p. 1',

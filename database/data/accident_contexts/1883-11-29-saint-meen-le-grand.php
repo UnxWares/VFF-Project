@@ -48,11 +48,11 @@ return [
             'note' => 'Même dépêche du 30 novembre : collision de deux trains près de Saint-Méen sur l\'embranchement de Ploërmel, 14 morts et 17 blessés graves.',
         ],
         'delpher-1883-12-03-courrier-meuse' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Terrible accident de chemin de fer',
-            'publisher' => 'Le Courrier de la Meuse, Maastricht (presse numérisée, Delpher)',
+            'publisher' => 'Le Courrier de la Meuse, Maastricht  (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1883-12-03',
             'locator' => 'Article 41',

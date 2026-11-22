@@ -6,11 +6,11 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'presse-spm-a' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Driedubbele treinbotsing',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1935-02-18',
             'locator' => null,
@@ -20,11 +20,11 @@ return [
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher).',
         ],
         'presse-spm-b' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk. Dubbel spoorweg-ongeluk',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1935-02-18',
             'locator' => null,

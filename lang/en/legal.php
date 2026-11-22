@@ -78,8 +78,8 @@ return [
     ],
 
     'interests' => [
-        'title' => 'Declaration of interests',
-        'paragraph' => 'In the interest of transparency: the president of UnxWares, which publishes VFF, is a member of the association AngouLim, which campaigns for the reopening of the Angoulême - Limoges line. VFF supports this campaign on the line\'s page.',
+        'title' => 'Commitment',
+        'paragraph' => 'The creator of VFF is a member of the association AngouLim, which campaigns for the reopening of the Angoulême - Limoges line, because he considers it important to defend forgotten lines. VFF supports this campaign on the line\'s page.',
     ],
 
     'liability' => [

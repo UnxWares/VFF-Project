@@ -33,6 +33,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Situe la gare sur la commune de Banassac-Canilhac (Lozère), sur la ligne de Béziers à Neussargues, mise en service le 14 août 1883 par la Compagnie du Midi ; ne parle pas de l\'accident.',
         ],
+        'wikidata-gare-banassac' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare de Banassac - La Canourgue (Q2410794)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q2410794',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'La gare est située à Banassac jusqu\'au 31 décembre 2015, puis à Banassac-Canilhac (code INSEE 48017) depuis le 1er janvier 2016.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -72,7 +86,7 @@ return [
         [
             'field' => 'commune_insee',
             'value' => '48017',
-            'sources' => ['wp-liste-1913', 'wp-gare-banassac'],
+            'sources' => ['wp-liste-1913', 'wp-gare-banassac', 'wikidata-gare-banassac'],
             'fr' => 'La liste de Wikipédia situe l\'accident en gare de Banassac, qui est sur la commune de Banassac-Canilhac (48017) selon l\'article sur la gare ; Marvejols n\'est que le siège du tribunal qui a jugé l\'affaire.',
             'en' => 'The Wikipedia list places the accident at Banassac station, which is in the commune of Banassac-Canilhac (48017) according to the article on the station; Marvejols is only the seat of the court that tried the case.',
             'de' => 'Die Wikipedia-Liste verortet den Unfall im Bahnhof Banassac, der nach dem Bahnhofsartikel in der Gemeinde Banassac-Canilhac (48017) liegt; Marvejols ist nur der Sitz des Gerichts, das den Fall verhandelte.',

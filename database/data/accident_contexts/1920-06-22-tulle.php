@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée de la liste : en gare de Tulle, sur la ligne de Tulle à Meymac, la machine et les seize wagons d\'un train de marchandises venant d\'Ussel, dont les freins n\'ont pu ralentir la descente de Gimel-les-Cascades, déraillent et se télescopent, 3 morts et 1 blessé parmi le personnel du train.',
         ],
         'delpher-1920-06-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongeluk',
-            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1920-06-24',
             'locator' => null,

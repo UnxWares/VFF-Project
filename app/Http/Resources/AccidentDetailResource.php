@@ -207,7 +207,7 @@ class AccidentDetailResource extends AccidentResource
              *
              * `corrections` : valeurs de la fiche corrigées d'après ces documents : `field` (`occurred_on`,
              * `occurred_at_time`, `deaths`, `injuries`), `before` (valeur d'avant), `value`, `references`, `reason` par
-             * langue. Listes vides si la fiche n'a pas de contexte.
+             * langue, `single_source` (vrai quand la valeur ne repose que sur la liste des accidents de Wikipédia et reste à confirmer). Listes vides si la fiche n'a pas de contexte.
              *
              * @var array{checked_on: string|null, sections: list<array{section: string, entries: list<array{text: array<string, string>, references: list<string>, quote: array{text: string, lang: string, reference: string}|null}>}>, references: list<array<string, mixed>>, images: list<array<string, mixed>>, corrections: list<array<string, mixed>>}
              */

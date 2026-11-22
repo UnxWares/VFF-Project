@@ -18,5 +18,6 @@ return [
     ],
     'corrections' => [
         ['field' => 'commune_name', 'value' => 'X', 'sources' => ['presse'], 'fr' => 'x', 'en' => 'x', 'de' => 'x'],
+        ['field' => 'kind', 'value' => 'collision', 'single_source' => 'oui', 'sources' => ['presse'], 'fr' => 'x', 'en' => 'x', 'de' => 'x'],
     ],
 ];

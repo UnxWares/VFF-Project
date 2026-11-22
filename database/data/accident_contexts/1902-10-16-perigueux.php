@@ -20,7 +20,7 @@ return [
             'note' => 'Gare de La Cave, ligne Bordeaux-Périgueux, vers 10 h, un train pour Bordeaux prend en écharpe les dernières voitures du train de sens contraire ; un mort et une trentaine de blessés dont cinq très graves ; renvoie à Le Matin du 17 octobre 1902.',
         ],
         'delpher-noordbrabantsche-1902-10-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland. Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Deux trains de voyageurs entrés en collision à la gare de La Cave près de Périgueux, plusieurs voyageurs blessés ou contusionnés, dégâts matériels très importants.',
         ],
         'delpher-rotterdamsch-1902-10-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd Nieuws',

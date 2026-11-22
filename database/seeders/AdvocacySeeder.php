@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Artisan;
  *     Colombier, JO du 13 juin 2023, p. 5303) ; association AngouLim fondée
  *     le 15 octobre 2023 pour sa réouverture complète.
  *
- * Lien d'intérêts (déclaré le 2026-10-19) : le gestionnaire et créateur de
+ * Engagement (déclaré le 2026-10-19) : le gestionnaire et créateur de
  * VFF, président d'UnxWares (VFF est un projet open source de la future
  * association UnxWares OpenSource), est adhérent d'AngouLim. Mention publique
  * choisie par l'utilisateur le 2026-10-20 : « Nous adhérons à AngouLim car nous
@@ -30,8 +30,8 @@ use Illuminate\Support\Facades\Artisan;
  * dont l'encart complet reste sur la fiche de la ligne.
  *
  * Langues : le français est la référence ; les traductions anglaise et allemande
- * lui sont fidèles (mêmes faits, même date, même durée annoncée, même mention du
- * lien d'intérêts) et sont affichées selon la langue de la page (App\Support\Advocacy).
+ * lui sont fidèles (mêmes faits, même date, même durée annoncée, même mention de l'
+ * engagement) et sont affichées selon la langue de la page (App\Support\Advocacy).
  */
 class AdvocacySeeder extends Seeder
 {
@@ -67,6 +67,10 @@ class AdvocacySeeder extends Seeder
                 '--message-en' => 'On 9 July 2026, the president of the Normandy Region wrote to the Prime Minister that the Paris - Granville line could close within three years if the State does not fund its renewal, estimated at nearly one billion euros by 2040. The Region is asking the State to take over these costs. Closing the line would be absurd: it has been gaining passengers since Covid, as the Region itself writes in that letter. At Briouze, Flers, Vire and Villedieu-les-Poêles, stations served only by this line, passenger numbers were 20% higher in 2024 than in 2019 and 63% higher than in 2021, despite a 4% fall between 2023 and 2024. For 2025, the Region and SNCF Voyageurs report a further 6% rise on Paris - Granville. The line also serves travellers heading to Mont-Saint-Michel. Since April 2021, its Régiolis trains have run on B100, a fuel made from rapeseed. VFF supports keeping the line open.',
                 '--title-de' => 'Die Strecke Argentan - Granville muss offen bleiben',
                 '--message-de' => 'Am 9. Juli 2026 schrieb der Präsident der Region Normandie dem Premierminister, die Strecke Paris - Granville könne innerhalb von drei Jahren geschlossen werden, wenn der Staat ihre Erneuerung nicht finanziert, deren Kosten bis 2040 auf fast eine Milliarde Euro geschätzt werden. Die Region fordert, dass der Staat diese Kosten übernimmt. Die Strecke zu schließen wäre absurd: Seit Corona gewinnt sie Fahrgäste hinzu, wie die Region in diesem Schreiben selbst festhält. Die Bahnhöfe Briouze, Flers, Vire und Villedieu-les-Poêles, die nur diese Strecke bedient, zählten 2024 20 % mehr Fahrgäste als 2019 und 63 % mehr als 2021, trotz eines Rückgangs um 4 % von 2023 auf 2024. Für 2025 melden die Region und SNCF Voyageurs auf Paris - Granville ein weiteres Plus von 6 %. Die Strecke führt Reisende auch zum Mont-Saint-Michel. Seit April 2021 fahren ihre Régiolis-Züge mit B100, einem Kraftstoff aus Raps. VFF setzt sich für den Erhalt der Strecke ein.',
+                '--cta' => 'Voir le dossier de l\'ADPCR',
+                '--cta-en' => 'See the ADPCR file',
+                '--cta-de' => 'ADPCR-Dossier ansehen',
+                '--url' => 'https://www.adpcr.fr/menace-de-fermeture-de-paris-argentan-granville-propositions-pour-un-avenir-ambitieux-de-la-ligne/',
                 '--source' => [
                     'France 3 Normandie|2026-07-23|https://france3-regions.franceinfo.fr/normandie/1-milliard-d-euros-de-travaux-trop-vetuste-la-ligne-sncf-paris-granville-pourrait-elle-vraiment-disparaitre-3390607.html',
                     'ICI Normandie|2026-01-19|https://www.ici.fr/normandie/frequentation-ponctualite-chantiers-quel-bilan-pour-les-trains-en-normandie-en-2025-8580180',

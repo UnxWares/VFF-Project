@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée de la liste : ligne des Sables-d\'Olonne à Tours, entre les gares de Pouzauges et de Saint-Mesmin, l\'express Les Sables-d\'Olonne - Paris déraille vers 21 h 45 ; quatre voitures renversées, 3 morts, 26 ou 23 blessés selon les journaux.',
         ],
         'delpher-1923-09-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
-            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1923-09-14',
             'locator' => 'Provinciale Overijsselsche en Zwolsche courant',

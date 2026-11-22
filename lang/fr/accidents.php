@@ -294,6 +294,7 @@ return [
         'corrections_title' => 'Fiche corrigée d’après ces documents',
         'correction' => ':field : :before devient :value.',
         'correction_new' => ':field : :value (absent de la fiche auparavant).',
+        'single_source' => 'D’après la liste des accidents de Wikipédia, à confirmer',
         'fields' => [
             'occurred_on' => 'Date',
             'occurred_at_time' => 'Heure',

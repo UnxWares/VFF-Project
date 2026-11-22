@@ -14,7 +14,7 @@
      * Article du journal de bord (`/journal/{slug}`, JournalController::show). Le texte arrive déjà
      * rendu en HTML par le serveur (App\Services\Journal\JournalRenderer : HTML écrit dans le Markdown
      * échappé, liens vers les fiches résolus, liens externes signalés) ; la page pose le bandeau,
-     * le sommaire collant (titres de niveau 2), la photo et son crédit, la mention de lien d'intérêts
+     * le sommaire collant (titres de niveau 2), la photo et son crédit, la mention d'engagement
      * quand l'article en a une, les fiches citées et la licence du texte.
      *
      * Traduction absente : le texte français est servi (`article.lang` = fr), signalé en tête et

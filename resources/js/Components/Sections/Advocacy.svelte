@@ -66,7 +66,6 @@
                                 <a
                                     class="vff-btn secondary small"
                                     href={item.a.cta_url}
-                                    target="_blank"
                                     rel="noopener noreferrer"
                                     lang={item.a.lang?.cta_label ?? undefined}
                                 >
@@ -74,7 +73,7 @@
                                         class="bi bi-box-arrow-up-right vff-ext"
                                         aria-hidden="true"
                                     ></i><span class="vff-sr-only">
-                                        ({$i18n.t('common.new_tab')})</span
+                                        ({$i18n.t('common.external_same_tab')})</span
                                     >
                                 </a>
                             {/if}

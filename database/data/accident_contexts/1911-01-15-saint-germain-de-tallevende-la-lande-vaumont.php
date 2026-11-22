@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne de Vire à Romagny, train de voyageurs vers Saint-Hilaire-du-Harcouët contre un train de ballast, trois morts et neuf blessés, tous employés de l\'Ouest-État ; renvoie à Le Petit Journal du 16 janvier 1911 et à Le Temps du 21 janvier 1911 (non lus).',
         ],
         'delpher-zuidwillemsvaart-1911-01-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Zuid-Willemsvaart du 18 janvier 1911',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche du dimanche 15 janvier : train de Vire à Saint-Hilaire-du-Harcouët contre un train de marchandises entre Saint-Germain-de-Tallevende et un lieu lu Les Maures ; trois cheminots tués.',
         ],
         'delpher-veendammer-1911-01-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Nieuwe Veendammer Courant du 18 janvier 1911',

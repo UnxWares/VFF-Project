@@ -76,11 +76,11 @@ return [
             'note' => 'Récit de la Gazette du Midi, d\'après des blessés revenus à Marseille : l\'explosion a eu lieu en rase campagne, le train roulait vite ; la détonation a fait s\'effondrer des maisons éloignées et brisé des arbres.',
         ],
         'delpher-1871-02-18-vaderland' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Spoorwegongeluk te Ollioules',
-            'publisher' => 'Het Vaderland (presse néerlandaise numérisée, Delpher)',
+            'publisher' => 'Het Vaderland  (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1871-02-18',
             'locator' => 'p. 3',

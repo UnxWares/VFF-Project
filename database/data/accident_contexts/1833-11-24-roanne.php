@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 24 novembre 1833, d\'après le Journal des débats du 1er décembre 1833 : lors d\'essais après une avarie de la machine à vapeur du plan incliné de Neulise, seize wagons dévalent la pente et déraillent dans une courbe ; sur les quatre agents chargés de les freiner, un est tué et trois sont blessés.',
         ],
         'haye-1833-12-04' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Paris, 30 novembre',
-            'publisher' => 'Journal de La Haye',
+            'publisher' => 'Journal de La Haye (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1833-12-04',
             'locator' => null,

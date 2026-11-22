@@ -78,8 +78,8 @@ return [
     ],
 
     'interests' => [
-        'title' => 'Interessenbindungen',
-        'paragraph' => 'Aus Gründen der Transparenz: Der Präsident von UnxWares, die VFF herausgibt, ist Mitglied des Vereins AngouLim, der sich für die Wiedereröffnung der Strecke Angoulême - Limoges einsetzt. VFF unterstützt diese Kampagne auf der Seite der Strecke.',
+        'title' => 'Engagement',
+        'paragraph' => 'Der Gründer von VFF ist Mitglied des Vereins AngouLim, der sich für die Wiedereröffnung der Strecke Angoulême - Limoges einsetzt, weil er es für wichtig hält, vergessene Strecken zu verteidigen. VFF unterstützt diese Kampagne auf der Seite der Strecke.',
     ],
 
     'liability' => [

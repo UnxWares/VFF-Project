@@ -20,7 +20,7 @@ return [
             'note' => 'Gare de Lumes, ligne de Mohon à Thionville, vers midi, train d\'ouvriers du triage et des ateliers pris en écharpe par un train de marchandises en manoeuvre, un tué et six blessés sur 25 occupants.',
         ],
         'delpher-nieuwecourant-1909-07-20' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -34,7 +34,7 @@ return [
             'note' => 'À Lumes près de Mézières, un train de travailleurs et d\'agents de la Compagnie de l\'Est heurté par un autre ; sept blessés, un mort, un autre en danger de mort.',
         ],
         'delpher-vaderland-1909-07-20' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Vaderland du 20 juillet 1909',
@@ -48,7 +48,7 @@ return [
             'note' => 'Train de voyageurs heurtant un train de marchandises à Triage-Lumes par négligence d\'un aiguilleur : un voyageur tué, un mortellement blessé, cinq légers, trois voitures détruites.',
         ],
         'delpher-rotterdamsch-1909-07-21' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd Nieuws',

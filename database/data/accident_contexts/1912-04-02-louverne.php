@@ -34,11 +34,11 @@ return [
             'note' => 'Brève : la veille, vers 15 h, le train de voyageurs de Paris à Brest a heurté près de la gare de Louverné un train de marchandises qui en sortait ; le mécanicien et le chauffeur tués sur le coup, le mécanicien et le chauffeur du train de marchandises grièvement blessés, ainsi que trois voyageurs ; tous les wagons du train de marchandises, les deux locomotives et les tenders entièrement brisés ; voyageurs transbordés.',
         ],
         'delpher-1912-04-06-middelburgsche' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Middelburgsche courant du 6 avril 1912',
-            'publisher' => 'Middelburgsche Courant (presse néerlandaise numérisée, Delpher)',
+            'publisher' => 'Middelburgsche Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1912-04-06',
             'locator' => 'p. 3',

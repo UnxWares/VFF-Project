@@ -92,7 +92,7 @@ ligne (`clé: valeur`, guillemets facultatifs ; une clé seule ouvre une liste `
 | `lines` | non | Codes RFN des lignes dont parle l'article (lien depuis leur fiche). |
 | `stations` | non | Slugs des gares citées. |
 | `image` | non | Photo de Wikimedia Commons : `src` (vignette `upload.wikimedia.org`), `width`, `height`, `alt`, `caption`, `author`, `licence`, `licence_url`, `source_url` (page du fichier). |
-| `disclosure` | non | Lien d'intérêts, affiché en tête de l'article (obligatoire quand l'équipe soutient une cause dont parle l'article). |
+| `disclosure` | non | Engagement, affiché en tête de l'article (obligatoire quand l'équipe soutient une cause dont parle l'article). |
 
 Dans le texte : sections en `##` (le sommaire les reprend ; jamais de `#`), liens vers les fiches par
 `[texte](ligne:878000)` ou `[texte](gare:morez)` (ancre possible : `ligne:878000#chronicle`), sources en notes

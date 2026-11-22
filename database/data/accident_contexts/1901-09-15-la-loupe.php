@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 15 septembre 1901 : sur la ligne d\'Évreux à La Loupe, vers 13 heures, peu avant la gare de Damville, dans une courbe prononcée, un train pour Évreux déraille ; la locomotive, le tender et le fourgon de tête dévalent le remblai ; le mécanicien est tué, le chauffeur et le conducteur de tête sont blessés, les voyageurs sont indemnes.',
         ],
         'rn-1901-09-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd Nieuws',
-            'publisher' => 'Rotterdamsch Nieuwsblad',
+            'publisher' => 'Rotterdamsch Nieuwsblad (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1901-09-17',
             'locator' => null,

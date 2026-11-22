@@ -6,11 +6,11 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'presse-creil' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Een doode en vijf gewonden zijn te betreuren bij de botsing, welke te Creil (Fr.) plaats had tusschen twee treinen',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1937-11-09',
             'locator' => null,

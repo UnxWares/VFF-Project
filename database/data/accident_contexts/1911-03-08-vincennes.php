@@ -20,7 +20,7 @@ return [
             'note' => 'Tunnel de Vincennes sur la ligne de la Bastille, vers 7 h, ouvriers de la voie surpris par un train arrivant en sens contraire, trois morts et sept blessés ; renvoie à Le Petit Parisien du 9 mars 1911 (non lu).',
         ],
         'delpher-delftsche-1911-03-10' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',
@@ -34,7 +34,7 @@ return [
             'note' => 'Récit : tunnel de Vincennes à 50 m de la gare, ouvriers de la voie, deux trains presque simultanés, deux morts sur le coup et huit blessés graves.',
         ],
         'delpher-arnhemsche-1911-03-10' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Arnhemsche Courant du 10 mars 1911',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même récit : train vers Nogent-sur-Marne, puis train vers Paris ; deux morts et sept blessés graves, corps transportés à la mairie de Vincennes.',
         ],
         'delpher-avondpost-1911-03-09' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Brève du 9 mars 1911',

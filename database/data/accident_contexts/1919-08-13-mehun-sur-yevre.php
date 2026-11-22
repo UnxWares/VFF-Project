@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée de la liste : entre Vierzon et Bourges, en gare de Mehun-sur-Yèvre, train Nantes - Lyon déraillé vers 7 h, quinze voitures couchées, 2 morts dont le maire de Saumur, une dizaine de blessés.',
         ],
         'delpher-1919-08-16' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk.',
-            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1919-08-16',
             'locator' => null,

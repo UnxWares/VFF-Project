@@ -51,6 +51,7 @@ return [
         [
             'field' => 'commune_insee',
             'value' => '13055',
+            'single_source' => true,
             'sources' => ['wp-liste-1919'],
             'fr' => 'Aix-en-Provence était sur l\'itinéraire du train ; l\'accident a eu lieu à la station de Saint-Barthélemy, à Marseille, peu après le départ de Saint-Charles.',
             'en' => 'Aix-en-Provence was on the train\'s route; the accident happened at Saint-Barthélemy station in Marseille, shortly after leaving Saint-Charles.',

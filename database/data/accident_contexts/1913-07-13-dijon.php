@@ -20,7 +20,7 @@ return [
             'note' => 'À 1 h 15, à l\'entrée en gare de Dijon, le train postal de Paris, en retard, aiguillé par erreur sur une voie où était garé un convoi de sept locomotives ; wagon-poste pour Pontarlier broyé, un mort et vingt-sept blessés parmi le personnel.',
         ],
         'delpher-nieuwecourant-1913-07-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche du 13 juillet : un train-poste est entré en collision avec un groupe de sept machines, un blessé, deux graves et 27 légers.',
         ],
         'delpher-handelsblad-1913-07-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Treinbotsingen',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêche Reuter de Dijon du 13 juillet : un tué, deux blessés graves, 27 blessés.',
         ],
         'delpher-nrc-1913-07-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',

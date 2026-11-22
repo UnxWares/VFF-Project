@@ -20,7 +20,7 @@ return [
             'note' => 'Chemins de fer départementaux du Tarn, train spécial de 200 à 300 jeunes filles vers Notre-Dame de la Drèche arrêté à la halte des Combalets (Saussenac), percuté par le train régulier, trois morts, dix blessés ; renvoie à Le Matin du 31 mai 1911 (non lu).',
         ],
         'delpher-delftsche-1911-06-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',
@@ -34,7 +34,7 @@ return [
             'note' => 'Pèlerinage : collision à Combalets, ligne d\'Albi à Valence-d\'Albigeois, avec un train ordinaire ; surtout des jeunes filles, trois morts et quinze blessés graves.',
         ],
         'delpher-stichtsche-1911-06-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même dépêche : trois morts et seize blessés graves.',
         ],
         'delpher-noordbrabantsche-1911-06-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Laatste Berichten',

@@ -53,6 +53,7 @@
     "gql AccidentCorrection.reason": "String!",
     "gql AccidentCorrection.reason(lang)": "String",
     "gql AccidentCorrection.references": "[String!]!",
+    "gql AccidentCorrection.single_source": "Boolean!",
     "gql AccidentCorrection.value": "String",
     "gql AccidentFilter.department": "String",
     "gql AccidentFilter.from": "Int",

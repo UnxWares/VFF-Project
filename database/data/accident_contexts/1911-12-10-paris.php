@@ -20,7 +20,7 @@ return [
             'note' => 'À Paris, à l\'entrée de la gare du Nord, un express venant de Hirson et Soissons pris en écharpe par une machine haut-le-pied rentrant au dépôt de La Chapelle, deux dernières voitures éventrées, quatre morts et dix blessés ; renvoie à Le Petit Parisien du 11 décembre 1911 (non lu).',
         ],
         'delpher-courant-1911-12-12' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Ernstig spoorwegongeluk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Récit : dimanche à 16 h 30, train Soissons-Paris de 14 voitures flanqué par une grosse locomotive à cause d\'un mauvais aiguillage, trois dernières voitures renversées.',
         ],
         'delpher-utrechtsch-1911-12-12' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même récit : cinq morts, huit blessés graves, cause attribuée à un mauvais aiguillage, responsable inconnu.',
         ],
         'delpher-arnhemsche-1911-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland. De oorlog',

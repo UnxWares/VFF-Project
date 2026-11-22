@@ -33,7 +33,7 @@ return [
         'reading_other' => ':count minutes de lecture',
         'toc' => 'Sommaire de l’article',
         'fallback' => 'Cet article n’existe pas encore dans votre langue : voici le texte original en français.',
-        'disclosure_title' => 'Lien d’intérêts',
+        'disclosure_title' => 'Engagement',
         'cited' => 'Dans l’encyclopédie',
         'cited_lines' => 'Lignes',
         'cited_stations' => 'Gares',

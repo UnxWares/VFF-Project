@@ -20,11 +20,11 @@ return [
             'note' => 'Express n° 11 Paris-Bordeaux, à 14 h, aiguillage du poste B franchi à 70 km/h ; la locomotive, le fourgon et cinq voitures se renversent : un mort et trente-deux blessés ; cite Le Petit Parisien du 4 septembre 1920 et Le Petit Journal du 5 septembre 1920.',
         ],
         'ah-1920-09-05' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Algemeen Handelsblad du 5 septembre 1920',
-            'publisher' => 'Algemeen Handelsblad',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1920-09-05',
             'locator' => null,

@@ -20,7 +20,7 @@ return [
             'note' => 'Nancy : voiture du funiculaire de la Cure d\'Air détachée du câble de traction lors de son ascension, partie à la dérive et percutant les voitures suivantes ; un mort et plusieurs blessés.',
         ],
         'delpher-venlosche-1908-06-02' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Nieuwe Venlosche Courant du 2 juin 1908',
@@ -34,7 +34,7 @@ return [
             'note' => 'Pèlerins de Bayon sur le funiculaire de Nancy, deuxième voiture mal placée sur la crémaillère, collision avec la première, deux morts, sept blessés.',
         ],
         'delpher-maasbode-1908-06-03' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland Duitschland',

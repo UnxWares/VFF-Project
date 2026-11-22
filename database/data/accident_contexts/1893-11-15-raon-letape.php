@@ -20,11 +20,11 @@ return [
             'note' => 'Place le déraillement sur la ligne de Lunéville à Saint-Dié (Est), vers 10 h, entre les gares d\'Étival et de Raon-l\'Étape : train de voyageurs en double traction, un mort et onze blessés ; le mécanicien de la seconde machine, seul tué, est déclaré responsable d\'une vitesse excessive ; cite Le Matin et La Presse du 17 novembre 1893.',
         ],
         'avondpost-1893-11-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De avondpost du 17 novembre 1893',
-            'publisher' => 'De avondpost',
+            'publisher' => 'De avondpost (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1893-11-17',
             'locator' => null,

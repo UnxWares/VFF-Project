@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 1er avril 1892 : sur la ligne d\'Avignon à Miramas, vers 11 h, un train de voyageurs venant d\'Avignon déraille à cause d\'un écartement de la voie ; la machine tombe du remblai et tue le chauffeur ; le mécanicien, le conducteur-chef et un voyageur blessés.',
         ],
         'delpher-1892-04-05-avondpost' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Laatste Nieuwstijdingen',
-            'publisher' => 'De avondpost (presse néerlandaise numérisée, Delpher)',
+            'publisher' => 'De avondpost  (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1892-04-05',
             'locator' => null,

@@ -20,11 +20,11 @@ return [
             'note' => 'Collision vers 21 h 40 à la sortie de Chartres entre l\'express Paris-Brest et un train de marchandises venant de Niort ; un mort et une quarantaine de blessés ; cite Le Petit Parisien du 1er novembre 1920.',
         ],
         'vaderland-1920-11-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Vaderland du 1 novembre 1920',
-            'publisher' => 'Het Vaderland',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1920-11-01',
             'locator' => null,

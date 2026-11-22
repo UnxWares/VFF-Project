@@ -48,7 +48,7 @@ return [
             'note' => 'Ouvrage du XIXe siècle cité par Wikipédia ; non lu.',
         ],
         'kb-1871-03-13-telegrammen' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -62,7 +62,7 @@ return [
             'note' => 'Dépêche de Paris du 10 mars à midi : « hier » accident près de Puteaux, convoi de 32 wagons de soldats allemands blessés et malades, 19 wagons écrasés par un train de marchandises, d\'après le Figaro. Presse étrangère, titre du journal non relevé.',
         ],
         'kb-1871-03-16-figaro' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',
@@ -76,11 +76,11 @@ return [
             'note' => 'Récit détaillé repris du Figaro : convoi de la Compagnie de l\'Ouest du Mans vers Pantin, 32 wagons, arrêt avant la gare de Puteaux, 19 wagons écrasés, locomotive et 5 ou 6 wagons du train de marchandises détruits, personnel français indemne, train de secours parti de Paris. Pas de bilan humain.',
         ],
         'utrecht-1871-03-15-duitschland' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Duitschland',
-            'publisher' => 'Journal néerlandais (Het Utrechts Archief), numérisé sur Delpher',
+            'publisher' => 'Journal néerlandais, Het Utrechts Archief (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1871-03-15',
             'locator' => 'rubrique « Duitschland », texte OCR',

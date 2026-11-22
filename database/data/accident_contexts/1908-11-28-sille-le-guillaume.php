@@ -20,7 +20,7 @@ return [
             'note' => 'Express Paris-Brest aiguillé par erreur sur une voie de garage, vers 12 h 30, trois morts et une dizaine de blessés dont un décédé ensuite ; renvoie à Le Petit Parisien du 29 novembre et Le Temps du 2 décembre 1908 (non lus).',
         ],
         'delpher-delftsche-1908-11-30' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche de Sillé-le-Guillaume : erreur de manoeuvre des aiguilles, express de Brest contre un omnibus, samedi, deux morts et dix blessés.',
         ],
         'delpher-overijsselsche-1908-12-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Provinciale Overijsselsche en Zwolsche Courant du 1er décembre 1908',

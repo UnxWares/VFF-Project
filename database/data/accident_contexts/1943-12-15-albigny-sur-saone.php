@@ -42,6 +42,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'attack',
+            'single_source' => true,
             'sources' => ['wp-liste-1940'],
             'fr' => 'Le déraillement a été provoqué par un sabotage, un rail déboulonné : la fiche est rangée avec les attentats.',
             'en' => 'The derailment was caused by sabotage, an unbolted rail: the record is classed with attacks.',

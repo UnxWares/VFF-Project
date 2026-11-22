@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée de la liste : ligne de Troyes à Brienne-le-Château, en gare de Piney, vers 1 heure, collision entre un express venant de Vitry-le-François et un train en partance pour Saint-Dizier ; 2 morts et 32 blessés.',
         ],
         'delpher-1917-02-16' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
-            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1917-02-16',
             'locator' => 'De Nederlander',

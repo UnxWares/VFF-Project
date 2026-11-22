@@ -20,7 +20,7 @@ return [
             'note' => 'Train des mineurs de Bully-Grenay et Bruay déraillé à l\'arrivée en gare de Saint-Pol, à la bifurcation avec la ligne d\'Arras, quatre morts (mécanicien, chauffeur, deux mineurs), cinq blessés graves ; renvoie à Le Petit Journal et Le Petit Parisien du 13 décembre 1909 (non lus).',
         ],
         'delpher-handelsblad-1909-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Een ontsporing',
@@ -34,7 +34,7 @@ return [
             'note' => 'Déraillement d\'un train local juste avant la gare de Saint-Pol-sur-Ternoise, attribué à une rupture de rail ; deux agents écrasés par la locomotive, quatre morts et soixante blessés selon les dernières nouvelles.',
         ],
         'delpher-tilburgsche-1909-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Tramongeluk',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêche de Lille : tramway à vapeur de mineurs déraillé en gare de Saint-Pol, quatre agents tués, soixante mineurs blessés dont cinq gravement.',
         ],
         'delpher-noordbrabanter-1909-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',
@@ -62,7 +62,7 @@ return [
             'note' => 'Train d\'ouvriers de Bruay à Saint-Pol déraillé le samedi après-midi ; mécanicien et chauffeur tués, plus de soixante mineurs blessés.',
         ],
         'delpher-haagsche-1909-12-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Van over de grenzen',

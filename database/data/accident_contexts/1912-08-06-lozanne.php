@@ -20,11 +20,11 @@ return [
             'note' => 'Donne vers 14 h 45, l\'omnibus de Paray-le-Monial arrêté dans le tunnel avant la gare de Lozanne, l\'express Vichy-Lyon qui le télescope, l\'incendie, 5 morts et une vingtaine de blessés ; cite Le Petit Parisien des 7 et 8 août 1912 et Le Temps du 9 août 1912.',
         ],
         'tilburgsche-courant-1912-08-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Tilburgsche courant du 8 août 1912',
-            'publisher' => 'Tilburgsche courant',
+            'publisher' => 'Tilburgsche courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1912-08-08',
             'locator' => null,

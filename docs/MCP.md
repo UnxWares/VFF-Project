@@ -702,7 +702,7 @@ demandée. `checked_on` (date de la recherche) ; `sections` (`circumstances`, `c
 `references` (documents : `key`, `provider`, `kind`, `reliability`, `title`, `publisher`, `author`, `published`,
 `locator`, `url`, `access` = `open`, `paywall` ou `link_only`, `consulted_on`, `note`, `license`, `license_status`) ;
 `images` (Wikimedia Commons : `image_url`, `author`, `license`, `caption`, `attribution`) ; `corrections` (champ,
-valeur d'avant, valeur retenue, raison). Les courtes citations servies par l'API REST et GraphQL (`quote`) ne le sont
+valeur d'avant, valeur retenue, raison, `single_source` : vrai quand la valeur ne repose que sur la liste des accidents de Wikipédia et reste à confirmer). Les courtes citations servies par l'API REST et GraphQL (`quote`) ne le sont
 pas ici (décision Q22). Listes vides si la fiche n'a pas de contexte. Les fournisseurs de ces documents s'ajoutent au
 bloc d'attribution.
 

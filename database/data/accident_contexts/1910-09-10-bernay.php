@@ -75,6 +75,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Conclusions du rapport des ingénieurs sur le bogie de la locomotive, d\'après Wikipédia ; non lu.',
         ],
+        'delpher-vaderland-1910-09-12' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'HET SPOORWEGONGELUK.',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1910-09-12',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001483199:mpeg21:a00083',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Le train a déraillé en passant devant la gare de Bernay : poteaux télégraphiques renversés, locomotive couchée en travers de la route, wagons projetés les uns sur les autres ; premier bilan du Matin de sept morts et vingt-cinq à trente blessés graves.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -162,7 +176,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'derailment',
-            'sources' => ['wp-fr-bernay', 'wp-liste-1910'],
+            'sources' => ['wp-fr-bernay', 'wp-liste-1910', 'delpher-vaderland-1910-09-12'],
             'fr' => 'L\'express a déraillé à la sortie de la gare ; le passage à niveau de Boucheville n\'est que le lieu où le tender a fini sa course.',
             'en' => 'The express derailed just beyond the station; the Boucheville level crossing is only where the tender came to rest.',
             'de' => 'Der Schnellzug entgleiste kurz hinter dem Bahnhof; am Bahnübergang Boucheville kam nur der Tender zum Stehen.',

@@ -20,11 +20,11 @@ return [
             'note' => 'Place la collision vers 20 h en gare de Labatut (Landes), entre l\'express Toulouse-Bayonne et l\'omnibus Bayonne-Pau ; 2 morts et 13 blessés ; cite Le Figaro du 8 août 1912 et Le Temps du 12 août 1912.',
         ],
         'de-tijd-1912-08-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Tijd du 8 août 1912',
-            'publisher' => 'De Tijd',
+            'publisher' => 'De Tijd (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1912-08-08',
             'locator' => null,

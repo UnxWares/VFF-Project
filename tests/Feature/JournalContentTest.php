@@ -10,7 +10,7 @@ use Tests\TestCase;
  * Relecture automatique des articles publiés (resources/content/journal) : en-têtes complets, version
  * française présente, sources en notes toutes définies et appelées, liens vers les fiches bien formés,
  * typographie du site (pas de tiret long), aucun titre de niveau 1 dans le texte, photo de Commons
- * avec auteur et licence, lien d'intérêts déclaré sur l'article d'AngouLim.
+ * avec auteur et licence, engagement déclaré sur l'article d'AngouLim.
  */
 class JournalContentTest extends TestCase
 {

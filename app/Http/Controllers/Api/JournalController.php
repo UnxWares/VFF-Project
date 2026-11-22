@@ -111,7 +111,7 @@ class JournalController extends Controller
      * Article du journal.
      *
      * Tous les champs de la liste, plus : `author` (toujours l'équipe, jamais une personne), `disclosure`
-     * (mention de lien d'intérêts, ou `null`), `html` (texte rendu : HTML écrit dans le Markdown échappé,
+     * (mention d'engagement, ou `null`), `html` (texte rendu : HTML écrit dans le Markdown échappé,
      * liens internes relatifs au site, liens externes en `target="_blank"`, sources en notes de fin
      * `<div class="footnotes">`), `toc` (titres de niveau 2 : `id` de l'ancre et texte), `lines` et
      * `stations` remplacés par les fiches citées qui existent (`code`, `slug`, `name` ; `slug`, `name`,

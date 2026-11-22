@@ -64,6 +64,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'attack',
+            'single_source' => true,
             'sources' => ['wp-liste-1940'],
             'fr' => 'La liste de Wikipédia, source de la fiche, attribue le déraillement à un sabotage. La première circonstance est l\'attentat.',
             'en' => 'The Wikipedia list, the source of the entry, attributes the derailment to sabotage. The first circumstance is the attack.',

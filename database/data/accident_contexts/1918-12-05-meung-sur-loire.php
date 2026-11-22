@@ -20,7 +20,7 @@ return [
             'note' => 'Soir, ligne Paris-Tours, express d\'Orléans contre un train de matériel américain, 20 morts et une trentaine de blessés ; renvoie à Le Temps du 8 décembre 1918, p. 3 (sans adresse).',
         ],
         'kb-1918-12-07-reuter' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk. Een treinbotsing',
@@ -34,11 +34,11 @@ return [
             'note' => 'Dépêche Reuter du lendemain : express d\'Orléans contre un train chargé de marchandises américaines à environ 300 m de la gare, quatre voitures détruites, 10 morts identifiés, 25 blessés, d\'autres victimes sous les débris. Presse étrangère lointaine, brève, titre du journal non relevé.',
         ],
         'gron-1918-12-07-spoorweg' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Laatste berichten',
-            'publisher' => 'Journal néerlandais (Groninger Archieven), numérisé sur Delpher',
+            'publisher' => 'Journal néerlandais, Groninger Archieven (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1918-12-07',
             'locator' => 'rubrique « Laatste berichten », texte OCR',

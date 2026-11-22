@@ -62,6 +62,7 @@ class EnrichAccidentsCommandTest extends TestCase
             ->expectsOutputToContain('document « payant » non lu')
             ->expectsOutputToContain('citation permise seulement')
             ->expectsOutputToContain('champ « commune_name » non corrigeable')
+            ->expectsOutputToContain('single_source doit être un booléen')
             ->assertFailed();
 
         $this->assertSame(0, AccidentReference::query()->count());
@@ -94,6 +95,8 @@ class EnrichAccidentsCommandTest extends TestCase
         $this->assertSame('context', $mande->provenance['deaths']);
         $this->assertSame('2026-11-21', $mande->context_checked_on?->toDateString());
         $this->assertSame(43, $mande->context_corrections[0]['before']);
+        // Marque « source unique » : gardée pour la nature, fausse pour les autres corrections.
+        $this->assertSame([false, false, true, false], array_column($mande->context_corrections, 'single_source'));
         $this->assertStringContainsString('49', $mande->summary['fr']);
         // Nature et commune corrigées : fiche placée au centre de la commune, provenance « context », nom refait.
         $this->assertSame('derailment', $mande->kind->value);

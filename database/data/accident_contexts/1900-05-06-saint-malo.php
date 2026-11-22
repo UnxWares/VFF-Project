@@ -20,7 +20,7 @@ return [
             'note' => 'Express pour Saint-Malo arrêté entre Sèvres et Chaville et tamponné par le train-poste pour Brest, vers 21 h, un mort et une vingtaine de blessés dont deux morts ensuite.',
         ],
         'delpher-zuidholland-1900-05-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd Nieuws',
@@ -34,7 +34,7 @@ return [
             'note' => 'Express de Paris-Brest parti de Montparnasse à 20 h 30, déraillement attribué à un glissement de terrain, train de marchandises qui le rattrape, 36 voyageurs blessés.',
         ],
         'delpher-utrecht-1900-05-08a' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten',
@@ -48,7 +48,7 @@ return [
             'note' => 'Express Paris-Brest déraillé, train-poste qui lui roule dessus ; travaux sur la voie entre Sèvres et Chaville.',
         ],
         'delpher-utrecht-1900-05-08b' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten',

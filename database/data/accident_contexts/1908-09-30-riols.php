@@ -20,11 +20,11 @@ return [
             'note' => 'Ligne de Castres à Bédarieux, erreur du chef de gare de Saint-Étienne-d\'Albagnan, face-à-face près de Riols, 2 morts et 20 blessés ; cite Le Petit Journal du 1er octobre 1908.',
         ],
         'vaderland-1908-10-01' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Vaderland du 1 octobre 1908',
-            'publisher' => 'Het Vaderland',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1908-10-01',
             'locator' => null,

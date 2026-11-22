@@ -20,7 +20,7 @@ return [
             'note' => 'Gare d\'Arveyres, ligne Paris-Bordeaux, voie unique établie après un premier accident, le rapide Paris-Bordeaux tamponne à 7 h un train mixte à l\'arrêt, un mort (le chef du train tamponneur) et une vingtaine de blessés.',
         ],
         'delpher-zutphensche-1907-10-04' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -34,7 +34,7 @@ return [
             'note' => 'Un train de Paris entré en collision avec un train de Bordeaux à Arveyres, douze voyageurs légèrement blessés et trois plus gravement.',
         ],
         'delpher-leeuwarder-1907-10-04' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche Berichten',

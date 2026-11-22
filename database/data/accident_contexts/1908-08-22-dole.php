@@ -20,7 +20,7 @@ return [
             'note' => 'À Perrigny, près de Dijon, vers 22 h 30, train de voyageurs pour Dole dont le mécanicien a mal compris la signalisation, pris en écharpe sur un train de marchandises à une bifurcation, une voiture écrasée, un mort et une dizaine de blessés.',
         ],
         'delpher-franeker-1908-08-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Korte Berichten',

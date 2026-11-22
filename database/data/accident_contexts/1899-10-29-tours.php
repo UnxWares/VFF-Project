@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 29 octobre 1899, d\'après Le Figaro du 30 octobre : entre la gare de Saint-Pierre-des-Corps et celle de Tours, vers 13 h, un train venant de Nantes déraille ; le mécanicien est tué, le chauffeur, le chef de train et quelques voyageurs sont blessés.',
         ],
         'zuid-limburger-1899-10-30' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Zuid-Limburger du 30 octobre 1899',
-            'publisher' => 'De Zuid-Limburger',
+            'publisher' => 'De Zuid-Limburger (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1899-10-30',
             'locator' => null,

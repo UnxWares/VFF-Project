@@ -11,6 +11,7 @@ return [
 
     // Gemeinsame Texte der Komponenten (Seitennavigation, externe Links).
     'new_tab' => 'öffnet in einem neuen Tab',
+    'external_same_tab' => 'externer Link, öffnet sich in diesem Tab',
     'note_ref' => 'Anmerkung',
     'required' => 'Pflichtfeld',
     'pagination' => 'Seitennavigation',

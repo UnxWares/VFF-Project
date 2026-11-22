@@ -20,7 +20,7 @@ return [
             'note' => 'Le soir, en gare de Rang-du-Fliers, un train transatlantique Boulogne-Paris prend en écharpe un convoi de betteraves circulant sur la ligne à voie métrique d\'Aires-sur-la-Lys à Berck.',
         ],
         'delpher-amstelbode-1913-12-04' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengde berichten',

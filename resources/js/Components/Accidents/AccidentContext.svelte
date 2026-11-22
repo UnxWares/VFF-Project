@@ -85,6 +85,11 @@
                                       })}
                                 {pick(c.reason)}
                                 {@render calls(c.references)}
+                                {#if c.single_source}
+                                    <span class="vff-badge warning"
+                                        >{$i18n.t('accidents.context.single_source')}</span
+                                    >
+                                {/if}
                             </li>
                         {/each}
                     </ul>

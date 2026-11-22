@@ -149,6 +149,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'collision',
+            'single_source' => true,
             'sources' => ['wp-de', 'wp-en-liste'],
             'fr' => 'Les deux articles décrivent la collision d\'un train militaire, dirigé par erreur sur une voie occupée, avec un train de marchandises, suivie d\'un incendie.',
             'en' => 'Both articles describe a military train sent by mistake onto an occupied track, colliding with a goods train, followed by a fire.',

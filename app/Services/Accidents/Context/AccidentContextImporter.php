@@ -264,6 +264,7 @@ final class AccidentContextImporter
                 'value' => $c['value'],
                 'references' => array_values($c['sources']),
                 'reason' => ['fr' => self::typography($c['fr']), 'en' => self::typography($c['en']), 'de' => self::typography($c['de'])],
+                'single_source' => ($c['single_source'] ?? false) === true,
             ];
             $result->corrections[] = "{$accident->slug} : {$field} ".json_encode($before).' -> '.json_encode($c['value']);
         }

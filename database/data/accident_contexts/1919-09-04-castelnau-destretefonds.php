@@ -34,7 +34,7 @@ return [
             'note' => 'Référence citée par la liste de Wikipédia ; Gallica non consultable depuis cette machine.',
         ],
         'kb-1919-09-06-expres' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk. Treinongeluk',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêche : l\'express Bordeaux-Sète et un train venant de Paris se sont heurtés dans la nuit à Saint-Jory près de Toulouse ; premier bilan 9 morts et 30 blessés. Brève de presse étrangère, titre du journal non relevé.',
         ],
         'kb-1919-09-06-bordeaux' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorweg-ongeluk',

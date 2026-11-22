@@ -62,7 +62,7 @@ return [
             'note' => 'Livre cité pour 21 morts et 7 blessés ; référence complète à vérifier.',
         ],
         'kb-1941-11-07-twintig-doden' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongeluk eischt twintig dooden',
@@ -76,7 +76,7 @@ return [
             'note' => 'Le soir, accident en gare d\'Austerlitz : 20 voyageurs tués, 48 blessés, cinq voitures du train venu d\'Orléans déraillées, deux renversées, une brisée en deux. Presse néerlandaise sous l\'Occupation, courte, sans la date exacte ni l\'heure.',
         ],
         'kb-1941-11-08-twintig-doden' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongeluk eischt twintig dooden',

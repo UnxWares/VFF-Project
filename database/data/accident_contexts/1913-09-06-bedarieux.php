@@ -20,11 +20,11 @@ return [
             'note' => 'Le 6 septembre, déraillement de la queue d\'un train de militaires à l\'entrée de la gare de Bédarieux : 2 morts et 7 blessés ; le 7, collision à Saint-Amans-Soult (3 morts et 14 blessés) ; cite Le Petit Parisien du 8 septembre 1913.',
         ],
         'telegraaf-1913-09-08' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Telegraaf du 8 septembre 1913',
-            'publisher' => 'De Telegraaf',
+            'publisher' => 'De Telegraaf (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1913-09-08',
             'locator' => null,

@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 22 octobre 1899, d\'après Le Petit Parisien du 23 octobre : entre Surdon et Argentan, après la halte d\'Almenêches, dans le brouillard, vers 1 h 30, un train venant de Paris en percute un autre arrêté peu avant la gare d\'Argentan ; le mécanicien du train tamponneur est tué, trois agents du train tamponné sont blessés.',
         ],
         'opregte-haarlemsche-1899-10-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Opregte Haarlemsche Courant du 24 octobre 1899',
-            'publisher' => 'Opregte Haarlemsche Courant',
+            'publisher' => 'Opregte Haarlemsche Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1899-10-24',
             'locator' => null,

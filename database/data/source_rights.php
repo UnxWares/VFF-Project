@@ -575,14 +575,14 @@ return [
         // faits validées par Baptiste le 22/11/2026. Énoncés rédigés par VFF, lien vers la page du journal, aucun texte
         // recopié, aucune image, aucun nom de victime privée.
         'delpher' => [
-            'nom' => 'Delpher (presse néerlandaise numérisée, Koninklijke Bibliotheek)',
+            'nom' => 'Delpher, Koninklijke Bibliotheek',
             'statut' => 'incertain',
-            'licence' => 'Aucune licence ouverte trouvée : la KB demande une autorisation pour copier ou réutiliser ses contenus, et permet le lien seul ; matériel de plus de 140 ans copiable sans autorisation',
+            'licence' => 'Selon les conditions d\'utilisation de Delpher : le matériel peut être utilisé librement pour sa propre recherche, le matériel publié pour la première fois il y a plus de 140 ans est dans le domaine public, les droits des notices et des images de presse plus récentes restent ceux de chaque objet ; aucune licence ouverte générale',
             'accord' => null,
-            'preuve' => ['https://www.kb.nl/contact/auteursrecht', 'https://www.kb.nl/legal/gebruiksvoorwaarden-en-klachtregeling'],
-            'citation' => 'Als je iets van deze website wilt kopiëren en/of hergebruiken, dan moet je toestemming vragen via onze contactpagina.',
-            'obligations' => 'Faits seulement, avec le titre du journal, la date et un lien (resolver.kb.nl) vers l\'article. Aucun texte OCR recopié, aucune image, aucune extraction en masse.',
-            'remarques' => 'Les pages propres à Delpher (delpher.nl) refusent la machine de développement (403) : conditions lues sur kb.nl le 22/11/2026. Lu par l\'API SRU publique jsru.kb.nl (une requête à la fois).',
+            'preuve' => ['https://www.delpher.nl/over-delpher/gebruiksvoorwaarden', 'https://www.kb.nl/over-ons/diensten/delpher', 'https://www.kb.nl/contact/auteursrecht', 'https://www.kb.nl/legal/gebruiksvoorwaarden-en-klachtregeling'],
+            'citation' => 'Al het materiaal in Delpher mag je voor eigen onderzoek vrij gebruiken, maar het is niet toegestaan om grote aantallen objecten waar (mogelijk) auteursrecht op rust te downloaden.',
+            'obligations' => 'Crédit « Delpher, Koninklijke Bibliotheek » (mention de la source appréciée, usage courant) avec lien vers l\'article (resolver.kb.nl). Faits seulement, rédigés par VFF : aucun texte OCR recopié, aucune image, aucune extraction en masse d\'objets possiblement sous droit.',
+            'remarques' => 'Conditions relues le 22/11/2026 sur delpher.nl/over-delpher/gebruiksvoorwaarden (page lisible par l\'outil de lecture, 403 pour curl) et sur kb.nl. Lu par l\'API SRU publique jsru.kb.nl (une requête à la fois).',
             'domaines' => ['delpher.nl', 'resolver.kb.nl', 'kb.nl'],
             'lu_le' => '2026-11-22',
         ],
@@ -637,6 +637,81 @@ return [
             'obligations' => 'Titre du journal, date, page, mention « numérisé par la Bibliothèque nationale du Luxembourg, www.eluxemburgensia.lu » et lien direct (persist.lu). Faits seulement, aucun texte ni image repris pour les contenus protégés.',
             'remarques' => 'Lu le 22/11/2026 (page Droits, servie par l\'API du site). Pas de robots.txt. Recherche par l\'API publique du visualiseur (viewer.eluxemburgensia.lu/api/viewer2/search), une requête à la fois ; seuls les extraits de la recherche sont lus.',
             'domaines' => ['eluxemburgensia.lu', 'persist.lu'],
+            'lu_le' => '2026-11-22',
+        ],
+        // Images ouvertes (autochromes, cartes postales d'archives) rattachées aux gares et aux lignes : vff:import-open-data-media
+        // (agent medias-2, 22/11/2026). Lecture par l'API tabulaire de data.gouv.fr ou le WFS du Grand Lyon, jamais par l'API des
+        // portails Opendatasoft (leur robots.txt l'interdit aux robots) ; images en lien direct, jamais copiées.
+        'albert-kahn' => [
+            'nom' => 'Musée départemental Albert-Kahn, Archives de la Planète (Département des Hauts-de-Seine)',
+            'statut' => 'sur',
+            'licence' => 'Par image : CC0 1.0 (domaine public) ou CC BY 4.0, lue dans le champ « Licence » de chaque ligne ; index documentaire sous Licence Ouverte ; les images « non-diffusables » ou « non-librement réutilisables (droits réservés) » ne sont pas dans le jeu',
+            'accord' => null,
+            'preuve' => ['https://collections.albert-kahn.hauts-de-seine.fr/cgu_media', 'https://www.data.gouv.fr/datasets/archives-de-la-planete'],
+            'citation' => '« La licence Creative Commons (CC-BY 4.0) permet également de copier, modifier, distribuer et représenter l\'œuvre, y compris à des fins commerciales, sans avoir besoin de demander l\'autorisation. La seule obligation est de créditer les créateurs des œuvres originales, d\'en indiquer les sources et d\'indiquer si des modifications ont été effectuées aux œuvres. »',
+            'obligations' => 'Titre de l\'œuvre et nom de l\'auteur (l\'opérateur) à chaque affichage ; aucun traitement qui dénature l\'image ou en détourne le sens (droit moral, y compris pour le domaine public) ; revente des fichiers proscrite. '
+                .'Mention invitée par le musée : légende, numéro d\'inventaire, « Musée départemental Albert-Kahn » et son appartenance au Département des Hauts-de-Seine, lien vers albert-kahn.hauts-de-seine.fr pour toute publication en ligne ; informer le musée des réutilisations (collection-musee-albert-kahn@hauts-de-seine.fr).',
+            'remarques' => 'Réserve « soumis à CGU pour les images » levée le 22/11/2026 : les CGU (collections.albert-kahn.hauts-de-seine.fr/cgu_media) ne restreignent pas plus que CC0 et CC BY 4.0 (usage commercial permis). '
+                .'Le téléchargement HD sur le site du musée exige un compte ; VFF ne télécharge rien et affiche l\'image du portail open data en lien direct. Les coordonnées du jeu sont celles de la commune, pas de la prise de vue.',
+            'domaines' => ['albert-kahn.hauts-de-seine.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'ad92' => [
+            'nom' => 'Archives départementales des Hauts-de-Seine (cartes postales 9 Fi, 1900-1944)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-2', 'https://opendata.hauts-de-seine.fr/explore/dataset/fr-229200506-cartes-postales/information/'],
+            'citation' => '« licence » : « fr-lo » (API data.gouv.fr du jeu « Cartes postales » du Département des Hauts-de-Seine, lue le 22/11/2026)',
+            'obligations' => 'Mention « Archives départementales des Hauts-de-Seine », cote (9FI/…) et licence ; lien vers la notice du portail.',
+            'remarques' => 'Le crédit de l\'auteur de la carte (photographe ou éditeur) n\'est pas dans le jeu. Les jeux de Vanves et de Meudon reprennent cette sous-série : non importés à part.',
+            'domaines' => ['opendata.hauts-de-seine.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'suresnes' => [
+            'nom' => 'Ville de Suresnes (cartes postales anciennes des archives communales)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu ; seules les cartes les plus anciennes y figurent « en raison des droits d\'auteurs sur les images » (colonne « Open data »)',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes'],
+            'citation' => '« Seules les cartes les plus anciennes figurent dans l\'Open data, en raison des droits d\'auteurs sur les images. »',
+            'obligations' => 'Mention « Archives communales de Suresnes », cote (6 FI …) et licence ; seules les lignes dont la colonne « Open data » est vraie sont reprises.',
+            'domaines' => [],
+            'lu_le' => '2026-11-22',
+        ],
+        'evry-courcouronnes' => [
+            'nom' => 'Ville d\'Évry-Courcouronnes (cartes postales anciennes)',
+            'statut' => 'incertain',
+            'licence' => 'Licence Ouverte 2.0 (Etalab), déclarée pour le jeu ; mais le jeu précise que les cartes sont « soit libres de droits, certaines proviennent de dons de particuliers »',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes-1', 'https://data.evrycourcouronnes.fr/explore/dataset/cartes-postales/information/'],
+            'citation' => 'Ces cartes sont soit libres de droits, certaines proviennent de dons de particuliers.',
+            'obligations' => 'Mention « Ville d\'Évry-Courcouronnes », identifiant et licence ; lien vers la notice du portail.',
+            'remarques' => 'Statut incertain : la part des cartes données par des particuliers (sans cession écrite visible) n\'est pas distinguée dans le jeu. À confirmer par un courriel à la ville avant la mise en ligne.',
+            'domaines' => ['data.evrycourcouronnes.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'sevres' => [
+            'nom' => 'Ville de Sèvres (cartes postales anciennes des archives municipales)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes-des-archives-municipales'],
+            'citation' => '« licence » : « fr-lo » (API data.gouv.fr du jeu « Cartes postales anciennes des Archives municipales », lue le 22/11/2026)',
+            'obligations' => 'Mention « Archives municipales de Sèvres », cote (18 Fi …) et licence.',
+            'domaines' => ['sevres-seineouest.opendatasoft.com', 'data.sevres.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'gadagne' => [
+            'nom' => 'Ville de Lyon, musée Gadagne (cartes postales)',
+            'statut' => 'incertain',
+            'licence' => 'Licence Ouverte 2.0 (Etalab) déclarée sur data.gouv.fr ; le texte de la licence sur le portail du Grand Lyon (rendu par JavaScript) n\'a pas pu être lu : portée sur les images à confirmer',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-du-musee-gadagne-de-la-ville-de-lyon'],
+            'citation' => '« licence » : « lov2 » (API data.gouv.fr du jeu « Cartes postales du musée Gadagne de la ville de Lyon », lue le 22/11/2026)',
+            'obligations' => 'Mention « Ville de Lyon, musée Gadagne », numéro d\'inventaire (004.12.…) et licence ; lien vers la fiche du jeu.',
+            'remarques' => 'Les cartes sont des œuvres d\'éditeurs du début du XXe siècle : la licence de la Ville couvre sa numérisation et sa base, la portée sur les images reste à confirmer.',
+            'domaines' => ['data.grandlyon.com'],
             'lu_le' => '2026-11-22',
         ],
     ],
@@ -730,6 +805,13 @@ return [
             'upload' => 'vff',
             // Photos de la galerie d'Argentan Web Ferroviaire (œuvres de l'auteur, CC BY-SA 4.0), import préparé, non lancé.
             'argentanwebferro' => 'argentanwebferro',
+            // Images ouvertes de vff:import-open-data-media (database/data/open_data_media.php), une valeur par jeu.
+            'albert-kahn' => 'albert-kahn',
+            'ad92-9fi' => 'ad92',
+            'suresnes-cp' => 'suresnes',
+            'evry-cp' => 'evry-courcouronnes',
+            'sevres-cp' => 'sevres',
+            'gadagne-cp' => 'gadagne',
         ],
         // Passages à niveau (vff:import-sncf-level-crossings) et signalisation par PK (vff:import-sncf-signalling) :
         // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.
@@ -819,6 +901,8 @@ return [
             // Zeitungsportal, Victimes du rail, Gallica…) ; sites tiers cités ponctuellement à défaut.
             'presse' => 'tiers-cites',
             'sites-web' => 'tiers-cites',
+            // Presse numérisée de Delpher (Koninklijke Bibliotheek) : crédit « Delpher, Koninklijke Bibliotheek ».
+            'delpher' => 'delpher',
         ],
     ],
 ];

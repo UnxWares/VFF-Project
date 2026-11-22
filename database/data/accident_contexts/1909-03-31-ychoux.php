@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 31 mars 1909, d\'après Le Figaro du 1er avril : sur la ligne Bordeaux - Bayonne, entre les gares d\'Ychoux et de Labouheyre, un train de marchandises déraille ; le chef de train est tué.',
         ],
         'arnhemsche-courant-1909-04-02' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Arnhemsche courant du 2 avril 1909',
-            'publisher' => 'Arnhemsche courant',
+            'publisher' => 'Arnhemsche courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1909-04-02',
             'locator' => null,

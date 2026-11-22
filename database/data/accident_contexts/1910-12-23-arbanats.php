@@ -20,7 +20,7 @@ return [
             'note' => 'Trois entrées du 23 décembre 1910 : Cadaujac (deux trains de marchandises, un mécanicien tué), Arbanats (cette fiche : express de Toulouse percuté par un omnibus de soldats permissionnaires, 3 morts, 21 blessés) et Montereau (1 mort, 32 blessés) ; renvoie à Le Matin des 24 et 25 décembre 1910 (non lu).',
         ],
         'delpher-courant-1910-12-27-matin' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De spoorweg-ongelukken in Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Résumé en néerlandais de Le Matin : bilan rectifié à trois morts, déclarations du mécanicien, vitesse jugée trop grande par l\'enquête, 21 blessés ; distingue Arbanats, Marmande, Montereau et un quatrième accident.',
         ],
         'delpher-courant-1910-12-27-reuter' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongelukken (dépêches Reuter du 24 décembre)',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêches de Bordeaux du 24 décembre : cinq morts, puis bilan définitif de trois morts et dix-huit blessés.',
         ],
         'delpher-tilburgsche-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk : Spoorwegongelukken',
@@ -62,7 +62,7 @@ return [
             'note' => 'Collision en gare d\'Arbanats, ligne Bordeaux-Sète, le vendredi ; une quarantaine de voyageurs, presque tous des soldats en permission, gravement blessés ; collision de Cadaujac peu avant, dans le brouillard.',
         ],
         'delpher-nieuwecourant-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -76,7 +76,7 @@ return [
             'note' => 'L\'enquête établit que le mécanicien du train de voyageurs roulait à 60 km/h et n\'a pas vu les signaux.',
         ],
         'delpher-nieuwecourant-1910-12-25' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen du 24 décembre',
@@ -90,7 +90,7 @@ return [
             'note' => 'Dépêche de Bordeaux : bilan définitif de 3 morts et 18 blessés.',
         ],
         'delpher-vaderland-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -104,7 +104,7 @@ return [
             'note' => 'Premier bilan : 6 morts à Arbanats.',
         ],
         'delpher-maasbode-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dépêches du 24 décembre',
@@ -118,7 +118,7 @@ return [
             'note' => 'Premier bilan : 5 morts à Arbanats.',
         ],
         'delpher-nederlander-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd nieuws',

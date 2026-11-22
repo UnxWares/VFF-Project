@@ -294,6 +294,7 @@ return [
         'corrections_title' => 'Record corrected from these documents',
         'correction' => ':field: :before becomes :value.',
         'correction_new' => ':field: :value (previously missing from the record).',
+        'single_source' => 'According to Wikipedia’s list of accidents, to be confirmed',
         'fields' => [
             'occurred_on' => 'Date',
             'occurred_at_time' => 'Time',

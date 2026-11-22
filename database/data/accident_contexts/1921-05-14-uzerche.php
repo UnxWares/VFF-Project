@@ -20,11 +20,11 @@ return [
             'note' => 'Place le déraillement au lieudit « le Gour noir », entre Uzerche et Vigeois, à 18 h 15 : huit voitures de l\'express Paris-Toulouse, 5 morts et une vingtaine de blessés ; mentionne aussi l\'accident du lendemain à La Bachellerie.',
         ],
         'volkskrant-1921-05-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Volkskrant du 18 mai 1921',
-            'publisher' => 'De Volkskrant',
+            'publisher' => 'De Volkskrant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1921-05-18',
             'locator' => null,

@@ -22,7 +22,8 @@ use App\Support\SourceRights;
  *     permet la citation : rapport du BEA-TT ou texte du Journal officiel (Licence Ouverte 2.0 ; les pages du site de
  *     l'Assemblée nationale et du Sénat restreignent la réutilisation commerciale ou payante : faits seulement) ;
  *   - corrections : champ permis (date, heure, morts, blessés, nature publiée, commune par code INSEE), valeur du
- *     bon type, raison en trois langues, documents lus ;
+ *     bon type, raison en trois langues, documents lus ; `single_source => true` marque une valeur qui ne repose que
+ *     sur une source (la liste de Wikipédia) et reste à confirmer ;
  *   - doublons (`aliases`) : slug d'une autre fiche, raison en trois langues, documents lus ;
  *   - images : 3 au plus, fichier de Commons (`File:…`), légende en trois langues.
  */
@@ -308,6 +309,9 @@ final class AccidentContextValidator
             default => is_int($value) && $value >= 0 && $value < 10000,
         };
         $errors = $ok ? [] : ["{$where} : valeur invalide pour {$field}"];
+        if (array_key_exists('single_source', $c) && ! is_bool($c['single_source'])) {
+            $errors[] = "{$where} : single_source doit être un booléen";
+        }
         $errors = [...$errors, ...$this->textErrors($c, $where)];
 
         return [...$errors, ...$this->citedErrors($c['sources'] ?? null, $open, $all, $where)];

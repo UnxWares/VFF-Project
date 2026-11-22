@@ -122,6 +122,7 @@ return [
         [
             'field' => 'commune_insee',
             'value' => '76453',
+            'single_source' => true,
             'sources' => ['gare-morgny', 'commune-morgny'],
             'fr' => 'La gare de Morgny, sur la ligne d\'Amiens à Rouen, est à Morgny-la-Pommeraye (Seine-Maritime), et non à Morgny dans l\'Eure.',
             'en' => 'Morgny station, on the Amiens to Rouen line, is in Morgny-la-Pommeraye (Seine-Maritime), not in Morgny in the Eure.',

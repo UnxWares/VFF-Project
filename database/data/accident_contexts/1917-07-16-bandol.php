@@ -50,6 +50,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'collision',
+            'single_source' => true,
             'sources' => ['wp-liste-1917'],
             'fr' => 'La liste de Wikipédia, source de la fiche, décrit une rame détachée après une rupture d\'attelage puis percutée par le train de marchandises suivant : une collision entre trains. Aucun ouvrage n\'a cédé.',
             'en' => 'The Wikipedia list, the source of the entry, describes a rake left behind after a coupling failure and then struck by the following goods train: a collision between trains. No structure gave way.',
