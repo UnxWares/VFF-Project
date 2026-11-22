@@ -38,7 +38,7 @@ final class LineSheet
      * Champs de chaque gare que la page web ne lit pas (aucun composant Svelte ne les utilise) ; l'API REST et
      * GraphQL les donnent toujours.
      */
-    public const PAGE_STATION_OMITTED = ['effective_status', 'link_method', 'served_until_kind'];
+    public const PAGE_STATION_OMITTED = ['effective_status', 'link_method'];
 
     /**
      * Clés que seule la page web reçoit, à la place de `portions` : leur nombre (`portions_count`) et
