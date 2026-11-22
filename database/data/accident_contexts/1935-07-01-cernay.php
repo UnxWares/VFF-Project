@@ -2,7 +2,7 @@
 
 // Contexte sourcé du déraillement près de la gare de Cernay, ligne de Châtellerault à Loudun, juillet 1935 (recherche du 22/11/2026).
 return [
-    'slug' => '1935-07-01-loudun',
+    'slug' => '1935-07-01-cernay',
     'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1935' => [

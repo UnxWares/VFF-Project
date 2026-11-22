@@ -2,7 +2,7 @@
 
 // Contexte sourcé du déraillement près d'Amélie-les-Bains, ligne d'Elne à Arles-sur-Tech, septembre 1920 (recherche du 22/11/2026).
 return [
-    'slug' => '1920-09-19-arles-sur-tech',
+    'slug' => '1920-09-19-amelie-les-bains-palalda',
     'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1920' => [

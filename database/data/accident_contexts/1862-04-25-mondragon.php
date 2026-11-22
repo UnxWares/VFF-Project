@@ -70,4 +70,13 @@ return [
             'de' => 'Heizer getötet nach der Wikipedia-Liste (Le Temps) und dem Courrier du Grand-Duché de Luxembourg vom 30. April 1862; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
+    'aliases' => [
+        [
+            'slug' => '1861-04-25-mondragon',
+            'sources' => ['wp-liste-1860', 'elux-1862-04-30-courrier'],
+            'fr' => 'La fiche de 1861 est le même accident : la liste de Wikipédia le range sous 1861 et sous 1862 avec le même texte (d\'après Le Temps du 28 avril). Le Courrier du Grand-Duché du 30 avril 1862 parle d\'un train parti « vendredi », et seul le 25 avril 1862 était un vendredi : l\'année retenue est 1862. La fiche de 1861 ne donnait ni bilan ni précision de plus.',
+            'en' => 'The 1861 record is the same accident: the Wikipedia list files it under 1861 and under 1862 with the same text (from Le Temps of 28 April). The Courrier du Grand-Duché of 30 April 1862 speaks of a train that left "on Friday", and only 25 April 1862 was a Friday: the year kept is 1862. The 1861 record gave no toll and no detail beyond this one.',
+            'de' => 'Der Eintrag von 1861 ist derselbe Unfall: Die Wikipedia-Liste führt ihn mit demselben Text (nach Le Temps vom 28. April) unter 1861 und unter 1862. Der Courrier du Grand-Duché vom 30. April 1862 spricht von einem „am Freitag“ abgefahrenen Zug, und nur der 25. April 1862 war ein Freitag: Beibehalten wird das Jahr 1862. Der Eintrag von 1861 nannte weder eine Bilanz noch weitere Angaben.',
+        ],
+    ],
 ];

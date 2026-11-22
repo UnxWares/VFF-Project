@@ -2,7 +2,7 @@
 
 // Contexte sourcé de la collision du Nord-Express et d'un train de marchandises à la bifurcation de Jussy, mai 1900 (recherche du 22/11/2026).
 return [
-    'slug' => '1900-05-30-tergnier',
+    'slug' => '1900-05-30-jussy',
     'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1900' => [
