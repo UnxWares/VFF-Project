@@ -38,6 +38,7 @@ class StationSheetResource extends JsonResource
             'department_code' => $station['department_code'],
             'opened_at' => $station['opened_at'],
             'opened_precision' => $station['opened_at'] !== null ? ($station['opened_precision'] ?? 'day') : null,
+            'opened_after' => $station['opened_precision'] === 'range' ? $station['opened_after'] : null,
             'closed_at' => $station['closed_at'],
             'closed_precision' => $station['closed_at'] !== null ? ($station['closed_precision'] ?? 'day') : null,
             'closed_after' => $station['closed_after'],

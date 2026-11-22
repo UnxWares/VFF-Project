@@ -95,7 +95,7 @@ final class StationDirectoryQuery
         $inner = $this->directory->whereStatus($this->directory->base($filters, $era), $filters['status'] ?? null, $era)
             ->selectRaw(<<<SQL
                 s.id, s.slug, s.name, s.type, s.city, s.department_code, s.uic_code, s.wikidata_id, s.sources_count,
-                s.position_flagged, {$status} AS status, s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
+                s.position_flagged, {$status} AS status, s.opened_at, s.opened_precision, (s.provenance->>'opened_after')::int AS opened_after, s.closed_at, s.closed_precision,
                 (s.provenance->>'closed_after')::int AS closed_after, ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
                 {$null} AS sort_null, {$key} AS sort_key
             SQL);
@@ -126,6 +126,7 @@ final class StationDirectoryQuery
             'wikidata_id' => $s->wikidata_id,
             'opened_at' => $s->opened_at !== null ? substr((string) $s->opened_at, 0, 10) : null,
             'opened_precision' => $s->opened_at !== null ? ($s->opened_precision ?? 'day') : null,
+            'opened_after' => $s->opened_at !== null && $s->opened_precision === 'range' && $s->opened_after !== null ? (int) $s->opened_after : null,
             'closed_at' => $s->closed_at !== null ? substr((string) $s->closed_at, 0, 10) : null,
             'closed_precision' => $s->closed_at !== null ? ($s->closed_precision ?? 'day') : null,
             'closed_after' => $s->closed_after !== null ? (int) $s->closed_after : null,

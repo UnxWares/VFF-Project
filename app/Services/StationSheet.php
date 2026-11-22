@@ -70,6 +70,8 @@ final class StationSheet
                 'department_code' => $station->department_code,
                 'opened_at' => $station->opened_at?->format('Y-m-d'),
                 'opened_precision' => $station->opened_precision,
+                // Ouverture encadrée (précision range, règle G3) : ouverte après opened_after, au plus tard l'année de opened_at.
+                'opened_after' => is_numeric($station->provenance['opened_after'] ?? null) ? (int) $station->provenance['opened_after'] : null,
                 'closed_at' => $station->closed_at?->format('Y-m-d'),
                 'closed_precision' => $station->closed_precision,
                 // Date retenue (vff:build-station-eras, StationTimeline::resolveClosure) : la même que la

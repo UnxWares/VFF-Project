@@ -39,8 +39,9 @@ class StationController extends Controller
      *
      * **Dates** : `opened_at` et `closed_at` au format `AAAA-MM-JJ`, à lire
      * avec `opened_precision` / `closed_precision` (`day`, `month`, `year`, ou
-     * `range` pour une fermeture connue seulement par un intervalle : `closed_at`
-     * n'en est alors que la borne haute, jamais un jour sûr) ; `closed_after` :
+     * `range` pour une ouverture ou une fermeture connue seulement par un intervalle :
+     * la date n'en est alors que la borne haute, jamais un jour sûr) ; `opened_after` :
+     * gare ouverte après cette année (précision `range` de l'ouverture, nul sinon) ; `closed_after` :
      * gare fermée après cette année, date exacte inconnue.
      * **Nature** (`type`) : `gare`, `halte`, `point_arret`, `passage_niveau`,
      * `embranchement`. `lines` : lignes rattachées à la gare (10 au plus,
@@ -80,7 +81,7 @@ class StationController extends Controller
         'data' => [[
             'slug' => 'camaret-sur-mer', 'name' => 'Camaret-sur-Mer', 'type' => 'gare', 'status' => 'active', 'city' => 'Camaret-sur-Mer',
             'department_code' => '29', 'uic_code' => null, 'wikidata_id' => null,
-            'opened_at' => '1923-08-12', 'opened_precision' => 'day', 'closed_at' => '1967-04-10', 'closed_precision' => 'day', 'closed_after' => null,
+            'opened_at' => '1923-08-12', 'opened_precision' => 'day', 'opened_after' => null, 'closed_at' => '1967-04-10', 'closed_precision' => 'day', 'closed_after' => null,
             'lat' => 48.2732755, 'lng' => -4.5948215, 'position_flagged' => false, 'sources_count' => 1,
             'lines' => [['slug' => 'archeo-ligne-de-chateaulin-a-camaret', 'code' => null, 'name' => 'Ligne de Châteaulin à Camaret']], 'lines_more' => 0,
             'links' => ['web' => 'https://vff-project.org/stations/camaret-sur-mer', 'self' => 'https://vff-project.org/api/v1/stations/camaret-sur-mer'],
@@ -117,7 +118,9 @@ class StationController extends Controller
      *   `description` (en français) ;
      * - dates : `opened_at`, `closed_at` (`AAAA-MM-JJ`) et leur précision
      *   (`day`, `month`, `year`, ou `range` : fermée entre `closed_after` + 1 et
-     *   l'année de `closed_at`, borne haute et non jour sûr), `closed_after`
+     *   l'année de `closed_at`, borne haute et non jour sûr ; pour l'ouverture, ouverture déduite des
+     *   lignes et bornée par la carte : ouverte entre `opened_after` + 1 et l'année de `opened_at`),
+     *   `opened_after` (ouverte après cette année, nul hors précision `range`), `closed_after`
      *   (fermée après cette année) ;
      * - position : `lat`, `lng` (WGS 84) ; `position.source` (source retenue),
      *   `position.spread_m` (écart en mètres entre les sources),

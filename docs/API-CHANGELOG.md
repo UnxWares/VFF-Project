@@ -31,6 +31,12 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 
 ### Ajouts
 
+- Gares : `opened_after` (ouverte après cette année, nul hors précision `range`) accompagne `opened_precision` quand l'ouverture, déduite des lignes
+  et bornée par la carte (règle G3 des ères de gares), n'est connue que par un intervalle : `opened_at` n'en est alors que la borne haute, et la gare
+  a ouvert entre `opened_after` + 1 et l'année de `opened_at`. REST : fiche d'une gare, annuaire des gares, `stations` de la fiche d'une ligne ;
+  GraphQL : `Station.opened_after` et `Station.opened_precision`, `StationSheet.opened_after`, `StationDirectoryItem.opened_after`,
+  `LineSheetStation.opened_after` ; MCP : `get_station` (`station.opened_after`, et `station.opened` en précision `range` avec `from_year`, `to_year`
+  et `when`) et `list_stations`. Tant que la règle reste désactivée, aucune gare n'a cette précision et le champ vaut `null`.
 - REST : `GET /journal` et `GET /journal/{slug}` (articles du journal de bord), `GET /lines/{line}/archive-records` (notices des Archives SNCF).
 - REST : `GET /eras/{year}/tiles/{z}/{x}/{y}.mvt` accepte `fields=map` (tuile allégée) ; une valeur inconnue donne HTTP 422. Sans `fields`, la tuile ne change pas.
 - REST : `profile` d'une ligne ajoute `sourced_grade` (déclivité donnée par une source écrite, `null` sinon) ; `signalling-history` ajoute

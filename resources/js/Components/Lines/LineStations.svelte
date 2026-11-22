@@ -2,7 +2,7 @@
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { STATION_STYLES, STATION_CLOSED_COLOR } from '$lib/railStyle.js';
-    import { formatStationDate } from '$lib/stationDates.js';
+    import { formatStationDate, formatStationOpening } from '$lib/stationDates.js';
     import { firstOfMonth, formatLocale, semicolon } from '$lib/typo.js';
 
     /**
@@ -44,16 +44,16 @@
 
     /** Ouverture : une date déduite des lignes (provenance « inferred:… ») est dite telle. */
     function openedText(s) {
-        const date = dateOf(s.opened_at, s.opened_precision);
+        const date = dateOf(s.opened_at, s.opened_precision, s.opened_after, formatStationOpening);
         return String(s.opened_source ?? '').startsWith('inferred')
             ? t('lines.stations.opened_inferred', { date })
             : t('lines.stations.opened', { date });
     }
 
     /** Même libellé que la fiche gare et la carte (précision, intervalle « entre … et … »). */
-    function dateOf(iso, precision, after = null) {
+    function dateOf(iso, precision, after = null, format = formatStationDate) {
         return firstOfMonth(
-            formatStationDate(iso, precision ?? 'day', after, $i18n.t, formatLocale(lang)),
+            format(iso, precision ?? 'day', after, $i18n.t, formatLocale(lang)),
             lang,
         );
     }

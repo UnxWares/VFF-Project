@@ -61,3 +61,35 @@ export function formatStationDate(
 
     return text;
 }
+
+/**
+ * Date d'ouverture d'une gare : comme formatStationDate, sauf pour une ouverture encadrée
+ * (précision `range`, règle G3 des ères de gares : ouverture déduite des lignes, bornée par la
+ * carte). `after` est alors l'année qui précède la borne basse (`provenance.opened_after`) : la gare a
+ * ouvert entre `after` + 1 et l'année de `iso`, « entre 1847 et 1860 », jamais « au plus tard en 1860 ».
+ * Contrairement à une fermeture, la borne haute peut être l'année en cours (gare desservie à l'ère
+ * courante) : « entre 1847 et 2026 », et non « date inconnue ». Sans `after`, ou pour toute autre
+ * précision, le libellé est celui de formatStationDate.
+ *
+ * @param {string|null} iso   date AAAA-MM-JJ
+ * @param {string} [precision]
+ * @param {number|null} [after]  année qui précède la borne basse (`opened_after`)
+ * @param {(key: string, opts?: object) => string} [t]  traduction (clés stations.dates.*)
+ * @param {string} [lang]
+ * @param {number} [currentYear]
+ * @returns {string|null}
+ */
+export function formatStationOpening(
+    iso,
+    precision = 'day',
+    after = null,
+    t = (key) => key,
+    lang = 'fr',
+    currentYear = new Date().getFullYear(),
+) {
+    if (iso && precision === 'range' && after != null) {
+        const to = Number(iso.slice(0, 4));
+        return after + 1 < to ? t('stations.dates.range', { from: after + 1, to }) : String(to);
+    }
+    return formatStationDate(iso, precision, after, t, lang, currentYear);
+}
