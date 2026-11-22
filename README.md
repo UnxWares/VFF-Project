@@ -247,6 +247,7 @@ make test-db                 # une fois : base vff_test et ses extensions
 make test                    # PHPUnit en 4 processus
 VFF_TEST_DB=vff_moi_test bin/php artisan test --parallel --processes=4 --recreate-databases
 bin/pnpm test                # vitest
+bin/pnpm test:e2e            # Playwright (fumée) contre le serveur de dev, voir docs/TESTS-E2E.md
 ```
 
 Plus de 6 300 tests PHPUnit et 950 tests vitest passent au 21/11/2026.
