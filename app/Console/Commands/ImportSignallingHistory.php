@@ -23,7 +23,8 @@ use Illuminate\Support\Facades\DB;
  * que des faits peu fiables (jamais montrés).
  *
  * Rejouable : un fait a une empreinte stable (ligne, système, date, portion) ; les faits d'une ligne lue qui ne
- * sont plus extraits sont retirés (cette table seulement).
+ * sont plus extraits sont retirés (cette table seulement, faits de Wikipédia seulement : ceux datés par d'autres
+ * documents, `vff:import-signalling-sources`, ne sont jamais touchés).
  *
  * Deuxième passe (soirée du 19/11/2026) : l'infobox et les tableaux sont lus aussi, la TVM d'une LGV est datée
  * de son ouverture (SignallingInfoboxReader), chaque portion nommée est placée sur la ligne par ses gares
@@ -116,7 +117,7 @@ class ImportSignallingHistory extends Command
 
         // Import complet : les faits d'une ligne qui n'est plus lue (article absent, rejeté, titre retiré) disparaissent.
         if ($this->option('line') === [] && ! $this->option('limit')) {
-            $orphans = DB::table('line_signalling_events')->whereNotIn('line_id', $readIds ?: [0]);
+            $orphans = DB::table('line_signalling_events')->where('source', 'wikipedia')->whereNotIn('line_id', $readIds ?: [0]);
             $stats['removed'] += $dry ? $orphans->count() : $orphans->delete();
         }
 
@@ -227,7 +228,7 @@ class ImportSignallingHistory extends Command
                 }
             }
 
-            return DB::table('line_signalling_events')->where('line_id', $lineId)
+            return DB::table('line_signalling_events')->where('line_id', $lineId)->where('source', 'wikipedia')
                 ->whereNotIn('fingerprint', array_column($rows, 'fingerprint') ?: [''])
                 ->delete();
         });

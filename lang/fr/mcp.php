@@ -24,6 +24,7 @@ return [
             'bea-tt' => 'BEA-TT (Bureau d’enquêtes sur les accidents de transport terrestre), Licence Ouverte 2.0 (Etalab) ; bilan général des enquêtes et liens des rapports, avec la date de mise à jour du bilan',
             'insee' => 'INSEE, Code officiel géographique (codes et noms des départements et des régions), Licence Ouverte 2.0',
             'gallica' => 'Source : gallica.bnf.fr / BnF ; métadonnées des notices de la Bibliothèque nationale de France, Licence Ouverte, avec la date de récupération (documents numérisés : conditions d’utilisation de Gallica)',
+            'sncf-archives' => 'Source : SNCF, Service Archives Documentation du groupe SNCF (jeu de données « Archives SNCF »), Open Database License (ODbL) ; documents numérisés : conditions d’utilisation d’archives.sncf.com',
         ],
     ],
 

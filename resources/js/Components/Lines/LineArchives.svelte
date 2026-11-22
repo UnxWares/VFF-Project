@@ -13,28 +13,43 @@
      * image n'est chargée : seules les métadonnées de la BnF sont reprises. Au-delà de VISIBLE entrées, la
      * suite se déplie (bouton à aria-expanded). Montrée seulement s'il y a au moins un document.
      *
+     * Sous Gallica, les notices des Archives SNCF (`records`, LineArchives::recordsForSheet) : dossiers,
+     * photographies et films, avec le type, le numéro du dossier et le lien vers archives.sncf.com, regroupés
+     * de la même façon. Quand les deux sources sont présentes, chacune a son intertitre.
+     *
      * @type {{ archives: { total: number, fetched_on: string|null, items: Array<{ title: string,
      *   type: 'monograph'|'map'|'image'|'manuscript', date: string|null, year: number|null,
      *   year_to: number|null, exact: string|null, date_precision: string, authors: Array<string>,
-     *   shelfmarks: Array<string>, url: string, more_urls: Array<string> }> } }}
+     *   shelfmarks: Array<string>, url: string, more_urls: Array<string> }> },
+     *   records?: { total: number, fetched_on: string|null, items: Array<{ title: string,
+     *   type: 'document'|'image'|'video', source: string, date: string|null, year: number|null,
+     *   year_to: number|null, exact: string|null, date_precision: string, reference: string|null,
+     *   url: string, more_urls: Array<string> }> } }}
      */
-    let { archives } = $props();
+    let { archives, records = { total: 0, fetched_on: null, items: [] } } = $props();
 
     const VISIBLE = 8;
     /** Séparateur des métadonnées d'un document : « Carte ou plan · Alfred de Villemandy · cote V-54984 ». */
     const SEP = ' · ';
-    const listId = $props.id();
-    let expanded = $state(false);
+    const uid = $props.id();
+    /** Listes dépliées, par source (`gallica`, `records`). */
+    let expanded = $state({ gallica: false, records: false });
 
     const t = (k, o) => String($i18n.t(k, o));
     const lang = $derived($i18n.language ?? 'fr');
-    const shown = $derived(expanded ? archives.items : archives.items.slice(0, VISIBLE));
-    // Documents cachés, pas entrées : une entrée regroupe parfois plusieurs notices (autres vues).
-    const hiddenCount = $derived(
-        archives.items
-            .slice(VISIBLE)
-            .reduce((sum, item) => sum + 1 + (item.more_urls?.length ?? 0), 0),
+    const both = $derived(archives.items.length > 0 && records.items.length > 0);
+    const intro = $derived(
+        both
+            ? t('archives.line.intro_both')
+            : archives.items.length
+              ? t('archives.line.intro')
+              : t('archives.records.intro'),
     );
+    /** Entrées montrées d'une liste : les VISIBLE premières, ou toutes une fois dépliée. */
+    const shownOf = (items, key) => (expanded[key] ? items : items.slice(0, VISIBLE));
+    /** Documents cachés, pas entrées : une entrée regroupe parfois plusieurs notices (autres vues). */
+    const hiddenOf = (items) =>
+        items.slice(VISIBLE).reduce((sum, item) => sum + 1 + (item.more_urls?.length ?? 0), 0);
     // Titres des notices de la BnF : en français, quelle que soit la langue de la page (sur le titre seul :
     // l'aide « s'ouvre dans un nouvel onglet » suit la langue de la page).
     const titleLang = $derived(lang === 'fr' ? undefined : 'fr');
@@ -98,37 +113,42 @@
                 : null,
         ].filter(Boolean);
 
-    const sourceNote = $derived(
-        t('archives.line.source', {
-            date: archives.fetched_on
-                ? formatEventDate(archives.fetched_on, 'day', formatLocale(lang))
-                : '',
-        }),
-    );
+    /** Métadonnées d'une notice des Archives SNCF : type et numéro du dossier (« Dossier d'archives · dossier 0390LM0048-018 »). */
+    const recordMetaOf = (item) =>
+        [
+            { text: t(`archives.records.types.${item.type}`), nowrap: false },
+            item.type === 'document' && item.reference
+                ? {
+                      text: t('archives.records.reference', { reference: item.reference }),
+                      nowrap: true,
+                  }
+                : null,
+        ].filter(Boolean);
+
+    const day = (date) => (date ? formatEventDate(date, 'day', formatLocale(lang)) : '');
+    const sourceNote = $derived(t('archives.line.source', { date: day(archives.fetched_on) }));
+    const recordsNote = $derived(t('archives.records.source', { date: day(records.fetched_on) }));
 </script>
 
-{#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
+{#snippet ext(hint)}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
         class="vff-sr-only"
     >
-        ({t('archives.line.gallica_hint')}, {t('common.new_tab')})</span
+        ({hint}, {t('common.new_tab')})</span
     >{/snippet}
 
-<SheetSection
-    id="archives"
-    title={t('archives.line.title')}
-    count={archives.total}
-    intro={t('archives.line.intro')}
->
+{#snippet list(items, key, meta, hint)}
+    {@const listId = `${uid}-${key}`}
+    {@const hidden = hiddenOf(items)}
     <ol class="archive-list" id={listId}>
-        {#each shown as item (item.url)}
+        {#each shownOf(items, key) as item (item.url)}
             <li>
                 <span class="when">{dateOf(item)}</span>
                 <div class="body">
                     <a class="doc-title" href={item.url} target="_blank" rel="noopener noreferrer"
-                        ><span lang={titleLang}>{item.title}</span>{@render ext()}</a
+                        ><span lang={titleLang}>{item.title}</span>{@render ext(hint)}</a
                     >
                     <span class="meta"
-                        >{#each metaOf(item) as part, k (k)}{#if k > 0}{SEP}{/if}<span
+                        >{#each meta(item) as part, k (k)}{#if k > 0}{SEP}{/if}<span
                                 class={{ nowrap: part.nowrap }}>{part.text}</span
                             >{/each}</span
                     >
@@ -140,7 +160,7 @@
                                     ><span aria-hidden="true">{i + 2}</span><span
                                         class="vff-sr-only"
                                         >{t('archives.line.view', { number: i + 2 })}</span
-                                    >{@render ext()}</a
+                                    >{@render ext(hint)}</a
                                 >
                             {/each}</span
                         >
@@ -149,22 +169,39 @@
             </li>
         {/each}
     </ol>
-    {#if hiddenCount > 0}
+    {#if hidden > 0}
         <div class="actions">
             <button
                 type="button"
                 class="vff-btn secondary small"
-                aria-expanded={expanded}
+                aria-expanded={expanded[key]}
                 aria-controls={listId}
-                onclick={() => (expanded = !expanded)}
+                onclick={() => (expanded[key] = !expanded[key])}
             >
-                {expanded
+                {expanded[key]
                     ? t('archives.line.show_less')
-                    : t('archives.line.show_more', { count: hiddenCount })}
+                    : t('archives.line.show_more', { count: hidden })}
             </button>
         </div>
     {/if}
-    <p class="note">{t('archives.line.method')} {sourceNote}</p>
+{/snippet}
+
+<SheetSection
+    id="archives"
+    title={t('archives.line.title')}
+    count={archives.total + records.total}
+    {intro}
+>
+    {#if archives.items.length}
+        {#if both}<h3>{t('archives.line.gallica_heading')}</h3>{/if}
+        {@render list(archives.items, 'gallica', metaOf, t('archives.line.gallica_hint'))}
+        <p class="note">{t('archives.line.method')} {sourceNote}</p>
+    {/if}
+    {#if records.items.length}
+        {#if both}<h3>{t('archives.records.heading')}</h3>{/if}
+        {@render list(records.items, 'records', recordMetaOf, t('archives.records.hint'))}
+        <p class="note">{t('archives.records.method')} {recordsNote}</p>
+    {/if}
 </SheetSection>
 
 <style>
@@ -227,6 +264,10 @@
     }
     .actions {
         margin-top: var(--vff-space-4);
+    }
+    /* Intertitre de chaque source quand Gallica et les Archives SNCF sont toutes deux présentes. */
+    h3 {
+        margin: var(--vff-space-6) 0 var(--vff-space-3);
     }
     .note {
         max-width: var(--vff-measure);

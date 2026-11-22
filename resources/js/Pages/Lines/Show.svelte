@@ -31,6 +31,7 @@
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import { Link } from '@inertiajs/svelte';
     import TraceDownload from '$components/Lines/TraceDownload.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
@@ -65,6 +66,7 @@
      *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
+     *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
      * }} */
     let {
@@ -99,6 +101,8 @@
         trace_export_eras = [],
         // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
         archives = { total: 0, fetched_on: null, items: [] },
+        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
+        archive_records = { total: 0, fetched_on: null, items: [] },
         // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
         story_events = [],
     } = $props();
@@ -1240,8 +1244,8 @@
             <LineAccidents {accidents} lineSlug={line.slug} />
         {/if}
 
-        {#if archives.items.length}
-            <LineArchives {archives} />
+        {#if archives.items.length || archive_records.items.length}
+            <LineArchives {archives} records={archive_records} />
         {/if}
 
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->

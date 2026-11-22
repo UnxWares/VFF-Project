@@ -23,6 +23,7 @@ return [
             'bea-tt' => 'BEA-TT (French land transport accident investigation bureau), Open Licence 2.0 (Etalab); general overview of investigations and report links, with the overview’s update date',
             'insee' => 'INSEE, Code officiel géographique (codes and names of French departments and regions), Open Licence 2.0',
             'gallica' => 'Source: gallica.bnf.fr / BnF; catalogue records of the Bibliothèque nationale de France, Open Licence, with the retrieval date (digitised documents: Gallica terms of use)',
+            'sncf-archives' => 'Source: SNCF, Archives and Documentation Department of the SNCF group (“Archives SNCF” dataset), Open Database License (ODbL); digitised documents: archives.sncf.com terms of use',
         ],
     ],
 

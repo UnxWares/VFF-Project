@@ -64,6 +64,7 @@ return [
             'lignes_oubliees' => 'L. Dagallier : dates et points kilométriques des lignes disparues',
             'wikipedia' => 'Histoire des lignes et des matériels',
             'gallica' => 'Notices des documents numérisés qui parlent d’une ligne (Licence Ouverte), avec un lien vers Gallica ; aucune image reprise',
+            'sncf_archives' => 'Notices des dossiers, photographies et films des archives du groupe SNCF qui désignent une ligne (ODbL), avec un lien vers archives.sncf.com ; ni description ni image reprises',
         ],
         'ai' => [
             'title' => 'Des tracés recalés par un réseau de neurones',
@@ -124,6 +125,8 @@ return [
             'home_map_text' => "Détail recadré et teinté en sépia de la «\u{00A0}Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs\u{00A0}», dressée par Alexandre Vuillemin et publiée par A. Logerot (Paris, 1865). Exemplaire de la Bibliothèque du Congrès (Washington), domaine public.",
             'gallica_title' => 'BnF Gallica',
             'gallica_text' => 'Documents numérisés qui parlent d’une ligne : projets, plans, photographies. VFF reprend seulement leur notice (titre, date, cote ; Licence Ouverte) et renvoie vers Gallica pour les consulter. Le document lui-même se réutilise selon les conditions de la BnF.',
+            'sncf_archives_title' => 'Archives SNCF',
+            'sncf_archives_text' => 'Dossiers, photographies et films des archives du groupe SNCF dont le titre désigne une ligne. VFF reprend leur notice (titre, date, numéro du dossier ; jeu de données sous ODbL) et renvoie vers archives.sncf.com pour les consulter.',
             'commons_title' => 'Wikipédia et Wikimedia Commons',
             'commons_text' => 'Photographies d’archives et illustrations, chacune sous sa propre licence (le plus souvent CC BY-SA).',
             'contributors_title' => 'Contributeurs VFF',

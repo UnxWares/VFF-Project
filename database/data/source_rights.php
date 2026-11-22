@@ -427,6 +427,30 @@ return [
             'domaines' => ['gallica.bnf.fr', 'catalogue.bnf.fr'],
             'lu_le' => '2026-11-20',
         ],
+        // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives, table line_archive_records) : métadonnées
+        // du jeu de données « archives-sncf-sardo » et lien vers archives.sncf.com, jamais l'image ni le document numérisés.
+        'sncf-archives' => [
+            'nom' => 'Archives SNCF (Service Archives Documentation du groupe SNCF, jeu de données « archives-sncf-sardo »)',
+            'statut' => 'sur',
+            'licence' => 'Jeu de données : ODbL 1.0 ; documents numérisés : conditions d\'utilisation du site archives.sncf.com (droits indiqués sur chaque notice, « SNCF-MEDIATHEQUE » pour les photographies)',
+            'accord' => null,
+            // Les pages de ressources.data.sncf.com (métadonnées du jeu, licence) sont rangées chez le fournisseur `sncf` :
+            // elles sont citées dans `remarques`.
+            'preuve' => [
+                'https://www.data.gouv.fr/api/1/datasets/archives-sncf-sardo/',
+            ],
+            'citation' => '"license": "Open Database License (ODbL)", "license_url": "https://data.sncf.com/pages/licence", "publisher": "SNCF", 12 447 notices, modifié le 2023-12-21 (métadonnées du jeu lues le 2026-11-22) ; '
+                .'« license » : « odc-odbl » sur data.gouv.fr (même jour).',
+            'obligations' => 'Attribution « SNCF, Service Archives Documentation » avec le nom du jeu de données ; partage à l\'identique de la base dérivée (ODbL). '
+                .'Seuls le titre, le type, le classement, le service versant, la boîte, la date, le titulaire des droits et le lien sont repris. '
+                .'Aucune description (elle peut nommer des agents), aucune image ni document : le lien mène à la notice sur archives.sncf.com. '
+                .'Les thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de personnel) ne sont pas rattachés.',
+            'remarques' => 'Lu le 2026-11-22. Métadonnées du jeu : https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/archives-sncf-sardo ; FAQ de la licence : https://data.sncf.com/pages/licence. '
+                .'Export JSON du jeu lu en une requête (ressources.data.sncf.com, plateforme Opendatasoft), copie locale dans storage/app/data/archives-sncf. '
+                .'Le site archives.sncf.com lui-même n\'est jamais interrogé par VFF.',
+            'domaines' => ['archives.sncf.com'],
+            'lu_le' => '2026-11-22',
+        ],
         // Fournisseurs des documents cités par le contexte des accidents (vff:enrich-accidents), conditions lues le
         // 2026-11-21 (rapport storage/app/reports/agents/nuit-2111/accidents-archives.md). Faits seulement, avec lien.
         'retronews' => [
@@ -716,6 +740,8 @@ return [
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],
+        // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives) : métadonnées du jeu « archives-sncf-sardo » (ODbL) et lien.
+        'line_archive_records' => ['sncf-archives' => 'sncf-archives'],
         // Contexte sourcé des accidents (vff:enrich-accidents, database/data/accident_contexts/*.php) :
         // accident_references.provider. Énoncés rédigés par VFF, faits seulement avec lien ; une courte citation
         // exacte au plus par fiche, et seulement d'un rapport du BEA-TT ou d'un texte du Journal officiel (Licence

@@ -64,6 +64,7 @@ return [
             'lignes_oubliees' => 'L. Dagallier: Daten und PK verschwundener Strecken',
             'wikipedia' => 'Geschichte der Strecken und Fahrzeuge',
             'gallica' => 'Katalogdaten digitalisierter Dokumente zu einer Strecke (Licence Ouverte), mit Link zu Gallica; keine Bilder übernommen',
+            'sncf_archives' => 'Nachweise von Akten, Fotografien und Filmen aus den Archiven der SNCF-Gruppe, die eine Strecke nennen (ODbL), mit Link zu archives.sncf.com; weder Beschreibung noch Bild übernommen',
         ],
         'ai' => [
             'title' => 'Von einem neuronalen Netz ausgerichtete Streckenverläufe',
@@ -124,6 +125,8 @@ return [
             'home_map_text' => 'Zugeschnittener, sepiagetönter Ausschnitt der „Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs“ (Eisenbahnkarte Frankreichs und Deutschlands für Reisende), gezeichnet von Alexandre Vuillemin und herausgegeben von A. Logerot (Paris, 1865). Exemplar der Library of Congress (Washington), gemeinfrei.',
             'gallica_title' => 'BnF Gallica',
             'gallica_text' => 'Digitalisierte Dokumente zu einer Strecke: Projekte, Pläne, Fotografien. VFF übernimmt nur ihre Katalogdaten (Titel, Datum, Signatur; Licence Ouverte) und verweist zum Ansehen auf Gallica. Die Dokumente selbst sind nach den Bedingungen der BnF nutzbar.',
+            'sncf_archives_title' => 'Archive der SNCF',
+            'sncf_archives_text' => 'Akten, Fotografien und Filme aus den Archiven der SNCF-Gruppe, deren Titel eine Strecke nennt. VFF übernimmt ihren Nachweis (Titel, Datum, Aktennummer; Datensatz unter ODbL) und verlinkt zu archives.sncf.com, wo Sie sie ansehen können.',
             'commons_title' => 'Wikipedia und Wikimedia Commons',
             'commons_text' => 'Archivfotos und Illustrationen, jeweils unter ihrer eigenen Lizenz (meist CC BY-SA).',
             'contributors_title' => 'Mitwirkende bei VFF',

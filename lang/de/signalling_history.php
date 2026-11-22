@@ -4,7 +4,7 @@
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
     'title' => 'Signalisierung im Lauf der Zeit',
-    'intro' => 'Inbetriebnahmedaten aus dem Wikipedia-Artikel der Strecke. Die Liste ist unvollständig: Ein System, das fehlt, kann in Betrieb gegangen sein, ohne dass der Artikel ein Datum nennt.',
+    'intro' => 'Inbetriebnahmedaten aus dem Wikipedia-Artikel der Strecke und aus weiteren Dokumenten (Entscheidungen und Berichte der EPSF, Bilanzen von SNCF Réseau und des Staates, Presse). Die Liste ist unvollständig: Ein System, das fehlt, kann in Betrieb gegangen sein, ohne dass eines dieser Dokumente ein Datum nennt.',
     'system' => [
         'BM' => 'BM, Handblock',
         'CT' => 'Fernsprechblock',
@@ -30,5 +30,7 @@ return [
         'hint' => 'Artikel „:title“, neuer Tab',
         'note_one' => 'Fakten aus dem Wikipedia-Artikel „:title“ (Lizenz CC BY-SA 4.0). Tag oder Monat stehen nur da, wenn der Artikel sie nennt.',
         'note_other' => 'Fakten aus den Wikipedia-Artikeln „:title“ (Lizenz CC BY-SA 4.0). Tag oder Monat stehen nur da, wenn die Artikel sie nennen.',
+        'document_hint' => ':title, neuer Tab',
+        'note_documents' => 'Trägt der Link den Namen eines Herausgebers, stammt das Datum aus diesem Dokument und ist durch eine amtliche Quelle oder durch zwei unabhängige Quellen bestätigt. Tag oder Monat stehen nur da, wenn diese Dokumente sie nennen.',
     ],
 ];

@@ -68,6 +68,7 @@ class SourceRightsReport extends Command
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
+        'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',
         'station_audits' => "SELECT DISTINCT p->>'source' AS v FROM station_audits, jsonb_array_elements(positions) AS p",
         'station_date_candidates' => 'SELECT DISTINCT source AS v FROM station_date_candidates',
     ];

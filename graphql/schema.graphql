@@ -196,14 +196,29 @@ type Line {
     ): [LineArchiveDocument!]! @hasMany(relation: "archiveDocuments") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
+    Notices d'inventaire des fonds d'archives dont le titre désigne la ligne, du plus ancien au plus récent
+    (sans date en dernier), comme `GET /api/v1/lines/{line}/archive-records`. Seule source à ce jour : le jeu
+    de données « Archives SNCF » (dossiers, photographies et films du groupe SNCF, ressources.data.sncf.com,
+    ODbL). Même score explicable que `archives`, retenu à partir de 9 points sur 11 ; liste vide si aucune
+    notice n'est sûre. Ni description, ni image, ni document : suivez `url` vers archives.sncf.com.
+    """
+    archive_records(
+        "Ne garder qu'un type de notice. Par défaut : tous."
+        type: ArchiveRecordType @where(key: "doc_type")
+        "Ne garder qu'un fonds : `sncf-archives` (Archives SNCF). Par défaut : tous."
+        source: String @where(key: "source")
+    ): [LineArchiveRecord!]! @hasMany(relation: "archiveRecords") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+
+    """
     Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
-    ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
-    ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
+    ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox) ou dans
+    d'autres documents datés (`source.provider: manual`, avec `source.documents`), du plus ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
     par `GET /api/v1/lines/{line}/signalling` de l'API REST. Seuls les faits sûrs sont donnés (jour ou mois
     précis, ou année), et un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide
     si l'article ne date rien. Avec `era`, seuls les faits encore en vigueur à la fin de l'ère (ceux que
     dessine la carte de l'époque). Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de
-    `SignallingEvent.attribution`.
+    `SignallingEvent.attribution`. Un fait de Wikipédia que redit un fait daté par des documents (même système,
+    même année, même portion) n'est pas répété.
     """
     signalling_history(
         "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
@@ -3096,6 +3111,89 @@ type LineArchiveDocument {
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveField@provenance")
 }
 
+"Type d'une notice de fonds d'archives."
+enum ArchiveRecordType {
+    "Dossier d'archives (correspondance, rapports, plans, procès-verbaux)."
+    DOCUMENT @enum(value: "document")
+
+    "Image fixe : photographie, affiche."
+    IMAGE @enum(value: "image")
+
+    "Film."
+    VIDEO @enum(value: "video")
+}
+
+"""
+Notice d'inventaire d'un fonds d'archives, rattachée à une ligne d'après son titre (`vff:import-sncf-archives`).
+Source : jeu de données « Archives SNCF » du Service Archives Documentation du groupe SNCF (ODbL). VFF garde
+les métadonnées de la notice et le lien ; la description, l'image et le document restent sur archives.sncf.com,
+et leur réutilisation suit les conditions de ce site.
+"""
+type LineArchiveRecord {
+    "Fonds d'origine : `sncf-archives` (Archives SNCF)."
+    source: String!
+
+    "Numéro du dossier dans le fonds (ex. `0390LM0048-018`, `33453`), pas toujours unique ; nul s'il manque."
+    reference: String
+
+    "Lien vers la notice et le document numérisé sur le site du fonds (archives.sncf.com) : identifiant de la notice."
+    url: String!
+
+    "Titre de la notice."
+    title: String!
+
+    "Type de notice : `document` (dossier d'archives), `image` (photographie, affiche) ou `video` (film)."
+    type: String! @rename(attribute: "doc_type")
+
+    "Thème du classement du fonds (ex. « Aménagement du territoire : réseau et gares »), nul s'il manque."
+    theme: String
+
+    "Sous-thème du classement, nul s'il manque."
+    sub_theme: String
+
+    "Service versant ou propriétaire du dossier (ex. « Org. Territoriale \\ Direction Régionale de Paris Est »), nul s'il manque."
+    holder: String
+
+    "Boîte d'archives (ex. `0390LM0048`), nulle si elle manque."
+    box: String
+
+    "Titulaire des droits indiqué par la notice (ex. « SNCF-MEDIATHEQUE »), nul s'il manque."
+    rights: String
+
+    "Date telle que VFF l'écrit d'après la notice (« 1942 », « 1941-1950 », « 1986-09 », « 1958-09-27 »), nulle si inconnue."
+    date_label: String
+
+    "Année de la notice (première année d'un dossier qui en couvre plusieurs), nulle si elle est inconnue."
+    year: Int
+
+    "Dernière année d'un dossier qui couvre plusieurs années (`date_precision` = `range`), nulle sinon."
+    year_to: Int
+
+    "Jour de la prise de vue (précision `day`) ou premier jour du mois (précision `month`)."
+    exact_date: Date
+
+    "Précision de la date : `day`, `month`, `year`, `range` (de `year` à `year_to`) ou `unknown`. Une prise de vue datée du 1er du mois est lue au mois, du 1er janvier à l'année."
+    date_precision: String!
+
+    "Score de rattachement à la ligne, de 9 (seuil) à 11."
+    score: Int!
+
+    "Raisons du score, point par point (mêmes codes que `LineArchiveDocument.score_reasons`)."
+    score_reasons: [ArchiveMatchReason!]!
+
+    "Lieux de la ligne reconnus dans le titre."
+    matched_places: [String!]!
+
+    "Date de récupération du jeu de données par VFF (à citer avec la source)."
+    fetched_at: DateTime!
+
+    "Mention de source à reproduire (SNCF, Service Archives Documentation, ODbL)."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveRecordField@attribution")
+
+    "Fournisseur et licence de la donnée (Archives SNCF, ODbL)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveRecordField@provenance")
+}
+
 "Une raison du score de rattachement d'un document d'archives."
 type ArchiveMatchReason {
     "Code de la raison : `rail_route` (voie ferrée « de X à Y »), `route` (trajet « de X à Y »), `two_places`, `only_line_places`, `ends`, `secondary_mention`, `rail_word`, `rail_hint`, `date_in_life`, `date_project`, `date_after_closure`, `date_unknown`, `date_doubtful` ou `doc_type`."
@@ -3133,8 +3231,10 @@ type LineGreenwayWay {
 }
 
 """
-Mise en service d'un système de signalisation, datée par l'article Wikipédia de la ligne : un fait par
-système, date et portion. Le KVB y est un contrôle de vitesse (`role: speed_control`), jamais un cantonnement.
+Mise en service d'un système de signalisation, datée par l'article Wikipédia de la ligne ou par d'autres
+documents relevés par VFF (communiqués de SNCF Réseau, rapports du BEA-TT et de l'EPSF, Journal officiel,
+presse : `source.provider` vaut `manual`) : un fait par système, date et portion. Le KVB y est un contrôle de
+vitesse (`role: speed_control`), jamais un cantonnement.
 """
 type SignallingEvent {
     "Système : `BAL`, `BAPR`, `BM` (block manuel), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430`, `TVM`, `ETCS_L1`, `ETCS_L2`, `ETCS` (niveau non précisé) ou `KVB`."
@@ -3152,7 +3252,7 @@ type SignallingEvent {
     "Fiabilité : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine comme « la même année » ou « à cette occasion », ou date déduite de l'ouverture : `origin` vaut `opening`). Lisez la précision dans `date_precision`. Les faits douteux ne sont pas exposés."
     reliability: String!
 
-    "Où l'article donne le fait : `text` (phrase), `list` (liste à puces), `table` (ligne d'un tableau), `infobox` (champ « signalisation » daté) ou `opening` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox)."
+    "Où l'article donne le fait : `text` (phrase), `list` (liste à puces), `table` (ligne d'un tableau), `infobox` (champ « signalisation » daté) ou `opening` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox). `document` : fait daté hors de l'article, par les documents de `source.documents`."
     origin: String!
 
     "Portée : `whole_line` (l'article dit toute la ligne), `section` (portion nommée) ou `unspecified` (l'article ne dit pas)."
@@ -3161,7 +3261,7 @@ type SignallingEvent {
     "Portion concernée, nulle quand `scope` n'est pas `section`."
     section: SignallingEventSection
 
-    "Article Wikipédia et révision d'où vient le fait."
+    "Article Wikipédia et révision d'où vient le fait, ou documents qui le datent (`provider: manual`)."
     source: SignallingEventSource!
 
     "Mention à reproduire en réutilisant ces données (CC BY-SA 4.0)."
@@ -3209,20 +3309,41 @@ type SignallingEventStation {
 
 "Source d'une mise en service de signalisation."
 type SignallingEventSource {
-    "Fournisseur : `wikipedia`."
+    "Fournisseur : `wikipedia` (article de la ligne) ou `manual` (relevé de VFF dans des documents datés, listés dans `documents`)."
     provider: String!
 
-    "Titre de l'article."
+    "Titre de l'article, ou du premier document."
     title: String!
 
-    "Permalien de la révision lue."
+    "Permalien de la révision lue, ou lien du premier document."
     url: String!
 
-    "Numéro de la révision lue."
-    revision: Int!
+    "Numéro de la révision lue ; nul pour un fait daté par des documents."
+    revision: Int
 
-    "Courte phrase de l'article (200 caractères au plus), pour relire le fait."
+    "Courte phrase de l'article (200 caractères au plus), pour relire le fait ; pour un fait daté par des documents, le fait résumé par VFF."
     excerpt: String!
+
+    "Vérification d'un fait daté par des documents : `official` (au moins un document d'un organisme officiel : SNCF Réseau, État, région, EPSF, BEA-TT, Journal officiel) ou `two_sources` (deux documents de sites différents). Nul pour un fait de Wikipédia."
+    verification: String
+
+    "Documents qui datent le fait, le plus sûr d'abord (liste vide pour un fait de Wikipédia)."
+    documents: [SignallingEventDocument!]!
+}
+
+"Document qui date une mise en service de signalisation : communiqué, rapport, texte officiel, article de presse."
+type SignallingEventDocument {
+    "Éditeur (ex. « SNCF Réseau », « BEA-TT », « Ouest-France »)."
+    publisher: String!
+
+    "Titre du document."
+    title: String!
+
+    "Lien du document."
+    url: String!
+
+    "Date de publication : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` ; nulle si inconnue."
+    published: String
 }
 
 "Nombre de passages à niveau d'un groupe."
@@ -4099,7 +4220,7 @@ type LineSheetSignalling {
     "Tranches de points kilométriques homogènes."
     ranges: [LineSignallingRange!]!
 
-    "Mises en service datées relevées dans l'article Wikipédia de la ligne (historique à part de l'état actuel ci-dessus), comme `Line.signalling_history`."
+    "Mises en service datées relevées dans l'article Wikipédia de la ligne ou dans d'autres documents (historique à part de l'état actuel ci-dessus), comme `Line.signalling_history`."
     history: [SignallingEvent!]!
 }
 

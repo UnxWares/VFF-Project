@@ -12,6 +12,7 @@ use App\Mcp\Tools\AccidentsTool;
 use App\Mcp\Tools\CompareErasTool;
 use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\LevelCrossingsTool;
+use App\Mcp\Tools\LineArchiveRecordsTool;
 use App\Mcp\Tools\LineArchivesTool;
 use App\Mcp\Tools\LineAuditTool;
 use App\Mcp\Tools\LineEventsTool;
@@ -92,6 +93,7 @@ class VffServer extends Server
         StationAuditsTool::class,
         LineGreenwaysTool::class,
         LineArchivesTool::class,
+        LineArchiveRecordsTool::class,
         LineStoriesTool::class,
         LineMaterialsTool::class,
         LocateOnLineTool::class,

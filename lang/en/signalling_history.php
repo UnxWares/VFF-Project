@@ -4,7 +4,7 @@
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
     'title' => 'Signalling over time',
-    'intro' => 'Commissioning dates taken from the line’s Wikipedia article. The list is incomplete: a system that is missing may have been commissioned without the article giving a date.',
+    'intro' => 'Commissioning dates taken from the line’s Wikipedia article and from other documents (EPSF decisions and reports, SNCF Réseau and government reviews, newspapers). The list is incomplete: a system that is missing may have been commissioned without any of these documents giving a date.',
     'system' => [
         'BM' => 'BM, manual block',
         'CT' => 'Telephone block',
@@ -30,5 +30,7 @@ return [
         'hint' => 'article “:title”, new tab',
         'note_one' => 'Facts taken from the Wikipedia article “:title” (CC BY-SA 4.0 licence). The day or month is shown only when the article gives it.',
         'note_other' => 'Facts taken from the Wikipedia articles “:title” (CC BY-SA 4.0 licence). The day or month is shown only when the article gives it.',
+        'document_hint' => ':title, new tab',
+        'note_documents' => 'When the link shows a publisher’s name, the date comes from that document and is confirmed by an official source or by two independent sources. The day or month is shown only when these documents give it.',
     ],
 ];

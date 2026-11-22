@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Mises en service de signalisation d'une ligne, datées, lues dans Wikipédia
- * (`vff:import-signalling-history`) : frise de la fiche ligne, `GET /api/v1/lines/{line}/signalling-history`,
+ * (`vff:import-signalling-history`) ou dans d'autres documents relevés à la main (SNCF Réseau, BEA-TT, EPSF,
+ * Journal officiel, presse : `vff:import-signalling-sources`, `source.provider = manual`) : frise de la fiche ligne, `GET /api/v1/lines/{line}/signalling-history`,
  * champ GraphQL `Line.signalling_history`, fiche ligne de l'API et du MCP. Lecture seule.
  *
  * Seuls les faits sûrs sont montrés (`high` : jour ou mois précis ; `medium` : année). Les faits `low`
@@ -22,7 +23,8 @@ final class LineSignallingHistory
     public const SHOWN = ['high', 'medium'];
 
     /** Mention à reproduire (CC BY-SA 4.0, section 3 : attribution, lien vers la licence). */
-    public const ATTRIBUTION = 'Faits relevés dans des articles de Wikipédia (auteurs de l\'article cité), CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/deed.fr)';
+    public const ATTRIBUTION = 'Faits relevés dans des articles de Wikipédia (auteurs de l\'article cité), CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/deed.fr) ; '
+        .'faits datés par d\'autres documents (source.provider = manual) : relevé de VFF, documents cités dans source.documents';
 
     public function __construct(private readonly Provenance $provenance) {}
 
@@ -38,7 +40,8 @@ final class LineSignallingHistory
      *     system: string, role: string, date: string, date_precision: string, reliability: string, scope: string, origin: string,
      *     section: array{from: ?string, to: ?string, location: string, pk_start_m: ?int, pk_end_m: ?int,
      *         from_station: array{slug: string, name: string, pk_m: ?int}|null, to_station: array{slug: string, name: string, pk_m: ?int}|null}|null,
-     *     source: array{provider: string, title: string, url: string, revision: int, excerpt: string}
+     *     source: array{provider: string, title: string, url: string, revision: ?int, excerpt: string, verification: ?string,
+     *         documents: list<array{publisher: string, title: string, url: string, published: ?string}>}
      * }>
      */
     public function facts(Line $line): array
@@ -90,7 +93,7 @@ final class LineSignallingHistory
             ->get(['e.id', 'e.line_id', 'e.system', 'e.role', 'e.event_date', 'e.date_precision', 'e.confidence', 'e.scope', 'e.origin',
                 'e.section_from', 'e.section_to', 'e.pk_start_m', 'e.pk_end_m', 'e.section_location', 'e.located_pk_start_m', 'e.located_pk_end_m',
                 'sf.slug as from_slug', 'sf.name as from_name', 'lf.pk_m as from_pk', 'st.slug as to_slug', 'st.name as to_name', 'lt.pk_m as to_pk',
-                'e.source', 'e.source_title', 'e.source_url', 'e.source_revision', 'e.source_excerpt'])
+                'e.source', 'e.source_title', 'e.source_url', 'e.source_revision', 'e.source_excerpt', 'e.documents', 'e.verification'])
             ->groupBy('line_id')
             ->map(fn ($rows) => $rows->map(function (object $r) use ($station): array {
                 $start = $r->located_pk_start_m ?? $r->pk_start_m;
@@ -118,11 +121,32 @@ final class LineSignallingHistory
                         'provider' => $r->source,
                         'title' => $r->source_title,
                         'url' => $r->source_url,
-                        'revision' => (int) $r->source_revision,
+                        'revision' => $r->source_revision === null ? null : (int) $r->source_revision,
                         'excerpt' => $r->source_excerpt,
+                        'verification' => $r->verification,
+                        'documents' => self::documents($r->documents),
                     ],
                 ];
-            })->values()->all())->all();
+            })->values()->all())
+            ->map(fn (array $facts): array => SignallingHistoryState::withoutRestatements($facts))->all();
+    }
+
+    /**
+     * Documents d'un fait relevé à la main (colonne JSON), sans la marque « officiel » interne ; liste vide pour
+     * un fait de Wikipédia.
+     *
+     * @return list<array{publisher: string, title: string, url: string, published: ?string}>
+     */
+    private static function documents(?string $json): array
+    {
+        $documents = $json === null ? [] : json_decode($json, true);
+
+        return is_array($documents) ? array_values(array_map(fn (array $d): array => [
+            'publisher' => (string) ($d['publisher'] ?? ''),
+            'title' => (string) ($d['title'] ?? ''),
+            'url' => (string) ($d['url'] ?? ''),
+            'published' => isset($d['published']) ? (string) $d['published'] : null,
+        ], array_filter($documents, 'is_array'))) : [];
     }
 
     /**

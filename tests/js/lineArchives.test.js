@@ -89,4 +89,79 @@ describe('section des archives', () => {
 
         expect(body).toContain('Afficher les 4 autres documents');
     });
+
+    describe('notices des Archives SNCF', () => {
+        const record = {
+            title: "Esplanade de la gare d'Alençon située sur la ligne du Mans à Mézidon",
+            type: 'image',
+            source: 'sncf-archives',
+            date: '1986-09',
+            year: 1986,
+            year_to: null,
+            exact: '1986-09-01',
+            date_precision: 'month',
+            reference: '33453',
+            url: 'https://www.archives.sncf.com/esplanade-de-la-gare-dalencon/',
+            more_urls: [],
+        };
+        const dossier = {
+            ...record,
+            title: "Electrification Nord-Paris, ligne d'Arras à Hazebrouck",
+            type: 'document',
+            date: '1941-1950',
+            year: 1941,
+            year_to: 1950,
+            exact: null,
+            date_precision: 'range',
+            reference: '0390LM0048-018',
+            url: 'https://www.archives.sncf.com/electrification/',
+        };
+        const recordTranslations = {
+            ...translations,
+            'archives.line.intro': 'Gallica seul',
+            'archives.line.intro_both': 'Les deux sources',
+            'archives.line.gallica_heading': 'Gallica (BnF)',
+            'archives.records.heading': 'Archives du groupe SNCF',
+            'archives.records.intro': 'Archives SNCF seules',
+            'archives.records.types.image': 'Photographie ou affiche',
+            'archives.records.types.document': 'Dossier d’archives',
+            'archives.records.reference': 'dossier :reference',
+            'archives.records.hint': 'archives.sncf.com',
+        };
+        const empty = { total: 0, fetched_on: null, items: [] };
+
+        it('montre les notices seules, sans intertitre, avec le numéro des seuls dossiers', () => {
+            setupI18n({ locale: 'fr', translations: recordTranslations });
+            const { body } = render(LineArchives, {
+                props: {
+                    archives: empty,
+                    records: { total: 2, fetched_on: '2026-11-22', items: [dossier, record] },
+                },
+            });
+
+            expect(body).toContain('Archives SNCF seules');
+            expect(body).not.toContain('<h3');
+            expect(body).toContain('dossier 0390LM0048-018');
+            expect(body).not.toContain('dossier 33453');
+            expect(body).toContain('1941-1950');
+            expect(body).toContain('(archives.sncf.com,');
+            expect(body).not.toContain('gallica.bnf.fr');
+        });
+
+        it('donne un intertitre à chaque source quand les deux sont présentes', () => {
+            setupI18n({ locale: 'fr', translations: recordTranslations });
+            const { body } = render(LineArchives, {
+                props: {
+                    archives,
+                    records: { total: 1, fetched_on: '2026-11-22', items: [record] },
+                },
+            });
+
+            expect(body).toContain('Les deux sources');
+            expect(body).toMatch(/<h3[^>]*>Gallica \(BnF\)<\/h3>/);
+            expect(body).toMatch(/<h3[^>]*>Archives du groupe SNCF<\/h3>/);
+            // Le compteur additionne les deux sources (2 documents de Gallica, 1 notice).
+            expect(body).toMatch(/>3<span class="vff-sr-only/);
+        });
+    });
 });

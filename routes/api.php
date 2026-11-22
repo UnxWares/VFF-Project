@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineArchiveController;
+use App\Http\Controllers\Api\LineArchiveRecordController;
 use App\Http\Controllers\Api\LineAuditController;
 use App\Http\Controllers\Api\LineController;
 use App\Http\Controllers\Api\LineEventController;
@@ -111,6 +112,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
+    // Notices des fonds d'archives (Archives SNCF, ODbL) : App\Services\Archives\LineArchives::records.
+    Route::get('/v1/lines/{line:slug}/archive-records', [LineArchiveRecordController::class, 'index'])->name('api.lines.archive-records');
     // Histoires d'événements : images de l'époque et documents de Gallica (App\Services\Stories\EventStories).
     Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
     Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');

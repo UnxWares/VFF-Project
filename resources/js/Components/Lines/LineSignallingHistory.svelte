@@ -1,11 +1,12 @@
 <script>
     import { i18n } from '$lib/i18n.js';
     import { formatLocale } from '$lib/typo.js';
-    import { articleTitles, historyRows } from '$lib/signallingHistory.js';
+    import { articleTitles, hasDocumentFacts, historyRows } from '$lib/signallingHistory.js';
 
     /**
      * Frise « Signalisation au fil du temps » : mises en service de signalisation datées, lues dans
-     * l'article Wikipédia de la ligne (LineSignallingHistory::forSheet côté serveur). À placer dans la
+     * l'article Wikipédia de la ligne ou dans les documents relevés par VFF (communiqués, rapports,
+     * presse : un lien par document) (LineSignallingHistory::forSheet côté serveur). À placer dans la
      * section « Signalisation » ; à n'afficher que s'il y a au moins un fait. L'état actuel (tranches de
      * SNCF Réseau) reste dans la grille voisine : ces dates ne le corrigent pas.
      *
@@ -20,14 +21,19 @@
     );
     const titles = $derived(articleTitles(history));
     const note = $derived(
-        t(
-            titles.length === 1
-                ? 'signalling_history.source.note_one'
-                : 'signalling_history.source.note_other',
-            {
-                title: titles.join(' ; '),
-            },
-        ),
+        titles.length === 0
+            ? null
+            : t(
+                  titles.length === 1
+                      ? 'signalling_history.source.note_one'
+                      : 'signalling_history.source.note_other',
+                  {
+                      title: titles.join(' ; '),
+                  },
+              ),
+    );
+    const documentsNote = $derived(
+        hasDocumentFacts(history) ? t('signalling_history.source.note_documents') : null,
     );
 </script>
 
@@ -44,14 +50,33 @@
                 </p>
                 <p class="portion">
                     <span>{r.portion}</span>
-                    <a class="vff-link" href={r.url} target="_blank" rel="noopener noreferrer"
-                        >{t('signalling_history.source.link')}<i
-                            class="bi bi-box-arrow-up-right vff-ext"
-                            aria-hidden="true"
-                        ></i><span class="vff-sr-only">
-                            ({t('signalling_history.source.hint', { title: r.title })})</span
-                        ></a
-                    >
+                    {#if r.documents.length > 0}
+                        {#each r.documents as d (d.url)}
+                            <a
+                                class="vff-link"
+                                href={d.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >{d.label}<i
+                                    class="bi bi-box-arrow-up-right vff-ext"
+                                    aria-hidden="true"
+                                ></i><span class="vff-sr-only">
+                                    ({t('signalling_history.source.document_hint', {
+                                        title: d.title,
+                                    })})</span
+                                ></a
+                            >
+                        {/each}
+                    {:else}
+                        <a class="vff-link" href={r.url} target="_blank" rel="noopener noreferrer"
+                            >{t('signalling_history.source.link')}<i
+                                class="bi bi-box-arrow-up-right vff-ext"
+                                aria-hidden="true"
+                            ></i><span class="vff-sr-only">
+                                ({t('signalling_history.source.hint', { title: r.title })})</span
+                            ></a
+                        >
+                    {/if}
                 </p>
                 {#if r.note}
                     <p class="origin">{r.note}</p>
@@ -60,7 +85,12 @@
         </li>
     {/each}
 </ol>
-<p class="note">{note}</p>
+{#if note}
+    <p class="note">{note}</p>
+{/if}
+{#if documentsNote}
+    <p class="note">{documentsNote}</p>
+{/if}
 
 <style>
     .sub {

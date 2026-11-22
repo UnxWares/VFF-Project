@@ -101,6 +101,7 @@
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
                 { path: '/api/v1/lines/{line}/archives', key: 'line_archives' },
+                { path: '/api/v1/lines/{line}/archive-records', key: 'line_archive_records' },
                 { path: '/api/v1/lines/{line}/stories/{event}', key: 'line_stories' },
                 {
                     path: '/api/v1/greenways/tiles/{z}/{x}/{y}.mvt',
@@ -201,6 +202,7 @@
         'station_audits',
         'line_greenways',
         'line_archives',
+        'line_archive_records',
         'line_stories',
         'line_materials',
         'locate_on_line',

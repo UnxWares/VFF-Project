@@ -286,6 +286,22 @@ Rattache aux lignes les documents numérisés de Gallica qui en parlent (métado
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de tous les documents jugés, retenus ou non, avec leur score et ses raisons. |
 
+### `vff:import-sncf-archives`
+
+Rattache aux lignes les notices du jeu de données « Archives SNCF » (dossiers, photographies et films du Service
+Archives Documentation du groupe SNCF, ressources.data.sncf.com, ODbL) dont le titre les désigne, avec le score de
+`vff:import-gallica` (table `line_archive_records`). Seuls le titre, le type, le classement, la boîte, la date et le
+lien vers archives.sncf.com sont gardés ; ni description, ni image. Chaque import remplace toutes les notices de la
+source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
+
+| Option | Effet |
+|:-|:-|
+| `--download` | Télécharge l'export JSON du jeu de données (une requête) dans `storage/app/data/archives-sncf/` ; sinon la copie locale est lue. |
+| `--file=` | Fichier JSON à lire à la place de la copie locale. |
+| `--threshold=` | Score minimal d'une notice rattachée (9 par défaut, sur 11). |
+| `--dry-run` | Calcule tout sans écrire. |
+| `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
+
 ### `vff:media-thumbnails`
 
 Crée les miniatures (320 et 1 280 px) des images déposées par les contributeurs ; `--force` refait aussi celles qui en
