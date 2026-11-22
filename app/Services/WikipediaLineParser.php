@@ -677,7 +677,8 @@ class WikipediaLineParser
 
     private function renderTemplate(string $inner): string
     {
-        $parts = array_map('trim', explode('|', $inner));
+        // Les barres d'un lien [[cible|texte]] ne séparent pas les paramètres ({{1er|juin [[1969 dans les chemins de fer|1969]]}}).
+        $parts = array_map('trim', preg_split('/\|(?![^\[]*\]\])/u', $inner) ?: [$inner]);
         $rawName = array_shift($parts);
         if (str_contains($rawName, ':') && ! preg_match('/^(st|ste)\.?$/iu', $rawName)) {
             [$fn, $arg] = explode(':', $rawName, 2);
@@ -696,8 +697,9 @@ class WikipediaLineParser
         }
 
         return match (true) {
-            in_array($name, ['date', 'date-', 'date sport', 'date-1', 'date républicaine', 'date julienne'], true) => $this->renderDate($pos),
-            $name === '1er' => '1er',
+            in_array($name, ['date', 'date-', 'date+', 'date sport', 'date-1', 'date républicaine', 'date julienne'], true) => $this->renderDate($parts),
+            // {{1er|juin 1969}}, {{1er|mai|1900}}, {{1er|trimestre}} : le 1er suivi de ses arguments.
+            $name === '1er' => trim('1er '.implode(' ', array_filter($pos, fn ($p) => $p !== ''))),
             in_array($name, ['er', 'e', 're', 'ème', 'eme', 'ers', 'es', 'res', 'ex'], true) => $name,
             in_array($name, ['unité', 'nombre', 'nb', 'num', 'formatnum', 'nobr', 'nowrap', 'centrer', 'souligner',
                 'citation', 'citation bloc', 'refnec', 'référence nécessaire', 'référence souhaitée', 'refsou',
@@ -718,28 +720,103 @@ class WikipediaLineParser
         };
     }
 
-    private function renderDate(array $pos): string
+    /**
+     * Gabarits {{Date}}, {{Date-}}, {{Date+}} : « {{Date-|20/7/1862||}} », « {{date|1er|juin|1980|dans les
+     * chemins de fer}} », « {{Date|3=2014}} », « {{date||mai|2006}} », « {{Date|1909 07 24}} »...
+     * Rendus en « 20 juillet 1862 », « 1er juin 1980 », « 2014 », « mai 2006 », « 24 juillet 1909 » : le
+     * lecteur de dates (findDates) ne lit que ces écritures. Les arguments après la date (« dans les
+     * chemins de fer », « en France ») sont ignorés.
+     *
+     * @param  list<string>  $parts  paramètres bruts (sans le nom du gabarit), « 3=2014 » compris
+     */
+    private function renderDate(array $parts): string
     {
-        $pos = array_values(array_filter($pos, fn ($p) => $p !== ''));
-        if (! $pos) {
-            return '';
+        $slots = [];
+        $n = 0;
+        foreach ($parts as $p) {
+            if (preg_match('/^([1-3])\s*=\s*(.*)$/su', $p, $m)) {
+                $slots[(int) $m[1]] = trim($m[2]);
+            } elseif (! preg_match('/^[\p{L}\d _-]{1,25}=/u', $p)) {
+                $slots[++$n] = $p;
+            }
         }
-        if (preg_match('/\s/u', $pos[0])) {
-            return $pos[0];
-        }
-        $out = [];
-        foreach (array_slice($pos, 0, 3) as $p) {
-            if (! preg_match('/^(\d{1,4}|1er|'.implode('|', array_keys(self::MONTHS)).')$/iu', $p)) {
+        ksort($slots);
+        $words = [];
+        foreach (array_slice($slots, 0, 4, true) as $i => $v) {
+            if ($i > 3 && $words) {
                 break;
             }
-            $out[] = $p;
-        }
-        // {{date|1|10|1953}} : mois numérique.
-        if (count($out) === 3 && ctype_digit($out[1]) && (int) $out[1] >= 1 && (int) $out[1] <= 12) {
-            $out[1] = array_search((int) $out[1], self::MONTHS, true);
+            $v = trim(preg_replace('/^le\s+/iu', '', trim($v)));
+            if ($v === '') {
+                continue;
+            }
+            $got = $this->leadingDateWords($v);
+            $all = count(preg_split('/[\s\/.-]+/u', $v, -1, PREG_SPLIT_NO_EMPTY));
+            if ($words === [] && count($got) < $all && preg_match('/\s/u', $v)) {
+                // « automne 2017 », « début mars 1950 », « 1er trimestre 2014 » : écriture libre, rendue telle quelle.
+                return rtrim($v, ' -');
+            }
+            if ($got === []) {
+                break;
+            }
+            array_push($words, ...$got);
+            if (count($got) < $all) {
+                break; // « 1864 dans les chemins de fer » : le reste n'est pas la date
+            }
         }
 
-        return implode(' ', $out);
+        return $this->normalizeDateWords($words);
+    }
+
+    /**
+     * Mots du début d'un argument qui appartiennent à une date : nombres, « 1er », mois, « le ».
+     *
+     * @return list<string>
+     */
+    private function leadingDateWords(string $v): array
+    {
+        $out = [];
+        foreach (preg_split('/[\s\/.-]+/u', mb_strtolower($v), -1, PREG_SPLIT_NO_EMPTY) as $w) {
+            if (preg_match('/^(\d{1,4}|1er)$/u', $w) || isset(self::MONTHS[$w])) {
+                $out[] = $w;
+            } elseif ($w === 'le' && $out === []) {
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param  list<string>  $w */
+    private function normalizeDateWords(array $w): string
+    {
+        $isDay = fn (string $x): bool => $x === '1er' || (ctype_digit($x) && strlen($x) <= 2 && (int) $x >= 1 && (int) $x <= 31);
+        $isNumMonth = fn (string $x): bool => ctype_digit($x) && strlen($x) <= 2 && (int) $x >= 1 && (int) $x <= 12;
+        $isYear = fn (string $x): bool => ctype_digit($x) && strlen($x) === 4;
+        $monthName = fn (string $x): string => isset(self::MONTHS[$x]) ? $x : (string) array_search((int) $x, self::MONTHS, true);
+
+        if (count($w) >= 3) {
+            [$a, $b, $c] = $w;
+            if ($isDay($a) && (isset(self::MONTHS[$b]) || $isNumMonth($b)) && $isYear($c)) {
+                return $a.' '.$monthName($b).' '.$c; // {{Date|1er|juin|1980}}, {{Date|28|08|2022}}, « 01/12/2023 »
+            }
+            if ($isYear($a) && $isNumMonth($b) && $isDay($c)) {
+                return $c.' '.$monthName($b).' '.$a; // « 1909 07 24 », « 1934-09-21 »
+            }
+        }
+        if (count($w) === 2) {
+            [$a, $b] = $w;
+            if ((isset(self::MONTHS[$a]) || $isNumMonth($a)) && $isYear($b)) {
+                return $monthName($a).' '.$b; // {{Date||11|2024}}, {{date|mai 2006}}
+            }
+            if ($isYear($a) && ($isNumMonth($b) || isset(self::MONTHS[$b]))) {
+                return $monthName($b).' '.$a; // « 1914 05 », « 2018-09 »
+            }
+        }
+
+        return implode(' ', $w);
     }
 
     public function norm(string $s): string
