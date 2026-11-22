@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ManualStations;
 use App\Services\RouteDiagramStations;
 use App\Services\SectionResolver;
 use App\Services\WikimediaClient;
@@ -27,6 +28,8 @@ use Illuminate\Support\Sleep;
  *   - wikidata : gares françaises (classes « gare ferroviaire » et
  *                sous-classes) via CirrusSearch + wbgetentities (P625, P1619,
  *                P3999, P576, P571, P722, P5817, P81) ;
+ *   - manual   : gares saisies à la main (database/data/gares_manuelles.php), absentes des
+ *                autres sources, avec position, dates et source citée ;
  *   - pk       : gares PAR LIGNE des listes historiques (`source_stations` :
  *                lignes-oubliees ; schémas de ligne Wikipédia : articles de
  *                ligne et de réseau), posées sur le tracé de leur ligne par
@@ -46,7 +49,7 @@ use Illuminate\Support\Sleep;
 class ImportStationSources extends Command
 {
     protected $signature = 'vff:import-station-sources
-        {--source=* : communes | sncf | osm | ohm | wikidata | pk (défaut : toutes, dans cet ordre)}
+        {--source=* : communes | sncf | osm | ohm | wikidata | manual | pk (défaut : toutes, dans cet ordre)}
         {--from-cache : Rejoue les réponses déjà téléchargées, sans requête réseau}
         {--cache-only : (wikidata) Télécharge les réponses dans le cache disque, sans rien écrire dans la base}
         {--region=* : (osm) Limite aux régions ISO 3166-2 données, ex. FR-BRE}
@@ -108,7 +111,7 @@ class ImportStationSources extends Command
             return $this->fillWikidataCache();
         }
 
-        $sources = (array) $this->option('source') ?: ['communes', 'sncf', 'osm', 'ohm', 'wikidata', 'pk'];
+        $sources = (array) $this->option('source') ?: ['communes', 'sncf', 'osm', 'ohm', 'wikidata', 'manual', 'pk'];
         // --dry-run, --line et --validate ne valent que pour la source pk : jamais d'écriture des autres sources.
         if ($this->option('dry-run') || $this->option('line') || $this->option('validate')) {
             if ($this->option('source') && $sources !== ['pk']) {
@@ -294,6 +297,22 @@ class ImportStationSources extends Command
             }
         }
         $this->upsertSource('osm', array_values($records), $complete);
+    }
+
+    // ── Gares saisies à la main ─────────────────────────────────────────────
+
+    /**
+     * Gares de database/data/gares_manuelles.php (App\Services\ManualStations) : absentes des autres sources,
+     * situées et datées par une source citée. Lecture locale, sans réseau ; une entrée mal formée est signalée
+     * et ignorée ; les gares retirées du fichier disparaissent de la source.
+     */
+    private function importManual(): void
+    {
+        ['records' => $records, 'errors' => $errors] = (new ManualStations)->records();
+        foreach ($errors as $ref => $list) {
+            $this->warn("  gare manuelle « {$ref} » ignorée : ".implode(', ', $list));
+        }
+        $this->upsertSource(ManualStations::SOURCE, $records, true);
     }
 
     // ── OpenHistoricalMap ───────────────────────────────────────────────────

@@ -95,9 +95,14 @@ la base : `vff:import-station-sources --source=wikidata --cache-only`.
 
 Brut multi-sources des gares (SNCF, OSM, OHM, Wikidata, communes, PK) dans `station_sources`, avec la provenance.
 
+Source `manual` : gares absentes de toutes les autres sources, saisies à la main dans `database/data/gares_manuelles.php`
+(nom, coordonnées, dates, permalien et citation). `vff:consolidate-stations` en fait une gare à part, jamais fondue dans
+une autre par son nom ou sa proximité. Contrôler avant d'ajouter une entrée qu'aucune fiche ne porte déjà la gare (nom et
+position).
+
 | Option | Effet |
 |:-|:-|
-| `--source=` | `communes`, `sncf`, `osm`, `ohm`, `wikidata` ou `pk`, répétable ; toutes par défaut, dans cet ordre. |
+| `--source=` | `communes`, `sncf`, `osm`, `ohm`, `wikidata`, `manual` ou `pk`, répétable ; toutes par défaut, dans cet ordre. |
 | `--from-cache` | Rejoue les réponses déjà téléchargées, sans requête réseau. |
 | `--cache-only` | Avec `--source=wikidata` seul : télécharge les réponses dans le cache disque (dossier `.nobackup`), sans rien écrire dans la base. Une liste ou un lot Wikidata en échec ne supprime plus aucune gare. |
 | `--region=` | OSM : régions ISO 3166-2 (`FR-BRE`), répétable. |

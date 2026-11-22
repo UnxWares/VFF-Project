@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ManualStations;
 use App\Services\StationCorrections;
 use App\Services\StationTimeline;
 use App\Support\StationNames;
@@ -297,6 +298,12 @@ class ConsolidateStations extends Command
     private function compatible(int $cid, object $r, int $d, float $sim, bool $byId = false): bool
     {
         $c = $this->clusters[$cid];
+        // Gare saisie à la main (database/data/gares_manuelles.php) : une gare à part, jamais fondue dans une autre
+        // par son nom ou sa proximité (la première gare de Boulogne-Ville ne rejoint pas la gare de 1962), et
+        // aucun autre objet ne la rejoint.
+        if ($r->source === ManualStations::SOURCE || isset($c['sources'][ManualStations::SOURCE])) {
+            return false;
+        }
         // Une seule gare SNCF par gare ; un seul élément Wikidata, sauf doublon
         // manifeste (même nom à ≤ 100 m : « gare de X » et « gare de X (ligne Y) »).
         if (in_array($r->source, ['sncf', 'sncf_voyageurs'], true) && isset($c['sources'][$r->source])) {
@@ -652,6 +659,7 @@ class ConsolidateStations extends Command
         usort($wds, fn ($a, $b) => [$b->uic_code !== null, $a->dist] <=> [$a->uic_code !== null, $b->dist]);
         $wd = $wds[0] ?? null;
         $ohm = $by('ohm');
+        $manual = $by(ManualStations::SOURCE);
         $prov = [];
 
         // Position. Gare connue seulement des listes par ligne (lignes-oubliees, schémas Wikipédia,
@@ -708,7 +716,7 @@ class ConsolidateStations extends Command
         $osmNode = collect($osm)->first(fn ($r) => str_starts_with($r->source_ref, 'n'));
 
         // État actuel.
-        [$status, $lifecycle, $statusSrc] = $this->currentState($sncf, $osm, $osmActive, $wd, $ohm, $members[0]->source, $sncfV);
+        [$status, $lifecycle, $statusSrc] = $this->currentState($sncf, $osm, $osmActive, $wd, $ohm, $members[0]->source, $sncfV, $manual);
         $prov['status'] = $statusSrc;
 
         // Événements par source + dates retenues.
@@ -719,6 +727,7 @@ class ConsolidateStations extends Command
             'wikidata' => 'https://www.wikidata.org/wiki/'.$r->source_ref,
             'osm' => 'https://www.openstreetmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$r->source_ref[0]].'/'.substr($r->source_ref, 1),
             'ohm' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$r->source_ref[0]].'/'.substr($r->source_ref, 1),
+            ManualStations::SOURCE => $r->props['source_url'] ?? null,
             default => null,
         };
         if ($wd) {
@@ -777,10 +786,23 @@ class ConsolidateStations extends Command
         if ($wd && $wd->closed_on) {
             $close[] = [$wd->closed_on, $wd->closed_precision, 'wikidata'];
         }
+        // Gare saisie à la main : dates et source citée (la citation et le motif restent dans station_sources).
+        foreach ($manual as $r) {
+            if ($r->opened_on) {
+                $events[] = ['type' => 'opening', 'event_date' => $r->opened_on, 'date_precision' => $r->opened_precision,
+                    'source' => ManualStations::SOURCE, 'source_ref' => $r->source_ref, 'source_url' => $url($r), 'note' => $r->props['quote'] ?? null];
+                $open[] = [$r->opened_on, $r->opened_precision, ManualStations::SOURCE];
+            }
+            if ($r->closed_on) {
+                $events[] = ['type' => 'closure', 'event_date' => $r->closed_on, 'date_precision' => $r->closed_precision,
+                    'source' => ManualStations::SOURCE, 'source_ref' => $r->source_ref, 'source_url' => $url($r), 'note' => $r->props['quote'] ?? null];
+                $close[] = [$r->closed_on, $r->closed_precision, ManualStations::SOURCE];
+            }
+        }
 
         $pick = function (array $cands) {
             $rank = ['day' => 3, 'month' => 2, 'year' => 1];
-            $srcRank = ['wikidata' => 3, 'ohm' => 2, 'osm' => 1];
+            $srcRank = [ManualStations::SOURCE => 4, 'wikidata' => 3, 'ohm' => 2, 'osm' => 1];
             usort($cands, fn ($a, $b) => [$rank[$b[1]] ?? 0, $srcRank[$b[2]] ?? 0] <=> [$rank[$a[1]] ?? 0, $srcRank[$a[2]] ?? 0]);
 
             return $cands[0] ?? null;
@@ -830,7 +852,7 @@ class ConsolidateStations extends Command
      *
      * @return array{0: string, 1: string, 2: string}
      */
-    private function currentState(?object $sncf, array $osm, array $osmActive, ?object $wd, array $ohm, string $fallbackSource, ?object $sncfV = null): array
+    private function currentState(?object $sncf, array $osm, array $osmActive, ?object $wd, array $ohm, string $fallbackSource, ?object $sncfV = null, array $manual = []): array
     {
         if ($sncfV && ! $sncf?->passenger) {
             // Gare de voyageurs SNCF (jeu gares-de-voyageurs) : ouverte aux voyageurs.
@@ -876,6 +898,10 @@ class ConsolidateStations extends Command
         }
         if ($ohm && collect($ohm)->every(fn ($r) => $r->closed_on)) {
             return ['gone', 'historic', 'ohm'];
+        }
+        if ($fallbackSource === ManualStations::SOURCE) {
+            // Gare saisie à la main : fermée si la source donne une fermeture, sinon en service.
+            return array_filter($manual, fn ($r) => $r->closed_on) ? ['gone', 'historic', ManualStations::SOURCE] : ['active', 'active', ManualStations::SOURCE];
         }
         if ($osm) {
             // Bâtiment « train_station » seul, sans tag ferroviaire : ancienne gare probable.

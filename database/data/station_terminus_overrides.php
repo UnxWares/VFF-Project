@@ -74,10 +74,15 @@ return [
         'reason' => 'terminus à Cléry en correspondance avec Orléans - Neung, sans dire si la gare était commune ; la fiche « Cléry » est placée au centre de la commune (500 m près)'],
     ['line' => 'archeo-ligne-de-boulogne-au-portel', 'terminus' => 'Boulogne', 'decision' => 'none', 'source_url' => $wp('Ligne de tramway de Boulogne-sur-Mer au Portel', 238874156),
         'reason' => 'terminus boulonnais place Dalton ; la ligne passait devant la gare du quai Chanzy, pas à Boulogne-Maritime'],
-    ['line' => 'archeo-ligne-de-boulogne-a-saint-martin', 'terminus' => 'Boulogne', 'decision' => 'none', 'source_url' => $wp('Chemin de fer Boulogne - Bonningues', 223515850),
-        'reason' => 'section partant du quai Chanzy ; aucune fiche de la base pour cette gare (Boulogne-Tintelleries est une autre gare)'],
-    ['line' => 'archeo-ligne-de-boulogne-ville-a-bonningues', 'terminus' => 'Boulogne-Ville', 'decision' => 'none', 'source_url' => $wp('Chemin de fer Boulogne - Bonningues', 223515850),
-        'reason' => 'gare de jonction du quai Chanzy ; la fiche Boulogne-Ville de la base date de 1962 et rien ne dit qu\'elle est au même endroit'],
+    // Gares de tête du quai Chanzy : la première gare de Boulogne-Ville (1855-1962), créée le 22/11/2026 dans
+    // database/data/gares_manuelles.php (gare de la base de 1962 sur l'autre rive de la Liane, Boulogne-Tintelleries
+    // plus au nord). Bonningues : bout du tracé à 64 m de la gare ; Saint-Martin : bout à 551 m (tracé source court).
+    ['line' => 'archeo-ligne-de-boulogne-a-saint-martin', 'terminus' => 'Boulogne', 'decision' => 'attach', 'station' => 'boulogne-ville-ancienne-gare',
+        'source_url' => $wp('Chemin de fer Boulogne - Bonningues', 223515850),
+        'reason' => 'section partant de la gare du quai Chanzy, première gare de Boulogne-Ville (gare de 1962 sur l\'autre rive)'],
+    ['line' => 'archeo-ligne-de-boulogne-ville-a-bonningues', 'terminus' => 'Boulogne-Ville', 'decision' => 'attach', 'station' => 'boulogne-ville-ancienne-gare',
+        'source_url' => $wp('Chemin de fer Boulogne - Bonningues', 223515850),
+        'reason' => 'gare de jonction du quai Chanzy, première gare de Boulogne-Ville ; la fiche de 1962 est sur l\'autre rive de la Liane'],
     ['line' => 'archeo-ligne-de-bourg-a-villefranche', 'terminus' => 'Bourg', 'decision' => 'none', 'source_url' => $wp("Tramways de l'Ain", 241068902),
         'reason' => 'terminus « Bourg-en-Bresse ESE », gare propre au tramway, distincte de la gare PLM'],
     ['line' => 'archeo-ligne-de-decazeville-a-marcillac', 'terminus' => 'Marcillac', 'decision' => 'none', 'source_url' => null,
