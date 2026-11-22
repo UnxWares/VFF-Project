@@ -12,6 +12,9 @@ mêmes noms de champs ; ce document dit où trouver chaque donnée et ce qui cha
 Régénérer la référence GraphQL après un changement du schéma : `make docs-graphql`. La spécification OpenAPI se lit
 sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénérer.
 
+Les changements qui touchent les utilisateurs de l'API sont datés dans `docs/API-CHANGELOG.md`. Après un ajout public, mettre à jour l'instantané
+du contrat avec `bin/php artisan api:contract` (le test `ApiContractTest` échoue si un champ disparaît sans avoir été déprécié).
+
 ## Limites communes
 
 - Débit : 300 requêtes par minute sans jeton, 1 200 avec un jeton personnel (`config/api.php`).
