@@ -330,8 +330,8 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         'if (!response.ok) throw new Error(`HTTP ${response.status}`);',
         'const body = await response.json();',
         '',
-        'console.log(body.total, "segments, era", body.era_year);',
-        'for (const s of body.items) console.log(s.line_slug, s.segment_id, s.worst_grade, s.reasons);',
+        'console.info(body.total, "segments, era", body.era_year);',
+        'for (const s of body.items) console.info(s.line_slug, s.segment_id, s.worst_grade, s.reasons);',
         '// Next page: offset + limit, until you reach body.total.',
     ].join('\n');
     const auditSegmentsPy = [
