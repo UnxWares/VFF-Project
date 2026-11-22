@@ -312,6 +312,136 @@ class JunctionRepairTest extends TestCase
         $this->assertEqualsWithDelta(0, (float) DB::selectOne('SELECT COALESCE(MAX(ST_Y(ST_Transform(d.geom, 2154))), 0) - ? AS y FROM line_reference_parts p, LATERAL ST_DumpPoints(p.geom) d WHERE p.line_id = ?', [self::Y0, $this->line->id])->y, 0.01);
     }
 
+    // ─── 8 bis. Raccords coudés qui ferment une boucle ──────────────────
+
+    /** Distance (m) d'un point au tracé de référence d'une ligne. */
+    private function distToLine(Line $l, float $x, float $y): float
+    {
+        return (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 + $x, self::Y0 + $y, $l->id])->d;
+    }
+
+    /**
+     * Ligne 30 (4.58601, 48.71751, coude de 90° en 2030) : la voie du haut finit, une courbe lissée la relie à la voie du
+     * bas 40 m plus loin, mais le raccord droit de 15 m qu'elle remplaçait est resté, avec le début de la voie du bas :
+     * triangle. Le raccord part (ses deux bouts restent reliés par la courbe), puis le bout de voie qu'il tenait, qui
+     * longe la courbe.
+     */
+    private function triangle(float $reach = 40): void
+    {
+        $a = $this->trace($this->line, 'bdtopo', [[-1000, 15], [0, 15]]);
+        $b = $this->trace($this->line, 'bdtopo', [[0, 0], [1000, 0]]);
+        $this->part('bdtopo', [[[-1000, 15], [0, 15]], [[0, 0], [1000, 0]]], [$a, $b]);
+        $this->connector([[0, 0], [0, 15]]);
+        $curve = [];
+        for ($i = 0; $i <= 8; $i++) {
+            $t = $i / 8;
+            $curve[] = [$reach * $t, 15 * (2 * $t ** 3 - 3 * $t ** 2 + 1)];
+        }
+        $this->part('bdtopo', [$curve], [$a, $b], JunctionRepair::SMOOTHED);
+    }
+
+    public function test_straight_jog_left_beside_the_curve_that_replaced_it_is_removed(): void
+    {
+        $this->triangle();
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['loop_jog_removed']);
+        $this->assertEqualsWithDelta(15, $stats['loop_jog_removed_m'], 0.1);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        // Le début de la voie du bas, qui ne tenait qu'au raccord, part avec lui jusqu'à la courbe.
+        $this->assertEqualsWithDelta(40, $stats['stub_trimmed_m'], 0.5);
+        $this->assertSame([[-1000.0, 15.0], [1000.0, 0.0]], $this->freeEnds());
+        $this->assertLessThan(35, $this->maxKink());
+        // Rien n'est ajouté : seuls le raccord et le bout de voie sous la courbe partent.
+        $this->assertEqualsWithDelta(1000 + 960 + 40.0, $this->totalLength(), 5);
+        // Second passage sans effet.
+        $again = $this->repair();
+        $this->assertSame(0, $again['loop_jog_removed']);
+    }
+
+    public function test_straight_jog_whose_freed_stub_would_be_long_is_kept(): void
+    {
+        // Ligne 49 (-0.61746, 45.74936) : le retrait du raccord laissait pendre un bout de 118 m (« dépasse » au détecteur).
+        // Au-delà de LOOP_STUB_MAX_M, la boucle reste telle quelle : pas de bout libre créé.
+        $this->triangle(JunctionRepair::LOOP_STUB_MAX_M + 50);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['loop_jog_removed']);
+        $this->assertSame([[-1000.0, 15.0], [1000.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_straight_jog_whose_end_is_the_only_contact_with_another_line_is_kept(): void
+    {
+        // Ligne 462 (3.12058, 45.88845) : le raccord de 11 m qui fermait une boucle posait aussi la ligne sur la voie de 856,
+        // qui passe là (sans y finir) ; le retirer laissait 462 à 6 m de 856. Le contact à 0 m est gardé.
+        $this->triangle();
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[-200, -200], [200, 200]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['loop_jog_removed']);
+        $this->assertLessThan(0.01, $this->distToLine($this->line, 0, 0));
+    }
+
+    public function test_straight_jog_in_a_loop_where_another_line_ends_is_kept(): void
+    {
+        // Même triangle, mais une autre ligne finit au milieu du raccord : il reste, sa jonction aussi (0 m).
+        $this->triangle();
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[-400, 7.5], [0, 7.5]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['loop_jog_removed']);
+        $this->assertLessThan(0.01, $this->distToLine($this->line, 0, 7.5));
+    }
+
+    /**
+     * Ligne 30 (2.41773, 48.89873, coudes de 90° en 2030) : boîte de deux sauts de 23 m entre deux voies parallèles qui se
+     * recouvrent sur 28 m. Un des deux raccords part (le premier, à angle égal) ; l'autre redevient un saut seul, traité
+     * par la règle 1 bis : le bout sans issue qui dépasse son pied est coupé.
+     */
+    public function test_box_of_two_jogs_loses_one_jog_and_its_doubled_arm(): void
+    {
+        $a = $this->trace($this->line, 'bdtopo', [[0, 0], [1000, 0]]);
+        $b = $this->trace($this->line, 'bdtopo', [[-1000, -23], [28, -23]]);
+        $this->part('bdtopo', [[[0, 0], [1000, 0]], [[-1000, -23], [28, -23]]], [$a, $b]);
+        $this->connector([[0, 0], [0, -23]]);
+        $this->connector([[28, -23], [28, 0]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['loop_jog_removed']);
+        $this->assertSame([[-1000.0, -23.0], [1000.0, 0.0]], $this->freeEnds());
+        // Plus de doublon : nulle part deux morceaux de la ligne côte à côte sur les 28 m de la boîte.
+        $this->assertLessThan(23 + 28 + 2, (float) DB::selectOne(<<<'SQL'
+            SELECT COALESCE(SUM(ST_Length(ST_Intersection(ST_Transform(geom, 2154), ST_MakeEnvelope(?, ?, ?, ?, 2154)))), 0) AS m
+            FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 - 0.5, self::Y0 - 23.5, self::X0 + 28.5, self::Y0 + 0.5, $this->line->id])->m);
+    }
+
+    public function test_doubled_straight_jog_keeps_a_single_copy(): void
+    {
+        // Ligne 5 (7.11871, 49.03137, crochet de 175° en 2030) : le même raccord de 15 m posé deux fois entre la fin d'un
+        // tracé et la voie BD TOPO. Une copie part (l'autre relie déjà ses deux bouts), l'autre reste : rien ne se détache.
+        $main = $this->trace($this->line, 'bdtopo', [[-1000, 15], [1000, 15]]);
+        $this->part('bdtopo', [[[-1000, 15], [1000, 15]]], [$main]);
+        $this->part('archeoferroviaire', [[[0, -1000], [0, 0]]]);
+        $this->connector([[0, 0], [-5, 15]], 'archeoferroviaire');
+        $this->connector([[0, 0], [-5, 15]], 'archeoferroviaire');
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['loop_jog_removed']);
+        $this->assertEqualsWithDelta(hypot(5, 15), $this->totalLength('connector'), 0.1);
+        $this->assertSame([[-1000.0, 15.0], [0.0, -1000.0], [1000.0, 15.0]], $this->freeEnds());
+    }
+
     public function test_tee_jog_to_a_long_kept_parallel_track_is_restored(): void
     {
         $this->part('bdtopo', [[[0, 0], [2000, 0]]]);

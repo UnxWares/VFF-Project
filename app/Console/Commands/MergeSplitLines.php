@@ -32,6 +32,33 @@ use Illuminate\Support\Facades\DB;
  *    « au » et « aux » valent « à le » et « à les » dans les deux noms (« Ligne de
  *    Port-de-Piles au Blanc », section de « Port-de-Piles à Argenton-sur-Creuse »).
  *
+ *    Section SANS extrémité partagée (section du milieu, ou nom de gare en origine :
+ *    « Montauban » pour « Montauban-Ville-Bourbon », 2026-11-22), fusionnée dans une
+ *    ligne à code seulement si TOUT est vrai :
+ *      - un bout de la section est à ≤ 1 km du tracé connu de la ligne, et au plus
+ *        10 % de la section le recouvre (à 30 m) ;
+ *      - le tracé est incomplet : < 85 % de la longueur officielle, les deux
+ *        longueurs additionnées en font 70 à 115 %, et la section comble au moins
+ *        la moitié du manque ;
+ *      - une preuve que la section est sur la ligne :
+ *          a. ses deux toponymes sont des lieux de la ligne (nom, gares, portions
+ *             des événements Wikipédia, lignes-oubliées ou corrections ; préfixe de
+ *             nom de gare compris) ;
+ *          b. ou un seul l'est, mais il est au bout de la section qui ne touche pas
+ *             le tracé connu (≤ 3 km) et loin de ce tracé (> 1 km), l'autre bout
+ *             touchant ce tracé : la section prolonge la ligne jusqu'à un de ses lieux ;
+ *          c. ou un toponyme l'est et au moins trois gares rattachées à la ligne par
+ *             une source (SNCF, Wikidata, schéma) sont sur la section, à plus de 1 km
+ *             du tracé connu ;
+ *      - quand les deux toponymes ont un PK sur la ligne, leur écart vaut 80 à 125 %
+ *        de la longueur de la section (ordre des PK) ;
+ *      - une seule ligne à code remplit tout (sinon « à relire »).
+ *    Sans longueur officielle, seule la preuve a, avec l'écart des PK vérifié, suffit.
+ *    Ce qu'elle refuse : une autre ligne qui part d'une gare de la ligne ou qui
+ *    aboutit à son tracé (« Mortagne à La Loupe » contre « La Loupe à Prey »,
+ *    « Thionville à Fontoy » contre « Metz à Zoufftgen ») : le lieu commun y est le
+ *    bout qui touche le tracé, l'autre n'est pas un lieu de la ligne.
+ *
  * 2. MÊME ARTICLE (article) : une ligne créée par vff:link-traces (sans code)
  *    porte le même article Wikipédia qu'une ligne à code, de même catégorie,
  *    et c'est bien la même ligne : l'une recouvre l'autre (≥ 90 % du plus
@@ -95,6 +122,12 @@ class MergeSplitLines extends Command
     /** Sources de tracés qui définissent une ligne (BD TOPO / OSM : réseau actuel, rattachement à part). */
     private const TRACE_SOURCES = "('archeoferroviaire', 'ohm', 'sncf')";
 
+    /** Distance (m) à laquelle un bout de section « touche » le tracé connu d'une ligne (sections sans extrémité partagée). */
+    private const SECTION_TOUCH_M = 1000;
+
+    /** Distance (m) entre le bout libre d'une section et le lieu de la ligne qui la nomme (prolongement). */
+    private const SECTION_PLACE_M = 3000;
+
     private LineMerger $merger;
 
     private bool $dry;
@@ -120,6 +153,12 @@ class MergeSplitLines extends Command
     /** @var array<int, array<string, true>> noms complets des gares, par ligne */
     private array $stationFull = [];
 
+    /** @var array<int, array{0: array<string, list<string>>, 1: array<string, true>}> lieux des portions d'événements, par ligne (cache) */
+    private array $eventPlaces = [];
+
+    /** @var array<int, list<object>> gares à PK de chaque ligne (cache) */
+    private array $stationPks = [];
+
     public function handle(LineMerger $merger): int
     {
         $this->merger = $merger;
@@ -132,6 +171,8 @@ class MergeSplitLines extends Command
         $this->stationWords = [];
         $this->knownFull = [];
         $this->stationFull = [];
+        $this->eventPlaces = [];
+        $this->stationPks = [];
         $this->communeNames = null;
         $only = $this->option('only') ? array_map('trim', explode(',', $this->option('only'))) : self::PHASES;
         if ($bad = array_diff($only, self::PHASES)) {
@@ -222,6 +263,7 @@ class MergeSplitLines extends Command
             SQL);
 
         $this->info('→ 1. Sections créées à part : '.count($pairs));
+        $rejected = [];
         foreach ($pairs as $p) {
             // L'autre extrémité de la section doit être un lieu de la ligne (nom, gares) : sinon c'est une autre
             // ligne qui aboutit au même terminus (« Armentières à Halluin » n'est pas une section de Somain à Halluin),
@@ -239,20 +281,300 @@ class MergeSplitLines extends Command
                 };
                 $this->row('sections', 'rejeté', (object) ['cid' => $p->created_id, 'cname' => $p->created_name, 'lid' => $p->target_id,
                     'lname' => $p->target_name, 'code' => ''], ($otherIsOrigin ? 'origine' : 'destination')." « {$other} » étrangère à la ligne ({$shared})");
+                $rejected[(int) $p->created_id] = array_key_last($this->rows);
 
                 continue;
             }
-            $this->merge('sections', (int) $p->created_id, (int) $p->target_id,
-                "section {$p->created_km} km + tracé {$p->target_km} km ≈ {$p->official_km} km officiels", 'merged_section');
-            if (! $this->dry) {
-                DB::update(
-                    "UPDATE lines SET alt_names = COALESCE(alt_names, '{}'::jsonb)
-                        || jsonb_build_object('sections', COALESCE(alt_names->'sections', '[]'::jsonb) || to_jsonb(?::text)), updated_at = NOW()
-                     WHERE id = ?",
-                    [$p->created_name, $p->target_id],
-                );
+            $this->mergeSection((int) $p->created_id, (int) $p->target_id, $p->created_name,
+                "section {$p->created_km} km + tracé {$p->target_km} km ≈ {$p->official_km} km officiels");
+        }
+        $this->sectionsWithoutSharedEnd($rejected);
+    }
+
+    /** Fusion d'une section dans sa ligne à code, son nom gardé dans alt_names.sections de la ligne. */
+    private function mergeSection(int $createdId, int $targetId, string $createdName, string $why): void
+    {
+        $this->merge('sections', $createdId, $targetId, $why, 'merged_section');
+        if (! $this->dry) {
+            DB::update(
+                "UPDATE lines SET alt_names = COALESCE(alt_names, '{}'::jsonb)
+                    || jsonb_build_object('sections', COALESCE(alt_names->'sections', '[]'::jsonb) || to_jsonb(?::text)), updated_at = NOW()
+                 WHERE id = ?",
+                [$createdName, $targetId],
+            );
+        }
+    }
+
+    /**
+     * Sections sans extrémité partagée avec la ligne à code (règles dans le docblock de la classe) : section du
+     * milieu (« Breteuil à Senonches » dans « La Loupe à Prey »), nom de gare en origine (« Montauban à
+     * Saint-Sulpice » dans « Montauban-Ville-Bourbon à La Crémade »), prolongement jusqu'à un lieu de la ligne
+     * (« Souillac à Saint-Denis-près-Martel » dans « Souillac à Viescamp-sous-Jallès »).
+     *
+     * @param  array<int, int>  $rejected  lignes refusées par la règle des extrémités partagées → indice de leur ligne du rapport
+     */
+    private function sectionsWithoutSharedEnd(array $rejected): void
+    {
+        $touch = self::SECTION_TOUCH_M;
+        $candidates = DB::select(<<<SQL
+            WITH created AS (
+                SELECT l.id, l.name, r.geom, r.length_m
+                FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
+                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND r.length_m > 0
+            ),
+            pts AS (SELECT c.id, (ST_Dump(ST_Boundary(c.geom))).geom AS g FROM created c),
+            -- bouts de la section : les deux extrémités de ses morceaux les plus éloignées l'une de l'autre
+            ends AS (
+                SELECT DISTINCT ON (a.id) a.id, a.g AS ga, b.g AS gb
+                FROM pts a JOIN pts b ON b.id = a.id
+                ORDER BY a.id, ST_Distance(a.g::geography, b.g::geography) DESC
+            ),
+            existing AS (
+                SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m
+                FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
+                WHERE l.code IS NOT NULL AND l.slug NOT LIKE 'archeo-%'
+                  AND (l.length_official_m IS NULL OR r.length_m < 0.85 * l.length_official_m)
+            )
+            SELECT c.id AS created_id, c.name AS created_name, c.length_m AS created_m,
+                   e.id AS target_id, e.name AS target_name, e.length_m AS target_m, e.off,
+                   ST_AsText(n.ga) AS ga, ST_AsText(n.gb) AS gb,
+                   ST_Distance(n.ga::geography, e.geom::geography) AS da, ST_Distance(n.gb::geography, e.geom::geography) AS db
+            FROM created c JOIN ends n ON n.id = c.id
+            JOIN existing e ON (e.geom && ST_Expand(n.ga, 0.02) AND ST_DWithin(n.ga::geography, e.geom::geography, {$touch}))
+                            OR (e.geom && ST_Expand(n.gb, 0.02) AND ST_DWithin(n.gb::geography, e.geom::geography, {$touch}))
+            WHERE e.off IS NULL OR c.length_m + e.length_m BETWEEN 0.70 * e.off AND 1.15 * e.off
+            ORDER BY c.id, e.id
+            SQL);
+
+        $proven = [];
+        foreach ($candidates as $p) {
+            $cid = (int) $p->created_id;
+            if (isset($this->gone[$cid])) {
+                continue;
+            }
+            $verdict = $this->sectionProof($p);
+            if (is_array($verdict)) {
+                $proven[$cid][] = [$p, $verdict['detail']];
+            } elseif ($verdict !== null && ! isset($rejected[$cid])) {
+                $this->row('sections', 'rejeté', (object) ['cid' => $cid, 'cname' => $p->created_name, 'lid' => $p->target_id,
+                    'lname' => $p->target_name, 'code' => ''], $verdict);
             }
         }
+        $this->info('→ 1 bis. Sections sans extrémité partagée prouvées : '.count($proven));
+        $replaced = [];
+        foreach ($proven as $cid => $hits) {
+            if (count($hits) > 1) {
+                foreach ($hits as [$p, $detail]) {
+                    $this->row('sections', 'à relire', (object) ['cid' => $cid, 'cname' => $p->created_name, 'lid' => $p->target_id,
+                        'lname' => $p->target_name, 'code' => ''], 'plusieurs lignes à code possibles ; '.$detail);
+                }
+
+                continue;
+            }
+            [$p, $detail] = $hits[0];
+            if (isset($rejected[$cid])) {
+                // Refusée par la règle des extrémités partagées, prouvée ici : la ligne du rapport est remplacée.
+                $replaced[$rejected[$cid]] = true;
+            }
+            $this->mergeSection($cid, (int) $p->target_id, $p->created_name, $detail);
+        }
+        $this->rows = array_values(array_diff_key($this->rows, $replaced));
+    }
+
+    /**
+     * Preuve qu'une section sans extrémité partagée est sur la ligne à code.
+     *
+     * @return array{detail: string}|string|null preuve, motif de refus (au moins un toponyme sur la ligne), ou null
+     *                                           (aucun toponyme de la ligne : autre ligne, sans ligne au rapport)
+     */
+    private function sectionProof(object $p): array|string|null
+    {
+        $lineId = (int) $p->target_id;
+        $places = array_slice(PlaceNames::parseLineName($p->created_name)['places'] ?? [], 0, 2);
+        if (count($places) < 2) {
+            return null;
+        }
+        $named = array_map(fn (string $place) => $this->placeOnLine($place, $lineId), $places);
+        if (! in_array(true, $named, true)) {
+            return null;
+        }
+        $km = fn (float $m) => number_format($m / 1000, 1, '.', '');
+        $lengths = "section {$km((float) $p->created_m)} km + tracé {$km((float) $p->target_m)} km"
+            .($p->off ? " ≈ {$km((float) $p->off)} km officiels" : ' (sans longueur officielle)');
+
+        // La section comble au moins la moitié du manque : un court morceau près d'une gare de la ligne (« Thionville
+        // à Basse-Yutz », « Rennes à Cesson-Sévigné ») est plutôt un embranchement ou une autre ligne.
+        if ($p->off && (float) $p->created_m < 0.5 * ((float) $p->off - (float) $p->target_m)) {
+            return 'section plus courte que la moitié du tracé manquant';
+        }
+
+        // Ordre des PK : l'écart des PK des deux toponymes doit retrouver la longueur de la section.
+        $pk = $this->pkSpan($places, $lineId, (float) $p->created_m);
+        if ($pk === false) {
+            return 'écart des PK des deux toponymes incompatible avec la longueur de la section';
+        }
+
+        $touchA = (float) $p->da <= self::SECTION_TOUCH_M;
+        $touchB = (float) $p->db <= self::SECTION_TOUCH_M;
+        $proof = null;
+        if ($named[0] === true && $named[1] === true) {
+            $proof = 'deux toponymes sur la ligne';
+        } elseif (! $p->off) {
+            // Sans longueur officielle, seule la preuve par les deux toponymes vaut : le plus souvent une autre ligne
+            // qui part d'une gare de la ligne (raccordements), pas de ligne au rapport.
+            return null;
+        } elseif ($touchA !== $touchB) {
+            // Prolongement : le toponyme de la ligne est au bout qui ne touche pas le tracé connu.
+            $place = $named[0] === true ? $places[0] : $places[1];
+            $far = $touchA ? $p->gb : $p->ga;
+            if ($this->placeNear($place, $far, self::SECTION_PLACE_M) && ! $this->placeNearLine($place, $lineId, self::SECTION_TOUCH_M)) {
+                $proof = "prolonge le tracé connu jusqu'à « {$place} »";
+            }
+        }
+        if ($proof === null) {
+            $stations = $this->stationsOnSection((int) $p->created_id, $lineId);
+            if (count($stations) >= 3) {
+                $proof = count($stations).' gares de la ligne sur la section, loin du tracé connu ('.implode(', ', array_slice($stations, 0, 6)).')';
+            }
+        }
+        if ($proof === null) {
+            $other = $named[0] === true ? $places[1] : $places[0];
+            $kept = $named[0] === true ? $places[0] : $places[1];
+
+            return "« {$other} » étrangère à la ligne, « {$kept} » au bout qui touche son tracé ou déjà sur ce tracé";
+        }
+
+        $overlap = (float) DB::selectOne(
+            'SELECT ST_Length(ST_Intersection(c.geom, ST_Buffer(e.geom::geography, 30)::geometry)::geography) AS m
+             FROM line_reference_geometries c, line_reference_geometries e WHERE c.line_id = ? AND e.line_id = ?',
+            [$p->created_id, $lineId],
+        )->m;
+        if ($overlap > 0.10 * (float) $p->created_m) {
+            return sprintf('recouvre le tracé connu sur %d %%', round(100 * $overlap / (float) $p->created_m));
+        }
+        if ($pk === null && ! $p->off) {
+            return 'sans longueur officielle ni PK des deux toponymes';
+        }
+
+        return ['detail' => "section sans extrémité partagée : {$lengths} ; {$proof}"
+            .($pk !== null ? " ; PK {$pk}" : '')];
+    }
+
+    /** Toponyme sur la ligne : lieux connus (placeOn) ou portions des événements tirés d'un texte. */
+    private function placeOnLine(string $place, int $lineId): bool
+    {
+        if ($this->placeOn($place, $lineId) === true) {
+            return true;
+        }
+        if (! isset($this->eventPlaces[$lineId])) {
+            $known = [];
+            $full = [];
+            $rows = DB::select("SELECT DISTINCT section_from AS a, section_to AS b FROM line_events
+                WHERE line_id = ? AND source IN ('wikipedia', 'lignes-oubliees', 'manual')
+                  AND (section_from IS NOT NULL OR section_to IS NOT NULL)", [$lineId]);
+            foreach ($rows as $r) {
+                foreach (array_filter([$r->a, $r->b], 'is_string') as $n) {
+                    foreach (self::subPlaces($n) as $w) {
+                        $known[implode(' ', $w)] = $w;
+                    }
+                    foreach (self::fullNames($n) as $f) {
+                        $full[$f] = true;
+                    }
+                }
+            }
+            $this->eventPlaces[$lineId] = [$known, $full];
+        }
+
+        return $this->placeIn($place, ...$this->eventPlaces[$lineId]) === true;
+    }
+
+    /**
+     * Écart des PK des deux toponymes sur la ligne (gares SNCF, schéma Wikipédia, gares des sources), comparé à la
+     * longueur de la section : texte « a → b km », false si aucun couple de PK ne donne 80 à 125 % de la longueur,
+     * null si un toponyme n'a pas de PK.
+     *
+     * @param  list<string>  $places
+     */
+    private function pkSpan(array $places, int $lineId, float $sectionM): string|false|null
+    {
+        if (! isset($this->stationPks[$lineId])) {
+            $this->stationPks[$lineId] = DB::select(
+                'SELECT g.libelle AS name, g.pk_m FROM sncf_gares g JOIN lines l ON l.code = g.code_ligne WHERE l.id = ? AND g.pk_m IS NOT NULL
+                 UNION SELECT name, pk_m FROM wikipedia_line_stations WHERE line_id = ? AND pk_m IS NOT NULL
+                 UNION SELECT name, pk_m FROM source_stations WHERE line_id = ? AND pk_m IS NOT NULL',
+                [$lineId, $lineId, $lineId],
+            );
+        }
+        $pks = [];
+        foreach ($places as $i => $place) {
+            foreach ($this->stationPks[$lineId] as $s) {
+                $known = [];
+                foreach (self::subPlaces((string) $s->name) as $w) {
+                    $known[implode(' ', $w)] = $w;
+                }
+                if ($this->placeIn($place, $known, array_fill_keys(self::fullNames((string) $s->name), true)) === true) {
+                    $pks[$i][] = (int) $s->pk_m;
+                }
+            }
+        }
+        if (! isset($pks[0], $pks[1])) {
+            return null;
+        }
+        $best = null;
+        foreach ($pks[0] as $a) {
+            foreach ($pks[1] as $b) {
+                $ratio = abs($a - $b) / $sectionM;
+                if ($ratio >= 0.80 && $ratio <= 1.25 && ($best === null || abs($ratio - 1) < abs($best[2] - 1))) {
+                    $best = [$a, $b, $ratio];
+                }
+            }
+        }
+
+        return $best ? sprintf('%.1f → %.1f km', $best[0] / 1000, $best[1] / 1000) : false;
+    }
+
+    /** Un lieu de ce nom (commune, gare SNCF) est-il à moins de $meters du point (WKT, WGS 84) ? */
+    private function placeNear(string $place, string $pointWkt, int $meters): bool
+    {
+        $this->ensureGazetteer();
+
+        return (bool) DB::selectOne(
+            'SELECT EXISTS (SELECT 1 FROM lm_gaz WHERE norm = ? AND ST_DWithin(g, ST_Transform(ST_GeomFromText(?, 4326), 2154), ?)) AS ok',
+            [PlaceNames::normalize($place), $pointWkt, $meters],
+        )->ok;
+    }
+
+    /** Un lieu de ce nom (commune, gare SNCF) est-il déjà à moins de $meters du tracé connu de la ligne ? */
+    private function placeNearLine(string $place, int $lineId, int $meters): bool
+    {
+        $this->ensureGazetteer();
+
+        return (bool) DB::selectOne(
+            'SELECT EXISTS (SELECT 1 FROM lm_gaz z, line_reference_geometries r WHERE r.line_id = ? AND z.norm = ?
+                AND ST_DWithin(z.g, ST_Transform(r.geom, 2154), ?)) AS ok',
+            [$lineId, PlaceNames::normalize($place), $meters],
+        )->ok;
+    }
+
+    /**
+     * Gares rattachées à la ligne par une source (PK SNCF, Wikidata, schéma), à ≤ 200 m de la section et à plus de
+     * 1 km du tracé connu de la ligne.
+     *
+     * @return list<string>
+     */
+    private function stationsOnSection(int $createdId, int $lineId): array
+    {
+        return array_column(DB::select(
+            "SELECT DISTINCT s.name FROM station_lines sl
+             JOIN stations s ON s.id = sl.station_id
+             JOIN line_reference_geometries c ON c.line_id = ?
+             JOIN line_reference_geometries e ON e.line_id = sl.line_id
+             WHERE sl.line_id = ? AND sl.method IN ('sncf_pk', 'wikidata_p81', 'source_pk')
+               AND ST_DWithin(s.geom::geography, c.geom::geography, 200)
+               AND NOT ST_DWithin(s.geom::geography, e.geom::geography, 1000)
+             ORDER BY s.name",
+            [$createdId, $lineId],
+        ), 'name');
     }
 
     // ─────────────────────── géométries de travail ───────────────────────
@@ -994,11 +1316,24 @@ class MergeSplitLines extends Command
      */
     private function placeOn(string $place, int $lineId): ?bool
     {
+        $known = $this->knownPlaces($lineId);
+
+        return $this->placeIn($place, $known, $this->knownFull[$lineId] ?? []);
+    }
+
+    /**
+     * Le toponyme est-il un des lieux donnés (mots significatifs, noms complets) ?
+     * Règles de placeOn().
+     *
+     * @param  array<string, list<string>>  $known
+     * @param  array<string, true>  $knownFull
+     */
+    private function placeIn(string $place, array $known, array $knownFull): ?bool
+    {
         $subs = self::subPlaces($place);
         if (! $subs) {
             return null;
         }
-        $known = $this->knownPlaces($lineId);
         foreach ($subs as $w) {
             if (isset($known[implode(' ', $w)])) {
                 return true;
@@ -1019,7 +1354,7 @@ class MergeSplitLines extends Command
             return false;
         }
         foreach (self::fullNames($place) as $p) {
-            foreach (array_keys($this->knownFull[$lineId] ?? []) as $k) {
+            foreach (array_keys($knownFull) as $k) {
                 if (str_starts_with($k, $p.'-') && ! isset($this->communeNames[str_replace('-', ' ', $k)])) {
                     return true;
                 }

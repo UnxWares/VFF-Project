@@ -1133,4 +1133,23 @@ return [
         'quote' => 'avant que l\'ouverture ne soit repoussée au 6 octobre en raison de contraintes techniques',
         'reason' => 'réouverture de la section Le Puy - Firminy après les travaux de modernisation commencés en février 2014 (La Montagne, 23/08/2014)',
     ],
+
+    // Sections-dates (storage/app/reports/agents/aprem-2111/sections-dates.md) : 813000 Le Martinet - Beaucaire.
+    // La section Le Martinet - Saint-Julien (PK 0 à 10) ouvre le 30/08/1880, trois ans avant Uzès - Saint-Julien
+    // (25/09/1883) : l'article de la gare de Saint-Julien - les Fumades date du 30 août 1880 la mise en service par
+    // le PLM de « la section passant par la gare de sa ligne du Martinet à Beaucaire », et la fiche de la ligne du
+    // Gard touristique dit « Le 30 août 1880, le premier tronçon entre Le Martinet et St Julien est ouvert ». Sans
+    // cette ouverture, l'ouverture localisée de 1883 laissait la section hors service en 1880.
+    [
+        'line' => '813000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1880-08-30',
+        'precision' => 'day',
+        'from' => 'Le Martinet',
+        'to' => 'Saint-Julien-de-Cassagnas',
+        'source_url' => $wp('Gare de Saint-Julien - les Fumades', 235034251),
+        'quote' => 'met en service, le 30 août 1880, la section passant par la gare de sa ligne du Martinet à Beaucaire',
+        'reason' => 'premier tronçon de la ligne, du Martinet à Saint-Julien, ouvert le 30/08/1880 (article de la gare ; fiche https://www.tourismegard.com/fr/fiche/patrimoine-culturel/la-ligne-ferroviaire-le-martinet-beaucaire-le-martinet_TFO7606245/ : « Le 30 aout 1880, le premier tronçon entre Le Martinet et St Julien est ouvert », puis Saint-Julien - Uzès - Beaucaire le 25/09/1883)',
+    ],
 ];
