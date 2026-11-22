@@ -67,6 +67,7 @@ final class LineMaterialLinker
         private readonly ?MaterialTractionRule $traction = null,
         private readonly ?LineMaterialExclusions $exclusions = null,
         private readonly ?MaterialRelations $relations = null,
+        private readonly bool $plannedSections = true,
     ) {}
 
     /**
@@ -343,11 +344,14 @@ final class LineMaterialLinker
                 continue;
             }
             foreach ($page['sections'] as $section) {
-                if (WikipediaMaterialSections::isDoubtfulSection($section['title'])) {
+                $planned = WikipediaMaterialSections::isDoubtfulSection($section['title']);
+                // « Dessertes réalisées ou prévues » : lue lien par lien, derrière isPlannedSectionService().
+                if ($planned && ! ($this->plannedSections && WikipediaMaterialSections::isRealisedSection($section['title']))) {
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
-                    if (! $this->speaksOf((string) $requested, $page, $link['quote'])) {
+                    if (! $this->speaksOf((string) $requested, $page, $link['quote'])
+                        || ($planned && ! WikipediaMaterialSections::isPlannedSectionService($link))) {
                         continue;
                     }
                     $lineIds = array_values(array_unique($linesByTitle[$link['target']] ?? []));
