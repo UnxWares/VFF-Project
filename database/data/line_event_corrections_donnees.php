@@ -1195,4 +1195,126 @@ return [
         'quote' => 'La mise en service de cette phase est réalisée le 3 juillet 2016.',
         'reason' => 'seconde phase de la LGV Est, de Baudrecourt à Vendenheim (106 km, raccordement à la ligne de Strasbourg à Wissembourg à Eckwersheim), mise en service le 03/07/2016 ; la première phase (300 km) était en service depuis 2007',
     ],
+
+    // Mesure de l'analyse des chronologies Wikipédia (storage/app/reports/agents/aprem-2111/chronologie-mesure.md) :
+    // quatre erreurs relevées en relisant les événements gagnés par l'analyse des dates et des étapes.
+
+    // 915000 Veynes - Briançon : « Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et
+    // entre La Freissinouse et Gap le 6 février 1893 » (l'article dit juste avant « Elle sera mise en service en
+    // deux étapes », « elle » étant la mise à double voie). Ce sont deux poses de seconde voie sur une ligne
+    // ouverte en 1875 (Veynes - Gap, 1er février 1875), pas des ouvertures. Confirmé par Rail Passion n°171 (« une
+    // seconde voie est posée de Veynes à La Freissinouse en mars 1883 ») et la page de la gare de Gap (doublement
+    // de la voie vers Veynes en 1893).
+    [
+        'line' => '915000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1883-03-28'],
+        'label' => 'Pose de la seconde voie entre Veynes et La Freissinouse',
+        'source_url' => $wp('Ligne de Veynes à Briançon', 240049469),
+        'quote' => 'Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et entre La Freissinouse et Gap le 6 février 1893.',
+        'reason' => 'mise à double voie d\'une section ouverte le 1er février 1875, pas une ouverture',
+    ],
+    [
+        'line' => '915000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1893-02-06'],
+        'label' => 'Pose de la seconde voie entre La Freissinouse et Gap',
+        'source_url' => $wp('Ligne de Veynes à Briançon', 240049469),
+        'quote' => 'Une seconde voie est posée entre Veynes et La Freissinouse le 28 mars 1883 et entre La Freissinouse et Gap le 6 février 1893.',
+        'reason' => 'mise à double voie d\'une section ouverte le 1er février 1875, pas une ouverture',
+    ],
+
+    // 766000 Dijon - Épinac : « En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et
+    // Gissey-sur-Ouche. Ce tronçon ferme en 1967 » : c'est la fin de ce service voyageurs (la section de Plombières-Canal
+    // à Velars restait au fret jusqu'en 1971, de Dijon à Plombières-Canal jusqu'en 1989), pas la fermeture du tronçon. La
+    // réouverture de 1952 n'était pas lue. Confirmé par le wiki Routes (réouverture voyageurs le 1er mai 1952,
+    // fermeture en 1967) ; lignes-oubliees évoque un « train des pêcheurs » jusqu'au milieu des années 1960.
+    [
+        'line' => '766000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1967-01-01'],
+        'label' => 'Fin du service voyageurs entre Dijon-Ville et Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et Gissey-sur-Ouche. Ce tronçon ferme en 1967',
+        'reason' => 'le tronçon ne ferme qu\'aux voyageurs (il reste exploité au fret) : l\'événement typé est ajouté ci-dessous',
+    ],
+    [
+        'line' => '766000',
+        'action' => 'add',
+        'type' => 'reopening_passenger',
+        'date' => '1952-01-01',
+        'precision' => 'year',
+        'from' => 'Dijon-Ville',
+        'to' => 'Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'En 1952, la ligne rouvre au service des voyageurs entre Dijon-Ville et Gissey-sur-Ouche.',
+        'reason' => 'réouverture aux voyageurs après la fermeture du 6 février 1939 (wiki Routes : 1er mai 1952)',
+    ],
+    [
+        'line' => '766000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1967-01-01',
+        'precision' => 'year',
+        'from' => 'Dijon-Ville',
+        'to' => 'Gissey-sur-Ouche',
+        'source_url' => $wp('Ligne de Dijon-Ville à Épinac', 240497509),
+        'quote' => 'Ce tronçon ferme en 1967, et la section complète entre Velars-la-Cude et Ivry - Cussy est neutralisée en 1968, puis déclassée en 1969.',
+        'reason' => 'fin du service voyageurs rouvert en 1952 (wiki Routes : 1967) ; le fret continue (Velars - Ivry-Cussy jusqu\'en 1968, Plombières - Velars jusqu\'en 1971, Dijon - Plombières jusqu\'en 1989)',
+    ],
+
+    // 985000 Choisy-le-Roi - Massy - Verrières : « La ligne ferme le 15 mai 1939. Le 25 septembre 1977, elle rouvre
+    // aux voyageurs entre Pont de Rungis et Massy - Palaiseau. » C'est la fin du service voyageurs de la Grande
+    // Ceinture stratégique (les pages des gares d'Orly-Ville et de Massy - Palaiseau donnent la même date ; le wiki
+    // Routes : « 15 05 1939 : section Orly-Ville - Massy-Palaiseau (service voyageurs) »), pas une fermeture de la
+    // ligne, qui sert au fret et à la branche du RER C. La réouverture de 1977 n'était pas lue : sans elle, la ligne
+    // resterait sans voyageurs jusqu'en 2030.
+    [
+        'line' => '985000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1939-05-15'],
+        'label' => 'Fin du service voyageurs de la Grande Ceinture stratégique',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'La ligne ferme le 15 mai 1939. Le 25 septembre 1977, elle rouvre aux voyageurs entre Pont de Rungis et Massy - Palaiseau.',
+        'reason' => 'la ligne ne ferme qu\'aux voyageurs (l\'article la dit rouverte aux voyageurs en 1977) : l\'événement typé est ajouté ci-dessous',
+    ],
+    [
+        'line' => '985000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'from' => 'Choisy-le-Roi',
+        'to' => 'Massy - Verrières',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'La ligne ferme le 15 mai 1939.',
+        'reason' => 'fin du service voyageurs de la Grande Ceinture stratégique (Wikipédia ; pages des gares d\'Orly-Ville et de Massy - Palaiseau ; wiki Routes)',
+    ],
+    [
+        'line' => '985000',
+        'action' => 'add',
+        'type' => 'reopening_passenger',
+        'date' => '1977-09-25',
+        'precision' => 'day',
+        'from' => 'Pont de Rungis',
+        'to' => 'Massy - Palaiseau',
+        'source_url' => $wp('Ligne de Choisy-le-Roi à Massy - Verrières', 240652981),
+        'quote' => 'Le 25 septembre 1977, elle rouvre aux voyageurs entre Pont de Rungis et Massy - Palaiseau.',
+        'reason' => 'réouverture aux voyageurs de la section parcourue depuis par la branche Massy - Pont de Rungis du RER C',
+    ],
+
+    // 785000 Saint-Germain-des-Fossés - Darsac : « Fermeture au service des voyageurs. Les sections de Vichy à Courty
+    // et d'Arlanc à Darsac sont fermées le 26 novembre 1971, la section de Pont-de-Dore à Arlanc le 28 septembre 1980. »
+    // La phrase est sous le titre « Fermeture au service des voyageurs » : la lecture sans trafic faisait fermer la
+    // section à tout trafic en 1980, alors qu'elle reste au fret (Courpière - Arlanc jusqu'au 5 février 1988). La fin
+    // des voyageurs du 28/09/1980 est déjà posée par lignes-oubliees.
+    [
+        'line' => '785000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1980-09-28'],
+        'label' => 'Fin du service voyageurs entre Pont-de-Dore et Arlanc',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Darsac', 235337759),
+        'quote' => 'la section de Pont-de-Dore à Arlanc le 28 septembre 1980.',
+        'reason' => 'phrase de la section « Fermeture au service des voyageurs » : la section reste au fret jusqu\'en 1988 (fin des voyageurs déjà ajoutée par lignes-oubliees)',
+    ],
 ];
