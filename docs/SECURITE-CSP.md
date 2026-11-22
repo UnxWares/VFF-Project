@@ -28,13 +28,21 @@ Quand une page charge une ressource que la politique n'autorise pas, il envoie u
     - images de Wikimedia Commons et de Gallica (`img-src`) ;
     - Scalar (`/docs/api`) et Swagger UI (`/docs/swagger`) sont servis par Vite : rien de plus que les
       styles en ligne ;
-    - Magidoc (`/docs/graphql`) : pages statiques générées avec des scripts en ligne sans nonce, donc
-      `'unsafe-inline'` pour les scripts de ces pages seulement ;
+    - Magidoc (`/docs/graphql`) : pages statiques générées, sans nonce possible. Plus aucun
+      `'unsafe-inline'` : `resources/docs/graphql/postbuild.mjs` (via `csp.mjs`, à chaque
+      `make docs-graphql`) sort les scripts en ligne en fichiers `_app/vff/<empreinte>.js`, retire les
+      gestionnaires `onload`/`onerror` du gabarit et relève dans `resources/docs/graphql/csp-style-hashes.json`
+      l'empreinte SHA-256 de chaque attribut `style` (rendu serveur et gabarits des modules JS), admis par
+      `style-src-attr 'unsafe-hashes'`. `script-src` et `style-src` restent à `'self'`. Après une
+      régénération, recopier la liste d'empreintes dans `deploy/nginx/vff-project.org.conf` (le test
+      `test_nginx_policy_for_graphql_matches_laravel` échoue sinon) ; le test
+      `test_generated_graphql_pages_have_no_inline_script_nor_undeclared_inline_style` échoue si une page
+      garde un script, un gestionnaire, un `<style>` ou un attribut `style` sans empreinte ;
     - pages intégrables (`/embed/*`) : `frame-ancestors *` ;
     - développement : dans l'environnement `local`, quand Vite tourne (fichier `public/hot`), son
       adresse et sa connexion WebSocket sont admises (le schéma seul, `http:` et `ws:`, quand
     Vite écoute sur une adresse IPv6 comme `[::1]`, que la syntaxe CSP n'accepte pas).
-- Styles en ligne admis partout (`'unsafe-inline'` sur `style-src`) : Svelte, MapLibre, Scalar et
+- Styles en ligne admis partout sauf Magidoc (`'unsafe-inline'` sur `style-src`) : Svelte, MapLibre, Scalar et
   Swagger UI en posent.
 - `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`.
 

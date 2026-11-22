@@ -96,7 +96,7 @@ pas activé (UDP 443 à ouvrir et `listen 443 quic` à ajouter si souhaité).
   default-src 'none'; sandbox` : ouverts directement, ils ne peuvent rien exécuter.
 - **`/docs/graphql`** : pages statiques de Magidoc, envoyées sans Laravel. nginx y pose donc la politique
   de sécurité du contenu, en observation (`Report-Only`), recopiée de celle de Laravel pour cette page
-  (`'unsafe-inline'` sur les scripts). **Si `CSP_ENFORCE=true` ou `config/csp.php` change**, mettre à jour
+  (aucun `'unsafe-inline'` : scripts en fichiers, attributs `style` par empreinte). **Si `CSP_ENFORCE=true` ou `config/csp.php` change**, mettre à jour
   cette ligne (`docs/SECURITE-CSP.md`) : l'en-tête devient `Content-Security-Policy` en mode bloquant.
 - **`/icons/`** : 30 jours. **`/`** (autres fichiers de `public/`, comme `robots.txt`, `favicon.ico`,
   `share/`) : un jour ; sinon la requête passe à Laravel.

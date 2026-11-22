@@ -274,9 +274,11 @@ class ApiDocsTest extends TestCase
         $html = (string) file_get_contents($page);
         // RGAA 8.7 : interface Magidoc en anglais, textes du guide et du schéma balisés en français par le script.
         $this->assertStringContainsString('<html lang="en">', $html);
-        $this->assertStringContainsString('data-vff-lang', $html);
-        $this->assertStringContainsString("main.lang = 'fr'", $html);
-        $this->assertStringContainsString('theme=(dark|light)', $html, 'le thème du cookie du site doit être lu');
+        // Les scripts sont des fichiers externes (pas de script en ligne, voir la CSP) : on lit leur contenu.
+        preg_match_all('#<script src="(/docs/graphql/_app/vff/[^"]+)"#', $html, $scripts);
+        $code = implode("\n", array_map(fn (string $src): string => (string) file_get_contents(public_path(ltrim($src, '/'))), $scripts[1]));
+        $this->assertStringContainsString("main.lang = 'fr'", $code);
+        $this->assertStringContainsString('theme=(dark|light)', $code, 'le thème du cookie du site doit être lu');
         $this->assertStringContainsString('<title>Guide - Introduction - VFF API GraphQL</title>', $html);
 
         $css = (string) file_get_contents(public_path('docs/graphql/vff.css'));
