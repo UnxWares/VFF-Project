@@ -169,4 +169,32 @@ class PublicPagesTest extends TestCase
     {
         $this->get('/up')->assertOk();
     }
+
+    public function test_health_endpoint_is_plain_text_without_external_resource(): void
+    {
+        $response = $this->get('/up')->assertOk();
+
+        $this->assertStringStartsWith('text/plain', (string) $response->headers->get('Content-Type'));
+        $this->assertSame('OK', $response->getContent());
+        $this->assertStringNotContainsString('http', (string) $response->getContent());
+    }
+
+    public function test_health_endpoint_answers_503_in_maintenance(): void
+    {
+        $this->artisan('down')->assertSuccessful();
+
+        try {
+            $this->get('/up')->assertStatus(503);
+        } finally {
+            $this->artisan('up')->assertSuccessful();
+        }
+    }
+
+    public function test_csp_log_channel_writes_outside_the_real_file_during_tests(): void
+    {
+        $path = (string) config('logging.channels.csp.path');
+
+        $this->assertStringContainsString('logs/testing/', $path);
+        $this->assertStringNotContainsString(storage_path('logs/csp.log'), $path);
+    }
 }

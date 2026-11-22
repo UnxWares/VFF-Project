@@ -99,7 +99,8 @@ return [
 
         'csp' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/csp.log'),
+            // Les tests écrivent ailleurs (LOG_CSP_FILE dans phpunit.xml) : leurs lignes ne polluent pas le suivi réel.
+            'path' => storage_path(env('LOG_CSP_FILE', 'logs/csp.log')),
             'level' => 'warning',
             'days' => 30,
             'replace_placeholders' => true,

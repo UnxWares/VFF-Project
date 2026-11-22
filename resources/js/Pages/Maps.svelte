@@ -857,6 +857,11 @@
         .map-jumps {
             display: none;
         }
+        /* Légende dépliée : au plus la moitié de la hauteur de la carte, le reste défile. */
+        .legend-slot {
+            bottom: auto;
+            height: calc(50% - 12px);
+        }
         .map-toolbar {
             gap: 8px;
             padding: 8px;
