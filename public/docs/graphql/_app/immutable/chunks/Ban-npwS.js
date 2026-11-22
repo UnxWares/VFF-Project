@@ -223,6 +223,24 @@ type Query {
     slug: String!
   ): Accident
   """
+  Articles du journal de bord, du plus récent au plus ancien, sans leur texte (comme
+  \`GET /api/v1/journal\`). Un article sans traduction est renvoyé en français : \`lang\` dit la langue du
+  texte renvoyé.
+  """
+  journalArticles(
+    "Langue souhaitée : \`fr\` (par défaut), \`en\` ou \`de\`."
+    lang: String = "fr"
+    "Code RFN à 6 chiffres : seulement les articles qui parlent de cette ligne."
+    line: String
+  ): [JournalArticle!]!
+  "Un article du journal de bord, complet (comme \`GET /api/v1/journal/{slug}\`) ; \`null\` s'il n'existe pas ou n'est pas encore publié."
+  journalArticle(
+    "Slug de l'article (ex. \`les-hirondelles\`)."
+    slug: String!
+    "Langue souhaitée : \`fr\` (par défaut), \`en\` ou \`de\`."
+    lang: String = "fr"
+  ): JournalArticle
+  """
   Itinéraire historique entre deux gares, sur le réseau en service à l'époque demandée
   (ex. Rennes - Brest en 1930). Renvoie \`null\` si une gare est inconnue ou ambiguë, ou si
   aucun chemin n'existe à cette époque : l'API REST \`GET /api/v1/route\` en donne le motif
@@ -760,14 +778,28 @@ type Line {
     type: ArchiveDocumentType
   ): [LineArchiveDocument!]!
   """
+  Notices d'inventaire des fonds d'archives dont le titre désigne la ligne, du plus ancien au plus récent
+  (sans date en dernier), comme \`GET /api/v1/lines/{line}/archive-records\`. Seule source à ce jour : le jeu
+  de données « Archives SNCF » (dossiers, photographies et films du groupe SNCF, ressources.data.sncf.com,
+  ODbL). Même score explicable que \`archives\`, retenu à partir de 9 points sur 11 ; liste vide si aucune
+  notice n'est sûre. Ni description, ni image, ni document : suivez \`url\` vers archives.sncf.com.
+  """
+  archive_records(
+    "Ne garder qu'un type de notice. Par défaut : tous."
+    type: ArchiveRecordType
+    "Ne garder qu'un fonds : \`sncf-archives\` (Archives SNCF). Par défaut : tous."
+    source: String
+  ): [LineArchiveRecord!]!
+  """
   Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
-  ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
-  ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
+  ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox) ou dans
+  d'autres documents datés (\`source.provider: manual\`, avec \`source.documents\`), du plus ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
   par \`GET /api/v1/lines/{line}/signalling\` de l'API REST. Seuls les faits sûrs sont donnés (jour ou mois
   précis, ou année), et un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide
   si l'article ne date rien. Avec \`era\`, seuls les faits encore en vigueur à la fin de l'ère (ceux que
   dessine la carte de l'époque). Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de
-  \`SignallingEvent.attribution\`.
+  \`SignallingEvent.attribution\`. Un fait de Wikipédia que redit un fait daté par des documents (même système,
+  même année, même portion) n'est pas répété.
   """
   signalling_history(
     "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
@@ -2827,6 +2859,8 @@ type LineProfile {
   terrain_ranges: [LineProfileGap!]!
   "Ligne à crémaillère (liste versionnée d'après Wikipédia) : type, étendue et déclivité publiée par la source. Nul pour une ligne à adhérence."
   rack: LineProfileRack
+  "Déclivité la plus forte donnée par une source écrite (champ « pente » de l'infobox de Wikipédia), quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés. Nulle sinon : elle ne remplace jamais une mesure publiée."
+  sourced_grade: LineProfileSourcedGrade
   "Toutes les gares rattachées à la ligne (fermées comprises), projetées sur le parcours."
   stations: [LineProfileStation!]!
   "Date du calcul (ISO 8601)."
@@ -2887,7 +2921,16 @@ type LineProfileRack {
 }
 
 
-"Source d'une fiche de crémaillère."
+"Déclivité d'une source écrite, donnée à la place d'une mesure non publiée. Contrôle sur 235 lignes mesurées sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près (l'infobox donne souvent la pente d'un point, la mesure celle d'une rampe d'1 km)."
+type LineProfileSourcedGrade {
+  "Déclivité la plus forte selon la source, en ‰ (sans position ni sens)."
+  max_grade_permil: Float!
+  "Article lu : fournisseur (\`wikipedia\`), titre, permalien de la révision lue et licence (CC BY-SA 4.0)."
+  source: LineProfileRackSource!
+}
+
+
+"Source écrite d'une donnée du profil (fiche de crémaillère, déclivité sourcée)."
 type LineProfileRackSource {
   "Clé du fournisseur (\`wikipedia\`)."
   provider: String!
@@ -3106,6 +3149,69 @@ type LineArchiveDocument {
 }
 
 
+"Type d'une notice de fonds d'archives."
+enum ArchiveRecordType {
+  "Dossier d'archives (correspondance, rapports, plans, procès-verbaux)."
+  DOCUMENT
+  "Image fixe : photographie, affiche."
+  IMAGE
+  "Film."
+  VIDEO
+}
+
+
+"""
+Notice d'inventaire d'un fonds d'archives, rattachée à une ligne d'après son titre (\`vff:import-sncf-archives\`).
+Source : jeu de données « Archives SNCF » du Service Archives Documentation du groupe SNCF (ODbL). VFF garde
+les métadonnées de la notice et le lien ; la description, l'image et le document restent sur archives.sncf.com,
+et leur réutilisation suit les conditions de ce site.
+"""
+type LineArchiveRecord {
+  "Fonds d'origine : \`sncf-archives\` (Archives SNCF)."
+  source: String!
+  "Numéro du dossier dans le fonds (ex. \`0390LM0048-018\`, \`33453\`), pas toujours unique ; nul s'il manque."
+  reference: String
+  "Lien vers la notice et le document numérisé sur le site du fonds (archives.sncf.com) : identifiant de la notice."
+  url: String!
+  "Titre de la notice."
+  title: String!
+  "Type de notice : \`document\` (dossier d'archives), \`image\` (photographie, affiche) ou \`video\` (film)."
+  type: String!
+  "Thème du classement du fonds (ex. « Aménagement du territoire : réseau et gares »), nul s'il manque."
+  theme: String
+  "Sous-thème du classement, nul s'il manque."
+  sub_theme: String
+  "Service versant ou propriétaire du dossier (ex. « Org. Territoriale \\\\ Direction Régionale de Paris Est »), nul s'il manque."
+  holder: String
+  "Boîte d'archives (ex. \`0390LM0048\`), nulle si elle manque."
+  box: String
+  "Titulaire des droits indiqué par la notice (ex. « SNCF-MEDIATHEQUE »), nul s'il manque."
+  rights: String
+  "Date telle que VFF l'écrit d'après la notice (« 1942 », « 1941-1950 », « 1986-09 », « 1958-09-27 »), nulle si inconnue."
+  date_label: String
+  "Année de la notice (première année d'un dossier qui en couvre plusieurs), nulle si elle est inconnue."
+  year: Int
+  "Dernière année d'un dossier qui couvre plusieurs années (\`date_precision\` = \`range\`), nulle sinon."
+  year_to: Int
+  "Jour de la prise de vue (précision \`day\`) ou premier jour du mois (précision \`month\`)."
+  exact_date: Date
+  "Précision de la date : \`day\`, \`month\`, \`year\`, \`range\` (de \`year\` à \`year_to\`) ou \`unknown\`. Une prise de vue datée du 1er du mois est lue au mois, du 1er janvier à l'année."
+  date_precision: String!
+  "Score de rattachement à la ligne, de 9 (seuil) à 11."
+  score: Int!
+  "Raisons du score, point par point (mêmes codes que \`LineArchiveDocument.score_reasons\`)."
+  score_reasons: [ArchiveMatchReason!]!
+  "Lieux de la ligne reconnus dans le titre."
+  matched_places: [String!]!
+  "Date de récupération du jeu de données par VFF (à citer avec la source)."
+  fetched_at: DateTime!
+  "Mention de source à reproduire (SNCF, Service Archives Documentation, ODbL)."
+  attribution: String!
+  "Fournisseur et licence de la donnée (Archives SNCF, ODbL)."
+  provenance: Provenance!
+}
+
+
 "Une raison du score de rattachement d'un document d'archives."
 type ArchiveMatchReason {
   "Code de la raison : \`rail_route\` (voie ferrée « de X à Y »), \`route\` (trajet « de X à Y »), \`two_places\`, \`only_line_places\`, \`ends\`, \`secondary_mention\`, \`rail_word\`, \`rail_hint\`, \`date_in_life\`, \`date_project\`, \`date_after_closure\`, \`date_unknown\`, \`date_doubtful\` ou \`doc_type\`."
@@ -3137,8 +3243,10 @@ type LineGreenwayWay {
 
 
 """
-Mise en service d'un système de signalisation, datée par l'article Wikipédia de la ligne : un fait par
-système, date et portion. Le KVB y est un contrôle de vitesse (\`role: speed_control\`), jamais un cantonnement.
+Mise en service d'un système de signalisation, datée par l'article Wikipédia de la ligne ou par d'autres
+documents relevés par VFF (communiqués de SNCF Réseau, rapports du BEA-TT et de l'EPSF, Journal officiel,
+presse : \`source.provider\` vaut \`manual\`) : un fait par système, date et portion. Le KVB y est un contrôle de
+vitesse (\`role: speed_control\`), jamais un cantonnement.
 """
 type SignallingEvent {
   "Système : \`BAL\`, \`BAPR\`, \`BM\` (block manuel), \`CT\` (cantonnement téléphonique), \`TVM-300\`, \`TVM-430\`, \`TVM\`, \`ETCS_L1\`, \`ETCS_L2\`, \`ETCS\` (niveau non précisé) ou \`KVB\`."
@@ -3151,13 +3259,13 @@ type SignallingEvent {
   date_precision: String!
   "Fiabilité : \`high\` (jour ou mois donné) ou \`medium\` (année seule, date reprise d'une phrase voisine comme « la même année » ou « à cette occasion », ou date déduite de l'ouverture : \`origin\` vaut \`opening\`). Lisez la précision dans \`date_precision\`. Les faits douteux ne sont pas exposés."
   reliability: String!
-  "Où l'article donne le fait : \`text\` (phrase), \`list\` (liste à puces), \`table\` (ligne d'un tableau), \`infobox\` (champ « signalisation » daté) ou \`opening\` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox)."
+  "Où l'article donne le fait : \`text\` (phrase), \`list\` (liste à puces), \`table\` (ligne d'un tableau), \`infobox\` (champ « signalisation » daté) ou \`opening\` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox). \`document\` : fait daté hors de l'article, par les documents de \`source.documents\`."
   origin: String!
   "Portée : \`whole_line\` (l'article dit toute la ligne), \`section\` (portion nommée) ou \`unspecified\` (l'article ne dit pas)."
   scope: String!
   "Portion concernée, nulle quand \`scope\` n'est pas \`section\`."
   section: SignallingEventSection
-  "Article Wikipédia et révision d'où vient le fait."
+  "Article Wikipédia et révision d'où vient le fait, ou documents qui le datent (\`provider: manual\`)."
   source: SignallingEventSource!
   "Mention à reproduire en réutilisant ces données (CC BY-SA 4.0)."
   attribution: String!
@@ -3198,16 +3306,33 @@ type SignallingEventStation {
 
 "Source d'une mise en service de signalisation."
 type SignallingEventSource {
-  "Fournisseur : \`wikipedia\`."
+  "Fournisseur : \`wikipedia\` (article de la ligne) ou \`manual\` (relevé de VFF dans des documents datés, listés dans \`documents\`)."
   provider: String!
-  "Titre de l'article."
+  "Titre de l'article, ou du premier document."
   title: String!
-  "Permalien de la révision lue."
+  "Permalien de la révision lue, ou lien du premier document."
   url: String!
-  "Numéro de la révision lue."
-  revision: Int!
-  "Courte phrase de l'article (200 caractères au plus), pour relire le fait."
+  "Numéro de la révision lue ; nul pour un fait daté par des documents."
+  revision: Int
+  "Courte phrase de l'article (200 caractères au plus), pour relire le fait ; pour un fait daté par des documents, le fait résumé par VFF."
   excerpt: String!
+  "Vérification d'un fait daté par des documents : \`official\` (au moins un document d'un organisme officiel : SNCF Réseau, État, région, EPSF, BEA-TT, Journal officiel) ou \`two_sources\` (deux documents de sites différents). Nul pour un fait de Wikipédia."
+  verification: String
+  "Documents qui datent le fait, le plus sûr d'abord (liste vide pour un fait de Wikipédia)."
+  documents: [SignallingEventDocument!]!
+}
+
+
+"Document qui date une mise en service de signalisation : communiqué, rapport, texte officiel, article de presse."
+type SignallingEventDocument {
+  "Éditeur (ex. « SNCF Réseau », « BEA-TT », « Ouest-France »)."
+  publisher: String!
+  "Titre du document."
+  title: String!
+  "Lien du document."
+  url: String!
+  "Date de publication : \`AAAA-MM-JJ\`, \`AAAA-MM\` ou \`AAAA\` ; nulle si inconnue."
+  published: String
 }
 
 
@@ -3677,7 +3802,7 @@ type LineSheetSignalling {
   kvb_equipped: Boolean!
   "Tranches de points kilométriques homogènes."
   ranges: [LineSignallingRange!]!
-  "Mises en service datées relevées dans l'article Wikipédia de la ligne (historique à part de l'état actuel ci-dessus), comme \`Line.signalling_history\`."
+  "Mises en service datées relevées dans l'article Wikipédia de la ligne ou dans d'autres documents (historique à part de l'état actuel ci-dessus), comme \`Line.signalling_history\`."
   history: [SignallingEvent!]!
 }
 
@@ -3751,7 +3876,7 @@ type LineSheetStation {
   closed_after: Int
   "Année de fermeture retenue."
   closed_year: Int
-  "Statut aujourd'hui (\`active\`, \`tourist\`, \`no_commercial\`, \`declassified\`) ; nul si la gare a disparu."
+  "Statut aujourd'hui (\`active\`, \`tourist\`, \`no_commercial\`, \`declassified\`) ; nul si la gare n'est pas sur la carte d'aujourd'hui (fermée avant la décennie en cours, ou disparue : date dans \`closed_at\`)."
   status_today: String
   "Statut à chaque décennie : objet \`{ \\"1930\\": \\"active\\", … }\`."
   eras: JSON
@@ -4382,6 +4507,113 @@ type SourceProvider {
   domains: [String!]!
   "Valeurs de provenance, par table, qui renvoient à ce fournisseur."
   source_values: [SourceValues!]!
+}
+
+
+"""
+Article du journal de bord : texte long de l'équipe VFF (CC BY-SA 4.0), écrit en Markdown dans un fichier
+versionné du dépôt. Les champs du texte (\`author\`, \`html\`, \`toc\`, \`lines\`, \`stations\`, \`words\`,
+\`reading_minutes\`, \`license\`, \`license_url\`) sont nuls dans \`journalArticles\` et remplis par \`journalArticle\`.
+"""
+type JournalArticle {
+  "Identifiant de l'article, à passer à \`journalArticle(slug:)\`."
+  slug: String!
+  "Titre."
+  title: String!
+  "Date de publication (\`AAAA-MM-JJ\`)."
+  date: Date!
+  "Date de la dernière mise à jour, ou \`null\`."
+  updated: Date
+  "Résumé en une ou deux phrases."
+  summary: String!
+  "Langue du texte renvoyé (\`fr\` quand la traduction demandée n'existe pas)."
+  lang: String!
+  "Langues dans lesquelles l'article existe, le français d'abord."
+  locales: [String!]!
+  "Photo de Wikimedia Commons, avec auteur et licence, ou \`null\`."
+  image: JournalImage
+  "Codes RFN des lignes dont parle l'article (en-tête)."
+  line_codes: [String!]!
+  "Slugs des gares dont parle l'article (en-tête)."
+  station_slugs: [String!]!
+  "Chemin de la page sur le site (\`/journal/{slug}\`)."
+  path: String!
+  "Adresse complète de la page."
+  url: String!
+  "Auteur : toujours l'équipe, jamais une personne."
+  author: String
+  "Mention de lien d'intérêts déclarée par l'équipe, à reprendre avec l'article, ou \`null\`."
+  disclosure: String
+  "Texte en HTML : liens internes relatifs au site, liens externes en nouvel onglet, sources en notes de fin (\`<div class=\\"footnotes\\">\`)."
+  html: String
+  "Sommaire : titres de niveau 2, avec l'identifiant de leur ancre."
+  toc: [JournalTocEntry!]
+  "Fiches des lignes citées qui existent (en-tête et liens du texte)."
+  lines: [JournalLine!]
+  "Fiches des gares citées qui existent (en-tête et liens du texte)."
+  stations: [JournalStation!]
+  "Nombre de mots du texte."
+  words: Int
+  "Durée de lecture en minutes (220 mots par minute, arrondi au-dessus)."
+  reading_minutes: Int
+  "Licence du texte (\`CC BY-SA 4.0\`)."
+  license: String
+  "Adresse de la licence du texte."
+  license_url: String
+}
+
+
+"Photo d'un article du journal (Wikimedia Commons)."
+type JournalImage {
+  "Adresse de l'image (vignette de 1 280 px de Wikimedia Commons)."
+  src: String!
+  "Texte de remplacement : ce que montre l'image."
+  alt: String!
+  "Légende, ou \`null\`."
+  caption: String
+  "Auteur, à citer."
+  author: String!
+  "Licence (ex. \`CC BY-SA 4.0\`, \`CC0 1.0\`)."
+  licence: String!
+  "Adresse de la licence, ou \`null\`."
+  licence_url: String
+  "Page du fichier sur Wikimedia Commons."
+  source_url: String!
+  "Largeur en pixels."
+  width: Int!
+  "Hauteur en pixels."
+  height: Int!
+}
+
+
+"Entrée du sommaire d'un article."
+type JournalTocEntry {
+  "Identifiant de l'ancre (\`/journal/{slug}#{id}\`)."
+  id: String!
+  "Texte du titre."
+  label: String!
+}
+
+
+"Ligne citée par un article."
+type JournalLine {
+  "Code RFN à 6 chiffres."
+  code: String!
+  "Slug de la fiche (\`line(slug:)\`)."
+  slug: String!
+  "Nom de la ligne."
+  name: String!
+}
+
+
+"Gare citée par un article."
+type JournalStation {
+  "Slug de la fiche (\`station(slug:)\`)."
+  slug: String!
+  "Nom de la gare."
+  name: String!
+  "Commune, ou \`null\`."
+  city: String
 }
 
 
