@@ -50,6 +50,19 @@ return [
             'https://panoramax.ign.fr',
             'https://panoramax-storage-public-fast.s3.gra.perf.cloud.ovh.net',
             'https://panoramax.openstreetmap.fr',
+            // Images de fonds ouverts (vff:import-open-data-media, agent medias-3) affichées en lien direct par le navigateur : École des
+            // ponts et chaussées et Numistral (IIIF), Getty (IIIF), archives de Saône-et-Loire.
+            'https://heritage.ecoledesponts.fr',
+            'https://numistral.bnf.fr',
+            'https://media.getty.edu',
+            'https://saone-et-loire71.fr',
+            // Cartes postales et autochromes (agent medias-2) : Archives des Hauts-de-Seine (Albert-Kahn, 9 Fi,
+            // Suresnes), Évry-Courcouronnes, Sèvres, musée Gadagne (Grand Lyon).
+            'https://opendata.hauts-de-seine.fr',
+            'https://data.evrycourcouronnes.fr',
+            'https://data.sevres.fr',
+            'https://sevres-seineouest.opendatasoft.com',
+            'https://download.data.grandlyon.com',
         ],
     ],
 ];
