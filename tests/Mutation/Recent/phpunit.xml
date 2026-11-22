@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation du code récent (Infection, cf. infection.json5).
+    Chaque thread Infection reçoit TEST_TOKEN=<n> : Laravel migre « <base>_test_<n> ».
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Mutation">
+            <file>../../Unit/SentryScrubberTest.php</file>
+            <file>../../Unit/SentryScrubberMutationTest.php</file>
+            <file>../../Feature/LineElectrificationAggregateTest.php</file>
+            <file>../../Unit/LineElectrificationDecisionTest.php</file>
+            <file>../../Feature/LineElectrificationAggregateMutationTest.php</file>
+            <file>../../Feature/SitemapTest.php</file>
+            <file>../../Feature/SitemapBuilderMutationTest.php</file>
+            <file>../../Feature/JournalContentTest.php</file>
+            <file>../../Unit/JournalFrontMatterTest.php</file>
+            <file>../../Unit/JournalFrontMatterMutationTest.php</file>
+            <file>../../Unit/JournalRendererIdsTest.php</file>
+            <file>../../Feature/JournalRendererMutationTest.php</file>
+            <file>../../Unit/Signalling/SignallingCorrectionsFileTest.php</file>
+            <file>../../Unit/Signalling/SignallingCorrectionsFileMutationTest.php</file>
+            <file>../../Feature/SignallingCorrectionsFilePathTest.php</file>
+            <file>../../Unit/Profiles/SourcedGradesTest.php</file>
+            <file>../../Unit/Profiles/SourcedGradesMutationTest.php</file>
+            <file>../../Unit/Accidents/AccidentSlugTableTest.php</file>
+            <file>../../Unit/Accidents/AccidentSlugTableMutationTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>../../../app/Services</directory>
+            <directory>../../../app/Support</directory>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+
+</phpunit>

@@ -144,10 +144,10 @@ final class SignallingCorrectionsFile
         if (! is_array($t) || ! in_array($t['source'] ?? null, self::TARGET_SOURCES, true)) {
             return 'fait visé : source inconnue (wikipedia ou manual)';
         }
-        if (! preg_match('/^(?:BAL|BAPR|BM|CT|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/', (string) ($t['system'] ?? ''))) {
+        if (! preg_match('/^(?:BAL|BAPR|BM|CT|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/D', (string) ($t['system'] ?? ''))) {
             return 'fait visé : système inconnu';
         }
-        if (! preg_match('/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/', (string) ($t['date'] ?? ''))) {
+        if (! preg_match('/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/D', (string) ($t['date'] ?? ''))) {
             return 'fait visé : date illisible (AAAA, AAAA-MM ou AAAA-MM-JJ)';
         }
         [$date] = SignallingSourcesFile::date((string) $t['date']);
@@ -173,7 +173,7 @@ final class SignallingCorrectionsFile
             if (! str_starts_with((string) ($source['url'] ?? ''), 'https://') || filter_var($source['url'], FILTER_VALIDATE_URL) === false) {
                 return 'lien de source invalide (https attendu)';
             }
-            if (isset($source['published']) && ! preg_match('/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/', (string) $source['published'])) {
+            if (isset($source['published']) && ! preg_match('/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/D', (string) $source['published'])) {
                 return 'date de publication illisible';
             }
             if (str_contains((string) $source['url'], 'archeoferroviaire')) {
