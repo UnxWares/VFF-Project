@@ -27,7 +27,8 @@ use League\CommonMark\Renderer\HtmlRenderer;
  *   la gare, ancien slug accepté), avec une ancre facultative (`ligne:878000#chronicle`). Ils deviennent
  *   des liens vers la fiche quand elle existe ; sinon le texte reste, sans lien (jamais de lien mort).
  * - Liens externes : ouverts dans un nouvel onglet, signalé par l'icône du site et une phrase lue.
- * - Notes `[^1]` : sources de l'article, rendues en fin de texte (rôles doc-noteref et doc-endnotes),
+ * - Notes `[^1]` : sources de l'article, rendues en fin de texte (rôles doc-noteref et doc-endnotes ; l'élément `li` de chaque note
+ *   n'a pas de rôle, doc-endnote étant déprécié),
  *   avec un retour vers l'appel nommé pour les lecteurs d'écran.
  * - HTML écrit dans le Markdown : échappé (le texte reste lisible, rien n'est exécuté) ; liens
  *   `javascript:` et autres protocoles dangereux retirés par CommonMark.
@@ -80,6 +81,9 @@ final class JournalRenderer
         $html = (string) (new HtmlRenderer($environment))->renderDocument($document);
         // Retour d'une note vers son appel : la flèche seule ne dit rien aux lecteurs d'écran.
         $html = str_replace('role="doc-backlink"', 'role="doc-backlink" aria-label="'.e($backLabel).'"', $html);
+        // Le rôle doc-endnote (déprécié dans ARIA DPUB) est refusé par les validateurs : l'élément li de la liste
+        // ordonnée de la note garde sa sémantique native, le conteneur doc-endnotes reste.
+        $html = str_replace(' role="doc-endnote"', '', $html);
         $words = str_word_count(strip_tags($html), 0, 'ÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸàâäçéèêëîïôöùûüÿŒœÆæß0123456789\'’-');
 
         return [

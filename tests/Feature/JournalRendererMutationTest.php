@@ -194,6 +194,9 @@ class JournalRendererMutationTest extends TestCase
         $this->assertStringContainsString('id="note-1"', $r['html']);
         $this->assertStringContainsString('role="doc-backlink" aria-label="retour à l&#039;appel &quot;1&quot;"', $r['html']);
         $this->assertStringContainsString('↑', $r['html']);
+        $this->assertStringContainsString('role="doc-endnotes"', $r['html']);
+        $this->assertStringContainsString('role="doc-noteref"', $r['html']);
+        $this->assertStringNotContainsString('doc-endnote"', $r['html']);
         $this->assertStringNotContainsString('<hr', $r['html']);
         $this->assertStringStartsWith('<p>', $r['html']);
         $this->assertStringEndsNotWith("\n", $r['html']);
