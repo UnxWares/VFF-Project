@@ -3279,4 +3279,16 @@ return [
         'quote' => 'a contraint SNCF Réseau à suspendre les circulations sur cette ligne le 29 mai 2016 entre Thiers et Boën-sur-Lignon',
         'reason' => 'circulations suspendues entre Thiers et Boën-sur-Lignon le 29/05/2016, trains remplacés par des cars (article de la ligne et presse : ici.fr, 30/05/2016, « Depuis ce dimanche, les circulations sont suspendues entre Thiers et Boën-sur-Lignon ») ; la gare n\'est plus desservie que par cars TER ; remplace la fermeture sans date (borne basse 1827)',
     ],
+
+    // ── 28. Site technique sans service voyageurs (gares-horaires-archives, 22/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-horaires-archives.md).
+    // « Centre Henri Lang » (UIC fictif 87999999) : immeuble de SNCF Réseau, 16 rue Chrétien-de-Troyes (Paris 12e), qui abrite
+    // le poste d'aiguillage et de régulation de la LGV Paris - Lyon ; aucun quai ni train de voyageurs.
+    [
+        'station' => ['name' => 'Centre Henri Lang', 'uic' => '87999999'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://www.ecologie.gouv.fr/presse/visite-francois-durovray-du-poste-daiguillage-regulation-ligne-grande-vitesse-lgv-sud-est',
+        'reason' => 'siège technique de SNCF Réseau (poste d\'aiguillage et de régulation de la LGV Paris - Lyon), rendez-vous de visite « Centre Henri Lang, 16 rue Chrétien de Troyes, Paris 12e » (communiqué du ministère de la Transition écologique) ; deuxième source : Journées du patrimoine 2024 (OpenAgenda) ; l\'UIC 87999999 est fictif : pas une gare',
+    ],
 ];
