@@ -21,7 +21,7 @@ Point de départ obligé : renvoie les identifiants (`slug`) attendus par les au
 Lignes : par nom (« Paris à Brest ») ou code SNCF Réseau à 6 chiffres (« 420000 », espaces tolérés) ; les lignes en service passent avant les lignes fermées.
 Gares : par nom, avec ville, code de département et coordonnées WGS 84 (lat, lng en degrés décimaux) pour distinguer les homonymes.
 Accidents : par nom (français, anglais ou allemand), commune ou date (« 1891 », « 07/2013 », « 12/07/2013 », « 2013-07-12 ») ; seuls les accidents publiés sont renvoyés (identifiant pour `get_accident`).
-Insensible à la casse et aux accents (« saint-etienne » trouve « Saint-Étienne »). Résultats triés par pertinence : nom exact, début du nom, mot du nom, puis le reste.
+Casse, accents, tirets, apostrophes et abréviations (St, Ste, N.-D., s/, lès) indifférents, petits mots facultatifs, mots dans n'importe quel ordre (« st hilaire chaleons » trouve « St-Hilaire-de-Chaléons »). Résultats triés par pertinence : nom exact, début du nom, début d'un mot, tous les mots, puis le reste ; quand moins de 3 fiches correspondent, noms approchés (fautes de frappe) marqués `approximate`.
 Exemple : {"query": "brest"} ; {"query": "420000", "kinds": ["lines"]}.
 TXT)]
 #[IsReadOnly]

@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
-use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Line;
 use App\Support\FrenchDepartments;
+use App\Support\Search\SearchFields;
+use App\Support\Search\SearchQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,9 @@ use Illuminate\Support\Facades\DB;
  * serveur MCP. Lecture seule.
  *
  * Filtres (déjà validés) :
- *   - `q` : nom, code ou compagnie d'origine (recherche littérale, casse ignorée) ;
+ *   - `q` : nom, autres noms, code ou compagnie d'origine (recherche commune App\Support\Search : tirets, accents,
+ *     abréviations et petits mots indifférents, mots dans n'importe quel ordre, noms approchés si rien ne
+ *     correspond mot pour mot) ;
  *   - `network` : principal, secondaire, militaire, particulier, ou `none` (non renseigné) ;
  *   - `traffic` : passenger, mixed, freight, unknown (trafic des portions en service à l'ère) ;
  *   - `status` : `open` (au moins une portion en service à l'ère), `closed` (tracé connu à l'ère,
@@ -27,14 +30,19 @@ use Illuminate\Support\Facades\DB;
  */
 final class LineDirectory
 {
-    use ReadsListFilters;
-
     /**
      * Compteurs par état déjà calculés pour une requête (stateCounts).
      *
      * @var array<string, array{total: int, open: int, closed: int, unknown: int}>
      */
     private array $stateCounts = [];
+
+    /**
+     * Recherches sans correspondance mot pour mot (approximate).
+     *
+     * @var array<string, bool>
+     */
+    private array $approximate = [];
 
     /** Catégories de réseau (contrat `lines.network`). */
     public const NETWORKS = ['principal', 'secondaire', 'militaire', 'particulier'];
@@ -69,10 +77,8 @@ final class LineDirectory
     {
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
-            $like = $this->containsPattern($q);
-            $builder->where(fn ($w) => $w->where('lines.name', 'ilike', $like)
-                ->orWhere('lines.code', 'ilike', $like)
-                ->orWhere('lines.historical_operator', 'ilike', $like));
+            $search = SearchQuery::parse($q);
+            $search->where($builder, SearchFields::keys('line', 'lines.'), self::codeMatch($search), $this->approximate($q));
         }
         $network = (string) ($filters['network'] ?? '');
         if ($network !== '' && ! in_array('network', $skip, true)) {
@@ -98,6 +104,58 @@ final class LineDirectory
         }
 
         return $builder;
+    }
+
+    /**
+     * La recherche ne trouve-t-elle aucune ligne mot pour mot (nom, autres noms, compagnie, code) ? Les listes
+     * montrent alors les lignes au nom approché (fautes de frappe). Mémorisé par requête.
+     */
+    public function approximate(string $q): bool
+    {
+        $q = trim($q);
+        if ($q === '') {
+            return false;
+        }
+        if (! isset($this->approximate[$q])) {
+            $search = SearchQuery::parse($q);
+            $this->approximate[$q] = $search->canBeFuzzy()
+                && ! $search->where(Line::query(), SearchFields::keys('line', 'lines.'), self::codeMatch($search))->exists();
+        }
+
+        return $this->approximate[$q];
+    }
+
+    /**
+     * Tri par pertinence de la recherche : code exact, rang du nom (SearchQuery), lignes en service à l'ère.
+     *
+     * @template TBuilder of Builder<Line>
+     *
+     * @param  TBuilder  $builder
+     * @return TBuilder
+     */
+    public function orderByRelevance(Builder $builder, string $q, ?int $eraId): Builder
+    {
+        $search = SearchQuery::parse($q);
+        [$nameKey, $allKey] = SearchFields::keys('line', 'lines.');
+        if ($search->digits() !== null) {
+            $builder->orderByRaw("CASE WHEN replace(COALESCE(lines.code, ''), ' ', '') = ? THEN 0 ELSE 1 END", [$search->digits()]);
+        }
+        $search->orderByRelevance($builder, $nameKey, $allKey, $this->approximate($q));
+
+        return $builder->orderByRaw('CASE WHEN EXISTS (SELECT 1 FROM line_segments s WHERE s.line_id = lines.id AND s.era_id = ?
+            AND s.status IN '.self::ACTIVE_STATUSES.') THEN 0 ELSE 1 END', [$eraId]);
+    }
+
+    /**
+     * Code de ligne, espaces ignorées (« 570 000 », « 570000 », « 5700 » : début du code), 3 chiffres au moins.
+     *
+     * @return array{0: string, 1: list<string>}|null
+     */
+    private static function codeMatch(SearchQuery $search): ?array
+    {
+        $digits = $search->digits();
+
+        return $digits !== null && strlen($digits) >= 3 ? ["replace(COALESCE(lines.code, ''), ' ', '') LIKE ?", [$digits.'%']] : null;
     }
 
     /**

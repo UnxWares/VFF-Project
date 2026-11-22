@@ -5,6 +5,8 @@ namespace App\Services\Api;
 use App\Enums\MaterialType;
 use App\Models\Material;
 use App\Support\RangeRule;
+use App\Support\Search\SearchFields;
+use App\Support\Search\SearchQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -182,13 +184,13 @@ final class MaterialQuery
         if ($search === '') {
             return $query;
         }
-        $like = '%'.self::escapeLike($search).'%';
+        // Recherche commune (App\Support\Search) : nom, désignations, constructeur, numéros ; noms approchés si rien
+        // ne correspond mot pour mot.
+        $parsed = SearchQuery::parse($search);
+        $keys = SearchFields::keys('material', 'materials.');
+        $approximate = $parsed->canBeFuzzy() && ! $parsed->where(Material::query(), $keys)->exists();
 
-        return $query->where(fn (Builder $q) => $q
-            ->whereRaw('unaccent(materials.name) ILIKE unaccent(?)', [$like])
-            ->orWhereRaw('unaccent(COALESCE(materials.designations::text, \'\')) ILIKE unaccent(?)', [$like])
-            ->orWhereRaw('unaccent(COALESCE(materials.builder, \'\')) ILIKE unaccent(?)', [$like])
-            ->orWhereRaw('COALESCE(materials.fleet_numbers, \'\') ILIKE ?', [$like]));
+        return $parsed->where($query, $keys, approximate: $approximate);
     }
 
     private static function escapeLike(string $value): string

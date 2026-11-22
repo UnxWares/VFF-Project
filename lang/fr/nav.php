@@ -52,6 +52,7 @@ return [
         'results_one' => ':count résultat',
         'results_other' => ':count résultats',
         'no_results' => "Aucune ligne, gare, matériel ni accident ne correspond à «\u{00A0}:query\u{00A0}».",
+        'approximate' => "Rien ne correspond exactement à «\u{00A0}:query\u{00A0}» : voici les noms les plus proches.",
         'error' => 'La recherche est indisponible pour le moment. Réessayez dans un instant.',
         'clear' => 'Effacer la recherche',
         'keys_hint' => 'Flèches haut et bas pour parcourir, Entrée pour ouvrir, Échap pour fermer.',

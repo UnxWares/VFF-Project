@@ -10,8 +10,18 @@
     import { i18n } from '$lib/i18n.js';
     import { decadeOf } from '$lib/typo.js';
     import { directoryOpening } from '$lib/stationDates.js';
+    import { effectiveSort, sortOptions, sortParam } from '$lib/directorySort.js';
 
-    let { stations, filters, counts = {}, eras = [], departments = [], overall = 0 } = $props();
+    let {
+        stations,
+        filters,
+        counts = {},
+        eras = [],
+        departments = [],
+        overall = 0,
+        sort_chosen = false,
+        approximate = false,
+    } = $props();
 
     // Les champs partent des filtres reçus puis évoluent avec la saisie : valeur initiale voulue.
     // svelte-ignore state_referenced_locally
@@ -24,17 +34,21 @@
     let dept = $state(filters.dept ?? '');
     // svelte-ignore state_referenced_locally
     let flagged = $state(!!filters.flagged);
+    // Tri choisi par le visiteur, '' sinon (pertinence avec une recherche, nom sans : $lib/directorySort.js).
     // svelte-ignore state_referenced_locally
-    let sort = $state(filters.sort ?? 'name');
+    let sort = $state(sort_chosen ? (filters.sort ?? '') : '');
 
     const STATUSES = ['active', 'tourist', 'no_commercial', 'declassified', 'gone', 'planned'];
     const SORTS = [
+        ['relevance', 'sort_relevance'],
         ['name', 'sort_name'],
         ['name-desc', 'sort_name_desc'],
         ['city', 'sort_city'],
         ['opened', 'sort_opened'],
         ['closed', 'sort_closed'],
     ];
+    const shownSort = $derived(effectiveSort(sort, q));
+    const sorts = $derived(sortOptions(SORTS, q));
     const hasFilters = $derived(!!(q || status || era || dept || flagged));
     const fmt = (n) => (n ?? 0).toLocaleString($i18n.language ?? 'fr');
     const showInferredNote = $derived(
@@ -55,7 +69,7 @@
             era,
             dept,
             flagged: flagged ? 1 : '',
-            sort: sort === 'name' ? '' : sort,
+            sort: sortParam(sort, q),
             ...extra,
         };
         Object.keys(p).forEach(
@@ -84,7 +98,7 @@
         clearTimeout(debounceTimer);
         q = status = era = dept = '';
         flagged = false;
-        sort = 'name';
+        sort = '';
         router.get('/stations', {}, { preserveState: true, replace: true });
     }
 
@@ -217,10 +231,13 @@
                     <select
                         id="stations-sort"
                         class="vff-select"
-                        bind:value={sort}
-                        onchange={() => applyFilters(true)}
+                        value={shownSort}
+                        onchange={(e) => {
+                            sort = e.currentTarget.value;
+                            applyFilters(true);
+                        }}
                     >
-                        {#each SORTS as [value, key] (value)}
+                        {#each sorts as [value, key] (value)}
                             <option {value}>{$i18n.t(`stations.${key}`)}</option>
                         {/each}
                     </select>
@@ -235,6 +252,11 @@
                 </label>
             </DirectoryFilters>
 
+            {#if approximate && stations.data.length}
+                <p class="approximate" role="status">
+                    {$i18n.t('stations.approximate', { query: filters.q })}
+                </p>
+            {/if}
             {#if stations.data.length}
                 <DirectoryTable
                     label={$i18n.t('stations.table_label')}
@@ -365,6 +387,11 @@
 </Layout>
 
 <style>
+    .approximate {
+        margin: 0 0 1rem;
+        color: var(--vff-text-muted);
+    }
+
     main {
         background-color: var(--vff-bg);
     }

@@ -52,6 +52,7 @@ return [
         'results_one' => ':count result',
         'results_other' => ':count results',
         'no_results' => 'No line, station, rolling stock or accident matches “:query”.',
+        'approximate' => 'Nothing matches “:query” exactly. These are the closest names.',
         'error' => 'Search is unavailable at the moment. Please try again shortly.',
         'clear' => 'Clear the search',
         'keys_hint' => 'Up and down arrows to browse, Enter to open, Escape to close.',

@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Jeu d'essai de la recherche (demande du 22/11/2026) : requêtes réelles, telles qu'on les tape, et la fiche
+ * attendue. `type` : station, line, material, accident. Mesuré sur la base de développement par
+ * `vff:search-eval` (premier résultat juste, juste dans les 5 premiers) et rejoué sur un petit corpus par
+ * tests/Feature/Search/SearchEvalTest.php.
+ *
+ * @return list<array{q: string, type: string, slug: string}>
+ */
+return [
+    // Gares : tirets, abréviations, accents, ordre des mots, articles facultatifs.
+    ['q' => 'saint-hilaire-de-c', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'saint hilaire de c', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'st hilaire chaleons', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'st-hilaire-de-chaleon', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'hilaire chaléons', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'chaleons st hilaire', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'saint hilaire chalo', 'type' => 'station', 'slug' => 'saint-hilaire-chalo'],
+    ['q' => 'st pierre des corps', 'type' => 'station', 'slug' => 'st-pierre-des-corps'],
+    ['q' => 'saint pierre corps', 'type' => 'station', 'slug' => 'st-pierre-des-corps'],
+    ['q' => 'saint etienne chateaucreux', 'type' => 'station', 'slug' => 'st-etienne-chateaucreux'],
+    ['q' => 'st étienne du rouvray', 'type' => 'station', 'slug' => 'st-etienne-du-rouvray'],
+    ['q' => 'sainte genevieve des bois', 'type' => 'station', 'slug' => 'ste-genevieve-des-bois'],
+    ['q' => 'ste pazanne', 'type' => 'station', 'slug' => 'ste-pazanne'],
+    ['q' => 'sainte-pazanne', 'type' => 'station', 'slug' => 'ste-pazanne'],
+    ['q' => 'saint germain en laye grande ceinture', 'type' => 'station', 'slug' => 'st-germain-en-laye-grande-ceinture'],
+    ['q' => 'st germain laye gde ceinture', 'type' => 'station', 'slug' => 'st-germain-en-laye-grande-ceinture'],
+    ['q' => 'st pierre d albigny', 'type' => 'station', 'slug' => 'st-pierre-dalbigny'],
+    ['q' => "saint-pierre-d'albigny", 'type' => 'station', 'slug' => 'st-pierre-dalbigny'],
+    ['q' => 'st pierre d’albigny', 'type' => 'station', 'slug' => 'st-pierre-dalbigny'],
+    ['q' => 'villeneuve les beziers', 'type' => 'station', 'slug' => 'villeneuve-les-beziers'],
+    ['q' => 'villeneuve lez béziers', 'type' => 'station', 'slug' => 'villeneuve-les-beziers'],
+    ['q' => 'woelfling sarreguemines', 'type' => 'station', 'slug' => 'woelfling-les-sarreguemines'],
+    ['q' => 'fontenay sous bois', 'type' => 'station', 'slug' => 'fontenay-sous-bois'],
+    ['q' => 'fontenay s/s bois', 'type' => 'station', 'slug' => 'fontenay-sous-bois'],
+    ['q' => 'ste colombe s/ seine', 'type' => 'station', 'slug' => 'ste-colombe-sur-seine'],
+    ['q' => 'aixe s/ vienne', 'type' => 'station', 'slug' => 'aixe-sur-vienne'],
+    ['q' => 'n.-d. de riez', 'type' => 'station', 'slug' => 'notre-dame-de-riez'],
+    ['q' => 'notre dame monts', 'type' => 'station', 'slug' => 'notre-dame-de-monts'],
+    ['q' => 'l isle adam parmain', 'type' => 'station', 'slug' => 'lisle-adam-parmain'],
+    ['q' => 'lisle adam', 'type' => 'station', 'slug' => 'lisle-adam-parmain'],
+    ['q' => 'le mans', 'type' => 'station', 'slug' => 'le-mans'],
+    ['q' => 'mans', 'type' => 'station', 'slug' => 'le-mans'],
+    ['q' => 'charleville mezieres', 'type' => 'station', 'slug' => 'charleville-mezieres'],
+    ['q' => 'paris nord', 'type' => 'station', 'slug' => 'paris-nord'],
+    ['q' => 'paris est', 'type' => 'station', 'slug' => 'paris-est'],
+    ['q' => 'lyon perrache', 'type' => 'station', 'slug' => 'lyon-perrache'],
+    ['q' => 'angouleme', 'type' => 'station', 'slug' => 'angouleme'],
+    ['q' => 'limoges benedictins', 'type' => 'station', 'slug' => 'limoges-benedictins'],
+    ['q' => 'evry courcouronnes', 'type' => 'station', 'slug' => 'evry-courcouronnes'],
+    ['q' => 'noisy le grand mont d est', 'type' => 'station', 'slug' => 'noisy-le-grand-mont-dest'],
+    ['q' => 'noisy gd mt d’est', 'type' => 'station', 'slug' => 'noisy-le-grand-mont-dest'],
+    // Fautes de frappe.
+    ['q' => 'st hilaire chalons', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'charleville mezière', 'type' => 'station', 'slug' => 'charleville-mezieres'],
+    ['q' => 'angoulemme', 'type' => 'station', 'slug' => 'angouleme'],
+    ['q' => 'limoges benedictin', 'type' => 'station', 'slug' => 'limoges-benedictins'],
+    ['q' => 'ste genevieve de bois', 'type' => 'station', 'slug' => 'ste-genevieve-des-bois'],
+    ['q' => 'perache', 'type' => 'station', 'slug' => 'lyon-perrache'],
+    // Commune et code UIC.
+    ['q' => 'pineuilh', 'type' => 'station', 'slug' => 'ste-foy-la-grande'],
+    ['q' => '87481234', 'type' => 'station', 'slug' => 'st-hilaire-de-chaleons'],
+    ['q' => 'bretigny sur orge', 'type' => 'station', 'slug' => 'bretigny'],
+    // Lignes : code avec ou sans espace, nom, abréviations.
+    ['q' => '570000', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['q' => '570 000', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['q' => '610 000', 'type' => 'line', 'slug' => 'rfn-610000'],
+    ['q' => '420000', 'type' => 'line', 'slug' => 'rfn-420000'],
+    ['q' => 'limoges angouleme', 'type' => 'line', 'slug' => 'rfn-610000'],
+    ['q' => 'ligne de limoges à angoulême', 'type' => 'line', 'slug' => 'rfn-610000'],
+    ['q' => 'paris austerlitz bordeaux', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['q' => 'paris austerlitz bordeaux saint jean', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['q' => 'paris montparnasse brest', 'type' => 'line', 'slug' => 'rfn-420000'],
+    ['q' => 'paris lyon marseille saint charles', 'type' => 'line', 'slug' => 'rfn-830000'],
+    ['q' => 'petite ceinture auteuil', 'type' => 'line', 'slug' => 'rfn-980000'],
+    ['q' => 'paris nord lille', 'type' => 'line', 'slug' => 'rfn-272000'],
+    ['q' => 'gonesse lille frontiere', 'type' => 'line', 'slug' => 'rfn-226000'],
+    ['q' => 'combs la ville st louis', 'type' => 'line', 'slug' => 'rfn-752000'],
+    // Matériel roulant.
+    ['q' => 'bb 7600', 'type' => 'material', 'slug' => 'bb-7600'],
+    ['q' => 'bb7600', 'type' => 'material', 'slug' => 'bb-7600'],
+    ['q' => 'cc70000', 'type' => 'material', 'slug' => 'cc-70000'],
+    ['q' => 'z 5300', 'type' => 'material', 'slug' => 'z-5300'],
+    ['q' => 'x73500', 'type' => 'material', 'slug' => 'x-73500'],
+    ['q' => '2d2 5100', 'type' => 'material', 'slug' => '2d2-5100'],
+    ['q' => 'turbine a gaz speciale', 'type' => 'material', 'slug' => 'turbine-a-gaz-speciale'],
+    // Accidents : lieu, nom, commune.
+    ['q' => 'saint michel de maurienne', 'type' => 'accident', 'slug' => '1917-12-12-saint-michel-de-maurienne'],
+    ['q' => 'st michel maurienne', 'type' => 'accident', 'slug' => '1917-12-12-saint-michel-de-maurienne'],
+    ['q' => 'catastrophe meudon', 'type' => 'accident', 'slug' => '1842-05-08-meudon'],
+    ['q' => 'collision st michel s/ orge', 'type' => 'accident', 'slug' => '1845-12-13-saint-michel-sur-orge'],
+    ['q' => 'lizy ourcq', 'type' => 'accident', 'slug' => '1914-09-15-lizy-sur-ourcq'],
+    ['q' => 'pissy poville', 'type' => 'accident', 'slug' => '1924-11-06-pissy-poville'],
+    ['q' => 'lagny sur marne passage a niveau', 'type' => 'accident', 'slug' => '1931-08-01-lagny-sur-marne'],
+];

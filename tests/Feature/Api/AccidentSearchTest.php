@@ -71,6 +71,7 @@ class AccidentSearchTest extends TestCase
             'department_code' => '91',
             'lat' => 48.6,
             'lng' => 2.3,
+            'approximate' => false,
         ], $first);
     }
 

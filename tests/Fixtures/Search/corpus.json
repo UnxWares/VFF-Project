@@ -1,0 +1,1924 @@
+{
+    "stations": [
+        {
+            "slug": "aixe-sur-vienne",
+            "name": "Aixe-sur-Vienne",
+            "city": "Aixe-sur-Vienne",
+            "uic_code": "87592667",
+            "department_code": "87",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ancien-cafe-de-la-gare-de-saint-hilaire-luc",
+            "name": "Ancien Café de la Gare de Saint Hilaire Luc",
+            "city": "Neuvic",
+            "uic_code": null,
+            "department_code": "19",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "angouleme",
+            "name": "Angoulême",
+            "city": "Angoulême",
+            "uic_code": "87583005",
+            "department_code": "16",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "angoulin",
+            "name": "Angoulin",
+            "city": "Escource",
+            "uic_code": null,
+            "department_code": "40",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "angoulins-sur-mer",
+            "name": "Angoulins-sur-Mer",
+            "city": "Angoulins",
+            "uic_code": "87485102",
+            "department_code": "17",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ansac",
+            "name": "Ansac",
+            "city": "Ansac-sur-Vienne",
+            "uic_code": "87583518",
+            "department_code": "16",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "arvant",
+            "name": "Arvant",
+            "city": "Bournoncle-Saint-Pierre",
+            "uic_code": "87734251",
+            "department_code": "43",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "aubazine-st-hilaire",
+            "name": "Aubazine-St-Hilaire",
+            "city": "Saint-Hilaire-Peyroux",
+            "uic_code": "87594465",
+            "department_code": "19",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Aubazines - Saint-Hilaire\", \"source\": \"sncf_voyageurs\"}]"
+        },
+        {
+            "slug": "bretigny",
+            "name": "Brétigny",
+            "city": "Brétigny-sur-Orge",
+            "uic_code": "87545194",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Brétigny-sur-Orge\", \"source\": \"sncf_voyageurs\"}]"
+        },
+        {
+            "slug": "caen-saint-pierre",
+            "name": "Caen-Saint-Pierre",
+            "city": "Caen",
+            "uic_code": null,
+            "department_code": "14",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "charleville-mezieres",
+            "name": "Charleville-Mézières",
+            "city": "Charleville-Mézières",
+            "uic_code": "87172007",
+            "department_code": "08",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "est-ceinture",
+            "name": "Est-Ceinture",
+            "city": "Paris",
+            "uic_code": null,
+            "department_code": "75",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "evry-courcouronnes",
+            "name": "Évry-Courcouronnes",
+            "city": "Évry-Courcouronnes",
+            "uic_code": "87681387",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "evry-val-de-seine",
+            "name": "Evry-Val de Seine",
+            "city": "Évry-Courcouronnes",
+            "uic_code": "87681361",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "fontenay-sous-bois",
+            "name": "Fontenay-sous-bois",
+            "city": "Fontenay-sous-Bois",
+            "uic_code": "87758128",
+            "department_code": "94",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ingrandes-sur-vienne",
+            "name": "Ingrandes-sur-Vienne",
+            "city": "Ingrandes",
+            "uic_code": "87575134",
+            "department_code": "86",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "la-riviere-de-mansac",
+            "name": "La Rivière-de-Mansac",
+            "city": "Mansac",
+            "uic_code": "87594416",
+            "department_code": "19",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "le-bras-de-fer",
+            "name": "Le Bras-de-fer",
+            "city": "Évry-Courcouronnes",
+            "uic_code": "87681395",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "le-mans",
+            "name": "Le Mans",
+            "city": "Le Mans",
+            "uic_code": "87396002",
+            "department_code": "72",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "le-mans-hopital-universite",
+            "name": "Le Mans Hôpital Université",
+            "city": "Le Mans",
+            "uic_code": "87743872",
+            "department_code": "72",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Le Mans-Hôpital\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "le-mans-les-halles",
+            "name": "Le Mans-les-Halles",
+            "city": "Le Mans",
+            "uic_code": null,
+            "department_code": "72",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "les-mariniers",
+            "name": "Les Mariniers",
+            "city": "Villeneuve-la-Garenne",
+            "uic_code": null,
+            "department_code": "92",
+            "status": "tourist",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "les-ormes-sur-vienne",
+            "name": "Les Ormes-sur-Vienne",
+            "city": "Les Ormes",
+            "uic_code": "87575118",
+            "department_code": "86",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Les Ormes\", \"source\": \"sncf_voyageurs\"}]"
+        },
+        {
+            "slug": "limoges-benedictins",
+            "name": "Limoges-Bénédictins",
+            "city": "Limoges",
+            "uic_code": "87592006",
+            "department_code": "87",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lisle-adam-parmain",
+            "name": "L'Isle-Adam-Parmain",
+            "city": "Parmain",
+            "uic_code": "87276527",
+            "department_code": "95",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lisle-angely",
+            "name": "L'Isle-Angely",
+            "city": "Angely",
+            "uic_code": null,
+            "department_code": "89",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lizy-sur-ourcq",
+            "name": "Lizy-sur-Ourcq",
+            "city": "Lizy-sur-Ourcq",
+            "uic_code": "87116632",
+            "department_code": "77",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lyon-perrache",
+            "name": "Lyon-Perrache",
+            "city": "Lyon 2e Arrondissement",
+            "uic_code": "87722025",
+            "department_code": "69",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lyon-perrache-marchandises",
+            "name": "Lyon-Perrache-Marchandises",
+            "city": "Lyon 2e Arrondissement",
+            "uic_code": "87722009",
+            "department_code": "69",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "lyon-perrache-min",
+            "name": "Lyon-Perrache (MIN)",
+            "city": "Lyon 2e Arrondissement",
+            "uic_code": "87722157",
+            "department_code": "69",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "magenta",
+            "name": "Magenta",
+            "city": "Paris 10e Arrondissement",
+            "uic_code": "87281873",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "maromme",
+            "name": "Maromme",
+            "city": "Notre-Dame-de-Bondeville",
+            "uic_code": "87411249",
+            "department_code": "76",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "marseille-st-charles",
+            "name": "Marseille-St-Charles",
+            "city": "Marseille 3e Arrondissement",
+            "uic_code": "87751008",
+            "department_code": "13",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "mohon",
+            "name": "Mohon",
+            "city": "Charleville-Mézières",
+            "uic_code": "87172155",
+            "department_code": "08",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "mont-notre-dame",
+            "name": "Mont-Notre-Dame",
+            "city": "Mont-Notre-Dame",
+            "uic_code": "87171355",
+            "department_code": "02",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "nemours-st-pierre",
+            "name": "Nemours-St-Pierre",
+            "city": "Saint-Pierre-lès-Nemours",
+            "uic_code": "87684126",
+            "department_code": "77",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "noisy-le-grand-mont-dest",
+            "name": "Noisy-le-Grand - Mont d’Est",
+            "city": "Noisy-le-Grand",
+            "uic_code": "8775833",
+            "department_code": "93",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "notre-dame-de-monts",
+            "name": "Notre-Dame-de-Monts",
+            "city": "Notre-Dame-de-Monts",
+            "uic_code": null,
+            "department_code": "85",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "notre-dame-de-riez",
+            "name": "Notre-Dame-de-Riez",
+            "city": "Notre-Dame-de-Riez",
+            "uic_code": "87486555",
+            "department_code": "85",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "notre-dame-doe",
+            "name": "Notre-Dame-d'Oé",
+            "city": "Notre-Dame-d'Oé",
+            "uic_code": "87574699",
+            "department_code": "37",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "origny-en-thierache",
+            "name": "Origny-en-Thiérache",
+            "city": "Origny-en-Thiérache",
+            "uic_code": "87296145",
+            "department_code": "02",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "parc-du-chateau",
+            "name": "Parc du Château",
+            "city": "Savigny-sur-Orge",
+            "uic_code": "8774578",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "paris-austerlitz",
+            "name": "Paris-Austerlitz",
+            "city": "Paris 13e Arrondissement",
+            "uic_code": "87547000",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "paris-austerlitz-souterrain",
+            "name": "Paris-Austerlitz-Souterrain",
+            "city": "Paris 13e Arrondissement",
+            "uic_code": "87547026",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Austerlitz\", \"source\": \"sncf_voyageurs\"}, {\"name\": \"Paris Austerlitz RER\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "paris-est",
+            "name": "Paris-Est",
+            "city": "Paris 10e Arrondissement",
+            "uic_code": "87113001",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Gare de l'Est\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "paris-montparnasse-pasteur",
+            "name": "Paris-Montparnasse-Pasteur",
+            "city": "Paris 15e Arrondissement",
+            "uic_code": "87391011",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Montparnasse\", \"source\": \"sncf_voyageurs\"}, {\"name\": \"Gare Montparnasse\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "paris-nord",
+            "name": "Paris-Nord",
+            "city": "Paris 10e Arrondissement",
+            "uic_code": "87271007",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Gare du Nord\", \"source\": \"sncf_voyageurs\"}]"
+        },
+        {
+            "slug": "paris-nord-souterraine",
+            "name": "Paris-Nord-Souterraine",
+            "city": "Paris 10e Arrondissement",
+            "uic_code": "87271023",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Gare du Nord (RER)\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "paris-nord-surface",
+            "name": "Paris-Nord-Surface",
+            "city": "Paris 10e Arrondissement",
+            "uic_code": "87271031",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Gare du Nord\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "paris-st-lazare",
+            "name": "Paris-St-Lazare",
+            "city": "Paris 8e Arrondissement",
+            "uic_code": "87384008",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "paris-vaugirard",
+            "name": "Paris-Vaugirard",
+            "city": "Paris 15e Arrondissement",
+            "uic_code": "87391102",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Paris Montparnasse 3 - Vaugirard\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "perrache-2",
+            "name": "Perrache 2",
+            "city": "Lyon 2e Arrondissement",
+            "uic_code": null,
+            "department_code": "69",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "pont-cardinet",
+            "name": "Pont-Cardinet",
+            "city": "Paris 17e Arrondissement",
+            "uic_code": "87381111",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "pont-de-briques",
+            "name": "Pont-de-Briques",
+            "city": "Saint-Étienne-au-Mont",
+            "uic_code": "87317115",
+            "department_code": "62",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "pontarlier",
+            "name": "Pontarlier",
+            "city": "Pontarlier",
+            "uic_code": "87715003",
+            "department_code": "25",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Pontarlier-Saint-Pierre\", \"source\": \"lignes-oubliees\"}]"
+        },
+        {
+            "slug": "port-villez",
+            "name": "Port-Villez",
+            "city": "Notre-Dame-de-la-Mer",
+            "uic_code": "87415679",
+            "department_code": "78",
+            "status": "declassified",
+            "alt_names": "[{\"name\": \"Port-Vilez (désaffectée)\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "pouligny-saint-pierre",
+            "name": "Pouligny-Saint-Pierre",
+            "city": "Pouligny-Saint-Pierre",
+            "uic_code": null,
+            "department_code": "36",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "reignac-condeon",
+            "name": "Reignac-Condéon",
+            "city": "Barbezieux-Saint-Hilaire",
+            "uic_code": null,
+            "department_code": "16",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "relais-des-mottetieres",
+            "name": "Relais des Mottetières",
+            "city": "Saint-Étienne",
+            "uic_code": null,
+            "department_code": "42",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "saillat-chassenon",
+            "name": "Saillat-Chassenon",
+            "city": "Saillat-sur-Vienne",
+            "uic_code": "87592717",
+            "department_code": "87",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Saillat-sur-Vienne\", \"source\": \"osm\"}]"
+        },
+        {
+            "slug": "saint-hilaire-chalo",
+            "name": "Saint-Hilaire - Chalô",
+            "city": "Saint-Hilaire",
+            "uic_code": null,
+            "department_code": "91",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "saint-hilaire-le-chatel",
+            "name": "Saint-Hilaire-le-Châtel",
+            "city": "Saint-Hilaire-le-Châtel",
+            "uic_code": null,
+            "department_code": "61",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "saint-jean-de-maurienne",
+            "name": "Saint-Jean-de-Maurienne",
+            "city": "Saint-Jean-de-Maurienne",
+            "uic_code": "87742320",
+            "department_code": "73",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Saint-Jean-de-Maurienne Arvan\", \"source\": \"sncf_voyageurs\"}, {\"name\": \"Saint-Jean-de-Maurienne - Vallée de l'Arvan\", \"source\": \"wikidata\"}]"
+        },
+        {
+            "slug": "sainte-colombe-sur-gand",
+            "name": "Sainte-Colombe-sur-Gand",
+            "city": "Sainte-Colombe-sur-Gand",
+            "uic_code": null,
+            "department_code": "42",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "sainte-genevieve",
+            "name": "Sainte-Geneviève",
+            "city": "Cauvigny",
+            "uic_code": null,
+            "department_code": "60",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "sainte-suzanne",
+            "name": "Sainte-Suzanne",
+            "city": "Sainte-Suzanne",
+            "uic_code": null,
+            "department_code": "974",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "savigny-sur-orge",
+            "name": "Savigny-sur-Orge",
+            "city": "Savigny-sur-Orge",
+            "uic_code": "87545236",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "sceaux-ceinture-puis-cite-universitaire-petite-ceinture",
+            "name": "Sceaux-Ceinture puis Cité Universitaire ; Petite Ceinture",
+            "city": "Paris",
+            "uic_code": null,
+            "department_code": "75",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-cyr-grande-ceinture",
+            "name": "St-Cyr-Grande-Ceinture",
+            "city": "Versailles",
+            "uic_code": "87393850",
+            "department_code": "78",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-etienne-carnot",
+            "name": "St-Étienne-Carnot",
+            "city": "Saint-Étienne",
+            "uic_code": "87726901",
+            "department_code": "42",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-etienne-chateaucreux",
+            "name": "St-Étienne-Châteaucreux",
+            "city": "Saint-Étienne",
+            "uic_code": "87726000",
+            "department_code": "42",
+            "status": "active",
+            "alt_names": "[{\"to\": null, \"from\": \"1857\", \"name\": \"Gare Saint-Etienne Chaateaucreux\", \"source\": \"ohm\"}]"
+        },
+        {
+            "slug": "st-etienne-du-rouvray",
+            "name": "St-Étienne-du-Rouvray",
+            "city": "Saint-Étienne-du-Rouvray",
+            "uic_code": "87411215",
+            "department_code": "76",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-etienne-nozay",
+            "name": "St-Étienne-Nozay",
+            "city": "Saint-Étienne-sous-Barbuise",
+            "uic_code": "87118570",
+            "department_code": "10",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-germain-en-laye-grande-ceinture",
+            "name": "St-Germain-en-Laye-Grande-Ceinture",
+            "city": "Saint-Germain-en-Laye",
+            "uic_code": "87382804",
+            "department_code": "78",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-hilaire-de-chaleons",
+            "name": "St-Hilaire-de-Chaléons",
+            "city": "Saint-Hilaire-de-Chaléons",
+            "uic_code": "87481234",
+            "department_code": "44",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-hilaire-de-riez",
+            "name": "St-Hilaire-de-Riez",
+            "city": "Saint-Hilaire-de-Riez",
+            "uic_code": "87486563",
+            "department_code": "85",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-louis-les-aygalades",
+            "name": "St-Louis-les-Aygalades",
+            "city": "Marseille",
+            "uic_code": "87751644",
+            "department_code": "13",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-michel-notre-dame",
+            "name": "St-Michel-Notre-Dame",
+            "city": "Paris",
+            "uic_code": "87547315",
+            "department_code": "75",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-michel-sur-orge",
+            "name": "St-Michel-sur-Orge",
+            "city": "Saint-Michel-sur-Orge",
+            "uic_code": "87545202",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-michel-valloire",
+            "name": "St-Michel-Valloire",
+            "city": "Saint-Michel-de-Maurienne",
+            "uic_code": "87742361",
+            "department_code": "73",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-pierre-dalbigny",
+            "name": "St-Pierre-d'Albigny",
+            "city": "Saint-Pierre-d'Albigny",
+            "uic_code": "87741223",
+            "department_code": "73",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-pierre-des-corps",
+            "name": "St-Pierre-des-Corps",
+            "city": "Saint-Pierre-des-Corps",
+            "uic_code": "87571240",
+            "department_code": "37",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "st-pierre-en-faucigny",
+            "name": "St-Pierre-en-Faucigny",
+            "city": "Saint-Pierre-en-Faucigny",
+            "uic_code": "87746313",
+            "department_code": "74",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-anne",
+            "name": "Ste-Anne",
+            "city": "Pluneret",
+            "uic_code": "87476648",
+            "department_code": "56",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Sainte-Anne-d'Auray\", \"source\": \"wikidata\"}]"
+        },
+        {
+            "slug": "ste-colombe-la-campagne",
+            "name": "Ste-Colombe-la-Campagne",
+            "city": "Sainte-Colombe-la-Commanderie",
+            "uic_code": null,
+            "department_code": "27",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-colombe-septveilles",
+            "name": "Ste-Colombe-Septveilles",
+            "city": "Sainte-Colombe",
+            "uic_code": "87116178",
+            "department_code": "77",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-colombe-sur-seine",
+            "name": "Ste-Colombe-sur-Seine",
+            "city": "Sainte-Colombe-sur-Seine",
+            "uic_code": "87142562",
+            "department_code": "21",
+            "status": "no_commercial",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-foy-la-grande",
+            "name": "Ste-Foy-la-Grande",
+            "city": "Pineuilh",
+            "uic_code": "87584193",
+            "department_code": "33",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-gauburge",
+            "name": "Ste-Gauburge",
+            "city": "Sainte-Gauburge-Sainte-Colombe",
+            "uic_code": "87444604",
+            "department_code": "61",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-genevieve-des-bois",
+            "name": "Ste-Geneviève-des-Bois",
+            "city": "Sainte-Geneviève-des-Bois",
+            "uic_code": "87545210",
+            "department_code": "91",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "ste-pazanne",
+            "name": "Ste-Pazanne",
+            "city": "Sainte-Pazanne",
+            "uic_code": "87481226",
+            "department_code": "44",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "val-de-fontenay",
+            "name": "Val-de-Fontenay",
+            "city": "Fontenay-sous-Bois",
+            "uic_code": "87113712",
+            "department_code": "94",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "villeneuve-les-beziers",
+            "name": "Villeneuve-lès-Béziers",
+            "city": "Villeneuve-lès-Béziers",
+            "uic_code": "87781245",
+            "department_code": "34",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "villeneuve-sur-allier",
+            "name": "Villeneuve-sur-Allier",
+            "city": "Villeneuve-sur-Allier",
+            "uic_code": "87696310",
+            "department_code": "03",
+            "status": "active",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "vincennes-fontenay",
+            "name": "Vincennes-Fontenay",
+            "city": "Fontenay-sous-Bois",
+            "uic_code": "87114009",
+            "department_code": "94",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "voivres",
+            "name": "Voivres",
+            "city": "Voivres-lès-le-Mans",
+            "uic_code": "87396358",
+            "department_code": "72",
+            "status": "active",
+            "alt_names": "[{\"name\": \"Voivres-lès-le-Mans\", \"source\": \"sncf_voyageurs\"}]"
+        },
+        {
+            "slug": "welferding",
+            "name": "Welferding",
+            "city": "Sarreguemines",
+            "uic_code": "87193607",
+            "department_code": "57",
+            "status": "declassified",
+            "alt_names": "[]"
+        },
+        {
+            "slug": "woelfling-les-sarreguemines",
+            "name": "Woelfling-lès-Sarreguemines",
+            "city": "Wœlfling-lès-Sarreguemines",
+            "uic_code": "87193771",
+            "department_code": "57",
+            "status": "declassified",
+            "alt_names": "[]"
+        }
+    ],
+    "lines": [
+        {
+            "slug": "archeo-deviation-dangouleme-ville",
+            "name": "Déviation d'Angoulême-Ville",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-dangouleme-ville-a-confolens",
+            "name": "Ligne d'Angoulême-Ville à Confolens",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-dangouleme-ville-a-matha",
+            "name": "Ligne d'Angoulême-Ville à Matha",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-dangouleme-ville-a-roumazieres",
+            "name": "Ligne d'Angoulême-Ville à Roumazières",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-daulnay-sous-bois-a-senlis",
+            "name": "Ligne d'Aulnay-sous-Bois à Senlis",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-bondy-a-aulnay-sous-bois",
+            "name": "Ligne de Bondy à Aulnay-sous-Bois",
+            "code": "958000",
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-caen-saint-pierre-a-courseulles",
+            "name": "Ligne de Caen-Saint-Pierre à Courseulles",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-la-motte-daveillans-a-notre-dame-de-vaux",
+            "name": "Ligne de La Motte-d’Aveillans à Notre-Dame-de-Vaux",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-laroche-migennes-a-lisle-angely",
+            "name": "Ligne de Laroche-Migennes à L’Isle-Angély",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-lecousse-a-saint-hilaire-du-harcouet",
+            "name": "Ligne de Lécousse à Saint-Hilaire-du-Harcouët",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-saint-etienne-a-maclas",
+            "name": "Ligne de Saint-Etienne à Maclas",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-saint-etienne-terrasse-a-la-fouillouse",
+            "name": "Ligne de Saint-Etienne-Terrasse à La Fouillouse",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-saint-hilaire-a-landivy",
+            "name": "Ligne de Saint-Hilaire à Landivy",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-saint-hilaire-de-brens-a-jallieu",
+            "name": "Ligne de Saint-Hilaire-de-Brens à Jallieu",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-de-saint-michel-de-maurienne-a-mont-cenis",
+            "name": "Ligne de Saint-Michel-de-Maurienne à Mont-Cenis",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-doctroi-notre-dame-a-canet-plage",
+            "name": "Ligne d'Octroi-Notre-Dame à Canet-Plage",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-doctroi-notre-dame-a-rivesaltes",
+            "name": "Ligne d'Octroi-Notre-Dame à Rivesaltes",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-doctroi-saint-martin-a-octroi-notre-dame",
+            "name": "Ligne d'Octroi-Saint-Martin à Octroi-Notre-Dame",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-militaire-de-cirey-a-haie-saint-pierre",
+            "name": "Ligne militaire de Cirey à Haie-Saint-Pierre",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-militaire-de-coolus-a-saint-hilaire-au-temple-1914-1918",
+            "name": "Ligne militaire de Coolus à Saint-Hilaire-au-Temple (1914-1918)",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-militaire-de-mont-notre-dame-a-fismes-1914-1918",
+            "name": "Ligne militaire de Mont-Notre-Dame à Fismes (1914-1918)",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "archeo-ligne-militaire-de-mont-notre-dame-a-paars-1914-1918",
+            "name": "Ligne militaire de Mont-Notre-Dame à Paars (1914-1918)",
+            "code": null,
+            "historical_operator": null
+        },
+        {
+            "slug": "hors-rfn-rer-a-fontenay-chessy",
+            "name": "Ligne de Fontenay-sous-Bois à Marne-la-Vallée - Chessy (RER A)",
+            "code": null,
+            "historical_operator": "RATP"
+        },
+        {
+            "slug": "lo-318000",
+            "name": "Ligne de La-Rue-Saint-Pierre à Saint-Just-en-Chaussée",
+            "code": "318000",
+            "historical_operator": null
+        },
+        {
+            "slug": "lo-735000",
+            "name": "Ligne de Moux à Caunes-Minervois",
+            "code": "735000",
+            "historical_operator": null
+        },
+        {
+            "slug": "lo-976000",
+            "name": "Ligne de Saint-Germain-Grande-Ceinture à Saint-Germain-en-Laye",
+            "code": "976000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-1000",
+            "name": "Ligne de Paris-Est à Mulhouse-Ville",
+            "code": "001000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-115000",
+            "name": "Ligne de Strasbourg-Ville à St-Louis",
+            "code": "115000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-168000",
+            "name": "Ligne de Berthelming à Sarreguemines",
+            "code": "168000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-205316",
+            "name": "Raccordement de Charleville-Mézières",
+            "code": "205316",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-223000",
+            "name": "Ligne de Charleville-Mézières à Hirson",
+            "code": "223000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-226000",
+            "name": "Ligne de Gonesse à Lille-Frontière (LGV)",
+            "code": "226000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-242000",
+            "name": "Ligne de Creil à Jeumont",
+            "code": "242000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-25000",
+            "name": "Ligne de Paris-Est à Charles-de-Gaulle (CDG Express)",
+            "code": "025000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-272000",
+            "name": "Ligne de Paris-Nord à Lille",
+            "code": "272000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-334302",
+            "name": "Raccordement de Val-Notre-Dame",
+            "code": "334302",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-342000",
+            "name": "Ligne de Gisors-Embranchement à Pont-de-l'Arche",
+            "code": "342000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-357000",
+            "name": "Ligne de Dieppe à Fécamp",
+            "code": "357000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-42000",
+            "name": "Ligne de Blainville-Damelevières à Lure",
+            "code": "042000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-420000",
+            "name": "Ligne de Paris-Montparnasse à Brest",
+            "code": "420000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-430000",
+            "name": "Ligne du Mans à Mézidon",
+            "code": "430000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-431000",
+            "name": "Ligne de Paris-Montparnasse à Monts (LGV)",
+            "code": "431000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-431315",
+            "name": "Raccordement de St-Pierre-des-Corps (LGV)",
+            "code": "431315",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-450000",
+            "name": "Ligne du Mans à Angers-Maître-École",
+            "code": "450000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-451300",
+            "name": "Raccordement de La Duboisière (Le Mans)",
+            "code": "451300",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-51000",
+            "name": "Ligne de Jussey à Darnieulles - Uxegney",
+            "code": "051000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-510000",
+            "name": "Ligne de La Flèche à Vivy",
+            "code": "510000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-515000",
+            "name": "Ligne de Tours à St-Nazaire",
+            "code": "515000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-5300",
+            "name": "Raccordement de Troyes-Preize",
+            "code": "005300",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-530000",
+            "name": "Ligne de Nantes-Orléans à Saintes",
+            "code": "530000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-534000",
+            "name": "Ligne de Nantes-État à La Roche-sur-Yon par Ste-Pazanne",
+            "code": "534000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-536000",
+            "name": "Ligne de Ste-Pazanne à Pornic",
+            "code": "536000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-537000",
+            "name": "Ligne de St-Hilaire-de-Chaléons à Paimboeuf",
+            "code": "537000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-561000",
+            "name": "Ligne de Tours au Mans",
+            "code": "561000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-561316",
+            "name": "Raccordement de La Clarté (Le Mans)",
+            "code": "561316",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-562300",
+            "name": "Raccordement de St-Pierre-des-Corps vers Nantes",
+            "code": "562300",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-563300",
+            "name": "Raccordement de St-Pierre-des-Corps à Tours",
+            "code": "563300",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-57000",
+            "name": "Ligne d'Aillevillers à Port-d'Atelier-Amance",
+            "code": "057000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-570000",
+            "name": "Ligne de Paris-Austerlitz à Bordeaux-St-Jean",
+            "code": "570000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-579000",
+            "name": "Ligne de Beillant à Angoulême",
+            "code": "579000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-593000",
+            "name": "Ligne de Vierzon à St-Pierre-des-Corps",
+            "code": "593000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-606000",
+            "name": "Ligne du Dorat à Limoges-Bénédictins",
+            "code": "606000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-610000",
+            "name": "Ligne de Limoges-Bénédictins à Angoulême",
+            "code": "610000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-611000",
+            "name": "Ligne de Limoges-Bénédictins à Périgueux",
+            "code": "611000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-615000",
+            "name": "Ligne de Saillat-sur-Vienne à Bussière-Galant",
+            "code": "615000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-661000",
+            "name": "Ligne d'Ossès - Saint-Martin-d'Arrossa à Saint-Étienne-de-Baïgorry",
+            "code": "661000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-7000",
+            "name": "Ligne de Fère-Champenoise à Vitry-le-François",
+            "code": "007000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-70000",
+            "name": "Ligne de Noisy-le-Sec à Strasbourg-Ville",
+            "code": "070000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-750000",
+            "name": "Ligne de Moret-Veneux-les-Sablons à Lyon-Perrache",
+            "code": "750000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-752000",
+            "name": "Ligne de Combs-la-Ville à St-Louis (LGV)",
+            "code": "752000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-757000",
+            "name": "Ligne de Maison-Dieu aux Laumes-Alésia",
+            "code": "757000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-76000",
+            "name": "Ligne d'Aulnay-sous-Bois à Roissy 2-RER",
+            "code": "076000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-760306",
+            "name": "Raccordement des lignes de Chagny à Dole et de Paris-Lyon à Marseille-St-Charles",
+            "code": "760306",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-780000",
+            "name": "Ligne de St-Étienne-La Terrasse à St-Étienne-Pont-de-l'Âne",
+            "code": "780000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-798000",
+            "name": "Ligne de St-Georges-d'Aurac à St-Étienne-Châteaucreux",
+            "code": "798000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-830000",
+            "name": "Ligne de Paris-Lyon à Marseille-St-Charles",
+            "code": "830000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-85000",
+            "name": "Ligne de St-Hilaire-au-Temple à Hagondange",
+            "code": "085000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-890000",
+            "name": "Ligne de Lyon-Perrache à Genève (frontière)",
+            "code": "890000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-899000",
+            "name": "Ligne de St-Pierre-d'Albigny à Bourg-St-Maurice",
+            "code": "899000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-905000",
+            "name": "Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)",
+            "code": "905000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-930000",
+            "name": "Ligne de Marseille-St-Charles à Vintimille (frontière)",
+            "code": "930000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-939001",
+            "name": "L'Estaque à Marseille St-Charles (Via Marseille Maritime)",
+            "code": "939001",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-942000",
+            "name": "Ligne de La Pauline-Hyères aux Salins-d'Hyères",
+            "code": "942000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-955000",
+            "name": "Ligne de La Râpée à Batignolles (petite ceinture de Paris)",
+            "code": "955000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-957000",
+            "name": "Ligne de Bobigny à Sucy-Bonneuil",
+            "code": "957000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-979000",
+            "name": "Ligne de Magenta à Bezons (EOLE)",
+            "code": "979000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-980000",
+            "name": "Ligne d'Auteuil-Boulogne à La Râpée (petite ceinture de Paris)",
+            "code": "980000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-981000",
+            "name": "Ligne de Paris-Nord à Paris-Gare-de-Lyon (RER ligne D)",
+            "code": "981000",
+            "historical_operator": null
+        },
+        {
+            "slug": "rfn-984000",
+            "name": "Ligne de Quai-d'Orsay à Paris-Austerlitz",
+            "code": "984000",
+            "historical_operator": null
+        }
+    ],
+    "materials": [
+        {
+            "slug": "040-plm-4501-a-4640",
+            "name": "040 PLM 4501 à 4640",
+            "type": "locomotive_vapeur",
+            "builder": "Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée",
+            "designations": "[\"PLM 4501 à 4640\", \"PLM 4501 to 4640\", \"PLM 4.C\", \"SNCF 5-040.C\"]",
+            "fleet_numbers": "4501-4640 ; 4.C.1 … 4.C.130, 4.D.1 … 4.D.10 ; 5-040.C.1 … 5-040.C.129, 5-040.D.1 - 5-040.D.10 ; 4.C.1 … 4.C.16"
+        },
+        {
+            "slug": "121-plm-c-1-et-c-2",
+            "name": "121 PLM C 1 et C 2",
+            "type": "locomotive_vapeur",
+            "builder": "Ateliers de Paris du PLM",
+            "designations": "[\"PLM C.1 and C.2\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "130-plm-1-a-60",
+            "name": "130 PLM 1 à 60",
+            "type": "locomotive_vapeur",
+            "builder": "Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée",
+            "designations": "[\"PLM 1 to 60\", \"130 A 1 à 60\", \"PLM 130.A\", \"SNCF 5-130.A\", \"SNCF 130.A (PLM)\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "220-plm-c-61-a-c-180",
+            "name": "220 PLM C 61 à C 180",
+            "type": "locomotive_vapeur",
+            "builder": "Ateliers de Paris du PLM, Ateliers d’Arles du PLM, Société de construction des Batignolles, Compagnie nationale autrichienne des chemins de fer, Wiener Neustädter Lokomotivfabrik",
+            "designations": "[\"PLM C.61 to C.180 → PLM 220.A.1 to 120 → SNCF 5-220.A.1 to 120\", \"PLM C.61 to C.180\", \"PLM 220.A\", \"Grosses C\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "230-po-4201-a-4370",
+            "name": "230 PO 4201 à 4370",
+            "type": "locomotive_vapeur",
+            "builder": "Société de construction des Batignolles, Société alsacienne de constructions mécaniques, North-British locomotive company limited, Compagnie du chemin de fer de Paris à Orléans, Ateliers de PO, Tours",
+            "designations": "[\"PO 4201 to 4370\", \"230 G\", \"État 230-401 à 230-451\", \"Etat 230-401 à 230-451\", \"SNCF 4-230.G\", \"SNCF 3-230.K\"]",
+            "fleet_numbers": "4201 - 4370"
+        },
+        {
+            "slug": "231-nord-31151-a-31170",
+            "name": "231 Nord 3.1151 à 3.1170",
+            "type": "locomotive_vapeur",
+            "builder": "Société alsacienne de constructions mécaniques",
+            "designations": "[\"Nord 3.1151 to 3.1170\", \"SNCF 2-231.A\", \"Nord Pacific\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "232-bt-plm-1-a-45",
+            "name": "232 BT PLM 1 à 45",
+            "type": "locomotive_vapeur",
+            "builder": "Hanomag, forges Usines et Fonderies Haine-Saint-Pierre",
+            "designations": "[\"PLM 5501 to 5545\", \"PLM 232.BT\", \"SNCF 5-232.TB\", \"SNCF 232.TB (PLM)\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "2d2-5100",
+            "name": "2D2 5100",
+            "type": "locomotive_electrique",
+            "builder": "Batignolles-Châtillon",
+            "designations": "[\"PO E 700\", \"SNCF 2D2 5100\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "2d2-5300",
+            "name": "2D2 5300",
+            "type": "locomotive_electrique",
+            "builder": "Société alsacienne de constructions mécaniques",
+            "designations": "[\"SNCF 2D2 5300\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "bb-4200",
+            "name": "BB 4200",
+            "type": "locomotive_electrique",
+            "builder": "Constructions électriques de France",
+            "designations": "[\"Midi E.4201 to E.4250\", \"SNCF BB 4200\", \"SNCF BB 4700M\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "bb-7600",
+            "name": "BB 7600",
+            "type": "locomotive_electrique",
+            "builder": "Alstom",
+            "designations": "[\"SNCF BB 7600\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "british-rail-class-57",
+            "name": "British Rail Class 57",
+            "type": "locomotive_diesel",
+            "builder": "Brush Traction",
+            "designations": null,
+            "fleet_numbers": "57001-57012, 57301-57316, 57601-57605"
+        },
+        {
+            "slug": "cc-70000",
+            "name": "CC 70000",
+            "type": "locomotive_diesel",
+            "builder": "Alstom",
+            "designations": "[\"SNCF CC 70000\", \"SNCF Class CC 70000\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "cc-7001-7002",
+            "name": "CC 7001-7002",
+            "type": "locomotive_electrique",
+            "builder": "Alstom",
+            "designations": "[\"SNCF CC 7001 and CC 7002\"]",
+            "fleet_numbers": "CC 7001 - CC 7002"
+        },
+        {
+            "slug": "db-serie-610",
+            "name": "DB série 610",
+            "type": "autorail",
+            "builder": "MAN SE",
+            "designations": "[\"DB Class 610\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "prussian-g-12-cfoa-type",
+            "name": "Prussian G 12 (CFOA type)",
+            "type": "locomotive_vapeur",
+            "builder": "Henschel",
+            "designations": "[\"TCDD 56900-classs\", \"PH O' class\", \"CFL 5300 class\", \"DR Class 58.10\", \"DR Class 58.6\", \"150 Est 5015\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "regio-2n",
+            "name": "Regio 2N",
+            "type": "automotrice",
+            "builder": "ALSTOM Transportation Germany",
+            "designations": "[\"Bombardier Regio 2N\", \"Regio2N\", \"Bombardier Omneo\", \"Régio2N\", \"Régio 2N\", \"Porteur hyperdense\", \"PHD\", \"Z 57000\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "sncf-bb-325",
+            "name": "SNCF BB 325",
+            "type": "locomotive_electrique",
+            "builder": "Alstom, Siemens, Matériel de Traction Électrique",
+            "designations": "[\"SNCF Class BB 325\", \"BB 325\"]",
+            "fleet_numbers": "BB 325 - BB 355"
+        },
+        {
+            "slug": "turbine-a-gaz-speciale",
+            "name": "Turbine à gaz spéciale",
+            "type": "autorail",
+            "builder": "Safran Helicopter Engines, SNCF",
+            "designations": "[\"SNCF Class TGS\", \"Turbine a gaz speciale\", \"Turbine à gaz spécial\", \"TGS\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "voiture-omnibus-a-deux-niveaux",
+            "name": "Voiture omnibus à deux niveaux",
+            "type": "voiture",
+            "builder": null,
+            "designations": "[\"SNCF Class VO 2N\", \"VO 2N / VR 2N (TER Nord-Pas-de-Calais)\", \"VO 2N\", \"Voitures omnibus à deux niveaux\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "x-4200",
+            "name": "X 4200",
+            "type": "autorail",
+            "builder": "Renault",
+            "designations": "[\"SNCF X 4200\", \"Panoramique\", \"panos\"]",
+            "fleet_numbers": "X 4201 - X 4210"
+        },
+        {
+            "slug": "x-73500",
+            "name": "X 73500",
+            "type": "autorail",
+            "builder": "Alstom",
+            "designations": "[\"SNCF X 73500\"]",
+            "fleet_numbers": "X 73501 - X 73818"
+        },
+        {
+            "slug": "x-73900",
+            "name": "X 73900",
+            "type": "autorail",
+            "builder": "Alstom",
+            "designations": "[\"SNCF X 73900\", \"X 73914\", \"Liste x73900\"]",
+            "fleet_numbers": "X 73901 - X 73919"
+        },
+        {
+            "slug": "x-76500",
+            "name": "X 76500",
+            "type": "autorail",
+            "builder": "Bombardier",
+            "designations": "[\"SNCF X 76500\", \"XGC\", \"XGC X 76500\", \"X76500\"]",
+            "fleet_numbers": "X 76501/02 - X 76835/36"
+        },
+        {
+            "slug": "xr-6000-6100-et-6200",
+            "name": "XR 6000, 6100 et 6200",
+            "type": "voiture",
+            "builder": "Ateliers de Construction du Nord de la France",
+            "designations": "[\"XR 6000\", \"SNCF XR 6000\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "y-5100",
+            "name": "Y 5100",
+            "type": "locomotive_diesel",
+            "builder": "Alstom Reichshoffen",
+            "designations": "[\"SNCF Y 5100\"]",
+            "fleet_numbers": "Y 5101 - Y 5162"
+        },
+        {
+            "slug": "z-5100",
+            "name": "Z 5100",
+            "type": "automotrice",
+            "builder": null,
+            "designations": "[\"SNCF Z 5100\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "z-5300",
+            "name": "Z 5300",
+            "type": "automotrice",
+            "builder": null,
+            "designations": "[\"SNCF Class Z 5300\"]",
+            "fleet_numbers": null
+        },
+        {
+            "slug": "z-57000",
+            "name": "Z 57000",
+            "type": "automotrice",
+            "builder": "ALSTOM Transportation Germany",
+            "designations": "[\"Regio 2N Z 57000\"]",
+            "fleet_numbers": null
+        }
+    ],
+    "accidents": [
+        {
+            "slug": "1837-01-15-saint-etienne",
+            "fr": "Accident ferroviaire à Saint-Étienne",
+            "commune_name": "Saint-Étienne",
+            "occurred_on": "1837-01-15",
+            "kind": "other"
+        },
+        {
+            "slug": "1842-05-08-meudon",
+            "fr": "Catastrophe ferroviaire de Meudon",
+            "commune_name": "Meudon",
+            "occurred_on": "1842-05-08",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1845-12-13-saint-michel-sur-orge",
+            "fr": "Collision à Saint-Michel-sur-Orge",
+            "commune_name": "Saint-Michel-sur-Orge",
+            "occurred_on": "1845-12-13",
+            "kind": "collision"
+        },
+        {
+            "slug": "1867-09-21-paris",
+            "fr": "Déraillement à Paris",
+            "commune_name": "Paris",
+            "occurred_on": "1867-09-21",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1872-06-20-juvisy-sur-orge",
+            "fr": "Collision à Juvisy-sur-Orge",
+            "commune_name": "Juvisy-sur-Orge",
+            "occurred_on": "1872-06-20",
+            "kind": "collision"
+        },
+        {
+            "slug": "1880-02-03-levallois-perret",
+            "fr": "Catastrophe de Clichy-Levallois",
+            "commune_name": "Levallois-Perret",
+            "occurred_on": "1880-02-03",
+            "kind": "collision"
+        },
+        {
+            "slug": "1888-09-05-velars-sur-ouche",
+            "fr": "Catastrophe ferroviaire de Velars du 5 septembre 1888",
+            "commune_name": "Velars-sur-Ouche",
+            "occurred_on": "1888-09-05",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1891-07-26-saint-mande",
+            "fr": "Accident ferroviaire de Saint-Mandé",
+            "commune_name": "Saint-Mandé",
+            "occurred_on": "1891-07-26",
+            "kind": "collision"
+        },
+        {
+            "slug": "1895-10-22-paris",
+            "fr": "Accident ferroviaire de la gare Montparnasse",
+            "commune_name": "Paris",
+            "occurred_on": "1895-10-22",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1913-09-07-saint-amans-soult",
+            "fr": "Collision à Saint-Amans-Soult",
+            "commune_name": "Saint-Amans-Soult",
+            "occurred_on": "1913-09-07",
+            "kind": "collision"
+        },
+        {
+            "slug": "1913-11-04-melun",
+            "fr": "Catastrophe ferroviaire de Melun du 4 novembre 1913",
+            "commune_name": "Melun",
+            "occurred_on": "1913-11-04",
+            "kind": "collision"
+        },
+        {
+            "slug": "1914-09-15-lizy-sur-ourcq",
+            "fr": "Fait de guerre à Lizy-sur-Ourcq",
+            "commune_name": "Lizy-sur-Ourcq",
+            "occurred_on": "1914-09-15",
+            "kind": "war_action"
+        },
+        {
+            "slug": "1917-12-12-saint-michel-de-maurienne",
+            "fr": "Accident ferroviaire de Saint-Michel-de-Maurienne",
+            "commune_name": "Saint-Michel-de-Maurienne",
+            "occurred_on": "1917-12-12",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1918-03-13-saint-jean-de-maurienne",
+            "fr": "Collision à Saint-Jean-de-Maurienne",
+            "commune_name": "Saint-Jean-de-Maurienne",
+            "occurred_on": "1918-03-13",
+            "kind": "collision"
+        },
+        {
+            "slug": "1919-07-21-paris",
+            "fr": "Déraillement à Paris",
+            "commune_name": "Paris",
+            "occurred_on": "1919-07-21",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1921-10-05-paris",
+            "fr": "Accident ferroviaire du tunnel des Batignolles",
+            "commune_name": "Paris",
+            "occurred_on": "1921-10-05",
+            "kind": "collision"
+        },
+        {
+            "slug": "1921-12-21-saint-etienne",
+            "fr": "Dérive à Saint-Étienne",
+            "commune_name": "Saint-Étienne",
+            "occurred_on": "1921-12-21",
+            "kind": "runaway"
+        },
+        {
+            "slug": "1922-07-14-paris",
+            "fr": "Déraillement à Paris",
+            "commune_name": "Paris",
+            "occurred_on": "1922-07-14",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1924-03-02-paris",
+            "fr": "Déraillement à Paris",
+            "commune_name": "Paris",
+            "occurred_on": "1924-03-02",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1924-11-06-pissy-poville",
+            "fr": "Déraillement à Pissy-Pôville",
+            "commune_name": "Pissy-Pôville",
+            "occurred_on": "1924-11-06",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1926-06-20-saint-pierre-des-corps",
+            "fr": "Déraillement à Saint-Pierre-des-Corps",
+            "commune_name": "Saint-Pierre-des-Corps",
+            "occurred_on": "1926-06-20",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1928-08-02-le-mans",
+            "fr": "Déraillement à Le Mans",
+            "commune_name": "Le Mans",
+            "occurred_on": "1928-08-02",
+            "kind": "derailment"
+        },
+        {
+            "slug": "1931-08-01-lagny-sur-marne",
+            "fr": "Collision à un passage à niveau à Lagny-sur-Marne",
+            "commune_name": "Lagny-sur-Marne",
+            "occurred_on": "1931-08-01",
+            "kind": "level_crossing"
+        },
+        {
+            "slug": "1934-08-08-bournoncle-saint-pierre",
+            "fr": "Collision à Bournoncle-Saint-Pierre",
+            "commune_name": "Bournoncle-Saint-Pierre",
+            "occurred_on": "1934-08-08",
+            "kind": "collision"
+        },
+        {
+            "slug": "1935-02-16-saint-pierre-le-moutier",
+            "fr": "Collision à Saint-Pierre-le-Moûtier",
+            "commune_name": "Saint-Pierre-le-Moûtier",
+            "occurred_on": "1935-02-16",
+            "kind": "collision"
+        },
+        {
+            "slug": "1937-07-10-le-mans",
+            "fr": "Collision à Le Mans",
+            "commune_name": "Le Mans",
+            "occurred_on": "1937-07-10",
+            "kind": "collision"
+        },
+        {
+            "slug": "1940-01-04-savigny-sur-orge",
+            "fr": "Collision à Savigny-sur-Orge",
+            "commune_name": "Savigny-sur-Orge",
+            "occurred_on": "1940-01-04",
+            "kind": "collision"
+        },
+        {
+            "slug": "1985-07-08-saint-pierre-du-vauvray",
+            "fr": "Accident de Saint-Pierre-du-Vauvray",
+            "commune_name": "Saint-Pierre-du-Vauvray",
+            "occurred_on": "1985-07-08",
+            "kind": "collision"
+        },
+        {
+            "slug": "1991-10-17-melun",
+            "fr": "Catastrophe ferroviaire de Melun du 17 octobre 1991",
+            "commune_name": "Melun",
+            "occurred_on": "1991-10-17",
+            "kind": "collision"
+        },
+        {
+            "slug": "1995-07-25-paris",
+            "fr": "Attentat du RER B à Saint-Michel",
+            "commune_name": "Paris",
+            "occurred_on": "1995-07-25",
+            "kind": "attack"
+        },
+        {
+            "slug": "2008-02-26-bayard-sur-marne",
+            "fr": "Collision à un passage à niveau à Bayard-sur-Marne",
+            "commune_name": "Bayard-sur-Marne",
+            "occurred_on": "2008-02-26",
+            "kind": "level_crossing"
+        },
+        {
+            "slug": "2013-07-12-bretigny-sur-orge",
+            "fr": "Accident ferroviaire de Brétigny-sur-Orge",
+            "commune_name": "Brétigny-sur-Orge",
+            "occurred_on": "2013-07-12",
+            "kind": "derailment"
+        },
+        {
+            "slug": "2015-10-12-sainte-pazanne",
+            "fr": "Déraillement à Sainte-Pazanne",
+            "commune_name": "Sainte-Pazanne",
+            "occurred_on": "2015-10-12",
+            "kind": "derailment"
+        },
+        {
+            "slug": "2019-05-07-saint-etienne",
+            "fr": "Collision à un passage à niveau à Saint-Étienne",
+            "commune_name": "Saint-Étienne",
+            "occurred_on": "2019-05-07",
+            "kind": "level_crossing"
+        },
+        {
+            "slug": "2019-10-16-boulzicourt",
+            "fr": "Accident de Saint-Pierre-sur-Vence",
+            "commune_name": "Boulzicourt",
+            "occurred_on": "2019-10-16",
+            "kind": "level_crossing"
+        },
+        {
+            "slug": "2021-05-28-saint-hilaire-bonneval",
+            "fr": "Incendie à Saint-Hilaire-Bonneval",
+            "commune_name": "Saint-Hilaire-Bonneval",
+            "occurred_on": "2021-05-28",
+            "kind": "fire"
+        },
+        {
+            "slug": "2021-06-02-martigny-les-bains",
+            "fr": "Collision à un passage à niveau à Martigny-les-Bains",
+            "commune_name": "Martigny-les-Bains",
+            "occurred_on": "2021-06-02",
+            "kind": "level_crossing"
+        },
+        {
+            "slug": "2021-08-26-saint-hilaire-au-temple",
+            "fr": "Déraillement à Saint-Hilaire-au-Temple",
+            "commune_name": "Saint-Hilaire-au-Temple",
+            "occurred_on": "2021-08-26",
+            "kind": "derailment"
+        }
+    ]
+}

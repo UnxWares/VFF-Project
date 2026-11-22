@@ -52,6 +52,7 @@ return [
         'results_one' => ':count Ergebnis',
         'results_other' => ':count Ergebnisse',
         'no_results' => 'Keine Strecke, kein Bahnhof, kein Fahrzeug und kein Unfall entspricht „:query“.',
+        'approximate' => 'Nichts entspricht genau „:query“. Hier sind die ähnlichsten Namen.',
         'error' => 'Die Suche ist derzeit nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.',
         'clear' => 'Suche löschen',
         'keys_hint' => 'Pfeiltasten nach oben und unten zum Blättern, Eingabetaste zum Öffnen, Esc zum Schließen.',

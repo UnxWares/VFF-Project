@@ -3,6 +3,8 @@
 namespace App\Mcp\Prompts;
 
 use App\Support\FrenchDepartments;
+use App\Support\Search\SearchFields;
+use App\Support\Search\SearchQuery;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Server\Completions\CompletionResponse;
 use Laravel\Mcp\Server\Contracts\Completable;
@@ -68,10 +70,12 @@ abstract class VffPrompt extends Prompt implements Completable
             return [];
         }
         $escaped = addcslashes($value, '\\%_');
+        // Nom : recherche commune (App\Support\Search), tirets, accents et abréviations indifférents.
+        [$match, $bindings] = SearchQuery::parse($value)->matchSql(SearchFields::keys($table === 'lines' ? 'line' : 'station', "{$table}.")[0], anywhere: true);
 
         return DB::table($table)
             ->where(fn ($q) => $q->where('slug', 'like', $escaped.'%')
-                ->orWhereRaw('unaccent(name) ILIKE unaccent(?)', ['%'.$escaped.'%']))
+                ->orWhereRaw("({$match})", $bindings))
             ->orderByRaw('length(slug), slug')
             ->limit(self::SUGGESTIONS)
             ->pluck('slug')

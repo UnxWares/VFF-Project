@@ -99,13 +99,23 @@
             results.accidents.length,
     );
 
+    // Rien ne correspond mot pour mot : tous les résultats sont des noms approchés (fautes de frappe).
+    const approximateOnly = $derived(
+        resultCount > 0 &&
+            [
+                ...results.lines,
+                ...results.stations,
+                ...results.materials,
+                ...results.accidents,
+            ].every((r) => r.approximate),
+    );
     const listShown = $derived(options.length > 0 && (!floating || isOpen));
     // Message visible : aucun résultat ou erreur (sinon lu seulement).
     const messageShown = $derived(
         (!floating || isOpen) &&
             query.length >= 2 &&
             query === searched &&
-            (phase === 'error' || (phase === 'done' && resultCount === 0)),
+            (phase === 'error' || (phase === 'done' && (resultCount === 0 || approximateOnly))),
     );
     const statusText = $derived(
         phase === 'loading'
@@ -113,9 +123,11 @@
             : phase === 'error'
               ? t('nav.search.error')
               : phase === 'done'
-                ? resultCount
-                    ? t('nav.search.results', { count: resultCount })
-                    : t('nav.search.no_results', { query: searched })
+                ? approximateOnly
+                    ? t('nav.search.approximate', { query: searched })
+                    : resultCount
+                      ? t('nav.search.results', { count: resultCount })
+                      : t('nav.search.no_results', { query: searched })
                 : '',
     );
 

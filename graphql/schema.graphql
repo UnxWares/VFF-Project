@@ -4004,11 +4004,13 @@ type Query {
     ): Era @find
 
     """
-    Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom ou code à 6
-    chiffres), gares, matériels roulants et accidents (par nom dans l'une des trois langues, commune ou
-    date : `1891`, `07/2013`, `2013-07-12`), triés par pertinence (nom exact, début du nom, mot du nom,
-    reste), sans tenir compte de la casse ni des accents. Seuls les accidents publiés sont renvoyés.
-    Moins de 2 caractères : listes vides.
+    Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom, autres noms ou code
+    à 6 chiffres, avec ou sans espace), gares (nom, commune, anciens noms, code UIC), matériels roulants et
+    accidents (par nom dans l'une des trois langues, commune ou date : `1891`, `07/2013`, `2013-07-12`).
+    Casse, accents, tirets, apostrophes et abréviations (St, Ste, N.-D., s/, lès) indifférents, petits mots
+    facultatifs, mots dans n'importe quel ordre ; tri par pertinence (nom exact, début du nom, début d'un mot,
+    tous les mots, puis le reste) ; noms approchés (`approximate`) quand moins de 3 fiches correspondent.
+    Seuls les accidents publiés sont renvoyés. Moins de 2 caractères : listes vides.
     """
     search(
         "Texte cherché, 2 caractères au moins."
@@ -5704,6 +5706,9 @@ type SearchLine {
 
     "Code SNCF Réseau à 6 chiffres, nul pour une ligne hors réseau ferré national."
     code: String
+
+    "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
+    approximate: Boolean!
 }
 
 "Une gare trouvée par la recherche."
@@ -5725,6 +5730,9 @@ type SearchStation {
 
     "Longitude WGS 84."
     lng: Float!
+
+    "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
+    approximate: Boolean!
 }
 
 "Un matériel roulant trouvé par la recherche."
@@ -5743,6 +5751,9 @@ type SearchMaterial {
 
     "Rame remarquable dont le surnom correspond à la recherche (« Patrick » : rame 01 du TGV Sud-Est), nulle sinon."
     notable_unit: SearchNotableUnit
+
+    "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
+    approximate: Boolean!
 }
 
 "Rame remarquable trouvée par son surnom ; détail dans `material(slug:) { notable_units }`."
@@ -5785,6 +5796,9 @@ type SearchAccident {
 
     "Longitude WGS 84, nulle si le lieu n'est pas localisé."
     lng: Float
+
+    "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
+    approximate: Boolean!
 }
 
 "Point kilométrique d'un lieu sur une ligne (`Line.pk`)."

@@ -69,12 +69,16 @@ class LineController extends Controller
         $filters = ['q' => $q, 'network' => $network, 'traffic' => $traffic, 'status' => $status, 'heritage' => $heritage];
 
         $sort = $this->filterString($request, 'sort');
-        $sort = in_array($sort, ['name', 'name-desc', 'code'], true) ? $sort : 'name';
+        // Sans tri choisi : pertinence avec une recherche, sinon le nom.
+        $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'code'], true) ? $sort : '';
+        $order = $sort !== '' ? $sort : ($q !== '' ? 'relevance' : 'name');
 
         $lines = $this->applyIndexOrder(
             $directory->apply(Line::query()->select('id', 'slug', 'code', 'name', 'network', 'historical_operator'), $filters, $eraId),
-            $sort,
+            $order,
             $q,
+            $directory,
+            $eraId,
         )->paginate(40)->appends($request->query());
 
         // Trafic dominant (au km) et état actuel des seules lignes de la page.
@@ -105,38 +109,34 @@ class LineController extends Controller
                 'traffic' => $traffic,
                 'status' => $status,
                 'heritage' => $heritage,
-                'sort' => $sort,
+                'sort' => $order,
             ],
+            // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
+            'sort_chosen' => $sort !== '',
+            // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.
+            'approximate' => $directory->approximate($q),
             // Compteurs : chaque facette est calculée sans son propre filtre (cf. LineDirectory::facets).
             'stats' => $directory->facets($filters, $eraId),
         ]);
     }
 
     /**
-     * Ordre de l'annuaire : alphabétique FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU),
-     * et, pour le tri par nom avec une recherche, le nom exact puis les noms qui commencent par le terme.
+     * Ordre de l'annuaire : pertinence de la recherche (LineDirectory::orderByRelevance), code, ou alphabétique
+     * FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU).
      *
      * @param  Builder<Line>  $builder
      * @return Builder<Line>
      */
-    private function applyIndexOrder($builder, string $sort, string $q)
+    private function applyIndexOrder($builder, string $sort, string $q, LineDirectory $directory, ?int $eraId)
     {
         $name = 'name COLLATE "fr-x-icu"';
 
-        if ($sort === 'code') {
-            return $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id");
-        }
-        if ($sort === 'name-desc') {
-            return $builder->orderByRaw("{$name} DESC, id");
-        }
-        if ($q !== '') {
-            $builder->orderByRaw(
-                'CASE WHEN lower(name) = lower(?) THEN 0 WHEN name ILIKE ? THEN 1 ELSE 2 END',
-                [$q, $this->prefixPattern($q)],
-            );
-        }
-
-        return $builder->orderByRaw("{$name}, id");
+        return match ($sort) {
+            'relevance' => $directory->orderByRelevance($builder, $q, $eraId)->orderByRaw("{$name}, id"),
+            'code' => $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id"),
+            'name-desc' => $builder->orderByRaw("{$name} DESC, id"),
+            default => $builder->orderByRaw("{$name}, id"),
+        };
     }
 
     /**

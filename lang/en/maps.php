@@ -25,6 +25,7 @@ return [
         'results_one' => ':count result',
         'results_other' => ':count results',
         'no_results' => 'No line or station matches “:query”.',
+        'approximate' => 'Nothing matches “:query” exactly. These are the closest names.',
         'error' => 'Search is unavailable at the moment. Please try again shortly.',
         'clear' => 'Clear search',
     ],

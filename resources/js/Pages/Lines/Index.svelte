@@ -7,13 +7,15 @@
     import DirectoryTable from '$components/Directory/DirectoryTable.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { effectiveSort, sortOptions, sortParam } from '$lib/directorySort.js';
     import { STATUS_COLOR, TRAFFIC_COLOR, HERITAGE_COLOR } from '$lib/railStyle.js';
 
-    let { lines, filters, stats, overview } = $props();
+    let { lines, filters, stats, overview, sort_chosen = false, approximate = false } = $props();
 
     const NETWORKS = ['principal', 'secondaire', 'militaire', 'particulier', 'none'];
     const TRAFFICS = ['passenger', 'mixed', 'freight', 'unknown'];
     const SORTS = [
+        ['relevance', 'sort_relevance'],
         ['name', 'sort_name'],
         ['name-desc', 'sort_name_desc'],
         ['code', 'sort_code'],
@@ -30,8 +32,9 @@
     let status = $state(filters.status ?? '');
     // svelte-ignore state_referenced_locally
     let heritage = $state(!!filters.heritage);
+    // Tri choisi par le visiteur, '' sinon (pertinence avec une recherche, nom sans : $lib/directorySort.js).
     // svelte-ignore state_referenced_locally
-    let sort = $state(filters.sort ?? 'name');
+    let sort = $state(sort_chosen ? (filters.sort ?? '') : '');
 
     const hasFilters = $derived(!!(q || network || traffic || status || heritage));
     const fmt = (n) => Number(n ?? 0).toLocaleString($i18n.language ?? 'fr');
@@ -45,7 +48,7 @@
         if (traffic) params.traffic = traffic;
         if (status) params.status = status;
         if (heritage) params.heritage = 1;
-        if (sort && sort !== 'name') params.sort = sort;
+        if (sortParam(sort, q)) params.sort = sortParam(sort, q);
         return params;
     }
 
@@ -71,7 +74,7 @@
         traffic = '';
         status = '';
         heritage = false;
-        sort = 'name';
+        sort = '';
         router.get('/lines', {}, { preserveState: true, replace: true });
     }
 
@@ -221,10 +224,13 @@
                     <select
                         id="lines-sort"
                         class="vff-select"
-                        bind:value={sort}
-                        onchange={() => applyFilters(true)}
+                        value={effectiveSort(sort, q)}
+                        onchange={(e) => {
+                            sort = e.currentTarget.value;
+                            applyFilters(true);
+                        }}
                     >
-                        {#each SORTS as [value, key] (value)}
+                        {#each sortOptions(SORTS, q) as [value, key] (value)}
                             <option {value}>{$i18n.t(`lines.index.${key}`)}</option>
                         {/each}
                     </select>
@@ -239,6 +245,11 @@
                 </label>
             </DirectoryFilters>
 
+            {#if approximate && lines.data.length}
+                <p class="approximate" role="status">
+                    {$i18n.t('lines.index.approximate', { query: filters.q })}
+                </p>
+            {/if}
             {#if lines.data.length}
                 <DirectoryTable
                     label={$i18n.t('lines.index.table_label')}
@@ -309,6 +320,11 @@
 </Layout>
 
 <style>
+    .approximate {
+        margin: 0 0 1rem;
+        color: var(--vff-text-muted);
+    }
+
     /* Lien vers le quiz des lignes, sous le chapeau du bandeau. */
     .quiz-link {
         margin: var(--vff-space-4) 0 0;

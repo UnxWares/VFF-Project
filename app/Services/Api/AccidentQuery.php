@@ -5,8 +5,11 @@ namespace App\Services\Api;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentReviewStatus;
 use App\Models\Accident;
+use App\Services\CatalogSearch;
 use App\Support\FrenchDepartments;
 use App\Support\RangeRule;
+use App\Support\Search\SearchFields;
+use App\Support\Search\SearchQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -64,15 +67,19 @@ final class AccidentQuery
     public function apply(Builder $query, array $filters): Builder
     {
         if (filled($filters['q'] ?? null)) {
-            $like = '%'.addcslashes(trim((string) $filters['q']), '\\%_').'%';
-            // Nom dans l'une des trois langues (pas le texte du JSON : « fr » y est une clé), commune, ou
-            // identifiant, qui commence par la date (« 1891 », « 2013-07 » trouvent leurs accidents).
-            $query->where(fn (Builder $q) => $q
-                ->whereRaw("unaccent(COALESCE(accidents.name->>'fr', '')) ILIKE unaccent(?)", [$like])
-                ->orWhereRaw("unaccent(COALESCE(accidents.name->>'en', '')) ILIKE unaccent(?)", [$like])
-                ->orWhereRaw("unaccent(COALESCE(accidents.name->>'de', '')) ILIKE unaccent(?)", [$like])
-                ->orWhereRaw("unaccent(COALESCE(accidents.commune_name, '')) ILIKE unaccent(?)", [$like])
-                ->orWhereRaw('unaccent(accidents.slug) ILIKE unaccent(?)', [$like]));
+            // Une date (« 1891 », « 2013-07 », « 12/07/2013 ») cherche par la date, comme la recherche du site ;
+            // sinon recherche commune (App\Support\Search) sur le nom dans les trois langues et la commune, noms
+            // approchés si rien ne correspond mot pour mot.
+            $q = trim((string) $filters['q']);
+            $date = CatalogSearch::dateCondition($q);
+            if ($date !== null) {
+                $query->whereRaw("({$date[0]})", $date[1]);
+            } else {
+                $search = SearchQuery::parse($q);
+                $keys = SearchFields::keys('accident', 'accidents.');
+                $approximate = $search->canBeFuzzy() && ! $search->where(Accident::query(), $keys)->exists();
+                $search->where($query, $keys, approximate: $approximate);
+            }
         }
         $from = isset($filters['from']) ? (int) $filters['from'] : null;
         $to = isset($filters['to']) ? (int) $filters['to'] : null;

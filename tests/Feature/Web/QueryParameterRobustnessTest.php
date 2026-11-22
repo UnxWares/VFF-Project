@@ -153,9 +153,10 @@ class QueryParameterRobustnessTest extends TestCase
     {
         return [
             // [recherche, nom de la ligne témoin, nombre attendu]
-            'pourcent seul' => ['%', 'Ligne 100 % électrique', 1],
-            'souligné seul' => ['_', 'Embranchement_privé', 1],
-            'antislash' => ['\\', 'Voie \\ de service', 1],
+            // Ponctuation seule : la recherche ignore la ponctuation (App\Support\Search), rien ne sort, jamais tout.
+            'pourcent seul' => ['%', 'Ligne 100 % électrique', 0],
+            'souligné seul' => ['_', 'Embranchement_privé', 0],
+            'antislash' => ['\\', 'Voie \\ de service', 0],
             'pourcent sans témoin' => ['%', 'Ligne sans joker', 0],
             'souligné sans témoin' => ['_', 'Ligne sans joker', 0],
         ];

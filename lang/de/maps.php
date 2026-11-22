@@ -25,6 +25,7 @@ return [
         'results_one' => ':count Ergebnis',
         'results_other' => ':count Ergebnisse',
         'no_results' => 'Keine Bahnstrecke und kein Bahnhof entspricht „:query“.',
+        'approximate' => 'Nichts entspricht genau „:query“. Hier sind die ähnlichsten Namen.',
         'error' => 'Die Suche ist im Moment nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.',
         'clear' => 'Suche löschen',
     ],

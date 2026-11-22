@@ -48,10 +48,15 @@
             .map((g) => ({ ...g, items: options.filter((o) => o.type === g.type) }))
             .filter((g) => g.items.length),
     );
+    // Rien ne correspond mot pour mot : tous les résultats sont des noms approchés (fautes de frappe).
+    const approximateOnly = $derived(
+        options.length > 0 && options.every((o) => o.item?.approximate),
+    );
     const listShown = $derived(isOpen && options.length > 0);
     // Message visible sous le champ : aucun résultat ou erreur (sinon lu seulement).
     const messageShown = $derived(
-        isOpen && (phase === 'error' || (phase === 'done' && options.length === 0)),
+        isOpen &&
+            (phase === 'error' || (phase === 'done' && (options.length === 0 || approximateOnly))),
     );
     const statusText = $derived(
         phase === 'loading'
@@ -59,9 +64,11 @@
             : phase === 'error'
               ? t('maps.search.error')
               : phase === 'done'
-                ? options.length
-                    ? t('maps.search.results', { count: options.length })
-                    : t('maps.search.no_results', { query: searched })
+                ? approximateOnly
+                    ? t('maps.search.approximate', { query: searched })
+                    : options.length
+                      ? t('maps.search.results', { count: options.length })
+                      : t('maps.search.no_results', { query: searched })
                 : '',
     );
 

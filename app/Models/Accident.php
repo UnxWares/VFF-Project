@@ -69,7 +69,7 @@ class Accident extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['geom'];
+    protected $hidden = ['geom', 'search_name', 'search_all'];
 
     protected function casts(): array
     {

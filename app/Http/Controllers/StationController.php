@@ -34,11 +34,15 @@ class StationController extends Controller
         $dept = $this->filterString($request, 'dept', trim: true);
         $flagged = $request->boolean('flagged');
         $sort = $this->filterString($request, 'sort');
-        $sort = in_array($sort, ['name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : 'name';
+        // Sans tri choisi : pertinence avec une recherche, sinon le nom.
+        $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : '';
+        $order = $sort !== '' ? $sort : ($q !== '' ? 'relevance' : 'name');
         $eras = Era::orderBy('year')->get(['id', 'year', 'is_current']);
         $era = $request->integer('era') ? $eras->firstWhere('year', $request->integer('era')) : null;
 
-        $base = $directory->base(['q' => $q, 'department' => $dept, 'flagged' => $flagged], $era);
+        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged];
+        $approximate = $directory->approximate($filters, $era);
+        $base = $directory->base($filters, $era, $approximate);
         $statusExpr = $directory->statusExpression($era);
 
         $list = $directory->whereStatus(clone $base, $status, $era)
@@ -50,7 +54,7 @@ class StationController extends Controller
                 s.provenance->>'opened_at' AS opened_source, s.provenance->>'closed_at' AS closed_source,
                 (s.provenance->>'closed_after')::int AS closed_after
             SQL)
-            ->tap(fn ($b) => $this->orderIndex($b, $sort, $q))
+            ->tap(fn ($b) => $this->orderIndex($b, $directory, $order, $q, $approximate))
             ->paginate(50)
             ->appends($request->query());
         $linesByStation = $directory->lines(collect($list->items())->pluck('id')->all());
@@ -68,7 +72,11 @@ class StationController extends Controller
                 'last_page' => $list->lastPage(),
                 'total' => $list->total(),
             ],
-            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'sort' => $sort],
+            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'sort' => $order],
+            // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
+            'sort_chosen' => $sort !== '',
+            // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.
+            'approximate' => $approximate,
             'overall' => $directory->overall(),
             'counts' => $directory->counts($base, $era),
             'eras' => $eras->pluck('year'),
@@ -77,32 +85,21 @@ class StationController extends Controller
     }
 
     /**
-     * Ordre de l'annuaire : alphabétique FRANÇAIS (collation ICU : accents et capitales sans effet sur le rang).
-     * Tri par nom avec une recherche : nom exact, puis noms qui commencent par le terme, puis le reste.
-     * Les dates absentes viennent toujours en dernier.
+     * Ordre de l'annuaire : pertinence de la recherche (StationDirectory::orderByRelevance), ou alphabétique FRANÇAIS
+     * (collation ICU : accents et capitales sans effet sur le rang). Les dates absentes viennent toujours en dernier.
      */
-    private function orderIndex(Builder $builder, string $sort, string $q): void
+    private function orderIndex(Builder $builder, StationDirectory $directory, string $sort, string $q, bool $approximate): void
     {
         $name = 's.name COLLATE "fr-x-icu"';
 
         match ($sort) {
+            'relevance' => $directory->orderByRelevance($builder, $q, $approximate)->orderByRaw("{$name}, s.id"),
             'name-desc' => $builder->orderByRaw("{$name} DESC, s.id"),
             'city' => $builder->orderByRaw("s.city IS NULL, s.city COLLATE \"fr-x-icu\", {$name}, s.id"),
             'opened' => $builder->orderByRaw("s.opened_at IS NULL, s.opened_at, {$name}, s.id"),
             'closed' => $builder->orderByRaw("s.closed_at IS NULL, s.closed_at, {$name}, s.id"),
-            default => $this->orderByName($builder, $q, $name),
+            default => $builder->orderByRaw("{$name}, s.id"),
         };
-    }
-
-    private function orderByName(Builder $builder, string $q, string $name): void
-    {
-        if ($q !== '') {
-            $builder->orderByRaw(
-                'CASE WHEN lower(s.name) = lower(?) THEN 0 WHEN s.name ILIKE ? THEN 1 ELSE 2 END',
-                [$q, $this->prefixPattern($q)],
-            );
-        }
-        $builder->orderByRaw("{$name}, s.id");
     }
 
     public function show(Station $station, StationSheet $sheet, MediaGallery $gallery): Response
