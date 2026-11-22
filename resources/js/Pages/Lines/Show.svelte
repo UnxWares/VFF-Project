@@ -68,6 +68,7 @@
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
+     *   journal?: Array<{ slug: string, title: string, lang: string }>,
      * }} */
     let {
         line,
@@ -105,6 +106,8 @@
         archive_records = { total: 0, fetched_on: null, items: [] },
         // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
         story_events = [],
+        // Articles du journal de bord qui parlent de la ligne (App\Services\Journal\JournalRepository::aboutLine).
+        journal = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -681,6 +684,15 @@
                         {/if}
                     {:else}
                         <p class="empty">{t('lines.no_description')}</p>
+                    {/if}
+                    {#if journal.length}
+                        <p class="journal-link">
+                            {t('journal.line_link', { count: journal.length })}
+                            {#each journal as j, i (j.slug)}<Link
+                                    href={`/journal/${j.slug}`}
+                                    lang={j.lang === lang ? undefined : j.lang}>{j.title}</Link
+                                >{i < journal.length - 1 ? ', ' : ''}{/each}
+                        </p>
                     {/if}
                 </div>
 
@@ -1512,6 +1524,13 @@
         font-size: var(--vff-fs-body);
         line-height: var(--vff-lh-body);
         color: var(--vff-text);
+    }
+    .journal-link {
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-4) 0 0;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.55;
+        color: var(--vff-text-muted);
     }
     .attribution {
         max-width: var(--vff-measure);

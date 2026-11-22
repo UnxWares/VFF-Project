@@ -127,6 +127,17 @@
             </ol>
         </SectionBlock>
 
+        <!-- Journal de bord : seule entrée vers /journal hors du plan du site (l'en-tête et le pied de
+             page d'origine ne changent pas). -->
+        <SectionBlock
+            id="journal"
+            title={$i18n.t('journal.about.title')}
+            intro={$i18n.t('journal.about.text')}
+            maxWidth="760px"
+        >
+            <Link href="/journal" class="vff-link">{$i18n.t('journal.about.link')}</Link>
+        </SectionBlock>
+
         <SectionBlock
             kind="cta"
             title={$i18n.t('whoarewe.cta.title')}

@@ -146,6 +146,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
+| `journal` | Articles longs du journal de bord (liste, ou article complet avec son texte en HTML, ses sources en notes et les fiches citées). |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -948,6 +949,65 @@ d'utilisation de Gallica (non commerciale libre avec la mention de source, comme
 ```json
 {"line": "rfn-340000", "type": "map"}
 ```
+
+### `line_archive_records` : notices des fonds d'archives d'une ligne (Archives SNCF)
+
+Même contenu que `GET /api/v1/lines/{line}/archive-records` (service `LineArchives`). Notices d'inventaire des fonds
+d'archives dont le titre désigne la ligne. Seule source à ce jour : le jeu de données « Archives SNCF »
+(`archives-sncf-sardo`, ressources.data.sncf.com, ODbL) du Service Archives Documentation du groupe SNCF, qui décrit
+les dossiers, photographies de la Médiathèque SNCF et films numérisés consultables sur archives.sncf.com. Les notices
+sont importées par `vff:import-sncf-archives` et rattachées par le même score que `line_archives` (tableau ci-dessus,
+seuil 9 sur 11), avec deux règles propres au fonds :
+
+- un nom de compagnie ne désigne pas une ligne : « Compagnie du chemin de fer de Paris à Orléans » est retiré du titre
+  avant le calcul ;
+- dans « située sur les lignes du Mans à Mézidon et d'Argentan à Granville », chaque trajet de la liste compte comme
+  une ligne (le document va aux deux lignes ; au-delà de deux, il est ambigu et ne va à aucune).
+
+Les notices des thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de
+personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise. Précision mesurée le
+22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse. Une liste vide ne
+veut pas dire que les archives de la SNCF n'ont rien sur la ligne : le jeu de données n'en décrit qu'une partie.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `type` | `document`, `image`, `video` | non | Ne garder qu'un type de notice : dossier d'archives, photographie ou affiche, film. Tous par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `total`, `records` (du plus ancien au plus récent, sans date en dernier : `source`, `reference`
+(numéro du dossier), `url`, `title`, `type`, `theme`, `sub_theme`, `holder` (service versant), `box`, `rights`, `date`
+avec `label`, `year`, `year_to`, `exact` et `precision` (`day`, `month`, `year`, `range`, `unknown`), `match` avec le
+score, le seuil, les raisons et les lieux reconnus, `fetched_at`), `provenance`, `method` (seuil et points) et
+`vff_url` (section de la fiche).
+
+Droits : le jeu de données est sous ODbL ; reprenez la mention « SNCF, Service Archives Documentation ». VFF ne sert ni
+description, ni image, ni document : renvoyez le lecteur vers `url`, dont la réutilisation suit les conditions
+d'archives.sncf.com.
+
+```json
+{"line": "rfn-430000", "type": "image"}
+```
+
+### `journal` : articles du journal de bord
+
+Même contenu que `GET /api/v1/journal` et `GET /api/v1/journal/{slug}`, et que les pages `/journal` du site. Les
+articles sont des fichiers Markdown versionnés (`resources/content/journal/<slug>.<langue>.md`) écrits par l'équipe ;
+un article sans traduction est renvoyé en français (`lang` dit la langue du texte renvoyé, `locales` celles qui
+existent).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `slug` | chaîne | non | Slug d'un article. Sans lui : la liste. |
+| `line` | code à 6 chiffres | non | Liste : seulement les articles qui parlent de cette ligne. |
+| `lang` | `fr`, `en`, `de` | non | Langue souhaitée (et des messages). |
+
+Liste : `total` et `articles` (`slug`, `title`, `date`, `updated`, `summary`, `lang`, `locales`, `image`, `lines` :
+codes RFN, `stations` : slugs, `path`, `vff_url`). Article : les mêmes champs, plus `author` (toujours l'équipe),
+`disclosure` (lien d'intérêts déclaré, à reprendre avec l'article), `html` (texte, liens internes relatifs au site,
+sources en notes de fin), `toc`, `lines` et `stations` remplacés par les fiches citées qui existent, `words`,
+`reading_minutes`, `license` et `license_url` (texte sous CC BY-SA 4.0 ; l'image garde sa licence). Erreur :
+`journal_not_found`.
 
 ### `line_stories` : histoires d'événements d'une ligne
 

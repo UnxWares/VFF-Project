@@ -252,7 +252,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Pages de crédits (techniques et médias)
 - [~] Partenariats : soutien à la campagne AngouLim (réouverture Angoulême - Limoges, lien d'intérêts déclaré)
 - [~] Page de dons : en place, plateforme finale (Patreon ou HelloAsso) selon le statut juridique de l'association ESS « UnxWares Opensource », à créer
-- [ ] Blog / journal de bord du projet (articles longs sur des lignes emblématiques)
+- [x] Blog / journal de bord du projet (articles longs sur des lignes emblématiques) : `/journal`, articles Markdown versionnés (`resources/content/journal`, format dans `docs/REDACTION.md`), flux Atom et RSS, plan du site, API REST, GraphQL et MCP ; deux premiers articles (les Hirondelles, Angoulême - Limoges) ; traductions des articles à venir
 - [ ] Programme de partenariat avec des associations ferroviaires locales (aucun partenariat à ce jour)
 - [ ] Présence dans les conférences open data / patrimoine
 - [x] Application installable (PWA), avec page hors ligne

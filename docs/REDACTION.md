@@ -74,3 +74,30 @@ gares, mots techniques. Décidez chaque remarque une par une.
   `use_conditions.php`, `accessibility.php` : fautes seulement).
 - Vérifier après chaque série de corrections :
   `bin/php artisan vff:i18n-check --strict`, `bin/php vendor/bin/pint --test lang`, puis les tests PHPUnit des textes.
+
+## Journal de bord : écrire un article
+
+Un article est un fichier Markdown par langue dans `resources/content/journal/`, nommé `<slug>.<langue>.md`
+(`les-hirondelles.fr.md`, `les-hirondelles.en.md`). Le français est obligatoire ; une langue absente est remplacée
+par le texte français, signalé au lecteur. Le fichier commence par un en-tête entre deux lignes `---`, une clé par
+ligne (`clé: valeur`, guillemets facultatifs ; une clé seule ouvre une liste `  - valeur` ou un dictionnaire
+`  clé: valeur`) :
+
+| Clé | Obligatoire | Contenu |
+|---|---|---|
+| `title` | oui | Titre de l'article (seul h1 de la page). |
+| `date` | oui | Date de publication `AAAA-MM-JJ` ; un article daté du futur n'apparaît que ce jour-là. |
+| `updated` | non | Date de la dernière mise à jour. |
+| `summary` | oui | Résumé de 300 caractères au plus (liste, aperçus de partage, flux). |
+| `lines` | non | Codes RFN des lignes dont parle l'article (lien depuis leur fiche). |
+| `stations` | non | Slugs des gares citées. |
+| `image` | non | Photo de Wikimedia Commons : `src` (vignette `upload.wikimedia.org`), `width`, `height`, `alt`, `caption`, `author`, `licence`, `licence_url`, `source_url` (page du fichier). |
+| `disclosure` | non | Lien d'intérêts, affiché en tête de l'article (obligatoire quand l'équipe soutient une cause dont parle l'article). |
+
+Dans le texte : sections en `##` (le sommaire les reprend ; jamais de `#`), liens vers les fiches par
+`[texte](ligne:878000)` ou `[texte](gare:morez)` (ancre possible : `ligne:878000#chronicle`), sources en notes
+`[^nom]` définies en fin de texte avec leur lien. Aucun HTML : il est affiché tel quel. L'article est signé
+« L'équipe VFF », jamais par une personne. Mêmes règles de rédaction que le reste du site (ci-dessus), relecture par une
+deuxième personne, faits vérifiés et sources citées ; `tests/Feature/JournalContentTest.php` contrôle les
+en-têtes, les notes, les liens et la typographie.
+

@@ -163,6 +163,13 @@
             ],
         },
         {
+            key: 'journal',
+            items: [
+                { path: '/api/v1/journal', key: 'journal' },
+                { path: '/api/v1/journal/{slug}', key: 'journal_article' },
+            ],
+        },
+        {
             key: 'tools',
             items: [
                 { path: '/api/v1/search?q={query}', key: 'search' },
@@ -204,6 +211,7 @@
         'line_archives',
         'line_archive_records',
         'line_stories',
+        'journal',
         'line_materials',
         'locate_on_line',
         'signalling_history',

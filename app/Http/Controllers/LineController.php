@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
 use App\Services\Archives\LineArchives;
 use App\Services\Greenways\LineGreenways;
+use App\Services\Journal\JournalRepository;
 use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
@@ -153,7 +154,7 @@ class LineController extends Controller
      * (`/api/v1/lines/{slug}/archive-records`), et les événements qui ont une histoire (lien
      * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
         $page = $sheet->build($line, forPage: true);
 
@@ -174,6 +175,8 @@ class LineController extends Controller
             // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
             // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
             'story_events' => array_column($stories->available($line), 'event_ids'),
+            // Articles du journal de bord qui parlent de la ligne (lien sous la description).
+            'journal' => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
         ]);
     }
 }

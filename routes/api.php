@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
+use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineArchiveController;
 use App\Http\Controllers\Api\LineArchiveRecordController;
@@ -161,4 +162,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->name('api.level-crossings.tiles');
     Route::get('/v1/lines/{line:slug}/level-crossings', [LevelCrossingController::class, 'forLine'])->name('api.lines.level-crossings');
     Route::get('/v1/accidents/{accident}', [AccidentController::class, 'show'])->where('accident', '[a-z0-9-]{1,160}')->name('api.accidents.show');
+
+    // Journal de bord : articles Markdown versionnés (resources/content/journal), rendus comme sur le site.
+    Route::get('/v1/journal', [JournalController::class, 'index'])->name('api.journal.index');
+    Route::get('/v1/journal/{slug}', [JournalController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('api.journal.show');
 });

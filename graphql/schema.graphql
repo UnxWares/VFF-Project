@@ -3761,6 +3761,26 @@ type Query {
     ): Accident @find
 
     """
+    Articles du journal de bord, du plus récent au plus ancien, sans leur texte (comme
+    `GET /api/v1/journal`). Un article sans traduction est renvoyé en français : `lang` dit la langue du
+    texte renvoyé.
+    """
+    journalArticles(
+        "Langue souhaitée : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+        "Code RFN à 6 chiffres : seulement les articles qui parlent de cette ligne."
+        line: String
+    ): [JournalArticle!]! @field(resolver: "App\\GraphQL\\Resolvers\\JournalResolver@articles") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    "Un article du journal de bord, complet (comme `GET /api/v1/journal/{slug}`) ; `null` s'il n'existe pas ou n'est pas encore publié."
+    journalArticle(
+        "Slug de l'article (ex. `les-hirondelles`)."
+        slug: String!
+        "Langue souhaitée : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): JournalArticle @field(resolver: "App\\GraphQL\\Resolvers\\JournalResolver@article") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
     Itinéraire historique entre deux gares, sur le réseau en service à l'époque demandée
     (ex. Rennes - Brest en 1930). Renvoie `null` si une gare est inconnue ou ambiguë, ou si
     aucun chemin n'existe à cette époque : l'API REST `GET /api/v1/route` en donne le motif
@@ -5144,6 +5164,108 @@ type SourceProvider {
 
     "Valeurs de provenance, par table, qui renvoient à ce fournisseur."
     source_values: [SourceValues!]!
+}
+
+"""
+Article du journal de bord : texte long de l'équipe VFF (CC BY-SA 4.0), écrit en Markdown dans un fichier
+versionné du dépôt. Les champs du texte (`author`, `html`, `toc`, `lines`, `stations`, `words`,
+`reading_minutes`, `license`, `license_url`) sont nuls dans `journalArticles` et remplis par `journalArticle`.
+"""
+type JournalArticle {
+    "Identifiant de l'article, à passer à `journalArticle(slug:)`."
+    slug: String!
+    "Titre."
+    title: String!
+    "Date de publication (`AAAA-MM-JJ`)."
+    date: Date!
+    "Date de la dernière mise à jour, ou `null`."
+    updated: Date
+    "Résumé en une ou deux phrases."
+    summary: String!
+    "Langue du texte renvoyé (`fr` quand la traduction demandée n'existe pas)."
+    lang: String!
+    "Langues dans lesquelles l'article existe, le français d'abord."
+    locales: [String!]!
+    "Photo de Wikimedia Commons, avec auteur et licence, ou `null`."
+    image: JournalImage
+    "Codes RFN des lignes dont parle l'article (en-tête)."
+    line_codes: [String!]!
+    "Slugs des gares dont parle l'article (en-tête)."
+    station_slugs: [String!]!
+    "Chemin de la page sur le site (`/journal/{slug}`)."
+    path: String!
+    "Adresse complète de la page."
+    url: String!
+    "Auteur : toujours l'équipe, jamais une personne."
+    author: String
+    "Mention de lien d'intérêts déclarée par l'équipe, à reprendre avec l'article, ou `null`."
+    disclosure: String
+    "Texte en HTML : liens internes relatifs au site, liens externes en nouvel onglet, sources en notes de fin (`<div class=\"footnotes\">`)."
+    html: String
+    "Sommaire : titres de niveau 2, avec l'identifiant de leur ancre."
+    toc: [JournalTocEntry!]
+    "Fiches des lignes citées qui existent (en-tête et liens du texte)."
+    lines: [JournalLine!]
+    "Fiches des gares citées qui existent (en-tête et liens du texte)."
+    stations: [JournalStation!]
+    "Nombre de mots du texte."
+    words: Int
+    "Durée de lecture en minutes (220 mots par minute, arrondi au-dessus)."
+    reading_minutes: Int
+    "Licence du texte (`CC BY-SA 4.0`)."
+    license: String
+    "Adresse de la licence du texte."
+    license_url: String
+}
+
+"Photo d'un article du journal (Wikimedia Commons)."
+type JournalImage {
+    "Adresse de l'image (vignette de 1 280 px de Wikimedia Commons)."
+    src: String!
+    "Texte de remplacement : ce que montre l'image."
+    alt: String!
+    "Légende, ou `null`."
+    caption: String
+    "Auteur, à citer."
+    author: String!
+    "Licence (ex. `CC BY-SA 4.0`, `CC0 1.0`)."
+    licence: String!
+    "Adresse de la licence, ou `null`."
+    licence_url: String
+    "Page du fichier sur Wikimedia Commons."
+    source_url: String!
+    "Largeur en pixels."
+    width: Int!
+    "Hauteur en pixels."
+    height: Int!
+}
+
+"Entrée du sommaire d'un article."
+type JournalTocEntry {
+    "Identifiant de l'ancre (`/journal/{slug}#{id}`)."
+    id: String!
+    "Texte du titre."
+    label: String!
+}
+
+"Ligne citée par un article."
+type JournalLine {
+    "Code RFN à 6 chiffres."
+    code: String!
+    "Slug de la fiche (`line(slug:)`)."
+    slug: String!
+    "Nom de la ligne."
+    name: String!
+}
+
+"Gare citée par un article."
+type JournalStation {
+    "Slug de la fiche (`station(slug:)`)."
+    slug: String!
+    "Nom de la gare."
+    name: String!
+    "Commune, ou `null`."
+    city: String
 }
 
 """
