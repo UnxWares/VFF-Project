@@ -21,7 +21,7 @@ export function makeCodeBlocksFocusable(root, locale) {
             const language = [...code.classList]
                 .find((c) => c.startsWith('language-'))
                 ?.slice('language-'.length);
-            code.tabIndex = 0;
+            code.setAttribute('tabindex', '0');
             code.setAttribute('role', 'region');
             code.setAttribute('aria-label', language ? `${label} (${language})` : label);
         });

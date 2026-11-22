@@ -20,8 +20,6 @@ class JournalTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Line $line;
-
     private Station $station;
 
     protected function setUp(): void
@@ -30,7 +28,7 @@ class JournalTest extends TestCase
         // Visiteur francophone par défaut (le navigateur de test n'envoie aucune langue).
         $this->withHeader('Accept-Language', 'fr');
         $this->app->instance(JournalRepository::class, new JournalRepository(base_path('tests/Fixtures/Journal')));
-        $this->line = Line::factory()->create(['code' => '123456', 'slug' => 'rfn-123456', 'name' => 'Ligne d’essai']);
+        Line::factory()->create(['code' => '123456', 'slug' => 'rfn-123456', 'name' => 'Ligne d’essai']);
         $this->station = Station::factory()->create(['slug' => 'gare-essai', 'name' => 'Gare d’essai', 'city' => 'Essai']);
         DB::table('station_redirects')->insert(['old_slug' => 'ancien-slug', 'station_id' => $this->station->id]);
     }

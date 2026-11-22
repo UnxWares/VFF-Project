@@ -56,7 +56,11 @@ export function createReporter({ send, page, release, sampleRate = 1, random = M
     };
 }
 
-/** Branche le guetteur sur la fenêtre du navigateur. */
+/**
+ * Branche le guetteur sur la fenêtre du navigateur.
+ *
+ * @param {{ release?: string, sampleRate?: number }} [options]
+ */
 export function installClientErrors({ release, sampleRate } = {}) {
     const report = createReporter({
         page: () => location.href,
