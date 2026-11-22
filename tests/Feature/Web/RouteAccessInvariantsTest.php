@@ -32,9 +32,9 @@ class RouteAccessInvariantsTest extends TestCase
 
     /**
      * Écritures publiques voulues, avec limite de débit obligatoire : signalement d'une erreur depuis une
-     * fiche, rapports de violation de la CSP envoyés par les navigateurs (CspReportController).
+     * fiche, rapports de violation de la CSP (CspReportController) et erreurs JavaScript (ClientErrorController) envoyés par les navigateurs.
      */
-    private const PUBLIC_THROTTLED_WRITES = ['POST /reports', 'POST /api/csp-report'];
+    private const PUBLIC_THROTTLED_WRITES = ['POST /reports', 'POST /api/csp-report', 'POST /api/client-errors'];
 
     /** @return list<RouteDefinition> */
     private function routes(): array

@@ -1,6 +1,7 @@
 import { createInertiaApp, router } from '@inertiajs/svelte';
 import i18next from 'i18next';
 import { mount } from 'svelte';
+import { installClientErrors } from './lib/clientErrors.js';
 import { applyPageTranslations } from './lib/i18n.js';
 import { installPatrick } from './lib/patrick.js';
 import { dropStaleServerSeo } from './lib/serverSeo.js';
@@ -58,6 +59,12 @@ async function setup({ el, App, props }) {
     // Application web installable : service worker et bandeau de mise à jour, chargés après le montage.
     import('./pwa/index.js').then(({ initPwa }) => initPwa());
 }
+
+// Erreurs JavaScript du navigateur : envoyées au serveur, sans donnée personnelle (lib/clientErrors.js).
+installClientErrors({
+    release: import.meta.env.VITE_APP_VERSION,
+    sampleRate: Number(import.meta.env.VITE_CLIENT_ERRORS_SAMPLE_RATE ?? 1),
+});
 
 createInertiaApp({
     resolve: async (name) => {

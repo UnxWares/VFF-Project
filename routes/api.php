@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
+use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CspReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,8 @@ use Illuminate\Support\Facades\Route;
 // Rapports de violation de la CSP envoyés par les navigateurs (ContentSecurityPolicy) : sans session
 // ni cookie, débit limité par adresse IP, rien de personnel dans le journal.
 Route::post('/csp-report', CspReportController::class)->middleware('throttle:csp-reports')->name('csp.report');
+// Erreurs JavaScript du navigateur (ClientErrorController), sans donnée personnelle, journal `client-errors`.
+Route::post('/client-errors', ClientErrorController::class)->middleware('throttle:client-errors')->name('client-errors.store');
 
 // Compte du jeton (lecture seule) ; un jeton d'un compte suspendu est refusé (AuthenticateApiToken).
 Route::middleware(['api.token', 'auth:sanctum', 'throttle:public-api'])->get('/user', fn (Request $request) => $request->user());

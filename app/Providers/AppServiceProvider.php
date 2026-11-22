@@ -121,6 +121,15 @@ class AppServiceProvider extends ServiceProvider
             ->by('ip:'.$request->ip())
             ->response(fn () => response()->noContent(429)));
 
+        // Erreurs JavaScript du navigateur (ClientErrorController) : par adresse IP, réponse vide au-delà.
+        RateLimiter::for('client-errors', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('monitoring.client_errors_per_minute')))
+            ->by('client-errors:'.$request->ip())
+            ->response(fn () => response()->noContent(429)));
+
+        // État détaillé pour le moniteur de disponibilité (HealthController).
+        RateLimiter::for('health', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('monitoring.health_per_minute')))
+            ->by('health:'.$request->ip()));
+
         RateLimiter::for('error-reports', function (Request $request): array {
             $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
             $refuse = fn () => back()->withErrors(['form' => __('reports.errors.too_many')]);

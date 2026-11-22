@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -77,6 +78,25 @@ return [
         ],
 
         // Rapports de violation de la CSP (CspReportController) : sans donnée personnelle, 30 jours.
+        // Erreurs JavaScript du navigateur (ClientErrorController) : une ligne JSON par erreur.
+        'client-errors' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/client-errors.log'),
+            'level' => 'error',
+            'days' => 30,
+            'formatter' => JsonFormatter::class,
+        ],
+
+        // Erreurs du serveur en JSON (une ligne par erreur), pour un collecteur de journaux auto-hébergé :
+        // LOG_STACK=daily,json-errors (docs/SUIVI-ERREURS.md).
+        'json-errors' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/errors.json.log'),
+            'level' => 'error',
+            'days' => 30,
+            'formatter' => JsonFormatter::class,
+        ],
+
         'csp' => [
             'driver' => 'daily',
             'path' => storage_path('logs/csp.log'),
