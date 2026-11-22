@@ -91,4 +91,7 @@ return [
     ['key' => 'wikidata:Q86673995', 'from' => '2019-10-16-saint-pierre-sur-vence', 'slug' => '2019-10-16-boulzicourt', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'bea-tt:2022-02-25-hochfelden-pn', 'from' => '2022-02-25-hochfelden', 'slug' => '2022-02-24-hochfelden', 'reason' => 'date corrigée d\'après les documents du contexte'],
     ['key' => 'bea-tt:2022-05-30-bizanos-pn', 'from' => '2022-05-30-bizanos', 'slug' => '2022-05-29-bizanos', 'reason' => 'date corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1900-05-30-saint-petersbourg-a78cd435', 'from' => '1900-05-30-tergnier', 'slug' => '1900-05-30-jussy', 'reason' => 'commune corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1920-09-19-arles-sur-tech-1d17bab1', 'from' => '1920-09-19-arles-sur-tech', 'slug' => '1920-09-19-amelie-les-bains-palalda', 'reason' => 'commune corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1935-07-01-loudun-94ace121', 'from' => '1935-07-01-loudun', 'slug' => '1935-07-01-cernay', 'reason' => 'commune corrigée d\'après les documents du contexte'],
 ];

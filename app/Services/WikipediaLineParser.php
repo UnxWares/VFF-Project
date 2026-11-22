@@ -1072,10 +1072,10 @@ class WikipediaLineParser
             foreach ($mm as $m) {
                 // « années 1930 », « 1938-1939 » (plage) : on garde la première année.
                 $before = substr($mask, max(0, $m[0][1] - 8), min(8, $m[0][1]));
-                if (preg_match('/années?\s*$/iu', $before)) {
+                if (preg_match('/années?\s*$/iu', $before, $word, PREG_OFFSET_CAPTURE)) {
                     // « au cours des années 1970 » : décennie, inutilisable comme date
                     // mais elle « capte » le mot-clé voisin (cf. nearestDate).
-                    $found[] = ['pos' => $m[0][1] - 7, 'date' => sprintf('%04d-01-01', (int) $m[1][0]), 'year' => (int) $m[1][0], 'precision' => 'decade'];
+                    $found[] = ['pos' => $m[0][1] - strlen($before) + $word[0][1], 'date' => sprintf('%04d-01-01', (int) $m[1][0]), 'year' => (int) $m[1][0], 'precision' => 'decade'];
 
                     continue;
                 }

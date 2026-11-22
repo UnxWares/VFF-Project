@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de la collision de la plaine d'Yvours, chemin de fer de Saint-Étienne à Lyon, mars 1846 (recherche du 22/11/2026).
+return [
+    'slug' => '1846-03-01-irigny',
+    'checked_on' => '2026-11-22',
+    'sources' => [
+        'wp-liste-1840' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1840',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1846',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1840&oldid=235357682#1846',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée du 1er mars 1846, d\'après Le Censeur de Lyon du 3 mars, Le Constitutionnel du 5 mars et Le Railway : la locomotive d\'un train Saint-Étienne - Lyon d\'environ 200 voyageurs tombe en panne près de Vernaison ; la machine de secours venue de Givors repart avec le convoi et heurte de face, vers 15 h 30 dans la plaine d\'Yvours à Irigny, la seconde machine de secours venue de Lyon ; de neuf à dix-huit morts et de 45 à 48 blessés selon les sources.',
+        ],
+        'ddb-1846-03-15-eisenbahn-zeitung' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Unfälle auf Eisenbahnen. Frankreich',
+            'publisher' => 'Eisenbahn-Zeitung, Organ der Vereine deutscher Eisenbahn-Verwaltungen (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1846-03-15',
+            'locator' => 'p. 12',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/22NHO2DQVXQPWV4VHVWCNK4AYTTMRBIA?issuepage=12',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Exposé du ministre des Travaux publics le 4 mars : accident du 2 mars ; train de 200 voyageurs arrêté entre Givors et Vernaison ; machine d\'un train de marchandises prise en renfort ; autre machine envoyée de Perrache, vite, dans une courbe près du viaduc de Pierre-Bénite ; choc vers 16 h, six voitures sur douze écrasées, 8 morts et 30 blessés dont 10 graves ; tracé de la ligne mis en cause.',
+        ],
+        'ddb-1846-03-09-dresden' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankreich (d\'après le Courrier de Lyon)',
+            'publisher' => 'Deutsche allgemeine Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1846-03-09',
+            'locator' => 'p. 5',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/BYHZRQ2KO7HIO24JBTQBBD2WPVPG2WOK?issuepage=5',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'D\'après le Courrier de Lyon : machine du train parti de Saint-Étienne à midi le 2 mars en panne à Vernaison ; secours demandés à Lyon et à Givors ; les deux agents de la machine du train sautent et sont blessés ; 8 morts et 11 blessés graves ; environ 206 voyageurs à bord.',
+        ],
+        'ddb-1846-03-08-merkur' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankreich',
+            'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1846-03-08',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/CGH6NAZLVCPZBQX46R3NRUEPQDUPIBG7?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Accident daté du « dimanche dernier » : panne à Vernaison, machine de Givors arrivée la première, rencontre dans la plaine d\'Yvours, près du tunnel, avec la machine envoyée de Lyon ; les mécaniciens n\'ont que le temps de sauter ; huit voyageurs morts, dont deux femmes, trente blessés.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Un train parti de Saint-Étienne à midi pour Lyon, avec environ 200 voyageurs, s\'est arrêté près de Vernaison sur une avarie de sa locomotive. Des machines de secours ont été demandées à la fois à Givors et à Lyon.',
+                'en' => 'A train that left Saint-Étienne at noon for Lyon, with about 200 passengers, came to a halt near Vernaison when its engine failed. Relief engines were called from both Givors and Lyon.',
+                'de' => 'Ein Zug, der mittags mit etwa 200 Reisenden von Saint-Étienne nach Lyon abgefahren war, blieb bei Vernaison mit einem Schaden an der Lokomotive liegen. Hilfslokomotiven wurden zugleich in Givors und in Lyon angefordert.',
+                'sources' => ['wp-liste-1840', 'ddb-1846-03-15-eisenbahn-zeitung', 'ddb-1846-03-09-dresden'],
+            ],
+            [
+                'fr' => 'La machine venue de Givors est arrivée la première et le convoi est reparti vers Lyon. Dans la plaine d\'Yvours, à Irigny, il a rencontré de face, sur la même voie, la machine envoyée de Lyon, qui roulait vite dans une courbe serrée près du viaduc de Pierre-Bénite. Les mécaniciens et les chauffeurs ont sauté avant le choc, et les voitures du milieu du train ont été écrasées.',
+                'en' => 'The engine from Givors arrived first and the train set off again towards Lyon. On the Yvours plain at Irigny it met head-on, on the same track, the engine sent from Lyon, which was running fast through a sharp curve near the Pierre-Bénite viaduct. The drivers and firemen jumped before the impact, and the carriages in the middle of the train were crushed.',
+                'de' => 'Die Lokomotive aus Givors traf zuerst ein, und der Zug fuhr weiter nach Lyon. In der Ebene von Yvours bei Irigny stieß er auf demselben Gleis frontal mit der aus Lyon geschickten Lokomotive zusammen, die in einer engen Kurve nahe dem Viadukt von Pierre-Bénite schnell fuhr. Lokomotivführer und Heizer sprangen vor dem Aufprall ab; die Wagen in der Zugmitte wurden zertrümmert.',
+                'sources' => ['wp-liste-1840', 'ddb-1846-03-15-eisenbahn-zeitung', 'ddb-1846-03-08-merkur'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Selon l\'exposé du ministre des Travaux publics repris par l\'Eisenbahn-Zeitung, la courbe empêchait le mécanicien venu de Lyon de voir le train à temps. Le tracé défectueux de la ligne est mis en cause, et l\'État impose des travaux à la compagnie.',
+                'en' => 'According to the statement of the Minister of Public Works reported by the Eisenbahn-Zeitung, the curve kept the driver from Lyon from seeing the train in time. The faulty alignment of the line is blamed, and the state requires the company to carry out works.',
+                'de' => 'Nach der Darstellung des Ministers der öffentlichen Arbeiten in der Eisenbahn-Zeitung verhinderte die Kurve, dass der Lokomotivführer aus Lyon den Zug rechtzeitig sah. Die fehlerhafte Trassierung der Strecke wird verantwortlich gemacht; der Staat verlangt von der Gesellschaft Umbauten.',
+                'sources' => ['ddb-1846-03-15-eisenbahn-zeitung'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les dépêches allemandes comptent huit morts sur le coup, dont deux femmes, et trente blessés, dont dix grièvement. La liste de Wikipédia donne, selon les sources françaises, de neuf à dix-huit morts.',
+                'en' => 'The German dispatches count eight killed outright, two of them women, and thirty injured, ten of them badly. The Wikipedia list gives between nine and eighteen dead, depending on the French sources.',
+                'de' => 'Die deutschen Meldungen zählen acht sofort Getötete, darunter zwei Frauen, und dreißig Verletzte, zehn davon schwer. Die Wikipedia-Liste nennt je nach französischer Quelle neun bis achtzehn Tote.',
+                'sources' => ['ddb-1846-03-08-merkur', 'ddb-1846-03-15-eisenbahn-zeitung', 'wp-liste-1840'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Date : la liste de Wikipédia donne le 1er mars 1846, et le Schwäbischer Merkur parle du « dimanche dernier », soit le 1er mars ; l\'exposé du ministre et la dépêche du Courrier de Lyon donnent le 2 mars.',
+                'en' => 'Date: the Wikipedia list gives 1 March 1846, and the Schwäbischer Merkur speaks of "last Sunday", which was 1 March; the minister\'s statement and the Courrier de Lyon dispatch give 2 March.',
+                'de' => 'Datum: Die Wikipedia-Liste nennt den 1. März 1846, der Schwäbische Merkur spricht von „letzten Sonntag“, also dem 1. März; die Darstellung des Ministers und die Meldung des Courrier de Lyon nennen den 2. März.',
+                'sources' => ['wp-liste-1840', 'ddb-1846-03-08-merkur', 'ddb-1846-03-15-eisenbahn-zeitung', 'ddb-1846-03-09-dresden'],
+            ],
+            [
+                'fr' => 'Bilan : huit morts dans toutes les dépêches allemandes, de neuf à dix-huit selon la liste ; trente blessés, ou onze blessés graves, contre 45 à 48 blessés dans la liste. La fiche ne donne aucun nombre.',
+                'en' => 'Toll: eight dead in all the German dispatches, nine to eighteen according to the list; thirty injured, or eleven badly injured, against 45 to 48 injured in the list. The record gives no figure.',
+                'de' => 'Bilanz: acht Tote in allen deutschen Meldungen, neun bis achtzehn nach der Liste; dreißig Verletzte oder elf Schwerverletzte gegenüber 45 bis 48 Verletzten in der Liste. Der Eintrag nennt keine Zahl.',
+                'sources' => ['ddb-1846-03-15-eisenbahn-zeitung', 'ddb-1846-03-09-dresden', 'wp-liste-1840'],
+            ],
+            [
+                'fr' => 'Heure : vers 15 h 30 selon la liste, vers 16 h selon l\'exposé du ministre.',
+                'en' => 'Time: about 3.30 p.m. according to the list, about 4 p.m. according to the minister\'s statement.',
+                'de' => 'Uhrzeit: gegen 15.30 Uhr nach der Liste, gegen 16 Uhr nach der Darstellung des Ministers.',
+                'sources' => ['wp-liste-1840', 'ddb-1846-03-15-eisenbahn-zeitung'],
+            ],
+        ],
+    ],
+];

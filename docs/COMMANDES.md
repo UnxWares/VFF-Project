@@ -317,6 +317,34 @@ Options : `--era=` (année ou liste « 1930,1980 »), `--output=` (fichier du pl
 Prévient par courriel les membres dont un jeton d'API expire dans 30 jours. Option : `--dry-run` (nombre de comptes et de
 jetons concernés, sans envoi).
 
+### `vff:import-signalling-history` et `vff:import-signalling-sources`
+
+Historique daté de la signalisation : le premier lit les articles Wikipédia des lignes, le second les documents relevés
+dans `database/data/signalling_history_sources.php`. Les deux ne touchent que `line_signalling_events` et la carte par
+ère (`line_signalling_history_map`), et lisent le fichier des corrections sourcées
+`database/data/signalling_history_corrections.php` (contrôlé par `App\Services\Signalling\SignallingCorrectionsFile`).
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Affiche le bilan sans écrire (avec `-v`, les faits ; un fait corrigé y apparaît en fiabilité `hidden`). |
+| `--corrections=` | Autre fichier de corrections que celui de `database/data/`. |
+| `--line=`, `--limit=`, `--offline`, `--refresh`, `--cache-dir=` | Import Wikipédia seulement : lignes lues, articles du cache. |
+| `--file=` | Import des documents seulement : autre fichier de faits. |
+
+Une correction vise un fait par sa ligne, son système, sa date et sa portion, et porte une action, des sources (un
+document officiel ou deux sites différents), une citation et une raison :
+
+- `neutralize` : le fait reste en base (`confidence = 'hidden'`, colonne `correction`) mais n'est plus montré (fiche,
+  API, carte par ère) ; la raison et les sources se lisent dans la clé `corrections` de
+  `GET /api/v1/lines/{line}/signalling-history` ;
+- `replace` : idem, et le fait juste (`with`, au format du fichier des documents) est rangé par
+  `vff:import-signalling-sources`.
+
+Un fait visé introuvable est une erreur : l'import Wikipédia échoue après son bilan (article changé), celui des
+documents échoue sans rien écrire. Une correction d'une ligne absente de la base est ignorée. Un fait corrigé revient
+au prochain import si sa correction est retirée du fichier. Première correction : l'ETCS du 12/11/2024 de la LGV
+Sud-Est (752000), qui date du basculement des postes et du centre de commande de Lyon, pas de l'ETCS (visé pour 2026).
+
 ## Fond de carte libre
 
 Pas de commande artisan : `scripts/basemap-pmtiles.sh [zone] [zoom] [date]` construit l'archive PMTiles

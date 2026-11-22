@@ -641,6 +641,8 @@ return [
             'wikipedia-en' => 'wikipedia-en',
             'wikipedia-de' => 'wikipedia-de',
             'bea-tt' => 'bea-tt',
+            // Fiches rédigées à la main (accident_records_manual.php) : la source est le document de presse cité.
+            'delpher' => 'delpher',
         ],
         'line_events' => [
             'wikipedia' => 'wikipedia',

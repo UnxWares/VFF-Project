@@ -168,6 +168,12 @@ class LineSignallingController extends Controller
      * KVB) qui porte sur toute la ligne ou recouvre sa portion placée le remplace ; un remplacement que
      * l'article ne date pas reste invisible.
      *
+     * `corrections` : les faits relevés que des documents contredisent (fichier `signalling_history_corrections.php`,
+     * action `neutralize` ou `replace`). Ils ne sont **jamais** dans `history` ni dans `in_force` ; chaque entrée
+     * dit lequel (`system`, `date`, `date_precision`, `section`, `original` : `provider`, `title`, `url`), ce qui est
+     * fait (`action`), pourquoi (`reason`), une citation (`quote`) et les documents qui contredisent le fait
+     * (`sources` : `publisher`, `title`, `url`, `published`). Liste vide s'il n'y en a aucune.
+     *
      * Relevé limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Le texte des
      * articles est sous CC BY-SA 4.0 : reproduisez la mention du champ `attribution` ; seuls des faits sont
      * repris. `provenance` donne le fournisseur et la licence, comme les autres réponses.
@@ -177,6 +183,7 @@ class LineSignallingController extends Controller
     #[ApiResponse(200, "Mises en service de signalisation datées de la ligne (liste vide s'il n'y en a aucune).", examples: [[
         'line' => ['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de St-Cloud à St-Nom-la-Bretèche-Forêt-de-Marly'],
         'history' => [self::EXAMPLE_FACT],
+        'corrections' => [],
         'era_year' => 1970,
         'in_force' => [self::EXAMPLE_FACT],
         'attribution' => LineSignallingHistory::ATTRIBUTION,
@@ -192,6 +199,7 @@ class LineSignallingController extends Controller
         $body = [
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'history' => $facts,
+            'corrections' => $this->history->corrections($line),
         ];
         if ($request->filled('era')) {
             $era = Era::where('year', $request->integer('era'))->first();
