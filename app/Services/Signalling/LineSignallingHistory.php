@@ -50,6 +50,37 @@ final class LineSignallingHistory
     }
 
     /**
+     * Faits que des documents contredisent (SignallingCorrectionsFile) : jamais montrés dans `facts`, mais la
+     * correction (raison, citation, sources) reste consultable. Du plus ancien au plus récent.
+     *
+     * @return list<array{system: string, date: string, date_precision: string, section: array{from: ?string, to: ?string}|null,
+     *     original: array{provider: string, title: string, url: string}, action: string, reason: string, quote: string,
+     *     sources: list<array{publisher: string, title: string, url: string, published: ?string}>}>
+     */
+    public function corrections(Line $line): array
+    {
+        return DB::table('line_signalling_events')->where('line_id', $line->id)->whereNotNull('correction')
+            ->orderBy('event_date')->orderBy('system')->orderBy('id')
+            ->get(['system', 'event_date', 'date_precision', 'scope', 'section_from', 'section_to', 'source', 'source_title', 'source_url', 'correction'])
+            ->map(function (object $r): array {
+                $c = json_decode((string) $r->correction, true);
+                $c = is_array($c) ? $c : [];
+
+                return [
+                    'system' => $r->system,
+                    'date' => (string) $r->event_date,
+                    'date_precision' => $r->date_precision,
+                    'section' => $r->scope === 'section' ? ['from' => $r->section_from, 'to' => $r->section_to] : null,
+                    'original' => ['provider' => $r->source, 'title' => $r->source_title, 'url' => $r->source_url],
+                    'action' => (string) ($c['action'] ?? ''),
+                    'reason' => (string) ($c['reason'] ?? ''),
+                    'quote' => (string) ($c['quote'] ?? ''),
+                    'sources' => self::documents(json_encode($c['sources'] ?? [])),
+                ];
+            })->all();
+    }
+
+    /**
      * Mêmes faits, pour un identifiant de ligne, avec l'identifiant interne de chaque fait (`id`, pour la
      * carte par ère ; jamais exposé).
      *
