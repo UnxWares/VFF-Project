@@ -1090,4 +1090,47 @@ return [
         'quote' => 'L\'ouverture du premier tronçon a eu lieu le 10 mars 1876',
         'reason' => 'premier tronçon de Bourg-en-Bresse à Simandre-sur-Suran, qui porte Sénissiat-Revonnas',
     ],
+
+    // Gares ouvertes avant leurs lignes, suite (storage/app/reports/agents/aprem-2111/gares-avant-lignes-2.md).
+
+    // 977000 Invalides - Versailles-Rive-Gauche : Versailles-Rive-Gauche ouvre le 10/09/1840 avec la ligne de
+    // Paris (embarcadère du Maine) à Versailles par la rive gauche ; la ligne n'avait que l'année 1840.
+    [
+        'line' => '977000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-09-10',
+        'precision' => 'day',
+        'from' => 'Porchefontaine',
+        'to' => 'Versailles-Rive-Gauche',
+        'source_url' => $wp('Gare de Versailles-Château-Rive-Gauche', 240733330),
+        'quote' => 'lors de l\'inauguration de la ligne de Paris à Versailles par la rive gauche de la Seine',
+        'reason' => 'ouverture de la ligne de Paris à Versailles par la rive gauche le 10/09/1840 (article de la gare), date au jour de l\'année 1840 déjà en base',
+    ],
+
+    // 798000 Saint-Georges-d'Aurac - Saint-Étienne-Châteaucreux : le 06/10/2014 n'est pas une ouverture mais la
+    // réouverture de la section Le Puy - Firminy, fermée pour travaux depuis février 2014 (« avant que
+    // l'ouverture ne soit repoussée au 6 octobre en raison de contraintes techniques » ; La Montagne,
+    // « Pas de train entre Firminy et Le Puy-en-Velay avant octobre », 23/08/2014).
+    [
+        'line' => '798000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '2014-10-06'],
+        'label' => 'Réouverture après travaux (Le Puy - Firminy), pas une ouverture',
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'quote' => 'avant que l\'ouverture ne soit repoussée au 6 octobre en raison de contraintes techniques',
+        'reason' => 'la section Le Puy - Firminy ouvre en 1863 et 1866 ; en 2014 elle rouvre après des travaux commencés en février 2014',
+    ],
+    [
+        'line' => '798000',
+        'action' => 'add',
+        'type' => 'reopening',
+        'date' => '2014-10-06',
+        'precision' => 'day',
+        'from' => 'Le Puy',
+        'to' => 'Firminy',
+        'source_url' => $wp('Ligne de Saint-Georges-d\'Aurac à Saint-Étienne-Châteaucreux', 238752330),
+        'quote' => 'avant que l\'ouverture ne soit repoussée au 6 octobre en raison de contraintes techniques',
+        'reason' => 'réouverture de la section Le Puy - Firminy après les travaux de modernisation commencés en février 2014 (La Montagne, 23/08/2014)',
+    ],
 ];
