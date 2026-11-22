@@ -33,6 +33,7 @@
      *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|'rack'|null },
      *   rack?: { system: string, extent: 'full'|'partial'|null, max_grade_permil: number, braking_only: boolean,
      *     source: { title: string, url: string } } | null,
+     *   sourced_grade?: { max_grade_permil: number, source: { title: string, url: string } } | null,
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
@@ -67,6 +68,8 @@
     // Ligne à crémaillère : déclivité publiée par la source, la mesure du profil n'en dit rien.
     const rack = $derived(profile.rack ?? null);
     const rackText = $derived(rackSentence(rack));
+    // Mesure non publiée (terrain, tunnel, interpolé) : déclivité d'une source écrite, s'il y en a une.
+    const sourced = $derived(profile.sourced_grade ?? null);
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
     const mainStations = $derived(
@@ -89,9 +92,11 @@
         {
             value: rack
                 ? `${permil(rack.max_grade_permil)}${NBSP}‰`
-                : s.max_grade_permil === null
-                  ? t('profile.grade_unpublished')
-                  : `${permil(s.max_grade_permil)}${NBSP}‰`,
+                : s.max_grade_permil !== null
+                  ? `${permil(s.max_grade_permil)}${NBSP}‰`
+                  : sourced
+                    ? `${permil(sourced.max_grade_permil)}${NBSP}‰`
+                    : t('profile.grade_unpublished'),
             label: t('profile.grade'),
         },
     ]);
@@ -211,6 +216,14 @@
             </p>
         {:else if gradeWhere}
             <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
+        {:else if sourced}
+            <p class="grade-where">
+                {t('profile.sourced_grade')}{colon(lang)}<a
+                    href={sourced.source.url}
+                    rel="external"
+                    lang={sourceLang(sourced.source.url)}>{sourced.source.title}</a
+                >.
+            </p>
         {:else}
             <p class="grade-where">
                 {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'none'}`)}

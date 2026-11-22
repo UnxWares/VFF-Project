@@ -39,6 +39,7 @@ return [
     'rack_braking' => 'La crémaillère ne servait qu’au freinage.',
     'rack_not_measured' => 'Le profil ne mesure pas sa déclivité : le calcul écarte les pentes de plus de 120 ‰, qu’aucune ligne à adhérence n’atteint.',
     'rack_source' => 'Déclivité la plus forte d’après Wikipédia',
+    'sourced_grade' => 'Le profil ne mesure pas cette déclivité ici. Valeur de l’infobox de l’article de Wikipédia',
     'terrain_legend' => 'Altitude du terrain (RGE ALTI), pas celle de la voie',
     'show_table' => 'Altitude des gares (:count)',
     'table_caption' => 'Altitude des gares sur le profil en long',

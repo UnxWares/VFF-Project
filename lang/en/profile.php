@@ -39,6 +39,7 @@ return [
     'rack_braking' => 'The rack was used for braking only.',
     'rack_not_measured' => 'The profile does not measure its gradient: the calculation discards slopes steeper than 120 ‰, which no adhesion line reaches.',
     'rack_source' => 'Steepest gradient according to Wikipedia',
+    'sourced_grade' => 'The profile does not measure this gradient here. Figure from the infobox of the Wikipedia article',
     'terrain_legend' => 'Ground height (RGE ALTI), not the track height',
     'show_table' => 'Station heights (:count)',
     'table_caption' => 'Station heights on the gradient profile',

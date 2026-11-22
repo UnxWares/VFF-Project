@@ -770,7 +770,10 @@ suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`,
 ‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
 `tunnel`, `interpolated`, `rack` ; motif nul aussi si aucune portion de 1 km n'est exploitable) et méthode des dénivelés (`climb_method` : altitudes du terrain moyennées sur 1 km,
 puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
-publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `sourced_grade`
+(quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés : déclivité
+la plus forte selon le champ « pente » de l'infobox de Wikipédia, en ‰, avec le permalien de la révision lue ; null
+sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK

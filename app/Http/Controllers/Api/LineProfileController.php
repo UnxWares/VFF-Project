@@ -33,6 +33,7 @@ class LineProfileController extends Controller
             'climb_method' => ['method' => 'hysteresis', 'threshold_m' => 3.0, 'terrain_smoothing_m' => 1000.0],
         ],
         'rack' => null,
+        'sourced_grade' => null,
         'points' => [[0, 578.9, -145], [100, 578.3, -45], [5200, 756.2, 5111], [10500, 958.6, 10425]],
         'structures' => [['from_m' => 700, 'to_m' => 900, 'kind' => 'bridge']],
         'altitude_sources' => ['bdtopo' => 339, 'rge_alti' => 5, 'interpolated' => 24, 'missing' => 0],
@@ -112,6 +113,16 @@ class LineProfileController extends Controller
      * ‰), `braking_only` (vrai si la crémaillère ne servait qu'au freinage) et `source` (`provider`
      * = `wikipedia`, `title`, `url` = permalien de la révision lue, `license` = `CC BY-SA 4.0`).
      *
+     * **Déclivité d'une source écrite** (`sourced_grade`) : quand la déclivité mesurée n'est pas
+     * publiée pour cause de terrain seul, de tunnel ou de points interpolés, et qu'une source écrite
+     * la donne (liste versionnée `database/data/sourced_grades.php` : champ « pente » de l'infobox
+     * de l'article de Wikipédia de la ligne), `sourced_grade` donne `max_grade_permil` (déclivité la
+     * plus forte selon la source, en ‰, sans position ni sens) et `source` (`provider` =
+     * `wikipedia`, `title`, `url` = permalien de la révision lue, `license` = `CC BY-SA 4.0`).
+     * `null` sinon : une déclivité mesurée publiée n'est jamais remplacée, une ligne à crémaillère a
+     * `rack`. Contrôle sur 235 lignes mesurées sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près
+     * (l'infobox donne souvent la pente d'un point, la mesure celle d'une rampe d'1 km).
+     *
      * **Autres listes** : `structures` = tunnels (`tunnel`) et ponts (`bridge`) de la BD TOPO sous
      * le parcours, en distances ; `gaps` = trous du tracé, sans altitude ; `terrain_ranges` = parties
      * dont l'altitude est celle du terrain (RGE ALTI) et non de la voie ; `stations` = toutes les
@@ -132,6 +143,7 @@ class LineProfileController extends Controller
      *         climb_method: array{method: string, threshold_m: float, terrain_smoothing_m: float}},
      *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
      *         source: array{provider: string, title: string, url: string, license: string}}|null,
+     *     sourced_grade: array{max_grade_permil: float, source: array{provider: string, title: string, url: string, license: string}}|null,
      *     points: array<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: array<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
