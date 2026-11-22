@@ -32,7 +32,6 @@ WIKI;
 
     private string $dir;
 
-    private Line $line;
 
     protected function setUp(): void
     {
@@ -40,7 +39,7 @@ WIKI;
         Cache::flush();
         Http::preventStrayRequests();
         Era::factory()->current()->create(['year' => 2030]);
-        $this->line = Line::factory()->create(['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de Saint-Cloud', 'wikipedia_title' => 'Ligne de Saint-Cloud']);
+        Line::factory()->create(['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de Saint-Cloud', 'wikipedia_title' => 'Ligne de Saint-Cloud']);
         $this->dir = sys_get_temp_dir().'/vff-signalling-corr-'.bin2hex(random_bytes(4));
         mkdir($this->dir);
         file_put_contents($this->dir.'/'.md5('Ligne de Saint-Cloud').'.json', json_encode([
