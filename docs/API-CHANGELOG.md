@@ -43,4 +43,8 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 - REST : `GET /lines/{line}/infrastructure` (nombre de voies par portion de PK, régime d'exploitation de SNCF Réseau, et liaison radio
   sol-train : `gsm-r`, `gsm-gfu`, `rst`, `rst-data`, `rst-id` ; ODbL) ; GraphQL : `Line.infrastructure` ; MCP : outil `line_infrastructure`.
   Le fait `tracks` de la fiche (`facts`) peut maintenant avoir `source: sncf`, `as_of: today` et `km` (régime partagé).
+- REST : la fiche d'une gare (`GET /stations/{station}`) ajoute `platforms` (quais de SNCF Réseau : nombre, longueurs et PK, état actuel du
+  réseau ; `null` quand le jeu n'en donne aucun) ; GraphQL : `Station.platforms` ; MCP : `get_station` (`station.platforms`). ODbL, avec attribution.
+- WebSocket : un compte suspendu, rétrogradé ou supprimé est déconnecté, et un canal qui n'est pas privé est refusé aux abonnements. Aucun champ ne change ;
+  le temps réel reste désactivé par défaut.
 - MCP : outils `journal` et `line_archive_records` ; `line_profile` et `signalling_history` renvoient les nouveaux champs ci-dessus.

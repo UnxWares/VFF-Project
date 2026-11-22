@@ -474,6 +474,12 @@ source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
 
+### `vff:import-materials`
+
+Séries de matériel roulant et liens ligne x série. Option ajoutée le 22/11 : `--no-planned` ne lit pas les liens directs
+vers des lignes des sections « Dessertes réalisées ou prévues » des articles (lus par défaut, après des contrôles de phrase).
+Autres options : `--refresh`, `--links-only`, `--no-links`, `--no-attested`, `--dry-run`.
+
 ### `vff:media-thumbnails`
 
 Crée les miniatures (320 et 1 280 px) des images déposées par les contributeurs ; `--force` refait aussi celles qui en
@@ -483,6 +489,13 @@ ont déjà. Demande GD (JPEG, PNG, WebP) dans l'image PHP.
 
 Plans schématiques de la vue ferroviaire, par ère, gardés en cache ([VUE-FERROVIAIRE.md](VUE-FERROVIAIRE.md)).
 Options : `--era=` (année ou liste « 1930,1980 »), `--output=` (fichier du plan GeoJSON, une seule ère).
+
+### `vff:commons-cache-prune`
+
+Entretien du cache disque du relais des vignettes de Wikimedia Commons (`VFF_COMMONS_PROXY`, désactivé par défaut) : retire les
+vignettes plus vieilles que `VFF_COMMONS_PROXY_TTL_DAYS` (30 jours), puis les plus anciennes jusqu'à revenir à 90 % de
+`VFF_COMMONS_PROXY_CACHE_MB` (2 048 Mo), et les fichiers temporaires de plus d'une heure. Aucune option. Planifiée chaque heure en production quand le relais est activé
+([PLANIFICATION.md](PLANIFICATION.md)) ; réglages et nginx dans [DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md).
 
 ### `vff:remind-expiring-api-tokens`
 
@@ -517,6 +530,12 @@ documents échoue sans rien écrire. Une correction d'une ligne absente de la ba
 au prochain import si sa correction est retirée du fichier. Première correction : l'ETCS du 12/11/2024 de la LGV
 Sud-Est (752000), qui date du basculement des postes et du centre de commande de Lyon, pas de l'ETCS (visé pour 2026).
 
+### `vff:api-contract`
+
+Met à jour l'instantané du contrat de l'API publique (`tests/Fixtures/api-contract.json` : REST, GraphQL, MCP). Les ajouts y
+entrent seuls ; `--accept-removals` accepte aussi un retrait ou un changement de type, à annoncer dans
+[API-CHANGELOG.md](API-CHANGELOG.md) (le test `ApiContractTest` échoue sinon).
+
 ## Contrôles
 
 ### `vff:check-invariants`
@@ -533,7 +552,8 @@ exemples par invariant violé. Options : `--only=` (clés ou familles séparées
 
 ## Hors commandes
 
-Autres changements du 21 au 22/11, décrits dans leur document : tuiles `?fields=map` de l'API, limites GraphQL et corrections
+Le battement du planificateur (`vff:scheduler-heartbeat`) est une tâche planifiée, pas une commande artisan : voir
+[PLANIFICATION.md](PLANIFICATION.md). Autres changements du 21 au 22/11, décrits dans leur document : tuiles `?fields=map` de l'API, limites GraphQL et corrections
 de signalisation en GraphQL ([API.md](API.md)), suite Playwright et tâche de CI ([TESTS-E2E.md](TESTS-E2E.md)), configuration
 nginx ([DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md)), page de santé et erreurs ([SUIVI-ERREURS.md](SUIVI-ERREURS.md)),
 journal de bord ([REDACTION.md](REDACTION.md)), plans du site (`/sitemap.xml`, `App\Services\Seo\SitemapBuilder`).
