@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'De bomaanslagen te Amsterdam (rubrique de l\'étranger)',
+            'title' => 'Middelburgsche courant du 6 avril 1912',
             'publisher' => 'Middelburgsche Courant (presse néerlandaise numérisée, Delpher)',
             'author' => null,
             'published' => '1912-04-06',

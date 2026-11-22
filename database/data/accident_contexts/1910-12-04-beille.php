@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Récit de l\'accident de Connerré-Beillé',
+            'title' => 'Automobilkatastrophe in Frankreich',
             'publisher' => 'Berliner Morgenpost (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1910-12-05',

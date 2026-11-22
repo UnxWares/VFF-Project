@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Correspondance de Paris (accidents de Dole et de Guîtres)',
+            'title' => 'Die Katastrophe von Charenton ist noch in frischem Andenken',
             'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1881-09-23',
