@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SuspensionOutcome;
 use App\Enums\UserRole;
 use App\Events\ContributionChanged;
 use App\GraphQL\Subscriptions\ContributionSubscription;
@@ -10,7 +11,10 @@ use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Models\Contribution;
 use App\Models\User;
+use App\Services\Account\AccountSuspension;
 use App\Services\Api\ApiTokens;
+use App\Support\Realtime;
+use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,6 +31,7 @@ use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Nuwave\Lighthouse\Testing\TestsSubscriptions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Pusher\Pusher;
 use Tests\TestCase;
 
 /**
@@ -370,5 +375,139 @@ class RealtimeSecurityTest extends TestCase
 
         $this->assertStringContainsString('cle-publique', $html);
         $this->assertStringNotContainsString(self::SECRET, $html);
+    }
+
+    // Canaux autorisés et connexions coupées.
+
+    #[Test]
+    public function seuls_les_canaux_prives_declares_sont_autorises(): void
+    {
+        $this->enable();
+        $validator = User::factory()->validator()->create();
+
+        foreach (['presence-review-queue', 'private-encrypted-review-queue', 'review-queue', 'presence-users.'.$validator->id.'.contributions'] as $channel) {
+            $this->actingAs($validator)->post('/broadcasting/auth', ['channel_name' => $channel, 'socket_id' => '1234.5678'])
+                ->assertForbidden();
+        }
+        $this->actingAs($validator)->post('/broadcasting/auth', ['channel_name' => 'private-review-queue', 'socket_id' => '1234.5678'])->assertOk();
+        $this->actingAs($validator)->post('/broadcasting/auth', ['channel_name' => 'private-autre-canal', 'socket_id' => '1234.5678'])->assertForbidden();
+    }
+
+    #[Test]
+    public function la_connexion_s_identifie_par_le_numero_du_compte_seulement(): void
+    {
+        $this->enable();
+        $user = User::factory()->validator()->create(['name' => 'Camille Exemple']);
+
+        $this->post('/broadcasting/user-auth', ['socket_id' => '1234.5678'])->assertRedirect();
+        $response = $this->actingAs($user)->post('/broadcasting/user-auth', ['socket_id' => '1234.5678'])->assertOk();
+
+        $this->assertSame((string) $user->id, json_decode($response->json('user_data'), true)['id']);
+        $this->assertStringNotContainsString('Camille', (string) $response->getContent());
+    }
+
+    #[Test]
+    public function desactive_l_identification_de_la_connexion_est_introuvable(): void
+    {
+        $this->actingAs(User::factory()->validator()->create())->post('/broadcasting/user-auth', ['socket_id' => '1234.5678'])->assertNotFound();
+    }
+
+    private function fakePusher(int $expectedCalls, ?string $userId = null): void
+    {
+        $pusher = \Mockery::mock(Pusher::class);
+        $expectation = $pusher->shouldReceive('terminateUserConnections')->times($expectedCalls);
+        if ($userId !== null) {
+            $expectation->with($userId);
+        }
+        $broadcaster = \Mockery::mock(PusherBroadcaster::class);
+        $broadcaster->shouldReceive('getPusher')->andReturn($pusher);
+        $manager = \Mockery::mock(BroadcastManager::class);
+        $manager->shouldReceive('connection')->andReturn($broadcaster);
+        $this->app->instance(BroadcastManager::class, $manager);
+    }
+
+    #[Test]
+    public function suspendre_un_validateur_coupe_ses_connexions(): void
+    {
+        $this->enable();
+        $admin = User::factory()->admin()->create();
+        $validator = User::factory()->validator()->create();
+        $other = User::factory()->validator()->create();
+        $this->fakePusher(1, (string) $validator->id);
+
+        $this->assertSame(SuspensionOutcome::Done, app(AccountSuspension::class)->suspend($validator, $admin, 'Motif', null));
+        $other->update(['name' => 'Autre nom']);
+    }
+
+    #[Test]
+    public function changer_le_role_coupe_les_connexions_mais_pas_un_autre_champ(): void
+    {
+        $this->enable();
+        $validator = User::factory()->validator()->create();
+        $this->fakePusher(1, (string) $validator->id);
+
+        $validator->update(['name' => 'Nouveau nom']);
+        $validator->forceFill(['role' => UserRole::Contributor->value])->save();
+    }
+
+    #[Test]
+    public function supprimer_un_compte_coupe_ses_connexions(): void
+    {
+        $this->enable();
+        $user = User::factory()->create();
+        $this->fakePusher(1, (string) $user->id);
+
+        $user->delete();
+    }
+
+    #[Test]
+    public function un_serveur_injoignable_ne_bloque_pas_la_suspension(): void
+    {
+        $this->enable();
+        $admin = User::factory()->admin()->create();
+        $validator = User::factory()->validator()->create();
+        $pusher = \Mockery::mock(Pusher::class);
+        $pusher->shouldReceive('terminateUserConnections')->andThrow(new \RuntimeException('Reverb injoignable'));
+        $broadcaster = \Mockery::mock(PusherBroadcaster::class);
+        $broadcaster->shouldReceive('getPusher')->andReturn($pusher);
+        $manager = \Mockery::mock(BroadcastManager::class);
+        $manager->shouldReceive('connection')->andReturn($broadcaster);
+        $this->app->instance(BroadcastManager::class, $manager);
+
+        $this->assertSame(SuspensionOutcome::Done, app(AccountSuspension::class)->suspend($validator, $admin, 'Motif', null));
+        $this->assertTrue($validator->fresh()->isSuspended());
+    }
+
+    #[Test]
+    public function desactive_aucune_connexion_n_est_coupee(): void
+    {
+        $this->fakePusher(0);
+        $validator = User::factory()->validator()->create();
+
+        $validator->forceFill(['suspended_at' => now()])->save();
+        $this->assertFalse(Realtime::enabled());
+    }
+
+    #[Test]
+    public function un_validateur_suspendu_ou_retrograde_est_refuse_a_la_reconnexion(): void
+    {
+        $this->enable();
+        $body = ['channel_name' => 'private-review-queue', 'socket_id' => '1234.5678'];
+        $suspended = User::factory()->validator()->create();
+        $demoted = User::factory()->validator()->create();
+        $this->actingAs($suspended)->post('/broadcasting/auth', $body)->assertOk();
+
+        $suspended->forceFill(['suspended_at' => now()])->save();
+        $demoted->forceFill(['role' => UserRole::Contributor->value])->save();
+
+        $this->actingAs($suspended->fresh())->post('/broadcasting/auth', $body)->assertForbidden();
+        $this->actingAs($demoted->fresh())->post('/broadcasting/auth', $body)->assertForbidden();
+    }
+
+    #[Test]
+    public function reverb_a_un_plafond_de_connexions_par_defaut(): void
+    {
+        $this->assertSame(1000, config('reverb.apps.apps.0.max_connections'));
+        $this->assertStringContainsString('REVERB_APP_MAX_CONNECTIONS=1000', (string) file_get_contents(base_path('.env.example')));
     }
 }

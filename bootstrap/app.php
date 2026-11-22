@@ -13,6 +13,7 @@ use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MarkOfflineReadable;
+use App\Http\Middleware\RequirePrivateBroadcastChannel;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastSeen;
@@ -76,8 +77,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     // Temps réel (config/realtime.php) : autorisation des canaux privés par /broadcasting/auth, pour un
-    // membre connecté au site ; introuvable (404) tant que le temps réel est désactivé.
-    ->withBroadcasting(__DIR__.'/../routes/channels.php', ['middleware' => ['web', EnsureRealtimeEnabled::class, 'auth']])
+    // membre connecté au site, canaux privés seulement ; introuvable (404) tant que le temps réel est désactivé.
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', ['middleware' => ['web', EnsureRealtimeEnabled::class, 'auth', RequirePrivateBroadcastChannel::class]])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetLocale::class,

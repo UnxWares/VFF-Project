@@ -2,6 +2,7 @@
 
 use App\Broadcasting\ContributorChannel;
 use App\Broadcasting\ReviewQueueChannel;
+use App\Http\Middleware\EnsureRealtimeEnabled;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -11,6 +12,12 @@ use Illuminate\Support\Facades\Broadcast;
 | `App.Models.User.{id}` du modèle de Laravel : rien n'y était diffusé, et il admettait un numéro
 | suivi de lettres (`1abc`).
 */
+
+// Identification de la connexion auprès de Reverb (`/broadcasting/user-auth`) : il peut alors couper les
+// connexions d'un compte suspendu ou rétrogradé (App\Services\Realtime\RealtimeRevocation). Seul le
+// numéro du compte est signé.
+Broadcast::userRoutes(['middleware' => ['web', EnsureRealtimeEnabled::class, 'auth']]);
+Broadcast::resolveAuthenticatedUserUsing(fn ($request): ?array => $request->user() === null ? null : ['id' => (string) $request->user()->getAuthIdentifier()]);
 
 Broadcast::channel(ReviewQueueChannel::NAME, ReviewQueueChannel::class);
 Broadcast::channel(ContributorChannel::PATTERN, ContributorChannel::class);

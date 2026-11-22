@@ -137,7 +137,9 @@ production n'a pas de serveur temps réel. Pour l'activer :
 3. **nginx** : décommenter `include /etc/nginx/snippets/vff-reverb.conf;` dans le bloc `vff-project.org`.
    Seul `/app/` (la connexion WebSocket) est transmis à Reverb ; son API HTTP (`/apps/…`) reste locale.
    Une adresse IP garde au plus 20 connexions WebSocket ouvertes (`limit_conn vff_websocket`, zone déclarée
-   en tête du site) : Reverb n'a qu'un plafond global (`REVERB_APP_MAX_CONNECTIONS`, vide = sans plafond).
+   en tête du site) : Reverb n'a qu'un plafond global, `REVERB_APP_MAX_CONNECTIONS` : 1000 connexions simultanées
+   par défaut (`config/reverb.php`, valeur du `.env.example`), jamais illimité ; à relever si le site a plus de
+   1000 lecteurs en direct au même moment.
 4. `php artisan config:cache`, puis rechargement de PHP-FPM et de nginx.
 
 Contrôle : `curl --http1.1 -s -o /dev/null -w '%{http_code}\n' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H
@@ -146,6 +148,13 @@ https://vff-project.org/app/<REVERB_APP_KEY>` doit répondre `101`. Reverb répo
 étrangère, puis envoie `pusher:error` (code 4009, `Origin not allowed`) et ferme : le refus se lit dans le premier
 message, pas dans le code HTTP. Sur `/validate`, la liste se met à jour quand un autre validateur approuve une
 contribution.
+
+Droits et connexions : un canal privé n'est autorisé qu'à l'abonnement. Quand un compte est suspendu, change de
+rôle ou est supprimé, le site demande à Reverb de couper ses connexions (`terminate_connections`, par l'API HTTP
+locale de Reverb, donc `REVERB_HOST` et `REVERB_PORT` doivent joindre Reverb depuis PHP-FPM). Le navigateur se
+reconnecte et redemande ses canaux, que `/broadcasting/auth` refuse alors. Le navigateur s'identifie auprès de Reverb
+par `/broadcasting/user-auth` (seul le numéro du compte est signé). Seuls les canaux privés sont autorisés :
+`presence-…` et `private-encrypted-…` répondent 403.
 
 ## Contrôle de la syntaxe
 

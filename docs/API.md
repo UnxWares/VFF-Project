@@ -116,7 +116,10 @@ Les canaux privés s'autorisent par `POST /broadcasting/auth` avec la session du
 Echo, le nom d'un événement prend un point devant : `.listen('.contribution.applied', …)`. La page `/validate` s'en
 sert : la liste se recharge seule (`router.reload`, seulement la liste) quand une contribution est proposée ou
 relue, et attend qu'un refus en cours de saisie soit envoyé ou annulé. Laravel Echo et `pusher-js` ne sont
-téléchargés que si le temps réel est activé.
+téléchargés que si le temps réel est activé. Seuls les canaux `private-…` du tableau sont autorisés (`presence-…` et
+`private-encrypted-…` répondent 403). Une suspension, un changement de rôle ou la suppression d'un compte coupe ses
+connexions WebSocket (API de Reverb `terminate_connections`, après identification par `/broadcasting/user-auth`) :
+le navigateur se reconnecte et le canal de la file lui est alors refusé.
 
 **Abonnements GraphQL** (type `Subscription` de `graphql/schema.graphql`, classes de `app/GraphQL/Subscriptions/`) :
 

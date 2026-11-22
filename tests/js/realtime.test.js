@@ -4,9 +4,11 @@ const listen = vi.fn();
 const leave = vi.fn();
 const priv = vi.fn(() => ({ listen }));
 const echoOptions = [];
+const signin = vi.fn();
 
 vi.mock('laravel-echo', () => ({
     default: class {
+        connector = { signin: () => signin() };
         constructor(options) {
             echoOptions.push(options);
         }
@@ -53,6 +55,8 @@ describe('listenPrivate', () => {
             forceTLS: true,
             authEndpoint: '/broadcasting/auth',
         });
+        // La connexion s'identifie auprès du serveur, qui peut la couper si le compte perd ses droits.
+        expect(signin).toHaveBeenCalledTimes(1);
         stop();
         expect(leave).toHaveBeenCalledWith('review-queue');
     });
