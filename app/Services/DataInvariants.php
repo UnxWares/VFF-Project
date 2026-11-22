@@ -56,8 +56,8 @@ class DataInvariants
     /** Écart (mois) au-delà duquel une ouverture de gare OHM antérieure à celle de ses lignes ressemble à la date de la loi. */
     public const STATION_OHM_LAW_GAP_MONTHS = 6;
 
-    /** Nombre de gares d'une ligne portant la même date OHM à partir duquel la date est jugée recopiée. */
-    public const STATION_OHM_SHARED_MIN = 3;
+    /** Écart (années) au-delà duquel une ouverture de gare OHM postérieure à celle de sa section est jugée suspecte (halte tardive sans source propre). */
+    public const STATION_OHM_AFTER_SECTION_YEARS = 2;
 
     /** Rayon (m) autour d'une gare « active » où une voie en service est attendue. */
     public const STATION_TRACK_RADIUS_M = 150;
@@ -183,7 +183,7 @@ class DataInvariants
         'stations.opened_before_lines' => 'Gare ouverte (date au jour, sourcée) plus de '.self::STATION_OPENED_TOLERANCE_DAYS.' jours avant l\'ouverture au jour de toutes ses lignes à son PK (section résolue, hors terminus nommé et PK projeté) (gares)',
         // Ajout « invariant-dates-loi » (2026-11-22) : dates d'ouverture OHM qui sont celle de la loi d'utilité publique.
         'stations.ohm_opened_before_lines' => 'Gare dont l\'ouverture vient d\'OpenHistoricalMap (au jour) plus de '.self::STATION_OHM_LAW_GAP_MONTHS.' mois avant toute ouverture de section résolue de ses lignes à son PK : date de loi d\'utilité publique probable (gares)',
-        'stations.ohm_opened_shared_date' => 'Ligne dont au moins '.self::STATION_OHM_SHARED_MIN.' gares partagent la même date d\'ouverture OpenHistoricalMap (au jour) alors que ses sections s\'ouvrent à des dates différentes : date de la première section recopiée (lignes)',
+        'stations.ohm_opened_off_section' => 'Gare dont l\'ouverture vient d\'OpenHistoricalMap (au jour, sans source propre) plus de '.self::STATION_OHM_LAW_GAP_MONTHS.' mois avant ou plus de '.self::STATION_OHM_AFTER_SECTION_YEARS.' ans après l\'ouverture de la section résolue où tombe son PK : date de loi, de première section ou d\'une autre section recopiée (gares)',
         // Ajout « trafic-2030 » (2026-10-20), isolé en fin de liste : gare voyageurs rattachée à un autre
         // code dans liste-des-gares (944000 Cannes-la Bocca - Grasse, « fret » en 2030).
         'segments.current_freight_on_reopened_or_station' => 'Ère courante : tronçon « fret » rouvert aux voyageurs (événement daté, sans fermeture après) ou portant une gare de voyageurs SNCF desservie à moins de '.PassengerPortions::ADOPT_M.' m, quel que soit son code (lignes)',
@@ -1017,36 +1017,40 @@ class DataInvariants
     }
 
     /**
-     * Ligne dont au moins STATION_OHM_SHARED_MIN gares (rattachements comptés comme ci-dessus) portent exactement
-     * la même date d'ouverture OpenHistoricalMap au jour, alors que ses événements d'ouverture de section résolue
-     * (trace ou places) tombent à au moins deux dates différentes : la date d'une section (ou de la loi) a été
-     * recopiée sur toute la ligne. Triée par nombre de gares : liste de travail.
+     * Date d'ouverture de gare venue d'OpenHistoricalMap (provenance « ohm », au jour, donc sans source propre :
+     * une date corrigée ou venue d'une autre source change la provenance) qui s'écarte de l'ouverture de la section
+     * résolue (trace ou places) où tombe son PK : plus de STATION_OHM_LAW_GAP_MONTHS mois avant, ou plus de
+     * STATION_OHM_AFTER_SECTION_YEARS ans après. Détecte la date de loi, celle de la première section recopiée sur
+     * toute la ligne, ou celle d'une autre section. Deux gares d'une même section à la même date ne sont pas signalées.
+     * Mêmes rattachements que ci-dessus (ni terminus_name, ni PK projeté) ; une section qui couvre la gare dans la
+     * fenêtre, sur n'importe laquelle de ses lignes, l'absout (bifurcation, PK en bout de section à 500 m près).
+     * Liste de travail, sans correction automatique.
      *
      * @return array{count: int, examples: list<string>}
      */
-    private function stationsOhmOpenedSharedDate(): array
+    private function stationsOhmOpenedOffSection(): array
     {
-        $min = self::STATION_OHM_SHARED_MIN;
+        $cover = AttachStations::EVENT_COVERS_STATION;
+        $months = self::STATION_OHM_LAW_GAP_MONTHS;
+        $years = self::STATION_OHM_AFTER_SECTION_YEARS;
         $counted = "sl.method <> 'terminus_name' AND COALESCE(sl.pk_source, '') <> 'projected_raw'";
 
         return $this->violations(<<<SQL
-            SELECT l.id, l.code, l.name, MAX(g.n) AS stations, string_agg(g.opened_at::text || ' (' || g.n || ')', ', ' ORDER BY g.n DESC) AS dates,
-                   MAX(g.n) AS sort
-            FROM (
-                SELECT sl.line_id, s.opened_at, COUNT(DISTINCT s.id) AS n
-                FROM stations s
-                JOIN station_lines sl ON sl.station_id = s.id AND {$counted}
-                WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
-                  AND COALESCE(s.provenance->>'kind', '') = ''
-                GROUP BY sl.line_id, s.opened_at
-                HAVING COUNT(DISTINCT s.id) >= {$min}
-            ) g
-            JOIN lines l ON l.id = g.line_id
-            WHERE (SELECT COUNT(DISTINCT le.event_date) FROM line_events le WHERE le.line_id = g.line_id
-                   AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
-                   AND le.section_resolution IN ('trace', 'places')) >= 2
-            GROUP BY l.id, l.code, l.name
-            SQL, fn ($r) => sprintf('%s %s : %d gares à la même date OHM (%s)', $r->code ?? '?', $r->name, $r->stations, $r->dates));
+            SELECT s.id, s.name, s.opened_at, MIN(le.event_date) AS section_opening, MAX(le.event_date) AS section_last, MAX(l.code) AS code,
+                   s.id AS sort
+            FROM stations s
+            JOIN station_lines sl ON sl.station_id = s.id AND {$counted}
+            JOIN lines l ON l.id = sl.line_id
+            JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
+                 AND le.section_resolution IN ('trace', 'places') AND {$cover}
+            WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
+              AND COALESCE(s.provenance->>'kind', '') = ''
+            GROUP BY s.id
+            HAVING BOOL_AND(s.opened_at < le.event_date - INTERVAL '{$months} months' OR s.opened_at > le.event_date + INTERVAL '{$years} years')
+               AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
+                                                 AND a.method <> 'terminus_name' AND COALESCE(a.pk_source, '') <> 'projected_raw')
+            SQL, fn ($r) => sprintf('%s %s (gare #%d) : ouverture OHM le %s, section(s) à son PK le %s%s', $r->code ?? '?', $r->name, $r->id, $r->opened_at,
+            $r->section_opening, $r->section_last === $r->section_opening ? '' : ' au '.$r->section_last), order: 'sort');
     }
 
     /**

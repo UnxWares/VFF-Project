@@ -132,7 +132,7 @@ lignes. Trois règles écartent les faux positifs relevés par les agents `gares
 Un cas qui reste est une contradiction à trancher (date de gare, date de ligne ou rattachement). Tests :
 `tests/Feature/StationServiceYearsTest.php`.
 
-## Invariants `stations.ohm_opened_before_lines` et `stations.ohm_opened_shared_date` (22/11/2026)
+## Invariants `stations.ohm_opened_before_lines` et `stations.ohm_opened_off_section` (22/11/2026)
 
 Détection seule, sans correction automatique : une date d'ouverture de gare venue d'OpenHistoricalMap (provenance
 `opened_at` = `ohm`, précision au jour) est parfois la date de la loi qui déclare la ligne d'utilité publique (Lens -
@@ -144,11 +144,15 @@ ligne. Les deux règles sont des listes de travail pour la recherche de sources,
   à son PK. Mêmes rattachements que `stations.opened_before_lines` : ni `terminus_name`, ni PK projeté
   (`projected_raw`) ; une ligne plus ancienne que la gare l'absout. Écartés : autre origine que OHM, date au mois ou à
   l'année, sections `whole_line`, `unresolved` ou `pending`.
-- `stations.ohm_opened_shared_date` : ligne dont au moins 3 gares (`STATION_OHM_SHARED_MIN`) portent exactement la même
-  date OHM au jour alors que ses ouvertures de section résolues tombent à au moins deux dates. Une ligne ouverte d'un
-  seul tenant, deux gares seulement, ou des gares d'une autre source ne sont pas signalées.
+- `stations.ohm_opened_off_section` (remplace `stations.ohm_opened_shared_date`, qui comptait les gares à la même date
+  sur une ligne et donnait surtout des faux positifs : des gares d'une même section partagent légitimement la date de
+  cette section) : gare dont l'ouverture OHM, au jour et sans source propre (provenance `opened_at` = `ohm` : une date
+  corrigée ou venue d'une autre source change la provenance), tombe plus de 6 mois avant
+  (`STATION_OHM_LAW_GAP_MONTHS`) ou plus de 2 ans après (`STATION_OHM_AFTER_SECTION_YEARS`) l'ouverture de la section
+  résolue (`trace` ou `places`) où tombe son PK, avec les mêmes rattachements (ni `terminus_name`, ni PK projeté). Une
+  section qui couvre la gare dans la fenêtre, sur n'importe laquelle de ses lignes, l'absout. Attrape la date de loi,
+  celle de la première section recopiée sur toute la ligne, ou celle d'une autre section. Liste de travail.
 
 Mesure sur `vff` (22/11/2026) : 5 gares pour la première règle (Andrézieux et St-Just-sur-Loire 1827, Aurec, Clermain,
-Etoile d'Alaï) ; 11 lignes pour la seconde (Lyon-St-Paul - Montbrison 17 gares au 17/01/1876, Paray-le-Monial -
-Givors-Canal, Montereau - Château-Landon, Firminy - St-Rambert-d'Albon, St-Germain-des-Fossés - Darsac...). Tests :
-`tests/Feature/OhmLawDateInvariantsTest.php`.
+Etoile d'Alaï) ; l'ancienne règle `ohm_opened_shared_date` donnait 11 lignes, la nouvelle 25 gares (liste dans
+`storage/app/reports/agents/aprem-2111/invariant-section-gare.md`). Tests : `tests/Feature/OhmLawDateInvariantsTest.php`.

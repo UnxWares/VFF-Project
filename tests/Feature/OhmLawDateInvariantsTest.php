@@ -20,7 +20,7 @@ class OhmLawDateInvariantsTest extends TestCase
 
     private const BEFORE = 'stations.ohm_opened_before_lines';
 
-    private const SHARED = 'stations.ohm_opened_shared_date';
+    private const OFF_SECTION = 'stations.ohm_opened_off_section';
 
     private Line $line;
 
@@ -52,7 +52,7 @@ class OhmLawDateInvariantsTest extends TestCase
     /** @phpstan-impure */
     private function violations(string $key): int
     {
-        return collect((new DataInvariants([self::BEFORE, self::SHARED]))->run())->firstWhere('key', $key)['count'];
+        return collect((new DataInvariants([self::BEFORE, self::OFF_SECTION]))->run())->firstWhere('key', $key)['count'];
     }
 
     public function test_an_ohm_opening_far_before_the_line_is_reported(): void
@@ -94,37 +94,68 @@ class OhmLawDateInvariantsTest extends TestCase
         $this->assertSame(0, $this->violations(self::BEFORE));
     }
 
-    public function test_stations_sharing_the_same_ohm_date_on_a_line_with_staggered_sections_are_reported(): void
+    public function test_a_date_copied_from_the_first_section_onto_a_later_section_is_reported(): void
     {
-        $this->opening($this->line, '1900-03-01');
-        foreach (['A', 'B', 'C'] as $name) {
-            $this->station($name, '1895-12-01');
-        }
-        $this->assertSame(1, $this->violations(self::SHARED));
+        // Ligne en deux sections : la gare de la section tardive porte la date de la première.
+        $this->opening($this->line, '1905-03-01');
+        DB::table('line_events')->where('line_id', $this->line->id)->where('event_date', '1895-12-01')
+            ->update(['section_pk_start_m' => 0, 'section_pk_end_m' => 10_000]);
+        DB::table('line_events')->where('line_id', $this->line->id)->where('event_date', '1905-03-01')
+            ->update(['section_pk_start_m' => 20_000, 'section_pk_end_m' => 30_000]);
+        $late = $this->station('Tardive', '1895-12-01');
+        DB::table('station_lines')->where('station_id', $late->id)->update(['pk_m' => 25_000]);
+        $this->station('Premiere', '1895-12-01');
+        $this->assertSame(1, $this->violations(self::OFF_SECTION));
+        $this->assertStringContainsString('Tardive', (new DataInvariants([self::OFF_SECTION]))->run()[0]['examples'][0]);
     }
 
-    public function test_a_shared_date_is_not_reported_for_a_line_opened_at_once_or_for_few_or_other_sourced_stations(): void
+    public function test_stations_of_the_same_section_sharing_its_date_are_not_reported(): void
     {
-        // Ligne ouverte d'un seul tenant (une seule date de section) : la même date partout est normale.
-        foreach (['A', 'B', 'C'] as $name) {
+        foreach (['A', 'B', 'C', 'D'] as $name) {
             $this->station($name, '1895-12-01');
         }
-        $this->assertSame(0, $this->violations(self::SHARED));
-
-        // Sections décalées mais seulement deux gares à la même date, ou des gares d'une autre source.
-        $this->opening($this->line, '1900-03-01');
-        DB::table('stations')->where('name', 'C')->update(['opened_at' => '1896-01-01']);
-        $this->assertSame(0, $this->violations(self::SHARED));
-        DB::table('stations')->where('name', 'C')->update(['opened_at' => '1895-12-01', 'provenance' => json_encode(['status' => 'sncf', 'opened_at' => 'wikidata'])]);
-        $this->assertSame(0, $this->violations(self::SHARED));
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
     }
 
-    public function test_sections_that_are_not_resolved_do_not_make_a_line_staggered(): void
+    public function test_the_window_is_six_months_before_and_two_years_after_the_section(): void
     {
-        $this->opening($this->line, '1900-03-01', 'unresolved');
-        foreach (['A', 'B', 'C'] as $name) {
-            $this->station($name, '1895-12-01');
-        }
-        $this->assertSame(0, $this->violations(self::SHARED));
+        $station = $this->station('Halte', '1897-11-30');
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1897-12-02']);
+        $this->assertSame(1, $this->violations(self::OFF_SECTION));
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1895-06-02']);
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
+        DB::table('stations')->where('id', $station->id)->update(['opened_at' => '1895-05-30']);
+        $this->assertSame(1, $this->violations(self::OFF_SECTION));
+    }
+
+    public function test_a_late_halt_with_its_own_source_is_not_reported(): void
+    {
+        $this->station('Halte sourcee', '1920-05-01', 'correction');
+        $this->station('Halte wikidata', '1920-05-01', 'wikidata');
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
+        $this->station('Halte OHM', '1920-05-01');
+        $this->assertSame(1, $this->violations(self::OFF_SECTION));
+    }
+
+    public function test_unresolved_sections_and_unofficial_attachments_are_ignored(): void
+    {
+        $this->station('Terminus', '1920-05-01', 'ohm', 'day', 'terminus_name', 'name');
+        $this->station('Projetee', '1920-05-01', 'ohm', 'day', 'segment', 'projected_raw');
+        $this->station('Annuelle', '1920-01-01', 'ohm', 'year');
+        $other = Line::factory()->create(['code' => null, 'name' => 'Ligne non résolue']);
+        $this->opening($other, '1895-12-01', 'unresolved');
+        $this->station('Non resolue', '1920-05-01', 'ohm', 'day', 'sncf_pk', 'sncf', $other);
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
+    }
+
+    public function test_a_section_covering_the_station_within_the_window_on_any_line_absolves_it(): void
+    {
+        $station = $this->station('Bifurcation', '1920-05-01');
+        $branch = Line::factory()->create(['code' => null, 'name' => 'Embranchement']);
+        $this->opening($branch, '1919-01-01');
+        DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $branch->id, 'method' => 'sncf_pk', 'pk_m' => 0,
+            'pk_source' => 'sncf', 'distance_m' => 0, 'created_at' => now(), 'updated_at' => now()]);
+        $this->assertSame(0, $this->violations(self::OFF_SECTION));
     }
 }
