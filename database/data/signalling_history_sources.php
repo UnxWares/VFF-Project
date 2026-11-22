@@ -319,4 +319,38 @@ return [
             ['publisher' => 'Tendance Ouest', 'title' => 'Normandie : après le fret, la ligne Serqueux-Gisors ouverte au public le 29 mars', 'url' => 'https://www.tendanceouest.com/actualite-379648-normandie-apres-le-fret-la-ligne-serqueux-gisors-ouverte-au-public-le-29-mars.html', 'published' => '2021-03-20'],
         ],
     ],
+    [
+        'line' => '430000', 'system' => 'BAPR', 'date' => '2009-12', 'scope' => 'section',
+        'from' => 'Alençon', 'to' => 'Le Mans', 'replaces' => 'BM',
+        'summary' => 'Réseau ferré de France met en service un block automatique à permissivité restreinte entre Alençon et Le Mans, à la place du système manuel (16 nouveaux signaux, 13 M€ avec la section de Tours).',
+        'sources' => [
+            ['publisher' => 'Réseau ferré de France', 'title' => 'Lignes Caen - Alençon - Le Mans / Le Mans - Tours : mise en service d\'une nouvelle signalisation automatique de type BAPR (communiqué de presse)', 'url' => 'https://web.archive.org/web/20150924091635/http://www.rff.fr/IMG/pdf/20100710_BAPR_Alencon_-Le_Mans-Tours.pdf', 'published' => '2010-07', 'official' => true],
+        ],
+    ],
+    [
+        'line' => '561000', 'system' => 'BAPR', 'date' => '2010-06-13', 'scope' => 'section',
+        'from' => 'Arnage', 'to' => 'La Membrolle-sur-Choisille', 'replaces' => 'BM',
+        'summary' => 'Le block automatique à permissivité restreinte, à compteurs d\'essieux, remplace le block manuel entre Arnage et La Membrolle-sur-Choisille (juin 2010 selon RFF, le 13 selon l\'article).',
+        'sources' => [
+            ['publisher' => 'Réseau ferré de France', 'title' => 'Lignes Caen - Alençon - Le Mans / Le Mans - Tours : mise en service d\'une nouvelle signalisation automatique de type BAPR (communiqué de presse)', 'url' => 'https://web.archive.org/web/20150924091635/http://www.rff.fr/IMG/pdf/20100710_BAPR_Alencon_-Le_Mans-Tours.pdf', 'published' => '2010-07', 'official' => true],
+            ['publisher' => 'Wikipédia', 'title' => 'Ligne de Tours au Mans', 'url' => 'https://fr.wikipedia.org/wiki/Ligne_de_Tours_au_Mans'],
+        ],
+    ],
+    [
+        'line' => '311000', 'system' => 'BAL', 'date' => '2010-12-13', 'scope' => 'section',
+        'from' => 'Rang-du-Fliers', 'to' => 'Boulogne-Ville',
+        'summary' => 'Mise en service de la ligne modernisée et électrifiée de Boulogne à Rang-du-Fliers : block automatique lumineux (à partir d\'Hesdigneul) et poste informatique d\'Étaples télécommandant Rang-du-Fliers.',
+        'sources' => [
+            ['publisher' => 'Réseau ferré de France', 'title' => 'Modernisation de la ligne Boulogne - Rang-du-Fliers, chroniques d\'un projet (plaquette, novembre 2010)', 'url' => 'https://web.archive.org/web/20150924092332/http://www.rff.fr/IMG/pdf/RFF-collector-pages-DEF_pour_BAT_1_.pdf', 'published' => '2010-11', 'official' => true],
+            ['publisher' => 'SNCF Réseau', 'title' => 'Mode de cantonnement des lignes (données ouvertes)', 'url' => 'https://www.data.gouv.fr/datasets/mode-de-cantonnement-des-lignes', 'published' => '2022-03', 'official' => true],
+        ],
+    ],
+    [
+        'line' => '527000', 'system' => 'BAPR', 'date' => '2021-03-29', 'scope' => 'whole_line', 'replaces' => 'CT',
+        'summary' => 'Fin de la modernisation de Clisson - Cholet : la nouvelle signalisation, un block automatique à permissivité restreinte, remplace le cantonnement téléphonique (installation les 27 et 28 mars 2021).',
+        'sources' => [
+            ['publisher' => 'Région des Pays de la Loire', 'title' => 'Inauguration de la ligne modernisée Clisson - Cholet (dossier de presse)', 'url' => 'https://www.paysdelaloire.fr/sites/default/files/2019-12/dp_19-04-12_transport-inauguration-ligne-modernisee-clisson-cholet.pdf', 'published' => '2019-04-12', 'official' => true],
+            ['publisher' => 'Breizh-info', 'title' => 'Transport ferroviaire en Bretagne : les lignes Dol-Dinan et Nantes-Cholet musclées', 'url' => 'https://www.breizh-info.com/2021/03/26/161258/transport-ferroviaire-en-bretagne-les-lignes-dol-dinan-et-nantes-cholet-musclees/', 'published' => '2021-03-26'],
+        ],
+    ],
 ];

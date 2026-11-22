@@ -40,4 +40,32 @@ return [
         'quote' => 'the switchover to the PAI interlockings and commissioning of the new control centre required a four-day blockade on November 9-12',
         'reason' => 'le blocus du 9 au 12 novembre 2024 a mis en service les postes informatiques (PAI) et le centre de commande de Lyon, pas l\'ETCS : l\'ERTMS niveau 2 de la LGV+ Paris - Lyon était visé pour 2026',
     ],
+
+    // 180000 Metz-Ville - Zoufftgen : l'article Wikipédia donne « ETCS » mis en service le 1er août 2021 et cite
+    // l'extrait de décision n° 681 de l'EPSF. Cet extrait est daté du 1er août 2016 (référence A/CG/2016-08-001) :
+    // l'autorisation de l'ETCS niveau 1 du site pilote n° 1, d'Uckange à Zoufftgen, date de 2016, pas de 2021.
+    // Le fait juste (ETCS_L1, 01/08/2016) est déjà dans signalling_history_sources.php.
+    [
+        'line' => '180000',
+        'action' => 'neutralize',
+        'target' => ['source' => 'wikipedia', 'system' => 'ETCS', 'date' => '2021-08-01'],
+        'sources' => [
+            [
+                'publisher' => 'EPSF',
+                'title' => 'Extrait de décision n° 681 : autorisation de mise en exploitation commerciale en ETCS niveau 1 de la ligne 180000 entre Uckange et Zoufftgen',
+                'url' => 'https://www.securite-ferroviaire.fr/sites/default/files/bulletins/pdf/2023-03/extrait_de_decision_681.pdf',
+                'published' => '2016-08-01',
+                'official' => true,
+            ],
+            [
+                'publisher' => 'EPSF',
+                'title' => 'Rapport d\'activité 2017',
+                'url' => 'https://www.securite-ferroviaire.fr/sites/default/files/publications/pdf/2023-08/rapport_activite_epsf_2017.pdf',
+                'published' => '2018',
+                'official' => true,
+            ],
+        ],
+        'quote' => 'Réf : 2015120007, date de décision 01/08/2016. Autorisation de mise en exploitation commerciale en ETCS niveau 1 de la ligne 180000 entre Uckange et Zoufftgen',
+        'reason' => 'la décision de l\'EPSF citée par l\'article date du 1er août 2016, pas de 2021 : l\'ETCS niveau 1 d\'Uckange à Zoufftgen a été autorisé en 2016 (site pilote n° 1)',
+    ],
 ];
