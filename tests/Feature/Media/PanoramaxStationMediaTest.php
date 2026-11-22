@@ -5,9 +5,12 @@ namespace Tests\Feature\Media;
 use App\Models\Media;
 use App\Models\Station;
 use App\Services\Media\Panoramax\PanoramaxClient;
+use App\Services\Media\Panoramax\PanoramaxSceneBuilder;
 use App\Services\Media\Panoramax\PanoramaxSelection;
+use App\Services\StationAudit\BdtopoStationZones;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -33,7 +36,33 @@ class PanoramaxStationMediaTest extends TestCase
         $dir = $this->cacheDir;
         $this->beforeApplicationDestroyed(fn () => File::deleteDirectory($dir));
         $this->app->bind(PanoramaxClient::class, fn () => new PanoramaxClient($dir, 0));
+        $this->app->bind(PanoramaxSceneBuilder::class, fn () => new PanoramaxSceneBuilder(new BdtopoStationZones($dir.'/zones', 0), $dir, 0, $dir.'/aucun-quai.json'));
         Http::preventStrayRequests();
+    }
+
+    /**
+     * Réponse du WFS de l'IGN : bâtiment voyageurs de 20 m centré sur la gare, dans une zone de gare de 200 m.
+     */
+    private static function fakeBdtopo(): \Closure
+    {
+        $square = function (float $halfM): array {
+            $dLat = $halfM / 111_320;
+            $dLng = $halfM / (111_320 * cos(deg2rad(self::LAT)));
+
+            return [[[[self::LNG - $dLng, self::LAT - $dLat], [self::LNG + $dLng, self::LAT - $dLat], [self::LNG + $dLng, self::LAT + $dLat], [self::LNG - $dLng, self::LAT + $dLat], [self::LNG - $dLng, self::LAT - $dLat]]]];
+        };
+
+        return function (Request $r) use ($square) {
+            $zone = str_contains((string) ($r->data()['TYPENAMES'] ?? ''), 'equipement_de_transport');
+
+            return Http::response(['type' => 'FeatureCollection', 'features' => [[
+                'type' => 'Feature',
+                'geometry' => ['type' => 'MultiPolygon', 'coordinates' => $square($zone ? 100 : 10)],
+                'properties' => $zone
+                    ? ['cleabs' => 'EQUTRANS1', 'nature' => 'Gare voyageurs uniquement', 'toponyme' => 'Gare de Témoin', 'etat_de_l_objet' => 'En service']
+                    : ['cleabs' => 'BATIMENT1', 'etat_de_l_objet' => 'En service'],
+            ]]]);
+        };
     }
 
     /**
@@ -99,24 +128,35 @@ class PanoramaxStationMediaTest extends TestCase
     public function test_import_writes_rights_and_credit_and_is_idempotent(): void
     {
         Station::factory()->create(['slug' => 'gare-panoramax', 'name' => 'Témoin', 'geom' => Point::makeGeodetic(self::LAT, self::LNG)]);
-        Http::fake(['api.panoramax.xyz/api/search*' => Http::response(['features' => [
-            self::photo('ign-1', -50, 0, seq: 'a'),
-            self::photo('osm-1', 40, 180, 'osm-fr', 'CC-BY-SA-4.0', 'b'),
-            self::photo('loin-1', -100, 0, seq: 'c'),
-        ]])]);
+        Http::fake([
+            'api.panoramax.xyz/api/search*' => Http::response(['features' => [
+                // Vers le bâtiment voyageurs, à 40 m de son mur.
+                self::photo('ign-1', -50, 0, seq: 'a'),
+                self::photo('osm-1', 40, 180, 'osm-fr', 'CC-BY-SA-4.0', 'b'),
+                // Tournée vers la gare mais à 90 m du bâtiment : trop loin pour le montrer.
+                self::photo('loin-1', -100, 0, seq: 'c'),
+                // Tout près, tournée vers l'est : ne voit pas le bâtiment.
+                self::photo('route-1', -20, 90, seq: 'd'),
+            ]]),
+            'data.geopf.fr/wfs/*' => self::fakeBdtopo(),
+        ]);
 
         $this->artisan('vff:import-panoramax-media', ['--dry-run' => true])->assertSuccessful();
         $this->assertSame(0, Media::query()->count());
-        Http::assertSentCount(1);
+        $panoramax = fn ($r) => str_contains($r->url(), 'api.panoramax.xyz');
+        Http::assertSentCount(3);
 
         $this->artisan('vff:import-panoramax-media')->assertSuccessful();
         $this->artisan('vff:import-panoramax-media')->assertSuccessful();
-        // Réponse gardée en cache : une seule requête pour les trois passages.
-        Http::assertSentCount(1);
+        // Réponses gardées en cache : une requête au catalogue, une aux bâtiments, une aux zones de gare.
+        Http::assertSentCount(3);
+        Http::assertSent($panoramax);
         Http::assertSent(fn ($r) => str_contains($r->header('User-Agent')[0] ?? '', 'VFF-Bot'));
 
         $this->assertSame(2, Media::query()->where('provider', 'panoramax')->count());
         $ign = Media::query()->where('external_id', 'ign-1')->firstOrFail();
+        $this->assertSame('station_scene', $ign->provider_meta['rule'] ?? null);
+        $this->assertSame(40, $ign->provider_meta['station_building_m'] ?? null);
         $this->assertSame('Licence Ouverte 2.0', $ign->license);
         $this->assertSame('Photo : contributeur ign-1, Panoramax (IGN), Licence Ouverte 2.0', $ign->attribution);
         $this->assertSame('https://panoramax.ign.fr/#focus=pic&pic=ign-1', $ign->source_url);
@@ -130,6 +170,22 @@ class PanoramaxStationMediaTest extends TestCase
 
         $this->getJson('/api/v1/stations/gare-panoramax/media')->assertOk()
             ->assertJsonPath('meta.total', 2)->assertJsonPath('data.0.provider_label', 'Panoramax');
+    }
+
+    public function test_legacy_rule_and_instance_filter(): void
+    {
+        Station::factory()->create(['geom' => Point::makeGeodetic(self::LAT, self::LNG)]);
+        Http::fake(['api.panoramax.xyz/api/search*' => Http::response(['features' => [
+            self::photo('ign-1', -50, 0, seq: 'a'),
+            self::photo('osm-1', 40, 180, 'osm-fr', 'CC-BY-SA-4.0', 'b'),
+        ]])]);
+
+        // Règle ancienne : aucune requête à l'IGN ; instance IGN seulement.
+        $this->artisan('vff:import-panoramax-media', ['--rule' => 'legacy', '--instance' => ['ign']])->assertSuccessful();
+
+        $this->assertSame(['ign-1'], Media::query()->pluck('external_id')->all());
+        Http::assertSentCount(1);
+        $this->artisan('vff:import-panoramax-media', ['--dry-run' => true, '--instance' => ['flickr']])->assertFailed();
     }
 
     public function test_cache_only_makes_no_request(): void

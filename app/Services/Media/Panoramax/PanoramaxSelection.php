@@ -6,12 +6,22 @@ namespace App\Services\Media\Panoramax;
  * Choix des photos Panoramax d'une gare (règles pures, sans réseau ni base).
  *
  * Retenues : instances IGN (Licence Ouverte 2.0) et OpenStreetMap France (CC BY-SA 4.0) seulement, dont les
- * conditions disent que visages et plaques sont floutés à l'envoi ; photo publique et prête ; licence connue ;
- * point à moins de MAX_DISTANCE_M de la gare (recherche à SEARCH_RADIUS_M) ; prise de vue tournée vers la gare
- * (azimut à MAX_ANGLE degrés près du cap photo → gare), même tout près (une photo prise à 7 m de la gare, tournée
- * ailleurs, montrait une route). Au plus MAX_PER_STATION
- * photos, une par séquence, les mieux notées : photo plate avant panorama à 360°, mieux tournée, plus nette
- * (densité de pixels), plus récente, plus précise (position).
+ * conditions disent que visages et plaques sont floutés à l'envoi ; photo publique et prête ; licence connue.
+ *
+ * Règle des abords (avec une StationScene, règle du 22/11 au soir) : la photo doit voir un bâtiment de la gare
+ * (BD TOPO, dans l'emprise de la gare) sur MIN_TARGET_DEG degrés au moins, entre MIN_TARGET_M et MAX_TARGET_M,
+ * dans le cœur de son champ (VIEW_SHARE du champ de l'appareil, VIEW_HALF_PANO de part et d'autre du cap pour un
+ * panorama, dont la vignette ne montre que l'avant), sans autre bâtiment devant. Les quais (SNCF, OSM) vus en plus
+ * améliorent la note, sans suffire seuls. Une gare sans
+ * bâtiment connu ne reçoit rien (le plus souvent : bâtiment détruit, photo d'une route). Photo penchée
+ * (roulis ou tangage hors bornes) écartée, comme le panorama dont la position
+ * (donc le cap) est incertaine (PANO_MAX_ACCURACY_M).
+ *
+ * Règle ancienne (sans StationScene, gardée pour la mesure « avant ») : point à moins de MAX_DISTANCE_M de la gare,
+ * azimut à MAX_ANGLE degrés près du cap photo → gare.
+ *
+ * Au plus MAX_PER_STATION photos, une par séquence, les mieux notées : photo plate avant panorama à 360°, gare
+ * plus largement vue, plus nette (densité de pixels), plus récente, plus précise (position).
  */
 final class PanoramaxSelection
 {
@@ -27,6 +37,40 @@ final class PanoramaxSelection
     public const MAX_ANGLE = 15;
 
     public const MAX_PER_STATION = 3;
+
+    /** Règle des abords : distances au bâtiment de la gare vu (mètres). */
+    public const MIN_TARGET_M = 6;
+
+    public const MAX_TARGET_M = 50;
+
+    /** Largeur vue (degrés) d'un bâtiment de la gare. */
+    public const MIN_TARGET_DEG = 20;
+
+    /**
+     * Quais vus à MAX_PLATFORM_M au plus : ils comptent dans la note, jamais seuls (mesure du 22/11 : une photo qui ne
+     * voit qu'un quai montre le plus souvent un passage à niveau, un pont ou un parking).
+     */
+    public const MAX_PLATFORM_M = 40;
+
+    /** Part du champ de l'appareil où le bâtiment doit paraître (le cœur de l'image, pas ses bords). */
+    public const VIEW_SHARE = 0.8;
+
+    /** Champ supposé quand l'appareil ne le donne pas, et demi-champ retenu pour un panorama (vignette de l'avant). */
+    public const DEFAULT_FOV = 70;
+
+    public const VIEW_HALF_PANO = 50;
+
+    /**
+     * Panorama à 360° retenu seulement si sa position est connue à PANO_MAX_ACCURACY_M près : mesure du 22/11, les
+     * panoramas d'appareils tenus à la main ou sur un vélo (précision annoncée de 4 m ou inconnue) sont souvent mal
+     * orientés, leur vignette montre une route ; ceux des véhicules équipés (2 m) visent juste.
+     */
+    public const PANO_MAX_ACCURACY_M = 3.0;
+
+    /** Photo penchée : roulis ou tangage (degrés) au-delà. */
+    public const MAX_ROLL = 15;
+
+    public const MAX_PITCH = 30;
 
     /** Instance (nom dans le catalogue fédéré) => [libellé, adresse]. */
     public const INSTANCES = [
@@ -49,39 +93,114 @@ final class PanoramaxSelection
      *
      * @param  array<string, mixed>  $f  élément GeoJSON du catalogue
      */
-    public static function rejectReason(array $f, float $stationLat, float $stationLng): ?string
+    public static function rejectReason(array $f, float $stationLat, float $stationLng, ?StationScene $scene = null): ?string
+    {
+        return self::assess($f, $stationLat, $stationLng, $scene)[0];
+    }
+
+    /**
+     * Motif de refus (null si retenue) et ce que la photo voit de la gare (règle des abords).
+     *
+     * @param  array<string, mixed>  $f
+     * @return array{0: ?string, 1: ?array{target_deg: float, platform_deg: float, hidden_deg: float, nearest_m: ?float}}
+     */
+    public static function assess(array $f, float $stationLat, float $stationLng, ?StationScene $scene = null): array
     {
         $p = (array) ($f['properties'] ?? []);
         [$lng, $lat] = self::position($f) ?? [null, null];
+        $reason = self::basicReason($f);
+        if ($reason !== null || $lat === null || $lng === null) {
+            return [$reason, null];
+        }
+        if ($scene === null) {
+            return [match (true) {
+                self::distanceM($lat, $lng, $stationLat, $stationLng) > self::MAX_DISTANCE_M => 'too_far',
+                self::angle($f, $stationLat, $stationLng) > self::MAX_ANGLE => 'facing_away',
+                default => null,
+            }, null];
+        }
+
+        $az = $p['view:azimuth'] ?? null;
+        if ($scene->isEmpty()) {
+            return ['no_station_building', null];
+        }
+        if (self::distanceM($lat, $lng, $stationLat, $stationLng) > self::SEARCH_RADIUS_M) {
+            return ['too_far', null];
+        }
+        if (! is_numeric($az)) {
+            return ['no_azimuth', null];
+        }
+        if (abs((float) ($p['pers:roll'] ?? 0)) > self::MAX_ROLL || abs((float) ($p['pers:pitch'] ?? 0)) > self::MAX_PITCH) {
+            return ['tilted', null];
+        }
+        $fov = (int) ($p['pers:interior_orientation']['field_of_view'] ?? 0);
+        $accuracy = $p['quality:horizontal_accuracy'] ?? null;
+        if ($fov >= 360 && (! is_numeric($accuracy) || (float) $accuracy > self::PANO_MAX_ACCURACY_M)) {
+            return ['pano_unsure_heading', null];
+        }
+        [$x, $y] = $scene->project($lat, $lng);
+        $view = $scene->view($x, $y, (float) $az, self::halfFov($f), self::MIN_TARGET_M, self::MAX_TARGET_M, self::MAX_PLATFORM_M);
+        if ($view['target_deg'] >= self::MIN_TARGET_DEG) {
+            return [null, $view];
+        }
+
+        return [$view['hidden_deg'] >= self::MIN_TARGET_DEG ? 'hidden' : 'not_in_view', $view];
+    }
+
+    /**
+     * Motif de refus qui ne dépend pas des abords (position, instance, publication, licence, crédit), null sinon.
+     *
+     * @param  array<string, mixed>  $f
+     */
+    public static function basicReason(array $f): ?string
+    {
+        $p = (array) ($f['properties'] ?? []);
 
         return match (true) {
-            $lat === null => 'no_position',
+            self::position($f) === null => 'no_position',
             ! isset(self::INSTANCES[self::instance($f) ?? '']) => 'instance',
             ($p['geovisio:status'] ?? 'ready') !== 'ready' || ($p['geovisio:visibility'] ?? 'anyone') !== 'anyone' => 'not_public',
             ! isset(self::LICENSES[(string) ($p['license'] ?? '')]) => 'license',
             self::thumb($f) === null || trim(self::producer($f)) === '' => 'incomplete',
-            self::distanceM($lat, $lng, $stationLat, $stationLng) > self::MAX_DISTANCE_M => 'too_far',
-            self::angle($f, $stationLat, $stationLng) > self::MAX_ANGLE => 'facing_away',
             default => null,
         };
     }
 
     /**
-     * Photos retenues pour une gare, dans l'ordre de leur note.
+     * Demi-champ (degrés) où la gare doit paraître : cœur du champ de l'appareil, avant d'un panorama.
+     *
+     * @param  array<string, mixed>  $f
+     */
+    public static function halfFov(array $f): float
+    {
+        $fov = (int) ($f['properties']['pers:interior_orientation']['field_of_view'] ?? 0);
+        if ($fov >= 360) {
+            return self::VIEW_HALF_PANO;
+        }
+
+        return self::VIEW_SHARE * ($fov > 0 ? min($fov, 180) : self::DEFAULT_FOV) / 2;
+    }
+
+    /**
+     * Photos retenues pour une gare, dans l'ordre de leur note (règle des abords si `$scene` est donnée ; ce que
+     * la photo voit est alors rangé dans `vff:view`).
      *
      * @param  list<array<string, mixed>>  $features
      * @param  array<string, int>  $rejected  compteurs des photos écartées, par motif (complétés)
      * @return list<array<string, mixed>>
      */
-    public static function pick(array $features, float $stationLat, float $stationLng, array &$rejected = []): array
+    public static function pick(array $features, float $stationLat, float $stationLng, array &$rejected = [], ?StationScene $scene = null): array
     {
         $ok = [];
         foreach ($features as $f) {
-            $reason = self::rejectReason($f, $stationLat, $stationLng);
+            [$reason, $view] = self::assess($f, $stationLat, $stationLng, $scene);
             if ($reason !== null) {
                 $rejected[$reason] = ($rejected[$reason] ?? 0) + 1;
 
                 continue;
+            }
+            if ($view !== null) {
+                $f['vff:view'] = $view;
             }
             $ok[] = [$f, self::score($f, $stationLat, $stationLng)];
         }
@@ -114,13 +233,17 @@ final class PanoramaxSelection
         $density = (float) ($p['panoramax:horizontal_pixel_density'] ?? 0);
         $accuracy = (float) ($p['quality:horizontal_accuracy'] ?? 10);
         $year = (int) substr((string) ($p['datetime'] ?? '2015'), 0, 4);
+        $view = $f['vff:view'] ?? null;
+        $aim = is_array($view)
+            ? 2.0 * min(40.0, (float) $view['target_deg']) / 40 + ((float) $view['platform_deg'] >= 15 ? 0.5 : 0.0)
+            : 2.0 * (1 - min($angle, 180.0) / 180);
 
         return ($fov > 0 && $fov < 360 ? 2.0 : 0.0)
-            + 2.0 * (1 - min($angle, 180.0) / 180)
+            + $aim
             + min($density, 40.0) / 40
             + max(0, min($year - 2015, 12)) / 12
             - ($accuracy > 5 ? 0.5 : 0.0)
-            - 0.5 * self::distanceM($lat, $lng, $stationLat, $stationLng) / self::MAX_DISTANCE_M;
+            - 0.5 * self::distanceM($lat, $lng, $stationLat, $stationLng) / (is_array($view) ? self::SEARCH_RADIUS_M : self::MAX_DISTANCE_M);
     }
 
     /**
