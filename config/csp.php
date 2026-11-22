@@ -4,10 +4,11 @@
 | Politique de sécurité du contenu (Content-Security-Policy) du site, posée par SecurityHeaders à
 | partir de App\Support\Security\ContentSecurityPolicy.
 |
-| `enforce` à false : l'en-tête est `Content-Security-Policy-Report-Only`. Le navigateur ne bloque
-| rien, il signale chaque écart à /api/csp-report (CspReportController, journal `csp`). Une fois les
-| rapports relus et les sources manquantes ajoutées ci-dessous, mettre CSP_ENFORCE=true rend la
-| politique bloquante (marche à suivre : docs/SECURITE-CSP.md).
+| `enforce` à true (valeur de production, décision du 22/11/2026) : l'en-tête est `Content-Security-Policy`
+| et le navigateur refuse ce que la politique n'autorise pas. À false (défaut, développement) : en-tête
+| `Content-Security-Policy-Report-Only`, le navigateur ne bloque rien. Dans les deux cas il signale chaque écart
+| à /api/csp-report (CspReportController, journal `csp`). Sources manquantes : les ajouter ci-dessous
+| (marche à suivre : docs/SECURITE-CSP.md).
 */
 return [
     'enforce' => (bool) env('CSP_ENFORCE', false),

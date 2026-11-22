@@ -6,6 +6,7 @@
     import { loadLinePortions } from '$lib/linePortions.js';
     import { whenNear } from '$lib/whenNear.js';
     import { i18n } from '$lib/i18n.js';
+    import { MAP_MAX_ZOOM } from '$lib/basemap.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { formatLocale, tieUnits } from '$lib/typo.js';
@@ -169,6 +170,7 @@
             style: buildStyle(offline),
             center: [2.5, 47.0],
             zoom: 5.5,
+            maxZoom: MAP_MAX_ZOOM,
             attributionControl: { compact: true },
             cooperativeGestures: true,
             locale: {

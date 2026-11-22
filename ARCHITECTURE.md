@@ -255,7 +255,7 @@ trois interfaces de données (REST, GraphQL, MCP) lisent les mêmes services ([d
 - **Reverse proxy** Cloudflare devant pour la cache et l'anti-DDoS
 - **CI** GitHub Actions → SSH déploiement zero-downtime via [Deployer](https://deployer.org/)
 - **Backup** quotidien Postgres → S3-compatible (chez UnxWares ou Backblaze B2)
-- **Monitoring** : Uptime Kuma + Sentry pour les erreurs applicatives
+- **Monitoring** : Kener (page d'état) + GlitchTip, protocole Sentry (docs/SUIVI-PRODUCTION.md) pour les erreurs applicatives
 - **Logs** : agrégés via Loki + Grafana
 
 ---

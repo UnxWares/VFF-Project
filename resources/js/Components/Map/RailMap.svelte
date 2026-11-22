@@ -6,7 +6,7 @@
     import { page, router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
-    import { applyBasemapTheme, basemapStyle, usesBasemap } from '$lib/basemap.js';
+    import { applyBasemapTheme, basemapStyle, MAP_MAX_ZOOM, usesBasemap } from '$lib/basemap.js';
     import { afterPaint } from '$lib/afterPaint.js';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
@@ -1017,6 +1017,7 @@
             style: buildStyle(offline),
             center,
             zoom,
+            maxZoom: MAP_MAX_ZOOM,
             ...initialView(),
             locale: controlsLocale(),
             attributionControl: { compact: true },

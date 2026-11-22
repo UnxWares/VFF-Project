@@ -63,7 +63,7 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] Suite Playwright de fumée avec axe-core (54 tests : pages principales, deux largeurs d'écran, français et anglais), en local et en CI (`docs/TESTS-E2E.md`)
 - [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
 - [x] Suivi des erreurs et de la disponibilité, part application : page de santé `/up/details` (base, Valkey, file, disque, âge du calcul de l'ère, version), erreurs du serveur vers GlitchTip ou Bugsink si une adresse DSN est configurée (sans donnée personnelle), erreurs JavaScript du navigateur journalisées, `docs/SUIVI-ERREURS.md`
-- [ ] Suivi des erreurs et de la disponibilité, part hébergement : installer Uptime Kuma et GlitchTip ou Bugsink sur l'infrastructure d'UnxWares, poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN` et `APP_VERSION`, configurer moniteurs et alertes
+- [ ] Suivi des erreurs et de la disponibilité, part hébergement : installer Kener et GlitchTip (docs/SUIVI-PRODUCTION.md) sur l'infrastructure d'UnxWares, poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN` et `APP_VERSION`, configurer moniteurs et alertes
 - [x] Hooks avant commit (Lefthook) : installés (`node_modules/.bin/lefthook install --force` avec un `core.hooksPath` local au dépôt ; `lefthook-local.yml`, non suivi, relance les crochets globaux de chaque poste)
 
 🎯 **Jalon "Foundations Done"** : atteint.

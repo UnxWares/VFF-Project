@@ -62,7 +62,11 @@ class SecurityHeaders
         }
 
         $header = ContentSecurityPolicy::headerName();
-        if (str_contains((string) $response->headers->get('Content-Type', 'text/html'), 'text/html') && ! $response->headers->has($header)) {
+        // Les pages /embed/* arrivent avec `frame-ancestors *` seul (AllowIframeEmbed) : politique bloquante,
+        // elles reçoivent quand même la politique complète, qui porte déjà ce `frame-ancestors *`.
+        $existing = $response->headers->get($header);
+        $unset = $existing === null || trim($existing, "; \t") === 'frame-ancestors *';
+        if (str_contains((string) $response->headers->get('Content-Type', 'text/html'), 'text/html') && $unset) {
             $response->headers->set($header, ContentSecurityPolicy::build($request, $nonce));
             if (config('csp.report')) {
                 $response->headers->set('Reporting-Endpoints', ContentSecurityPolicy::reportingEndpoints($request));

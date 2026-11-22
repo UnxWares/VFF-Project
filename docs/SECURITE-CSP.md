@@ -1,9 +1,21 @@
 # Politique de sécurité du contenu (CSP)
 
-Depuis le 20/11/2026, chaque page HTML du site porte une politique de sécurité du contenu **en
-observation** : l'en-tête est `Content-Security-Policy-Report-Only`. Le navigateur ne bloque rien.
-Quand une page charge une ressource que la politique n'autorise pas, il envoie un rapport à
-`/api/csp-report`.
+Chaque page HTML du site porte une politique de sécurité du contenu. **Décision du 22/11/2026 : bloquante dès
+la mise en ligne** : en production, `CSP_ENFORCE=true` (en-tête `Content-Security-Policy`, le navigateur refuse ce
+que la politique n'autorise pas). Par défaut, et en développement, `CSP_ENFORCE=false` : l'en-tête est
+`Content-Security-Policy-Report-Only`, le navigateur ne bloque rien. Dans les deux cas, une ressource refusée
+est signalée à `/api/csp-report`.
+
+Vérification du 22/11/2026 avec la politique bloquante (en-tête d'observation réécrit en en-tête bloquant par le
+navigateur de test, et `tests/Feature/Security/ContentSecurityPolicyTest.php`) : accueil, carte, fiches de ligne, de
+gare, d'accident et de matériel, journal (liste et article), `/api`, `/docs/api`, `/docs/swagger`, `/graphiql`,
+contribution et carte intégrée, avec la carte zoomée du niveau 12 au niveau 19 sur le fond PMTiles : aucune
+violation avec la politique bloquante. Deux écarts trouvés et corrigés : (1) en développement, les images et polices servies par Vite
+(logo des pages de documentation) étaient refusées, car la politique n'admettait Vite que pour les scripts, styles et
+connexions (`img-src` et `font-src` l'admettent désormais, seulement dans l'environnement local) ; (2) sur les pages
+`/embed/*`, la politique bloquante était réduite à `frame-ancestors *` (le middleware d'intégration posait
+l'en-tête avant `SecurityHeaders`, qui ne posait alors plus la politique complète) : la page intégrée reçoit maintenant
+toute la politique, avec `frame-ancestors *`.
 
 ## Où se trouve quoi
 
@@ -75,14 +87,21 @@ grep -h csp-violation storage/logs/csp-*.log | sed 's/.*csp-violation //' | sort
 
 ## Rendre la politique bloquante
 
-1. Laisser la politique en observation en production au moins deux semaines, avec du trafic réel
+Depuis le 22/11/2026, la politique est **bloquante dès le premier jour** (`CSP_ENFORCE=true` dans le `.env` de
+production et dans la liste « Ce qu'il faut adapter » de `docs/DEPLOIEMENT-NGINX.md`). La marche à suivre ci-dessous sert à la reprendre après un
+changement de `config/csp.php` ou une nouvelle source externe, ou à repasser en observation (`CSP_ENFORCE=false`)
+le temps d'un diagnostic.
+
+1. (Pour une nouvelle origine) la laisser en observation quelques jours avec du trafic réel
    (carte, fiches, documentation de l'API, contributions, profil).
 2. Relire les rapports regroupés (commande ci-dessus). Pour chaque origine légitime, l'ajouter à la
    directive voulue dans `config/csp.php` (`sources`). Pour un script en ligne du site, lui donner
    le nonce. Les rapports venant d'extensions du navigateur (`chrome-extension`, `moz-extension`)
    sont à ignorer.
 3. Lancer `bin/php artisan test tests/Feature/Security/ContentSecurityPolicyTest.php`.
-4. Mettre `CSP_ENFORCE=true` dans `.env` puis `php artisan config:cache`. L'en-tête devient
+4. Mettre `CSP_ENFORCE=true` dans `.env` (valeur de production) puis `php artisan config:cache`.
+   Mettre aussi à jour la politique de `/docs/graphql` de `deploy/nginx/vff-project.org.conf` : elle est
+   désormais en `Content-Security-Policy` (bloquante) et le test `test_nginx_policy_for_graphql_matches_laravel` la compare à celle de Laravel. L'en-tête devient
    `Content-Security-Policy`, et les rapports continuent d'arriver pour ce qui est désormais bloqué.
 5. Vérifier à la main la carte (fond, cartes historiques, vue « Schéma »), une galerie d'images,
    `/docs/api`, `/docs/swagger`, `/docs/graphql`, `/graphiql` et une page intégrée `/embed/maps`.

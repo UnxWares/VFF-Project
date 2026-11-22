@@ -3,6 +3,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
     BASEMAP_GLYPHS,
+    BASEMAP_MAX_ZOOM,
+    MAP_MAX_ZOOM,
     BASEMAP_SOURCE_ID,
     PAPER,
     applyBasemapTheme,
@@ -48,10 +50,17 @@ function hueSaturation(hex) {
 describe('basemapStyle', () => {
     const style = basemapStyle({ ...BASEMAP, origin: ORIGIN });
 
+    it('sur-zoome les tuiles du niveau 15 jusqu au niveau 19 sans demander de tuile plus fine', () => {
+        expect(style.sources[BASEMAP_SOURCE_ID].maxzoom).toBe(BASEMAP_MAX_ZOOM);
+        expect(BASEMAP_MAX_ZOOM).toBe(15);
+        expect(MAP_MAX_ZOOM).toBe(19);
+    });
+
     it('lit l archive de VFF par le protocole pmtiles://, avec le crédit OpenStreetMap', () => {
         expect(style.sources[BASEMAP_SOURCE_ID]).toEqual({
             type: 'vector',
             url: `pmtiles://${ORIGIN}/basemap/france-20261120.pmtiles`,
+            maxzoom: BASEMAP_MAX_ZOOM,
             attribution: BASEMAP.attribution,
         });
     });
