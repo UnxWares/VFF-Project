@@ -74,6 +74,10 @@ class LineMergerTest extends TestCase
             DB::table('media')->insert(['mediable_type' => 'App\\Models\\Line', 'mediable_id' => $owner, 'type' => 'photo', 'provider' => 'commons',
                 'external_id' => $ext, 'rights_status' => 'open_license', 'is_featured' => false]);
         }
+        foreach ([[$from->id, 11], [$from->id, 12], [$into->id, 12]] as [$owner, $way]) {
+            DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, shared_length_m, way_length_m, shared_percent, osm_seen_at, geom)
+                VALUES (?, ?, 900, 1000, 90, now(), ST_Multi(ST_GeomFromText('LINESTRING(1 46, 1.01 46)', 4326)))", [$owner, $way]);
+        }
 
         $r = $this->merger->merge($from->id, $into->id, 'merged_section', 'section de la ligne');
 
@@ -91,6 +95,8 @@ class LineMergerTest extends TestCase
         $this->assertSame(['c', 'b'], DB::table('line_sources')->where('line_id', $into->id)->orderBy('source_type', 'desc')->pluck('source_url')->all());
         $this->assertSame(['p1', 'p2'], DB::table('media')->where('mediable_id', $into->id)->orderBy('external_id')->pluck('external_id')->all());
         $this->assertSame(0, DB::table('media')->where('mediable_id', $from->id)->count());
+        $this->assertSame([11, 12], DB::table('line_greenways')->where('line_id', $into->id)->orderBy('osm_way_id')->pluck('osm_way_id')->all(),
+            'voie verte de la ligne fusionnée gardée, sans doublon');
         $alt = json_decode(DB::table('lines')->where('id', $into->id)->value('alt_names'), true);
         $this->assertSame([['name' => 'Ligne de Dol à Dinan', 'slug' => 'ligne-de-dol-a-dinan', 'reason' => 'section de la ligne']], $alt['merged']);
 
