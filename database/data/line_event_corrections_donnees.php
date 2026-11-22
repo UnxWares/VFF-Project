@@ -267,4 +267,81 @@ return [
         'quote' => 'Ce dernier exploitant cesse le trafic ferroviaire en 1999.',
         'reason' => 'fin du trafic ferroviaire (fret du GIE Exploitation ferroviaire de Bapaume) d\'Achiet à Bapaume',
     ],
+
+    // Recherche sur les questions ouvertes (chantier « recherche-lignes », nuit du 22/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/recherche-lignes.md).
+
+    // 892000 Longeray-Léaz - Le Bouveret, section Évian-les-Bains - Saint-Gingolph (ligne du Tonkin). Le
+    // 15/05/1938 ne ferme que le service des voyageurs ; la section rouvre au fret pendant la guerre (sans date)
+    // et le garde jusqu'en 1988 (réponse ministérielle publiée au JO du 21/04/2003 : « fermée à la circulation
+    // depuis 1988 »). Le Rive Bleue Express y roule de 1986 à 1998, puis la section est fermée et neutralisée.
+    // La « réouverture » datée du jour même de la fermeture (phrase sans date lue au 15/05/1938) faisait
+    // tomber la ligne fermée en 1970 au lieu d'ouverte au fret.
+    [
+        'line' => '892000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'reopening', 'date' => '1938-05-15'],
+        'label' => 'Réouverture au fret pendant la Deuxième Guerre mondiale (date inconnue)',
+        'source_url' => $wp('Ligne de Longeray-Léaz au Bouveret', 240385701),
+        'quote' => 'cette portion est rouverte durant la Deuxième Guerre mondiale',
+        'reason' => 'la phrase ne donne pas de date : la réouverture a été posée au jour de la fermeture de 1938',
+    ],
+    [
+        'line' => '892000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1938-05-15'],
+        'label' => 'Fin du service des voyageurs d\'Évian à Saint-Gingolph',
+        'source_url' => $wp('Ligne du Tonkin', 241505522),
+        'quote' => 'En 1938, le trafic voyageur est supprimé sur la partie française pour être reporté sur la route.',
+        'reason' => 'fin des voyageurs (remplacée par l\'événement ci-dessous) : le fret roule ensuite jusqu\'en 1988',
+    ],
+    [
+        'line' => '892000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1938-05-15',
+        'precision' => 'day',
+        'from' => 'Évian-les-Bains',
+        'to' => 'Saint-Gingolph',
+        'source_url' => $wp('Ligne du Tonkin', 241505522),
+        'quote' => 'En 1938, le trafic voyageur est supprimé sur la partie française pour être reporté sur la route.',
+        'reason' => 'fin des voyageurs d\'Évian à Saint-Gingolph (jour : article de la ligne de Longeray-Léaz au Bouveret)',
+    ],
+    [
+        'line' => '892000',
+        'action' => 'add',
+        'type' => 'closure_freight',
+        'date' => '1988-01-01',
+        'precision' => 'year',
+        'from' => 'Évian-les-Bains',
+        'to' => 'Saint-Gingolph',
+        'source_url' => 'https://www.assemblee-nationale.fr/dyn/12/questions/QANR5L12QE10935',
+        'quote' => 'La section Evian - Saint-Gingolph étant fermée à la circulation depuis 1988',
+        'reason' => 'fin du fret de la SNCF sur la partie française (réponse à la question écrite n° 10935, JO du 21/04/2003, p. 3238 ; article « Ligne du Tonkin » : « En 1988, le trafic marchandise est supprimé sur la partie française par la SNCF. »)',
+    ],
+    [
+        'line' => '892000',
+        'action' => 'add',
+        'type' => 'heritage_start',
+        'date' => '1986-01-01',
+        'precision' => 'year',
+        'from' => 'Évian-les-Bains',
+        'to' => 'Saint-Gingolph',
+        'heritage_kind' => 'tourist_train',
+        'source_url' => $wp('Ligne du Tonkin', 241505522),
+        'quote' => 'De 1986 à 1998, le train touristique Rive-Bleue Express circule entre Le Bouveret et Évian',
+        'reason' => 'train touristique Rive Bleue Express, seul trafic de la section après la fin du fret de 1988',
+    ],
+    [
+        'line' => '892000',
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1998-01-01',
+        'precision' => 'year',
+        'from' => 'Évian-les-Bains',
+        'to' => 'Saint-Gingolph',
+        'source_url' => $wp('Ligne du Tonkin', 241505522),
+        'quote' => 'En 1998, fermeture et neutralisation de la partie française entre Saint-Gingolph et Évian.',
+        'reason' => 'fin du Rive Bleue Express et neutralisation de la section (infobox de la ligne de Longeray-Léaz au Bouveret : fermeture 1998)',
+    ],
 ];
