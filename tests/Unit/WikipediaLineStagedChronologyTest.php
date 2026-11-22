@@ -114,7 +114,7 @@ class WikipediaLineStagedChronologyTest extends TestCase
 
         $this->assertSame([
             'closure_passenger 1939-05-15 Pithiviers>Beaune-la-Rolande',
-            'closure_passenger 1969-11-01 Étampes>Pithiviers',
+            'closure_passenger 1969-11-04 Étampes>Pithiviers',
         ], $events);
     }
 

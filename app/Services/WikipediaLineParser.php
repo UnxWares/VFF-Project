@@ -1451,7 +1451,7 @@ class WikipediaLineParser
         $months = implode('|', array_keys(self::MONTHS));
         $found = [];
         $mask = $s;
-        if (preg_match_all('/\b(1er|[12]?\d|3[01])\s*(?:er)?\s+('.$months.')\s+(1[89]\d\d|20[0-3]\d)\b/iu', $s, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
+        if (preg_match_all('/\b(1er|0?[1-9]|[12]\d|3[01])\s*(?:er)?\s+('.$months.')\s+(1[89]\d\d|20[0-3]\d)\b/iu', $s, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
             foreach ($mm as $m) {
                 $day = $m[1][0] === '1er' ? 1 : (int) $m[1][0];
                 $month = self::MONTHS[mb_strtolower($m[2][0])];
