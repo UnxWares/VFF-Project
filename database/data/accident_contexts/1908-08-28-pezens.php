@@ -52,7 +52,7 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le 28 août 1908, vers 18 h 40 selon la liste de Wikipédia, un express a percuté un train de marchandises arrêté en gare de Pezens, à huit kilomètres de Carcassonne, sur la ligne de Toulouse à Narbonne.',
-                'en' => 'On 28 August 1908, at about 6:40 pm according to the Wikipedia list, an express struck a goods train standing in Pezens station, eight kilometres from Carcassonne, on the Toulouse to Narbonne line.',
+                'en' => 'On 28 August 1908, at about 6.40 pm according to the Wikipedia list, an express struck a goods train standing in Pezens station, eight kilometres from Carcassonne, on the Toulouse to Narbonne line.',
                 'de' => 'Am 28. August 1908, nach der Wikipedia-Liste gegen 18.40 Uhr, rammte ein Schnellzug einen im Bahnhof Pezens haltenden Güterzug, acht Kilometer von Carcassonne entfernt, auf der Strecke von Toulouse nach Narbonne.',
                 'sources' => ['wp-liste-1908'],
             ],
@@ -61,7 +61,7 @@ return [
             [
                 'fr' => 'Deux journaux allemands des 29 et 30 août 1908, d\'après un télégramme de Carcassonne, rapportent que la veille au soir un train rapide venant de Toulouse est entré en collision avec un train de marchandises à l\'entrée de la gare de Pezens.',
                 'en' => 'Two German newspapers of 29 and 30 August 1908, citing a telegram from Carcassonne, report that the previous evening a fast train coming from Toulouse collided with a goods train at the entrance of Pezens station.',
-                'de' => 'Zwei deutsche Zeitungen vom 29. und 30. August 1908 melden unter Berufung auf ein Telegramm aus Carcassonne, dass am Vorabend ein aus Toulouse kommender Eilzug am Eingang des Bahnhofs Pezens mit einem Güterzug zusammenstieß.',
+                'de' => 'Zwei deutsche Zeitungen vom 29. und 30. August 1908 melden unter Berufung auf ein Telegramm aus Carcassonne, dass am Vorabend ein aus Toulouse kommender Schnellzug am Eingang des Bahnhofs Pezens mit einem Güterzug zusammenstieß.',
                 'sources' => ['ddb-1908-08-29-dortmunder', 'ddb-1908-08-30-deutsche-zeitung'],
             ],
         ],
@@ -77,7 +77,7 @@ return [
             [
                 'fr' => 'Le nombre de blessés diffère entre les deux dépêches allemandes (30 dans la Dortmunder Zeitung, 12 dans la Deutsche Zeitung) ; la liste de Wikipédia en donne douze. L\'express est dit venir de Toulouse par la presse allemande et de Bordeaux par la liste.',
                 'en' => 'The number of injured differs between the two German dispatches (30 in the Dortmunder Zeitung, 12 in the Deutsche Zeitung); the Wikipedia list gives twelve. The express is said to come from Toulouse by the German press and from Bordeaux by the list.',
-                'de' => 'Die Zahl der Verletzten weicht zwischen den beiden deutschen Meldungen ab (30 in der Dortmunder Zeitung, 12 in der Deutschen Zeitung); die Wikipedia-Liste nennt zwölf. Der Eilzug kommt laut deutscher Presse aus Toulouse, laut Liste aus Bordeaux.',
+                'de' => 'Die Zahl der Verletzten weicht zwischen den beiden deutschen Meldungen ab (30 in der Dortmunder Zeitung, 12 in der Deutschen Zeitung); die Wikipedia-Liste nennt zwölf. Der Schnellzug kommt laut deutscher Presse aus Toulouse, laut Liste aus Bordeaux.',
                 'sources' => ['ddb-1908-08-29-dortmunder', 'ddb-1908-08-30-deutsche-zeitung', 'wp-liste-1908'],
             ],
         ],

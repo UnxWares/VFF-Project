@@ -82,7 +82,7 @@ return [
         'disagreements' => [
             [
                 'fr' => 'La presse allemande dit « près de Saintes » ; la liste de Wikipédia situe l\'accident près de Crazannes, sur la ligne de Marennes à Saintes.',
-                'en' => 'The German press says “near Saintes”; the Wikipedia list places the accident near Crazannes, on the Marennes to Saintes line.',
+                'en' => 'The German press says "near Saintes"; the Wikipedia list places the accident near Crazannes, on the Marennes to Saintes line.',
                 'de' => 'Die deutsche Presse schreibt „bei Saintes“; die Wikipedia-Liste verortet den Unfall bei Crazannes, auf der Strecke von Marennes nach Saintes.',
                 'sources' => ['ddb-1903-12-09-allgemeine', 'wp-liste-1903'],
             ],

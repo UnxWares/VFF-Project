@@ -80,7 +80,7 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le 27 mai 1944 à 14 h 10, un express venant de Paris est immobilisé sur la rive gauche de la Seine, aux abords de Rouen, juste avant le viaduc d\'Eauplet.',
-                'en' => 'On 27 May 1944 at 14:10, an express from Paris was brought to a halt on the left bank of the Seine, on the outskirts of Rouen, just before the Eauplet viaduct.',
+                'en' => 'On 27 May 1944 at 2.10 pm, an express from Paris was brought to a halt on the left bank of the Seine, on the outskirts of Rouen, just before the Eauplet viaduct.',
                 'de' => 'Am 27. Mai 1944 um 14.10 Uhr wurde ein Schnellzug aus Paris am linken Seineufer am Stadtrand von Rouen unmittelbar vor dem Viadukt von Eauplet zum Halten gebracht.',
                 'sources' => ['wp-liste-1940s'],
             ],

@@ -76,7 +76,7 @@ return [
         'disagreements' => [
             [
                 'fr' => 'Heure : vers 12 h 30 selon la liste, « ce matin » selon la dépêche Havas.',
-                'en' => 'Time: about 12.30 p.m. according to the list, "this morning" according to the Havas dispatch.',
+                'en' => 'Time: about 12.30 pm according to the list, "this morning" according to the Havas dispatch.',
                 'de' => 'Uhrzeit: gegen 12.30 Uhr nach der Liste, „heute Morgen“ nach der Havas-Meldung.',
                 'sources' => ['wp-liste-1901', 'elux-1901-11-09-independance'],
             ],

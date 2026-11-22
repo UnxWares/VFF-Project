@@ -67,7 +67,7 @@ return [
             [
                 'fr' => 'L\'accident concerne une rame ETG (élément à turbine à gaz) qui circulait entre Grenoble et Lyon sur la ligne de Lyon à Grenoble, alors non électrifiée et exploitée en cantonnement manuel. Après une semaine de pluie et de neige, une coulée de boue avait déposé sur la voie une souche d\'arbre, à l\'entrée de la gare de Bourgoin-Jallieu.',
                 'en' => 'The accident involved an ETG gas-turbine set running between Grenoble and Lyon on the Lyon to Grenoble line, which was not electrified at the time and was worked under manual block. After a week of rain and snow, a mudslide had left a tree stump on the track at the approach to Bourgoin-Jallieu station.',
-                'de' => 'Der Unfall betraf einen ETG-Gasturbinentriebzug auf der Fahrt zwischen Grenoble und Lyon auf der damals nicht elektrifizierten, im manuellen Streckenblock betriebenen Strecke Lyon-Grenoble. Nach einer Woche mit Regen und Schnee hatte ein Erdrutsch einen Baumstumpf auf das Gleis geschoben, am Einfahrtsbereich des Bahnhofs Bourgoin-Jallieu.',
+                'de' => 'Der Unfall betraf einen ETG-Gasturbinentriebzug auf der Fahrt zwischen Grenoble und Lyon auf der damals nicht elektrifizierten, im manuellen Streckenblock betriebenen Strecke Lyon-Grenoble. Nach einer Woche mit Regen und Schnee hatte ein Erdrutsch einen Baumstumpf auf das Gleis geschoben, im Einfahrtsbereich des Bahnhofs Bourgoin-Jallieu.',
                 'sources' => ['blog-paulo-1983', 'wp-liste-1980'],
             ],
             [
@@ -119,7 +119,7 @@ return [
             [
                 'fr' => 'L\'arrêté de catastrophe naturelle du 21 juin 1983 vise à Bourgoin-Jallieu des coulées de boue et un glissement de terrain du 30 avril au 1er mai 1983. Cela concorde avec la date du 1er mai et avec la coulée de boue décrite par le blog et la liste.',
                 'en' => 'The natural disaster order of 21 June 1983 covers mudslides and a landslip at Bourgoin-Jallieu from 30 April to 1 May 1983. This agrees with the date of 1 May and with the mudslide described by the blog and the list.',
-                'de' => 'Der Erlass über den Naturkatastrophenzustand vom 21. Juni 1983 betrifft Schlammlawinen und einen Erdrutsch in Bourgoin-Jallieu vom 30. April bis 1. Mai 1983. Das stimmt mit dem Datum des 1. Mai und mit der vom Blog und der Liste beschriebenen Schlammlawine überein.',
+                'de' => 'Der Erlass zur Anerkennung des Naturkatastrophenzustands vom 21. Juni 1983 betrifft Schlammlawinen und einen Erdrutsch in Bourgoin-Jallieu vom 30. April bis 1. Mai 1983. Das stimmt mit dem Datum des 1. Mai und mit der vom Blog und der Liste beschriebenen Schlammlawine überein.',
                 'sources' => ['georisques-catnat-1983', 'blog-paulo-1983', 'wp-liste-1980'],
             ],
         ],

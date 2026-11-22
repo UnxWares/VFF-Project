@@ -67,7 +67,7 @@ return [
             [
                 'fr' => 'À l\'arrivée en gare du Havre, de nuit, les freins de l\'express n° 145 venant de Paris n\'ont pas tenu. La locomotive a enfoncé le heurtoir, traversé le quai et fini sa course dans le bureau de l\'octroi, près de la sortie des voyageurs. Les dégâts ont été importants.',
                 'en' => 'As it ran into Le Havre station at night, the brakes of express no. 145 from Paris failed. The engine broke through the buffer stop, crossed the platform and ended up in the toll office near the passenger exit. The damage was heavy.',
-                'de' => 'Bei der nächtlichen Einfahrt in den Bahnhof Le Havre versagten die Bremsen des Eilzugs Nr. 145 aus Paris. Die Lokomotive durchbrach den Prellbock, fuhr über den Bahnsteig und kam im Gebäude des Stadtzolls nahe dem Ausgang zum Stehen. Der Sachschaden war groß.',
+                'de' => 'Bei der nächtlichen Einfahrt in den Bahnhof Le Havre versagten die Bremsen des Schnellzugs Nr. 145 aus Paris. Die Lokomotive durchbrach den Prellbock, fuhr über den Bahnsteig und kam im Gebäude des Stadtzolls nahe dem Ausgang zum Stehen. Der Sachschaden war groß.',
                 'sources' => ['wp-liste-1907', 'ddb-1907-06-21-koeln', 'ddb-1907-06-22-hamburg'],
             ],
         ],

@@ -86,7 +86,7 @@ return [
             'value' => 1,
             'sources' => ['wp-liste-1906'],
             'fr' => 'Un mort, le conducteur chef du train de marchandises, selon la liste de Wikipédia ; la dépêche de Lyon du 16 février 1906 en compte deux ; la fiche ne donnait pas de nombre de morts.',
-            'en' => 'One dead, the head guard of the goods train, according to the Wikipedia list; the Lyon dispatch of 16 February 1906 counts two; the record gave no number of deaths.',
+            'en' => 'One dead, the chief guard of the goods train, according to the Wikipedia list; the Lyon dispatch of 16 February 1906 counts two; the record gave no number of deaths.',
             'de' => 'Ein Toter, der Zugführer des Güterzuges, nach der Wikipedia-Liste; die Depesche aus Lyon vom 16. Februar 1906 zählt zwei; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],

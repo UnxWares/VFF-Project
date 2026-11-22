@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Vers 22 h, en gare de Dijon, le train n° 115, un omnibus parti de Paris à 12 h 05, a pris en écharpe un train de marchandises en manœuvre. Selon la liste de Wikipédia, les travaux d\'agrandissement de la gare obligeaient à changer les itinéraires, et l\'omnibus a été dirigé par erreur sur la voie occupée.',
-                'en' => 'At about 10 p.m., in Dijon station, train no. 115, a stopping train that had left Paris at 12.05 p.m., struck a shunting goods train side-on. According to the Wikipedia list, enlargement works at the station meant the usual routes could not be used, and the stopping train was sent onto the occupied track by mistake.',
+                'en' => 'At about 10 pm, in Dijon station, train no. 115, a stopping train that had left Paris at 12.05 pm, struck a shunting goods train side-on. According to the Wikipedia list, enlargement works at the station meant the usual routes could not be used, and the stopping train was sent onto the occupied track by mistake.',
                 'de' => 'Gegen 22 Uhr rammte im Bahnhof Dijon der Zug Nr. 115, ein um 12.05 Uhr in Paris abgefahrener Personenzug, seitlich einen rangierenden Güterzug. Nach der Wikipedia-Liste ließen die Umbauarbeiten am Bahnhof die üblichen Fahrwege nicht zu, und der Personenzug wurde irrtümlich auf das besetzte Gleis geleitet.',
                 'sources' => ['wp-liste-1908', 'elux-1908-10-06-independance'],
             ],

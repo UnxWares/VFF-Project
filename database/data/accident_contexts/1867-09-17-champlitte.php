@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 17 septembre 1867 vers 7 h, sur la ligne de Gray à Chalindrey de la compagnie de l\'Est, la locomotive d\'un train de voyageurs a déraillé entre Maâtz et Champlitte. L\'attelage s\'est rompu, et la machine, séparée du train, est tombée dans le fossé.',
-                'en' => 'On 17 September 1867 at about 7 a.m., on the Eastern company\'s Gray to Chalindrey line, the engine of a passenger train derailed between Maâtz and Champlitte. The coupling broke, and the engine, separated from the train, fell into the ditch.',
+                'en' => 'On 17 September 1867 at about 7 am, on the Eastern company\'s Gray to Chalindrey line, the engine of a passenger train derailed between Maâtz and Champlitte. The coupling broke, and the engine, separated from the train, fell into the ditch.',
                 'de' => 'Am 17. September 1867 gegen 7 Uhr entgleiste auf der Strecke Gray-Chalindrey der Ostbahn zwischen Maâtz und Champlitte die Lokomotive eines Personenzugs. Die Kupplung riss, und die vom Zug getrennte Maschine stürzte in den Graben.',
                 'sources' => ['wp-liste-1860', 'elux-1867-09-24-union'],
             ],

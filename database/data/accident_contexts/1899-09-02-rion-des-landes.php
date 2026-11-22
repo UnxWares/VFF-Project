@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 2 septembre 1899 vers 4 h, sur la ligne de Bordeaux à Hendaye, entre les gares de Rion-des-Landes et de Laluque, le Sud-Express a heurté dans une courbe à faible visibilité l\'arrière d\'un train de marchandises en retard.',
-                'en' => 'On 2 September 1899 at about 4 a.m., on the Bordeaux to Hendaye line between Rion-des-Landes and Laluque stations, the Sud-Express ran into the rear of a late-running goods train on a curve with poor visibility.',
+                'en' => 'On 2 September 1899 at about 4 am, on the Bordeaux to Hendaye line between Rion-des-Landes and Laluque stations, the Sud-Express ran into the rear of a late-running goods train on a curve with poor visibility.',
                 'de' => 'Am 2. September 1899 gegen 4 Uhr fuhr auf der Strecke Bordeaux-Hendaye zwischen den Bahnhöfen Rion-des-Landes und Laluque der Sud-Express in einer unübersichtlichen Kurve auf das Ende eines verspäteten Güterzugs auf.',
                 'sources' => ['wp-liste-1890', 'ddb-1899-09-06-witten'],
             ],

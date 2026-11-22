@@ -60,8 +60,8 @@ return [
             ],
             [
                 'fr' => 'Le Matin du 9 août, cité par la liste, est un journal du matin du lundi : un accident du samedi vers 22 h 30 aurait normalement paru dans le numéro du dimanche 8. Cela va, avec la correspondance de Paris du 11 août, dans le sens du dimanche 8, mais seule une relecture du Matin le montrerait ; la date de la liste est gardée.',
-                'en' => 'Le Matin of 9 August, cited by the list, is a Monday morning paper: an accident on Saturday at about 10.30 p.m. would normally have appeared in the Sunday 8 issue. Together with the Paris letter of 11 August, this points to Sunday 8, but only rereading Le Matin would show it; the date of the list is kept.',
-                'de' => 'Le Matin vom 9. August, den die Liste zitiert, ist eine Morgenzeitung vom Montag: Ein Unfall am Samstag gegen 22.30 Uhr wäre normalerweise in der Ausgabe vom Sonntag, dem 8., erschienen. Zusammen mit dem Pariser Brief vom 11. August deutet das auf Sonntag, den 8., doch nur ein erneutes Lesen des Matin würde es zeigen; das Datum der Liste bleibt.',
+                'en' => 'Le Matin of 9 August, cited by the list, is a Monday morning paper: an accident on Saturday at about 10.30 pm would normally have appeared in the Sunday 8 issue. Together with the Paris correspondence of 11 August, this points to Sunday 8, but only rereading Le Matin would show it; the date of the list is kept.',
+                'de' => 'Le Matin vom 9. August, den die Liste zitiert, ist eine Morgenzeitung vom Montag: Ein Unfall am Samstag gegen 22.30 Uhr wäre normalerweise in der Ausgabe vom Sonntag, dem 8., erschienen. Zusammen mit dem Pariser Bericht vom 11. August deutet das auf Sonntag, den 8., doch nur ein erneutes Lesen des Matin würde es zeigen; das Datum der Liste bleibt.',
                 'sources' => ['wp-liste-1909', 'ddb-1909-08-11-correspondent'],
             ],
         ],

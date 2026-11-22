@@ -73,7 +73,7 @@ return [
             [
                 'fr' => 'Le musée allemand situe le départ du train à la gare de Mareuil-sur-Ourcq, à 18,7 km, et attribue l\'erreur d\'aiguillage soit à un défaut du personnel, soit à l\'ignorance de la destruction du pont. Cette hypothèse n\'est pas confirmée par une autre source.',
                 'en' => 'The German museum places the train\'s departure at Mareuil-sur-Ourcq station, 18.7 km away, and attributes the misrouting either to staff error or to ignorance of the bridge\'s destruction. No other source confirms this.',
-                'de' => 'Das deutsche Museum nennt als Ausgangspunkt des Zuges den Bahnhof Mareuil-sur-Ourcq in 18,7 km Entfernung und führt die Fehlleitung entweder auf einen Fehler des Stellwerkspersonals oder auf Unkenntnis der Brückenzerstörung zurück. Keine andere Quelle bestätigt dies.',
+                'de' => 'Das deutsche Museum nennt als Ausgangspunkt des Zuges den Bahnhof Mareuil-sur-Ourcq in 18,7 km Entfernung und führt die Fehlleitung entweder auf einen Fehler des Personals oder auf Unkenntnis der Brückenzerstörung zurück. Keine andere Quelle bestätigt dies.',
                 'sources' => ['lette-2014'],
             ],
         ],

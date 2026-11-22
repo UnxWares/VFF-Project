@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Un train mixte parti d\'Amagne à 1 h 58 et attendu à Vouziers à 2 h 51 a déraillé sur une aiguille en gare de Vrizy - Vandy, sur la ligne d\'Amagne - Lucquy à Revigny. Il comptait deux voitures de voyageurs ; celle de 1re classe a été brisée.',
-                'en' => 'A mixed train that had left Amagne at 1.58 a.m. and was due at Vouziers at 2.51 a.m. derailed on a set of points in Vrizy - Vandy station, on the Amagne - Lucquy to Revigny line. It had two passenger carriages; the first-class one was smashed.',
+                'en' => 'A mixed train that had left Amagne at 1.58 am and was due at Vouziers at 2.51 am derailed on a set of points in Vrizy - Vandy station, on the Amagne - Lucquy to Revigny line. It had two passenger carriages; the first-class one was smashed.',
                 'de' => 'Ein gemischter Zug, der um 1.58 Uhr in Amagne abgefahren war und um 2.51 Uhr in Vouziers erwartet wurde, entgleiste im Bahnhof Vrizy-Vandy an der Strecke Amagne-Lucquy-Revigny auf einer Weiche. Er führte zwei Personenwagen; der Wagen erster Klasse wurde zertrümmert.',
                 'sources' => ['wp-liste-1906', 'elux-1906-09-12-independance'],
             ],
