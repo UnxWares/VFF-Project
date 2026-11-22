@@ -179,3 +179,35 @@ gare liée à Wikidata et pose des corrections sourcées, sans toucher au calcul
 Reste hors de cette passe : les gares sans élément Wikidata (3 998 gares aux ouvertures estimées), les lignes dont les sections
 ne sont pas lues (cause racine côté import des événements de ligne), les fermetures de 8 haltes de la ligne 405000 (aucun
 article de gare ni de ligne ne les date).
+
+## Règles G3 et G6 des ères de gares (22/11/2026, désactivées par défaut)
+
+Les deux règles recommandées par l'audit (questions G3 et G6 du 21/11) sont écrites dans `vff:build-station-eras`
+(`StationTimeline::openingBoundedByMap` et `closureFromLinePassengerEnds`). Elles ne tournent qu'avec `--rules=g3,g6`
+ou la clé `stations.era_rules` (`VFF_STATION_ERA_RULES`, vide par défaut) ; `--rules=none` les coupe.
+
+- **G3, ouverture déduite bornée par la carte.** Une ouverture déduite des lignes (provenance `inferred:…`, jamais une
+  date sourcée) antérieure d'une à trois ères à la première ère où la carte montre la gare desservie devient
+  l'intervalle « entre l'année de la ligne et cette ère » : `opened_precision` = `range`, `opened_at` = 31/12 de l'ère,
+  `provenance.opened_after` = l'année qui précède la borne basse, `provenance.opened_rule` = `g3`. Les ères « fermée »
+  qui précèdent la première ère desservie sont retirées (la gare n'était pas encore ouverte). La règle ne s'applique ni à
+  une gare rouverte, ni à un trou de carte de plus de trois ères (Cubzac-les-Ponts : ligne de 1874, gare montrée en 2020
+  seulement), ni à une gare dont une fin de service tombe avant la première ère desservie (Breuilpont).
+- **G6, fermeture tirée de la ligne.** Une gare fermée sans date (intervalle des ères) prend la fin des voyageurs de ses
+  lignes quand chacune a une fin des voyageurs dont la section est donnée par PK et couvre la gare, après la dernière
+  ère desservie de façon sûre, sans réouverture ensuite et sans fermeture au fret ou à tout trafic de la ligne à la gare
+  après elle (Talmay : voyageurs en 1938, fret jusqu'en 1971). `provenance.closed_rule` = `g6`.
+
+Mesure sur une copie de `vff` (22/11, 16 h 30, mêmes années de desserte au départ) : G3 borne 1 025 ouvertures
+(écart de 10 à 39 ans) et retire une ère « fermée » à 101 gares ; G6 date 33 fermetures, 33 ères « fret seul » non
+confirmées deviennent « fermée » et 169 autres disparaissent. 134 gares changent d'au moins une ère, aucun autre
+changement ; `vff:check-invariants` identique (28 invariants, les mêmes 10 violés avec les mêmes nombres).
+
+Contrôle à la main contre les articles des lignes : pour G3, 11 gares sur 11 ont la mise en service de leur section
+dans l'intervalle, alors que l'ancienne année (celle de la première section, souvent prise dans Wikidata) était fausse
+10 fois ; la halte du Vert-Galant, créée en 1890 sur une section de 1861, reste hors de l'intervalle comme avant. Pour
+G6, la date de fin des voyageurs est juste 8 fois sur 10 (2 lignes sans détail), mais le fret a continué sur la ligne
+dans au moins 4 cas (Samoussy, Marigny-lès-Usages, Saint-Gérand, Douchy) : la fin des voyageurs n'y est pas la
+fermeture de la gare. G6 reste donc désactivée ; G3 peut être activée après le calcul en cours. Désactiver une règle
+après coup demande `vff:attach-stations --years-only` avant le calcul : `station_lines.first_year` et `last_year` ne
+font que se resserrer d'un calcul à l'autre.

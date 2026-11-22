@@ -154,6 +154,7 @@ seule ère de sa fermeture, puis disparaît des ères suivantes (debout, démoli
 | `--parallel=1` | Processus parallèles, une ère par processus (4 au plus conseillé). |
 | `--today=` | Date du jour (AAAA-MM-JJ) de l'ère courante, aujourd'hui par défaut. |
 | `--skip-infer` | Interne : dates déduites déjà recalculées par le processus parent. |
+| `--rules=` | Règles facultatives de l'audit des gares, séparées par des virgules : `g3` (ouverture déduite bornée par la carte), `g6` (fermeture tirée de la fin des voyageurs de la ligne rattachée par PK) ; `none` : aucune. Défaut : clé `stations.era_rules` (`VFF_STATION_ERA_RULES`, vide). Voir [AUDIT-GARES.md](AUDIT-GARES.md). |
 
 ## Lignes, tracés et audits
 
