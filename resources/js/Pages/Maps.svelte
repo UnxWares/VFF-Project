@@ -60,6 +60,13 @@
     let colorMode = $state('traffic');
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
+    // La fenêtre « Intégrer » (75 éléments) n'est montée qu'à sa première ouverture, puis gardée : le
+    // premier rendu de la page ne la construit pas, et ses réglages restent d'une ouverture à l'autre.
+    let embedModalUsed = $state(false);
+    function openEmbedModal() {
+        embedModalUsed = true;
+        embedModalOpen = true;
+    }
     // Calques facultatifs (bouton « Calques ») : ceux de VFF, cochés librement et superposés, et un
     // fond OpenRailwayMap au plus (lib/mapLayers.js).
     let dataLayers = $state([]);
@@ -318,7 +325,7 @@
                                 class="vff-btn secondary embed-btn"
                                 aria-haspopup="dialog"
                                 title={$i18n.t('maps.embed.button')}
-                                onclick={() => (embedModalOpen = true)}
+                                onclick={openEmbedModal}
                             >
                                 <i class="bi bi-code-slash" aria-hidden="true"></i>
                                 <span class="embed-label">{$i18n.t('maps.embed.button')}</span>
@@ -469,7 +476,7 @@
                 type="button"
                 class="vff-btn secondary small embed-btn"
                 aria-haspopup="dialog"
-                onclick={() => (embedModalOpen = true)}
+                onclick={openEmbedModal}
             >
                 <i class="bi bi-code-slash" aria-hidden="true"></i>
                 {$i18n.t('maps.embed.button')}
@@ -489,12 +496,14 @@
             />
         </div>
 
-        <EmbedCodeModal
-            bind:open={embedModalOpen}
-            defaultEra={selectedEra}
-            {eras}
-            currentEra={currentEraYear}
-        />
+        {#if embedModalUsed}
+            <EmbedCodeModal
+                bind:open={embedModalOpen}
+                defaultEra={selectedEra}
+                {eras}
+                currentEra={currentEraYear}
+            />
+        {/if}
 
         <SectionBlock
             kind="alt"
