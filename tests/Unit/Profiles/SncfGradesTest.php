@@ -35,6 +35,43 @@ class SncfGradesTest extends TestCase
         $this->assertSame(1500, $line['covered_m']);
     }
 
+    public function test_steepest_portion_is_the_union_of_the_segments_at_the_maximum(): void
+    {
+        $line = SncfGrades::aggregate([
+            self::record('476000', 'RAMPE', 20.0, '001+000', '001+300'),
+            self::record('476000', 'RAMPE', 20.0, '001+200', '001+600', 'V2'),
+            self::record('476000', 'RAMPE', 20.0, '009+000', '009+050'),
+            self::record('476000', 'RAMPE', 8.0, '002+000', '004+000'),
+        ])['476000'];
+        $this->assertSame(650, $line['steep_m'], '1+000 à 1+600 et 9+000 à 9+050');
+
+        // Un maximum plus fort repart de zéro : l'ancienne portion ne compte plus.
+        $line = SncfGrades::aggregate([
+            self::record('476000', 'RAMPE', 8.0, '002+000', '004+000'),
+            self::record('476000', 'RAMPE', 30.0, '005+000', '005+050'),
+        ])['476000'];
+        $this->assertSame(50, $line['steep_m']);
+    }
+
+    public function test_a_short_steep_portion_does_not_replace_wikipedia(): void
+    {
+        $measure = ['value' => 28.7, 'kind' => 'terrain'];
+        $decide = fn (int $steep, int $covered = 400, int $min = SncfGrades::MIN_STEEP_M): array => SncfGrades::decide(
+            ['max_grade_permil' => 36.2, 'covered_m' => $covered, 'steep_m' => $steep], 1000, 25.0, $measure, 0.1, $min);
+
+        $this->assertSame(500, SncfGrades::MIN_STEEP_M);
+        $this->assertSame('kept_wikipedia_short', $decide(50)['status']);
+        $this->assertFalse($decide(50)['retained']);
+        $this->assertSame(50, $decide(50)['steep_m']);
+        $this->assertSame('kept_wikipedia_short', $decide(499)['status']);
+        $this->assertSame('retained_over_wikipedia', $decide(500)['status'], 'la longueur minimale est incluse');
+        $this->assertSame('retained_over_wikipedia', $decide(50, 400, 0)['status'], 'minimum à 0 : pas de contrôle');
+        $this->assertSame('retained_over_wikipedia', $decide(50, 950)['status'], 'ligne couverte presque en entier');
+        // Sans longueur connue, rien à contrôler ; sans Wikipédia, rien à remplacer.
+        $this->assertSame('retained_over_wikipedia', SncfGrades::decide(['max_grade_permil' => 36.2, 'covered_m' => 400], 1000, 25.0, $measure)['status']);
+        $this->assertSame('retained', SncfGrades::decide(['max_grade_permil' => 36.2, 'covered_m' => 400, 'steep_m' => 50], 1000, null, $measure)['status']);
+    }
+
     public function test_pk_parsing(): void
     {
         $this->assertSame(19663, SncfGrades::pk('019+663'));

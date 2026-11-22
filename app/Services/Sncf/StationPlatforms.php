@@ -168,7 +168,7 @@ final class StationPlatforms
      * Bloc `platforms` de l'API pour chaque gare demandée (absente du résultat si aucun quai n'est connu).
      *
      * @param  list<int>  $stationIds
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{count: int, longest_m: ?int, total_length_m: int, items: list<array{label: string, code_ligne: string, length_m: ?int, pk_start_m: ?int, pk_end_m: ?int}>, dataset_modified: ?string, attribution: string, provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}}>
      */
     public function forStations(array $stationIds): array
     {
@@ -197,7 +197,7 @@ final class StationPlatforms
         return $out;
     }
 
-    /** @return array<string, mixed>|null bloc `platforms` d'une gare, null si aucun quai n'est connu */
+    /** @return array{count: int, longest_m: ?int, total_length_m: int, items: list<array{label: string, code_ligne: string, length_m: ?int, pk_start_m: ?int, pk_end_m: ?int}>, dataset_modified: ?string, attribution: string, provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}}|null bloc `platforms` d'une gare, null si aucun quai n'est connu */
     public function forStation(int $stationId): ?array
     {
         return $this->forStations([$stationId])[$stationId] ?? null;

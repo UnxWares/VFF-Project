@@ -33,6 +33,7 @@ class ImportSncfGrades extends Command
         {--dry-run : rapport seulement, aucun fichier écrit}
         {--refresh : télécharge de nouveau le jeu au lieu du cache local}
         {--min-coverage=0.1 : part de la ligne (0 à 1) que les segments du jeu doivent couvrir}
+        {--min-steep-m=500 : longueur minimale (m) de la portion la plus raide pour remplacer la valeur de Wikipédia}
         {--cache-dir= : dossier du cache (défaut : storage/app/sources/sncf-declivites)}
         {--output= : fichier de données écrit (défaut : database/data/sourced_grades_sncf.php)}
         {--csv= : rapport détaillé par ligne, au format CSV}';
@@ -50,6 +51,12 @@ class ImportSncfGrades extends Command
         $minCoverage = (float) $this->option('min-coverage');
         if ($minCoverage < 0 || $minCoverage > 1) {
             $this->error('--min-coverage : une part entre 0 et 1.');
+
+            return self::FAILURE;
+        }
+        $minSteep = (int) $this->option('min-steep-m');
+        if ($minSteep < 0) {
+            $this->error('--min-steep-m : une longueur positive ou nulle (mètres).');
 
             return self::FAILURE;
         }
@@ -86,7 +93,7 @@ class ImportSncfGrades extends Command
             $code = (string) $code;
             $matches = $lines[$code] ?? [];
             $row = ['code' => $code, 'slug' => null, 'name' => $agg['name'], 'sncf' => $agg['max_grade_permil'], 'segments' => $agg['segments'],
-                'covered_share' => null, 'wikipedia' => null, 'measure' => null, 'measure_kind' => null, 'withheld' => null];
+                'covered_share' => null, 'steep_m' => $agg['steep_m'], 'wikipedia' => null, 'measure' => null, 'measure_kind' => null, 'withheld' => null];
             if (count($matches) !== 1) {
                 $rows[] = $row + ['status' => $matches === [] ? 'line_unknown' : 'line_ambiguous'];
 
@@ -102,7 +109,7 @@ class ImportSncfGrades extends Command
             }
             $wiki = isset($wikipedia[$line->slug]) ? (float) $wikipedia[$line->slug]['max_grade_permil'] : null;
             $measure = $this->measure($line);
-            $decision = SncfGrades::decide($agg, $this->length($line), $wiki, $measure, $minCoverage);
+            $decision = SncfGrades::decide($agg, $this->length($line), $wiki, $measure, $minCoverage, $minSteep);
             $row = array_replace($row, ['covered_share' => $decision['covered_share'], 'wikipedia' => $wiki,
                 'measure' => $measure['value'] ?? null, 'measure_kind' => $measure['kind'] ?? null]);
             $rows[] = $row + ['status' => $decision['status']];
@@ -259,8 +266,8 @@ class ImportSncfGrades extends Command
         $this->table(['Résultat', 'Lignes'], array_map(fn (string $k, int $n): array => [$k, $n], array_keys($counts), $counts));
         $listed = array_filter($rows, fn (array $r): bool => str_starts_with($r['status'], 'rejected_above') || $r['status'] === 'rejected_ratio'
             || str_starts_with($r['status'], 'retained') || str_starts_with($r['status'], 'kept_wikipedia'));
-        $this->table(['Code', 'Ligne', 'SNCF ‰', 'Part', 'Wikipédia ‰', 'Mesure ‰', 'Résultat'], array_map(fn (array $r): array => [
-            $r['code'], $r['slug'] ?? '-', $r['sncf'], $r['covered_share'] ?? '-', $r['wikipedia'] ?? '-',
+        $this->table(['Code', 'Ligne', 'SNCF ‰', 'Portion raide (m)', 'Part', 'Wikipédia ‰', 'Mesure ‰', 'Résultat'], array_map(fn (array $r): array => [
+            $r['code'], $r['slug'] ?? '-', $r['sncf'], $r['steep_m'] ?? '-', $r['covered_share'] ?? '-', $r['wikipedia'] ?? '-',
             $r['measure'] === null ? '-' : $r['measure'].' ('.$r['measure_kind'].')', $r['status'],
         ], array_values($listed)));
     }
@@ -274,9 +281,9 @@ class ImportSncfGrades extends Command
 
             return;
         }
-        fputcsv($handle, ['code', 'slug', 'status', 'sncf_permil', 'covered_share', 'segments', 'wikipedia_permil', 'measure_permil', 'measure_kind', 'withheld', 'name'], escape: '');
+        fputcsv($handle, ['code', 'slug', 'status', 'sncf_permil', 'covered_share', 'segments', 'steep_m', 'wikipedia_permil', 'measure_permil', 'measure_kind', 'withheld', 'name'], escape: '');
         foreach ($rows as $r) {
-            fputcsv($handle, [$r['code'], $r['slug'], $r['status'], $r['sncf'], $r['covered_share'], $r['segments'], $r['wikipedia'],
+            fputcsv($handle, [$r['code'], $r['slug'], $r['status'], $r['sncf'], $r['covered_share'], $r['segments'], $r['steep_m'], $r['wikipedia'],
                 $r['measure'], $r['measure_kind'], $r['withheld'], $r['name']], escape: '');
         }
         fclose($handle);

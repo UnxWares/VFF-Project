@@ -213,9 +213,10 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--dry-run` | Rapport seulement, aucun fichier écrit. |
 | `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
 | `--min-coverage=0.1` | Part de la ligne (0 à 1) que les segments du jeu doivent couvrir. |
+| `--min-steep-m=500` | Longueur minimale (m) de la portion la plus raide pour que la valeur SNCF remplace celle de Wikipédia (0 : pas de contrôle). |
 | `--cache-dir=` | Dossier du cache. |
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
-| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
+| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte, longueur de la portion la plus raide). |
 
 ### `vff:import-sncf-track-regime`
 

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\LineMerger;
+use App\Services\TrackCountPriority;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -1028,6 +1029,7 @@ class ImportLignesOubliees extends Command
                 // écraser ce que d'autres traitements ont pu y ajouter (network, alt_names).
                 $alt = $data['alt_names'];
                 unset($data['network'], $data['alt_names']);
+                $data = TrackCountPriority::filterUpdate((int) $id, $data);
                 DB::table('lines')->where('id', $id)->update($data + [
                     'alt_names' => DB::raw("COALESCE(alt_names, '{}'::jsonb) || ".DB::getPdo()->quote($alt).'::jsonb'),
                 ]);

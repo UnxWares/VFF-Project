@@ -66,7 +66,7 @@ class LineInfrastructureController extends Controller
      *         dataset_modified: ?string
      *     },
      *     attribution: string,
-     *     provenance: array{provider: ?string, name: mixed, license: mixed, license_status: ?string}
+     *     provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}
      * }
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-579000')]
