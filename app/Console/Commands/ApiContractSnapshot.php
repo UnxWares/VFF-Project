@@ -18,7 +18,7 @@ use Nuwave\Lighthouse\Schema\SchemaBuilder;
  */
 class ApiContractSnapshot extends Command
 {
-    protected $signature = 'api:contract {--accept-removals : accepte les retraits et changements de type non annoncés}';
+    protected $signature = 'vff:api-contract {--accept-removals : accepte les retraits et changements de type non annoncés}';
 
     protected $description = "Met à jour l'instantané du contrat de l'API publique (REST, GraphQL, MCP)";
 

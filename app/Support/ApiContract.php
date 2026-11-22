@@ -17,7 +17,7 @@ use GraphQL\Type\Schema;
  * `gql Type.champ(argument)`, `gql Enum=VALEUR`, `gql Union=Membre` ; `mcp tool nom`, `mcp tool nom.paramètre`.
  * Valeur : le type, suivi de `!` (paramètre obligatoire) et de ` @deprecated` (retrait annoncé).
  *
- * Fichier versionné : `tests/Fixtures/api-contract.json`, mis à jour par `php artisan api:contract`. Le test
+ * Fichier versionné : `tests/Fixtures/api-contract.json`, mis à jour par `php artisan vff:api-contract`. Le test
  * `ApiContractTest` échoue quand une clé du fichier a disparu sans être marquée `@deprecated`, ou que son type a changé.
  */
 final class ApiContract

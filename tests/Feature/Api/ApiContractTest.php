@@ -12,9 +12,9 @@ use Tests\TestCase;
  * argument de l'instantané `tests/Fixtures/api-contract.json` ne disparaît, et aucun type ne change, sans
  * annonce (champ gardé et marqué déprécié : `deprecated` en OpenAPI, `@deprecated` en GraphQL).
  *
- * Les ajouts ne font rien échouer. Après un ajout : `php artisan api:contract` (bin/php), puis relire le
+ * Les ajouts ne font rien échouer. Après un ajout : `php artisan vff:api-contract` (bin/php), puis relire le
  * diff du fichier. Un retrait voulu : le déprécier d'abord, l'annoncer dans docs/API-CHANGELOG.md, puis
- * `php artisan api:contract --accept-removals`.
+ * `php artisan vff:api-contract --accept-removals`.
  */
 class ApiContractTest extends TestCase
 {
@@ -37,14 +37,14 @@ class ApiContractTest extends TestCase
     public function test_no_public_field_disappears_or_changes_type_without_deprecation(): void
     {
         $path = base_path(ApiContract::FILE);
-        $this->assertFileExists($path, 'Instantané absent : php artisan api:contract');
+        $this->assertFileExists($path, 'Instantané absent : php artisan vff:api-contract');
         $recorded = (array) json_decode((string) file_get_contents($path), true);
         $this->assertGreaterThan(500, count($recorded));
 
         $breaking = ApiContract::breaking($recorded, $this->current());
 
         $this->assertSame([], $breaking['removed'], "Retirés sans avoir été dépréciés (gardez-les avec `deprecated` / `@deprecated`, voir docs/API-CHANGELOG.md) :\n".implode("\n", $breaking['removed']));
-        $this->assertSame([], $breaking['changed'], "Type changé (changement cassant, à annoncer dans docs/API-CHANGELOG.md puis `php artisan api:contract --accept-removals`) :\n".implode("\n", $breaking['changed']));
+        $this->assertSame([], $breaking['changed'], "Type changé (changement cassant, à annoncer dans docs/API-CHANGELOG.md puis `php artisan vff:api-contract --accept-removals`) :\n".implode("\n", $breaking['changed']));
     }
 
     public function test_the_detector_flags_removals_type_changes_and_ignores_deprecated_and_additions(): void
