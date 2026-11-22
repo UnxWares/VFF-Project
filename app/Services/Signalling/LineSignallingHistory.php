@@ -59,25 +59,41 @@ final class LineSignallingHistory
      */
     public function corrections(Line $line): array
     {
-        return DB::table('line_signalling_events')->where('line_id', $line->id)->whereNotNull('correction')
-            ->orderBy('event_date')->orderBy('system')->orderBy('id')
-            ->get(['system', 'event_date', 'date_precision', 'scope', 'section_from', 'section_to', 'source', 'source_title', 'source_url', 'correction'])
-            ->map(function (object $r): array {
-                $c = json_decode((string) $r->correction, true);
-                $c = is_array($c) ? $c : [];
+        return $this->correctionsOfLines([$line->id])[$line->id] ?? [];
+    }
 
-                return [
-                    'system' => $r->system,
-                    'date' => (string) $r->event_date,
-                    'date_precision' => $r->date_precision,
-                    'section' => $r->scope === 'section' ? ['from' => $r->section_from, 'to' => $r->section_to] : null,
-                    'original' => ['provider' => $r->source, 'title' => $r->source_title, 'url' => $r->source_url],
-                    'action' => (string) ($c['action'] ?? ''),
-                    'reason' => (string) ($c['reason'] ?? ''),
-                    'quote' => (string) ($c['quote'] ?? ''),
-                    'sources' => self::documents(json_encode($c['sources'] ?? [])),
-                ];
-            })->all();
+    /**
+     * Corrections de plusieurs lignes en une requête (GraphQL, liste de lignes).
+     *
+     * @param  list<int>  $lineIds
+     * @return array<int, list<array<string, mixed>>> ligne → corrections (même forme que `corrections`)
+     */
+    public function correctionsOfLines(array $lineIds): array
+    {
+        if ($lineIds === []) {
+            return [];
+        }
+        $byLine = [];
+        $rows = DB::table('line_signalling_events')->whereIn('line_id', $lineIds)->whereNotNull('correction')
+            ->orderBy('event_date')->orderBy('system')->orderBy('id')
+            ->get(['line_id', 'system', 'event_date', 'date_precision', 'scope', 'section_from', 'section_to', 'source', 'source_title', 'source_url', 'correction']);
+        foreach ($rows as $r) {
+            $c = json_decode((string) $r->correction, true);
+            $c = is_array($c) ? $c : [];
+            $byLine[(int) $r->line_id][] = [
+                'system' => $r->system,
+                'date' => (string) $r->event_date,
+                'date_precision' => $r->date_precision,
+                'section' => $r->scope === 'section' ? ['from' => $r->section_from, 'to' => $r->section_to] : null,
+                'original' => ['provider' => $r->source, 'title' => $r->source_title, 'url' => $r->source_url],
+                'action' => (string) ($c['action'] ?? ''),
+                'reason' => (string) ($c['reason'] ?? ''),
+                'quote' => (string) ($c['quote'] ?? ''),
+                'sources' => self::documents(json_encode($c['sources'] ?? [])),
+            ];
+        }
+
+        return $byLine;
     }
 
     /**

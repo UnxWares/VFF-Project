@@ -3,12 +3,12 @@
 namespace App\GraphQL\Resolvers;
 
 use App\Models\Line;
-use App\Services\Signalling\LineSignallingHistory;
+use Closure;
 use GraphQL\Deferred;
 
 /**
- * Chargement groupé de `Line.signalling_history` : les lignes demandées pendant la résolution d'une liste sont
- * notées, puis leurs faits lus en une seule requête au premier besoin (LineSignallingHistory::publicFactsOfLines).
+ * Chargement groupé de `Line.signalling_history` et `Line.signalling_corrections` : les lignes demandées pendant la résolution d'une liste sont
+ * notées, puis leurs faits lus en une seule requête au premier besoin (`publicFactsOfLines` ou `correctionsOfLines` de LineSignallingHistory).
  * Une instance par champ et par requête GraphQL (BatchLoaderRegistry).
  */
 final class SignallingHistoryBatch
@@ -19,7 +19,8 @@ final class SignallingHistoryBatch
     /** @var array<int, list<array<string, mixed>>> */
     private array $loaded = [];
 
-    public function __construct(private readonly LineSignallingHistory $history) {}
+    /** @param Closure(list<int>): array<int, list<array<string, mixed>>> $loader lit les lignes données en une requête */
+    public function __construct(private readonly Closure $loader) {}
 
     public function load(Line $line): Deferred
     {
@@ -30,7 +31,7 @@ final class SignallingHistoryBatch
         return new Deferred(function () use ($line): array {
             if ($this->pending !== []) {
                 $ids = array_keys($this->pending);
-                $this->loaded += $this->history->publicFactsOfLines($ids) + array_fill_keys($ids, []);
+                $this->loaded += ($this->loader)($ids) + array_fill_keys($ids, []);
                 $this->pending = [];
             }
 
