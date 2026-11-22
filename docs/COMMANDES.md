@@ -216,6 +216,21 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
 | `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
 
+### `vff:measure-sncf-track-regime`
+
+Passe à blanc du jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL). Elle compte ce que le jeu
+apporterait au nombre de voies des lignes : faits nouveaux, accords avec la fiche et avec Wikidata, contradictions, lignes
+à régime partagé, gares rattachées. Seules des lectures en base ; le jeu est gardé dans `storage/app/sources/sncf-regime/`
+(dossier `.nobackup`), licence vérifiée au téléchargement. « Voie banalisée » ne dit pas le nombre de voies : ces lignes
+sont écartées. Sans `--dry-run`, la commande refuse de tourner.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Obligatoire : rapport seulement. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Rapport détaillé par ligne. |
+
 ### `vff:build-line-references`
 
 Fusionne les tracés de chaque ligne (IGN, OSM, OHM, SNCF…), recale les morceaux peu précis sur la voie réelle et croise
