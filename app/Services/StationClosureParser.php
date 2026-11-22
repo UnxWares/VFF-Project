@@ -45,7 +45,7 @@ final class StationClosureParser
     private const HEDGE = '/sans doute|probablement|semble-t-il|vraisemblablement|peut-être|aux alentours|environ|\bvers\b|\?|\{\{quand\}\}|date inconnue|date indéterminée/iu';
 
     /** Nom de gare (texte brut) : mots capitalisés, traits d'union, « X - Y ». */
-    private const NAME = '(?:(?:Le|La|Les|L[\'’])\s*)?\p{Lu}[\p{L}\'’.\-]*(?:(?:\s+-\s+|\s+|-)(?:(?:sur|sous|lès|lez|le|la|les|de|du|des|en|aux?|d[\'’]|l[\'’])(?:\s+|-|(?<=[\'’])))*(?:\p{Lu}|\d)[\p{L}\'’.\-\d]*)*';
+    private const NAME = '(?:(?:Le|La|Les|L[\'’])\s*)?\p{Lu}[\p{L}\'’.\-]*(?:(?:\s+-\s+|\s+|-)(?:(?:(?:sur|sous|lès|lez|le|la|les|de|du|des|en|aux?|d[\'’]|l[\'’])(?:\s+|-|(?<=[\'’])))+\p{Lu}|\p{Lu}|\d)[\p{L}\'’.\-\d]*)*';
 
     /** Section de ligne : une liste « entre les gares de X et Y » n'est pas une liste de gares fermées. */
     private const BEFORE_MENTION_SECTION = '/(?:entre|section|tronçon|portion|ligne|jusqu[\'’]à|depuis|vers|via|desservant|reliant|exception|sauf|hormis|excepté|au-delà|en deçà)\s+(?:de\s+|d[\'’])?(?:les?\s+|la\s+|l[\'’])?$/iu';
@@ -282,7 +282,7 @@ final class StationClosureParser
             if (! preg_match('/^[*#]+\s*(?:\'{2,3})?\[\[\s*((?:Gare|Halte|Arrêt)s?\s+(?:de\s+la\s+|de\s+l[\'’]|du\s+|des\s+|de\s+|d[\'’])[^\]|]+)(?:\|([^\]]+))?\]\]/u', $line, $m)) {
                 continue;
             }
-            $name = trim($m[2] ?? '') !== '' ? $m[2] : preg_replace('/^(?:Gare|Halte|Arrêt)s?\s+(?:de\s+la\s+|de\s+l[\'’]|du\s+|des\s+|de\s+|d[\'’])/u', '', $m[1]);
+            $name = trim($m[2] ?? '') !== '' ? $m[2] : self::withoutPreposition(preg_replace('/^(?:Gare|Halte|Arrêt)s?\s+/u', '', $m[1]));
             $name = trim(preg_replace('/\s*\(.*?\)\s*$/u', '', $this->wp->toPlainText($name)));
             $text = trim($this->wp->toPlainText(mb_substr($line, mb_strlen($m[0]))));
             if (preg_match_all(self::CLOSE_VERB, $text, $verbs, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
@@ -600,9 +600,20 @@ final class StationClosureParser
         if ($y < 1827 || $y > (int) date('Y')) {
             return [];
         }
+        // « le 3 mars 1950 » : le jour et le mois sont gardés s'ils forment une date réelle.
+        $date = sprintf('%04d-01-01', $y);
+        $precision = 'year';
+        if (trim($m[2]) !== '' && preg_match('/^(1er|\d{1,2})\s+(\p{L}+)/u', trim($m[2]), $dm)) {
+            $month = WikipediaLineParser::MONTHS[mb_strtolower($dm[2])] ?? null;
+            $day = $dm[1] === '1er' ? 1 : (int) $dm[1];
+            if ($month !== null && checkdate($month, $day, $y)) {
+                $date = sprintf('%04d-%02d-%02d', $y, $month, $day);
+                $precision = 'day';
+            }
+        }
         $type = preg_match('/voyageur|desservie/iu', $text) ? 'closure_passenger' : 'closure';
 
-        return [['type' => $type, 'date' => sprintf('%04d-01-01', $y), 'precision' => 'year', 'quote' => mb_strimwidth($text, 0, 200, '…')]];
+        return [['type' => $type, 'date' => $date, 'precision' => $precision, 'quote' => mb_strimwidth($text, 0, 200, '…')]];
     }
 
     // ── Outils ──────────────────────────────────────────────────────────────
@@ -650,7 +661,7 @@ final class StationClosureParser
         }
         // Puce de chronologie « * 6 mars 1972 : fermeture des gares… ».
         if ($first && $first['pos'] < $vpos && $first['precision'] !== 'decade'
-            && preg_match('/^\s*(?:le\s+)?$/iu', mb_substr($s, 0, $first['pos']))
+            && preg_match('/^\s*(?:[*#]+\s*)?(?:le\s+)?$/iu', mb_substr($s, 0, $first['pos']))
             && preg_match('/^[^.]{0,25}:\s/u', mb_substr($s, $first['pos'], $vpos - $first['pos']))) {
             return ['date' => $first['date'], 'precision' => $first['precision'], 'pos' => $first['pos']];
         }
@@ -779,15 +790,38 @@ final class StationClosureParser
         $parts = preg_split('/\s*,\s*|\s+et\s+/u', $list);
         $out = [];
         foreach ($parts as $p) {
-            $p = trim(preg_replace('/^(?:de\s+la\s+|de\s+l[\'’]|du\s+|des\s+|de\s+|d[\'’])/u', '', trim($p)));
+            $p = self::withoutPreposition(trim($p));
             $p = trim($p, " .'’-");
-            if ($p === '' || mb_strlen($p) < 3 || ! preg_match('/^\p{Lu}/u', ltrim($p, 'LeLaLs \'’'))) {
+            if ($p === '' || mb_strlen($p) < 3 || ! preg_match('/^\p{Lu}/u', $p)) {
                 continue;
             }
             $out[] = $p;
         }
 
         return array_values(array_unique($out));
+    }
+
+    /**
+     * « du Mans » → « Le Mans », « des Aubrais » → « Les Aubrais », « de la Rochelle » → « La Rochelle »,
+     * « de l'Isle » → « L'Isle », « d'Amiens » → « Amiens » : l'article contracté ou de la préposition fait
+     * partie du nom de la gare.
+     */
+    private static function withoutPreposition(string $name): string
+    {
+        if (preg_match('/^du\s+(\p{Lu}.*)$/su', $name, $m)) {
+            return 'Le '.$m[1];
+        }
+        if (preg_match('/^des\s+(\p{Lu}.*)$/su', $name, $m)) {
+            return 'Les '.$m[1];
+        }
+        if (preg_match('/^de\s+la\s+(\p{Lu}.*)$/su', $name, $m)) {
+            return 'La '.$m[1];
+        }
+        if (preg_match('/^de\s+l[\'’](\p{Lu}.*)$/su', $name, $m)) {
+            return 'L\''.$m[1];
+        }
+
+        return trim(preg_replace('/^(?:de\s+|d[\'’])/u', '', $name));
     }
 
     private static function quote(string $s): string

@@ -121,7 +121,7 @@ class StationClosureParserMutationTest extends TestCase
             'aux voyageurs' => ['Fermée aux voyageurs en 1938', ['type' => 'closure_passenger', 'date' => '1938-01-01', 'precision' => 'year', 'quote' => 'Fermée aux voyageurs en 1938']],
             'non desservie' => ['gare non desservie depuis 2016', ['type' => 'closure_passenger', 'date' => '2016-01-01', 'precision' => 'year', 'quote' => 'gare non desservie depuis 2016']],
             'en l\'an' => ['gare fermée en l\'an 1990', ['type' => 'closure', 'date' => '1990-01-01', 'precision' => 'year', 'quote' => 'gare fermée en l\'an 1990']],
-            'avec un jour : seule l\'année est gardée' => ['La gare est fermée le 3 mars 1950', ['type' => 'closure', 'date' => '1950-01-01', 'precision' => 'year', 'quote' => 'La gare est fermée le 3 mars 1950']],
+            'avec un jour : le jour est gardé' => ['La gare est fermée le 3 mars 1950', ['type' => 'closure', 'date' => '1950-03-03', 'precision' => 'day', 'quote' => 'La gare est fermée le 3 mars 1950']],
             'fermeture nominale' => ['fermeture en 1827', ['type' => 'closure', 'date' => '1827-01-01', 'precision' => 'year', 'quote' => 'fermeture en 1827']],
             'année en cours' => ['fermée '.$y, ['type' => 'closure', 'date' => $y.'-01-01', 'precision' => 'year', 'quote' => 'fermée '.$y]],
             'texte entouré d\'espaces' => ["  désaffectée 1999 \n", ['type' => 'closure', 'date' => '1999-01-01', 'precision' => 'year', 'quote' => 'désaffectée 1999']],
@@ -252,10 +252,12 @@ class StationClosureParserMutationTest extends TestCase
             'chiffres' => ['1234', []],
             'virgule et et' => ['Saint-Lô et Caen', ['Saint-Lô', 'Caen']],
             'd\'' => ['d\'Amiens', ['Amiens']],
-            'du' => ['du Mans', ['Mans']],
-            'des' => ['des Aubrais', ['Aubrais']],
-            'de l\'' => ['de l\'Isle', ['Isle']],
-            'de la' => ['de la Rochelle', ['Rochelle']],
+            'du' => ['du Mans', ['Le Mans']],
+            'des' => ['des Aubrais', ['Les Aubrais']],
+            'de l\'' => ['de l\'Isle', ['L\'Isle']],
+            'de la' => ['de la Rochelle', ['La Rochelle']],
+            'du suivi d\'une minuscule' => ['du mans', []],
+            'L majuscule : Lyon' => ['Lyon, Lille, Laon et Lens', ['Lyon', 'Lille', 'Laon', 'Lens']],
             'et final vide' => ['Paris et ', ['Paris']],
         ];
     }
@@ -269,17 +271,15 @@ class StationClosureParserMutationTest extends TestCase
 
     public function test_names_starting_with_a_capital_l_are_kept(): void
     {
-        $names = StationClosureParser::splitNames('Lyon, Lille, Nice');
+        $this->assertSame(['Lyon', 'Lille', 'Nice'], StationClosureParser::splitNames('Lyon, Lille, Nice'));
+    }
 
-        // Défaut : `ltrim($p, 'LeLaLs \'’')` retire le L majuscule du nom avant de tester la majuscule initiale,
-        // si bien que Lyon, Lille ou Laon sont écartés comme « pas un nom » (seuls Le, La, Les suivis d'une
-        // majuscule passent). Le code n'est pas corrigé ici.
-        if ($names !== ['Lyon', 'Lille', 'Nice']) {
-            $this->assertSame(['Nice'], $names);
-            $this->markTestIncomplete('splitNames écarte les noms qui commencent par un L majuscule suivi d\'une minuscule (Lyon, Lille, Laon).');
-        }
+    public function test_a_free_text_date_with_an_impossible_day_falls_back_to_the_year(): void
+    {
+        $events = StationClosureParser::fromFreeText('Gare fermée le 31 février 1950');
 
-        $this->assertSame(['Lyon', 'Lille', 'Nice'], $names);
+        $this->assertSame('1950-01-01', $events[0]['date']);
+        $this->assertSame('year', $events[0]['precision']);
     }
 
     /** @return array<string, array{string, string, bool}> */

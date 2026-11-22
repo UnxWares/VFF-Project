@@ -772,12 +772,12 @@ La section entre la gare de Bréauté et Étretat est fermée en 1938.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Mans',
+                        0 => 'Le Mans',
                     ],
                     'type' => 'closure',
                     'date' => '1960-01-01',
                     'precision' => 'year',
-                    'quote' => 'Mans : fermée en 1960',
+                    'quote' => 'Le Mans : fermée en 1960',
                     'origin' => 'liste',
                 ],
             ]],
@@ -884,14 +884,8 @@ La section entre la gare de Bréauté et Étretat est fermée en 1938.',
 
         $events = $parser->fromLineArticle("== H ==\nLa fermeture de la gare de Bréauté en 1938 est actée.", 'Ligne de Test');
 
-        // Défaut : la liste de noms avale « en 1938 » (le motif d'un nom accepte une particule suivie d'un chiffre), la
-        // gare est lue comme « Bréauté en 1938 ». Le code n'est pas corrigé ici.
         $this->assertCount(1, $events);
-        if ($events[0]['names'] !== ['Bréauté']) {
-            $this->assertSame(['Bréauté en 1938'], $events[0]['names']);
-            $this->markTestIncomplete('La fermeture nominale « de la gare de Bréauté en 1938 » rend le nom « Bréauté en 1938 ».');
-        }
-
         $this->assertSame(['Bréauté'], $events[0]['names']);
+        $this->assertSame('1938-01-01', $events[0]['date']);
     }
 }

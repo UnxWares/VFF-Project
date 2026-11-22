@@ -73,6 +73,13 @@ En 1960 : la gare est fermée.',
 * Le 6 mars 1972 : la gare est fermée.',
                 1 => 'Gare de Test',
             ],  [
+                0 => [
+                    'type' => 'closure',
+                    'date' => '1972-03-06',
+                    'precision' => 'day',
+                    'quote' => '* Le 6 mars 1972 : la gare est fermée.',
+                    'origin' => 'texte',
+                ],
             ]],
             'article de gare : puce sans deux-points' => ['fromStationArticle',  [
                 0 => 'La \'\'\'gare\'\'\' est une gare.
@@ -666,12 +673,12 @@ La gare est fermée aux voyageurs en 1938, puis au fret dans les années 1950.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Pont',
+                        0 => 'Le Pont',
                     ],
                     'type' => 'closure',
                     'date' => '1969-01-01',
                     'precision' => 'year',
-                    'quote' => 'Pont : fermée en 1969',
+                    'quote' => 'Le Pont : fermée en 1969',
                     'origin' => 'liste',
                 ],
             ]],
@@ -698,12 +705,12 @@ La gare est fermée aux voyageurs en 1938, puis au fret dans les années 1950.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Est',
+                        0 => 'L\'Est',
                     ],
                     'type' => 'closure',
                     'date' => '1969-01-01',
                     'precision' => 'year',
-                    'quote' => 'Est : fermée en 1969',
+                    'quote' => 'L\'Est : fermée en 1969',
                     'origin' => 'liste',
                 ],
             ]],
@@ -714,12 +721,12 @@ La gare est fermée aux voyageurs en 1938, puis au fret dans les années 1950.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Chapelle',
+                        0 => 'La Chapelle',
                     ],
                     'type' => 'closure',
                     'date' => '1969-01-01',
                     'precision' => 'year',
-                    'quote' => 'Chapelle : fermée en 1969',
+                    'quote' => 'La Chapelle : fermée en 1969',
                     'origin' => 'liste',
                 ],
             ]],
@@ -730,12 +737,12 @@ La gare est fermée aux voyageurs en 1938, puis au fret dans les années 1950.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Ifs',
+                        0 => 'Les Ifs',
                     ],
                     'type' => 'closure',
                     'date' => '1969-01-01',
                     'precision' => 'year',
-                    'quote' => 'Ifs : fermée en 1969',
+                    'quote' => 'Les Ifs : fermée en 1969',
                     'origin' => 'liste',
                 ],
             ]],
@@ -864,8 +871,9 @@ Les gares de Lisieux, de Orbec et de Vimoutiers sont fermées en 1960.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Orbec',
-                        1 => 'Vimoutiers',
+                        0 => 'Lisieux',
+                        1 => 'Orbec',
+                        2 => 'Vimoutiers',
                     ],
                     'type' => 'closure',
                     'date' => '1960-01-01',
@@ -963,7 +971,7 @@ La désaffectation de la gare de Caen en 1960 est décidée.',
             ],  [
                 0 => [
                     'names' => [
-                        0 => 'Caen en 1960',
+                        0 => 'Caen',
                     ],
                     'type' => 'closure',
                     'date' => '1960-01-01',
@@ -1424,14 +1432,17 @@ En 1950 puis en 1960, fermeture des gares de Caen.',
         $events = $parser->fromStationArticle("La '''gare''' est une gare.\nLa gare est fermée dans les années 1980.", 'Gare de Test');
 
         $this->assertCount(1, $events);
-        // Défaut : la position d'une décennie rendue par findDates tombe une lettre après « années », le contrôle
-        // `^années` de dateNear échoue et la décennie est lue comme l'année 1980. Le code n'est pas corrigé ici.
-        if ($events[0]['precision'] !== 'decade') {
-            $this->assertSame('year', $events[0]['precision']);
-            $this->markTestIncomplete('« fermée dans les années 1980 » est lue comme l\'année 1980 (précision year) et non comme la décennie.');
-        }
-
         $this->assertSame(['date' => '1980-01-01', 'precision' => 'decade'], ['date' => $events[0]['date'], 'precision' => $events[0]['precision']]);
+    }
+
+    public function test_a_single_year_word_is_not_a_decade(): void
+    {
+        $parser = new StationClosureParser(new WikipediaLineParser);
+
+        $events = $parser->fromStationArticle("La '''gare''' est une gare.\nLa gare est fermée à la fin de l'année 2011.", 'Gare de Test');
+
+        $this->assertCount(1, $events);
+        $this->assertSame(['date' => '2011-01-01', 'precision' => 'year'], ['date' => $events[0]['date'], 'precision' => $events[0]['precision']]);
     }
 
     public function test_a_bulleted_chronology_line_gives_its_closure(): void
@@ -1440,13 +1451,9 @@ En 1950 puis en 1960, fermeture des gares de Caen.',
 
         $events = $parser->fromLineArticle("== T ==\n* 6 mars 1972 : fermeture des gares de Caen et Bayeux.", 'Ligne de Test');
 
-        // Défaut : la puce de chronologie « * 6 mars 1972 : fermeture des gares de X » est décrite par dateNear mais le
-        // préfixe de sa branche n'admet pas l'astérisque : rien n'est lu (sans la puce, la même phrase est lue).
-        if ($events === []) {
-            $this->markTestIncomplete('Une puce de chronologie « * 6 mars 1972 : fermeture des gares de Caen » ne donne aucune fermeture.');
-        }
-
+        $this->assertCount(1, $events);
         $this->assertSame(['Caen', 'Bayeux'], $events[0]['names']);
+        $this->assertSame(['date' => '1972-03-06', 'precision' => 'day'], ['date' => $events[0]['date'], 'precision' => $events[0]['precision']]);
     }
 
     public function test_a_nominal_closure_with_a_date_after_the_station_keeps_the_name_alone(): void
@@ -1456,11 +1463,7 @@ En 1950 puis en 1960, fermeture des gares de Caen.',
         $events = $parser->fromLineArticle("== T ==\nLa désaffectation de la gare de Caen en 1960 est décidée.", 'Ligne de Test');
 
         $this->assertCount(1, $events);
-        if ($events[0]['names'] !== ['Caen']) {
-            $this->assertSame(['Caen en 1960'], $events[0]['names']);
-            $this->markTestIncomplete('Le nom lu est « Caen en 1960 » (même défaut que « Bréauté en 1938 »).');
-        }
-
         $this->assertSame(['Caen'], $events[0]['names']);
+        $this->assertSame('1960-01-01', $events[0]['date']);
     }
 }
