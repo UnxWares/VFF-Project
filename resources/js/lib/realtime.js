@@ -61,6 +61,9 @@ export function listenPrivate(config, channel, onEvent) {
  * Rafraîchissement regroupé : plusieurs événements rapprochés donnent un seul appel à `refresh`,
  * et rien ne part tant que `isBusy()` est vrai (formulaire de refus ouvert, envoi en cours) ; le
  * rafraîchissement attend alors l'appel suivant à `flush()`.
+ *
+ * @param {() => void} refresh
+ * @param {{ delay?: number, isBusy?: () => boolean }} [options]
  */
 export function createRefreshScheduler(refresh, { delay = 800, isBusy = () => false } = {}) {
     let timer = null;
