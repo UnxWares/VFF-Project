@@ -1,6 +1,6 @@
 # Commandes artisan de données : options et ordre d'emploi
 
-Ce document décrit les commandes `vff:*` entrées ou changées les 20 et 21 novembre 2026. La liste complète se lit
+Ce document décrit les commandes `vff:*` entrées ou changées du 20 au 22 novembre 2026. La liste complète se lit
 avec `bin/php artisan list vff` et l'aide d'une commande avec `bin/php artisan help <commande>`. Chaque docblock de
 classe, dans `app/Console/Commands/`, garde les règles détaillées.
 
@@ -74,6 +74,42 @@ date la fin du fret une année postérieure (Livarot : voyageurs 1938, marchandi
 des voyageurs, la gare est fermée : montrée fermée à l'ère de la fin du fret, puis absente de la carte, qu'elle soit
 debout ou disparue (règle du 22/11). Les 80 gares de la section 9 de
 `database/data/gares_corrections.php` étaient corrigées à la main pour ce cas ; la règle en couvre 66.
+
+### `vff:import-station-closures`
+
+Dates de fermeture des gares (Wikidata, articles de gare et de ligne de Wikipédia, OSM) dans `station_events`.
+
+| Option | Effet |
+|:-|:-|
+| `--source=` | `wikidata`, `wikipedia-stations`, `wikipedia-lines` ou `osm`, répétable ; toutes par défaut. |
+| `--from-cache` | Rejoue les articles et les éléments déjà en cache, sans requête réseau. Refusé (rien n'est écrit) quand plus de 5 % des éléments d'une source manquent au cache : une relecture partielle effaçait des fermetures (21/11 : 1 729 événements effacés, 4 réécrits). Avec `--dry-run`, la simulation va jusqu'au bout et le dit. |
+| `--refresh` | Re-télécharge les articles en cache. |
+| `--station=` | Une gare (identifiant ou slug), pour vérifier. |
+| `--dry-run` | Affiche les événements sans écrire. |
+
+Le parseur lit aussi les noms de gare qui commencent par « L » (Lyon, Lille, Laon, Lens), retire les dates en fin de
+nom, lit « années 1980 » comme une décennie et accepte les listes à puces. Pour remplir le cache Wikidata sans toucher
+la base : `vff:import-station-sources --source=wikidata --cache-only`.
+
+### `vff:import-station-sources`
+
+Brut multi-sources des gares (SNCF, OSM, OHM, Wikidata, communes, PK) dans `station_sources`, avec la provenance.
+
+Source `manual` : gares absentes de toutes les autres sources, saisies à la main dans `database/data/gares_manuelles.php`
+(nom, coordonnées, dates, permalien et citation). `vff:consolidate-stations` en fait une gare à part, jamais fondue dans
+une autre par son nom ou sa proximité. Contrôler avant d'ajouter une entrée qu'aucune fiche ne porte déjà la gare (nom et
+position).
+
+| Option | Effet |
+|:-|:-|
+| `--source=` | `communes`, `sncf`, `osm`, `ohm`, `wikidata`, `manual` ou `pk`, répétable ; toutes par défaut, dans cet ordre. |
+| `--from-cache` | Rejoue les réponses déjà téléchargées, sans requête réseau. |
+| `--cache-only` | Avec `--source=wikidata` seul : télécharge les réponses dans le cache disque (dossier `.nobackup`), sans rien écrire dans la base. Une liste ou un lot Wikidata en échec ne supprime plus aucune gare. |
+| `--region=` | OSM : régions ISO 3166-2 (`FR-BRE`), répétable. |
+| `--pause=20` | OSM : pause en secondes entre deux requêtes Overpass. |
+| `--line=` | PK : limite aux lignes données, sans supprimer les autres. |
+| `--dry-run` | PK : place les gares et affiche le bilan sans écrire. |
+| `--validate` | PK : validation croisée des calages propres aux schémas (plus lent). |
 
 ### `vff:import-station-wikidata-dates`
 
@@ -174,6 +210,59 @@ les sources. Écrit dans les tables du moteur.
 | `--no-rounding` | Sans l'arrondi des sommets (segments droits). |
 | `--report-only` | Mesure la précision du tracé actuel et réécrit les rapports, sans rien reconstruire. |
 | `--shard=i/n` | Une ligne sur `n`, pour des processus parallèles. |
+
+### `vff:aggregate-line-electrification`
+
+Recalcule `lines.electrified` et `lines.voltage_v` depuis les tronçons de l'ère courante : une ligne est dite électrifiée
+quand la part de ses tronçons en service électrifiés atteint le seuil de la fiche, pas quand un seul tronçon l'est
+(commit `462354b`). N'écrit que `lines` et vide le cache des chiffres de l'accueil. À lancer après
+`vff:enrich-era-segments` (électrification des tronçons) et `vff:classify-lines`.
+
+| Option | Effet |
+|:-|:-|
+| `--era=` | Année de l'ère (la courante par défaut). |
+| `--dry-run` | Calcule et affiche les lignes qui changent de sens, sans écrire. |
+| `--show=40` | Nombre de lignes affichées par sens. |
+
+### `vff:merge-split-lines`
+
+Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en cinq passes rejouables : `sections`,
+`article`, `couverture`, `orphelines`, `homonymes`. Écrit dans les tables du moteur ; `vff:rebuild-history` l'enchaîne,
+et il faut relancer ensuite `vff:build-line-references` sur les lignes touchées. Rapport CSV de relecture dans
+`storage/app/reports/merge-split-lines[-dry-run].csv`.
+
+| Option | Effet |
+|:-|:-|
+| `--only=` | Passes séparées par des virgules. |
+| `--dry-run` | Calcule et affiche sans rien écrire. |
+
+Règles de la passe `sections` ajoutées les 21 et 22/11 (fusion des lignes de section) :
+
+- « au » et « aux » valent « à le » et « à les » dans les deux noms (Port-de-Piles au Blanc), et une section nommée dans
+  l'autre sens que sa ligne est reconnue (Bressuire à Parthenay, Abbeville à Saint-Pol).
+- Une section sans extrémité partagée avec sa ligne à code (section du milieu, ou nom de gare en origine) est fusionnée
+  si un bout est à 1 km au plus du tracé connu, si le tracé est incomplet (moins de 85 % de la longueur officielle) et si
+  la section le complète à 70 à 115 %, avec une preuve : ses deux toponymes sont des lieux de la ligne, ou un seul l'est
+  au bout qui prolonge le tracé, ou trois gares sourcées de la ligne l'appuient. Une seule ligne à code doit tout remplir,
+  sinon le cas reste « à relire ». Une ligne qui part d'une gare de la ligne ou aboutit à son tracé est refusée.
+- Mesure du 22/11 sur la copie : 12 tracés complétés (470 km de plus), `lines.junction_gap` à 0.
+
+### Règles du moteur ajoutées à `vff:build-line-references`
+
+Les options sont celles du tableau plus haut. Trois règles de continuité du tracé de référence (étape `--no-junction-repair`
+et nettoyage `--no-single-axis`) sont arrivées les 21 et 22/11 ; leur docblock complet est dans
+`app/Services/JunctionRepair.php` et `app/Services/SingleAxis.php` :
+
+- Nettoyage : un fragment de référence isolé de moins de 60 m est retiré, sauf si un bout de ligne, une autre ligne, une
+  gare ou une voie en service le rattache au réseau (`d17df80`).
+- Règle 5 bis : un bout libre posé sur la voie source d'une autre ligne dessinée à côté (jusqu'à 6 m) est raccordé à
+  0 m au dessin de cette ligne par une courbe lissée marquée « raccord-lisse » (estimée, jamais présentée comme précise) ;
+  refusée si les écartements diffèrent, si le bout croise déjà le dessin ou si la courbe double la ligne.
+- Règle 8 bis : un raccord droit de moins de 60 m, coudé de plus de 35 degrés, qui ferme une boucle (ses deux bouts déjà reliés par le reste de la
+  ligne) est retiré avec le bout de portion qu'il laissait en l'air, sauf si une autre ligne finit sur lui (`3cc2e0d`).
+
+Ces règles ne s'appliquent au réseau qu'au prochain recalcul des lignes (scripts d'application des rapports d'agents, voir
+`REPRISE.md`).
 
 ### `vff:apply-argentanwebferro`
 
@@ -344,6 +433,27 @@ Un fait visé introuvable est une erreur : l'import Wikipédia échoue après so
 documents échoue sans rien écrire. Une correction d'une ligne absente de la base est ignorée. Un fait corrigé revient
 au prochain import si sa correction est retirée du fichier. Première correction : l'ETCS du 12/11/2024 de la LGV
 Sud-Est (752000), qui date du basculement des postes et du centre de commande de Lyon, pas de l'ETCS (visé pour 2026).
+
+## Contrôles
+
+### `vff:check-invariants`
+
+Contrôle en lecture seule des invariants de données (`App\Services\DataInvariants::INVARIANTS`) : nombre de cas et
+exemples par invariant violé. Options : `--only=` (clés ou familles séparées par des virgules, par exemple
+`segments,texts.long_dash`) et `--json=` (écrit aussi le rapport dans ce fichier). Invariants de gares ajoutés le 22/11 :
+
+- `stations.opened_before_lines` : gare ouverte (date au jour, sourcée) plus de 3 jours avant l'ouverture au jour de toutes
+  ses lignes à son PK, en ne comparant qu'à des sections de ligne résolues ;
+- `stations.ohm_opened_before_lines` et `stations.ohm_opened_off_section` : date d'ouverture venue d'OpenHistoricalMap,
+  sans source propre, qui ressemble à la date de la loi d'utilité publique (plus de 6 mois avant toute ouverture de section)
+  ou à celle de la première section recopiée.
+
+## Hors commandes
+
+Autres changements du 21 au 22/11, décrits dans leur document : tuiles `?fields=map` de l'API, limites GraphQL et corrections
+de signalisation en GraphQL ([API.md](API.md)), suite Playwright et tâche de CI ([TESTS-E2E.md](TESTS-E2E.md)), configuration
+nginx ([DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md)), page de santé et erreurs ([SUIVI-ERREURS.md](SUIVI-ERREURS.md)),
+journal de bord ([REDACTION.md](REDACTION.md)), plans du site (`/sitemap.xml`, `App\Services\Seo\SitemapBuilder`).
 
 ## Fond de carte libre
 

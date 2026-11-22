@@ -23,6 +23,7 @@ use App\Services\Contributions\ReviewOutcome;
 use App\Services\Contributions\ReviewResult;
 use App\Services\Reputation\ReputationLevels;
 use App\Services\TraceContributionService;
+use App\Support\Realtime;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -139,6 +140,8 @@ class ContributionController extends Controller
 
         return Inertia::render('Validate/Index', [
             'threshold' => self::APPROVAL_THRESHOLD,
+            // Réglages de Laravel Echo (canal privé `review-queue`), null tant que le temps réel est désactivé.
+            'realtime' => Realtime::clientConfig(),
             'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $lineMaterials, $series, $levels) {
                 $mine = $approvals->get($c->id, collect());
                 $item = [

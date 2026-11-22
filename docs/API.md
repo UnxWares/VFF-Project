@@ -69,6 +69,75 @@ Différences voulues :
   ou `map` renvoie 422. Liste des propriétés gardées : docblock de `GeoController::tile`, vérifiée contre le code de
   la carte par `tests/Unit/Enums/TileFieldsTest.php`.
 
+## Temps réel
+
+Les changements d'état des contributions peuvent être suivis en direct, par WebSocket (protocole Pusher, serveur
+Laravel Reverb auto-hébergé). **C'est désactivé tant que la production n'a pas de serveur temps réel**
+(`REALTIME_ENABLED=false`) : aucun événement ne part, `/broadcasting/auth` répond 404 et les abonnements GraphQL
+reçoivent l'erreur `Unauthorized subscription request`. En attendant, le webhook `contribution.applied` (`/docs/api`,
+section « Webhooks ») annonce chaque publication. Mise en service : `docs/DEPLOIEMENT-NGINX.md`, section « Temps réel ».
+
+Quatre événements, émis quel que soit le chemin (site, GraphQL, éditeur de tracé), une fois la transaction validée :
+
+| Événement | Quand |
+|---|---|
+| `contribution.submitted` | une contribution est proposée (en attente) |
+| `contribution.approved` | elle reçoit une première approbation, il en faut deux |
+| `contribution.applied` | elle est publiée (même nom que le webhook) |
+| `contribution.rejected` | un validateur la refuse |
+
+Charge utile, la même partout, **sans donnée personnelle** (ni auteur, ni validateur, ni motif de refus, ni contenu
+de la proposition) :
+
+```json
+{
+  "event": "contribution.applied",
+  "contribution": {"id": 4182, "type": "line_segment", "status": "applied", "approvals": 2, "approvals_required": 2},
+  "target": {"resource": "line", "slug": "rfn-570000", "url": "https://vff-project.org/api/v1/lines/rfn-570000"},
+  "occurred_at": "2026-11-22T14:05:12+01:00"
+}
+```
+
+`target` vaut `null` pour une nouvelle ligne ou une nouvelle série pas encore publiée ; `resource` vaut `line`,
+`station` ou `material`. Le contenu se relit ensuite par l'API, avec vos droits.
+
+**Canaux Laravel Echo** (`App\Events\ContributionChanged`, autorisation dans `routes/channels.php`) :
+
+| Canal | Accès | Événements |
+|---|---|---|
+| `contributions` (public) | tout le monde | `contribution.applied` |
+| `private-review-queue` | validateurs et administrateurs non suspendus | les quatre |
+| `private-users.{id}.contributions` | le compte `{id}` seulement | les quatre, pour ses contributions |
+
+Les canaux privés s'autorisent par `POST /broadcasting/auth` avec la session du site (membre connecté). Avec Laravel
+Echo, le nom d'un événement prend un point devant : `.listen('.contribution.applied', …)`. La page `/validate` s'en
+sert : la liste se recharge seule (`router.reload`, seulement la liste) quand une contribution est proposée ou
+relue, et attend qu'un refus en cours de saisie soit envoyé ou annulé. Laravel Echo et `pusher-js` ne sont
+téléchargés que si le temps réel est activé.
+
+**Abonnements GraphQL** (type `Subscription` de `graphql/schema.graphql`, classes de `app/GraphQL/Subscriptions/`) :
+
+| Champ | Accès | Reçoit |
+|---|---|---|
+| `contributionApplied(resource, slug)` | tout le monde | les publications, éventuellement d'une seule fiche |
+| `myContributionChanged` | compte connecté (jeton personnel, capacité `read`, ou session avec CSRF) | les quatre événements de ses contributions |
+| `reviewQueueChanged` | validateurs et administrateurs non suspendus | les quatre événements |
+
+1. `POST /graphql` avec `subscription { contributionApplied(slug: "rfn-570000") { event contribution { id status } target { slug url } } }` :
+   la réponse porte `data.contributionApplied: null` et le canal de l'abonnement dans
+   `extensions.lighthouse_subscriptions.channel` (`private-lighthouse-…`).
+2. Connexion Pusher au serveur du site (`wss://vff-project.org/app/<clé publique>`), abonnement à ce canal, autorisé
+   par `POST /graphql/subscriptions/auth` (`channel_name`, `socket_id`).
+3. Chaque événement arrive sous le nom `lighthouse-subscription`, avec `result.data.contributionApplied`. Les valeurs
+   d'énumération sont celles du schéma (`APPLIED`, `LINE_SEGMENT`).
+
+Un abonnement compte pour une requête dans la limite de débit ; un abonné qui ne se manifeste plus est oublié au
+bout d'un jour (`LIGHTHOUSE_SUBSCRIPTION_STORAGE_TTL`). Les abonnés sont gardés dans Valkey. Le serveur MCP ne
+diffuse rien en direct : un client MCP relit les contributions par ses outils, ou s'abonne au webhook.
+
+Tests : `tests/Feature/RealtimeTest.php` (diffusion, absence de données personnelles, autorisation des canaux,
+abonnements GraphQL) et `tests/js/realtime.test.js` (Echo chargé à la demande, rafraîchissement regroupé).
+
 ## Ajouter une donnée
 
 1. Un service ou une ressource qui calcule la valeur une seule fois (`app/Services/`, `app/Http/Resources/`).

@@ -70,7 +70,7 @@ class StationTerminusOverridesTest extends TestCase
             }
         }
         $this->assertSame($keys, array_values(array_unique($keys)), 'une décision par ligne et par extrémité');
-        $this->assertCount(7, array_filter($entries, fn (array $e) => $e['decision'] === 'attach'));
+        $this->assertCount(9, array_filter($entries, fn (array $e) => $e['decision'] === 'attach'));
     }
 
     /**

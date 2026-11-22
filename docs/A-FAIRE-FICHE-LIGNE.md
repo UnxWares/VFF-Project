@@ -41,7 +41,7 @@ chaque point et dans la section « Reste à faire ».
   d'écran (la couleur ne porte plus seule le type de trafic ; question Q1, « une légende »).
 - Gardée plutôt que remplacée : chaque ligne du tableau ouvre la carte sur la phase en vigueur
   (bouton « Carte »).
-- Reste (données, pas l'affichage) : 19 gares dont la date retenue tombe hors de l'intervalle où leur
+- Reste (données, pas l'affichage ; 3 corrigées le 22/11, voir `docs/A-FAIRE-FICHE-GARE.md`) : 19 gares dont la date retenue tombe hors de l'intervalle où leur
   frise passe à « fermée » (ex. Cabessut, Conduche, Saint-Martin-Labouval : date retenue du 9 juin 2011,
   mais « fret seul » jusqu'en 2020 dans la frise ; Vigny, Le Crouais, Saint-Samson : la frise les montre
   fermées puis rouvertes avant la date retenue). La fiche ligne et la fiche gare affichent la même chose ;
@@ -63,8 +63,9 @@ chaque point et dans la section « Reste à faire ».
   années d'ouverture de la section ; rien de deviné si deux sections partagent l'année ou si la phase est
   plus longue que la section). Aussi dans l'API (`sections[].stages`, REST et GraphQL `LineSectionStage`).
   Tests : `tests/Unit/LineSheetSectionStagesTest.php`, `tests/Feature/LineSheetPageTest.php`.
-- Reste : la LGV Est européenne n'a qu'une date pour ses 409 km (2007, événement « toute la ligne ») :
-  sa seconde phase (2016) n'a pas d'étape tant qu'un événement localisé ne la date pas. Seules trois
+- Corrigé le 22/11/2026 (effet au prochain calcul) : la LGV Est européenne n'avait qu'une date pour ses 409 km
+  (2007, événement « toute la ligne ») ; ses deux phases ont maintenant chacune un événement localisé (2007 et
+  03/07/2016), et la seconde aura son étape. Seules trois
   lignes ont des sections nommées (752000, 431000, 005000).
 
 ## 4. Frise (timeline) de la ligne (fait)
@@ -94,9 +95,17 @@ chaque point et dans la section « Reste à faire ».
 
 ## Reste à faire
 
-- Données des gares : haltes intermédiaires manquantes (434000), 19 dates retenues hors de leur
-  intervalle de frise (point 2).
-- LGV Est européenne : dater la seconde phase (2016) par un événement localisé (point 3).
+- Fait le 22/11/2026 (agent « restes-fiches », rapport `storage/app/reports/agents/aprem-2111/restes-fiches.md`) :
+  - 434000 : aucune halte intermédiaire ne manque. Wikipédia (schéma de la ligne), Argentan Web Ferroviaire
+    et les communes ne citent que Lonlay-le-Tesson entre Briouze et La Ferté-Macé ; OSM, SNCF et Wikidata
+    n'ont aucun autre objet à moins de 1,2 km de la ligne. Les trois gares rattachées sont donc complètes
+    (Bagnoles-de-l'Orne et Couterne sont sur 433000).
+  - LGV Est européenne : seconde phase datée par un événement localisé (Baudrecourt - Vendenheim, PK 300 000 à
+    406 000, 03/07/2016) et première phase (Vaires-sur-Marne - Baudrecourt, 10/06/2007) :
+    `database/data/line_event_corrections_donnees.php`, section « Restes de la fiche ligne ». L'effet vient à
+    l'application des corrections d'événements (`vff:apply-event-corrections`, puis portions et tronçons de 005000,
+    `aprem-2111/apres-corrections.sh avant`, ligne 005000 ajoutée aux lignes attendues).
+- Reste : les 16 autres dates de gares du point 2 (liste et causes dans `docs/A-FAIRE-FICHE-GARE.md`).
 - Mise en page de « À propos » : sur ordinateur, la fiche reste un peu plus haute que le texte pour les
   lignes très documentées (LGV Sud-Est : 184 px de plus à 1 280 px, 31 px à 1 920 px) ; la supprimer
   tout à fait demande de changer l'ordre des sections (question Q4), ce qui n'a pas été fait. Jusqu'à

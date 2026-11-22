@@ -6381,3 +6381,125 @@ type ContributionReview {
     "La contribution après la décision."
     contribution: Contribution!
 }
+
+#
+# ─── Temps réel (abonnements WebSocket) ───────────────────────────────────
+#
+
+"""
+Abonnements en temps réel aux contributions, sur le serveur WebSocket du site (Laravel Reverb,
+protocole Pusher). **Désactivés tant que la production n'a pas de serveur temps réel** : un
+abonnement reçoit alors l'erreur `Unauthorized subscription request`. En attendant, les webhooks
+`contribution.applied` couvrent le besoin (`/docs/api`, section « Webhooks »).
+
+Marche à suivre (détail et exemples dans `docs/API.md`, section « Temps réel ») :
+1. envoyer l'opération `subscription { … }` en `POST /graphql`, comme une requête ; la réponse porte
+   `data.<champ>: null` et, dans `extensions.lighthouse_subscriptions.channel`, un canal privé
+   (`private-lighthouse-…`) propre à cet abonnement ;
+2. ouvrir une connexion Pusher (Laravel Echo ou `pusher-js`) vers le serveur du site et s'abonner à
+   ce canal, autorisé par `POST /graphql/subscriptions/auth` (`channel_name`, `socket_id`) ;
+3. chaque événement arrive sous le nom `lighthouse-subscription`, avec `result.data.<champ>`.
+
+Les abonnements comptent dans la limite de débit de l'API comme une requête. Un abonnement oublié par
+le client expire au bout d'un jour. Aucune donnée personnelle n'est diffusée : ni auteur, ni
+validateur, ni motif de refus, ni contenu de la proposition (lisez-le ensuite par la requête qui
+convient, avec vos droits).
+"""
+type Subscription {
+    """
+    Publications de contributions (`contribution.applied`), ouvert à tous, même sans compte : même
+    contenu que le canal public `contributions` et que le webhook du même nom. Sans argument, toutes
+    les publications ; avec `resource` et/ou `slug`, seulement celles de la fiche visée.
+    """
+    contributionApplied(
+        "Nature de la fiche visée (ligne, gare ou série de matériel)."
+        resource: ContributionEventResource
+        "Identifiant public de la fiche visée (slug), par exemple `rfn-570000` (ligne de Paris-Austerlitz à Bordeaux-Saint-Jean)."
+        slug: String
+    ): ContributionEvent
+
+    """
+    État de mes contributions : proposée, approuvée une fois, publiée ou refusée. Demande un compte :
+    jeton personnel (`Authorization: Bearer`, capacité `read` suffisante) ou session du site avec son
+    jeton CSRF. Le motif d'un refus se lit ensuite sur la page « Mes contributions » du site.
+    """
+    myContributionChanged: ContributionEvent
+
+    """
+    File de validation en direct : toute contribution proposée, approuvée, publiée ou refusée.
+    Réservé aux validateurs et aux administrateurs dont le compte n'est pas suspendu.
+    """
+    reviewQueueChanged: ContributionEvent
+}
+
+"Nom d'un événement de contribution diffusé en temps réel."
+enum ContributionEventName {
+    "Contribution proposée, en attente d'une première approbation."
+    SUBMITTED @enum(value: "contribution.submitted")
+
+    "Première approbation reçue, il en manque encore une."
+    APPROVED @enum(value: "contribution.approved")
+
+    "Contribution publiée : appliquée à une ligne, une gare ou une série."
+    APPLIED @enum(value: "contribution.applied")
+
+    "Contribution refusée par un validateur."
+    REJECTED @enum(value: "contribution.rejected")
+}
+
+"Nature de la fiche visée par une contribution."
+enum ContributionEventResource {
+    "Ligne (`Query.line`, `GET /api/v1/lines/{slug}`)."
+    LINE @enum(value: "line")
+
+    "Gare (`Query.station`, `GET /api/v1/stations/{slug}`)."
+    STATION @enum(value: "station")
+
+    "Série de matériel roulant (`Query.material`, `GET /api/v1/materials/{slug}`)."
+    MATERIAL @enum(value: "material")
+}
+
+"Événement de contribution diffusé en temps réel, sans donnée personnelle."
+type ContributionEvent {
+    "Ce qui vient d'arriver à la contribution."
+    event: ContributionEventName!
+
+    "La contribution, réduite à son état."
+    contribution: ContributionEventContribution!
+
+    "Fiche visée ; nulle pour une nouvelle ligne ou une nouvelle série pas encore publiée."
+    target: ContributionEventTarget
+
+    "Moment de l'événement (ISO 8601 avec fuseau, par exemple `2026-11-22T14:05:12+01:00`)."
+    occurred_at: String!
+}
+
+"État d'une contribution au moment de l'événement."
+type ContributionEventContribution {
+    "Identifiant de la contribution (le même que `Contribution.id`)."
+    id: ID!
+
+    "Type de la contribution."
+    type: ContributionType!
+
+    "État après l'événement."
+    status: ContributionStatus!
+
+    "Approbations reçues."
+    approvals: Int!
+
+    "Approbations indépendantes nécessaires pour publier (2)."
+    approvals_required: Int!
+}
+
+"Fiche visée par une contribution."
+type ContributionEventTarget {
+    "Nature de la fiche."
+    resource: ContributionEventResource!
+
+    "Identifiant public de la fiche (slug)."
+    slug: String!
+
+    "Adresse de la fiche dans l'API REST."
+    url: String!
+}

@@ -28,6 +28,7 @@
 
 [Présentation](#présentation) ·
 [Fonctionnalités](#fonctionnalités) ·
+[Documentation](#documentation) ·
 [Stack](#stack-technique) ·
 [Installation](#installation-locale) ·
 [Qualité](#tests-et-qualité) ·
@@ -50,6 +51,34 @@ et sa licence : SNCF Open Data, IGN, Wikidata, Wikipédia, OpenHistoricalMap, Op
 contributions validées. Les tracés de plusieurs sources sont croisés pour viser le mètre, sans écart aux jonctions
 entre lignes.
 
+## Documentation
+
+Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commencer par `docs/REPRISE.md`.
+
+| Document | Contenu |
+|:-|:-|
+| [REPRISE.md](docs/REPRISE.md) | État du projet, environnement, contrôles, règles de sécurité, où lire les bilans. |
+| [COMMANDES.md](docs/COMMANDES.md) | Options et ordre d'emploi des commandes `vff:*` de données. |
+| [API.md](docs/API.md) | Les trois interfaces de données (REST, GraphQL, MCP) : parité, pagination, limites, temps réel. |
+| [MCP.md](docs/MCP.md) | Serveur MCP : outils, invites, exemples. |
+| [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) | Types de contribution, relecture à deux, publication. |
+| [REDACTION.md](docs/REDACTION.md) | Rédaction des textes, relecture, format des articles du journal. |
+| [METHODE-CLASSIFICATION.md](docs/METHODE-CLASSIFICATION.md) | Règles de classement du trafic et du statut des tronçons. |
+| [LINE-SECTIONS.md](docs/LINE-SECTIONS.md) | Sections nommées d'une ligne. |
+| [AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md), [AUDIT-GARES.md](docs/AUDIT-GARES.md) | Audit automatique des tronçons et des gares : méthode, notes, état. |
+| [GRAPHE-ADMIN.md](docs/GRAPHE-ADMIN.md) | Page d'administration du graphe et ses diagnostics. |
+| [VUE-FERROVIAIRE.md](docs/VUE-FERROVIAIRE.md) | Plan schématique d'une époque. |
+| [FOND-DE-CARTE.md](docs/FOND-DE-CARTE.md) | Fond de carte libre auto-hébergé (PMTiles). |
+| [ARCHIVES.md](docs/ARCHIVES.md) | Fonds d'archives rattachés aux lignes. |
+| [AUTORISATIONS-SOURCES.md](docs/AUTORISATIONS-SOURCES.md) | Autorisations d'usage des sources tierces. |
+| [PLANIFICATION.md](docs/PLANIFICATION.md) | Tâches planifiées. |
+| [DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md) | Configuration nginx de référence pour la production. |
+| [SECURITE-CSP.md](docs/SECURITE-CSP.md) | Politique de sécurité du contenu. |
+| [SUIVI-ERREURS.md](docs/SUIVI-ERREURS.md) | Page de santé, erreurs du serveur et du navigateur. |
+| [TESTS-E2E.md](docs/TESTS-E2E.md) | Suite Playwright de fumée, en local et en CI. |
+| `A-FAIRE-*.md` | Chantiers ouverts : fiche ligne, fiche gare, jonctions à 3 m. |
+| [AUDIT-2026-05-29.md](docs/AUDIT-2026-05-29.md) | Audit complet de mai 2026 (historique). |
+
 ## Fonctionnalités
 
 ### Carte
@@ -67,11 +96,15 @@ entre lignes.
 ### Fiches
 
 - Lignes (`/lines/{slug}`) : tracé par période, chronologie datée, frise par décennie, gares par époque, longueur,
-  électrification, vitesses, signalisation par PK, profil en long de toute la ligne (altitudes de l'IGN, déclivité
-  maximale mesurée sur la voie, crémaillères), matériel roulant avec photos, passages à niveau, voies vertes, archives de
-  Gallica, galerie de médias crédités, sources, et « histoires » d'archives sur un événement.
+  électrification (ligne dite électrifiée quand la majorité de ses tronçons en service l'est), vitesses, signalisation
+  par PK, profil en long de toute la ligne (altitudes de l'IGN, déclivité maximale mesurée sur la voie ou, à défaut,
+  reprise de l'infobox de Wikipédia avec son lien, crémaillères), matériel roulant avec photos, passages à niveau, voies
+  vertes, archives de Gallica et des Archives SNCF (titre, classement et lien, jamais l'image), galerie de médias
+  crédités, sources, et « histoires » d'archives sur un événement.
 - Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, frise, mini-carte ;
-  une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle.
+  une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle. Une gare fermée aux voyageurs
+  mais encore desservie par le fret (Onnaing) est dite « fret seul » ; sur la carte d'une époque, une gare fermée
+  n'apparaît fermée qu'à l'époque de sa fermeture, puis disparaît.
 - Matériel roulant (`/materials`) : plus de 700 séries tirées de Wikidata, avec photo Commons créditée. Le matériel
   d'une ligne vient de liens attestés (Wikidata, articles cités) et, depuis le 21/11/2026, des relations
   (Intercités, TER) qui la parcourent : la ligne d'Argentan à Granville affiche ainsi les X 72500, l'AGC et le
@@ -80,9 +113,14 @@ entre lignes.
 - Accidents (`/accidents`) : fiches tirées de Wikidata, de Wikipédia et des rapports du BEA-TT, avec la confiance
   de chaque fiche, une page de liste filtrable et un calque de carte. Pour 359 fiches, un contexte sourcé (archives,
   enquêtes, presse de l'époque, images de Commons) et les corrections de lieu, de date et de bilan que ces sources
-  imposent, chacune avec sa référence.
+  imposent, chacune avec sa référence. Une fiche corrigée prend le nom de sa nouvelle date ou commune, retenu dans
+  `database/data/accident_slugs.php`, et un accident que seule la presse décrit s'écrit à la main
+  (`database/data/accident_records_manual.php`, voir [docs/COMMANDES.md](docs/COMMANDES.md)).
 - Accueil : une image d'archive du rail renouvelée toutes les 30 minutes (« Le rail en images »), les campagnes de
   réouverture et de maintien d'une ligne avec leurs sources chiffrées (AngouLim, Hirondelles, Argentan - Granville).
+- Journal de bord (`/journal`) : articles longs sur des lignes emblématiques, écrits en Markdown dans
+  `resources/content/journal` (français, anglais, allemand), flux Atom et RSS, lus aussi par l'API et le serveur MCP
+  ([docs/REDACTION.md](docs/REDACTION.md)).
 - Quiz (`/quiz`) : reconnaître une ligne ou un matériel.
 
 ### Contributions
@@ -96,7 +134,9 @@ entre lignes.
 ### API et serveur MCP
 
 - API REST publique sans clé : GeoJSON et tuiles MVT par époque, fiches complètes, annuaires, tronçons,
-  événements, médias, matériel, accidents, passages à niveau, itinéraires, exports GTFS, GPX et KML. Spécification
+  événements, médias, matériel, accidents, passages à niveau, itinéraires, exports GTFS, GPX et KML. Les tuiles des
+  époques acceptent `?fields=map` (seulement les propriétés dont la carte du site a besoin, environ 60 % d'octets de
+  moins). Le GTFS passe sans erreur le validateur de MobilityData ; ses horaires sont fictifs. Spécification
   OpenAPI générée par Scramble, référence sur `/docs/api` (Scalar) et `/docs/swagger` (Swagger UI), exemples curl,
   JavaScript et Python. Quotas de 300 requêtes par minute sans jeton, davantage avec un jeton personnel ; webhooks
   signés.
@@ -108,7 +148,8 @@ entre lignes.
   redistribution n'est pas exporté, et le profil en long ne publie pas non plus ses positions.
 - Les audits (notes des tronçons et des gares avec leurs preuves), le profil en long point par point et l'altitude à
   un PK sont lus par les trois interfaces, avec la même pagination ([docs/API.md](docs/API.md)). GraphQL refuse une
-  requête au-delà de 5 000 points de complexité ou de 15 niveaux.
+  requête au-delà de 5 000 points de complexité ou de 15 niveaux, de 400 requêtes groupées ou de 2 Mio de corps
+  (413). Les corrections sourcées de la signalisation datée sont servies avec le fait qu'elles masquent.
 
 ### Site
 
@@ -117,6 +158,11 @@ entre lignes.
   6,2 Go pour toute la France) sert les cartes hors ligne ([docs/FOND-DE-CARTE.md](docs/FOND-DE-CARTE.md)).
 - Accessibilité : audit RGAA 4.1.2 interne de 32 pages, totalement conforme, publié dans la déclaration
   d'accessibilité.
+- Exploitation : plans du site (`/sitemap.xml`, un plan par famille de pages), en-têtes de sécurité sur toutes les
+  réponses ([docs/SECURITE-CSP.md](docs/SECURITE-CSP.md)), `/up` et `/up/details` pour la disponibilité, erreurs du
+  serveur et du navigateur journalisées ou envoyées à GlitchTip ou Bugsink sans donnée personnelle
+  ([docs/SUIVI-ERREURS.md](docs/SUIVI-ERREURS.md)), configuration nginx de référence
+  ([docs/DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md)).
 
 ### En cours et prévu
 
@@ -128,8 +174,8 @@ Le détail est dans [ROADMAP.md](ROADMAP.md).
   les ères passées et les gares sur la base complète.
 - Matériel : les relations ambiguës dont aucun itinéraire proche ne tranche, et le retrait de deux liens de Z 20500 jugés faux à la relecture.
 - Subscriptions GraphQL (temps réel) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
-- Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, suivi des
-  erreurs et de la disponibilité.
+- Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, installation des
+  outils de suivi des erreurs et de la disponibilité (la part application est faite).
 - Reconstitutions 3D de lieux disparus à partir de photos d'archives (recherche, pas commencée).
 
 ## Stack technique
@@ -230,6 +276,7 @@ make tinker                  # REPL Laravel
 make migrate                 # migrations
 make docs-graphql            # après une modification du schéma GraphQL : référence Magidoc
 bin/php artisan list vff     # commandes du projet (imports, moteur de la carte, audits, contrôles)
+bin/php artisan vff:check-invariants   # invariants des données, en lecture seule
 # options et ordre des commandes de données : docs/COMMANDES.md
 ```
 
@@ -250,7 +297,7 @@ bin/pnpm test                # vitest
 bin/pnpm test:e2e            # Playwright (fumée) contre le serveur de dev, voir docs/TESTS-E2E.md
 ```
 
-Plus de 6 300 tests PHPUnit et 950 tests vitest passent au 21/11/2026.
+Plus de 7 600 tests PHPUnit et 1 200 tests vitest passent au 22/11/2026.
 
 | Outil | Commande | Ce qu'il vérifie |
 |---|---|---|
@@ -271,7 +318,8 @@ installation depuis l'hôte : `bin/pnpm install`, puis `node_modules/.bin/leftho
 
 L'intégration continue (`.github/workflows/ci.yml`) lance sur chaque PR : `composer audit`, Pint, traductions,
 registre des sources, PHPStan, contrôles statiques et PHPUnit sur un service `postgis/postgis:18-3.7` ; puis
-`pnpm audit`, Prettier, ESLint, vitest, svelte-check et le build Vite sur Node 26. Les actions sont épinglées par
+`pnpm audit`, Prettier, ESLint, vitest, svelte-check et le build Vite sur Node 26, et une tâche Playwright de
+fumée sur un jeu de données minimal (`E2eSeeder`, [docs/TESTS-E2E.md](docs/TESTS-E2E.md)). Les actions sont épinglées par
 SHA de commit et chaque tâche n'a que le droit de lire le dépôt.
 
 ## Contribuer

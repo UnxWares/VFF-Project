@@ -96,4 +96,28 @@ class ConsolidateStationsEventsTest extends TestCase
 
         $this->assertSame($snapshot, [DB::table('stations')->count(), DB::table('station_events')->orderBy('id')->get(['type', 'event_date', 'source'])->map(fn ($e) => "{$e->type} {$e->event_date} {$e->source}")->all()]);
     }
+
+    public function test_a_manual_station_stays_apart_from_a_same_named_station_and_carries_its_dates(): void
+    {
+        $current = $this->source('sncf', '87000001', 'Boulogne-Ville', 50.71527, 1.61, ['passenger' => true, 'opened_on' => '1962-01-01', 'opened_precision' => 'year']);
+        $manual = $this->source('manual', 'boulogne-ville-ancienne-gare', 'Boulogne-Ville (ancienne gare)', 50.721798, 1.599333, [
+            'lifecycle' => 'historic', 'passenger' => true, 'opened_on' => '1855-01-01', 'opened_precision' => 'year',
+            'closed_on' => '1962-01-01', 'closed_precision' => 'year',
+            'properties' => json_encode(['source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Boulogne-Ville&oldid=228948464', 'quote' => 'construite en 1855']),
+        ]);
+        // Un objet OSM voisin à 20 m ne la rejoint pas non plus.
+        $this->source('osm', 'n40', 'Boulogne-Ville', 50.7219, 1.5993, ['lifecycle' => 'disused']);
+
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+
+        $this->assertNotSame($this->stationId($current), $this->stationId($manual));
+        $station = DB::table('stations')->where('id', $this->stationId($manual))->first();
+        $this->assertSame('boulogne-ville-ancienne-gare', $station->slug);
+        $this->assertSame('declassified', $station->status);
+        $this->assertSame(['1855-01-01', '1962-01-01'], [$station->opened_at, $station->closed_at]);
+        $this->assertSame(['opening 1855-01-01 manual', 'closure 1962-01-01 manual'], $this->events($station->id));
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=Gare_de_Boulogne-Ville&oldid=228948464',
+            DB::table('station_events')->where('station_id', $station->id)->where('type', 'opening')->value('source_url'));
+        $this->assertSame([], $this->events($this->stationId($current)));
+    }
 }

@@ -71,10 +71,27 @@ Fait (affichage seulement, aucune donnée modifiée) :
   l'intervalle où leur frise passe à « fermée ».
 
 Reste (données) :
-- 19 gares dont la date retenue tombe hors de cet intervalle : 3 datées après (Vigny, Saint-Samson,
+- Au 22/11/2026 (agent « restes-fiches », `storage/app/reports/agents/aprem-2111/restes-fiches.md`), 3 gares
+  corrigées par des corrections sourcées (`database/data/gares_corrections.php`, section « Restes de la fiche gare ») :
+  Vigny (099000 : PK 25,5 au lieu du PK interpolé 2,838 qui lui donnait la fermeture de 2023 d'une autre section ;
+  fermée aux voyageurs le 04/10/1953 et au fret le 03/04/1972), Le Crouais (halte de Saint-Méen - Loudéac fermée
+  le 04/10/1953, pas en 2018 : rattachement à tort à 472000) et Villebois (section Lagnieu - Villebois fermée en
+  décembre 1989, pas le 14/09/2006, date de la décision administrative). Leur effet vient au prochain
+  `vff:build-station-eras`. Les 16 autres : causes relevées dans le rapport ; confirmées sans correction (date
+  juste, c'est la frise qui est à reprendre) pour Saint-Samson (1988, fin du fret de Dinan - Dinard ; rattachée
+  aussi à 415000) et Le Rouquet (22/05/1955, fret de Tournemire à L'Hospitalet) ; à sourcer par l'article de la
+  gare pour Bruay-en-Artois et ses trois voisines (fret arrêté en 1990 selon l'article de la ligne), la vallée du
+  Lot (voyageurs 1980, fret 1989, train touristique jusqu'en 2003, fermeture RFF 09/06/2011), Fienvillers-Candas
+  (ouverture et fermeture de 1914-1918 prises à la ligne militaire attachée à tort), Tournon-St-Martin (encore
+  desservie au fret selon l'article de la gare), Lissac (« avant 2011 » sans date), Chambray-Fontaine-sous-Jouy
+  (limite du train touristique de la vallée de l'Eure, date de 1995 = déclassement). Depuis la règle du 22/11
+  (gare fermée montrée « fermée » à l'ère de sa fermeture seulement), seul reste à contrôler que la date retenue est
+  juste ; la liste d'origine de 19 est celle du rapport du 19/11.
+- Liste d'origine : 19 gares dont la date retenue tombe hors de cet intervalle : 3 datées après (Vigny, Saint-Samson,
   Le Crouais : la frise les montre fermées puis rouvertes) et 16 avant (Cabessut, Conduche et quatre
   autres gares de la vallée du Lot au 9 juin 2011, Bruay-en-Artois et trois voisines au 21 octobre 2018,
   Fienvillers-Candas, Tournon-St-Martin, Lissac, Villebois, Le Rouquet, Chambray-Fontaine-sous-Jouy). Les trois affichages montrent la même
   chose, mais la frise et la date se contredisent ; à reprendre par `vff:build-station-eras`.
+- 434000 : aucune halte intermédiaire ne manque (Lonlay-le-Tesson est la seule entre Briouze et La Ferté-Macé).
 - La ligne 433000 Couterne - La Ferté-Macé existe maintenant dans `lines` (`rfn-433000`).
 - Gares incertaines à l'ère courante : 0 au 19/11 (18 le 20/10).

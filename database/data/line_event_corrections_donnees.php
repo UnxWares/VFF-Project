@@ -1152,4 +1152,47 @@ return [
         'quote' => 'met en service, le 30 août 1880, la section passant par la gare de sa ligne du Martinet à Beaucaire',
         'reason' => 'premier tronçon de la ligne, du Martinet à Saint-Julien, ouvert le 30/08/1880 (article de la gare ; fiche https://www.tourismegard.com/fr/fiche/patrimoine-culturel/la-ligne-ferroviaire-le-martinet-beaucaire-le-martinet_TFO7606245/ : « Le 30 aout 1880, le premier tronçon entre Le Martinet et St Julien est ouvert », puis Saint-Julien - Uzès - Beaucaire le 25/09/1883)',
     ],
+
+    // Restes de la fiche ligne (storage/app/reports/agents/aprem-2111/restes-fiches.md) : 005000 LGV Est européenne.
+    // Deux phases (sections de `line_sections` : PK 0 à 300 000 et 300 000 à 406 000), mais une seule date de « toute la
+    // ligne » pour chacune (2007 de Wikidata, 2016 de la liste de Wikipédia) : la fiche ne pouvait pas dater la seconde
+    // phase. La première phase est ajoutée au jour près ; l'événement du 03/07/2016 est déplacé sur la seconde phase.
+    [
+        'line' => '005000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2007-06-10',
+        'precision' => 'day',
+        'from' => 'Vaires-sur-Marne',
+        'to' => 'Baudrecourt',
+        'pk_start' => 0,
+        'pk_end' => 300000,
+        'source_url' => $wp('LGV Est européenne', 239516798),
+        'quote' => 'Ce premier tronçon est mis en service le 10 juin 2007, après cinq ans de travaux et une inauguration le 15 mars.',
+        'reason' => 'première phase de la LGV Est, de Vaires-sur-Marne à Baudrecourt (300 km), mise en service le 10/06/2007 (Wikipédia ; Wikidata donne 2007 pour toute la ligne)',
+    ],
+    [
+        'line' => '005000',
+        'action' => 'relocate',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '2007-01-01'],
+        'from' => 'Vaires-sur-Marne',
+        'to' => 'Baudrecourt',
+        'pk_start' => 0,
+        'pk_end' => 300000,
+        'source_url' => $wp('LGV Est européenne', 239516798),
+        'quote' => 'Ce premier tronçon est mis en service le 10 juin 2007, après cinq ans de travaux et une inauguration le 15 mars.',
+        'reason' => 'l\'année 2007 de Wikidata est celle de la première phase (300 km) ; sans portion, elle comptait aussi la seconde phase en service dès 2007',
+    ],
+    [
+        'line' => '005000',
+        'action' => 'relocate',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '2016-07-03'],
+        'from' => 'Baudrecourt',
+        'to' => 'Vendenheim',
+        'pk_start' => 300000,
+        'pk_end' => 406000,
+        'source_url' => $wp('LGV Est européenne', 239516798),
+        'quote' => 'La mise en service de cette phase est réalisée le 3 juillet 2016.',
+        'reason' => 'seconde phase de la LGV Est, de Baudrecourt à Vendenheim (106 km, raccordement à la ligne de Strasbourg à Wissembourg à Eckwersheim), mise en service le 03/07/2016 ; la première phase (300 km) était en service depuis 2007',
+    ],
 ];

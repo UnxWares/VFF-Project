@@ -137,6 +137,60 @@ class JournalTest extends TestCase
         $this->get('/journal/atom.xml?lang=xx')->assertNotFound();
     }
 
+    /** @return list<string> */
+    private static function feedPaths(): array
+    {
+        return ['/journal/atom.xml', '/journal/rss.xml', '/journal/sitemap.xml', '/sitemap.xml', '/sitemap-pages-1.xml'];
+    }
+
+    public function test_feeds_and_sitemaps_set_no_cookie_and_stay_cacheable(): void
+    {
+        foreach (self::feedPaths() as $path) {
+            $response = $this->get($path)->assertOk();
+            $this->assertSame([], $response->headers->getCookies(), $path);
+            $this->assertNull($response->headers->get('Set-Cookie'), $path);
+            $this->assertStringContainsString('public', (string) $response->headers->get('Cache-Control'), $path);
+            $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'), $path);
+            // En-têtes de sécurité globaux conservés.
+            $this->assertNotNull($response->headers->get('Referrer-Policy'), $path);
+        }
+    }
+
+    public function test_feed_language_follows_accept_language_with_vary_when_lang_is_missing(): void
+    {
+        $en = $this->withHeader('Accept-Language', 'en')->get('/journal/rss.xml')->assertOk();
+        $this->assertStringContainsString('Accept-Language', (string) $en->headers->get('Vary'));
+        $this->assertStringContainsString('Old test', (string) $en->getContent());
+
+        $fr = $this->withHeader('Accept-Language', 'fr')->get('/journal/rss.xml')->assertOk();
+        $this->assertStringNotContainsString('Old test', (string) $fr->getContent());
+
+        // Un cookie de langue n'a plus d'effet sur un flux : seule la requête compte.
+        $cookie = $this->withHeader('Accept-Language', 'fr')->withCookie('locale', 'en')->get('/journal/rss.xml')->assertOk();
+        $this->assertStringNotContainsString('Old test', (string) $cookie->getContent());
+
+        // Avec `?lang=`, la réponse ne dépend plus de l'en-tête.
+        $explicit = $this->withHeader('Accept-Language', 'de')->get('/journal/rss.xml?lang=en')->assertOk();
+        $this->assertNull($explicit->headers->get('Vary'));
+    }
+
+    public function test_absolute_addresses_ignore_the_host_header(): void
+    {
+        config(['app.url' => 'https://vff.example']);
+        $json = $this->getJson('/api/v1/journal/essai-ancien', ['Host' => 'evil.test'])->assertOk()->getContent();
+        $this->assertStringContainsString('https:\/\/vff.example\/journal\/essai-ancien', (string) $json);
+        $this->assertStringNotContainsString('evil.test', (string) $json);
+
+        foreach (['/journal/atom.xml?lang=fr', '/journal/rss.xml?lang=fr', '/journal/sitemap.xml', '/sitemap.xml'] as $path) {
+            $body = (string) $this->withServerVariables(['HTTP_HOST' => 'evil.test'])->get($path)->assertOk()->getContent();
+            $this->assertStringContainsString('https://vff.example', $body, $path);
+            $this->assertStringNotContainsString('evil.test', $body, $path);
+        }
+
+        $page = $this->withServerVariables(['HTTP_HOST' => 'evil.test'])->get('/journal/essai-recent')->assertOk();
+        $this->assertStringNotContainsString('evil.test', (string) json_encode($page->viewData('page')['props']['article']['json_ld'] ?? ''));
+    }
+
     public function test_sitemaps_list_the_articles(): void
     {
         $index = simplexml_load_string((string) $this->get('/sitemap.xml')->assertOk()->getContent());

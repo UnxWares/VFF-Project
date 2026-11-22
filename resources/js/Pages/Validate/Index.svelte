@@ -11,6 +11,7 @@
     import Notice from '$components/ui/Notice.svelte';
     import ReputationInline from '$components/Reputation/ReputationInline.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { createRefreshScheduler, listenPrivate } from '$lib/realtime.js';
     import { REASON_MAX, REASON_MIN, isReasonMissing } from '$lib/rejectReason.js';
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
     import { formatKm, portionColor } from '$lib/traceGeometry.js';
@@ -32,7 +33,7 @@
         readableUrl,
     } from '$components/Contribute/segmentChanges.js';
 
-    let { contributions = [], threshold = 2 } = $props();
+    let { contributions = [], threshold = 2, realtime = null } = $props();
 
     const flash = $derived(page.props.flash ?? {});
     /** Traduction passée aux fonctions de segmentChanges.js. */
@@ -46,6 +47,35 @@
     let rejectServerError = $state(null);
     const rejectMissing = $derived(rejectAttempted && isReasonMissing(rejectNotes));
     let processing = $state(false);
+
+    // Temps réel (activé côté serveur seulement) : la liste se recharge seule quand une contribution est
+    // proposée ou relue, sans toucher au formulaire de refus ouvert ni à un envoi en cours.
+    let liveUpdated = $state(false);
+    const queueRefresh = createRefreshScheduler(
+        () => {
+            // Remis à faux puis à vrai : chaque mise à jour est annoncée de nouveau.
+            liveUpdated = false;
+            router.reload({
+                only: ['contributions'],
+                onSuccess: () => (liveUpdated = true),
+            });
+        },
+        { isBusy: () => rejecting !== null || processing },
+    );
+
+    $effect(() => {
+        if (!realtime) return;
+        const stop = listenPrivate(realtime, 'review-queue', () => queueRefresh.request());
+        return () => {
+            stop();
+            queueRefresh.cancel();
+        };
+    });
+
+    $effect(() => {
+        // Formulaire fermé ou envoi terminé : rafraîchissement mis de côté entre-temps.
+        if (rejecting === null && !processing) queueRefresh.flush();
+    });
 
     function approve(c) {
         const key =
@@ -153,6 +183,11 @@
             <div class="flash">
                 {#if flash.success}<Notice tone="success">{flash.success}</Notice>{/if}
                 {#if flash.error}<Notice tone="danger">{flash.error}</Notice>{/if}
+                {#if realtime}
+                    <p class="vff-sr-only" aria-live="polite">
+                        {liveUpdated ? $i18n.t('editor.validate.live_updated') : ''}
+                    </p>
+                {/if}
             </div>
 
             {#if contributions.length === 0}

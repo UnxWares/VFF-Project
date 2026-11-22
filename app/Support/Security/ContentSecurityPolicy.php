@@ -2,6 +2,7 @@
 
 namespace App\Support\Security;
 
+use App\Support\Realtime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
 
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Vite;
  *     resources/docs/graphql/csp-style-hashes.json) ;
  *   - images et connexions : le site, plus les origines de config/csp.php (fond de carte,
  *     Wikimedia Commons, Gallica) ; `data:` et `blob:` pour les images générées par la carte ;
+ *   - temps réel activé (App\Support\Realtime) : le serveur WebSocket public admis en connexion ;
  *   - MapLibre crée ses workers depuis un `blob:` ;
  *   - aucune intégration d'objet, formulaires et <base> limités au site, pages intégrables
  *     seulement par le site (sauf /embed/*, intégrable partout) ;
@@ -51,7 +53,7 @@ final class ContentSecurityPolicy
             ...($magidoc ? ['style-src-attr' => ["'unsafe-hashes'", ...self::magidocStyleHashes()]] : []),
             'img-src' => ["'self'", 'data:', 'blob:', ...($sources['img-src'] ?? [])],
             'font-src' => ["'self'", 'data:'],
-            'connect-src' => ["'self'", ...($sources['connect-src'] ?? []), ...$dev, ...self::websockets($dev)],
+            'connect-src' => ["'self'", ...($sources['connect-src'] ?? []), ...$dev, ...self::websockets($dev), ...array_filter([Realtime::websocketOrigin()])],
             'worker-src' => ["'self'", 'blob:'],
             'manifest-src' => ["'self'"],
             'frame-src' => ["'self'"],

@@ -622,6 +622,51 @@ type Mutation {
 }
 
 
+"""
+Abonnements en temps réel aux contributions, sur le serveur WebSocket du site (Laravel Reverb,
+protocole Pusher). **Désactivés tant que la production n'a pas de serveur temps réel** : un
+abonnement reçoit alors l'erreur \`Unauthorized subscription request\`. En attendant, les webhooks
+\`contribution.applied\` couvrent le besoin (\`/docs/api\`, section « Webhooks »).
+
+Marche à suivre (détail et exemples dans \`docs/API.md\`, section « Temps réel ») :
+1. envoyer l'opération \`subscription { … }\` en \`POST /graphql\`, comme une requête ; la réponse porte
+   \`data.<champ>: null\` et, dans \`extensions.lighthouse_subscriptions.channel\`, un canal privé
+   (\`private-lighthouse-…\`) propre à cet abonnement ;
+2. ouvrir une connexion Pusher (Laravel Echo ou \`pusher-js\`) vers le serveur du site et s'abonner à
+   ce canal, autorisé par \`POST /graphql/subscriptions/auth\` (\`channel_name\`, \`socket_id\`) ;
+3. chaque événement arrive sous le nom \`lighthouse-subscription\`, avec \`result.data.<champ>\`.
+
+Les abonnements comptent dans la limite de débit de l'API comme une requête. Un abonnement oublié par
+le client expire au bout d'un jour. Aucune donnée personnelle n'est diffusée : ni auteur, ni
+validateur, ni motif de refus, ni contenu de la proposition (lisez-le ensuite par la requête qui
+convient, avec vos droits).
+"""
+type Subscription {
+  """
+  Publications de contributions (\`contribution.applied\`), ouvert à tous, même sans compte : même
+  contenu que le canal public \`contributions\` et que le webhook du même nom. Sans argument, toutes
+  les publications ; avec \`resource\` et/ou \`slug\`, seulement celles de la fiche visée.
+  """
+  contributionApplied(
+    "Nature de la fiche visée (ligne, gare ou série de matériel)."
+    resource: ContributionEventResource
+    "Identifiant public de la fiche visée (slug), par exemple \`rfn-570000\` (ligne de Paris-Austerlitz à Bordeaux-Saint-Jean)."
+    slug: String
+  ): ContributionEvent
+  """
+  État de mes contributions : proposée, approuvée une fois, publiée ou refusée. Demande un compte :
+  jeton personnel (\`Authorization: Bearer\`, capacité \`read\` suffisante) ou session du site avec son
+  jeton CSRF. Le motif d'un refus se lit ensuite sur la page « Mes contributions » du site.
+  """
+  myContributionChanged: ContributionEvent
+  """
+  File de validation en direct : toute contribution proposée, approuvée, publiée ou refusée.
+  Réservé aux validateurs et aux administrateurs dont le compte n'est pas suspendu.
+  """
+  reviewQueueChanged: ContributionEvent
+}
+
+
 "Date et heure au format \`AAAA-MM-JJ HH:MM:SS\` (heure de Paris), par exemple \`2026-10-20 14:05:00\`."
 scalar DateTime
 
@@ -812,6 +857,14 @@ type Line {
     "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
     era: Int
   ): [SignallingEvent!]!
+  """
+  Faits de signalisation relevés (Wikipédia ou autres documents) que des documents contredisent, du plus ancien
+  au plus récent. Ils ne sont jamais dans \`signalling_history\` : chaque correction dit lequel (\`system\`, \`date\`,
+  \`section\`, \`original\`), ce qui en est fait (\`action\`), pourquoi (\`reason\`), une citation (\`quote\`) et les
+  documents qui le contredisent (\`sources\`). Liste vide s'il n'y en a aucune. Même contenu que la clé
+  \`corrections\` de \`GET /api/v1/lines/{line}/signalling-history\` et de l'outil MCP \`signalling_history\`.
+  """
+  signalling_corrections: [SignallingCorrection!]!
   """
   Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
   dessus), comme \`GET /api/v1/lines/{line}/profile\`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ;
@@ -3281,6 +3334,52 @@ type SignallingEvent {
 }
 
 
+"""
+Correction d'un fait de signalisation que des documents contredisent. Le fait d'origine n'est jamais publié dans
+\`Line.signalling_history\` ; la correction reste consultable.
+"""
+type SignallingCorrection {
+  "Système du fait contredit (\`BAL\`, \`BAPR\`, \`BM\`, \`CT\`, \`TVM-300\`, \`TVM-430\`, \`TVM\`, \`ETCS_L1\`, \`ETCS_L2\`, \`ETCS\` ou \`KVB\`)."
+  system: String!
+  "Date du fait contredit."
+  date: Date!
+  "Précision de \`date\` : \`day\`, \`month\` ou \`year\`."
+  date_precision: String!
+  "Portion du fait contredit, nulle quand il porte sur toute la ligne ou n'est pas précisé."
+  section: SignallingCorrectionSection
+  "Source du fait contredit."
+  original: SignallingCorrectionOriginal!
+  "Ce que VFF fait du fait : \`neutralize\` (écarté) ou \`replace\` (remplacé par un fait daté par des documents)."
+  action: String!
+  "Pourquoi le fait est contredit."
+  reason: String!
+  "Citation d'un document qui contredit le fait."
+  quote: String!
+  "Documents qui contredisent le fait."
+  sources: [SignallingEventDocument!]!
+}
+
+
+"Portion d'un fait contredit, telle que la source la donne."
+type SignallingCorrectionSection {
+  "Lieu de départ, nul s'il n'est pas cité."
+  from: String
+  "Lieu d'arrivée, nul s'il n'est pas cité."
+  to: String
+}
+
+
+"Source du fait contredit."
+type SignallingCorrectionOriginal {
+  "Fournisseur : \`wikipedia\` ou \`manual\`."
+  provider: String!
+  "Titre de l'article ou du document."
+  title: String!
+  "Adresse de la révision lue ou du document."
+  url: String!
+}
+
+
 "Portion d'une mise en service de signalisation, telle que l'article la donne, et sa place sur la ligne quand elle est connue."
 type SignallingEventSection {
   "Lieu de départ tel qu'écrit dans l'article, nul s'il n'est pas cité."
@@ -5358,6 +5457,69 @@ type ContributionReview {
   outcome: ContributionReviewOutcome!
   "La contribution après la décision."
   contribution: Contribution!
+}
+
+
+"Nom d'un événement de contribution diffusé en temps réel."
+enum ContributionEventName {
+  "Contribution proposée, en attente d'une première approbation."
+  SUBMITTED
+  "Première approbation reçue, il en manque encore une."
+  APPROVED
+  "Contribution publiée : appliquée à une ligne, une gare ou une série."
+  APPLIED
+  "Contribution refusée par un validateur."
+  REJECTED
+}
+
+
+"Nature de la fiche visée par une contribution."
+enum ContributionEventResource {
+  "Ligne (\`Query.line\`, \`GET /api/v1/lines/{slug}\`)."
+  LINE
+  "Gare (\`Query.station\`, \`GET /api/v1/stations/{slug}\`)."
+  STATION
+  "Série de matériel roulant (\`Query.material\`, \`GET /api/v1/materials/{slug}\`)."
+  MATERIAL
+}
+
+
+"Événement de contribution diffusé en temps réel, sans donnée personnelle."
+type ContributionEvent {
+  "Ce qui vient d'arriver à la contribution."
+  event: ContributionEventName!
+  "La contribution, réduite à son état."
+  contribution: ContributionEventContribution!
+  "Fiche visée ; nulle pour une nouvelle ligne ou une nouvelle série pas encore publiée."
+  target: ContributionEventTarget
+  "Moment de l'événement (ISO 8601 avec fuseau, par exemple \`2026-11-22T14:05:12+01:00\`)."
+  occurred_at: String!
+}
+
+
+"État d'une contribution au moment de l'événement."
+type ContributionEventContribution {
+  "Identifiant de la contribution (le même que \`Contribution.id\`)."
+  id: ID!
+  "Type de la contribution."
+  type: ContributionType!
+  "État après l'événement."
+  status: ContributionStatus!
+  "Approbations reçues."
+  approvals: Int!
+  "Approbations indépendantes nécessaires pour publier (2)."
+  approvals_required: Int!
+}
+
+
+"Fiche visée par une contribution."
+type ContributionEventTarget {
+  "Nature de la fiche."
+  resource: ContributionEventResource!
+  "Identifiant public de la fiche (slug)."
+  slug: String!
+  "Adresse de la fiche dans l'API REST."
+  url: String!
 }
 
 
