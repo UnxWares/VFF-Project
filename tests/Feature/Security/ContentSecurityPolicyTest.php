@@ -4,6 +4,7 @@ namespace Tests\Feature\Security;
 
 use App\Support\Security\ContentSecurityPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -69,9 +70,54 @@ class ContentSecurityPolicyTest extends TestCase
             $csp = self::directives((string) $this->get($url)->assertOk()->headers->get('Content-Security-Policy-Report-Only'));
             $this->assertStringContainsString("'nonce-", $csp['script-src'], $url);
         }
-        // Magidoc : pages statiques générées, scripts en ligne sans nonce.
+        // Magidoc : pages statiques générées, sans script ni style en ligne (empreintes pour les attributs `style`).
         $csp = self::directives((string) $this->get('/docs/graphql')->assertOk()->headers->get('Content-Security-Policy-Report-Only'));
-        $this->assertSame("'self' 'unsafe-inline'", $csp['script-src']);
+        $this->assertSame("'self'", $csp['script-src']);
+        $this->assertSame("'self'", $csp['style-src']);
+        $this->assertStringStartsWith("'unsafe-hashes' 'sha256-", $csp['style-src-attr']);
+        $this->assertStringNotContainsString('unsafe-inline', implode(' ', $csp));
+    }
+
+    /** Pages Magidoc générées : un script en ligne, un gestionnaire `on…=` ou un <style> casserait la politique. */
+    public function test_generated_graphql_pages_have_no_inline_script_nor_undeclared_inline_style(): void
+    {
+        $declared = json_decode((string) file_get_contents(resource_path('docs/graphql/csp-style-hashes.json')), true);
+        $this->assertIsArray($declared);
+        $this->assertNotEmpty($declared);
+
+        $pages = glob(public_path('docs/graphql').'/{*,*/*}.html', GLOB_BRACE) ?: [];
+        $this->assertGreaterThan(200, count($pages), 'référence GraphQL non générée (make docs-graphql)');
+        foreach ($pages as $page) {
+            $html = (string) file_get_contents($page);
+            $name = basename(dirname($page)).'/'.basename($page);
+            $this->assertSame(0, preg_match('~<script(?![^>]*\bsrc=)[^>]*>~', $html), "script en ligne dans $name");
+            $this->assertSame(0, preg_match('~<style[\s>]~', $html), "balise <style> dans $name");
+            $this->assertSame(0, preg_match('~\son[a-z]+="~', $html), "gestionnaire en ligne dans $name");
+            preg_match_all('~\sstyle="([^"]*)"~', $html, $styles);
+            foreach ($styles[1] as $value) {
+                $hash = 'sha256-'.base64_encode(hash('sha256', html_entity_decode($value, ENT_QUOTES), true));
+                $this->assertContains($hash, $declared, "attribut style sans empreinte dans $name : $value");
+            }
+        }
+    }
+
+    /** Les en-têtes nginx recopient la politique de Laravel pour /docs/graphql (hors rapports de violation). */
+    public function test_nginx_policy_for_graphql_matches_laravel(): void
+    {
+        $conf = (string) file_get_contents(base_path('deploy/nginx/vff-project.org.conf'));
+        $this->assertSame(1, preg_match('#location \^~ /docs/graphql \{.*?Content-Security-Policy-Report-Only "([^"]*)"#s', $conf, $m));
+
+        $laravel = array_filter(
+            self::directives(ContentSecurityPolicy::build(Request::create('/docs/graphql'), 'x')),
+            fn (string $name): bool => ! in_array($name, ['report-uri', 'report-to'], true),
+            ARRAY_FILTER_USE_KEY,
+        );
+        $nginx = self::directives($m[1]);
+        // Laravel y ajoute le serveur Vite en développement : seules les directives de la page comptent.
+        foreach (['script-src', 'style-src', 'style-src-attr', 'default-src', 'object-src', 'frame-ancestors'] as $name) {
+            $this->assertSame($laravel[$name], $nginx[$name], $name);
+        }
+        $this->assertStringNotContainsString('unsafe-inline', $m[1]);
     }
 
     public function test_embeddable_pages_may_be_framed_anywhere(): void

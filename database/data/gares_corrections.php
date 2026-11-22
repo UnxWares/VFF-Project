@@ -1939,4 +1939,250 @@ return [
                 '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
                 'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne ; l\'infobox de la gare la dit encore desservie par Fret SNCF)']],
     ])),
+
+    // ── Gares ouvertes avant leurs lignes (invariant stations.opened_before_lines, 22/11/2026,
+    // rapport storage/app/reports/agents/aprem-2111/gares-avant-lignes.md) ────────────────────────
+
+    // Haussmann - Saint-Lazare : le 12/07/1999 est l'inauguration de la ligne E par le Premier ministre ;
+    // la mise en service commerciale, donc l'ouverture au public de la gare, est le 14/07/1999 (article,
+    // OSM et chronologie de la ligne E). La date Wikidata du 12 est celle de la cérémonie.
+    [
+        'station' => ['name' => 'Haussmann-St-Lazare', 'wikidata' => 'Q800898'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1999-07-14',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Haussmann - Saint-Lazare', 137149820),
+        'quote' => 'mise en service le 14 juillet 1999',
+        'reason' => 'ouverture au public le 14/07/1999 ; le 12/07/1999 est l\'inauguration de la ligne E (Éole) par le Premier ministre',
+    ],
+
+    // Enghien-les-Bains : la ligne Paris - Lille ouvre le 20/06/1846 ; la gare est ouverte « moins d'un mois
+    // plus tard, le 11 juillet 1846 ». Le 14/06/1846 de Wikidata précède l'ouverture de la ligne.
+    [
+        'station' => ['name' => 'Enghien-les-Bains', 'wikidata' => 'Q3095740'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Enghien-les-Bains', 237632630),
+        'quote' => 'La gare d\'Enghien-les-Bains est ouverte moins d\'un mois plus tard, le 11 juillet 1846',
+        'reason' => 'gare ouverte après la ligne du Nord (20/06/1846), desservie « depuis le 11 juillet 1846 » ; le 14/06/1846 de Wikidata est antérieur à la ligne',
+    ],
+
+    // Dormans : section Meaux - Épernay ouverte le 26/08/1849 (gare d'Épernay, chronologie de 1849 de
+    // Wikipédia, notice Mérimée pour l'inauguration du 02/09/1849). Le 21/08/1849 vient de l'article de
+    // Meaux et de celui de Dormans, en contradiction avec ces trois sources.
+    [
+        'station' => ['name' => 'Dormans', 'wikidata' => 'Q1985272'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-08-26',
+        'precision' => 'day',
+        'source_url' => $wp('1849 dans les chemins de fer', 240921379),
+        'quote' => 'section de Meaux à Épernay',
+        'reason' => 'section Meaux - Épernay mise en service le 26/08/1849 (chronologie de 1849 et gare d\'Épernay, oldid 241441584) ; inauguration officielle le 02/09/1849 ; le 21/08 de Wikidata n\'est confirmé par aucune source indépendante',
+    ],
+
+    // Caudiès-de-Fenouillèdes : le 14/07/1901 est l'ouverture de Saint-Paul-de-Fenouillet à Rivesaltes ;
+    // Caudiès est sur le tronçon Quillan - Saint-Paul-de-Fenouillet, ouvert le 22/05/1904 (article de la
+    // gare et événement de la ligne).
+    [
+        'station' => ['name' => 'Caudiès', 'wikidata' => 'Q80921437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1904-05-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Caudiès-de-Fenouillèdes', 166070156),
+        'quote' => 'Cette gare a été mise en service le 22 mai 1904 lors de l\'ouverture du tronçon entre Quillan et Saint-Paul-de-Fenouillet.',
+        'reason' => 'gare du tronçon Quillan - Saint-Paul-de-Fenouillet (22/05/1904) ; le 14/07/1901 est l\'ouverture du tronçon Saint-Paul - Rivesaltes',
+    ],
+
+    // Saint-Hilaire (Indre) : la section La Trimouille - Le Blanc ouvre le 12/08/1888 (article de la ligne,
+    // qui cite le Journal officiel du 19/07/1889) ; l'article de la gare donne le 13/06/1888 sur une seule
+    // référence (Connaissance du rail), sans recoupement.
+    [
+        'station' => ['name' => 'St-Hilaire (Indre)', 'wikidata' => 'Q15948845'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Montmorillon à Saint-Aigny - Le Blanc', 239210121),
+        'quote' => 'La section de La Trimouille au Blanc, longue de 18 kilomètres, est mise en service le 12 août 1888.',
+        'reason' => 'gare de la section La Trimouille - Le Blanc (12/08/1888 selon la ligne, appuyée sur le Journal officiel) ; le 13/06/1888 de la gare n\'a qu\'une référence',
+    ],
+
+    // Chailvet-Urcel : la date OSM du 02/06/1862 est impossible, la section Soissons - Laon ouvre le
+    // 03/01/1866 (événement de la ligne, tableau des lignes de Laon en 1914). La date d'ouverture de la
+    // halte est inconnue : elle est retirée plutôt que remplacée.
+    [
+        'station' => ['name' => 'Chailvet-Urcel', 'osm' => 'n13648417951'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'osm', 'type' => 'opening', 'date' => '1862-06-02'],
+        'source_url' => 'https://www.rail4402.fr/PAGES/L_34/L34_02_LAO_01.htm',
+        'reason' => 'la section Soissons - Laon, qui porte la gare, ouvre le 03/01/1866 : une ouverture en 1862 est impossible',
+    ],
+
+    // ── 14. Gares ouvertes avant leurs lignes, suite (chantier « gares-avant-lignes-2 », nuit du 22/11/2026) ──
+    // Rapport : storage/app/reports/agents/aprem-2111/gares-avant-lignes-2.md.
+
+    // Loulay : la section Niort - Saint-Jean-d'Angély ouvre le 17/10/1881 (article de la ligne de Chartres à
+    // Bordeaux et page de la ligne Thouars - Saint-Jean-d'Angély de manche-ocean.fr) ; le 10/10/1881 de
+    // l'article de la gare (fiche d'inventaire) précède la section qui porte la gare.
+    [
+        'station' => ['name' => 'Loulay', 'wikidata' => 'Q2073351'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-10-17',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Chartres à Bordeaux-Saint-Jean', 241089765),
+        'quote' => 'Elle est ouverte le 17 octobre 1881.',
+        'reason' => 'section Niort - Saint-Jean-d\'Angély ouverte le 17/10/1881 (article de la ligne et manche-ocean.fr) ; le 10/10/1881 de l\'article de la gare est antérieur à la section',
+    ],
+
+    // Saint-Hippolyte (Haut-Rhin) : la section Benfeld - Colmar ouvre le 19/10/1840 (article de la gare de Colmar,
+    // qui cite Le Point Colmarien ; article de la gare de Sélestat, qui cite le guide de Duplessy de 1842). Le
+    // 18/10/1840 de l'article de la gare n'a qu'une référence (Palau).
+    [
+        'station' => ['name' => 'St-Hippolyte (Haut-Rhin)', 'wikidata' => 'Q14627841'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-10-19',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sélestat', 241545922),
+        'quote' => 'La « station de Schlestadt » est mise en service le 19 octobre 1840',
+        'reason' => 'section Benfeld - Colmar mise en service le 19/10/1840 (gares de Sélestat, d\'après Duplessy 1842, et de Colmar, d\'après Le Point Colmarien) ; le 18/10/1840 n\'a qu\'une référence',
+    ],
+
+    // Bray (Loiret) : la ligne d'Orléans à Gien ouvre le 03/11/1873 (article de la ligne, mairie des Bordes pour
+    // la gare des Bordes inaugurée ce jour-là) ; le 03/01/1873 de Wikidata est une inversion probable du jour et du mois.
+    [
+        'station' => ['name' => 'Bray', 'wikidata' => 'Q135971266'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-11-03',
+        'precision' => 'day',
+        'source_url' => $wp('Gare des Bordes', 235035255),
+        'quote' => 'le 3 novembre 1873',
+        'reason' => 'ligne d\'Orléans à Gien ouverte le 03/11/1873 (article de la ligne et de la gare des Bordes, mairie des Bordes) ; le 03/01/1873 de Wikidata précède l\'ouverture',
+    ],
+
+    // Ligne Frévent - Lens (chemins de fer économiques du Nord) : mise en service entière le 01/12/1895 (article de
+    // la ligne, d'après Le Pas-de-Calais au dix-neuvième siècle, 1900). Le 08/08/1890 d'OHM est la date de la loi
+    // d'utilité publique, recopiée sur les nœuds gare.
+    [
+        'station' => ['name' => 'Liencourt', 'wikidata' => 'Q64850499'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Liencourt', 235032627),
+        'quote' => 'La halte de Liencourt est mise en service le 1er décembre 1895',
+        'reason' => 'halte mise en service avec la ligne Lens - Frévent le 01/12/1895 ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Souchez', 'wikidata' => 'Q61726977'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent (1895 selon l\'article de la gare, 01/12/1895 selon celui de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Carency', 'wikidata' => 'Q61726849'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_Lens_-_Fr%C3%A9vent&oldid=228842949',
+        'quote' => 'La ligne de Lens à Frévent est mise en service le 1 décembre 1895.',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent, mise en service d\'un seul tenant le 01/12/1895 ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+    [
+        'station' => ['name' => 'Camblain-l\'Abbé', 'wikidata' => 'Q56692247'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Camblain-l\'Abbé', 238683047),
+        'quote' => 'est mise en service en 1895',
+        'reason' => 'gare ouverte avec la ligne Lens - Frévent le 01/12/1895 (article de la ligne) ; le 08/08/1890 d\'OHM est la date de la loi d\'utilité publique',
+    ],
+
+    // Fourvière Ouest-Lyonnais (lignes 3788 et 4205) : Lyon-Saint-Just - Vaugneray 19/04/1886 ; Le Tupinier - Messimy
+    // janvier 1887 (27 pour Wikipédia et ferro-lyon.net, 25 pour le forum des cheminots et le PLU de Saint-Laurent-d'Agny :
+    // seul le mois est retenu) ; Messimy - Mornant 11/07/1887 (Wikipédia, forum des cheminots) ; Vaugneray gare - Vaugneray
+    // bourg 06/08/1906 (décret, Bulletin des lois). OHM mettait le 19/04/1886 sur tous les nœuds gare de la ligne.
+    [
+        'station' => ['name' => 'Vaugneray-Bourg', 'near' => [4.6583, 45.7378, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1906-08-06',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '6 août 1906 : de Vaugneray gare à Vaugneray Bourg (1,3 km).',
+        'reason' => 'prolongement de Vaugneray gare au bourg ouvert le 06/08/1906 (Bulletin des lois, décret n° 39407, cité par l\'article) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray gare',
+    ],
+    [
+        'station' => ['name' => 'Pillardière', 'near' => [4.7040, 45.7309, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'section Le Tupinier - Messimy ouverte en janvier 1887 (le 27 pour Wikipédia et ferro-lyon.net, le 25 pour le forum des cheminots et le PLU de Saint-Laurent-d\'Agny) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Brindas', 'near' => [4.6966, 45.7183, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'section Le Tupinier - Messimy ouverte en janvier 1887 (le 27 pour Wikipédia et ferro-lyon.net, le 25 pour le forum des cheminots et le PLU de Saint-Laurent-d\'Agny) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Messimy (FOL)', 'near' => [4.6917, 45.7007, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '27 janvier 1887 : du Tupinier à Messimy (5,4 km).',
+        'reason' => 'terminus de la section Le Tupinier - Messimy ouverte en janvier 1887 ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Soucieu-en-Jarrest', 'near' => [4.7057, 45.6783, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Orliénas', 'near' => [4.7021, 45.6691, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
+    [
+        'station' => ['name' => 'Saint-Laurent-d\'Agny', 'near' => [4.6917, 45.6422, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1887-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Fourvière Ouest-Lyonnais', 239282879),
+        'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
+        'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
+    ],
 ];

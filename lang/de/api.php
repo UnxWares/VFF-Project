@@ -112,7 +112,7 @@ return [
             'lines_geojson' => 'Streckenverläufe des Netzes zu einer Epoche, als GeoJSON (FeatureCollection von Abschnitten). Ein Abschnitt, dessen Quelle keine Weitergabe erlaubt, behält seine Eigenschaften, aber keine Geometrie.',
             'stations_geojson' => 'Bahnhöfe zu einer Epoche, als GeoJSON. Geschlossene Bahnhöfe erscheinen, solange in der Nähe ein Gleis liegt, mit ihrem Status.',
             'schematic' => 'Schematischer Netzplan einer Epoche (der Netzplan der Karte), als GeoJSON: Achsen in 0, 45 oder 90 Grad, Bahnhöfe und Strecken. Die Lage ist nicht die tatsächliche.',
-            'tiles' => 'Vektorkachel (MVT) einer Epoche, für eine MapLibre- oder OpenLayers-Quelle. Sie dient der Anzeige der Karte und ist kein Datenexport.',
+            'tiles' => 'Vektorkachel (MVT) einer Epoche, für eine MapLibre- oder OpenLayers-Quelle. Sie dient der Anzeige der Karte und ist kein Datenexport. Mit ?fields=map enthält sie nur die Eigenschaften, die die Karte der Website liest, und ist etwa 60 % kleiner.',
             'gtfs' => 'Netz einer Epoche im Format GTFS Static (ZIP-Archiv), mit Shapes nur für Strecken, deren gesamter Verlauf weitergegeben werden darf.',
             'lines' => 'Verzeichnis der Strecken, bestehender und verschwundener, mit denselben Filtern wie die Seite Strecken.',
             'line' => 'Vollständiger Eintrag einer Strecke wie auf der Website: Kennzahlen, datierte Phasen, belegte Chronik, Bahnhöfe und Quellen.',
@@ -204,6 +204,8 @@ return [
         'errors' => 'Fehler: ein Parameter außerhalb der erlaubten Werte, hier eine unbekannte Note und eine Seite mit 500.',
         'error_422' => '422, als JSON: errors nennt eine Meldung je Parameter.',
         'error_429' => '429, wenn das Limit pro Minute überschritten ist: Retry-After nennt die Wartezeit in Sekunden. Vor dem nächsten Versuch warten.',
+        'error_400' => '400, wenn ein GraphQL-Batch mehr als 5 Operationen enthält: extensions.code ist batch_too_large, max_batch nennt die Obergrenze. Stattdessen mehrere Anfragen senden.',
+        'error_413' => '413, wenn der Body einer Anfrage größer als 2 MiB (2.097.152 Byte) ist, vor jeder Verarbeitung. GraphQL antwortet in errors[] mit dem Code body_too_large; MCP antwortet mit einem JSON-RPC-Fehler (Code -32600).',
     ],
 
     'graphql' => [
@@ -211,7 +213,7 @@ return [
         'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',
         'links' => 'GraphQL-Dokumentation',
         'example_comment' => 'Eine Strecke mit ihren Ereignissen',
-        'limits' => 'Jede Abfrage hat Kosten, die vor ihrer Ausführung berechnet werden: höchstens 5.000 Punkte und 15 Verschachtelungsebenen. Ein Feld zählt 1 Punkt, eine paginierte Liste multipliziert ihre Unterfelder mit first, eine Liste ohne Paginierung zählt sie für 10 Einträge, und ein Steckbrief, ein Höhenprofil, eine Abschnittsprüfung oder eine Route zählen 250 Punkte. Hundert Strecken mit ihrem Namen passen in eine Abfrage (301 Punkte), hundert Strecken-Steckbriefe nicht (25.301). Eine zu aufwendige Abfrage wird vor der Ausführung abgelehnt, mit dem Code query_too_complex (oder query_too_deep) und einer Meldung, was zu ändern ist. Die vollständige Punktetabelle steht in der GraphQL-Referenz beim Typ Query.',
+        'limits' => 'Jede Abfrage hat Kosten, die vor ihrer Ausführung berechnet werden: höchstens 5.000 Punkte und 15 Verschachtelungsebenen. Ein Feld zählt 1 Punkt, eine paginierte Liste multipliziert ihre Unterfelder mit first, eine Liste ohne Paginierung zählt sie für 10 Einträge, und ein Steckbrief, ein Höhenprofil, eine Abschnittsprüfung oder eine Route zählen 250 Punkte. Hundert Strecken mit ihrem Namen passen in eine Abfrage (301 Punkte), hundert Strecken-Steckbriefe nicht (25.301). Eine zu aufwendige Abfrage wird vor der Ausführung abgelehnt, mit dem Code query_too_complex (oder query_too_deep) und einer Meldung, was zu ändern ist. Die vollständige Punktetabelle steht in der GraphQL-Referenz beim Typ Query. Zwei weitere Grenzen gelten vor der Ausführung: Ein Batch (eine Liste von Abfragen in einem einzigen POST) umfasst höchstens 5 Operationen, sonst HTTP 400 mit dem Code batch_too_large; ein Body über 2 MiB wird mit HTTP 413 und dem Code body_too_large abgelehnt. Die Mutationen eines Batches zählt das Anfragelimit einzeln.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
@@ -263,7 +265,7 @@ return [
         'access_label' => 'Zugang',
         'access' => 'Ohne Konto und ohne Schlüssel, nur lesend. Es werden keine personenbezogenen Daten ausgegeben. Ein persönliches API-Token kann auch im Header Authorization mitgesendet werden.',
         'limit_label' => 'Grenzen',
-        'limit' => 'Die Grenzen der API, mit demselben Zähler: :count Anfragen pro Minute und IP-Adresse ohne Token. Eine Antwort umfasst höchstens 48.000 Byte: Darüber hinaus werden die längsten Listen gekürzt, und die Antwort weist darauf hin.',
+        'limit' => 'Die Grenzen der API, mit demselben Zähler: :count Anfragen pro Minute und IP-Adresse ohne Token. Eine Antwort umfasst höchstens 48.000 Byte: Darüber hinaus werden die längsten Listen gekürzt, und die Antwort weist darauf hin. Ein Body über 2 MiB wird mit HTTP 413 abgelehnt, und Batches werden nicht angenommen: eine JSON-RPC-Anfrage pro Aufruf.',
         'lang_label' => 'Sprachen',
         'lang' => 'Französisch, Englisch oder Deutsch (Parameter lang). Eigennamen und Zitate aus Quellen bleiben auf Französisch.',
         'install_title' => 'Einrichtung in einem Client',

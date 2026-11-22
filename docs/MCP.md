@@ -1272,6 +1272,10 @@ X-RateLimit-Remaining: 1197
 - **Débit** : 300 requêtes par minute et par adresse IP sans jeton, davantage avec un jeton
   personnel, sur un compteur commun à l'API REST et à GraphQL (voir « Authentification et quotas »).
   Au-delà : HTTP 429.
+- **Corps de requête** : 2 Mio au plus (`API_MAX_BODY_BYTES`, `api.max_body_bytes`). Au-delà : HTTP 413, avant tout
+  traitement, avec une erreur JSON-RPC : `{"jsonrpc": "2.0", "id": null, "error": {"code": -32600, "message": "The request body is larger than 2097152 bytes."}}`.
+  Les lots JSON-RPC (une liste de requêtes) ne sont pas acceptés : une requête par appel. La limite des lots de
+  GraphQL (5 opérations, 400 `batch_too_large`) est décrite dans `docs/API.md`.
 - **Taille** : 48 000 octets au plus par réponse (`MCP_MAX_RESPONSE_BYTES`). Au-delà, les listes les
   plus longues (événements, phases, gares…) sont raccourcies par la fin, et `truncated` le dit :
   réduisez la période, les types ou `max_events`. Les outils de liste ne perdent rien : leur

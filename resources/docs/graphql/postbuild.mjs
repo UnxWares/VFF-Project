@@ -10,11 +10,14 @@
 //    de traduction, la page reste donc `lang="en"` ; les textes rédigés par VFF (guide, descriptions
 //    du schéma, panneau « Voir aussi ») sont en français et balisés `lang="fr"` par un petit script
 //    inséré dans chaque page. Le script reste actif quand SvelteKit change de page sans recharger le
-//    document.
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+//    document ;
+// 4. politique de sécurité du contenu (csp.mjs) : scripts en ligne sortis en fichiers, gestionnaires en
+//    ligne retirés, empreintes des attributs `style` relevées dans csp-style-hashes.json.
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { patchPage, patchScript, TITLE_SUFFIX } from './a11y.mjs';
+import { externalise, inlineLeftovers, SCRIPT_DIR, scriptStyleHashes } from './csp.mjs';
 
 const root = 'public/docs/graphql';
 
@@ -136,5 +139,37 @@ if (unthemed) {
     );
     process.exit(1);
 }
+
+// Politique de sécurité du contenu : plus aucun script en ligne (fichiers externes), plus de
+// gestionnaire en ligne ; les attributs `style` du rendu serveur sont admis par empreinte.
+const scriptDir = join(root, SCRIPT_DIR);
+mkdirSync(scriptDir, { recursive: true });
+const styleHashes = new Set();
+let externalScripts = 0;
+for (const file of filesOf(join(root, '_app/immutable'), '.js')) {
+    for (const hash of scriptStyleHashes(readFileSync(file, 'utf8'))) styleHashes.add(hash);
+}
+for (const file of filesOf(root, '.html', '_app')) {
+    const html = readFileSync(file, 'utf8');
+    const result = externalise(html);
+    for (const [name, content] of result.scripts) {
+        writeFileSync(join(scriptDir, name), content);
+        externalScripts++;
+    }
+    for (const hash of result.styles) styleHashes.add(hash);
+    const left = inlineLeftovers(result.html);
+    if (left.length) {
+        console.error(`Contenu en ligne restant dans ${file} : ${left.join(' ; ')}`);
+        process.exit(1);
+    }
+    if (result.html !== html) writeFileSync(file, result.html);
+}
+writeFileSync(
+    'resources/docs/graphql/csp-style-hashes.json',
+    JSON.stringify([...styleHashes].sort(), null, 4) + '\n',
+);
+console.log(
+    `CSP : ${externalScripts} script(s) en ligne sortis en fichiers, ${styleHashes.size} empreinte(s) de style.`,
+);
 console.log(`Pages HTML corrigées (langue, thème du site, titre, accessibilité) : ${patched}.`);
 console.log('Pages HTML corrigées (accessibilité) :', JSON.stringify(pageTotals));
