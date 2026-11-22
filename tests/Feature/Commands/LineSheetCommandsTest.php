@@ -215,6 +215,7 @@ class LineSheetCommandsTest extends TestCase
         $line = $this->rfnLine('100000', 'Ligne de Alpha à Bravo');
         $cant = $this->jsonFixture('Sncf/mode-de-cantonnement-des-lignes.records.json');
         $kvb = $this->jsonFixture('Sncf/lignes-equipees-de-kvb.json');
+        /** @var bool $up */
         $up = true;
         Http::fake(function (Request $r) use (&$up, $cant, $kvb) {
             if (! $up) {

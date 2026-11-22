@@ -33,7 +33,7 @@ class WikidataLinesCommandTest extends TestCase
         $this->line = $this->rfnLine('482000', 'Ligne de Carhaix à Morlaix');
     }
 
-    /** @param  array<string, mixed>  $value */
+    /** @param  array<string, mixed>|string  $value */
     private static function statement(string $pid, mixed $value, array $extra = []): array
     {
         return ['mainsnak' => ['snaktype' => 'value', 'property' => $pid, 'datavalue' => ['value' => $value]], 'rank' => 'normal',

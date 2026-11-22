@@ -444,7 +444,7 @@ final class ConsistencyChecker
                 $emitted[$id] = true;
                 $shown = $f['properties']['status'] ?? null;
                 $st = $rows[$id] ?? null;
-                $expected = $st?->status ?? self::CLOSED_STATION;
+                $expected = $st->status ?? self::CLOSED_STATION;
                 if ($levels !== null && $st !== null && ($level = $this->capLevel($era, $st)[0]) !== null) {
                     $expected = self::rule2Status($expected, $level) ?? $expected;
                 }
@@ -1119,7 +1119,7 @@ final class ConsistencyChecker
                 $row[$net.'_ref'] = isset($ref['km']) ? $ref['km'] : '≤ '.$ref['max'];
                 $verdict = null;
                 if (isset($ref['km'])) {
-                    $ratio = $ref['km'] > 0 ? $have / $ref['km'] : 0;
+                    $ratio = $have / $ref['km'];
                     $row[$net.'_ratio'] = round($ratio, 2);
                     if (abs($ratio - 1) > self::COMPLETENESS_TOLERANCE && abs($have - $ref['km']) >= self::COMPLETENESS_MIN_GAP_KM) {
                         $verdict = $ratio < 1 ? 'manque '.number_format($ref['km'] - $have, 0, ',', ' ').' km' : 'excédent '.number_format($have - $ref['km'], 0, ',', ' ').' km';
@@ -1214,7 +1214,7 @@ final class ConsistencyChecker
     private function vanishedFinding(int $fromYear, int $toYear, bool $inactive = false): array
     {
         $to = $toYear === 0 ? $this->currentEra() : $this->eraByYear($toYear);
-        $toYear = $to?->year ?? $toYear;
+        $toYear = $to->year ?? $toYear;
         $toLabel = $to?->is_current ? "l'ère courante ({$toYear})" : (string) $toYear;
         $key = $inactive ? "completeness.closed_{$fromYear}_{$toYear}" : "completeness.vanished_{$fromYear}_{$toYear}";
         $label = $inactive

@@ -133,7 +133,7 @@ class ModelsTest extends TestCase
 
         // Statut inconnu de l'enum : refusé dès l'écriture côté PHP.
         $this->expectException(ValueError::class);
-        $segment->status = 'teleported';
+        $segment->setAttribute('status', 'teleported');
     }
 
     public function test_era_casts(): void

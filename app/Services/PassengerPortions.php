@@ -683,7 +683,7 @@ class PassengerPortions
             }
             $inRun[$i] = $inRun[$i + 1] = true;
             $last = count($runs) - 1;
-            if ($last >= 0 && $runs[$last]['to'] !== null && $runs[$last]['to']['id'] === $a['id']) {
+            if ($last >= 0 && $runs[$last]['to']['id'] === $a['id']) {
                 $runs[$last]['hi'] = $b['m'];
                 $runs[$last]['to'] = $b;
             } else {

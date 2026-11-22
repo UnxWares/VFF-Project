@@ -27,7 +27,7 @@ class I18nCheckerDetailsTest extends TestCase
         parent::tearDown();
     }
 
-    /** @param  array<string, mixed>  $data */
+    /** @param  array<int|string, mixed>  $data */
     private function writeLang(string $locale, string $namespace, array $data): void
     {
         $dir = "{$this->root}/lang/{$locale}";

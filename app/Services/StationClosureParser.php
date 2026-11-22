@@ -346,7 +346,7 @@ final class StationClosureParser
             if ($names === []) {
                 continue;
             }
-            $nominal = ($m[1][0] ?? '') !== '' && $m[1][1] >= 0;
+            $nominal = $m[1][0] !== '' && $m[1][1] >= 0;
             if ($nominal) {
                 $vpos = $mpos;
                 $vend = $mpos + mb_strlen($m[1][0]);

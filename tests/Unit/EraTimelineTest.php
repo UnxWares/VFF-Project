@@ -208,7 +208,7 @@ class EraTimelineTest extends TestCase
 
         $this->assertSame('abandoned', $t->stateAt(1970)['status']);
         $this->assertSame(['status' => 'in_service', 'traffic' => 'unknown', 'heritage' => 'tourist_train'], $t->stateAt(1990));
-        $this->assertSame('tourist_train', $t->stateAt(2026, isCurrent: true)['heritage']);
+        $this->assertSame('tourist_train', $this->state($t, 2026, isCurrent: true)['heritage']);
     }
 
     public function test_velorail_keeps_the_track_but_runs_no_trains(): void
@@ -263,7 +263,7 @@ class EraTimelineTest extends TestCase
         ]);
 
         $this->assertTrue($t->isDated());
-        $this->assertSame('tourist_train', $t->stateAt(1970)['heritage']);
+        $this->assertSame('tourist_train', $this->state($t, 1970)['heritage']);
     }
 
     public function test_undated_portion_is_reported(): void
@@ -515,5 +515,13 @@ class EraTimelineTest extends TestCase
         $this->assertSame('abandoned', $t->stateAt(1940)['status']);
         $this->assertSame('dismantled', $t->stateAt(1950)['status']);
         $this->assertNull($t->stateAt(1960));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function state(EraTimeline $timeline, int $year, bool $isCurrent = false, ?int $previousYear = null): array
+    {
+        return $timeline->stateAt($year, $isCurrent, $previousYear) ?? [];
     }
 }

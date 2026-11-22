@@ -74,7 +74,7 @@ final class SecondaryNetworkParser
     public function __construct(private WikipediaLineParser $wp) {}
 
     /**
-     * @return array{infobox: array<string, string>, single: ?array, records: list<array>, network: array{start: ?array, end: ?array, events: list<array>, last_start: ?array, spread: int, last_closure: ?array, closure_spread: int, statement: ?array, statements: list<array>}}
+     * @return array{infobox: array<string, string>, single: ?array, records: list<array>, network: array{start: ?array, end: ?array, events: list<array>, last_start: ?array, spread: int, last_closure: ?array, closure_spread: int, statement: ?array, statements: list<array>, period: ?array, closed: ?array}}
      */
     public function parse(string $wikitext, string $title): array
     {
@@ -107,8 +107,10 @@ final class SecondaryNetworkParser
         $n = count($lines);
         $headings = [];          // niveau => [titre, fiche|null, ignorer]
         $context = $root;
+        /** @var bool $skip */
         $skip = false;
         $listStack = [];         // profondeur => fiche
+        /** @var int|null $term */
         $term = null;            // fiche ouverte par « ; Ligne … »
         $paragraph = '';
         $this->listBase = null;
@@ -780,6 +782,7 @@ final class SecondaryNetworkParser
     private function tableRows(array $lines): array
     {
         $rows = [];
+        /** @var array{raw: list<array{bool, string}>}|null $cur */
         $cur = null;
         $carry = []; // colonne => [restant, contenu]
         $push = function () use (&$rows, &$cur, &$carry) {
@@ -1017,15 +1020,6 @@ final class SecondaryNetworkParser
         };
 
         return [['label' => $a, 'target' => $links[PlaceNames::normalize($a)] ?? null], ['label' => $b, 'target' => $links[PlaceNames::normalize(preg_replace('/^(?:Le|Les)\s/u', '', $b))] ?? $links[PlaceNames::normalize($b)] ?? null]];
-    }
-
-    private function articleBack(string $title, string $from): string
-    {
-        if (preg_match('/\s(du)\s/u', $title) && ! preg_match('/^(Le|La|Les)\s/u', $from) && preg_match('/\sdu\s'.preg_quote($from, '/').'/u', $title)) {
-            return 'Le '.$from;
-        }
-
-        return $from;
     }
 
     private function restoreArticleAfter(string $title, string $to): string
@@ -1519,7 +1513,7 @@ final class SecondaryNetworkParser
      * À défaut d'infobox, la période annoncée par l'introduction (« … qui ont fonctionné entre 1913
      * et 1933 ») en tient lieu (champ « introduction »).
      *
-     * @return array{start: ?array, end: ?array, events: list<array>, last_start: ?array, spread: int, period: ?array}
+     * @return array{start: ?array, end: ?array, events: list<array>, last_start: ?array, spread: int, period: ?array, closed: ?array}
      */
     private function networkDates(array $infobox, bool $single, ?array $period = null): array
     {
