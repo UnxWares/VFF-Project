@@ -68,7 +68,9 @@ use Illuminate\Support\Facades\Storage;
  *    aiguillage par aiguillage (déviation <= 30° à chaque nœud). Seule
  *    exception, marquée : l'arrivée coudée d'un tracé imprécis sur une portion
  *    précise, sans voie réelle, est refaite par une courbe lissée de rayon
- *    plausible (matched_source « raccord-lisse », géométrie estimée).
+ *    plausible (matched_source « raccord-lisse », géométrie estimée) ; de même
+ *    pour un bout posé sur la voie d'une autre ligne quand celle-ci est
+ *    dessinée à quelques mètres (raccordé à son dessin, jonction à 0 m).
  *    Long trou d'une ligne disparue (300 m à 20 km) : suivi sur les voies
  *    abandonnées non rattachées (OSM, BD TOPO « Sans objet ») quand le chemin
  *    passe les contrôles (gares, PK, autres lignes) ; un chemin qui s'arrête à
@@ -255,6 +257,8 @@ class BuildLineReferences extends Command
             $this->line(sprintf('  arrivées de tracés imprécis : %d refaites par la voie réelle (%s km), %d par une courbe lissée estimée « raccord-lisse » (%s km) ; %d bouts raccordés à la voie d\'une autre ligne (%s km), %d trous comblés par une courbe faute de chemin sur les voies précises (%s km), courbes estimées',
                 $j['leg_rerouted'] ?? 0, $this->km($j['leg_rerouted_m'] ?? 0), $j['leg_smoothed'] ?? 0, $this->km($j['leg_smoothed_m'] ?? 0),
                 $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
+            $this->line(sprintf('  bouts posés sur la voie d\'une autre ligne dessinée à côté : %d raccordés à son dessin par une courbe estimée (%s km)',
+                $j['drawing_joined'] ?? 0, $this->km($j['drawing_joined_m'] ?? 0)));
             $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d éperons en aller-retour retirés (%s km)',
                 $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
             $this->line(sprintf('  longs trous : %d suivis sur une voie abandonnée (%s km), dont %d incomplets (%s km laissés visibles) ; %d refusés',
@@ -266,8 +270,9 @@ class BuildLineReferences extends Command
                 $r['rounded'] ?? 0, $r['added_points'] ?? 0));
         }
         if ($n = $this->tidyStats) {
-            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %d extrémités recollées, %d raccords courts fusionnés',
-                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
+            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
+                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
+                number_format($n['isolated_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
         }
 
         $t = microtime(true);
