@@ -3,6 +3,8 @@
 #   php   : composer audit, Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check), PHPStan + Larastan (niveau 6, baseline),
 #           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.7
 #   front : pnpm install, pnpm audit, Prettier, ESLint, vitest, svelte-check (baseline), build Vite
+#   e2e   : suite Playwright de fumée (tests/e2e) contre l'application démarrée sur une base migrée et
+#           remplie par E2eSeeder (jeu de données minimal), PostgreSQL + PostGIS et Valkey en services
 #
 # Analyse statique (PHPStan, svelte-check) : la dette existante est gelée dans
 # phpstan-baseline.neon et svelte-check-baseline.json ; toute NOUVELLE erreur bloque.
@@ -161,3 +163,124 @@ jobs:
 
       - name: Build Vite
         run: pnpm build
+
+  # Suite de fumée Playwright (docs/TESTS-E2E.md) : l'application tourne pour de vrai (PHP, PostgreSQL, Valkey,
+  # build Vite) sur le jeu de données minimal de database/seeders/E2eSeeder.php. Le rapport HTML est publié
+  # en artefact quand un test échoue.
+  e2e:
+    name: E2E - Playwright (fumée)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgis/postgis:18-3.7
+        env:
+          POSTGRES_USER: vff
+          POSTGRES_PASSWORD: vff
+          # Suffixe _test obligatoire : E2eSeeder refuse toute autre base.
+          POSTGRES_DB: vff_e2e_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vff -d vff_e2e_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:9-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: vff_e2e_test
+      DB_USERNAME: vff
+      DB_PASSWORD: vff
+      REDIS_HOST: 127.0.0.1
+      APP_DEBUG: 'false'
+      E2E_BASE_URL: http://127.0.0.1:8000
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, pcntl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparer .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Migrations et jeu de données minimal
+        run: |
+          php artisan migrate --force --no-interaction
+          php artisan db:seed --class='Database\Seeders\E2eSeeder' --force --no-interaction
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Vite
+        run: pnpm build
+
+      - name: Démarrer l'application
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 --no-reload > storage/logs/serve.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null "$E2E_BASE_URL/lines/rfn-878000" && exit 0
+            sleep 1
+          done
+          cat storage/logs/serve.log
+          exit 1
+
+      - name: Navigateur Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Suite de fumée Playwright
+        env:
+          CI: '1'
+        run: pnpm test:e2e
+
+      - name: Rapport Playwright (artefact)
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            storage/app/reports/e2e/html
+            storage/app/reports/e2e/traces
+          retention-days: 7
+          if-no-files-found: ignore

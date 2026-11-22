@@ -56,8 +56,25 @@ le mode sombre sur l'accueil et sur la fiche de ligne.
 `DEFAUTS_CONNUS` dans `fixtures.js` liste les violations axe-core déjà constatées sur le site : elles sont notées en
 annotation dans le rapport sans faire échouer la suite. Retirer l'entrée quand le défaut est corrigé.
 
+## Jeu de données
+
+La suite vise trois fiches (constantes `LIGNE`, `GARE`, `ACCIDENT` de `fumee.spec.js`) : la ligne `rfn-878000`
+(Andelot-en-Montagne - La Cluse), la gare `andelot` et l'accident `1890-09-16-andelot-en-montagne`. Sur une base vide
+migrée, `database/seeders/E2eSeeder.php` les crée avec le strict nécessaire : les ères (1830 à 2030), la ligne et une
+seconde ligne, trois gares, une portion, les arrêts et les états de gare par ère depuis 1870, l'accident rattaché à la
+ligne et à la gare. Ce sont des faits publics, sans compte ni donnée personnelle. Les articles du journal viennent des
+fichiers versionnés de `resources/content/journal`. Le seeder est rejouable sans doublon et refuse toute base dont le
+nom ne finit pas par `_test` (jamais `vff`). Test : `tests/Feature/E2eSeederTest.php`.
+
+```bash
+DB_DATABASE=vff_xxx_test bin/php artisan migrate --force
+DB_DATABASE=vff_xxx_test bin/php artisan db:seed --class='Database\Seeders\E2eSeeder' --force
+```
+
 ## Intégration continue
 
-Aucun serveur n'existe dans la CI : la suite n'y est pas activée. Piste : un job qui démarre l'application avec ses
-services (voir `.github/workflows/ci.yml`), puis `E2E_BASE_URL=http://127.0.0.1:8000 pnpm test:e2e`, avec
-`playwright install --with-deps chromium` et le dossier `storage/app/reports/e2e/html` en artefact.
+Le job `e2e` de `.github/workflows/ci.yml` démarre PostgreSQL + PostGIS et Valkey en services, migre la base
+`vff_e2e_test`, lance `E2eSeeder`, construit le front (`pnpm build`), démarre `php artisan serve` sur 127.0.0.1:8000,
+installe Chromium (`pnpm exec playwright install --with-deps chromium`) puis lance `pnpm test:e2e` (`CI=1` : une
+relance par test, rapport HTML). En cas d'échec, `storage/app/reports/e2e/html` et `traces` sont publiés en artefact
+`playwright-report`. Durée visée : moins de 10 minutes (la suite seule dure environ 1 min 10 en local).
