@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Suite PHPUnit ciblée, en parallèle ou non, avec les options dans le bon ordre.
+#   VFF_TEST_DB=vff_moi_test bin/test --filter=Schedule            # 2 processus
+#   VFF_TEST_DB=vff_moi_test bin/test --processes=2 tests/Feature/Journal
+#   VFF_TEST_DB=vff_moi_test bin/test --sequential --filter=Schedule
+# `artisan test` ne reconnaît --parallel, --processes et --recreate-databases que AVANT les options
+# qu'il ne connaît pas (--filter, --group, chemins) : après elles, PHPUnit répond « Unknown option ».
+# Ce script les place en tête, ajoute --parallel --processes=2 par défaut et exige VFF_TEST_DB.
+# La base nommée est créée si besoin (tests/CreatesApplication.php). Verrou commun et mémoire : docs/TESTS.md.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ -z "${VFF_TEST_DB:-}" || ! "$VFF_TEST_DB" =~ _test$ ]]; then
+    echo "VFF_TEST_DB=vff_<sujet>_test obligatoire (suffixe _test)." >&2
+    exit 2
+fi
+
+head_opts=()
+rest=()
+parallel=1
+processes=2
+while (($#)); do
+    case "$1" in
+        --sequential) parallel=0 ;;
+        --parallel | -p) parallel=1 ;;
+        --processes=*) processes="${1#--processes=}" ;;
+        --processes) shift; processes="${1:?--processes demande un nombre}" ;;
+        --recreate-databases | --drop-databases | --without-databases) head_opts+=("$1") ;;
+        *) rest+=("$1") ;;
+    esac
+    shift
+done
+
+if ((parallel)); then
+    exec "$ROOT/bin/php" artisan test --parallel --processes="$processes" "${head_opts[@]}" "${rest[@]}"
+fi
+exec "$ROOT/bin/php" artisan test "${rest[@]}"
