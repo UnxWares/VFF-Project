@@ -7,13 +7,7 @@ const IGNORE_ECHEC = /ERR_ABORTED/;
 
 // Défauts du site déjà constatés : signalés dans le rapport (annotation), sans faire échouer
 // la suite. Retirer l'entrée dès que le défaut est corrigé.
-export const DEFAUTS_CONNUS = [
-    {
-        regle: 'label-content-name-mismatch',
-        cible: '.lang-trigger',
-        note: 'Le nom accessible du bouton de langue ne contient pas son texte visible (WCAG 2.5.3).',
-    },
-];
+export const DEFAUTS_CONNUS = [];
 
 export const test = base.extend({
     // Surveille la page : console en erreur, requêtes échouées, réponses HTTP >= 400.
