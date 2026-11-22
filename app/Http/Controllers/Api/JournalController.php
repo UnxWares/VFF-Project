@@ -7,6 +7,7 @@ use App\Http\Middleware\SetLocale;
 use App\Services\Journal\JournalArticle;
 use App\Services\Journal\JournalPresenter;
 use App\Services\Journal\JournalRepository;
+use App\Support\Seo\SiteOrigin;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -92,7 +93,7 @@ class JournalController extends Controller
         }
         $perPage = (int) ($valid['per_page'] ?? 10);
         $page = (int) ($valid['page'] ?? 1);
-        $origin = $request->getSchemeAndHttpHost();
+        $origin = SiteOrigin::get();
 
         return response()->json([
             'data' => array_map(fn (JournalArticle $a): array => $this->withUrl($origin, $this->presenter->summary($a)),
@@ -139,7 +140,7 @@ class JournalController extends Controller
         if ($article === null) {
             return response()->json(['message' => 'Article inconnu.'], 404);
         }
-        $origin = $request->getSchemeAndHttpHost();
+        $origin = SiteOrigin::get();
         $full = $this->presenter->full($article);
 
         return response()->json($this->withUrl($origin, $full + ['json_ld' => $this->presenter->jsonLd($origin, $full)]))

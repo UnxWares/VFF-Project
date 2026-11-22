@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\BasemapArchiveController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LinePortionsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
@@ -62,6 +64,14 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
                 ->name('lines.portions');
+            // Flux du journal et plans du site : publics, en cache, donc sans session ni cookie (hors du groupe
+            // web). La langue des flux vient de `?lang=` puis d'Accept-Language (`Vary`).
+            Route::get('/journal/atom.xml', [JournalController::class, 'atom'])->name('journal.atom');
+            Route::get('/journal/rss.xml', [JournalController::class, 'rss'])->name('journal.rss');
+            Route::get('/journal/sitemap.xml', [JournalController::class, 'sitemap'])->name('journal.sitemap');
+            Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+            Route::get('/sitemap-{family}-{page}.xml', [SitemapController::class, 'family'])
+                ->where(['family' => '[a-z]+', 'page' => '[0-9]{1,4}'])->name('sitemap.family');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

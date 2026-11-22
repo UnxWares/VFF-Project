@@ -7,6 +7,7 @@ use App\Services\Journal\JournalFeed;
 use App\Services\Journal\JournalPresenter;
 use App\Services\Journal\JournalRenderer;
 use App\Services\Journal\JournalRepository;
+use App\Support\Seo\SiteOrigin;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
@@ -62,7 +63,7 @@ class JournalController extends Controller
         return Inertia::render('Journal/Show', [
             'article' => [
                 ...$full,
-                'json_ld' => $this->presenter->jsonLd($request->getSchemeAndHttpHost(), $full),
+                'json_ld' => $this->presenter->jsonLd(SiteOrigin::get(), $full),
             ],
             'newer' => is_int($index) ? $neighbour($index - 1) : null,
             'older' => is_int($index) ? $neighbour($index + 1) : null,
@@ -72,26 +73,31 @@ class JournalController extends Controller
     /** Flux Atom (`/journal/atom.xml`), dans la langue `?lang=` (fr, en, de) ou celle du visiteur. */
     public function atom(Request $request, JournalFeed $feed): HttpResponse
     {
-        return $this->xml($feed->atom($request->getSchemeAndHttpHost(), $this->feedLocale($request)), 'application/atom+xml');
+        return $this->xml($feed->atom(SiteOrigin::get(), $this->feedLocale($request)), 'application/atom+xml', $request->query('lang') === null);
     }
 
     /** Flux RSS 2.0 (`/journal/rss.xml`), mêmes articles que le flux Atom. */
     public function rss(Request $request, JournalFeed $feed): HttpResponse
     {
-        return $this->xml($feed->rss($request->getSchemeAndHttpHost(), $this->feedLocale($request)), 'application/rss+xml');
+        return $this->xml($feed->rss(SiteOrigin::get(), $this->feedLocale($request)), 'application/rss+xml', $request->query('lang') === null);
     }
 
     /** Plan du site des articles (`/journal/sitemap.xml`), cité par l'index `/sitemap.xml`. */
     public function sitemap(Request $request, JournalFeed $feed): HttpResponse
     {
-        return $this->xml($feed->sitemap($request->getSchemeAndHttpHost()), 'application/xml');
+        return $this->xml($feed->sitemap(SiteOrigin::get()), 'application/xml');
     }
 
     private function feedLocale(Request $request): string
     {
         $lang = $request->query('lang');
         if ($lang === null) {
-            return app()->getLocale();
+            // Sans session ni cookie (hors du groupe web) : la langue vient d'Accept-Language, d'où le Vary.
+            $preferred = $request->getPreferredLanguage(SetLocale::SUPPORTED);
+            $locale = is_string($preferred) && in_array($preferred, SetLocale::SUPPORTED, true) ? $preferred : (string) config('app.locale', 'fr');
+            app()->setLocale($locale);
+
+            return $locale;
         }
         abort_unless(is_string($lang) && in_array($lang, SetLocale::SUPPORTED, true), 404);
         app()->setLocale($lang);
@@ -99,12 +105,17 @@ class JournalController extends Controller
         return $lang;
     }
 
-    private function xml(string $body, string $type): HttpResponse
+    private function xml(string $body, string $type, bool $varyOnLanguage = false): HttpResponse
     {
-        return response($body, 200, [
+        $headers = [
             'Content-Type' => $type.'; charset=UTF-8',
             'Cache-Control' => 'public, max-age=3600',
             'X-Content-Type-Options' => 'nosniff',
-        ]);
+        ];
+        if ($varyOnLanguage) {
+            $headers['Vary'] = 'Accept-Language';
+        }
+
+        return response($body, 200, $headers);
     }
 }
