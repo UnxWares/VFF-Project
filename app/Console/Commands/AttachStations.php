@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\StationLineExclusions;
 use App\Services\StationLinkChanges;
 use App\Services\StationTerminusOverrides;
 use App\Support\StationNames;
@@ -46,6 +47,11 @@ use Throwable;
  *                  --termini-only, --years-only). Hors rattachement complet, une décision
  *                  retire aussi ce qu'elle contredit : le terminus nommé de son extrémité et
  *                  le terminus relu dont la gare n'est plus celle d'une décision « attach ».
+ *   6. exclusions : couples gare - ligne écartés à la main
+ *                  (database/data/station_line_exclusions.php, StationLineExclusions), retirés en
+ *                  dernier, quelle que soit la méthode qui les avait produits, dans les trois modes
+ *                  (complet, --termini-only, --years-only) : ils l'emportent sur les étapes 1 à 5, y
+ *                  compris une décision « attach » de l'étape 5.
  *
  * PK manquant : projection sur le tracé, interpolée entre les gares voisines
  * de PK connu de la même ligne (pk_source = projected), sinon abscisse
@@ -66,6 +72,9 @@ class AttachStations extends Command
 {
     /** Décisions relues à la main (étape 5), chargées par handle(). */
     private StationTerminusOverrides $overrides;
+
+    /** Exclusions de couples gare - ligne (étape 6), chargées par handle(). */
+    private StationLineExclusions $exclusions;
 
     /**
      * Décisions relues valides de ce passage (reviewedDecisions), lues et signalées une seule fois.
@@ -130,9 +139,10 @@ class AttachStations extends Command
         return str_replace('le.', "{$alias}.", self::EVENT_COVERS_STATION);
     }
 
-    public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides): int
+    public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides, StationLineExclusions $exclusions): int
     {
         $this->overrides = $overrides;
+        $this->exclusions = $exclusions;
         $this->decisions = null;
         $dryRun = (bool) $this->option('dry-run');
         DB::beginTransaction();
@@ -167,6 +177,7 @@ class AttachStations extends Command
     private function recomputeYears(): void
     {
         $added = $this->applyTerminusOverrides();
+        $added = array_values(array_diff($added, $this->applyLineExclusions()));
         if ($added !== []) {
             $this->projectMissingPk($added);
         }
@@ -180,6 +191,7 @@ class AttachStations extends Command
     {
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
         $this->applyTerminusOverrides();
+        $this->applyLineExclusions();
         $this->projectMissingPk();
         $this->computeServiceYears();
     }
@@ -294,6 +306,7 @@ class AttachStations extends Command
         // 4. Terminus nommés des lignes sans liste officielle ; 5. terminus relus à la main.
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
         $this->applyTerminusOverrides();
+        $this->applyLineExclusions();
 
         $this->projectMissingPk();
         $this->computeServiceYears();
@@ -548,6 +561,35 @@ class AttachStations extends Command
             .($absent > 0 ? ", {$absent} lignes absentes de la base" : ''));
 
         return $added;
+    }
+
+    /**
+     * 6. Exclusions de couples gare - ligne (StationLineExclusions) : le couple est retiré de station_lines
+     * quelle que soit sa méthode. Une exclusion invalide, en double ou dont la gare ou la ligne est absente de
+     * la base est signalée et ignorée.
+     *
+     * @return list<int> identifiants des rattachements retirés
+     */
+    private function applyLineExclusions(): array
+    {
+        if ($this->exclusions->all() === []) {
+            return [];
+        }
+        ['valid' => $valid, 'errors' => $errors] = $this->exclusions->resolve();
+        foreach ($errors as $error) {
+            $this->warn("  {$error} : ignorée");
+        }
+        $ids = [];
+        foreach ($valid as $c) {
+            foreach (DB::table('station_lines')->where('station_id', $c['station_id'])->where('line_id', $c['line_id'])->pluck('id') as $id) {
+                $ids[] = (int) $id;
+            }
+        }
+        $removed = StationLineExclusions::remove($valid);
+        $this->line('  exclusions : '.$removed.' liens retirés sur '.count($valid).' exclusions valides'
+            .($errors !== [] ? ', '.count($errors).' ignorées' : ''));
+
+        return $ids;
     }
 
     /**
