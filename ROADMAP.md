@@ -199,7 +199,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Schéma en lecture : Era, Line, LineSegment, LineEvent, LineStop, LineSignallingRange, LevelCrossing, Station, Material, Route
 - [x] Documentation [Magidoc](https://magidoc.js.org/) sur `/docs/graphql` + GraphiQL
 - [x] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés : jeton personnel avec la capacité `contribute` (case du profil, décochée par défaut) ou session du site avec contrôle CSRF ; mêmes règles et même code que l'espace de validation du site (`App\Services\Contributions`)
-- [ ] Subscriptions (WebSocket) pour suivre les contributions en temps réel (demande un serveur temps réel en production, par exemple Laravel Reverb ; les webhooks `contribution.applied` couvrent le besoin en attendant)
+- [x] Subscriptions (WebSocket) pour suivre les contributions en temps réel, côté application : Laravel Reverb, canaux Laravel Echo (`contributions` public, `review-queue` et `users.{id}.contributions` privés), abonnements GraphQL `contributionApplied`, `myContributionChanged` et `reviewQueueChanged`, file de validation mise à jour sans recharger la page ; désactivé par défaut (`REALTIME_ENABLED`, `docs/API.md` section « Temps réel »)
+- [ ] Temps réel en production : lancer Reverb (`php artisan reverb:start` sous superviseur), activer le proxy WebSocket nginx (`deploy/nginx/snippets/vff-reverb.conf`) et les variables `REALTIME_*` et `REVERB_*` (`docs/DEPLOIEMENT-NGINX.md`, section « Temps réel ») ; les webhooks `contribution.applied` couvrent le besoin en attendant
 - [x] **REST reste la référence** pour les consommateurs externes, GraphQL est un complément
 
 ---

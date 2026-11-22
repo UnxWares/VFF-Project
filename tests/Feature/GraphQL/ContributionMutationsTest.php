@@ -153,13 +153,14 @@ class ContributionMutationsTest extends TestCase
 
     // ─── Schéma ─────────────────────────────────────────────────────────────
 
-    public function test_the_schema_has_two_mutations_and_no_subscription(): void
+    /** Abonnements du temps réel : RealtimeTest. */
+    public function test_the_schema_has_two_mutations_and_the_contribution_subscriptions(): void
     {
         $this->graphQL('{ __schema { mutationType { name fields { name } } subscriptionType { name } } }')
             ->assertGraphQLErrorFree()
             ->assertExactJson(['data' => ['__schema' => [
                 'mutationType' => ['name' => 'Mutation', 'fields' => [['name' => 'submitContribution'], ['name' => 'validateContribution']]],
-                'subscriptionType' => null,
+                'subscriptionType' => ['name' => 'Subscription'],
             ]]]);
     }
 

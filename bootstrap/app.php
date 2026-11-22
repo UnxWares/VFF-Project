@@ -10,6 +10,7 @@ use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAccountNotSuspended;
+use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MarkOfflineReadable;
 use App\Http\Middleware\SecurityHeaders;
@@ -74,6 +75,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->where(['family' => '[a-z]+', 'page' => '[0-9]{1,4}'])->name('sitemap.family');
         },
     )
+    // Temps réel (config/realtime.php) : autorisation des canaux privés par /broadcasting/auth, pour un
+    // membre connecté au site ; introuvable (404) tant que le temps réel est désactivé.
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', ['middleware' => ['web', EnsureRealtimeEnabled::class, 'auth']])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetLocale::class,

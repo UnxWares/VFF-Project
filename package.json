@@ -52,8 +52,10 @@
         "@protomaps/basemaps": "5.7.2",
         "bootstrap-icons": "^1.13.2",
         "i18next": "^27.2.2",
+        "laravel-echo": "^2.6.3",
         "maplibre-gl": "^6.19.0",
-        "pmtiles": "4.5.0"
+        "pmtiles": "4.5.0",
+        "pusher-js": "^8.6.0"
     },
     "scarfSettings": {
         "enabled": false

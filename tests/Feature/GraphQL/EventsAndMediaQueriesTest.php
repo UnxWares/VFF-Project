@@ -289,10 +289,11 @@ class EventsAndMediaQueriesTest extends TestCase
 
     public function test_the_only_mutations_are_the_contribution_ones(): void
     {
-        // Mutations de contribution réservées aux comptes connectés (ContributionMutationsTest) ; pas de subscription.
+        // Mutations de contribution réservées aux comptes connectés (ContributionMutationsTest) ; abonnements
+        // aux contributions seulement (RealtimeTest).
         $this->graphQL('{ __schema { mutationType { name } subscriptionType { name } } }')
             ->assertGraphQLErrorFree()
-            ->assertExactJson(['data' => ['__schema' => ['mutationType' => ['name' => 'Mutation'], 'subscriptionType' => null]]]);
+            ->assertExactJson(['data' => ['__schema' => ['mutationType' => ['name' => 'Mutation'], 'subscriptionType' => ['name' => 'Subscription']]]]);
     }
 
     public function test_page_size_is_capped_at_100(): void

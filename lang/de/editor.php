@@ -289,6 +289,8 @@ return [
         'reject' => 'Ablehnen',
         'confirm_approve' => 'Diesen Beitrag freigeben?',
         'confirm_apply' => 'Letzte erforderliche Freigabe: Der Beitrag wird sofort veröffentlicht. Bestätigen?',
+        // File de validation tenue à jour en direct (temps réel activé), annoncée aux lecteurs d’écran.
+        'live_updated' => 'Die Liste wurde soeben aktualisiert: Ein Beitrag wurde eingereicht oder geprüft.',
         'flash' => [
             'own' => 'Sie können Ihren eigenen Beitrag nicht freigeben.',
             'own_reject' => 'Sie können Ihren eigenen Beitrag nicht ablehnen: Ein anderer Prüfer muss ihn sichten.',

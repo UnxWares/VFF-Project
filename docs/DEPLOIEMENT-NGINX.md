@@ -13,6 +13,7 @@ Elle n'est déployée par personne : c'est un modèle à copier sur le serveur e
 | `deploy/nginx/snippets/vff-security-headers.conf` | En-têtes de sécurité des fichiers statiques                                       |
 | `deploy/nginx/snippets/vff-php.conf`         | Transmission à PHP-FPM                                                                 |
 | `deploy/nginx/snippets/vff-tls.conf`         | Protocoles et chiffrements TLS                                                         |
+| `deploy/nginx/snippets/vff-reverb.conf`      | Proxy WebSocket vers Laravel Reverb (temps réel, inclus seulement s'il est activé)     |
 | `deploy/nginx/optional/brotli.conf.example`  | Compression brotli, si le module est installé                                          |
 
 Installation : `vff-project.org.conf` dans `/etc/nginx/conf.d/`, `snippets/` dans `/etc/nginx/snippets/`,
@@ -112,6 +113,35 @@ qui envoie un fichier inclut donc `vff-security-headers.conf` (HSTS un an sans `
 qu'ils figurent aussi sur les 304. Si `SecurityHeaders::HSTS` ou `PERMISSIONS_POLICY` change, mettre ce
 fichier à jour. Contrôle : `curl -sI https://vff-project.org/robots.txt` et
 `curl -sI https://vff-project.org/` doivent montrer les mêmes cinq en-têtes, chacun une seule fois.
+
+## Temps réel (Laravel Reverb)
+
+Le suivi des contributions en direct (`docs/API.md`, section « Temps réel ») est désactivé tant que la
+production n'a pas de serveur temps réel. Pour l'activer :
+
+1. **Processus Reverb** : `php artisan reverb:start` (il écoute `REVERB_SERVER_HOST:REVERB_SERVER_PORT`,
+   par défaut `127.0.0.1:8080`), lancé et relancé par le superviseur du serveur (unité systemd ou
+   Supervisor), comme le travailleur de file d'attente `php artisan queue:work`, qui envoie les
+   événements. Après un déploiement : `php artisan reverb:restart`.
+2. **`.env` de production** (modèle dans `.env.example`) :
+   - `REALTIME_ENABLED=true` et `BROADCAST_CONNECTION=reverb` ;
+   - `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` : valeurs aléatoires propres au serveur (la clé
+     est publique, le secret ne quitte jamais le serveur) ;
+   - `REVERB_HOST=127.0.0.1`, `REVERB_PORT=8080`, `REVERB_SCHEME=http` : Laravel publie directement
+     auprès de Reverb, sans passer par nginx ;
+   - `REALTIME_CLIENT_HOST=vff-project.org`, `REALTIME_CLIENT_PORT=443`, `REALTIME_CLIENT_SCHEME=https` :
+     l'adresse qu'ouvre le navigateur, celle de nginx ; la CSP l'admet d'elle-même
+     (`wss://vff-project.org`) ;
+   - plusieurs serveurs Reverb : `REVERB_SCALING_ENABLED=true`, ils se relaient les messages par Valkey
+     (connexion `REDIS_*`).
+3. **nginx** : décommenter `include /etc/nginx/snippets/vff-reverb.conf;` dans le bloc `vff-project.org`.
+   Seul `/app/` (la connexion WebSocket) est transmis à Reverb ; son API HTTP (`/apps/…`) reste locale.
+4. `php artisan config:cache`, puis rechargement de PHP-FPM et de nginx.
+
+Contrôle : `curl --http1.1 -s -o /dev/null -w '%{http_code}\n' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H
+'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' -H 'Origin: https://vff-project.org'
+https://vff-project.org/app/<REVERB_APP_KEY>` doit répondre `101`. Sur `/validate`, la liste se met à jour
+quand un autre validateur approuve une contribution.
 
 ## Contrôle de la syntaxe
 

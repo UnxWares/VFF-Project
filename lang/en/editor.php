@@ -289,6 +289,8 @@ return [
         'reject' => 'Reject',
         'confirm_approve' => 'Approve this contribution?',
         'confirm_apply' => 'Last approval required: the contribution will be published immediately. Confirm?',
+        // File de validation tenue à jour en direct (temps réel activé), annoncée aux lecteurs d’écran.
+        'live_updated' => 'The list has just been updated: a contribution was submitted or reviewed.',
         'flash' => [
             'own' => 'You cannot approve your own contribution.',
             'own_reject' => 'You cannot reject your own contribution: another validator must review it.',

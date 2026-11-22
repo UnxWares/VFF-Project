@@ -471,6 +471,8 @@ return [
          * Any Laravel supported cache driver options are available here.
          */
         'storage' => env('LIGHTHOUSE_SUBSCRIPTION_STORAGE', 'redis'),
+        // VFF : `redis` désigne la connexion REDIS_* (Valkey). Abonnements du type Subscription, refusés
+        // tant que le temps réel est désactivé (config/realtime.php, App\GraphQL\Subscriptions).
 
         /*
          * Default subscription storage time to live in seconds.
@@ -479,7 +481,8 @@ return [
          * Setting this to `null` means the subscriptions are stored forever. This may cause
          * stale subscriptions to linger indefinitely in case cleanup fails for any reason.
          */
-        'storage_ttl' => env('LIGHTHOUSE_SUBSCRIPTION_STORAGE_TTL', null),
+        // VFF : un jour. Reverb ne signale pas les canaux quittés, un abonné parti est oublié au bout d'un jour.
+        'storage_ttl' => env('LIGHTHOUSE_SUBSCRIPTION_STORAGE_TTL', 86400),
 
         /*
          * Encrypt subscription channels by prefixing their names with "private-encrypted-"?
@@ -489,7 +492,9 @@ return [
         /*
          * Default subscription broadcaster.
          */
-        'broadcaster' => env('LIGHTHOUSE_BROADCASTER', 'pusher'),
+        // VFF : Reverb auto-hébergé (connexion `reverb` de config/broadcasting.php) ; `pusher` pour un autre
+        // serveur compatible Pusher, lui aussi auto-hébergé.
+        'broadcaster' => env('LIGHTHOUSE_BROADCASTER', 'reverb'),
 
         /*
          * Subscription broadcasting drivers with config options.
