@@ -197,4 +197,12 @@ class PublicPagesTest extends TestCase
         $this->assertStringContainsString('logs/testing/', $path);
         $this->assertStringNotContainsString(storage_path('logs/csp.log'), $path);
     }
+
+    public function test_client_errors_log_channel_writes_outside_the_real_file_during_tests(): void
+    {
+        $path = (string) config('logging.channels.client-errors.path');
+
+        $this->assertStringContainsString('logs/testing/', $path);
+        $this->assertStringNotContainsString(storage_path('logs/client-errors.log'), $path);
+    }
 }

@@ -81,7 +81,8 @@ return [
         // Erreurs JavaScript du navigateur (ClientErrorController) : une ligne JSON par erreur.
         'client-errors' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/client-errors.log'),
+            // Les tests écrivent ailleurs (LOG_CLIENT_ERRORS_FILE dans phpunit.xml).
+            'path' => storage_path(env('LOG_CLIENT_ERRORS_FILE', 'logs/client-errors.log')),
             'level' => 'error',
             'days' => 30,
             'formatter' => JsonFormatter::class,
