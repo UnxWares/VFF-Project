@@ -1968,7 +1968,7 @@ type Accident {
     Nature : `collision` (entre trains ou avec un obstacle sur la voie), `derailment`
     (déraillement), `level_crossing` (collision à un passage à niveau), `fire` (incendie),
     `explosion`, `structure_failure` (rupture d'ouvrage : pont, tunnel, mur, rail), `attack`
-    (attentat), `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive),
+    (attentat), `war_action` (fait de guerre : bombardement, ouvrage détruit par une armée), `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive),
     `incident` (incident grave sans accident : quasi-collision, dépassement de vitesse,
     immobilisation), `other`.
     """

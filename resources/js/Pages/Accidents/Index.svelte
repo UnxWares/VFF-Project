@@ -39,6 +39,7 @@
         'explosion',
         'structure_failure',
         'attack',
+        'war_action',
         'runaway',
         'incident',
         'other',

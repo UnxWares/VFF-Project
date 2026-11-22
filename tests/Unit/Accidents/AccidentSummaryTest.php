@@ -79,4 +79,22 @@ class AccidentSummaryTest extends TestCase
         $this->assertSame('TGV (TGV Sud-Est)', AccidentSummary::trainLabel(['label' => 'TGV', 'category' => null, 'number' => null, 'material' => 'TGV Sud-Est', 'operator' => null], 'en'));
         $this->assertSame('Bauzug', AccidentSummary::trainLabel(['label' => null, 'category' => 'works', 'number' => null, 'material' => null, 'operator' => null], 'de'));
     }
+
+    public function test_war_action_has_its_own_nature_in_the_three_languages(): void
+    {
+        $this->assertSame('war_action', AccidentKind::WarAction->value);
+        $this->assertContains('war_action', AccidentKind::values());
+        $this->assertNotContains('war_action', AccidentKind::HIDDEN);
+
+        $s = $this->write(['kind' => AccidentKind::WarAction, 'commune' => 'Rouen', 'department' => '76', 'trains' => [], 'deaths' => null, 'injuries' => null]);
+
+        $this->assertStringContainsString('un fait de guerre frappe le chemin de fer', $s['fr']);
+        $this->assertStringContainsString('an act of war struck the railway', $s['en']);
+        $this->assertStringContainsString('Kriegshandlung getroffen', $s['de']);
+        foreach (['fr', 'en', 'de'] as $locale) {
+            $this->assertNotSame('', trans('accidents.kinds.war_action', [], $locale));
+            $this->assertNotSame('accidents.kinds.war_action', trans('accidents.kinds.war_action', [], $locale));
+            $this->assertNotSame('accidents.names.kinds.war_action', trans('accidents.names.kinds.war_action', [], $locale));
+        }
+    }
 }

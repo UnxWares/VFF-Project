@@ -14,6 +14,7 @@
         nearestIndex,
         nearestStation,
         rackSentence,
+        showsCumulativeClimb,
         sourceLang,
         ticks,
     } from '$lib/lineProfile.js';
@@ -87,8 +88,12 @@
     const statItems = $derived([
         { value: metres(s.min_altitude_m), label: t('profile.min') },
         { value: metres(s.max_altitude_m), label: t('profile.max') },
-        { value: metres(s.ascent_m), label: t('profile.ascent') },
-        { value: metres(s.descent_m), label: t('profile.descent') },
+        ...(showsCumulativeClimb(s)
+            ? [
+                  { value: metres(s.ascent_m), label: t('profile.ascent') },
+                  { value: metres(s.descent_m), label: t('profile.descent') },
+              ]
+            : []),
         {
             value: rack
                 ? `${permil(rack.max_grade_permil)}${NBSP}‰`

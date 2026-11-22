@@ -90,6 +90,15 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'war_action',
+            'sources' => ['wp-de'],
+            'fr' => "L'armée française avait fait sauter le pont à titre préventif, sans prévenir le personnel ferroviaire : c'est un fait de guerre, pas une rupture d'ouvrage.",
+            'en' => 'The French army had blown up the bridge as a precaution, without warning the railway staff: this is an act of war, not a structural failure.',
+            'de' => 'Die französische Armee hatte die Brücke vorsorglich gesprengt, ohne das Eisenbahnpersonal zu warnen: Es handelt sich um eine Kriegseinwirkung, nicht um ein Bauwerksversagen.',
+        ],
+    ],
     'images' => [],
 ];

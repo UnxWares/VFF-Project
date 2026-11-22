@@ -10,6 +10,7 @@ import {
     nearestIndex,
     niceStep,
     rackSentence,
+    showsCumulativeClimb,
     sourceLang,
     ticks,
 } from '../../resources/js/lib/lineProfile.js';
@@ -241,5 +242,18 @@ describe('sourceLang', () => {
     it("n'invente pas de langue pour une autre adresse", () => {
         expect(sourceLang('https://example.org/fr/page')).toBeUndefined();
         expect(sourceLang(null)).toBeUndefined();
+    });
+});
+
+describe('showsCumulativeClimb', () => {
+    it('masque les dénivelés cumulés quand le terrain est la seule source', () => {
+        expect(showsCumulativeClimb({ max_grade_withheld: 'terrain_only' })).toBe(false);
+    });
+
+    it('les garde pour une ligne mesurée sur la voie, ou pour un autre motif', () => {
+        expect(showsCumulativeClimb({ max_grade_withheld: null })).toBe(true);
+        expect(showsCumulativeClimb({ max_grade_withheld: 'tunnel' })).toBe(true);
+        expect(showsCumulativeClimb({})).toBe(true);
+        expect(showsCumulativeClimb(null)).toBe(true);
     });
 });

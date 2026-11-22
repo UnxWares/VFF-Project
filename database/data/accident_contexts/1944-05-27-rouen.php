@@ -118,6 +118,15 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'war_action',
+            'sources' => ['wp-liste-1940s'],
+            'fr' => "Le train a été pris sous un bombardement allié visant notamment le viaduc d'Eauplet : c'est un fait de guerre.",
+            'en' => 'The train was caught in an Allied air raid aimed, among other targets, at the Eauplet viaduct: this is an act of war.',
+            'de' => 'Der Zug geriet in einen alliierten Luftangriff, der unter anderem dem Viadukt von Eauplet galt: Es handelt sich um eine Kriegseinwirkung.',
+        ],
+    ],
     'images' => [],
 ];

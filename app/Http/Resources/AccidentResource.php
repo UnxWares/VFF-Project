@@ -49,7 +49,7 @@ class AccidentResource extends JsonResource
             /**
              * Nature : `collision` (entre trains ou avec un obstacle sur la voie), `derailment` (déraillement),
              * `level_crossing` (collision à un passage à niveau), `fire` (incendie), `explosion`,
-             * `structure_failure` (rupture d'ouvrage : pont, tunnel, mur, rail), `attack` (attentat),
+             * `structure_failure` (rupture d'ouvrage : pont, tunnel, mur, rail), `attack` (attentat), `war_action` (fait de guerre : bombardement, ouvrage détruit par une armée),
              * `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive d'un train ou de
              * wagons), `incident` (incident grave sans accident : quasi-collision, dépassement de vitesse,
              * immobilisation), `other`. La première circonstance décrite l'emporte (« dérive puis déraillement » : `runaway`).

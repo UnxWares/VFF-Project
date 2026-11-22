@@ -248,6 +248,17 @@ export function nearestStation(stations, x, px, reach = 8) {
 const RACK_SYSTEMS = { strub: 'Strub', abt: 'Abt', riggenbach: 'Riggenbach' };
 
 /**
+ * Les dénivelés cumulés ne s'affichent pas quand l'altitude vient du terrain seul (la déclivité
+ * n'est alors pas publiée pour ce motif) : le terrain sous un tracé ancien suit talus et versants,
+ * et gonfle la montée et la descente. L'API continue de les servir, avec `max_grade_withheld`.
+ * @param {{ max_grade_withheld?: string | null } | null | undefined} summary
+ * @returns {boolean}
+ */
+export function showsCumulativeClimb(summary) {
+    return summary?.max_grade_withheld !== 'terrain_only';
+}
+
+/**
  * Phrase et nom du système d'une ligne à crémaillère (`profile.rack`, null pour une ligne à
  * adhérence) : clé de traduction selon l'étendue connue et nom propre du type de crémaillère.
  * @param {{ system: string, extent: 'full'|'partial'|null } | null | undefined} rack
