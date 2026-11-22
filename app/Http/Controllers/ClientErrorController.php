@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Monitoring\RedactedUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -42,8 +43,8 @@ class ClientErrorController extends Controller
             'message' => self::text($data['message'] ?? null, 300),
             'page' => self::url($data['page'] ?? null),
             'source' => self::url($data['source'] ?? null),
-            'line' => is_numeric($data['line'] ?? null) ? (int) $data['line'] : null,
-            'column' => is_numeric($data['column'] ?? null) ? (int) $data['column'] : null,
+            'line' => self::position($data['line'] ?? null),
+            'column' => self::position($data['column'] ?? null),
             'stack' => self::stack($data['stack'] ?? null),
             'release' => self::word($data['release'] ?? null),
         ];
@@ -79,12 +80,22 @@ class ClientErrorController extends Controller
         if (! is_string($url) || $url === '') {
             return null;
         }
-        $p = parse_url($url);
-        if (! is_array($p) || ! isset($p['scheme'], $p['host'])) {
-            return null;
-        }
+        $redacted = RedactedUrl::of($url);
 
-        return mb_substr($p['scheme'].'://'.$p['host'].(isset($p['port']) ? ':'.$p['port'] : '').($p['path'] ?? ''), 0, 300);
+        return $redacted === null ? null : mb_substr($redacted, 0, 300);
+    }
+
+    /**
+     * Numéro de ligne ou de colonne : entier positif, sinon null. Un nombre que PHP ne peut pas représenter
+     * en entier (`1e999`, `1e20`) levait un avertissement, donc une erreur 500, au lieu d'être ignoré.
+     */
+    private static function position(mixed $value): ?int
+    {
+        $int = is_int($value) || is_float($value) || is_string($value)
+            ? filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])
+            : false;
+
+        return $int === false ? null : $int;
     }
 
     private static function word(mixed $value): ?string

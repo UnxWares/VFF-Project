@@ -120,4 +120,15 @@ class SignallingSourcesFileTest extends TestCase
             SignallingHistoryState::withoutRestatements([$otherYear, $otherGroup, $otherPortion, $samePortion, $doc]));
         $this->assertSame([$otherYear], SignallingHistoryState::withoutRestatements([$otherYear]), 'sans document, rien ne change');
     }
+
+    public function test_a_whole_line_wikipedia_fact_is_kept_beside_a_document_on_one_portion(): void
+    {
+        // Le document ne date qu'une portion : le fait de l'article sur toute la ligne dit davantage
+        // (le reste de la ligne), il n'est pas redit et reste dans l'historique comme sur la carte.
+        $doc = self::fact('manual', ['date' => '1975-05-25', 'scope' => 'section', 'section' => ['from' => 'Angers', 'to' => 'Nantes']]);
+        $wholeLine = self::fact('wikipedia', ['scope' => 'whole_line']);
+        $unspecified = self::fact('wikipedia');
+
+        $this->assertSame([$wholeLine, $doc], SignallingHistoryState::withoutRestatements([$wholeLine, $unspecified, $doc]));
+    }
 }

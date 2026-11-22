@@ -366,7 +366,11 @@ class LineClassifier
         });
         $stats['portions']['split'] = $split;
 
-        (new LineElectrificationAggregate)->apply($eraId);
+        // lines.electrified et voltage_v disent l'état d'aujourd'hui : recalculés seulement depuis l'ère courante
+        // (classer une ère passée avec --era ne les fait pas revenir à l'électrification de cette époque).
+        if (DB::table('eras')->where('id', $eraId)->value('is_current')) {
+            (new LineElectrificationAggregate)->apply($eraId);
+        }
 
         // Passe 2 : héritage des raccordements depuis les voisins déjà classés (<60 m)
         $rstats = $this->resolveRaccordements($eraId, array_keys($deferred), array_keys(array_filter($lgvAssign)), $voieMere);

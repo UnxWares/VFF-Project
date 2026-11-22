@@ -67,12 +67,12 @@ class JournalController extends Controller
     #[QueryParameter('lang', 'Langue souhaitée : `fr`, `en` ou `de`. Un article sans traduction est renvoyé en français.', type: 'string', default: 'fr', example: 'en')]
     #[QueryParameter('line', 'Code RFN à 6 chiffres : seulement les articles qui parlent de cette ligne.', type: 'string', example: '878000')]
     #[QueryParameter('per_page', "Nombre d'articles par page (1 à 50).", type: 'int', default: 10, example: 10)]
-    #[QueryParameter('page', 'Numéro de page, à partir de 1.', type: 'int', default: 1, example: 1)]
+    #[QueryParameter('page', 'Numéro de page, de 1 à 1 000 000 (une page au-delà de la dernière est vide).', type: 'int', default: 1, example: 1)]
     #[ApiResponse(200, 'Une page de la liste des articles.', examples: [[
         'data' => [self::SUMMARY_EXAMPLE],
         'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 10, 'total' => 2],
     ]])]
-    #[ApiResponse(422, 'Paramètre invalide (langue inconnue, code de ligne mal formé, `per_page` hors limites).', examples: [[
+    #[ApiResponse(422, 'Paramètre invalide (langue inconnue, code de ligne mal formé, `per_page` ou `page` hors limites).', examples: [[
         'message' => 'The selected lang is invalid.',
         'errors' => ['lang' => ['The selected lang is invalid.']],
     ]])]
@@ -83,7 +83,7 @@ class JournalController extends Controller
             'lang' => ['sometimes', Rule::in(SetLocale::SUPPORTED)],
             'line' => ['sometimes', 'string', 'regex:/^\d{6}$/'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
-            'page' => ['sometimes', 'integer', 'min:1'],
+            'page' => ['sometimes', 'integer', 'min:1', 'max:1000000'],
         ]);
         $lang = $this->locale($valid);
         $all = $this->journal->all($lang);

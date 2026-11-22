@@ -49,7 +49,7 @@ class LevelCrossingController extends Controller
     #[QueryParameter('commune', 'Partie du nom de la commune, sans accents ni capitales (2 à 100 caractères).', type: 'string', example: 'courthiezy')]
     #[QueryParameter('bbox', 'Emprise `ouest,sud,est,nord` en degrés WGS 84 (point décimal), ouest < est et sud < nord.', type: 'string', example: '3.5,49.0,3.7,49.1')]
     #[QueryParameter('per_page', 'Nombre de PN par page (1 à 200).', type: 'int', default: 50, example: 50)]
-    #[QueryParameter('page', 'Numéro de page, à partir de 1.', type: 'int', default: 1, example: 1)]
+    #[QueryParameter('page', 'Numéro de page, de 1 à 1 000 000 (au-delà : 422).', type: 'int', default: 1, example: 1)]
     #[ApiResponse(200, 'Une page de la liste des passages à niveau.', examples: [LevelCrossingExamples::LIST])]
     #[ApiResponse(422, 'Paramètre invalide (ligne inconnue, groupe ou classe inconnus, emprise mal formée, `per_page` hors limites) : détail par paramètre dans `errors`.', examples: [LevelCrossingExamples::INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]

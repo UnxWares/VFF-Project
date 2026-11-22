@@ -118,8 +118,8 @@ final class JournalRenderer
     }
 
     /**
-     * Identifiant de chaque titre (texte en minuscules sans accents, suffixe -2, -3 en cas de doublon) ;
-     * sommaire des titres de niveau 2.
+     * Identifiant de chaque titre (texte en minuscules sans accents, suffixe -2, -3 en cas de doublon,
+     * préfixe section- devant un identifiant de note) ; sommaire des titres de niveau 2.
      *
      * @param  list<Heading>  $headings
      * @return list<array{id: string, label: string}>
@@ -131,6 +131,11 @@ final class JournalRenderer
         foreach ($headings as $heading) {
             $label = trim(StringContainerHelper::getChildText($heading));
             $base = Str::slug($label) ?: 'section';
+            // Les notes et leurs appels ont les identifiants note-… et appel-… (réglages de FootnoteExtension) :
+            // un titre « Note 1 » ne les prend pas.
+            if (preg_match('/^(?:note|appel)-/', $base) === 1) {
+                $base = 'section-'.$base;
+            }
             $id = $base;
             for ($n = 2; isset($taken[$id]); $n++) {
                 $id = "{$base}-{$n}";

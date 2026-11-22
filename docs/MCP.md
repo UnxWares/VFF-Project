@@ -1096,7 +1096,9 @@ phrase de l'article n'est renvoyée (décision Q22) : le permalien de la révisi
 | `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte : ajoute `era` (`year`, `is_current`) et `in_force`. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Renvoie `line`, `history` (tous les faits sûrs, du plus ancien au plus récent), avec `year` : `era` et `in_force`, les
+Renvoie `line`, `history` (tous les faits sûrs, du plus ancien au plus récent), `corrections` (faits relevés que des
+documents contredisent, jamais dans `history` ni `in_force` : `system`, `date`, `date_precision`, `section`, `original`,
+`action`, `reason`, `quote`, `sources`, comme la clé `corrections` de l'API REST ; liste vide sinon), avec `year` : `era` et `in_force`, les
 faits encore en vigueur au 31 décembre de l'année de l'ère (aujourd'hui pour l'ère courante), ceux que dessine le calque
 « Signalisation » de la carte à cette époque. Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui
 porte sur toute la ligne ou recouvre sa portion placée le remplace ; un fait sans portion connue ne remplace rien, et un

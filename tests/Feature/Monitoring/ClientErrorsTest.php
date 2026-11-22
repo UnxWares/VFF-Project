@@ -87,4 +87,29 @@ class ClientErrorsTest extends TestCase
 
         $this->assertCount(2, $logger->logged);
     }
+
+    public function test_jeton_du_chemin_retire(): void
+    {
+        $logger = $this->fakeChannel();
+        $token = str_repeat('0123456789abcdef', 4);
+
+        $this->postJson('/api/client-errors', ['message' => 'x', 'page' => "https://vff-project.org/reset-password/{$token}?email=a%40b.c"])->assertNoContent();
+
+        $this->assertSame('https://vff-project.org/reset-password/[token]', $logger->logged[0]['page']);
+        $this->assertStringNotContainsString($token, (string) json_encode($logger->logged[0]));
+    }
+
+    public function test_numero_de_ligne_hors_des_entiers_ignore(): void
+    {
+        $logger = $this->fakeChannel();
+
+        // 1e999 se lit INF : sa conversion en entier levait un avertissement, donc une erreur 500.
+        $this->call('POST', '/api/client-errors', server: ['CONTENT_TYPE' => 'application/json'], content: '{"message":"x","line":1e999,"column":1e20}')->assertNoContent();
+        $this->postJson('/api/client-errors', ['message' => 'y', 'line' => '12', 'column' => -3])->assertNoContent();
+
+        $this->assertNull($logger->logged[0]['line']);
+        $this->assertNull($logger->logged[0]['column']);
+        $this->assertSame(12, $logger->logged[1]['line']);
+        $this->assertNull($logger->logged[1]['column']);
+    }
 }

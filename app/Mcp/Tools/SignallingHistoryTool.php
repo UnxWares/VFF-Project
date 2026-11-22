@@ -20,6 +20,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Mises en service datées de signalisation d'une ligne (BAL, BAPR, block manuel, cantonnement téléphonique, TVM, ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox) ou dans d'autres documents datés relevés par VFF (communiqués de SNCF Réseau, rapports du BEA-TT et de l'EPSF, Journal officiel, presse). Mêmes faits que l'API REST GET /api/v1/lines/{line}/signalling-history, sans les phrases de l'article : les liens vers la révision lue suffisent. C'est un historique à part : l'état actuel (SNCF Réseau) est dans get_line (`signalling.block_systems_km`), que ces faits ne corrigent pas. Faits sûrs seulement ; un fait absent ne veut pas dire qu'aucun système n'a été mis en service.
 Chaque fait : `system` (BAL, BAPR, BM, CT, TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS, KVB), `role` (block : cantonnement ; cab : signalisation en cabine TVM et ETCS, cantonnement et contrôle à la fois, une LGV n'a pas de BAL ; speed_control : contrôle de vitesse, le KVB n'est jamais un cantonnement), `date` et `date_precision` (day, month, year : jour et mois manquants valent 01), `reliability` (high, ou medium : année seule ou date déduite de l'ouverture), `origin` (text, list, table, infobox, opening : TVM d'une LGV, en service dès l'ouverture de la ligne ; document : daté hors de l'article), `scope` (whole_line, section, unspecified), `section` (lieux tels qu'écrits `from` et `to` ; `location` : stations, placée par ses gares d'extrémité ; article_pk, PK de l'article ; unlocated, non placée ; `pk_start_m`, `pk_end_m`, `from_station`, `to_station`), `source` (`provider` : wikipedia ou manual ; `title`, `url` permalien de la révision ou lien du premier document, `revision`, nul pour un document ; `verification` : official ou two_sources pour un document ; `documents` : publisher, title, url, published).
+`corrections` : faits relevés que des documents contredisent, jamais dans `history` ni `in_force` (`system`, `date`, `date_precision`, `section`, `original` : provider, title, url ; `action` : neutralize ou replace ; `reason`, `quote`, `sources` : publisher, title, url, published) ; liste vide sinon.
 Avec `year` (n'importe quelle année, ramenée à l'ère de la carte), la réponse ajoute `era` et `in_force` : les faits en vigueur à la fin de l'ère, ceux que dessine le calque « Signalisation » de la carte à cette époque. Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace.
 Licence : texte de Wikipédia sous CC BY-SA 4.0 (bloc `attribution`) ; seuls des faits sont repris. Faits datés par des documents : relevé de VFF, avec le lien de chaque document.
 Exemples : {"line": "rfn-974000"} ; {"line": "905000", "year": 1990, "lang": "en"}.
@@ -59,6 +60,8 @@ class SignallingHistoryTool extends VffTool
         $payload = [
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'history' => $facts,
+            // Faits que des documents contredisent : jamais dans `history`, comme l'API REST (clé `corrections`).
+            'corrections' => $history->corrections($line),
         ];
         if (isset($input['year'])) {
             $era = Lookup::era((int) $input['year']);

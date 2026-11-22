@@ -98,7 +98,8 @@ class CommonsMetadata
             'attribution_required' => $rights['attribution_required'],
             'attribution' => self::attribution($author, $rights, self::plainDashes(self::clean($ext['Attribution'] ?? null, 300))),
             'depicted_year' => $date['year'] ?? null,
-            'depicted_year_to' => null,
+            // Fin d'une plage (« 1900-1910 », gabarit {{Other date}} avec « au plus tard ») ; null sinon.
+            'depicted_year_to' => $date['year_to'] ?? null,
             'date_precision' => $date['precision'] ?? null,
             'captured_at' => $date['date'] ?? null,
             'date_raw' => self::clean($ext['DateTimeOriginal'] ?? null, 120),
@@ -195,7 +196,7 @@ class CommonsMetadata
     /**
      * Année représentée à partir de DateTimeOriginal (HTML Commons).
      *
-     * @return array{year: int, precision: string, date: ?string}|null
+     * @return array{year: int, year_to?: int, precision: string, date: ?string}|null
      */
     public static function parseDate(?string $raw): ?array
     {
