@@ -195,6 +195,27 @@ la fois, une seconde de pause), réponses gardées par tuile dans `storage/app/d
 Une ligne dont le profil ne peut plus être calculé (tracé retiré, aucune altitude) perd son ancien profil, et la sortie
 le signale. Lecture : `GET /api/v1/lines/{line}/profile`, `/profile/points`, `/altitude?pk_m=` ([API.md](API.md)).
 
+### `vff:import-sncf-grades`
+
+Déclivités du jeu SNCF Open Data « Caractéristique des voies et déclivité » (SNCF Réseau, ODbL) : segment le plus raide
+de chaque ligne du RFN, confronté à Wikipédia (`database/data/sourced_grades.php`) et au profil mesuré en base, puis écrit
+dans `database/data/sourced_grades_sncf.php`, lu par la fiche et l'API (`sourced_grade`). La base n'est jamais modifiée.
+Le jeu ne décrit qu'une partie des voies : une ligne couverte à moins de 10 % est laissée de côté. Une valeur au-dessus
+de 60 ‰ hors ligne de montagne connue, ou de plus de 3 fois la déclivité mesurée, est écartée et listée. Si Wikipédia
+donne une valeur proche, elle est gardée ; si les deux divergent, la SNCF n'est retenue que si elle reste cohérente avec
+la voie et dépasse Wikipédia, ou couvre presque toute la ligne. Deux requêtes (métadonnées, dont la licence vérifiée,
+puis export), jeu gardé dans `storage/app/sources/sncf-declivites/` (dossier `.nobackup`). Le fichier est réécrit trié :
+relancer la commande sur les mêmes données donne le même fichier.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement, aucun fichier écrit. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--min-coverage=0.1` | Part de la ligne (0 à 1) que les segments du jeu doivent couvrir. |
+| `--cache-dir=` | Dossier du cache. |
+| `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
+| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
+
 ### `vff:build-line-references`
 
 Fusionne les tracés de chaque ligne (IGN, OSM, OHM, SNCF…), recale les morceaux peu précis sur la voie réelle et croise

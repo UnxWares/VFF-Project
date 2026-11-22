@@ -16,25 +16,30 @@ class SourcedGradesMutationTest extends TestCase
 
     public function test_all_is_the_versioned_file_and_stays_the_same_between_calls(): void
     {
-        $file = require database_path('data/sourced_grades.php');
+        $file = array_replace(require database_path('data/sourced_grades.php'), require database_path('data/sourced_grades_sncf.php'));
 
         $this->assertSame($file, SourcedGrades::all());
+        // Après flush(), les fichiers sont relus : mêmes lignes, même ordre.
+        SourcedGrades::flush();
+        $this->assertSame(array_keys($file), array_keys(SourcedGrades::all()));
         $this->assertSame(SourcedGrades::all(), SourcedGrades::all());
     }
 
     public function test_the_published_value_carries_the_entry_title_and_link(): void
     {
-        $all = SourcedGrades::all();
+        $all = array_filter(SourcedGrades::all(), fn (array $e): bool => $e['provider'] === 'wikipedia');
         $slug = (string) array_key_first($all);
         $entry = $all[$slug];
 
         $this->assertSame([
             'max_grade_permil' => (float) $entry['max_grade_permil'],
+            'covered_share' => null,
             'source' => [
                 'provider' => 'wikipedia',
                 'title' => $entry['source_title'],
                 'url' => $entry['source_url'],
                 'license' => 'CC BY-SA 4.0',
+                'attribution' => 'Wikipédia',
             ],
         ], SourcedGrades::present($slug, 'tunnel'));
     }

@@ -50,6 +50,7 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 | Référentiel d'altitude entre deux PK | `GET /lines/{line}/profile/points?pk_from_m&pk_to_m&max_points` | `LineProfile.samples(pk_from_m, pk_to_m, max_points)` | `line_profile` (`pk_from_m`, `pk_to_m`, résultat `samples`) |
 | Altitude à un PK | `GET /lines/{line}/altitude?pk_m` | `LineProfile.altitude_at(pk_m)` | `line_profile` (`pk_m`, résultat `altitude_at_pk`) |
 | Crémaillère (`rack`) et déclivité publiée | `profile.rack` | `LineProfile.rack` | `profile.rack` de `line_profile` |
+| Déclivité d'une source écrite (Wikipédia, SNCF Réseau), fournisseur, licence, attribution, part couverte | `profile.sourced_grade` | `LineProfile.sourced_grade` | `profile.sourced_grade` de `line_profile` |
 | Contexte sourcé, documents, images et corrections d'un accident | `GET /accidents/{accident}` (`context`) | `Accident.context` | `get_accident` (sans citation) |
 | Provenance des champs d'un accident | `provenance` | `Accident.provenance` | `provenance` de `get_accident` |
 | Matériel d'une ligne, photo, fin de circulation, relations | `GET /lines/{line}/materials` (`image`, `end`, `relations`) | `Line.material_links` (`end`, `relations`), `LineSheet.materials` | `line_materials` |

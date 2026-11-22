@@ -87,11 +87,13 @@ return [
                 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares-archive',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/caracteristique-des-voies-et-declivite',
             ],
             'citation' => '"license": "Open Database License (ODbL)" (métadonnées des 12 jeux utilisés, lues le 2026-10-20) ; '
                 .'« licence » : « odc-odbl » pour horaires-sncf et horaires-des-lignes-transilien-1 (API transport.data.gouv.fr, lue le 2026-11-18) ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-passages-a-niveau, mode-de-cantonnement-des-lignes et lignes-equipees-de-kvb (lus le 2026-11-20) ; '
-                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (2025) et frequentation-gares-archive (2015-2024), lus le 2026-11-21 (database/data/frequentation_gares_405000.php ; les deux jeux ne sont pas comparables entre eux, avertissement de SNCF)',
+                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (2025) et frequentation-gares-archive (2015-2024), lus le 2026-11-21 (database/data/frequentation_gares_405000.php ; les deux jeux ne sont pas comparables entre eux, avertissement de SNCF) ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour caracteristique-des-voies-et-declivite, lu le 2026-11-22 (database/data/sourced_grades_sncf.php, vff:import-sncf-grades, qui revérifie la licence à chaque téléchargement)',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',

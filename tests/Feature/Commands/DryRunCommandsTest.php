@@ -35,7 +35,7 @@ class DryRunCommandsTest extends TestCase
         'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
-        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives',
+        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades',
         'vff:import-station-closures', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
@@ -62,6 +62,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-material-periods' => ['--offline' => true],
         'vff:import-gallica' => ['--offline' => true],
         'vff:import-sncf-archives' => ['--file' => 'tests/Fixtures/Sncf/archives-sncf-sardo-extrait.json'],
+        'vff:import-sncf-grades' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
         'vff:audit-stations' => ['--no-bdtopo' => true],
         'vff:import-station-wikidata-dates' => ['--from-cache' => true],
     ];

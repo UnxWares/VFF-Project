@@ -20,7 +20,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 Profil en long d'une ligne (altitude le long du tracé, comme dans un livret de ligne), même contenu que l'API REST GET /api/v1/lines/{line}/profile, allégé par défaut à 200 points.
 Parcours : tracé de référence de la ligne entière, toutes époques (lignes fermées et déposées comprises), assemblé le long de l'artère principale, du plus petit PK officiel vers le plus grand ; les morceaux séparés par un trou sont gardés (`gaps` : la courbe s'y interrompt), les embranchements suivent bout à bout (`branches`). `points` = [distance_m, altitude_m, pk_m] : distance le long du parcours depuis son origine, trous compris ; altitude en mètres (NGF-IGN69), null sans valeur (hors de France, trou) ; PK estimé en mètres, calé sur les PK officiels des gares (null sans calage ou sur un embranchement).
 Avec `pk_m` : `altitude_at_pk` donne l'altitude interpolée à ce PK (altitude_m, distance_m, interpolated, sources, structure, lat, lng), null si elle est inconnue ; lat et lng sont null, avec le motif dans position_withheld (licence_not_open, unknown_source), quand le tracé à cet endroit vient d'une source non redistribuable.
-`summary` : min_altitude_m, max_altitude_m, ascent_m et descent_m (dénivelés cumulés dans le sens du parcours : altitudes du terrain moyennées sur 1 km, puis variations de moins de 3 m ignorées ; méthode dans climb_method), max_grade_permil (déclivité la plus forte en ‰, pente moyenne sur 1 km mesurée sur la voie) entre max_grade_from_m et max_grade_to_m, max_grade_direction (up = rampe dans le sens du parcours, down = pente) ; ces quatre valeurs sont null quand la déclivité n'est pas publiée, avec le motif dans max_grade_withheld (terrain_only = altitude du terrain seulement, tunnel, interpolated, rack = ligne à crémaillère ; motif nul aussi quand aucune portion de 1 km n'est exploitable). `rack` : null pour une ligne à adhérence ; sinon system (strub, abt, riggenbach), extent (full, partial, null si la source ne le dit pas), max_grade_permil (déclivité la plus forte publiée par la source, en ‰), braking_only (crémaillère utilisée pour le freinage seulement) et source (Wikipédia, permalien de la révision lue, CC BY-SA 4.0). `sourced_grade` : quand la déclivité mesurée n'est pas publiée (terrain_only, tunnel, interpolated) et qu'une source écrite la donne (champ « pente » de l'infobox de Wikipédia), max_grade_permil (déclivité la plus forte selon la source, en ‰, sans position) et source (Wikipédia, permalien de la révision lue, CC BY-SA 4.0) ; null sinon, et jamais à la place d'une mesure publiée. `terrain_ranges` : parties où l'altitude est celle du terrain (RGE ALTI). Valeurs indicatives : quelques ‰ d'écart avec la déclivité officielle sont courants.
+`summary` : min_altitude_m, max_altitude_m, ascent_m et descent_m (dénivelés cumulés dans le sens du parcours : altitudes du terrain moyennées sur 1 km, puis variations de moins de 3 m ignorées ; méthode dans climb_method), max_grade_permil (déclivité la plus forte en ‰, pente moyenne sur 1 km mesurée sur la voie) entre max_grade_from_m et max_grade_to_m, max_grade_direction (up = rampe dans le sens du parcours, down = pente) ; ces quatre valeurs sont null quand la déclivité n'est pas publiée, avec le motif dans max_grade_withheld (terrain_only = altitude du terrain seulement, tunnel, interpolated, rack = ligne à crémaillère ; motif nul aussi quand aucune portion de 1 km n'est exploitable). `rack` : null pour une ligne à adhérence ; sinon system (strub, abt, riggenbach), extent (full, partial, null si la source ne le dit pas), max_grade_permil (déclivité la plus forte publiée par la source, en ‰), braking_only (crémaillère utilisée pour le freinage seulement) et source (Wikipédia, permalien de la révision lue, CC BY-SA 4.0). `sourced_grade` : quand la déclivité mesurée n'est pas publiée (terrain_only, tunnel, interpolated) et qu'une source écrite la donne, max_grade_permil (déclivité la plus forte selon la source, en ‰, sans position), covered_share (part de la ligne décrite par la source, 0 à 1, null pour toute la ligne) et source (provider, title, url, license, attribution) : `wikipedia` (infobox ou texte de l'article, permalien de la révision lue, CC BY-SA 4.0, attribution Wikipédia) ou `sncf` (segment le plus raide du jeu « Caractéristique des voies et déclivité », ligne couverte à 10 % au moins, ODbL 1.0, attribution SNCF Réseau à citer avec la valeur) ; null sinon, et jamais à la place d'une mesure publiée. `terrain_ranges` : parties où l'altitude est celle du terrain (RGE ALTI). Valeurs indicatives : quelques ‰ d'écart avec la déclivité officielle sont courants.
 `structures` (tunnel, bridge), `gaps` (trous du tracé), `stations` (toutes les gares de la ligne, fermées comprises : slug, name, distance_m, altitude_m, pk_m, status, offset_m), `altitude_sources` (nombre de points par origine : bdtopo = altitude de la voie, rge_alti = terrain, interpolated, missing).
 Source et licence (bloc `attribution`) : IGN, BD TOPO et RGE ALTI, Licence Ouverte 2.0 ; citez « IGN ». Profil pas encore calculé pour la ligne : erreur `profile_not_computed`.
 Avec `pk_from_m` et/ou `pk_to_m` (bornes incluses, en mètres) : `samples` donne le référentiel point par point entre ces PK, comme l'API REST GET /api/v1/lines/{line}/profile/points (seq, distance_m, pk_m, altitude_m, source, interpolated, structure, piece, branch, lat, lng, position_withheld), allégé par `max_points` ; les points sans PK sont exclus.
@@ -81,10 +81,30 @@ class LineProfileTool extends VffTool
 
         return $this->respond(
             ['line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name], 'profile' => $profile],
-            $profile['rack'] === null && $profile['sourced_grade'] === null ? ['ign'] : ['ign', 'wikipedia'],
+            self::providers($profile),
             $lang,
             self::url('/lines/'.$line->slug.'#profile'),
             ['profile.structures', 'profile.samples'],
         );
+    }
+
+    /**
+     * Fournisseurs à citer : l'IGN pour les altitudes, plus la source de la fiche de crémaillère
+     * (Wikipédia) et celle de la déclivité sourcée (Wikipédia ou SNCF Réseau).
+     *
+     * @param  array<string, mixed>  $profile
+     * @return list<string>
+     */
+    private static function providers(array $profile): array
+    {
+        $providers = ['ign'];
+        if ($profile['rack'] !== null) {
+            $providers[] = 'wikipedia';
+        }
+        if ($profile['sourced_grade'] !== null) {
+            $providers[] = $profile['sourced_grade']['source']['provider'];
+        }
+
+        return array_values(array_unique($providers));
     }
 }

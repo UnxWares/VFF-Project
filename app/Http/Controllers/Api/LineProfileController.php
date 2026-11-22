@@ -115,13 +115,21 @@ class LineProfileController extends Controller
      *
      * **Déclivité d'une source écrite** (`sourced_grade`) : quand la déclivité mesurée n'est pas
      * publiée pour cause de terrain seul, de tunnel ou de points interpolés, et qu'une source écrite
-     * la donne (liste versionnée `database/data/sourced_grades.php` : champ « pente » de l'infobox
-     * de l'article de Wikipédia de la ligne), `sourced_grade` donne `max_grade_permil` (déclivité la
-     * plus forte selon la source, en ‰, sans position ni sens) et `source` (`provider` =
-     * `wikipedia`, `title`, `url` = permalien de la révision lue, `license` = `CC BY-SA 4.0`).
-     * `null` sinon : une déclivité mesurée publiée n'est jamais remplacée, une ligne à crémaillère a
-     * `rack`. Contrôle sur 235 lignes mesurées sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près
-     * (l'infobox donne souvent la pente d'un point, la mesure celle d'une rampe d'1 km).
+     * la donne, `sourced_grade` donne `max_grade_permil` (déclivité la plus forte selon la source,
+     * en ‰, sans position ni sens), `covered_share` (part de la ligne décrite par la source, de 0
+     * à 1 ; `null` quand la source porte sur toute la ligne) et `source` (`provider`, `title`,
+     * `url`, `license`, `attribution` : mention due à l'auteur). Deux fournisseurs :
+     * `wikipedia` (`database/data/sourced_grades.php` : champ « pente » de l'infobox ou texte de
+     * l'article de Wikipédia ; `url` = permalien de la révision lue, `license` = `CC BY-SA 4.0`,
+     * `attribution` = `Wikipédia`) et `sncf` (`database/data/sourced_grades_sncf.php`, commande
+     * `vff:import-sncf-grades` : segment le plus raide du jeu « Caractéristique des voies et
+     * déclivité » ; `url` = page du jeu filtrée sur la ligne, `license` = `ODbL 1.0`,
+     * `attribution` = `SNCF Réseau`). Le jeu SNCF ne décrit qu'une partie des voies : il n'est repris
+     * que pour une ligne couverte à 10 % au moins, et une valeur au-dessus de 60 ‰ hors ligne de
+     * montagne ou de plus de 3 fois la déclivité mesurée est écartée. `null` sinon : une déclivité
+     * mesurée publiée n'est jamais remplacée, une ligne à crémaillère a `rack`. Contrôle sur 235
+     * lignes de Wikipédia mesurées sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près (l'infobox donne
+     * souvent la pente d'un point, la mesure celle d'une rampe d'1 km).
      *
      * **Autres listes** : `structures` = tunnels (`tunnel`) et ponts (`bridge`) de la BD TOPO sous
      * le parcours, en distances ; `gaps` = trous du tracé, sans altitude ; `terrain_ranges` = parties
@@ -143,7 +151,7 @@ class LineProfileController extends Controller
      *         climb_method: array{method: string, threshold_m: float, terrain_smoothing_m: float}},
      *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
      *         source: array{provider: string, title: string, url: string, license: string}}|null,
-     *     sourced_grade: array{max_grade_permil: float, source: array{provider: string, title: string, url: string, license: string}}|null,
+     *     sourced_grade: array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
      *     points: array<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: array<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},

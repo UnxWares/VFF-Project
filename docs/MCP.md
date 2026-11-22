@@ -774,8 +774,10 @@ suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`,
 puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
 publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `sourced_grade`
 (quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés : déclivité
-la plus forte selon le champ « pente » de l'infobox de Wikipédia, en ‰, avec le permalien de la révision lue ; null
-sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+la plus forte selon une source écrite, en ‰, avec `covered_share`, part de la ligne décrite par la source, et `source` :
+`wikipedia`, infobox ou texte de l'article, permalien de la révision lue, CC BY-SA 4.0 ; ou `sncf`, segment le plus
+raide du jeu « Caractéristique des voies et déclivité » de SNCF Réseau, ODbL 1.0, attribution « SNCF Réseau » à citer ;
+null sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK

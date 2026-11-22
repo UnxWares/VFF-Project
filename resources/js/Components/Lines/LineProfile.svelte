@@ -34,7 +34,8 @@
      *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|'rack'|null },
      *   rack?: { system: string, extent: 'full'|'partial'|null, max_grade_permil: number, braking_only: boolean,
      *     source: { title: string, url: string } } | null,
-     *   sourced_grade?: { max_grade_permil: number, source: { title: string, url: string } } | null,
+     *   sourced_grade?: { max_grade_permil: number, covered_share?: number|null,
+     *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string } } | null,
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
@@ -71,6 +72,17 @@
     const rackText = $derived(rackSentence(rack));
     // Mesure non publiée (terrain, tunnel, interpolé) : déclivité d'une source écrite, s'il y en a une.
     const sourced = $derived(profile.sourced_grade ?? null);
+    // Phrase selon le fournisseur : SNCF Réseau (ODbL) dit la part de la ligne que ses segments couvrent.
+    const sourcedText = $derived(
+        sourced?.source.provider === 'sncf'
+            ? t('profile.sourced_grade_sncf', {
+                  share: formatNumber(sourced.covered_share ?? 0, lang, {
+                      style: 'percent',
+                      maximumFractionDigits: 0,
+                  }),
+              })
+            : t('profile.sourced_grade_wikipedia'),
+    );
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
     const mainStations = $derived(
@@ -223,10 +235,12 @@
             <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
         {:else if sourced}
             <p class="grade-where">
-                {t('profile.sourced_grade')}{colon(lang)}<a
+                {sourcedText}{colon(lang)}<a
                     href={sourced.source.url}
                     rel="external"
-                    lang={sourceLang(sourced.source.url)}>{sourced.source.title}</a
+                    lang={sourced.source.provider === 'sncf'
+                        ? 'fr'
+                        : sourceLang(sourced.source.url)}>{sourced.source.title}</a
                 >.
             </p>
         {:else}
