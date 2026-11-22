@@ -79,6 +79,7 @@ class StationCorrectionsValidateTest extends TestCase
             ['action' => 'neutralize', 'match' => ['source' => 'osm', 'type' => 'closure', 'date' => '1990-09-30']],
             ['action' => 'kind', 'kind' => 'excluded'],
             ['action' => 'current', 'status' => 'tourist'],
+            ['action' => 'current', 'status' => 'no_commercial'],
             ['action' => 'position', 'lng' => 2.1, 'lat' => 48.2],
             ['action' => 'pk', 'line' => '123456', 'pk_m' => 0],
             ['action' => 'tourist'],

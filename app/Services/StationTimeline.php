@@ -171,6 +171,8 @@ final class StationTimeline
 
     public const NOTE_TOURIST_TODAY = 'Desservie aujourd\'hui par un train touristique seulement (correction sourcée)';
 
+    public const NOTE_FREIGHT_TODAY = 'Desservie aujourd\'hui par le fret seulement (correction sourcée)';
+
     public const NOTE_HERITAGE_NO_FREIGHT = 'Ligne seulement touristique à cette époque : plus de fret';
 
     /**
@@ -186,8 +188,8 @@ final class StationTimeline
     }
 
     /**
-     * Statut du jour imposé par une correction « current » : desservie (voyageurs) ou plus
-     * desservie. Le plafond par les lignes (R2) s'applique ensuite comme pour tout statut.
+     * Statut du jour imposé par une correction « current » : desservie (voyageurs), touristique seulement,
+     * fret seul ou plus desservie. Le plafond par les lignes (R2) s'applique ensuite comme pour tout statut.
      *
      * @return array{0: string, 1: string} [statut, note]
      */
@@ -197,6 +199,8 @@ final class StationTimeline
             self::ACTIVE => [self::ACTIVE, self::NOTE_SERVED_TODAY],
             // Seul un train touristique s'y arrête (règle 5 de la desserte du jour) : jamais « voyageurs ».
             self::TOURIST => [self::TOURIST, self::NOTE_TOURIST_TODAY],
+            // Fermée aux voyageurs mais encore desservie par le fret (embranchement, installation terminale).
+            self::FREIGHT => [self::FREIGHT, self::NOTE_FREIGHT_TODAY],
             default => [self::CLOSED, self::NOTE_NOT_SERVED_TODAY],
         };
     }
