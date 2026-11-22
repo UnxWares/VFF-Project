@@ -36,8 +36,9 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
 8. **Derrière un répartiteur ou un CDN** : `$remote_addr` serait celle du relais. Ajouter `set_real_ip_from`
    et `real_ip_header` (module realip), et déclarer le relais comme proxy de confiance dans Laravel.
 9. **Vignettes de Commons** : `VFF_COMMONS_PROXY=true` et `VFF_COMMONS_PROXY_ACCEL_REDIRECT=/_commons/`, et
-   l'`alias` de `/_commons/` égal au dossier `VFF_COMMONS_PROXY_CACHE_PATH` (voir la section « Relais des
-   vignettes de Commons »).
+   l'`alias` de `/_commons/` égal au dossier `VFF_COMMONS_PROXY_CACHE_PATH`, et **construire la liste des
+   fichiers cités avant d'activer** : `php artisan vff:commons-allowlist --refresh` (voir la section « Relais
+   des vignettes de Commons »).
 
 ## Bloc par bloc
 
@@ -137,6 +138,23 @@ vient de la requête et aucune redirection hors de la liste n'est suivie. Le typ
 sur le contenu : celui de l'extension, ou WebP pour une vignette (Commons convertit certaines vignettes JPEG
 en WebP, plus légères). Un SVG n'est jamais servi (Commons en donne des vignettes PNG). Pas de session ni de
 cookie sur ces réponses.
+
+**Seuls les fichiers cités par VFF sont servis.** Une forme valable ne suffit pas (le MD5 d'un nom se calcule) :
+le nom du fichier doit figurer dans la liste des fichiers que VFF cite, sinon le relais répond 404 (gardé 5
+minutes par le navigateur) sans lire le cache ni appeler Commons. La liste est un ensemble précalculé dans
+Valkey (clé `commons-allowlist:files` du cache, un `SISMEMBER` par image : aucune requête SQL ni lecture de
+fichier au moment de servir). Elle est construite par `php artisan vff:commons-allowlist --refresh` à partir
+de `media` (`thumb_url`, `display_url`), `accident_images`, `materials.image`, des articles du journal
+(`resources/content/journal/*.md`) et des propositions de contribution en attente ; la clé est le nom du fichier,
+quelle que soit la largeur demandée. La tâche planifiée `vff:commons-allowlist` la reconstruit toutes les dix
+minutes en production (relais activé, lecture seule de la base, environ 2 secondes pour 56 000 fichiers) ; la
+nouvelle liste remplace l'ancienne d'un coup (`RENAME`), et une liste vide ne la remplace jamais. Une image
+ajoutée est donc servie au plus tard dix minutes après son entrée en base ; un fichier proposé par un
+contributeur est autorisé aussitôt pour l'aperçu. Liste jamais construite (ou cache Valkey vidé) : le relais
+répond 503 avec `Retry-After` (pas de 404 que le navigateur garderait) jusqu'au prochain rafraîchissement.
+`php artisan vff:commons-allowlist` affiche l'état (nombre, date, adresses retenues par source), avec
+`--dry-run` il compte sans rien écrire. Mesure du 22/11/2026 : 56 197 fichiers (112 634 adresses lues), ensemble
+de 2,9 Mo dans Valkey, réponse du contrôleur à 0,95 ms au lieu de 0,8 ms (cache chaud, médiane de 1 000).
 
 Réglages (`.env`) :
 
@@ -240,7 +258,8 @@ curl -sI https://vff-project.org/build/assets/<un fichier>.js   # immutable + 5 
 curl -sI https://vff-project.org/sw.js                          # no-cache
 curl -s -o /dev/null -w '%{http_code}\n' -r 0-16383 https://vff-project.org/basemap/<archive>.pmtiles   # 206
 curl -sI https://vff-project.org/up/details                     # 401 sans jeton
-curl -sI https://vff-project.org/media/commons/7/79/CFA-Morlaix.jpg   # 200 image/jpeg, sandbox, sans Set-Cookie
+curl -sI https://vff-project.org/media/commons/thumb/3/31/Parking_a%C3%A9rien_de_la_gare_st-Jean_%C3%A0_Bordeaux.jpg/500px-Parking_a%C3%A9rien_de_la_gare_st-Jean_%C3%A0_Bordeaux.jpg   # fichier cité : 200 image/jpeg, sandbox, sans Set-Cookie
+curl -s -o /dev/null -w '%{http_code}\n' https://vff-project.org/media/commons/7/79/CFA-Morlaix.jpg   # bonne forme mais non cité : 404
 curl -s -o /dev/null -w '%{http_code}\n' https://vff-project.org/_commons/x  # 404 (location interne)
 curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/json' \
   --data-binary @gros-fichier.json https://vff-project.org/graphql   # 413 au-delà de 2 Mio

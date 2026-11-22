@@ -80,6 +80,15 @@ class CommonsImagePathTest extends TestCase
         ];
     }
 
+    public function test_exposes_the_decoded_file_name_with_underscores_for_the_allowlist(): void
+    {
+        $thumb = CommonsImagePath::parse('thumb/3/36/Gare-Roscoff-CPancienne.jpg/500px-Gare-Roscoff-CPancienne.jpg');
+        $original = CommonsImagePath::parse('7/79/CFA-Morlaix.jpg');
+
+        $this->assertSame('Gare-Roscoff-CPancienne.jpg', $thumb?->file);
+        $this->assertSame('CFA-Morlaix.jpg', $original?->file);
+    }
+
     #[DataProvider('refused')]
     public function test_refuses_anything_outside_the_whitelist(string $raw): void
     {

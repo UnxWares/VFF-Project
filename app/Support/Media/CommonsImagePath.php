@@ -56,11 +56,14 @@ final readonly class CommonsImagePath
      * @param  string  $path  chemin canonique, chaque segment encodé par rawurlencode
      * @param  string  $extension  extension de l'image servie (clé de MIME_TYPES)
      * @param  int|null  $width  largeur demandée d'une vignette, null pour un original
+     * @param  string  $file  nom du fichier sur Commons (décodé, espaces soulignés) : la clé de la liste des
+     *                        fichiers cités par VFF (CommonsAllowlist)
      */
     private function __construct(
         public string $path,
         public string $extension,
         public ?int $width,
+        public string $file,
     ) {}
 
     /** Chemin brut d'une requête (encodé comme dans l'adresse), ou null s'il sort de la liste blanche. */
@@ -154,7 +157,7 @@ final readonly class CommonsImagePath
             return null;
         }
 
-        return new self(self::encode(['thumb', $h, $hh, $file, $name]), $extension, $width);
+        return new self(self::encode(['thumb', $h, $hh, $file, $name]), $extension, $width, str_replace(' ', '_', $file));
     }
 
     private static function original(string $h, string $hh, string $file): ?self
@@ -164,7 +167,7 @@ final readonly class CommonsImagePath
             return null;
         }
 
-        return new self(self::encode([$h, $hh, $file]), $extension, null);
+        return new self(self::encode([$h, $hh, $file]), $extension, null, str_replace(' ', '_', $file));
     }
 
     /** `{h}/{hh}` : premier caractère et deux premiers caractères du MD5 du nom (règle de Commons). */

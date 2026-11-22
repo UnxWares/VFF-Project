@@ -3,11 +3,13 @@
 namespace Tests\Feature\Media;
 
 use App\Http\Controllers\CommonsImageController;
+use App\Services\Media\CommonsAllowlist;
 use App\Services\Media\CommonsImageCache;
 use App\Support\Media\CommonsImagePath;
 use App\Support\Security\ContentSecurityPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
@@ -48,6 +50,9 @@ class CommonsImageRelayTest extends TestCase
             'commons_proxy.accel_redirect' => '',
         ]);
         Http::preventStrayRequests();
+        // Liste des fichiers cités par VFF (CommonsAllowlist) : ceux que ces tests demandent au relais.
+        Cache::forever(CommonsAllowlist::SET_KEY, ['Gare-Roscoff-CPancienne.jpg' => true, 'CFA-Morlaix.jpg' => true, 'Plan.svg' => true]);
+        Cache::forever(CommonsAllowlist::META_KEY, ['built_at' => now()->toIso8601String(), 'count' => 3, 'sources' => [], 'seconds' => 0.0]);
     }
 
     private static function jpeg(int $width = 500, int $height = 300): string

@@ -498,6 +498,15 @@ vignettes plus vieilles que `VFF_COMMONS_PROXY_TTL_DAYS` (30 jours), puis les pl
 `VFF_COMMONS_PROXY_CACHE_MB` (2 048 Mo), et les fichiers temporaires de plus d'une heure. Aucune option. Planifiée chaque heure en production quand le relais est activé
 ([PLANIFICATION.md](PLANIFICATION.md)) ; réglages et nginx dans [DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md).
 
+### `vff:commons-allowlist`
+
+Liste des fichiers de Wikimedia Commons que VFF cite, les seuls que le relais des vignettes sert (`VFF_COMMONS_PROXY`).
+Sans option : état de la liste (nombre de fichiers, date, adresses retenues par source). `--refresh` la reconstruit depuis `media`,
+`accident_images`, `materials.image`, le journal et les propositions en attente (lecture seule de la base ; ensemble Valkey remplacé d'un
+coup ; une liste vide ne remplace jamais l'existante). `--dry-run` compte sans rien écrire. À lancer une fois avant d'activer le relais ;
+planifiée toutes les dix minutes en production quand le relais est activé ([PLANIFICATION.md](PLANIFICATION.md)) ; fonctionnement dans
+[DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md).
+
 ### `vff:remind-expiring-api-tokens`
 
 Prévient par courriel les membres dont un jeton d'API expire dans 30 jours. Option : `--dry-run` (nombre de comptes et de

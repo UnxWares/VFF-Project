@@ -78,6 +78,8 @@ final class CommonsFileResolver
         $key = 'commons-file:'.sha1($title);
         $cached = Cache::get($key);
         if (is_array($cached)) {
+            $this->allow($cached);
+
             return $cached;
         }
 
@@ -87,8 +89,28 @@ final class CommonsFileResolver
         }
         $meta = ['page_id' => $page['pageid'], ...CommonsMetadata::normalize(['title' => $page['title'], 'info' => $page['info']])];
         Cache::put($key, $meta, self::CACHE_SECONDS);
+        $this->allow($meta);
 
         return $meta;
+    }
+
+    /**
+     * Le fichier cherché peut s'afficher en aperçu par le relais des vignettes (liste des fichiers cités,
+     * CommonsAllowlist) avant d'entrer dans la base.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    private function allow(array $meta): void
+    {
+        if (! config('commons_proxy.enabled')) {
+            return;
+        }
+        $allowlist = app(CommonsAllowlist::class);
+        foreach (['thumb_url', 'display_url'] as $key) {
+            if (isset($meta[$key]) && is_string($meta[$key])) {
+                $allowlist->add($meta[$key]);
+            }
+        }
     }
 
     /**

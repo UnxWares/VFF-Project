@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Media\CommonsAllowlist;
 use App\Services\Media\CommonsImageCache;
 use App\Services\Media\CommonsImageRelay;
 use App\Support\Media\CommonsImagePath;
@@ -22,7 +23,8 @@ use function Illuminate\Support\defer;
  * cookie, la même réponse pour tous.
  *
  * Seuls passent les chemins de CommonsImagePath (liste blanche : vignettes aux largeurs de VFF, originaux
- * JPEG, PNG, GIF, WebP), lus dans l'adresse brute, sans requête (`?…`). Désactivé, le relais répond 404.
+ * JPEG, PNG, GIF, WebP), lus dans l'adresse brute, sans requête (`?…`), et seulement les fichiers cités par VFF
+ * (CommonsAllowlist, ensemble précalculé que reconstruit vff:commons-allowlist). Désactivé, le relais répond 404.
  * Les images servies portent `Content-Security-Policy: default-src 'none'; sandbox`, `nosniff` et
  * `Cross-Origin-Resource-Policy: same-origin` (pas de réutilisation directe depuis un autre site). En
  * production, avec `commons_proxy.accel_redirect`, nginx envoie le fichier (X-Accel-Redirect).
@@ -54,6 +56,21 @@ final class CommonsImageController
             : null;
         if ($image === null) {
             return self::plain(404, 'Not Found', 86_400);
+        }
+
+        // Seuls les fichiers cités par VFF : lecture en O(1) de la liste précalculée (vff:commons-allowlist), avant
+        // toute lecture du cache ou de Commons. Un fichier absent : 404, sans requête sortante. Liste jamais
+        // construite : 503 (réessayer), pas un 404 que le navigateur garderait.
+        $allowlist = app(CommonsAllowlist::class);
+        if (! $allowlist->contains($image->file)) {
+            if (! $allowlist->isBuilt()) {
+                $unready = self::plain(503, 'Service Unavailable');
+                $unready->headers->set('Retry-After', '60');
+
+                return $unready;
+            }
+
+            return self::plain(404, 'Not Found', 300);
         }
 
         $relay = CommonsImageRelay::fromConfig();

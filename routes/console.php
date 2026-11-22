@@ -102,6 +102,15 @@ Schedule::command('vff:commons-cache-prune')
     ->when(fn (): bool => (bool) config('commons_proxy.enabled'))
     ->withoutOverlapping(30);
 
+// Liste des fichiers de Commons cités par VFF, seuls servis par le relais (CommonsAllowlist) : reconstruite
+// toutes les dix minutes (lecture seule de la base), pour qu'une image ajoutée soit servie sans attendre.
+Schedule::command('vff:commons-allowlist --refresh')
+    ->name('vff:commons-allowlist')
+    ->everyTenMinutes()
+    ->environments(['production'])
+    ->when(fn (): bool => (bool) config('commons_proxy.enabled'))
+    ->withoutOverlapping(15);
+
 /*
 | Battement et entretien général (production seulement, sauf le battement).
 |
