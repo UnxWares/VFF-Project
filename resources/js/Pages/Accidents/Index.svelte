@@ -395,7 +395,7 @@
         text-decoration: underline;
     }
     .line-name {
-        max-width: 32ch;
+        max-width: 20.2em;
     }
     .toll {
         font-variant-numeric: tabular-nums;

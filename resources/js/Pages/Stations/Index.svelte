@@ -429,7 +429,7 @@
        nom n'était plus lisible : « Lignes minières du Bassin minier du Nord (secteur… »). */
     .line-name {
         display: block;
-        max-width: 30ch;
+        max-width: 18.9em;
         font-size: var(--vff-fs-xs);
         line-height: 1.35;
         color: var(--vff-text);

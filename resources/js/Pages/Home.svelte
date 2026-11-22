@@ -39,7 +39,7 @@
     title={$i18n.t('home.meta_title')}
     description={$i18n.t('home.meta_description')}
     path="/"
-    image={{ url: '/share/accueil-1200x630.jpg', alt: $i18n.t('home.share_image_alt') }}
+    image={{ url: '/share/accueil-reseau-1200x630.jpg', alt: $i18n.t('home.share_image_alt') }}
     jsonLd={(origin) =>
         websiteSchema({
             origin,

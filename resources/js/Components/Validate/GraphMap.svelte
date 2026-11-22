@@ -333,6 +333,6 @@
     }
     .hint {
         bottom: var(--vff-space-6);
-        max-width: 46ch;
+        max-width: 29em;
     }
 </style>

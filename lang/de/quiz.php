@@ -7,6 +7,7 @@ return [
     'title' => 'Bahn-Quiz',
     'subtitle' => 'Erkennen Sie eine Strecke an ihrem Verlauf oder eine Baureihe an ihrem Foto. Zehn Fragen aus der Datenbank von VFF, ohne Zeitlimit.',
     'links' => [
+        'home' => 'Bahnquiz: eine Strecke oder Baureihe in zehn Fragen erkennen',
         'lines' => 'Quiz: eine Strecke an ihrem Verlauf erkennen',
         'materials' => 'Quiz: eine Baureihe an ihrem Foto erkennen',
     ],

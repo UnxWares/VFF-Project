@@ -17,7 +17,7 @@ return [
 
     'search' => [
         'label' => 'Bahnstrecke oder Bahnhof suchen',
-        'placeholder' => 'Bahnstrecke oder Bahnhof suchen…',
+        'placeholder' => 'Strecke, Bahnhof oder Code',
         'lines' => 'Bahnstrecken',
         'stations' => 'Bahnhöfe',
         'materials' => 'Fahrzeuge',

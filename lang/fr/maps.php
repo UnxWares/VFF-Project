@@ -17,7 +17,7 @@ return [
 
     'search' => [
         'label' => 'Chercher une ligne ou une gare',
-        'placeholder' => 'Chercher une ligne ou une gare…',
+        'placeholder' => 'Ligne, gare ou code',
         'lines' => 'Lignes',
         'stations' => 'Gares',
         'materials' => 'Matériel roulant',

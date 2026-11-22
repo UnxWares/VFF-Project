@@ -174,13 +174,13 @@
         text-decoration-color: currentColor;
     }
     .text {
-        max-width: 68ch;
+        max-width: 39.4em;
         margin: 0;
         line-height: 1.6;
         color: var(--vff-text);
     }
     .reason {
-        max-width: 68ch;
+        max-width: 39.4em;
         padding: var(--vff-space-3) var(--vff-space-4);
         background-color: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);

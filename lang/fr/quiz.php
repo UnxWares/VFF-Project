@@ -7,6 +7,7 @@ return [
     'title' => 'Quiz du rail',
     'subtitle' => 'Reconnaissez une ligne à son tracé ou une série à sa photo. Dix questions tirées de la base de VFF, sans limite de temps.',
     'links' => [
+        'home' => 'Quiz du rail : reconnaître une ligne ou une série en dix questions',
         'lines' => 'Quiz : reconnaître une ligne à son tracé',
         'materials' => 'Quiz : reconnaître une série à sa photo',
     ],

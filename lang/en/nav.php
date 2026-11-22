@@ -38,7 +38,7 @@ return [
         'shortcut' => 'Keyboard shortcut: :keys',
         'title' => 'Search the encyclopaedia',
         'label' => 'Line, station, rolling stock, accident or page',
-        'placeholder' => 'Line or station name, line code…',
+        'placeholder' => 'Line, station or code',
         'sections' => 'Pages',
         'lines' => 'Lines',
         'stations' => 'Stations',

@@ -251,7 +251,7 @@
     --vff-lh-heading: 1.2;
     --vff-lh-ui: 1.4;
     --vff-lh-body: 1.6;
-    --vff-measure: 60ch; /* texte courant : 60ch = 590 px à 17 px, environ 70 à 75 caractères par ligne */
+    --vff-measure: 34.8em; /* texte courant : 34,8em = 590 px à 17 px (60 fois le « 0 » de Lato), environ 70 à 75 caractères par ligne ; en em et non en ch, que le navigateur calcule avec une police de repli tant que Lato n'est pas chargée (décalage de la page) */
 
     /* Espacements */
     --vff-space-1: 4px;
@@ -323,7 +323,7 @@
     }
 }
 /* Très grand écran : contenu un peu plus large, toujours centré (pas de lignes de 200 caractères :
-   le texte garde sa mesure de 60ch) ; le rythme vertical grandit seul (clamp ci-dessus). */
+   le texte garde sa mesure de 34,8em) ; le rythme vertical grandit seul (clamp ci-dessus). */
 @media (min-width: 1800px) {
     :root {
         --vff-container: 1280px;
@@ -653,7 +653,7 @@ a.vff-tile:hover,
     background-color: var(--vff-bg-accent);
 }
 .vff-lead {
-    max-width: 60ch;
+    max-width: 34.8em;
     margin: 0;
     font-family: var(--vff-font-body);
     font-size: var(--vff-fs-lead);
@@ -1121,7 +1121,7 @@ a.vff-tile:hover,
     flex-direction: column;
     align-items: flex-start;
     gap: var(--vff-space-2);
-    max-width: 68ch;
+    max-width: 39.4em;
     padding: var(--vff-pad-box);
     border: 1px solid var(--vff-border);
     border-radius: var(--vff-radius-md);

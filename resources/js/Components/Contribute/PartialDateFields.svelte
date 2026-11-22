@@ -180,12 +180,12 @@
         color: var(--vff-text-muted);
     }
     .year {
-        width: 7ch;
+        width: 4.4em;
         min-width: 6rem;
         font-variant-numeric: tabular-nums;
     }
     .day {
-        width: 5ch;
+        width: 3.2em;
         min-width: 5rem;
         font-variant-numeric: tabular-nums;
     }

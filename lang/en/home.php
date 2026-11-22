@@ -3,7 +3,7 @@
 return [
     'meta_title' => 'VFF - French Railway Lines',
     'meta_description' => 'A collaborative encyclopaedia of French railways from 1830 to the present day: lines, stations, a map of the network for every decade and sourced archives.',
-    'share_image_alt' => 'The Voies Ferrées de France logo on Alexandre Vuillemin’s 1865 railway map',
+    'share_image_alt' => 'The French railway network in service, drawn in orange, with the Voies Ferrées de France logo and name',
 
     // Hero (VFF disc between two TGVs): line under the disc and two actions.
     'hero' => [

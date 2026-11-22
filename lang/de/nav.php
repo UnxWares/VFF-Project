@@ -38,7 +38,7 @@ return [
         'shortcut' => 'Tastenkürzel: :keys',
         'title' => 'In der Enzyklopädie suchen',
         'label' => 'Strecke, Bahnhof, Fahrzeug, Unfall oder Rubrik',
-        'placeholder' => 'Strecken- oder Bahnhofsname, Streckennummer…',
+        'placeholder' => 'Strecke, Bahnhof oder Code',
         'sections' => 'Rubriken',
         'lines' => 'Strecken',
         'stations' => 'Bahnhöfe',

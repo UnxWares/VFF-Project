@@ -55,6 +55,9 @@
             </li>
         {/each}
     </ul>
+    <p class="quiz-link">
+        <Link href="/quiz" class="vff-link">{$i18n.t('quiz.links.home')}</Link>
+    </p>
 </SectionBlock>
 
 <style>
@@ -112,6 +115,14 @@
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
     }
+    /* Lien discret vers le quiz, sous le sommaire. */
+    .quiz-link {
+        margin: var(--vff-space-5) 0 0;
+        padding-inline: var(--vff-space-3);
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
     .entry-text {
         grid-area: text;
         max-width: var(--vff-measure);
@@ -127,6 +138,9 @@
         }
         .entry-title {
             font-size: 1.1875rem;
+        }
+        .quiz-link {
+            padding-inline: var(--vff-space-1);
         }
     }
 </style>

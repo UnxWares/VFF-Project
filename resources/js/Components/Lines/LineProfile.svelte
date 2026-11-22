@@ -145,9 +145,10 @@
     // bande des tunnels sous la courbe, altitudes (avec l'unité) à gauche, kilomètres en bas.
     let width = $state(0);
     const narrow = $derived(width > 0 && width < 600);
-    const height = $derived(narrow ? 240 : 300);
+    // Hauteur de la courbe inchangée (190 ou 250 px) ; 8 px de plus en haut séparent l'altitude la plus haute des noms de gares.
+    const height = $derived(narrow ? 248 : 308);
     // Marges en px pour des textes de 17 px (altitudes à gauche, kilomètres et légende de l'axe en bas).
-    const pad = $derived({ top: 36, right: 12, bottom: 50, left: narrow ? 72 : 84 });
+    const pad = $derived({ top: 44, right: 12, bottom: 50, left: narrow ? 72 : 84 });
     const plotW = $derived(Math.max(10, width - pad.left - pad.right));
     const plotH = $derived(height - pad.top - pad.bottom);
     const baseY = $derived(pad.top + plotH);
@@ -158,11 +159,19 @@
         () => (z) => pad.top + (1 - (z - domain[0]) / (domain[1] - domain[0])) * plotH,
     );
     const yTicks = $derived(ticks(domain[0], domain[1], narrow ? 3 : 4));
-    const xTicks = $derived(
-        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 72))).filter(
-            (k) => k * 1000 <= profile.length_m,
-        ),
-    );
+    const xTicks = $derived.by(() => {
+        const kept = [];
+        let lastEnd = -Infinity;
+        for (const k of ticks(0, profile.length_m / 1000, Math.max(2, Math.floor(plotW / 72)))) {
+            if (k * 1000 > profile.length_m) continue;
+            // Graduation gardée seulement si elle ne touche pas la précédente (libellés de 17 px : 9,2 px par caractère).
+            const half = (formatNumber(k, lang).length * 9.2) / 2;
+            if (x(k * 1000) - half < lastEnd + 8) continue;
+            kept.push(k);
+            lastEnd = x(k * 1000) + half;
+        }
+        return kept;
+    });
     const line = $derived(linePath(profile.points, x, y, profile.gaps));
     const area = $derived(areaPath(profile.points, x, y, baseY, profile.gaps));
     // Largeur d'un nom en Inter 17 px : 9,2 px par caractère en moyenne (7,6 px mesurés à 14 px).
@@ -342,13 +351,13 @@
                                     class="station-tick"
                                     x1={x(st.distance_m)}
                                     x2={x(st.distance_m)}
-                                    y1={pad.top - 6}
+                                    y1={pad.top - 11}
                                     y2={stationY(st)}
                                 />
                                 <text
                                     class="station-name"
                                     x={x(st.distance_m)}
-                                    y={pad.top - 12}
+                                    y={pad.top - 18}
                                     text-anchor={named.get(st)}>{st.name}</text
                                 >
                             {/if}

@@ -38,7 +38,7 @@ return [
         'shortcut' => "Raccourci clavier\u{00A0}: :keys",
         'title' => 'Rechercher dans l’encyclopédie',
         'label' => 'Ligne, gare, matériel roulant, accident ou rubrique',
-        'placeholder' => 'Nom de ligne ou de gare, code de ligne…',
+        'placeholder' => 'Ligne, gare ou code',
         'sections' => 'Rubriques',
         'lines' => 'Lignes',
         'stations' => 'Gares',

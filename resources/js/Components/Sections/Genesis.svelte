@@ -34,7 +34,7 @@
 <style>
     .genesis.with-image {
         display: grid;
-        grid-template-columns: minmax(0, 60ch) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 34.8em) minmax(0, 1fr);
         gap: var(--vff-space-6) var(--vff-space-8);
         align-items: start;
     }

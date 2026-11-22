@@ -769,7 +769,7 @@
         background: var(--vff-bg-subtle);
     }
     .lb-caption {
-        max-width: 80ch;
+        max-width: 46.4em;
         padding: 16px 24px 24px;
     }
     .lb-caption h3 {

@@ -17,7 +17,7 @@ return [
 
     'search' => [
         'label' => 'Search for a line or station',
-        'placeholder' => 'Search for a line or station…',
+        'placeholder' => 'Line, station or code',
         'lines' => 'Lines',
         'stations' => 'Stations',
         'materials' => 'Rolling stock',

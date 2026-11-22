@@ -7,6 +7,7 @@ return [
     'title' => 'Railway quiz',
     'subtitle' => 'Recognise a line from its route or a series from its photo. Ten questions drawn from the VFF database, with no time limit.',
     'links' => [
+        'home' => 'Railway quiz: recognise a line or a series in ten questions',
         'lines' => 'Quiz: recognise a line from its route',
         'materials' => 'Quiz: recognise a series from its photo',
     ],

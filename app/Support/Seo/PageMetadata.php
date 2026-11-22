@@ -25,8 +25,8 @@ final class PageMetadata
     /** Nombre d'images de la fiche ligne citées dans les données structurées (comme le navigateur). */
     private const LINE_IMAGES = 4;
 
-    /** Image de partage de l'accueil : 1 200 x 630 px, logo sur la carte de 1865 (domaine public) de l'accueil. */
-    public const HOME_SHARE_IMAGE = '/share/accueil-1200x630.jpg';
+    /** Image de partage de l'accueil : 1 200 x 630 px, réseau en service en orange, générée par scripts/share/build-share-image.mjs. */
+    public const HOME_SHARE_IMAGE = '/share/accueil-reseau-1200x630.jpg';
 
     public function __construct(
         private readonly Request $request,

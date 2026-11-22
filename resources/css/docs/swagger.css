@@ -81,7 +81,7 @@
 }
 .vff-docs--swagger .swagger-ui .info .markdown p,
 .vff-docs--swagger .swagger-ui .info .markdown li {
-    max-width: 75ch;
+    max-width: 43.5em;
     font-size: 1rem;
     line-height: 1.65;
 }
