@@ -113,7 +113,7 @@ final class AccidentVerifier
      */
     private function announce(Accident $accident, AccidentVerificationResult $result): void
     {
-        if ($accident->verified_at === null || $accident->alias_of_id !== null || in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($accident->verified_at === null || $accident->alias_of_id !== null || ! Accident::query()->whereKey($accident->id)->exists()) {
             return;
         }
         $result->announced[] = $accident->slug;
@@ -138,8 +138,7 @@ final class AccidentVerifier
                     COUNT(*) FILTER (WHERE review_status = \'ok\') AS ok,
                     COUNT(*) FILTER (WHERE review_status = \'to_review\') AS to_review,
                     COUNT(*) FILTER (WHERE kind = \'other\') AS other
-             FROM accidents WHERE alias_of_id IS NULL AND kind NOT IN ('.implode(', ', array_fill(0, count(AccidentKind::HIDDEN), '?')).')',
-            AccidentKind::HIDDEN,
+             FROM accidents WHERE alias_of_id IS NULL AND '.AccidentKind::publishableSql(),
         );
 
         return ['total' => (int) $row->total, 'ok' => (int) $row->ok, 'to_review' => (int) $row->to_review, 'other' => (int) $row->other];
@@ -305,7 +304,7 @@ final class AccidentVerifier
         } elseif ($status === AccidentReviewStatus::Ok && $rule === null) {
             $result->unconfirmedOk[] = $accident->slug;
         }
-        if ($status === AccidentReviewStatus::Ok && ! in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($status === AccidentReviewStatus::Ok) {
             $result->count('rules', $rule ?? 'none');
         }
     }

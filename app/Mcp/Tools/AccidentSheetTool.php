@@ -46,7 +46,9 @@ class AccidentSheetTool extends VffTool
 
     protected function answer(array $input, string $lang): Response
     {
-        $accident = Accident::query()->withCoordinates()->where('slug', $input['accident'])->first();
+        // Un doublon fusionné répond par la fiche retenue.
+        $slug = Accident::redirectSlugFor($input['accident']) ?? $input['accident'];
+        $accident = Accident::query()->withCoordinates()->where('slug', $slug)->first();
         if ($accident === null) {
             return $this->fail('accident_not_found', ['query' => $input['accident']]);
         }

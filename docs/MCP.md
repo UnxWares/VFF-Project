@@ -696,7 +696,7 @@ plus `lines` (lignes rattachées, la principale d'abord : `line`, `is_primary`, 
 `trains`, `toll_source_url`, `wikipedia` (articles par langue), `sources` (`provider`, `role`, `title`, `url`,
 `license`, `license_url`, `license_status`, `retrieved_at`, `facts` lus dans la source), `review` (`status` et
 `notes` : `code`, `label` dans la langue demandée, `detail`) et `provenance` (fournisseur de chaque fait retenu),
-avec `review_note` si la fiche est « à vérifier ». Accident inconnu : erreur `accident_not_found`.
+avec `review_note` si la fiche est « à vérifier ». Accident inconnu : erreur `accident_not_found`. Le slug d'un doublon fusionné dans une autre fiche renvoie la fiche retenue (son `slug` fait foi).
 
 `context` : contexte sourcé (`vff:enrich-accidents`), rédigé par VFF à partir de documents lus, dans la langue
 demandée. `checked_on` (date de la recherche) ; `sections` (`circumstances`, `course`, `victims`, `causes`,

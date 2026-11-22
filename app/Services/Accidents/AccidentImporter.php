@@ -370,7 +370,7 @@ final class AccidentImporter
         }
         // Une puce seule ne masque jamais une fiche d'une autre source : la nature de la cible est
         // gardée et la fiche signalée pour relecture.
-        if ($listed->kind !== null && in_array($listed->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($listed->kind !== null && in_array($listed->kind->value, AccidentKind::SOURCED_ONLY, true)) {
             $target->note('list_kind_hidden', $listed->kind->value);
 
             return;

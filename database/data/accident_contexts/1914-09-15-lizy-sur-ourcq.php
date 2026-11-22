@@ -1,6 +1,7 @@
 <?php
 
 // Contexte sourcé de l'accident de Lizy-sur-Ourcq (Mary-sur-Marne) du 14-15 septembre 1914 (recherche du 21/11/2026).
+// Fusion du 22/11/2026 : la fiche « accident ferroviaire de Sarry » (17 septembre 1914) décrit le même accident (décision de Baptiste) ; ses sources et ses énoncés sont repris ici.
 return [
     'slug' => '1914-09-15-lizy-sur-ourcq',
     'checked_on' => '2026-11-21',
@@ -61,6 +62,90 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Document cité par Wikipédia pour le bilan de quarante morts ; le serveur n\'a pas répondu, il n\'a pas pu être lu.',
         ],
+        'wp-de-sarry' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Sarry',
+            'publisher' => 'Wikipedia (Deutsch)',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Sarry',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Seule source trouvée qui nomme Sarry (Marne) ; s\'appuie sur Stockert (1920, n° 242) et donne le 17 septembre, 12 corps et 45 disparus.',
+        ],
+        'wikidata-sarry' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Sarry (Q15807658)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q15807658',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Élément à l\'origine de la fiche « Sarry » (17 septembre 1914, 57 morts), devenue alias de celle-ci ; non relu.',
+        ],
+        'wp-en-liste-1910' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1910-1919)',
+            'publisher' => 'Wikipedia (English)',
+            'author' => null,
+            'published' => null,
+            'locator' => 'année 1914',
+            'url' => 'https://en.wikipedia.org/wiki/List_of_rail_accidents_(1910%E2%80%931919)',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Mentionne un train de la Croix-Rouge tombé dans la Marne en octobre 1914, avec une légende sur le pont de Mary ; pas d\'entrée Sarry.',
+        ],
+        'ddb-1914-09-21-muelheim' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der in die Marne gestürzte Sanitätszug',
+            'publisher' => 'Mülheimer Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-09-21',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/6324K4YUDJWF6GYC3BUM2VXEPS3WSHK6?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Train de Compiègne vers Mareuil tombé dans la Marne, en marche vers Lizy-sur-Ourcq, wagons restés sur un pilier de pont.',
+        ],
+        'ddb-1914-09-19-berliner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Berliner Tageblatt et Handels-Zeitung du 19 septembre 1914',
+            'publisher' => 'Berliner Tageblatt und Handels-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-09-19',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/EPPLAVUJOCTNL7BOLDTKFZFZ4ITRZFEE?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Les agents ignoraient que l\'armée française avait détruit le pont pour des raisons stratégiques.',
+        ],
+        'ddb-1914-09-22-pforzheimer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der Verwundetenzug, der bei Meaux in die Marne stürzte',
+            'publisher' => 'Pforzheimer Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-09-22',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/KMM7VHLBDX74OMA2XV2QD2ETQD4BK55Q?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Même récit : train de la Compagnie de l\'Est, pont de la Marne détruit, accident près de Meaux.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -76,6 +161,12 @@ return [
                 'de' => 'Das deutsche Museum nennt als Ausgangspunkt des Zuges den Bahnhof Mareuil-sur-Ourcq in 18,7 km Entfernung und führt die Fehlleitung entweder auf einen Fehler des Personals oder auf Unkenntnis der Brückenzerstörung zurück. Keine andere Quelle bestätigt dies.',
                 'sources' => ['lette-2014'],
             ],
+            [
+                'fr' => 'La presse allemande de septembre 1914 décrit un train de blessés de la Compagnie de l\'Est, parti de Compiègne vers Mareuil, tombé dans la Marne près de Meaux sur la route de Lizy-sur-Ourcq : le pont avait été détruit pour des raisons stratégiques par l\'armée française, et les agents l\'ignoraient. Un article de Wikipédia en allemand place le même accident à Sarry (Marne), sur la ligne de Châlons-en-Champagne à Reims, le 17 septembre ; cette localisation ne repose que sur lui.',
+                'en' => 'The German press of September 1914 describes a train of wounded from the Compagnie de l\'Est, which left Compiègne for Mareuil and fell into the Marne near Meaux on the way to Lizy-sur-Ourcq: the bridge had been destroyed for strategic reasons by the French army, and the staff did not know. A German-language Wikipedia article places the same accident at Sarry (Marne), on the Châlons-en-Champagne to Reims line, on 17 September; that location rests on it alone.',
+                'de' => 'Die deutsche Presse vom September 1914 beschreibt einen Verwundetenzug der Compagnie de l\'Est, der von Compiègne nach Mareuil fuhr und bei Meaux auf dem Weg nach Lizy-sur-Ourcq in die Marne stürzte: Die Brücke war aus strategischen Gründen von der französischen Armee zerstört worden, das Personal wusste davon nichts. Ein deutschsprachiger Wikipedia-Artikel verlegt denselben Unfall nach Sarry (Marne) auf der Strecke Châlons-en-Champagne-Reims am 17. September; diese Ortsangabe beruht allein auf ihm.',
+                'sources' => ['ddb-1914-09-21-muelheim', 'ddb-1914-09-19-berliner', 'ddb-1914-09-22-pforzheimer', 'wp-de-sarry'],
+            ],
         ],
         'course' => [
             [
@@ -90,6 +181,12 @@ return [
                 'de' => 'Laut dem deutschen Museum stürzten 13 der 15 Wagen des Zuges ins Wasser. Nach dem von rail4402 wiedergegebenen Bericht waren es Lokomotive, Tender und die vorderen Wagen.',
                 'sources' => ['lette-2014', 'rail4402'],
             ],
+            [
+                'fr' => 'D\'après l\'article allemand sur Sarry et la presse allemande, six voitures sont restées accrochées aux débris du pont (« wagons restés sur un pilier de pont ») et les autres sont tombées dans la rivière.',
+                'en' => 'According to the German article on Sarry and the German press, six carriages stayed caught on the wreckage of the bridge ("carriages left on a bridge pier") and the others fell into the river.',
+                'de' => 'Nach dem deutschen Artikel über Sarry und der deutschen Presse blieben sechs Wagen an den Brückentrümmern hängen („Wagen auf einem Brückenpfeiler“), die übrigen stürzten in den Fluss.',
+                'sources' => ['wp-de-sarry', 'ddb-1914-09-21-muelheim'],
+            ],
         ],
         'victims' => [
             [
@@ -97,6 +194,20 @@ return [
                 'en' => 'According to Wikipedia, the SNCF historical archives report forty dead, whereas the press of the day had published only a brief reassuring note, in Le Petit Journal of 17 September 1914. The victims were soldiers wounded in the Battle of the Marne.',
                 'de' => 'Laut Wikipedia nennen die historischen Archive der SNCF vierzig Tote, während die damalige Presse nur eine kurze beruhigende Notiz brachte, im Petit Journal vom 17. September 1914. Die Opfer waren in der Marneschlacht verwundete Soldaten.',
                 'sources' => ['wp-liste-1914', 'rail4402'],
+            ],
+            [
+                'fr' => 'L\'article allemand sur Sarry compte douze corps retrouvés et quarante-cinq disparus, soit environ 57 morts, sans blessés ; c\'est le bilan de l\'élément Wikidata de cette fiche.',
+                'en' => 'The German article on Sarry counts twelve bodies recovered and forty-five missing, about 57 dead, with no injured; this is the toll of the Wikidata item behind that record.',
+                'de' => 'Der deutsche Artikel über Sarry zählt zwölf geborgene Leichen und fünfundvierzig Vermisste, also etwa 57 Tote, ohne Verletzte; das ist die Zahl des Wikidata-Elements hinter diesem Datensatz.',
+                'sources' => ['wp-de-sarry'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'La cause décrite par les sources est l\'absence d\'information du personnel sur la destruction du pont par l\'armée française : de nuit, le mécanicien n\'a pas vu la voie coupée, ou trop tard. Le musée allemand parle d\'une erreur d\'aiguillage et non d\'un acte contre le train.',
+                'en' => 'The cause described by the sources is that the staff had not been told the army had destroyed the bridge: at night the driver did not see the broken line, or saw it too late. The German museum speaks of a misrouting rather than an act against the train.',
+                'de' => 'Als Ursache nennen die Quellen, dass das Personal über die Zerstörung der Brücke durch die französische Armee nicht informiert war: Nachts sah der Lokführer die unterbrochene Strecke nicht oder zu spät. Das deutsche Museum spricht von einer Fehlleitung, nicht von einer Tat gegen den Zug.',
+                'sources' => ['wp-de-sarry', 'ddb-1914-09-19-berliner', 'lette-2014'],
             ],
         ],
         'memory' => [
@@ -109,9 +220,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le bilan diffère : quarante morts d\'après les archives de la SNCF citées par Wikipédia, environ 70 morts sur 700 personnes d\'après le musée allemand, qui ne cite pas de source. La fiche de la base retient 40.',
-                'en' => 'The toll differs: forty dead according to the SNCF archives cited by Wikipedia, about 70 dead out of 700 people according to the German museum, which cites no source. The database record uses 40.',
-                'de' => 'Die Opferzahl weicht ab: vierzig Tote laut den von Wikipedia zitierten SNCF-Archiven, etwa 70 Tote unter 700 Personen laut dem deutschen Museum, das keine Quelle nennt. Der Datensatz verwendet 40.',
+                'fr' => 'Le bilan diffère : quarante morts d\'après les archives de la SNCF citées par Wikipédia, environ 70 morts sur 700 personnes d\'après le musée allemand, qui ne cite pas de source. La fiche de la base retient 40 ; la fiche fusionnée de Sarry en donnait 57.',
+                'en' => 'The toll differs: forty dead according to the SNCF archives cited by Wikipedia, about 70 dead out of 700 people according to the German museum, which cites no source. The database record uses 40; the merged Sarry record gave 57.',
+                'de' => 'Die Opferzahl weicht ab: vierzig Tote laut den von Wikipedia zitierten SNCF-Archiven, etwa 70 Tote unter 700 Personen laut dem deutschen Museum, das keine Quelle nennt. Der Datensatz verwendet 40; der zusammengeführte Sarry-Datensatz nannte 57.',
                 'sources' => ['wp-liste-1914', 'lette-2014'],
             ],
             [
@@ -127,10 +238,10 @@ return [
                 'sources' => ['lette-2014'],
             ],
             [
-                'fr' => 'Une autre fiche de la base, « accident ferroviaire de Sarry » (17 septembre 1914), décrit un accident voisin : train sanitaire de nuit, pont de la Marne détruit par l\'armée française sans avertir le personnel, environ 57 morts, sur la ligne de Châlons-en-Champagne à Reims. Elle repose sur un seul article allemand (Stockert, 1920) et aucune source ne relie les deux accidents ; ils restent donc deux fiches, sans que l\'on puisse exclure qu\'il s\'agisse du même événement.',
-                'en' => 'Another record in the database, "Sarry rail accident" (17 September 1914), describes a similar accident: a night hospital train, a Marne bridge destroyed by the French army without warning the staff, about 57 dead, on the Châlons-en-Champagne to Reims line. It rests on a single German article (Stockert, 1920) and no source links the two accidents; they therefore remain two records, although it cannot be ruled out that they are the same event.',
-                'de' => 'Ein anderer Datensatz, „Eisenbahnunfall von Sarry“ (17. September 1914), beschreibt einen ähnlichen Unfall: nächtlicher Lazarettzug, von der französischen Armee ohne Warnung des Personals zerstörte Marnebrücke, etwa 57 Tote, auf der Strecke Châlons-en-Champagne-Reims. Er stützt sich auf einen einzigen deutschen Artikel (Stockert, 1920), und keine Quelle verbindet die beiden Unfälle; sie bleiben daher zwei Datensätze, auch wenn sich nicht ausschließen lässt, dass es dasselbe Ereignis ist.',
-                'sources' => ['lette-2014'],
+                'fr' => 'Cette fiche réunit deux fiches de la base qui décrivent le même accident : « Lizy-sur-Ourcq » (15 septembre 1914, 40 morts, d\'après la liste de Wikipédia) et « accident ferroviaire de Sarry » (17 septembre 1914, 57 morts, d\'après Wikidata), devenue un alias de celle-ci. Les deux récits se recoupent (train sanitaire de nuit, pont de la Marne détruit par l\'armée française sans avertir le personnel, chute dans la rivière) et la presse allemande du 19 au 22 septembre le situe sur la route de Lizy-sur-Ourcq, près de Meaux. La localisation à Sarry, la ligne de Châlons-en-Champagne à Reims, la date du 17 septembre et le bilan de 57 morts ne reposent que sur l\'article allemand de Wikipédia, lui-même fondé sur un seul article de 1920 : la fiche garde Lizy-sur-Ourcq et le 15 septembre, mieux documentés, et le bilan de 40 morts des archives de la SNCF.',
+                'en' => 'This record merges two records of the database that describe the same accident: "Lizy-sur-Ourcq" (15 September 1914, 40 dead, from the Wikipedia list) and "Sarry rail accident" (17 September 1914, 57 dead, from Wikidata), which became an alias of this one. The two accounts agree (night hospital train, Marne bridge destroyed by the French army without warning the staff, fall into the river) and the German press of 19 to 22 September places it on the way to Lizy-sur-Ourcq, near Meaux. The location at Sarry, the Châlons-en-Champagne to Reims line, the date of 17 September and the toll of 57 rest only on the German Wikipedia article, itself based on a single 1920 article: the record keeps Lizy-sur-Ourcq and 15 September, which are better documented, and the toll of 40 from the SNCF archives.',
+                'de' => 'Dieser Datensatz vereint zwei Datensätze der Datenbank, die denselben Unfall beschreiben: „Lizy-sur-Ourcq“ (15. September 1914, 40 Tote, nach der Wikipedia-Liste) und „Eisenbahnunfall von Sarry“ (17. September 1914, 57 Tote, nach Wikidata), der zum Alias dieses Datensatzes wurde. Die beiden Darstellungen stimmen überein (nächtlicher Lazarettzug, von der französischen Armee ohne Warnung des Personals zerstörte Marnebrücke, Sturz in den Fluss), und die deutsche Presse vom 19. bis 22. September verortet ihn auf dem Weg nach Lizy-sur-Ourcq bei Meaux. Der Ort Sarry, die Strecke Châlons-en-Champagne-Reims, das Datum 17. September und die Zahl von 57 Toten beruhen allein auf dem deutschen Wikipedia-Artikel, der selbst auf einem einzigen Artikel von 1920 fußt: Der Datensatz behält Lizy-sur-Ourcq und den 15. September, die besser belegt sind, sowie die Zahl von 40 Toten aus den SNCF-Archiven.',
+                'sources' => ['wp-liste-1914', 'wp-de-sarry', 'ddb-1914-09-21-muelheim', 'ddb-1914-09-19-berliner', 'ddb-1914-09-22-pforzheimer', 'lette-2014'],
             ],
         ],
     ],
@@ -138,10 +249,19 @@ return [
         [
             'field' => 'kind',
             'value' => 'war_action',
-            'sources' => ['rail4402', 'lette-2014'],
+            'sources' => ['rail4402', 'lette-2014', 'wp-de-sarry', 'ddb-1914-09-19-berliner'],
             'fr' => "Le train sanitaire est tombé d'un pont détruit par les combats : c'est un fait de guerre, pas un déraillement ordinaire.",
             'en' => 'The hospital train fell from a bridge destroyed in the fighting: this is an act of war, not an ordinary derailment.',
             'de' => 'Der Lazarettzug stürzte von einer im Kampf zerstörten Brücke: Es handelt sich um eine Kriegseinwirkung, nicht um eine gewöhnliche Entgleisung.',
+        ],
+    ],
+    'aliases' => [
+        [
+            'slug' => '1914-09-17-accident-ferroviaire-de-sarry',
+            'sources' => ['wp-de-sarry', 'ddb-1914-09-21-muelheim', 'ddb-1914-09-19-berliner', 'ddb-1914-09-22-pforzheimer', 'lette-2014'],
+            'fr' => 'La fiche « accident ferroviaire de Sarry » du 17 septembre 1914 décrit le même accident : le train sanitaire tombé dans la Marne sur un pont détruit par l\'armée française, sur la route de Lizy-sur-Ourcq d\'après la presse allemande de l\'époque. Sa localisation à Sarry et sa date du 17 septembre ne reposent que sur un article de Wikipédia en allemand.',
+            'en' => 'The "Sarry rail accident" record of 17 September 1914 describes the same accident: the hospital train that fell into the Marne from a bridge destroyed by the French army, on the way to Lizy-sur-Ourcq according to the German press of the time. Its location at Sarry and its date of 17 September rest only on a German-language Wikipedia article.',
+            'de' => 'Der Datensatz „Eisenbahnunfall von Sarry“ vom 17. September 1914 beschreibt denselben Unfall: den Lazarettzug, der von einer durch die französische Armee zerstörten Brücke in die Marne stürzte, nach der deutschen Presse jener Zeit auf dem Weg nach Lizy-sur-Ourcq. Seine Ortsangabe Sarry und sein Datum 17. September beruhen allein auf einem deutschsprachigen Wikipedia-Artikel.',
         ],
     ],
 ];

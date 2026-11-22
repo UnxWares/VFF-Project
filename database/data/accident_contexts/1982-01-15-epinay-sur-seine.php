@@ -90,4 +90,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'level_crossing',
+            'sources' => ['delpher-1982-01-16-nrc', 'delpher-1982-01-16-ad'],
+            'fr' => 'Les dépêches de l\'AFP du lendemain, reprises par deux journaux néerlandais, disent que le camion à ordures était bloqué par le verglas sur un passage à niveau quand le train de banlieue l\'a heurté ; la liste de Wikipédia le décrit seulement comme un camion arrêté sur la voie. La fiche passe de « collision » à « passage à niveau ».',
+            'en' => 'The next day\'s AFP reports, carried by two Dutch newspapers, say the refuse lorry was stuck on ice on a level crossing when the suburban train hit it; the Wikipedia list only describes it as a lorry standing on the track. The record changes from "collision" to "level crossing".',
+            'de' => 'Die AFP-Meldungen des folgenden Tages, die zwei niederländische Zeitungen abdruckten, sagen, der Müllwagen sei wegen Glätte auf einem Bahnübergang liegen geblieben, als der Vorortzug ihn rammte; die Wikipedia-Liste beschreibt ihn nur als auf dem Gleis stehenden Lastwagen. Der Datensatz wechselt von „Zusammenstoß“ zu „Bahnübergang“.',
+        ],
+    ],
 ];

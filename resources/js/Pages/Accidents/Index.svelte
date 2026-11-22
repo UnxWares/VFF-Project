@@ -40,6 +40,7 @@
         'structure_failure',
         'attack',
         'war_action',
+        'person_struck',
         'runaway',
         'incident',
         'other',

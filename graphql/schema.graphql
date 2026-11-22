@@ -4118,7 +4118,7 @@ type Query {
         filter: LevelCrossingFilter = {} @builder(method: "App\\GraphQL\\Builders\\LevelCrossingFilterBuilder@filter")
     ): [LevelCrossing!]! @paginate(defaultCount: 50, maxCount: 200)
 
-    "Un accident, par son slug (ex. `2013-07-12-bretigny-sur-orge`)."
+    "Un accident, par son slug (ex. `2013-07-12-bretigny-sur-orge`). Le slug d'un doublon fusionné dans une autre fiche renvoie `null` : la fiche retenue est celle de la redirection 301 de `GET /api/v1/accidents/{slug}`."
     accident(
         "Slug de l'accident : date puis commune."
         slug: String! @eq

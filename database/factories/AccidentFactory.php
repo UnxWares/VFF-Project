@@ -23,8 +23,8 @@ class AccidentFactory extends Factory
     {
         $date = fake()->dateTimeBetween('-150 years', '-1 year');
         $commune = fake()->city();
-        // Nature publiée seulement : les heurts de personnes sont masqués (App\Models\Scopes\PublicAccidents).
-        $kind = fake()->randomElement(array_filter(AccidentKind::cases(), fn (AccidentKind $k) => ! in_array($k->value, AccidentKind::HIDDEN, true)));
+        // Nature toujours publiée : un heurt de personne demande une source officielle ou un contexte (AccidentKind::SOURCED_ONLY).
+        $kind = fake()->randomElement(array_filter(AccidentKind::cases(), fn (AccidentKind $k) => ! in_array($k->value, AccidentKind::SOURCED_ONLY, true)));
 
         return [
             'slug' => $date->format('Y-m-d').'-'.Str::slug($commune).'-'.fake()->unique()->numberBetween(1, 99999),

@@ -347,7 +347,8 @@ class VerifyAccidentsCommandTest extends TestCase
         $public = $this->accident('2017-12-14-millas', '2017-12-14', '66108', 'commune');
         $this->source($public, 'bea-tt', 'report', 'bea-1', ['date' => '2017-12-14', 'mode' => 'F'], 'Déraillement à Millas (66)');
         $hidden = $this->accident('2018-01-02-millas', '2018-01-02', '66108', 'commune', ['kind' => 'person_struck']);
-        $this->source($hidden, 'bea-tt', 'report', 'bea-2', ['date' => '2018-01-02', 'mode' => 'F'], 'Heurt d\'une personne à Millas (66)');
+        // Heurt de personne sans enquête officielle ni contexte : non publié (AccidentKind::SOURCED_ONLY), donc jamais annoncé.
+        $this->source($hidden, 'wikipedia', 'inventory', 'list-2', ['date' => '2018-01-02'], 'Heurt d\'une personne à Millas (66)');
         $this->accident('2017-12-14-millas-2', '2017-12-14', '66108', 'commune', ['alias_of_id' => $public->id]);
         $sent = fn (): array => WebhookDelivery::query()->where('webhook_subscription_id', $subscription->id)->get()
             ->map(fn (WebhookDelivery $d): string => $d->orderedPayload()['data']['id'])->all();

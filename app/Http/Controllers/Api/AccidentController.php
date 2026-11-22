@@ -15,7 +15,9 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 #[Group('Accidents', "Les accidents et événements graves du rail français : date et précision, lieu, ligne et portion à l'époque, bilan humain et sa source, résumé, sources ouvertes avec leur licence.", weight: 7)]
 class AccidentController extends Controller
@@ -93,11 +95,20 @@ class AccidentController extends Controller
      */
     #[PathParameter('accident', 'Slug de l\'accident, tel que renvoyé par la liste (`slug`) : date puis commune.', example: '2013-07-12-bretigny-sur-orge')]
     #[ApiResponse(200, 'Fiche de l\'accident.', examples: [AccidentExamples::SHOW])]
+    #[ApiResponse(301, "Fiche fusionnée dans une autre (deux entrées pour un même accident) : l'en-tête `Location` donne l'adresse de la fiche retenue.")]
     #[ApiResponse(404, 'Accident inconnu (slug introuvable).', examples: [AccidentExamples::NOT_FOUND])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function show(string $accident): JsonResponse
+    public function show(string $accident): JsonResponse|RedirectResponse
     {
-        $model = Accident::query()->withCoordinates()->where('slug', $accident)->firstOrFail();
+        $model = Accident::query()->withCoordinates()->where('slug', $accident)->first();
+        if ($model === null) {
+            $kept = Accident::redirectSlugFor($accident);
+            if ($kept === null) {
+                throw (new ModelNotFoundException)->setModel(Accident::class);
+            }
+
+            return redirect()->route('api.accidents.show', ['accident' => $kept], 301);
+        }
         $model->load([
             'lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'sectionFrom:id,slug,name', 'sectionTo:id,slug,name']),
             'sources',

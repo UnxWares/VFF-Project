@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de l'accident de la voie entre Breteuil et La Faloise du 20 septembre 1910 (recherche du 22/11/2026).
+return [
+    'slug' => '1910-09-20-breteuil',
+    'checked_on' => '2026-11-22',
+    'sources' => [
+        'wp-liste-1910' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1910',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Septembre 1910, La Faloise',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1910&oldid=233727870#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée de la liste : accident du 20 septembre 1910 entre Breteuil et La Faloise ; la nature n\'y est pas précisée.',
+        ],
+        'delpher-1910-09-23-tilburg' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Verscheidenheden. 3 personen vermorzeld',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1910-09-23',
+            'locator' => 'Nieuwe Tilburgsche Courant, p. 3',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010168702:mpeg21:a0049:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Le mardi, sur la ligne de Paris à Calais près d\'Amiens, quatre ouvriers de la voie travaillent ; un rapide arrive, la main de l\'un est coincée sous un rail, deux autres tentent de le dégager ; trois sont écrasés.',
+        ],
+        'delpher-1910-09-24-tilburg' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk. Treint-ongeluk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1910-09-24',
+            'locator' => 'Tilburgsche Courant',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010189886:mpeg21:a0005:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Même récit : trois ouvriers de la voie écrasés par un rapide sur la ligne de Paris à Calais.',
+        ],
+        'delpher-1910-09-23-haarlem' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenland',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1910-09-23',
+            'locator' => 'Nieuwe Haarlemsche Courant',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMNHA03:178979136:mpeg21:a00005:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Même dépêche reprise : trois agents de la voie tués par un rapide près d\'Amiens.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 20 septembre 1910, quatre ouvriers de l\'entretien de la voie travaillaient sur la ligne de Paris à Calais, entre Breteuil et La Faloise d\'après la liste de Wikipédia, « près d\'Amiens » d\'après la presse néerlandaise. L\'un d\'eux a vu arriver un train rapide.',
+                'en' => 'On 20 September 1910, four track maintenance workers were at work on the Paris to Calais line, between Breteuil and La Faloise according to the Wikipedia list, "near Amiens" according to the Dutch press. One of them saw a fast train approaching.',
+                'de' => 'Am 20. September 1910 arbeiteten vier Gleisarbeiter auf der Strecke Paris-Calais, nach der Wikipedia-Liste zwischen Breteuil und La Faloise, nach der niederländischen Presse „bei Amiens“. Einer von ihnen sah einen Schnellzug nahen.',
+                'sources' => ['wp-liste-1910', 'delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La main de l\'un des ouvriers était restée coincée sous un rail ; deux de ses collègues ont tenté de le dégager et d\'arrêter le train. Le rapide est passé sur les trois hommes. Il n\'y a pas eu de collision entre deux trains.',
+                'en' => 'One worker\'s hand was trapped under a rail; two of his colleagues tried to free him and to stop the train. The fast train ran over all three men. There was no collision between two trains.',
+                'de' => 'Die Hand eines Arbeiters war unter einer Schiene eingeklemmt; zwei seiner Kollegen versuchten, ihn zu befreien und den Zug anzuhalten. Der Schnellzug überfuhr alle drei. Einen Zusammenstoß zweier Züge gab es nicht.',
+                'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Trois agents de la voie sont morts, écrasés par le train. Les trois journaux néerlandais s\'accordent sur ce bilan.',
+                'en' => 'Three track workers died, run over by the train. The three Dutch newspapers agree on this toll.',
+                'de' => 'Drei Gleisarbeiter starben, vom Zug überfahren. Die drei niederländischen Zeitungen stimmen in dieser Zahl überein.',
+                'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La nature n\'est pas celle d\'une collision : la liste de Wikipédia ne la précise pas, et la presse décrit des agents happés par un train. Le lieu reste à préciser : la liste cite La Faloise (Somme), la presse « près d\'Amiens », et la fiche est placée à Breteuil (Oise), à confirmer.',
+                'en' => 'The nature is not that of a collision: the Wikipedia list does not specify it, and the press describes workers struck by a train. The place remains to be pinned down: the list cites La Faloise (Somme), the press "near Amiens", and the record is placed at Breteuil (Oise), to be confirmed.',
+                'de' => 'Die Art ist nicht die eines Zusammenstoßes: Die Wikipedia-Liste nennt sie nicht, und die Presse beschreibt vom Zug erfasste Arbeiter. Der Ort bleibt zu klären: Die Liste nennt La Faloise (Somme), die Presse „bei Amiens“, und der Datensatz liegt in Breteuil (Oise), zu bestätigen.',
+                'sources' => ['wp-liste-1910', 'delpher-1910-09-23-tilburg'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'person_struck',
+            'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem'],
+            'fr' => 'Trois journaux néerlandais décrivent trois agents de la voie écrasés par un rapide, sans collision entre deux trains : la fiche passe de « collision » à « personnes heurtées ».',
+            'en' => 'Three Dutch newspapers describe three track workers run over by a fast train, with no collision between two trains: the record changes from "collision" to "people struck".',
+            'de' => 'Drei niederländische Zeitungen beschreiben drei Gleisarbeiter, die von einem Schnellzug überfahren wurden, ohne Zusammenstoß zweier Züge: Der Datensatz wechselt von „Zusammenstoß“ zu „Personen erfasst“.',
+        ],
+        [
+            'field' => 'deaths',
+            'value' => 3,
+            'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem'],
+            'fr' => 'La liste de Wikipédia ne donne pas de bilan ; les trois journaux néerlandais comptent trois morts.',
+            'en' => 'The Wikipedia list gives no toll; the three Dutch newspapers count three dead.',
+            'de' => 'Die Wikipedia-Liste nennt keine Zahl; die drei niederländischen Zeitungen zählen drei Tote.',
+        ],
+    ],
+];

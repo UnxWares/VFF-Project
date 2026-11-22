@@ -134,6 +134,29 @@ class Accident extends Model
         return $this->hasMany(self::class, 'alias_of_id')->withoutGlobalScopes();
     }
 
+    /**
+     * Slug de la fiche publiée qui remplace un ancien slug : celui d'une fiche alias (doublon fusionné,
+     * voir `aliases` des fichiers de contexte) dont la fiche retenue est publiée. Nul si ce n'est pas un alias.
+     * Sert aux redirections 301 : l'adresse d'une fiche fusionnée ne renvoie jamais 404.
+     */
+    public static function redirectSlugFor(string $slug): ?string
+    {
+        $kept = self::withoutGlobalScopes()->where('slug', $slug)->whereNotNull('alias_of_id')->value('alias_of_id');
+        // Un alias d'alias est suivi jusqu'à la fiche retenue (au plus 5 pas : pas de boucle possible).
+        for ($i = 0; $i < 5 && $kept !== null; $i++) {
+            $target = self::withoutGlobalScopes()->whereKey($kept)->first(['id', 'slug', 'alias_of_id']);
+            if ($target === null) {
+                return null;
+            }
+            if ($target->alias_of_id === null) {
+                return self::query()->whereKey($target->id)->exists() ? $target->slug : null;
+            }
+            $kept = $target->alias_of_id;
+        }
+
+        return null;
+    }
+
     /** @return HasMany<AccidentSource, $this> */
     public function sources(): HasMany
     {

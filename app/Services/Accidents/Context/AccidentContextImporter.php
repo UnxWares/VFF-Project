@@ -59,8 +59,6 @@ final class AccidentContextImporter
                 $errors[] = "aucune fiche « {$slug} » dans la table accidents";
             } elseif ($accident->alias_of_id !== null) {
                 $errors[] = "la fiche « {$slug} » est un alias : écrire le contexte sur la fiche retenue";
-            } elseif (in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
-                $errors[] = "la fiche « {$slug} » n'est pas publiée (nature masquée)";
             }
             foreach (is_array($data) ? ($data['aliases'] ?? []) : [] as $alias) {
                 $target = is_array($alias) ? Accident::withoutGlobalScopes()->where('slug', $alias['slug'] ?? '')->first() : null;

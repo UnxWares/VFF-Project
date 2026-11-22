@@ -10,6 +10,7 @@ use App\Models\AccidentLine;
 use App\Services\Accidents\Context\AccidentContextView;
 use App\Services\Api\AccidentQuery;
 use App\Support\FrenchDepartments;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -64,9 +65,16 @@ class AccidentController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $accident): Response
+    public function show(Request $request, string $accident): Response|RedirectResponse
     {
-        $model = Accident::query()->withCoordinates()->where('slug', $accident)->firstOrFail();
+        $model = Accident::query()->withCoordinates()->where('slug', $accident)->first();
+        if ($model === null) {
+            // Doublon fusionné dans une autre fiche : l'ancienne adresse y renvoie (301), jamais un 404.
+            $kept = Accident::redirectSlugFor($accident);
+            abort_if($kept === null, 404);
+
+            return redirect()->route('accidents.show', ['accident' => $kept], 301);
+        }
         $model->load([
             'lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'sectionFrom:id,slug,name', 'sectionTo:id,slug,name']),
             'sources',
@@ -135,18 +143,18 @@ class AccidentController extends Controller
      */
     private function facets(): array
     {
-        $decades = DB::table('accidents')->whereNull('alias_of_id')->whereNotIn('kind', AccidentKind::HIDDEN)
+        $decades = DB::table('accidents')->whereNull('alias_of_id')->whereRaw(AccidentKind::publishableSql())
             ->selectRaw('(EXTRACT(YEAR FROM occurred_on)::int / 10) * 10 AS decade, COUNT(*) AS n')
             ->groupBy('decade')->orderBy('decade')->get()
             ->map(fn ($r) => ['decade' => (int) $r->decade, 'count' => (int) $r->n])->all();
-        $kinds = DB::table('accidents')->whereNull('alias_of_id')->whereNotIn('kind', AccidentKind::HIDDEN)->selectRaw('kind, COUNT(*) AS n')->groupBy('kind')->pluck('n', 'kind')
+        $kinds = DB::table('accidents')->whereNull('alias_of_id')->whereRaw(AccidentKind::publishableSql())->selectRaw('kind, COUNT(*) AS n')->groupBy('kind')->pluck('n', 'kind')
             ->map(fn ($n) => (int) $n)->all();
-        $departments = DB::table('accidents')->whereNull('alias_of_id')->whereNotIn('kind', AccidentKind::HIDDEN)->whereNotNull('department_code')
+        $departments = DB::table('accidents')->whereNull('alias_of_id')->whereRaw(AccidentKind::publishableSql())->whereNotNull('department_code')
             ->selectRaw('department_code, COUNT(*) AS n')->groupBy('department_code')->orderBy('department_code')->get()
             ->map(fn ($r) => ['code' => $r->department_code, 'name' => FrenchDepartments::find($r->department_code)[0] ?? $r->department_code, 'count' => (int) $r->n])
             ->all();
         $lines = DB::table('accident_lines')->join('lines', 'lines.id', '=', 'accident_lines.line_id')
-            ->join('accidents', 'accidents.id', '=', 'accident_lines.accident_id')->whereNull('accidents.alias_of_id')->whereNotIn('accidents.kind', AccidentKind::HIDDEN)
+            ->join('accidents', 'accidents.id', '=', 'accident_lines.accident_id')->whereNull('accidents.alias_of_id')->whereRaw(AccidentKind::publishableSql())
             ->selectRaw('lines.slug, lines.code, lines.name, COUNT(DISTINCT accident_lines.accident_id) AS n')
             ->groupBy('lines.slug', 'lines.code', 'lines.name')->orderBy('lines.name')->get()
             ->map(fn ($r) => ['slug' => $r->slug, 'code' => $r->code, 'name' => $r->name, 'count' => (int) $r->n])

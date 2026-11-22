@@ -16,6 +16,11 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
   jamais recadrée. `date_precision` est désormais aussi rangé en colonne (mêmes valeurs). `provider` peut valoir `panoramax` (photos de
   rue, Licence Ouverte 2.0 ou CC BY-SA 4.0 selon l'instance). Selon le réglage de l'instance (`VFF_MEDIA_SHOW_NON_COMMERCIAL`), les médias
   `commercial_ok: false` peuvent être absents de toutes les réponses : un client ne doit pas supposer qu'un média vu une fois reste listé.
+- Accidents : la nature `person_struck` (personnes heurtées hors passage à niveau) est désormais publiée en REST, GraphQL, MCP, carte et
+  filtres, mais seulement pour une fiche appuyée par une enquête officielle (source `bea-tt`) ou par un contexte sourcé relu ; les autres restent
+  masquées. Une fiche qui double une autre (même accident, deux entrées) n'est jamais listée : `GET /api/v1/accidents/{slug}` répond 301 avec
+  `Location` vers la fiche retenue (de même `/accidents/{slug}` sur le site) et l'outil MCP `get_accident` renvoie directement la fiche retenue ;
+  GraphQL `accident(slug:)` renvoie `null` pour l'ancien slug, la fiche retenue étant celle du lien REST.
 - Nouveau point d'accès REST `GET /api/v1/stations/{slug}/aerial` : vues aériennes historiques de l'IGN (1950-1965, 1965-1980,
   1980-1995, Licence Ouverte 2.0), adresse de l'image (`/media/aerial/{slug}/{période}.jpg`, 404 hors couverture), crédit et lien.
 - GraphQL, `SignallingEventSource.revision` passe de `Int!` à `Int`. REST, `source.revision` de `signalling-history` est `null` pour un fait
