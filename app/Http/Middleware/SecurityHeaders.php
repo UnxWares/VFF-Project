@@ -27,10 +27,11 @@ class SecurityHeaders
 {
     /**
      * Fonctions du navigateur refusées à la page et à ses cadres. La géolocalisation reste permise à la
-     * page elle-même (bouton « me localiser » de la carte), le plein écran aussi (par défaut).
+     * page elle-même (bouton « me localiser » de la carte), le plein écran aussi (par défaut). `bluetooth` et
+     * `interest-cohort` ne sont plus reconnus par les navigateurs (avertissement à chaque page) : retirés.
      */
-    public const PERMISSIONS_POLICY = 'camera=(), microphone=(), payment=(), usb=(), serial=(), bluetooth=(), '
-        .'midi=(), accelerometer=(), gyroscope=(), magnetometer=(), geolocation=(self), interest-cohort=()';
+    public const PERMISSIONS_POLICY = 'camera=(), microphone=(), payment=(), usb=(), serial=(), '
+        .'midi=(), accelerometer=(), gyroscope=(), magnetometer=(), geolocation=(self)';
 
     /** Un an, sans includeSubDomains (les sous-domaines de l'association ne sont pas tous en HTTPS). */
     public const HSTS = 'max-age=31536000';
