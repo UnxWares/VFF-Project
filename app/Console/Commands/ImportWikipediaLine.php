@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\LineEventType;
 use App\Models\Line;
 use App\Models\LineEvent;
+use App\Services\WikimediaClient;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
@@ -136,7 +137,7 @@ class ImportWikipediaLine extends Command
      */
     private function fetchWikitext(string $title): ?string
     {
-        $resp = Http::withUserAgent('VFF-Bot/1.0 (+https://vff-project.org; contact: contact@vff-project.org)')
+        $resp = Http::withUserAgent(WikimediaClient::USER_AGENT)
             ->timeout(30)
             ->acceptJson()
             ->get('https://fr.wikipedia.org/w/api.php', [
@@ -146,6 +147,7 @@ class ImportWikipediaLine extends Command
                 'page' => $title,
                 'prop' => 'wikitext',
                 'redirects' => 1,
+                'maxlag' => 5,
             ]);
 
         if (! $resp->ok()) {

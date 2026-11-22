@@ -279,8 +279,10 @@ class ImportHeritageLines extends Command
             }
             $this->lastRequestAt = microtime(true);
             try {
-                $res = Http::withUserAgent(WikimediaClient::USER_AGENT)->timeout(90)->acceptJson()->get($url, $query);
-                if ($res->ok() && is_array($res->json())) {
+                // Les appels à api.php portent maxlag : les serveurs en retard répondent par une erreur à retenter.
+                $isApi = str_ends_with((string) parse_url($url, PHP_URL_PATH), '/api.php');
+                $res = Http::withUserAgent(WikimediaClient::USER_AGENT)->timeout(90)->acceptJson()->get($url, $isApi ? $query + ['maxlag' => 5] : $query);
+                if ($res->ok() && is_array($res->json()) && $res->json('error.code') !== 'maxlag') {
                     return $res->json();
                 }
             } catch (\Throwable $e) {

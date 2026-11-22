@@ -130,6 +130,7 @@ class ImportLineDescriptions extends Command
             'action' => 'query', 'format' => 'json', 'formatversion' => 2, 'redirects' => 1,
             'prop' => 'extracts|revisions|pageprops', 'exintro' => 1, 'explaintext' => 1, 'exlimit' => 'max',
             'rvprop' => 'ids|timestamp', 'ppprop' => 'disambiguation', 'titles' => implode('|', $titles),
+            'maxlag' => 5,
         ];
         $response = null;
         for ($attempt = 1; $attempt <= 3; $attempt++) {
@@ -138,14 +139,15 @@ class ImportLineDescriptions extends Command
             } catch (ConnectionException) {
                 $response = null;
             }
-            if ($response?->successful()) {
+            if ($response?->successful() && $response->json('error.code') !== 'maxlag') {
                 break;
             }
             if ($attempt < 3) {
-                usleep(1_000_000 * $attempt);
+                // Serveurs en retard (maxlag) : on attend le délai demandé, sinon une pause croissante.
+                usleep(1_000_000 * max($attempt, min(30, (int) ($response?->header('Retry-After') ?: 0))));
             }
         }
-        if (! $response?->successful()) {
+        if (! $response?->successful() || $response->json('error.code') === 'maxlag') {
             throw new \RuntimeException('Wikipédia injoignable (HTTP '.($response?->status() ?? 'connexion').')');
         }
 
