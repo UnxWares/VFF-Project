@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /api/v1/materials/{material}/map`, les lignes d'une série avec leur tracé allégé (MultiLineString à 40 m près, 4 décimales),
+  la fiabilité du lien, sa source (`source_url`, `article`, `quote`) et les périodes datées ; règle des droits des tracés comme
+  `/lines/{line}/segments` (`geometry_withheld`). Ajout seul.
 - Carte : `GET /api/v1/eras/{year}/in-view?bbox=ouest,sud,est,nord` liste les lignes (état à l'ère, kilomètres dans l'emprise) et les
   gares d'une emprise, sous une forme compacte : alternative textuelle à la carte `/maps` (bouton « Liste de ce qui est affiché »). Listes
   plafonnées à 300 entrées (`total`), emprise bornée à 4 degrés sur 3 (`too_wide`). Ajout seul.

@@ -6,6 +6,7 @@ use App\Http\Controllers\CommonsImageController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LinePortionsController;
+use App\Http\Controllers\MaterialMapController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
@@ -70,6 +71,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
                 ->name('lines.portions');
+            // Carte des lignes d'une fiche de matériel : tracé allégé et dates, lus par la page quand la carte
+            // s'affiche, sans session ni cookie (App\Http\Controllers\MaterialMapController).
+            Route::get('/materials/{slug}/map.json', MaterialMapController::class)
+                ->where('slug', '[a-z0-9-]{1,255}')
+                ->name('materials.map');
             // Flux du journal et plans du site : publics, en cache, donc sans session ni cookie (hors du groupe
             // web). La langue des flux vient de `?lang=` puis d'Accept-Language (`Vary`).
             Route::get('/journal/atom.xml', [JournalController::class, 'atom'])->name('journal.atom');

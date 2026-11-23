@@ -162,6 +162,8 @@ class MaterialController extends Controller
             })->values(),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).
             'lines_total' => $material->lineLinks()->distinct()->count('line_id'),
+            // Carte des lignes (tracé allégé, dates, confiance), lue par la page quand la carte s'affiche.
+            'map_url' => route('materials.map', ['slug' => $material->slug], false),
             // Rames remarquables (database/data/material_notable_units.php), textes dans la langue de la page.
             'notable_units' => $notableUnits->forMaterial($material->slug, app()->getLocale()),
             // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
