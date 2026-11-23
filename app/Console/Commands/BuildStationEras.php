@@ -807,6 +807,22 @@ class BuildStationEras extends Command
         //    pour une section précise (PK ou géométrie) passe avant un événement
         //    « toute la ligne », qui donne souvent la 1re ouverture d'une ligne
         //    ouverte par sections (ex. Paris - Brest : 1840 pour toutes les gares).
+        //    « Toute la ligne » : résolu en whole_line (vff:resolve-event-sections lui
+        //    donne le tracé de référence entier pour géométrie) ou sans portion du tout.
+        //    Sans le premier cas, l'ouverture Wikidata de la ligne entière passait pour
+        //    une section et datait toutes les gares de la première (Chaville - Vélizy :
+        //    1840 au lieu du tronçon de 1902 ; Moulot : 1855 au lieu de 1893).
+        $wholeLine = "(le.section_resolution = 'whole_line' OR (le.section_pk_start_m IS NULL AND le.section_geom IS NULL))";
+        //    Gardes (mesure du 23/11 sur 278 gares relues) : deux sortes d'événements ne valent pas
+        //    une section et restent au rang « toute la ligne » (la plus ancienne l'emporte, comme avant) :
+        //    - un tracé OHM ou archéoferroviaire sans deuxième extrémité nommée (« portion de 300,5 km
+        //      près de La Gorp » : le way de la LGV SEA, 2017 pour Gauriaguet, Aubie et Biard ; « (1921) d'après
+        //      le nom du tracé » : une exploitation de guerre). Un tracé « A - B » aux deux bouts nommés reste
+        //      une section : sur la mesure, il est le plus souvent juste (Thionville - Anzeling 1863) ;
+        //    - une ligne qui ne rattache la gare que par segment (proximité du dessin, sans PK de source)
+        //      alors que la gare a une autre ligne à PK sourcé : c'est la ligne voisine, pas la sienne.
+        $weakSection = "((le.source IN ('ohm', 'archeoferroviaire') AND COALESCE(le.section_to, '') = '') OR (sl.method = 'segment' AND EXISTS (SELECT 1 FROM station_lines sl3 WHERE sl3.station_id = s.id AND sl3.line_id <> sl.line_id AND sl3.method IN ('sncf_pk', 'source_pk'))))";
+        $notSection = "({$wholeLine} OR {$weakSection})";
         $a = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, source_url, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (s.id) s.id, 'opening', le.event_date, le.date_precision, 'inferred:line_event', 'line_event:'||le.id,
@@ -816,7 +832,7 @@ class BuildStationEras extends Command
             JOIN lines l ON l.id = sl.line_id
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND {$cover}
             WHERE {$explicit("'opening'")}
-            ORDER BY s.id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date, {$precisionRank}, le.id
+            ORDER BY s.id, {$notSection}, le.event_date, {$precisionRank}, le.id
         SQL);
         // b. À défaut, tracés datés passant à < 30 m (OHM : start_date).
         $b = DB::affectingStatement(<<<SQL
