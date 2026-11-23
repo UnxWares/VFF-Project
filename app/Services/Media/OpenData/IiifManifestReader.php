@@ -79,7 +79,7 @@ final class IiifManifestReader
      * @param  array{verify?: string}  $options
      * @return list<string>
      */
-    private function searchArks(array $dataset, array $options): array
+    public function searchArks(array $dataset, array $options): array
     {
         $out = [];
         foreach ($dataset['searches'] as $query) {

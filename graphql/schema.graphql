@@ -1169,6 +1169,12 @@ type Media {
     """
     derivatives_ok: Boolean
 
+    """
+    Vrai si la licence du fonds est « incertaine » (accord à confirmer, portée de la licence non lue) : à signaler avec l'image.
+    Les instances peuvent masquer ces médias (`VFF_MEDIA_SHOW_UNCERTAIN`).
+    """
+    rights_uncertain: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
+
     "Vrai si la mention de l'auteur est obligatoire, nul si inconnu."
     attribution_required: Boolean @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
 

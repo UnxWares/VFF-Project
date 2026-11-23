@@ -479,6 +479,9 @@
                     {#if active.commercial_ok === false}<span class="vff-badge warning"
                             >{t('media.no_commercial')}</span
                         >{/if}
+                    {#if active.rights_uncertain}<span class="vff-badge warning"
+                            >{t('media.rights_uncertain')}</span
+                        >{/if}
                     {#if active.contribution_id}<span class="vff-badge muted"
                             >{t('media.contributed_badge')}</span
                         >{/if}

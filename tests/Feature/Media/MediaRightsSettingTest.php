@@ -143,4 +143,55 @@ class MediaRightsSettingTest extends TestCase
 
         $this->assertSame(1, Media::query()->displayable()->count());
     }
+
+    /** Un fonds « incertain » du registre des droits (evry-cp) et un fonds sûr (panoramax). */
+    private function seedUncertain(): void
+    {
+        app(MediaWriter::class)->write([
+            $this->record('sur'),
+            $this->record('incertain', overrides: ['provider' => 'evry-cp', 'license' => 'Licence Ouverte 2.0 (Etalab)']),
+        ]);
+    }
+
+    public function test_uncertain_funds_are_shown_by_default_and_flagged(): void
+    {
+        $this->seedUncertain();
+
+        $gallery = $this->getJson('/api/v1/stations/gare-temoin-medias/media')->assertOk();
+        $gallery->assertJsonPath('meta.total', 2);
+        $flags = [];
+        foreach ((array) $gallery->json('data') as $m) {
+            $flags[(string) $m['provider']] = $m['rights_uncertain'];
+        }
+        $this->assertSame(['panoramax' => false, 'evry-cp' => true], $flags);
+        $this->assertTrue(Media::query()->where('provider', 'evry-cp')->firstOrFail()->isRightsUncertain());
+        $this->assertSame(['evry-cp', 'gadagne-cp', 'pireneas'], array_values(array_intersect(['evry-cp', 'gadagne-cp', 'pireneas'], Media::uncertainProviders())));
+    }
+
+    public function test_setting_hides_uncertain_funds_everywhere_and_deletes_nothing(): void
+    {
+        $this->seedUncertain();
+        config(['vff.media.show_uncertain' => false]);
+
+        $this->getJson('/api/v1/stations/gare-temoin-medias/media')->assertOk()->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.provider', 'panoramax');
+        $this->getJson('/api/v1/media?station=gare-temoin-medias')->assertOk()->assertJsonCount(1, 'data');
+        $this->assertSame(1, app(MediaGallery::class)->count($this->station));
+        $this->assertSame(1, Media::query()->displayable()->count());
+        $this->assertSame(1, Media::query()->redistributable()->count());
+        $this->assertSame(2, Media::query()->count(), 'rien n\'est effacé');
+        $this->assertSame(1, (int) DB::selectOne('SELECT count(*) AS n FROM media WHERE '.Media::displayableSql('media'))->n);
+
+        $graphql = $this->postJson('/graphql', ['query' => '{ station(slug: "gare-temoin-medias") { media(first: 10) { edges { node { id rights_uncertain } } } } }']);
+        $graphql->assertOk()->assertJsonCount(1, 'data.station.media.edges')->assertJsonPath('data.station.media.edges.0.node.rights_uncertain', false);
+    }
+
+    public function test_both_settings_combine(): void
+    {
+        $this->seedUncertain();
+        app(MediaWriter::class)->write([$this->record('nc', commercial: false, derivatives: false)]);
+        config(['vff.media.show_uncertain' => false, 'vff.media.show_non_commercial' => false]);
+
+        $this->assertSame(1, Media::query()->displayable()->count());
+        $this->assertStringStartsWith('media.commercial_ok IS DISTINCT FROM FALSE AND media.provider NOT IN (', Media::displayableSql('media'));
+    }
 }

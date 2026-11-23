@@ -474,6 +474,7 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 Chaque média : `title`, `caption`, `thumb_url`, `display_url`, `source_url` (page d'origine),
 dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, `rights_status`,
 `commercial_ok`, `share_alike`, `derivatives_ok` (`false` : licence sans modification, image à montrer entière),
+`rights_uncertain` (`true` : licence du fonds incertaine, à signaler),
 `location`, `subject` (ligne, gare, série ou événement) et
 `contribution_id` (numéro de la contribution validée qui a publié l'image, `null` pour un import).
 Une image proposée et encore en attente de validation n'est jamais renvoyée, ni une image sous licence non commerciale

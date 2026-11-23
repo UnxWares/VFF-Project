@@ -496,4 +496,145 @@ return [
         'type' => 'photo',
         'max_year' => 1944,
     ],
+
+    // Rosalis et Pireneas (agent medias-4, 23/11/2026) : bibliothèques numériques de marque blanche Gallica, mêmes champs Dublin Core
+    // (une notice par ark, `driver = oai-dc`, DublinCoreReader), une requête toutes les 5 s (`min_interval_ms`). Licence lue
+    // notice par notice (`dc:rights`) : toute autre valeur refuse l'image. Sans point : rattachement par le nom de la commune lu
+    // dans les sujets (« Gare (Foix) ») et par le titre.
+    'rosalis' => [
+        'provider' => 'rosalis',
+        'name' => 'Rosalis, bibliothèque numérique de Toulouse (images de gares, de chemins de fer et de tramways, surtout Eugène Trutat)',
+        'driver' => 'oai-dc',
+        'min_interval_ms' => 5000,
+        'resource' => 'https://rosalis.bibliotheque.toulouse.fr/services/engine/search/sru',
+        'portal' => 'https://rosalis.bibliotheque.toulouse.fr/rosalis/fr/content/conditions-dutilisation',
+        'search_url' => 'https://rosalis.bibliotheque.toulouse.fr/services/engine/search/sru',
+        'searches' => [
+            '(gallica all "gare") and (dc.type all "image")',
+            '(gallica all "chemin de fer") and (dc.type all "image")',
+            '(gallica all "tramway") and (dc.type all "image")',
+            '(gallica all "locomotive") and (dc.type all "image")',
+            '(gallica all "viaduc") and (dc.type all "image")',
+            '(gallica all "train") and (dc.type all "image")',
+        ],
+        'ark_prefix' => 'btv',
+        'record' => 'https://rosalis.bibliotheque.toulouse.fr/services/OAIRecord?ark={ark}',
+        'image_sizes' => [1600, 400],
+        'fields' => [
+            'id' => 'ark',
+            'title' => 'title',
+            'date' => 'date',
+            'author' => 'author',
+            'inventory' => 'inventory',
+            'image' => 'image',
+            'thumb' => 'thumb',
+            'source' => 'link',
+            'repository' => 'repository',
+            'subjects' => 'subjects',
+            'commune' => 'commune',
+            'license' => 'rights',
+            'type' => 'type',
+        ],
+        // Seules les images « domaine public » de la notice : les documents à « Conditions spécifiques d'utilisation » (droits de
+        // tiers) et ceux qui portent « Source : Bibliothèque nationale de France » (non commercial libre, commercial payant) sont refusés ;
+        // les documents de l'École des ponts hébergés ici sont déjà lus par `enpc-ph` (une seule fois).
+        'require_pattern' => [
+            'repository' => '/^(?!.*(?:Biblioth[èe]que nationale de France|Ecole nationale des ponts))/isu',
+            'type' => '/\bimage\b/i',
+        ],
+        // Vues hors de France (Trutat a photographié Monaco et l'Espagne) : refusées sur les sujets.
+        'reject_pattern' => ['subjects' => '/\b(?:Monaco|Monte-Carlo|Espagne|Spain|Italie|Suisse|Belgique|Allemagne|Germany|Rh[ée]nanie|Andorre|Portugal|Maroc|Alg[ée]rie|Tunisie|Royaume-Uni|Affiches?)\b/iu', 'title' => '/\b(?:Rh[ée]nanie|Allemagne|Bingerbr[üu]ck|Essen)\b/iu'],
+        'rail' => ['fields' => ['title', 'subjects'], 'pattern' => '/\b(gares?|halte|chemins? de fer|viaducs?|tunnels?|locomotives?|trains?|voie ferr[ée]e|ferroviaires?|wagons?|tramways?)\b/iu'],
+        'license' => [
+            'kind' => 'per_record',
+            'map' => [
+                '/^(?!.*conditions sp[ée]cifiques).*(?:domaine public|public domain)/isu' => [
+                    'license' => 'Domaine public',
+                    'license_url' => 'https://rosalis.bibliotheque.toulouse.fr/rosalis/fr/content/conditions-dutilisation',
+                    'rights_status' => 'public_domain',
+                    'commercial_ok' => true,
+                    'derivatives_ok' => true,
+                    'share_alike' => false,
+                ],
+            ],
+        ],
+        'credit' => 'Mairie de Toulouse, Rosalis',
+        'credit_template' => '{repository}, Mairie de Toulouse, Rosalis',
+        'source_url' => 'https://rosalis.bibliotheque.toulouse.fr/ark:/12148/{id}',
+        'title_match' => true,
+        'tram_apart' => true,
+        'viewpoint_apart' => true,
+        'clean_title' => 'dashes',
+        'type' => 'photo',
+    ],
+
+    'pireneas' => [
+        'provider' => 'pireneas',
+        'name' => 'Pireneas, bibliothèque numérique Pau Béarn Pyrénées (images de gares, de chemins de fer et de tramways)',
+        'driver' => 'oai-dc',
+        'min_interval_ms' => 5000,
+        'resource' => 'https://www.pireneas.fr/services/engine/search/sru',
+        'portal' => 'https://www.pireneas.fr/pireneas/fr/content/droits-dutilisation',
+        'search_url' => 'https://www.pireneas.fr/services/engine/search/sru',
+        'searches' => [
+            '(gallica all "gare") and (dc.type all "image")',
+            '(gallica all "chemin de fer") and (dc.type all "image")',
+            '(gallica all "tramway") and (dc.type all "image")',
+            '(gallica all "locomotive") and (dc.type all "image")',
+            '(gallica all "viaduc") and (dc.type all "image")',
+            '(gallica all "train") and (dc.type all "image")',
+        ],
+        'ark_prefix' => 'btv',
+        'record' => 'https://www.pireneas.fr/services/OAIRecord?ark={ark}',
+        'image_sizes' => [1600, 400],
+        'fields' => [
+            'id' => 'ark',
+            'title' => 'title',
+            'date' => 'date',
+            'author' => 'author',
+            'inventory' => 'inventory',
+            'image' => 'image',
+            'thumb' => 'thumb',
+            'source' => 'link',
+            'repository' => 'repository',
+            'subjects' => 'subjects',
+            'commune' => 'commune',
+            'license' => 'rights',
+            'type' => 'type',
+        ],
+        // Le droit d'auteur est échu (« domaine public » dans la notice) mais la réutilisation de la reproduction est libre
+        // pour un usage NON commercial seulement, avec mention de la source : `commercial_ok = false`, masquable par
+        // le réglage `vff.media.show_non_commercial`. Les images d'autres établissements de la BNRP suivent leurs règles : celles de la
+        // Bibliothèque nationale de France sont refusées, comme celles des fonds de Toulouse (déjà lues dans Rosalis, une seule fois) ; les autres partenaires affichent « domaine public » dans la notice.
+        'require_pattern' => [
+            'repository' => '/^(?!.*(?:Biblioth[èe]que nationale de France|Toulous|Ecole nationale des ponts))/isu',
+            'type' => '/\bimage\b/i',
+        ],
+        // Vues hors de France (Trutat a photographié Monaco et l'Espagne) : refusées sur les sujets.
+        'reject_pattern' => ['subjects' => '/\b(?:Monaco|Monte-Carlo|Espagne|Spain|Italie|Suisse|Belgique|Allemagne|Germany|Rh[ée]nanie|Andorre|Portugal|Maroc|Alg[ée]rie|Tunisie|Royaume-Uni|Affiches?)\b/iu', 'title' => '/\b(?:Rh[ée]nanie|Allemagne|Bingerbr[üu]ck|Essen)\b/iu'],
+        'rail' => ['fields' => ['title', 'subjects'], 'pattern' => '/\b(gares?|halte|chemins? de fer|viaducs?|tunnels?|locomotives?|trains?|voie ferr[ée]e|ferroviaires?|wagons?|tramways?)\b/iu'],
+        'license' => [
+            'kind' => 'per_record',
+            'map' => [
+                '/^(?!.*conditions sp[ée]cifiques).*(?:domaine public|public domain)/isu' => [
+                    'license' => 'Réutilisation non commerciale libre (Pireneas)',
+                    'license_url' => 'https://www.pireneas.fr/pireneas/fr/content/droits-dutilisation',
+                    'rights_status' => 'open_license',
+                    'commercial_ok' => false,
+                    'derivatives_ok' => false,
+                    'share_alike' => false,
+                ],
+            ],
+        ],
+        'credit' => 'Pireneas, Archives et bibliothèques Pau Béarn Pyrénées',
+        'credit_template' => 'Pireneas, {repository}',
+        'source_url' => 'https://www.pireneas.fr/ark:/12148/{id}',
+        'title_match' => true,
+        'tram_apart' => true,
+        'viewpoint_apart' => true,
+        // Les rubriques de sujets de Pireneas (rubrique « Gares » de Pau) rangent des vues de rues et de montagnes : elles ne prouvent pas que la vue montre la gare.
+        'subjects_evidence' => false,
+        'clean_title' => 'dashes',
+        'type' => 'photo',
+    ],
 ];

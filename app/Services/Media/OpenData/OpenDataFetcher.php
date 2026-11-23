@@ -17,7 +17,8 @@ use RuntimeException;
  *     les copies analysées des CSV publiés par les portails Opendatasoft dont le robots.txt interdit `/api/` ;
  *   - `wfs` : GeoJSON du WFS de data.grandlyon.com (jeu du musée Gadagne) ;
  *   - `getty` : SPARQL puis une notice Linked Art par objet de data.getty.edu (GettyReader) ;
- *   - `iiif` : plan du site puis manifestes IIIF d'une bibliothèque numérique de marque blanche Gallica (IiifManifestReader).
+ *   - `iiif` : plan du site puis manifestes IIIF d'une bibliothèque numérique de marque blanche Gallica (IiifManifestReader) ;
+ *   - `oai-dc` : recherche (HTML) puis notice Dublin Core par ark (Rosalis, Pireneas : DublinCoreReader), une requête toutes les 5 s.
  * Politesse : une requête toutes les 2 secondes au plus (attente via Sleep, simulable), User-Agent générique
  * de VFF, lecture séquentielle, une reprise unique sur 429 ou 5xx. Le cache (`storage/app/sources/open-data-media`,
  * avec `.nobackup`) garde une ligne JSON par ligne du jeu, au nom de colonnes du jeu, et un petit fichier de
@@ -33,6 +34,9 @@ class OpenDataFetcher
     public const MIN_INTERVAL_MS = 2000;
 
     private float $lastRequestAt = 0.0;
+
+    /** Intervalle appliqué (ms) : celui du jeu (`min_interval_ms`, 5 000 pour les bibliothèques Gallica), sinon MIN_INTERVAL_MS. */
+    public int $intervalMs = self::MIN_INTERVAL_MS;
 
     public int $requestCount = 0;
 
@@ -87,11 +91,13 @@ class OpenDataFetcher
      */
     public function refresh(string $key, array $dataset, ?int $limit = null): int
     {
+        $this->intervalMs = max(self::MIN_INTERVAL_MS, (int) ($dataset['min_interval_ms'] ?? self::MIN_INTERVAL_MS));
         $rows = match ($dataset['driver'] ?? null) {
             'tabular' => $this->readTabular($dataset, $limit),
             'wfs' => $this->readWfs($dataset, $limit),
             'getty' => (new GettyReader($this))->read($dataset, $limit),
             'iiif' => (new IiifManifestReader($this, $key))->read($dataset, $limit),
+            'oai-dc' => (new DublinCoreReader($this, $key))->read($dataset, $limit),
             default => throw new RuntimeException("Jeu {$key} : accès inconnu."),
         };
 
@@ -105,11 +111,12 @@ class OpenDataFetcher
      */
     public function rebuild(string $key, array $dataset): int
     {
-        if (($dataset['driver'] ?? null) !== 'iiif') {
-            throw new RuntimeException("Jeu {$key} : seule la lecture IIIF se reconstruit depuis ses manifestes.");
+        $driver = $dataset['driver'] ?? null;
+        if (! in_array($driver, ['iiif', 'oai-dc'], true)) {
+            throw new RuntimeException("Jeu {$key} : seule la lecture IIIF ou Dublin Core se reconstruit depuis ses notices.");
         }
 
-        return $this->store($key, $dataset, IiifManifestReader::rowsFromCache($key));
+        return $this->store($key, $dataset, $driver === 'iiif' ? IiifManifestReader::rowsFromCache($key) : DublinCoreReader::rowsFromCache($key));
     }
 
     /**
@@ -235,7 +242,7 @@ class OpenDataFetcher
     /** @param  array{accept?: string, verify?: string, query?: array<string, string>, timeout?: int, retry?: bool}  $options */
     private function send(string $url, array $options = []): Response
     {
-        $wait = $this->lastRequestAt + self::MIN_INTERVAL_MS / 1000 - microtime(true);
+        $wait = $this->lastRequestAt + $this->intervalMs / 1000 - microtime(true);
         if ($wait > 0) {
             Sleep::for((int) ceil($wait * 1000))->milliseconds();
         }

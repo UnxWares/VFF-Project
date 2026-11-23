@@ -55,7 +55,8 @@ class MediaController extends Controller
      * libre, `unknown` inconnu), `commercial_ok`
      * (usage commercial permis, `null` si inconnu), `share_alike` (partage
      * dans les mêmes conditions exigé), `attribution_required` (mention de
-     * l'auteur obligatoire). Une image que le site montre avec une simple
+     * l'auteur obligatoire), `rights_uncertain` (la licence du fonds est
+     * « incertaine » : à signaler avec l'image). Une image que le site montre avec une simple
      * autorisation de son auteur (`permission`) n'est jamais diffusée par
      * l'API : elle n'est ni dans la liste ni dans les compteurs, et sa fiche
      * répond 404 (même règle que GraphQL, l'outil MCP `media` et les

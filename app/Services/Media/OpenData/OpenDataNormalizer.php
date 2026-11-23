@@ -48,6 +48,12 @@ final class OpenDataNormalizer
                 return ['ok' => false, 'reason' => 'hors_fonds'];
             }
         }
+        // Colonnes dont une valeur trahit une vue hors de France (sujet « Monte-Carlo (Monaco) ») : refusée.
+        foreach ($dataset['reject_pattern'] ?? [] as $notion => $pattern) {
+            if (preg_match($pattern, (string) $get($notion)) === 1) {
+                return ['ok' => false, 'reason' => 'hors_france'];
+            }
+        }
         if (isset($dataset['country']) && $get('country') !== null && $get('country') !== $dataset['country']) {
             return ['ok' => false, 'reason' => 'hors_france'];
         }
@@ -58,7 +64,10 @@ final class OpenDataNormalizer
             [$id, $title] = array_map('trim', explode(' - ', $id, 2));
         }
         $series = null;
-        if (! empty($dataset['clean_title']) && $title !== null) {
+        if (($dataset['clean_title'] ?? null) === 'dashes' && $title !== null) {
+            // Titres qui portent « lieu : sujet » (Pireneas) : seulement la typographie du site, tirets simples.
+            $title = trim(str_replace(["\u{2013}", "\u{2014}"], '-', html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        } elseif (! empty($dataset['clean_title']) && $title !== null) {
             [$title, $series] = OpenDataText::cleanTitle($title);
             if ($title === '') {
                 return ['ok' => false, 'reason' => 'sans_titre'];
@@ -120,9 +129,11 @@ final class OpenDataNormalizer
             'address' => $get('address'),
             'station_hint' => $get('station_hint'),
             'themes' => $get('themes'),
-            'subjects' => $get('subjects'),
+            'subjects' => ($dataset['subjects_evidence'] ?? true) ? $get('subjects') : null,
             'insee' => $get('insee'),
             'source' => $get('source'),
+            // Producteur propre à la ligne (`credit_template` : « {repository} » remplacé), sinon celui du jeu.
+            'credit' => isset($dataset['credit_template']) ? str_replace('{repository}', (string) ($get('repository') ?? $dataset['credit']), $dataset['credit_template']) : null,
             'date_raw' => $get('date'),
             'captured_at' => $date['captured_at'],
             'date_precision' => $date['precision'],

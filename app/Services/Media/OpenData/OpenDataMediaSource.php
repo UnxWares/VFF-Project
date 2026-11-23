@@ -169,11 +169,12 @@ final class OpenDataMediaSource implements MediaSource
         $date = $this->dateLabel($c);
         $author = $c['author'];
         $cote = $c['inventory'] ?? $c['id'];
+        $credit = $c['credit'] ?? $this->dataset['credit'];
 
         // Avec un auteur : auteur, date, producteur, cote. Sans auteur (cartes postales) : producteur, cote, date.
         $parts = $author !== null && $author !== ''
-            ? [$author, $date, $this->dataset['credit'], $cote, $rights['license']]
-            : [$this->dataset['credit'], $cote, $date, $rights['license']];
+            ? [$author, $date, $credit, $cote, $rights['license']]
+            : [$credit, $cote, $date, $rights['license']];
 
         return implode(', ', array_filter($parts, fn ($v) => $v !== null && $v !== ''));
     }

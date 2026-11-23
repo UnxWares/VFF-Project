@@ -64,6 +64,7 @@ return [
     'street_view' => 'Straßenfoto (:provider)',
     'share_alike' => 'Weitergabe unter gleichen Bedingungen',
     'no_commercial' => 'Nicht kommerziell',
+    'rights_uncertain' => 'Lizenz ungeklärt',
     'hosted_notice' => 'Bilder werden von :provider bereitgestellt und direkt eingebunden: VFF kopiert sie nicht. Jedes Bild behält seine eigene Lizenz; eine Weiterverwendung ist unter Nennung von Urheber, Lizenz und Link möglich.',
     'open' => 'Vergrößern: :title',
     'file_name' => 'Datei: :name',

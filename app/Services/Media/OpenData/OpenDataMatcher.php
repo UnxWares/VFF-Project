@@ -94,6 +94,16 @@ class OpenDataMatcher
      */
     public function match(array $candidate, array $dataset): array
     {
+        // Fonds qui mêlent tramways et chemins de fer (Pireneas) : « Tramway de la Gare » ne montre pas la gare, une vue de tramway
+        // reste sans rattachement (VFF ne décrit pas les tramways urbains), sauf si le titre parle aussi d'un chemin de fer ou de la SNCF.
+        if (! empty($dataset['tram_apart']) && preg_match('/\b(?:tramways?|tram|funiculaires?|ficelle)\b/iu', (string) $candidate['title']) === 1
+            && preg_match('/\b(?:chemins? de fer|SNCF|P\.?O\.?|Midi)\b/u', (string) $candidate['title']) !== 1) {
+            return ['kind' => null, 'reason' => 'tramway'];
+        }
+        // « Vue prise de la gare », « sentier au-dessus de la gare » : la gare est le point de vue ou un repère, pas le sujet.
+        if (! empty($dataset['viewpoint_apart']) && preg_match('/\b(?:vues?|vus?|prises?|depuis)\b[^,;:]*\b(?:de|du|d\'|depuis)\s+(?:la\s+|l\')?gare\b|\b(?:au[- ]dessus|en face|pr[èe]s|au[- ]del[àa]|en dessous)\s+(?:de\s+la\s+|de\s+l\'|du\s+)gare\b|\bsentiers?\b/iu', (string) $candidate['title']) === 1) {
+            return ['kind' => null, 'reason' => 'point_de_vue'];
+        }
         $candidate['point_precise'] = ! empty($dataset['point_precise']) && $candidate['lat'] !== null && $candidate['lng'] !== null;
         $alias = $dataset['commune_aliases'][OpenDataText::fold((string) $candidate['commune'])] ?? null;
         $candidate['pool_commune'] = $alias ?? $candidate['commune'];
@@ -547,7 +557,7 @@ class OpenDataMatcher
     {
         $out = [];
         foreach ($this->stations as $i => $s) {
-            if (abs($s['lat'] - $lat) < 0.03 && self::distance($lat, $lng, $s['lat'], $s['lng']) <= $radius) {
+            if (abs($s['lat'] - $lat) <= $radius / 111000 && self::distance($lat, $lng, $s['lat'], $s['lng']) <= $radius) {
                 $out[] = $i;
             }
         }

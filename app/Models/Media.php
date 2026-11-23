@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MediaType;
+use App\Support\SourceRights;
 use App\Support\WebUrl;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Database\Factories\MediaFactory;
@@ -128,18 +129,55 @@ class Media extends Model
         return (bool) config('vff.media.show_non_commercial', true);
     }
 
-    /**
-     * Condition SQL des médias montrables, à poser dans une requête brute : `TRUE` quand le réglage montre
-     * les médias non commerciaux, sinon `<alias>.commercial_ok IS DISTINCT FROM FALSE` (inconnu reste montré).
-     */
-    public static function displayableSql(string $alias = 'media'): string
+    /** Vrai si les médias d'un fonds à licence incertaine sont montrés (réglage `vff.media.show_uncertain`). */
+    public static function showsUncertain(): bool
     {
-        return self::showsNonCommercial() ? 'TRUE' : "{$alias}.commercial_ok IS DISTINCT FROM FALSE";
+        return (bool) config('vff.media.show_uncertain', true);
     }
 
     /**
-     * Médias montrables selon le réglage `vff.media.show_non_commercial` : sans effet quand il est vrai, sinon
-     * écarte les médias `commercial_ok = false` (NC). Un droit inconnu (null) reste montré.
+     * Valeurs de `media.provider` dont le fonds est déclaré « incertain » dans le registre des droits
+     * (database/data/source_rights.php, table `media`).
+     *
+     * @return list<string>
+     */
+    public static function uncertainProviders(): array
+    {
+        /** @var list<string>|null $cache */
+        static $cache = null;
+
+        return $cache ??= (new SourceRights)->sourcesWithStatus('media', SourceRights::UNCERTAIN);
+    }
+
+    /** Vrai si la licence de ce média est « incertaine » : son fonds est déclaré `incertain` au registre des droits. */
+    public function isRightsUncertain(): bool
+    {
+        return in_array($this->provider, self::uncertainProviders(), true);
+    }
+
+    /**
+     * Condition SQL des médias montrables, à poser dans une requête brute : `TRUE` quand les réglages montrent
+     * les médias non commerciaux et ceux à licence incertaine, sinon `<alias>.commercial_ok IS DISTINCT FROM FALSE`
+     * (inconnu reste montré) et `<alias>.provider NOT IN (fonds incertains)`.
+     */
+    public static function displayableSql(string $alias = 'media'): string
+    {
+        $parts = [];
+        if (! self::showsNonCommercial()) {
+            $parts[] = "{$alias}.commercial_ok IS DISTINCT FROM FALSE";
+        }
+        $uncertain = self::uncertainProviders();
+        if (! self::showsUncertain() && $uncertain !== []) {
+            $parts[] = "{$alias}.provider NOT IN (".implode(', ', array_map(fn (string $p): string => "'".str_replace("'", "''", $p)."'", $uncertain)).')';
+        }
+
+        return $parts === [] ? 'TRUE' : implode(' AND ', $parts);
+    }
+
+    /**
+     * Médias montrables selon les réglages `vff.media.show_non_commercial` et `vff.media.show_uncertain` : sans effet quand ils
+     * sont vrais, sinon écarte les médias `commercial_ok = false` (NC) et ceux d'un fonds à licence incertaine. Un droit inconnu
+     * (null) reste montré.
      *
      * @param  Builder<Media>  $query
      */
@@ -148,6 +186,10 @@ class Media extends Model
         if (! self::showsNonCommercial()) {
             $query->where(fn (Builder $q) => $q->whereNull($query->qualifyColumn('commercial_ok'))
                 ->orWhere($query->qualifyColumn('commercial_ok'), true));
+        }
+        $uncertain = self::uncertainProviders();
+        if (! self::showsUncertain() && $uncertain !== []) {
+            $query->whereNotIn($query->qualifyColumn('provider'), $uncertain);
         }
     }
 

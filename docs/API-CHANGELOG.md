@@ -63,6 +63,10 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
   jamais recadrée. `date_precision` est désormais aussi rangé en colonne (mêmes valeurs). `provider` peut valoir `panoramax` (photos de
   rue, Licence Ouverte 2.0 ou CC BY-SA 4.0 selon l'instance). Selon le réglage de l'instance (`VFF_MEDIA_SHOW_NON_COMMERCIAL`), les médias
   `commercial_ok: false` peuvent être absents de toutes les réponses : un client ne doit pas supposer qu'un média vu une fois reste listé.
+  Nouveau champ `rights_uncertain` (booléen, jamais nul) : vrai quand le fonds du média a une licence « incertaine » (accord à
+  confirmer ou portée de la licence non lue : cartes postales d'Évry-Courcouronnes et du musée Gadagne, Pireneas) ; à signaler avec l'image.
+  Le réglage `VFF_MEDIA_SHOW_UNCERTAIN` (faux : ces médias sont absents de toutes les réponses) agit comme celui des médias non commerciaux.
+  `provider` peut aussi valoir `rosalis`, `pireneas`, `evry-cp`, `gadagne-cp`, `sl71-cp`, `getty`, `enpc-ph`, `numistral`, `albert-kahn`, `ad92-9fi`, `suresnes-cp`, `sevres-cp`.
 - Accidents : la nature `person_struck` (personnes heurtées hors passage à niveau) est désormais publiée en REST, GraphQL, MCP, carte et
   filtres, mais seulement pour une fiche appuyée par une enquête officielle (source `bea-tt`) ou par un contexte sourcé relu ; les autres restent
   masquées. Une fiche qui double une autre (même accident, deux entrées) n'est jamais listée : `GET /api/v1/accidents/{slug}` répond 301 avec

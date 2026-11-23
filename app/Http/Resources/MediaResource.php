@@ -30,6 +30,19 @@ class MediaResource extends JsonResource
         'gallica' => 'Gallica (BnF)',
         'argentanwebferro' => 'Argentan Web Ferroviaire',
         'panoramax' => 'Panoramax',
+        // Fonds ouverts de vff:import-open-data-media (database/data/open_data_media.php).
+        'albert-kahn' => 'Musée Albert-Kahn',
+        'ad92-9fi' => 'Archives des Hauts-de-Seine',
+        'suresnes-cp' => 'Archives de Suresnes',
+        'evry-cp' => 'Ville d\'Évry-Courcouronnes',
+        'sevres-cp' => 'Archives de Sèvres',
+        'gadagne-cp' => 'Musée Gadagne',
+        'sl71-cp' => 'Archives de Saône-et-Loire',
+        'getty' => 'Getty Open Content',
+        'enpc-ph' => 'Héritage des ponts et chaussées',
+        'numistral' => 'Numistral',
+        'rosalis' => 'Rosalis',
+        'pireneas' => 'Pireneas',
         'upload' => 'VFF',
     ];
 
@@ -77,6 +90,8 @@ class MediaResource extends JsonResource
             'commercial_ok' => $this->commercial_ok,
             'share_alike' => $this->share_alike,
             'derivatives_ok' => $this->derivatives_ok,
+            // Vrai si le fonds du média est déclaré à licence « incertaine » (statut `incertain` du registre des droits) : à afficher.
+            'rights_uncertain' => $this->resource->isRightsUncertain(),
             'attribution_required' => $meta['attribution_required'] ?? null,
             'featured' => $this->is_featured,
             // Contribution validée qui a publié le média (Commons ou fichier déposé), nulle pour un import.

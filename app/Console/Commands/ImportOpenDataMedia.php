@@ -28,11 +28,11 @@ use Throwable;
 class ImportOpenDataMedia extends Command
 {
     protected $signature = 'vff:import-open-data-media
-        {source?* : Clés des jeux (albert-kahn, ad92-9fi, suresnes-cp, evry-cp, sevres-cp, gadagne-cp, sl71-cp, getty, enpc-ph) ; tous par défaut}
+        {source?* : Clés des jeux (albert-kahn, ad92-9fi, suresnes-cp, evry-cp, sevres-cp, gadagne-cp, sl71-cp, getty, enpc-ph, numistral, rosalis, pireneas) ; tous par défaut}
         {--dry-run : N\'écrit rien en base : compte les images, les gares et les lignes gagnées}
         {--refresh : Relit le jeu sur le réseau et réécrit le cache}
         {--retry-errors : Jeu IIIF : redemande les manifestes dont la lecture avait échoué}
-        {--rebuild : Jeu IIIF : reconstruit le cache des lignes depuis les manifestes déjà lus, sans requête}
+        {--rebuild : Jeu IIIF ou Dublin Core : reconstruit le cache des lignes depuis les manifestes ou notices déjà lus, sans requête}
         {--offline : N\'utilise que le cache local, aucune requête réseau}
         {--sample=0 : Nombre de rattachements tirés au hasard et affichés}
         {--seed=1 : Graine du tirage de l\'échantillon}
@@ -67,8 +67,8 @@ class ImportOpenDataMedia extends Command
 
         foreach ($keys as $key) {
             $dataset = $datasets[$key];
-            if ((bool) $this->option('rebuild') && ($dataset['driver'] ?? null) === 'iiif') {
-                $this->line("{$key} : ".$fetcher->rebuild($key, $dataset).' ligne(s) reconstruites depuis les manifestes lus.');
+            if ((bool) $this->option('rebuild') && in_array($dataset['driver'] ?? null, ['iiif', 'oai-dc'], true)) {
+                $this->line("{$key} : ".$fetcher->rebuild($key, $dataset).' ligne(s) reconstruites depuis les manifestes ou notices lus.');
             } elseif (! OpenDataFetcher::hasCache($key) || (bool) $this->option('refresh')) {
                 if ((bool) $this->option('offline')) {
                     $this->warn("{$key} : pas de cache et --offline, jeu ignoré.");

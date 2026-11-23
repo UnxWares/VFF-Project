@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<results ResultsGenerationSearchTime="0:00:00.015" countResults="1" resultType="CVOAIRecordSearchService" searchTime="">
+<visibility_rights>all</visibility_rights>
+<notice>
+<record>
+<header>
+<identifier>oai:bnf.fr:gallica/ark:/12148/btv1b10562970w</identifier>
+<datestamp>2024-08-16</datestamp>
+<setSpec>gallica:corpus:PrnS001</setSpec>
+<setSpec>gallica:typedoc:images</setSpec>
+</header>
+<metadata>
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+<dc:identifier>https://www.pireneas.fr/ark:/12148/btv1b10562970w</dc:identifier>
+<dc:identifier>IFN-10562970</dc:identifier>
+<dc:title>Pau : Tramway de la Gare</dc:title>
+<dc:date>1900</dc:date>
+<dc:subject xml:lang="fre">Rues -- Pau (Pyrénées-Atlantiques) -- 20e siècle -- Cartes postales</dc:subject>
+<dc:subject xml:lang="fre">Tramways -- Pau (Pyrénées-Atlantiques) -- 20e siècle -- Cartes postales</dc:subject>
+<dc:language>Sans contenu linguistique</dc:language>
+<dc:relation>Notice du catalogue : http://catalogue.bnf.fr/ark:/12148/cb44936376q</dc:relation>
+<dc:type xml:lang="fre">image fixe</dc:type>
+<dc:type xml:lang="eng">image</dc:type>
+<dc:type xml:lang="eng">still image</dc:type>
+<dc:source>Bibliothèque patrimoniale de Pau, 8-060-3</dc:source>
+<dc:rights xml:lang="fre">domaine public</dc:rights>
+<dc:rights xml:lang="eng">public domain</dc:rights>
+<dc:description>Appartient à l’ensemble documentaire : PrnS001</dc:description>
+<dc:format>image/jpeg</dc:format>
+<dc:format>Nombre total de vues :  1</dc:format>
+</oai_dc:dc>
+</metadata>
+</record>
+</notice>
+<provenance>bnf.fr</provenance>
+<source>Bibliothèque patrimoniale de Pau, 8-060-3</source>
+<typedoc>image</typedoc>
+<nqamoyen>0.0</nqamoyen>
+<title>Pau : Tramway de la Gare</title>
+<date nbIssue="1">1900</date>
+<first_indexation_date>20/11/2019</first_indexation_date>
+<streamable>false</streamable>
+<listBibVirt>
+<label>gallica</label>
+<label>pireneas</label>
+</listBibVirt>
+</results>
