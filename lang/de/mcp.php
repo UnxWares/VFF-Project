@@ -32,7 +32,7 @@ return [
         'invalid_period' => 'Ungültiger Zeitraum: Geben Sie entweder `year` oder `decade` (Vielfaches von 10) an, innerhalb der Chronologie (1827 bis heute).',
         'unknown_arguments' => 'Unbekannte Argumente: :names.',
         'line_not_found' => 'Strecke nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search (Vorschläge anbei).',
-        'no_geometry' => 'Die Trasse von „:line“ existiert für die Epoche :year nicht: kein Kilometerpunkt.',
+        'no_geometry' => 'Die Trasse von „:line“ existiert für die Epoche :year nicht: kein Streckenkilometer.',
         'profile_not_computed' => 'Das Längsprofil von „:line“ ist noch nicht berechnet.',
         'audit_not_computed' => 'Die Prüfung der Abschnitte von „:line“ ist für :year noch nicht berechnet.',
         'station_not_found' => 'Bahnhof nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug search (Vorschläge anbei).',
