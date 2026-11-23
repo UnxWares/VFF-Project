@@ -287,8 +287,25 @@ final class WikipediaListReader
             'deaths' => $deaths,
             'injuries' => $injuries,
             'kind' => $this->kind($plain, $normalized),
-            'urban' => (bool) preg_match('/\b(?:metro|tramways?)\b/', $normalized) && ! str_contains($normalized, 'tram train'),
+            'urban' => $this->isUrbanTransit($normalized),
         ];
+    }
+
+    /** Train de chemin de fer (grande ligne, marchandises, machine haut-le-pied) cité, par opposition à un tramway ou un métro. */
+    private const RAIL_PARTNER = '/\b(?:express|rapide|trains? de (?:marchandises|bestiaux|minerai)|convois? de marchandises|wagons? de (?:marchandises|minerai)|rames? de wagons|haut le pied|fourgons?)\b/';
+
+    /**
+     * Métro ou tramway urbain, hors des lignes de VFF. Un accident où un train de chemin de fer est
+     * impliqué (express contre un tramway à un passage à niveau, train de marchandises, machine
+     * haut-le-pied) reste dans le périmètre ; un accident de tramway ou de métro seul est écarté.
+     */
+    private function isUrbanTransit(string $normalized): bool
+    {
+        if (! preg_match('/\b(?:metro|tramways?)\b/', $normalized) || str_contains($normalized, 'tram train')) {
+            return false;
+        }
+
+        return ! preg_match(self::RAIL_PARTNER, $normalized);
     }
 
     /**
