@@ -103,6 +103,7 @@ return [
             'journal' => 'Logbuch',
         ],
         'items' => [
+            'stats_network' => 'Das Netz in Zahlen, Jahrzehnt für Jahrzehnt: offene (Personenverkehr, nur Güterverkehr), stillgelegte und abgebaute Kilometer, Elektrifizierung, Bahnhöfe, datierte Stilllegungen und Unfälle, mit dem Datum der Berechnung.',
             'stats' => 'Die Zahlen der Startseite: Anzahl der Strecken, Bahnhöfe und Fahrzeugbaureihen, Betriebskilometer und die Netzkurve je Epoche.',
             'line_geojson' => 'Trasse einer Strecke zu einer Epoche als GeoJSON, ein Abschnitt je Element, mit Herkunft und den Quellenangaben.',
             'line_gpx' => 'Trasse einer Strecke zu einer Epoche als GPX-1.1-Download: eine Spur, ein Segment je Abschnitt, mit Name, Epoche, Adresse der Streckenseite und den Lizenzen der Quellen.',

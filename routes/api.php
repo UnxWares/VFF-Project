@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NetworkAuditController;
+use App\Http\Controllers\Api\NetworkFiguresController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
@@ -89,6 +90,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
 
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
     Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
+    Route::get('/v1/stats/network', [NetworkFiguresController::class, 'show'])->name('api.stats.network');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');

@@ -48,6 +48,7 @@
             key: 'network',
             items: [
                 { path: '/api/v1/stats', key: 'stats' },
+                { path: '/api/v1/stats/network', key: 'stats_network' },
                 { path: '/api/v1/eras', key: 'eras' },
                 { path: '/api/v1/eras/{year}', key: 'era' },
                 { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },

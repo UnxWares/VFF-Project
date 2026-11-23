@@ -24,6 +24,7 @@ use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialContributionController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MediaContributionController;
+use App\Http\Controllers\NetworkFiguresController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -71,6 +72,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
         }
         abort(404);
     });
+// Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
+Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');

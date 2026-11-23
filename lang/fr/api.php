@@ -104,6 +104,7 @@ return [
             'journal' => 'Journal de bord',
         ],
         'items' => [
+            'stats_network' => 'Le réseau en chiffres, décennie par décennie : kilomètres ouverts (voyageurs, fret seul), fermés et déposés, électrification, gares, fermetures datées et accidents, avec la date du calcul.',
             'stats' => 'Les chiffres de l’accueil : nombre de lignes, de gares et de matériels, kilomètres exploités et courbe du réseau à chaque ère.',
             'line_geojson' => 'Tracé d’une ligne à une ère en GeoJSON, un tronçon par élément, avec sa provenance et les mentions de ses sources.',
             'line_gpx' => 'Tracé d’une ligne à une ère en GPX 1.1, à télécharger : une trace, un segment par tronçon, avec le nom, l’ère, l’adresse de la fiche et les licences des sources.',

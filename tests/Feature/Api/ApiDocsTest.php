@@ -28,7 +28,7 @@ class ApiDocsTest extends TestCase
 
     /** Routes publiques de routes/api.php présentées sur la page /api et documentées dans la spécification. */
     private const V1_PATHS = [
-        '/stats', '/eras', '/eras/{year}',
+        '/stats', '/stats/network', '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
         '/eras/{year}/schematic.geojson',
@@ -63,6 +63,7 @@ class ApiDocsTest extends TestCase
     /** Annuaires, fiches, ères et sources : codes de réponse documentés, avec leur corps d'exemple. */
     private const ERROR_CODES = [
         '/stats' => [200, 429],
+        '/stats/network' => [200, 429],
         '/eras' => [200, 429],
         '/eras/{year}' => [200, 404, 429],
         '/lines' => [200, 422, 429],

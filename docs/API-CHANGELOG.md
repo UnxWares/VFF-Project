@@ -1,5 +1,6 @@
 # Changements de l'API
 
+- REST : `GET /stats/network` (le réseau en chiffres, décennie par décennie : kilomètres ouverts par trafic, fermés et déposés, électrifiés, gares par statut, événements datés, accidents, part de double voie, date du calcul `computed_at`). Page : `/network`.
 Ce journal liste ce qui change pour qui appelle l'API de VFF : REST (`/api/v1`), GraphQL (`/graphql`) et le serveur MCP (`/mcp`).
 Les entrées sont datées, la plus récente en premier. Un champ n'est retiré qu'après avoir été marqué déprécié (`deprecated` dans la
 spécification OpenAPI, `@deprecated` dans le schéma GraphQL) et annoncé ici. Un test (`ApiContractTest`) compare l'API à un instantané

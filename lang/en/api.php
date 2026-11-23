@@ -14,6 +14,7 @@ return [
         'title' => 'Documentation',
         'intro' => 'All of them describe the same data: pick the interface you prefer.',
         'items' => [
+            'stats_network' => 'The network in figures, decade by decade: kilometres open (passenger, freight only), closed and lifted, electrification, stations, dated closures and accidents, with the date of the calculation.',
             'scalar' => ['title' => 'REST reference (Scalar)', 'text' => 'The main reference, with live requests and code samples.'],
             'swagger' => ['title' => 'REST reference (Swagger UI)', 'text' => 'The same specification in a more traditional interface.'],
             'openapi' => ['title' => 'OpenAPI 3.1 specification', 'text' => 'A JSON file to import into Postman, Insomnia or a client generator.'],
