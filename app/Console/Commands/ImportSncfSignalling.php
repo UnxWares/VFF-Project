@@ -89,7 +89,10 @@ class ImportSncfSignalling extends Command
             return self::FAILURE;
         }
 
-        $this->loadRegimes();
+        // Régimes d'exploitation lus seulement si une tranche « _Autre » en a besoin : aucun téléchargement inutile.
+        if (array_any($cantonnement, fn (array $r): bool => ($r['libelle'] ?? null) === SignallingRegimeRules::OTHER_LABEL)) {
+            $this->loadRegimes();
+        }
 
         [$totalCant, $totalKvb] = DB::transaction(function () use ($eraId, $cantonnement, $kvb) {
             DB::table('line_signalling')->where('era_id', $eraId)->delete();
