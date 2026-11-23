@@ -9,7 +9,7 @@
     import { STATION_STATUS_COLOR } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
     import { decadeOf } from '$lib/typo.js';
-    import { directoryOpening } from '$lib/stationDates.js';
+    import { directoryClosing, directoryOpening } from '$lib/stationDates.js';
     import { effectiveSort, sortOptions, sortParam } from '$lib/directorySort.js';
 
     let {
@@ -137,7 +137,11 @@
                 ? `${base} (${$i18n.t('stations.closed_after', { year: s.closed_after })})`
                 : base;
         }
-        return s.closed_year ? String(s.closed_year) : '';
+        return directoryClosing(
+            s,
+            (key, opts) => String($i18n.t(key, opts)),
+            $i18n.language ?? 'fr',
+        );
     }
 </script>
 

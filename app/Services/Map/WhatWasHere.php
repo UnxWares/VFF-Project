@@ -14,6 +14,7 @@ use App\Models\LineMaterialPeriod;
 use App\Services\Communes\CommuneRail;
 use App\Services\Signalling\LineSignallingHistory;
 use App\Services\Signalling\SignallingHistoryState;
+use App\Services\StationTimeline;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\EventText;
 use Illuminate\Database\Eloquent\Collection;
@@ -181,11 +182,13 @@ class WhatWasHere
                 'uncertain' => (bool) $r->uncertain,
                 'url' => $this->url('/stations/'.$r->slug),
             ] + ($summary ? [
-                'opened_year' => $r->opened_at === null ? null : (int) substr((string) $r->opened_at, 0, 4),
-                'closed_year' => $r->closed_at === null ? null : (int) substr((string) $r->closed_at, 0, 4),
+                // Une date encadrée (précision range : fermeture non datée, ouverture bornée par la carte) est une
+                // borne haute (31/12 de l'ère, ou le jour du calcul), jamais une année : pas d'année affichée.
+                'opened_year' => $r->opened_at === null || $r->opened_precision === StationTimeline::RANGE ? null : (int) substr((string) $r->opened_at, 0, 4),
+                'closed_year' => $r->closed_at === null || $r->closed_precision === StationTimeline::RANGE ? null : (int) substr((string) $r->closed_at, 0, 4),
             ] : []);
         }, DB::select(
-            "SELECT s.slug, s.name, s.city, s.position_source, s.opened_at, s.closed_at, {$status} AS status, COALESCE(se.uncertain, false) AS uncertain,
+            "SELECT s.slug, s.name, s.city, s.position_source, s.opened_at, s.opened_precision, s.closed_at, s.closed_precision, {$status} AS status, COALESCE(se.uncertain, false) AS uncertain,
                     ST_Distance(s.geom::geography, p.g::geography) AS d
              FROM stations s LEFT JOIN station_eras se ON se.station_id = s.id AND se.era_id = ?, (SELECT {$point} AS g) p
              WHERE s.geom && ST_Expand(p.g, ?) AND ST_DWithin(s.geom::geography, p.g::geography, ?) AND {$status} IS NOT NULL {$kept}

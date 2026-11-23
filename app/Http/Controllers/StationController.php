@@ -64,7 +64,7 @@ class StationController extends Controller
                 EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, s.opened_precision,
                 (s.provenance->>'opened_after')::int AS opened_after, EXTRACT(YEAR FROM s.closed_at)::int AS closed_year,
                 s.provenance->>'opened_at' AS opened_source, s.provenance->>'closed_at' AS closed_source,
-                (s.provenance->>'closed_after')::int AS closed_after
+                (s.provenance->>'closed_after')::int AS closed_after, s.closed_precision
             SQL)
             ->tap(fn ($b) => $this->orderIndex($b, $directory, $order, $q, $approximate))
             ->paginate(50)

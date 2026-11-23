@@ -142,6 +142,20 @@ class WhatWasHereApiTest extends TestCase
         $this->assertSame(1999, $station['closed_year']);
     }
 
+    public function test_the_summary_never_gives_the_bound_of_an_undated_closure_as_a_closure_year(): void
+    {
+        // Fermeture non datée : borne haute = jour du calcul (précision range), ouverture bornée par la carte (31/12 de l'ère).
+        DB::table('stations')->where('id', $this->origin->id)->update([
+            'opened_at' => '1880-12-31', 'opened_precision' => 'range', 'closed_at' => now()->toDateString(), 'closed_precision' => 'range',
+        ]);
+
+        $data = $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 10_000, 'summary' => 1]);
+
+        $station = array_column($data['stations'], null, 'slug')[$this->origin->slug];
+        $this->assertNull($station['closed_year']);
+        $this->assertNull($station['opened_year']);
+    }
+
     public function test_a_large_radius_needs_the_summary_mode_and_the_cache_keeps_the_modes_apart(): void
     {
         $this->getJson('/api/v1/what-was-here?lat=48.85&lng=2.24&radius_m=5000')->assertStatus(422);
