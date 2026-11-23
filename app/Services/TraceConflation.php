@@ -64,6 +64,9 @@ class TraceConflation
         ['osm', 'service', 1.2, "source = 'osm' AND layer NOT IN ('subway', 'tram', 'monorail', 'funicular', 'miniature', 'light_rail', 'proposed') AND (properties->>'service') IS NOT NULL"],
         // Voie extraite des orthophotos IGN 1950-1965 (ml/rail-extraction) : ~2-5 m, entre OSM et les voies de service.
         ['ign-historique', 'ortho', 0.8, "source = 'ign-historique' AND layer LIKE 'ortho-%' AND match_score >= 0.7"],
+        // Morceau fusionné (ml/fusion-sources, vff:import-fused-traces) : erreur estimée sous 3 m, validée sur
+        // les voies en service ; après la BD TOPO et OSM, avant les voies extraites des photos.
+        ['fusion', 'fused', 0.5, "source = 'fusion' AND layer = 'precis' AND (properties->>'erreur_p90_m')::float < 3"],
     ];
 
     /** Sources témoins (croisement, jamais candidates au dessin). */
@@ -144,7 +147,7 @@ class TraceConflation
      * service (faisceau de gare), et voies extraites des orthophotos IGN (ign-historique, classe
      * « ortho ») : l'extraction part du tracé archeo et y trouve toujours une voie du faisceau.
      */
-    private const JUNCTION_WEAK_CLASSES = ['service', 'ortho'];
+    private const JUNCTION_WEAK_CLASSES = ['service', 'ortho', 'fused'];
 
     /**
      * Réseaux qui ne partagent pas la voie d'une ligne « principal » quand l'écartement n'est pas
@@ -242,7 +245,7 @@ class TraceConflation
                 SQL, array_filter(['family' => $family, 'cls' => $cls, 'prio' => $prio, 'cand' => $cand ? 't' : 'f', 'env' => $envelopeWkt], fn ($v) => $v !== null));
         }
         DB::statement('CREATE INDEX ON cf_pool USING gist (g)');
-        foreach (['contrib', 'bdtopo', 'osm', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'] as $f) {
+        foreach (['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'] as $f) {
             DB::statement("CREATE INDEX ON cf_pool USING gist (g) WHERE family = '{$f}'");
         }
         DB::statement('ANALYZE cf_pool');
@@ -1535,7 +1538,7 @@ class TraceConflation
             ),
             grpb AS (SELECT * FROM grp)
             SELECT family, encode(ST_AsEWKB(geom), 'hex') AS ewkb, ST_Length(geom) AS len,
-                   CASE WHEN family IN ('bdtopo', 'osm', 'contrib', 'ign-historique') THEN (
+                   CASE WHEN family IN ('bdtopo', 'osm', 'contrib', 'fusion', 'ign-historique') THEN (
                        SELECT jsonb_agg(DISTINCT p.id ORDER BY p.id) FROM cf_pool p JOIN cf_sel USING (pid)
                        WHERE p.family = grpb.family AND ST_DWithin(p.g, grpb.geom, 1)
                          -- Trace réellement empruntée : au moins 2 de ses 3 quartiles sur le dessin.

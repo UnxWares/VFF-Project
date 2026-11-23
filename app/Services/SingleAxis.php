@@ -269,7 +269,7 @@ class SingleAxis
                         WHEN p.matched_source IS NULL AND p.source = 'contrib' THEN 0
                         WHEN p.matched_source IS NULL AND p.source = 'bdtopo' THEN 1
                         WHEN p.matched_source IS NULL AND p.source = 'osm' THEN 2
-                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN 3
+                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN 3
                         ELSE 4 END,
                    d.geom
             FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
@@ -898,9 +898,9 @@ class SingleAxis
                 INSERT INTO line_reference_duplicates (line_id, action, reason, source, matched_source, trace_ids, kept_source, kept_matched_source,
                     kept_trace_ids, length_m, gap_median_m, geom, created_at, updated_at)
                 SELECT :line, 'removed', :reason, p.source, p.matched_source,
-                       CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
+                       CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
                        kp.source, kp.matched_source,
-                       CASE WHEN kp.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN kp.matched_trace_ids ELSE kp.source_trace_ids END,
+                       CASE WHEN kp.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN kp.matched_trace_ids ELSE kp.source_trace_ids END,
                        ROUND(ST_Length(x.g))::int, ROUND(COALESCE(k.d, 0)::numeric, 1), ST_Transform(x.g, 4326), NOW(), NOW()
                 FROM tx_sub s
                 JOIN line_reference_parts p ON p.id = s.part_id
@@ -941,7 +941,7 @@ class SingleAxis
                 SELECT COALESCE(jsonb_agg(st.id ORDER BY st.id), '[]'::jsonb)
                 FROM line_reference_parts p
                 JOIN source_traces st ON st.id IN (
-                    SELECT jsonb_array_elements_text(CASE WHEN matched IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END)::bigint)
+                    SELECT jsonb_array_elements_text(CASE WHEN matched IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END)::bigint)
                 WHERE p.id = part AND st.geom && ST_Transform(ST_Expand(g, dist + 1), 4326)
                   AND ST_DWithin(ST_Transform(st.geom, 2154), g, dist)
                   -- Tracé qui court réellement sous la portion (pas seulement croisé).
@@ -1002,7 +1002,7 @@ class SingleAxis
                    CASE WHEN matched_source IS NULL AND source = 'contrib' THEN 0
                         WHEN matched_source IS NULL AND source = 'bdtopo' THEN 1
                         WHEN matched_source IS NULL AND source = 'osm' THEN 2
-                        WHEN matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN 3
+                        WHEN matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN 3
                         ELSE 4 END,
                    ST_Length(g), GREATEST(1, ROUND(ST_Length(g) / :step))::int, g
             FROM pieces

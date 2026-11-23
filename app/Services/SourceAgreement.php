@@ -31,18 +31,18 @@ class SourceAgreement
     public const STEP_M = 25.0;
 
     /** Familles, de la plus précise à la moins précise. */
-    public const FAMILIES = ['contrib', 'bdtopo', 'osm', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'];
+    public const FAMILIES = ['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'];
 
     public const PRECISE = ['contrib', 'bdtopo', 'osm'];
 
     /** Rayon de recherche sur l'axe (m). */
-    private const RADIUS = ['contrib' => 60, 'bdtopo' => 60, 'osm' => 60, 'ign-historique' => 60, 'archeoferroviaire' => 100, 'ohm' => 100, 'sncf' => 250];
+    private const RADIUS = ['contrib' => 60, 'bdtopo' => 60, 'osm' => 60, 'fusion' => 60, 'ign-historique' => 60, 'archeoferroviaire' => 100, 'ohm' => 100, 'sncf' => 250];
 
     /** Concordance (m). */
-    private const AGREE = ['contrib' => 5, 'bdtopo' => 5, 'osm' => 5, 'ign-historique' => 6, 'archeoferroviaire' => 10, 'ohm' => 10, 'sncf' => 50];
+    private const AGREE = ['contrib' => 5, 'bdtopo' => 5, 'osm' => 5, 'fusion' => 5, 'ign-historique' => 6, 'archeoferroviaire' => 10, 'ohm' => 10, 'sncf' => 50];
 
     /** Divergence d'une source rattachée à la ligne (m), recherchée jusqu'à 500 m. */
-    private const DIVERGE = ['contrib' => 8, 'bdtopo' => 8, 'osm' => 8, 'ign-historique' => 12, 'archeoferroviaire' => 25, 'ohm' => 25, 'sncf' => 150];
+    private const DIVERGE = ['contrib' => 8, 'bdtopo' => 8, 'osm' => 8, 'fusion' => 8, 'ign-historique' => 12, 'archeoferroviaire' => 25, 'ohm' => 25, 'sncf' => 150];
 
     private const MIN_RUN_SAMPLES = 4;
 
@@ -231,7 +231,7 @@ class SourceAgreement
             }
         }
         // Voie extraite des photos IGN (~2-5 m) : au mieux « medium » ; « high » seulement si BD TOPO / OSM concordent.
-        $ownPrecise = in_array($own, self::PRECISE, true) || $own === 'ign-historique';
+        $ownPrecise = in_array($own, self::PRECISE, true) || in_array($own, ['fusion', 'ign-historique'], true);
         if ($ownPrecise && $own === 'osm' && $osmLifecycle && ! $this->independentlyConfirmed($d)) {
             $ownPrecise = false;
         }

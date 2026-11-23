@@ -681,7 +681,7 @@ class DataInvariants
         return $this->violations(<<<SQL
             WITH c AS MATERIALIZED (
                 SELECT p.line_id, d.geom AS g FROM line_reference_parts p, LATERAL ST_Dump(p.geom) d
-                WHERE ((p.matched_source IS NULL AND p.source NOT IN ('contrib', 'bdtopo', 'osm', 'ign-historique')) OR p.matched_source = 'connector')
+                WHERE ((p.matched_source IS NULL AND p.source NOT IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique')) OR p.matched_source = 'connector')
                   AND ST_Length(d.geom::geography) >= {$step} * ({$samples} - 1)
             ),
             s AS MATERIALIZED (

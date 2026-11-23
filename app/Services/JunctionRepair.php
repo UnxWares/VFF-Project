@@ -630,7 +630,7 @@ class JunctionRepair
                         WHEN p.matched_source IS NULL AND p.source = 'contrib' THEN 0
                         WHEN p.matched_source IS NULL AND p.source = 'bdtopo' THEN 1
                         WHEN p.matched_source IS NULL AND p.source = 'osm' THEN 2
-                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN 3
+                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN 3
                         ELSE 4 END,
                    d.geom
             FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
