@@ -8964,4 +8964,372 @@ return [
         'reason' => 'élément Wikidata Q141874741 (gare ferroviaire) : nom « Gare de Saint-Germain-des-Prés » identique, élément seul de ce nom à 41 m de la position VFF, fiche sans UIC.',
     ],
 
+    // ── 47. Relecture de 127 ouvertures « confirmées » à la passe 6 parce que l'article de la gare ne donnait pas de date, recoupées avec le
+    // texte détaillé de l'article de la ligne, puis 120 gares encore ouvertes de 0,048 M à 0,018 M de voyageurs (maximum depuis 2019) que les
+    // passes précédentes n'avaient pas lues : 30 ouvertures corrigées (audit-gares-7, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-gares-7.md). Une date qui change l'existant repose sur la chronologie détaillée de l'article de
+    // la ligne (section nommant la gare ou la contenant) ou sur l'article de la gare quand il dit la gare créée après la ligne ; une infobox
+    // seule ne contredit jamais la date de la section de la ligne (Meroux, e364bf26) et une inauguration n'est pas une ouverture au public.
+    // Les 39 cas douteux restent à décider (liste dans le CSV du rapport).
+
+    // Gannat (id 17785)
+    [
+        'station' => ['name' => 'Gannat', 'uic' => '87732404'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-05-07',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '7 mai 1855 dans les chemins de fer : Saint-Germain-des-Fossés – Gannat – Clermont-Ferrand',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : la section Saint-Germain-des-Fossés - Gannat - Clermont-Ferrand est mise en service le 7 mai 1855 ; l\'article de la gare (oldid 231518020) dit qu\'elle a été construite pour cette liaison, et le 1871 de Wikidata est l\'arrivée de la ligne de Commentry. Remplace l\'année 1871 de Wikidata.',
+    ],
+
+    // Brassac-les-Mines-Ste-Florine (id 17807)
+    [
+        'station' => ['name' => 'Brassac-les-Mines-Ste-Florine', 'uic' => '87734244'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-09-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '3 septembre 1855 dans les chemins de fer : Issoire – Brassac-les-Mines',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : Brassac-les-Mines est le terminus de la section Issoire - Brassac-les-Mines mise en service le 3 septembre 1855 (la suite vers Arvant ne l\'est que le 8 mai 1856). Remplace l\'année 1856 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Estrées-St-Denis (id 15764)
+    [
+        'station' => ['name' => 'Estrées-St-Denis', 'uic' => '87313387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1880-05-12',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Ormoy-Villers à Boves', 240747767),
+        'quote' => 'Cette gare située sur la ligne de Rochy-Condé à Soissons avait déjà été mise en service le 12 mai 1880',
+        'reason' => 'article de la ligne « Ligne d\'Ormoy-Villers à Boves » (oldid 240747767) : l\'article de la ligne d\'Ormoy-Villers à Boves dit la gare d\'Estrées-Saint-Denis déjà en service le 12 mai 1880, ce que confirme la chronologie de la ligne de Rochy-Condé à Soissons (section du Bois-de-Lihus à Estrées-Saint-Denis et à Compiègne le 12 mai 1880). Précise l\'année 1880 de Wikidata au jour.',
+    ],
+
+    // Vallorcine (id 17936)
+    [
+        'station' => ['name' => 'Vallorcine', 'uic' => '87746875'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1908-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière)', 240212251),
+        'quote' => 'La section Argentière – Le Châtelard est enfin ouverte le 1 juillet 1908.',
+        'reason' => 'article de la ligne « Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière) » (oldid 240212251) : les sections jusqu\'à Argentière et Vallorcine ouvrent en 1906 et 1908, Vallorcine dans la section Argentière - Le Châtelard ouverte le 1er juillet 1908. Remplace l\'année 1901 (ouverture du Fayet à Chamonix) déduite de la ligne.',
+    ],
+
+    // La Crau (id 18036)
+    [
+        'station' => ['name' => 'La Crau', 'uic' => '87755611'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-12-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Pauline-Hyères aux Salins-d\'Hyères', 235223327),
+        'quote' => 'Elle est ouverte à l\'exploitation le 6 décembre 1875 dans les chemins de fer de La Pauline à Hyères',
+        'reason' => 'article de la ligne « Ligne de La Pauline-Hyères aux Salins-d\'Hyères » (oldid 235223327) : chronologie de la ligne de La Pauline à Hyères, qui dessert La Crau : ouverte à l\'exploitation le 6 décembre 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Vayres (id 16921)
+    [
+        'station' => ['name' => 'Vayres', 'uic' => '87584714'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section de Libourne à Bordeaux, où se trouve Vayres, est mise en service avec l\'ensemble de la section jusqu\'à Angoulême le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Bassens (id 16863)
+    [
+        'station' => ['name' => 'Bassens', 'uic' => '87581850'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section de Libourne à Bordeaux, où se trouve Bassens, est mise en service avec l\'ensemble de la section jusqu\'à Angoulême le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Arches (id 15057)
+    [
+        'station' => ['name' => 'Arches', 'uic' => '87144410'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-11-10',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinal à Bussang', 219647311),
+        'quote' => 'd\'Épinal à Remiremont le 10 novembre 1864 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne d\'Épinal à Bussang » (oldid 219647311) : la section d\'Épinal à Remiremont, où se trouve Arches, est ouverte le 10 novembre 1864. Précise l\'année 1864 de Wikidata au jour.',
+    ],
+
+    // Brebières-Sud (id 15926)
+    [
+        'station' => ['name' => 'Brebières-Sud', 'uic' => '87345108'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Brebières, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Marseille-en-Beauvaisis (id 15790)
+    [
+        'station' => ['name' => 'Marseille-en-Beauvaisis', 'uic' => '87313726'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinay - Villetaneuse au Tréport - Mers', 241187520),
+        'quote' => 'de Beauvais à Abancourt et de Persan - Beaumont à Méru, le 1er juillet 1875 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne d\'Épinay - Villetaneuse au Tréport - Mers » (oldid 241187520) : la section de Beauvais à Abancourt, où se trouve Marseille-en-Beauvaisis, est mise en service le 1er juillet 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Monestier-de-Clermont (id 17958)
+    [
+        'station' => ['name' => 'Monestier-de-Clermont', 'uic' => '87747592'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-07-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble)', 241143131),
+        'quote' => 'De Vif à Veynes (bifurcation du Poteau-Saint-Luc) le 27 juillet 1878',
+        'reason' => 'article de la ligne « Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble) » (oldid 241143131) : Monestier-de-Clermont est entre Vif et Veynes, section mise en service le 27 juillet 1878 (Grenoble - Vif le 11 décembre 1876, d\'où le 1876 de Wikidata). Remplace l\'année 1876 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Régny (id 17626)
+    [
+        'station' => ['name' => 'Régny', 'uic' => '87721050'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne du Coteau à Saint-Germain-au-Mont-d\'Or', 241352718),
+        'quote' => 'La ligne est partiellement mise en service en 1866. La dernière section, comprise entre Amplepuis et Tarare, l\'est pour sa part le 19 octobre 1868',
+        'reason' => 'article de la ligne « Ligne du Coteau à Saint-Germain-au-Mont-d\'Or » (oldid 241352718) : mise en service partielle en 1866, la dernière section d\'Amplepuis à Tarare seule en 1868 ; Régny, entre Le Coteau et Amplepuis, est donc dans la partie de 1866 (jour inconnu). Remplace l\'année 1833 de Wikidata, antérieure à la ligne. Confiance moyenne.',
+    ],
+
+    // St-Junien (id 16991)
+    [
+        'station' => ['name' => 'St-Junien', 'uic' => '87592709'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-04-26',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Limoges-Bénédictins à Angoulême', 241341612),
+        'quote' => 'mise en service le 26 avril 1875 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne de Limoges-Bénédictins à Angoulême » (oldid 241341612) : mise en service le 26 avril 1875 de Limoges à Angoulême, dont Saint-Junien est une gare intermédiaire. Remplace l\'année 1911 déduite d\'OpenHistoricalMap. Confiance moyenne.',
+    ],
+
+    // Selles-sur-Cher (id 16838)
+    [
+        'station' => ['name' => 'Selles-sur-Cher', 'uic' => '87576868'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-10-18',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Vierzon à Saint-Pierre-des-Corps', 236330049),
+        'quote' => 'mise en service le 18 octobre 1869 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne de Vierzon à Saint-Pierre-des-Corps » (oldid 236330049) : construite en 1860 et mise en service le 18 octobre 1869. Précise l\'année 1869 déduite de la ligne au jour.',
+    ],
+
+    // St-Aigulin-La Roche-Chalais (id 16918)
+    [
+        'station' => ['name' => 'St-Aigulin-La Roche-Chalais', 'uic' => '87584540'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section d\'Angoulême à Bordeaux, où se trouve Saint-Aigulin - La Roche-Chalais, est mise en service avec l\'ensemble le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Lauterbourg (id 15380)
+    [
+        'station' => ['name' => 'Lauterbourg', 'uic' => '87212464'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-07-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Strasbourg à Lauterbourg', 238408373),
+        'quote' => 'dans son intégralité le 25 juillet 1876',
+        'reason' => 'article de la ligne « Ligne de Strasbourg à Lauterbourg » (oldid 238408373) : ouverte dans son intégralité le 25 juillet 1876, Lauterbourg en étant le terminus (l\'article de la gare, oldid 239140948 ou voisin, donne la même date). Remplace l\'année 1874 de Wikidata.',
+    ],
+
+    // Ascq (id 15659)
+    [
+        'station' => ['name' => 'Ascq', 'uic' => '87286864'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1865-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Fives à Baisieux', 240286308),
+        'quote' => 'La mise en service le 1 décembre 1865',
+        'reason' => 'article de la ligne « Ligne de Fives à Baisieux » (oldid 240286308) : mise en service le 1er décembre 1865, avec deux stations en France, Ascq et Baisieux ; l\'article de la gare dit 1865. Précise l\'année 1865 de Wikidata au jour.',
+    ],
+
+    // Corbehem (id 15927)
+    [
+        'station' => ['name' => 'Corbehem', 'uic' => '87345116'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Corbehem, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Pont-de-la-Deûle (id 15933)
+    [
+        'station' => ['name' => 'Pont-de-la-Deûle', 'uic' => '87345207'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Pont-de-la-Deûle, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Ste-Anne (id 16423)
+    [
+        'station' => ['name' => 'Ste-Anne', 'uic' => '87476648'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1862-09-26',
+        'precision' => 'day',
+        'source_url' => $wp('Gare Sainte-Anne (Morbihan)', 230077628),
+        'quote' => 'La gare Sainte-Anne est mise en service à l\'occasion de l\'ouverture de la ligne Rennes - Redon et du tronçon, à voie unique, jusqu\'à Lorient de la ligne Savenay - Landerneau, le 26 septembre 1862.',
+        'reason' => 'article de la gare « Gare Sainte-Anne (Morbihan) » (oldid 230077628) : infobox et section Histoire : mise en service le 26 septembre 1862. Précise l\'année 1862 de Wikidata au jour.',
+    ],
+
+    // Argentière (id 17934)
+    [
+        'station' => ['name' => 'Argentière', 'uic' => '87746859'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1906-07-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière)', 240212251),
+        'quote' => 'La section entre Chamonix et Argentière ouvre au public le 25 juillet 1906.',
+        'reason' => 'article de la ligne « Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière) » (oldid 240212251) : la section Chamonix - Argentière, terminus alors, ouvre au public le 25 juillet 1906. Précise l\'année 1906 de Wikidata au jour.',
+    ],
+
+    // Oderen (id 15222)
+    [
+        'station' => ['name' => 'Oderen', 'uic' => '87182634'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1905-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lutterbach à Kruth', 235373537),
+        'quote' => 'La section de Wesserling à Kruth est mise en service le 2 janvier 1905',
+        'reason' => 'article de la ligne « Ligne de Lutterbach à Kruth » (oldid 235373537) : Oderen est entre Wesserling et Kruth, section mise en service le 2 janvier 1905 (Thann - Wesserling le 25 novembre 1863, d\'où le 1863 de Wikidata). Remplace l\'année 1863 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Fellering (id 15221)
+    [
+        'station' => ['name' => 'Fellering', 'uic' => '87182626'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1905-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lutterbach à Kruth', 235373537),
+        'quote' => 'La section de Wesserling à Kruth est mise en service le 2 janvier 1905',
+        'reason' => 'article de la ligne « Ligne de Lutterbach à Kruth » (oldid 235373537) : Fellering est entre Wesserling et Kruth, section mise en service le 2 janvier 1905 (Thann - Wesserling le 25 novembre 1863, d\'où le 1863 de Wikidata). Remplace l\'année 1863 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Corps-Nuds (id 16327)
+    [
+        'station' => ['name' => 'Corps-Nuds', 'uic' => '87471326'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 231122716) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // Vern (id 16307)
+    [
+        'station' => ['name' => 'Vern', 'uic' => '87471029'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 238687587) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // Casino-Lacroix-Laval (id 15344)
+    [
+        'station' => ['name' => 'Casino-Lacroix-Laval', 'uic' => '87208553'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1997-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Casino-Lacroix-Laval', 241156062),
+        'quote' => 'Cette halte a été créée en 1997 à la demande du directeur du Casino Le Lyon vert',
+        'reason' => 'article de la gare « Gare de Casino-Lacroix-Laval » (oldid 241156062) : section Histoire : la halte a été créée en 1997 à la demande du casino, elle n\'existait donc pas à l\'ouverture de la ligne. Remplace l\'année 1882 d\'OpenHistoricalMap (ligne de Lyon à Montbrison).',
+    ],
+
+    // Port-Brillet (id 16454)
+    [
+        'station' => ['name' => 'Port-Brillet', 'uic' => '87478750'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-05-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Paris-Montparnasse à Brest', 239547071),
+        'quote' => 'puis enfin Rennes en mai 1857',
+        'reason' => 'article de la ligne « Ligne de Paris-Montparnasse à Brest » (oldid 239547071) : Laval - Rennes, où se trouve Port-Brillet, est ouverte en mai 1857 (Chartres en 1849, Guingamp en septembre 1863). Remplace la fourchette 1860 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // Olonne-sur-Mer (id 16561)
+    [
+        'station' => ['name' => 'Olonne-sur-Mer', 'uic' => '87486431'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-12-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'est mise en service le 30 décembre 1866 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne des Sables-d\'Olonne à Tours » (oldid 239596144) : la section Les Sables-d\'Olonne - La Roche-sur-Yon, où se trouve Olonne-sur-Mer, est mise en service le 30 décembre 1866 ; l\'article de la gare dit 1866. Précise l\'année 1866 de Wikidata au jour.',
+    ],
+
+    // Longuerue-Vieux-Manoir (id 16210)
+    [
+        'station' => ['name' => 'Longuerue-Vieux-Manoir', 'uic' => '87411447'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1874-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Longuerue - Vieux-Manoir', 235032722),
+        'quote' => 'celle-ci n\'a construit la gare de Longuerue-Vieux-Manoir qu\'en 1874',
+        'reason' => 'article de la gare « Gare de Longuerue - Vieux-Manoir » (oldid 235032722) : section Histoire : la ligne est ouverte dès 1867 mais la gare n\'est construite qu\'en 1874. Remplace l\'année 1867 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // St-Armel (id 16326)
+    [
+        'station' => ['name' => 'St-Armel', 'uic' => '87471318'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 238686402) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
 ];
