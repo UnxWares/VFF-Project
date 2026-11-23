@@ -329,7 +329,7 @@ return [
         'col_status' => 'Verwendung auf der Seite',
         'differs_from' => 'Anderes Datum für dieselbe Tatsache:',
         'correct' => 'Korrigieren',
-        'correct_label' => 'Korrektur vorschlagen: :event, :date',
+        'correct_label' => 'Korrigieren: :event, :date',
         'conflict_title' => 'Die Quellen weichen ab',
         'status' => [
             'retained' => 'Verwendet',

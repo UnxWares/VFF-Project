@@ -329,7 +329,7 @@ return [
         'col_status' => 'Use on this page',
         'differs_from' => 'Other date for the same fact:',
         'correct' => 'Correct',
-        'correct_label' => 'Propose a correction: :event, :date',
+        'correct_label' => 'Correct: :event, :date',
         'conflict_title' => 'Sources disagree',
         'status' => [
             'retained' => 'Used',
