@@ -3307,4 +3307,89 @@ return [
         'quote' => 'En 1883, le bureau se trouvait au 35 rue Houdan c\'est à dire dans les bâtiments de la gare de Sceaux. Elle est désaffectée définitivement le 17 avril 1894 avec transformation de la ligne de Sceaux.',
         'reason' => 'précise la fermeture « 1894 » de Wikidata et de l\'article Gare de Sceaux (ancienne) (oldid 241389426) ; la commune rachète les bâtiments en juin 1894 (même page)',
     ],
+    // ── 30. Gares « actives » sans voie en service à moins de 150 m (gares-sans-voie, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-sans-voie.md). Cas où la donnée de la gare est fausse ; les autres
+    // (tracé de la ligne absent ou tronqué près de la gare) relèvent des tracés et sont listés dans le rapport.
+
+    // Grenade, Cornebarrieu : haltes de la CFSO (Toulouse - Cadours) ; la position de Wikidata (4 décimales, point
+    // décalé de 450 m vers le sud) n'est pas celle du bâtiment ; les coordonnées de l'article tombent à 10 et 11 m de la
+    // voie de la ligne de Toulouse à Cadours aux ères 1910 à 1940 (orthophoto IGN : ancien bâtiment le long de la plateforme).
+    [
+        'station' => ['name' => 'Grenade', 'wikidata' => 'Q60847657'],
+        'action' => 'position',
+        'lng' => 1.29193,
+        'lat' => 43.7691,
+        'source_url' => $wp('Gare de Grenade (Haute-Garonne)', 188267795),
+        'quote' => 'Situé sur une section déclassée et déferrée, le bâtiment est toujours présent et réaffecté.',
+        'reason' => 'coordonnées de l\'article (43,7691 N, 1,29193 E) au bâtiment de la halte, à 11 m de la ligne de Toulouse à Cadours ; Wikidata (43,7651 N) est 450 m au sud, dans un lotissement',
+    ],
+    [
+        'station' => ['name' => 'Cornebarrieu', 'wikidata' => 'Q56311192'],
+        'action' => 'position',
+        'lng' => 1.33263,
+        'lat' => 43.65139,
+        'source_url' => $wp('Gare de Cornebarrieu', 220839059),
+        'quote' => 'Situé sur une section déclassée et déferrée, le bâtiment est toujours présent et réaffecté pour une utilisation privée.',
+        'reason' => 'coordonnées de l\'article (43,65139 N, 1,33263 E) au bâtiment de la halte, à 10 m de la ligne de Toulouse à Cadours ; Wikidata (43,6475 N) est 440 m au sud, en forêt',
+    ],
+    // Hondeghem : gare de la ligne de Hazebrouck à Hondschoote ; Wikidata (50,7508 N) est 380 m au sud de l'article.
+    [
+        'station' => ['name' => 'Hondeghem', 'wikidata' => 'Q60846716'],
+        'action' => 'position',
+        'lng' => 2.523562,
+        'lat' => 50.754231,
+        'source_url' => $wp('Gare d\'Hondeghem', 235030477),
+        'quote' => 'La gare d\'Hondeghem est une ancienne gare ferroviaire française de la ligne de de Hazebrouck à Hondschoote de la Compagnie des chemins de fer des Flandres (CF)',
+        'reason' => 'coordonnées de l\'article (50,754231 N, 2,523562 E) à 11 m de la ligne de Hazebrouck à Hondschoote (ères 1900 à 1950), sur une maison au bord de la plateforme (orthophoto IGN) ; Wikidata (50,7508 N) est dans un champ, 380 m au sud',
+    ],
+    // Porte Maillot : la fiche réunit la gare de la ligne d'Auteuil (1854) et la station du RER E (1999) ; la position
+    // retenue (médiane de sources éloignées de 380 m, puis recalée sur la voie du RER A à 171 m) n'est celle d'aucune des
+    // deux. Les quais du RER C sont « entre les deux voies du boulevard Pereire, à l'est du boulevard Gouvion-Saint-Cyr »
+    // (article) : position du nœud OSM de la gare, qui confirme celle de la liste SNCF (30 m) et tombe à 130 m de la ligne
+    // d'Ermont-Eaubonne à Champ-de-Mars (VMI), seule voie de surface, aux ères 1900 à 1960.
+    [
+        'station' => ['name' => 'Porte Maillot', 'uic' => '87731448'],
+        'action' => 'position',
+        'lng' => 2.282378,
+        'lat' => 48.878132,
+        'source_url' => 'https://www.openstreetmap.org/node/13394835208',
+        'quote' => 'Les quais de la ligne C du RER sont implantés entre les deux voies du boulevard Pereire, à l\'est du boulevard Gouvion-Saint-Cyr et du palais des Congrès.',
+        'reason' => 'position de la gare (nœud OSM railway=station, quai du RER C ; Wikipédia, Gare de Neuilly - Porte Maillot, oldid 241410694) ; l\'ancienne position était entre la place et la porte, sans aucune gare',
+    ],
+    // Doullens : le service voyageurs de la gare est « finalement supprimé » en 1944 ; en 1960 elle n'a plus que des voies
+    // de garage et des embranchements particuliers, la fermeture totale suit (1970, correction de la ligne de Saint-Roch à
+    // Frévent). Aux ères 1950 et 1960 : gare fret seul, pas « active ».
+    [
+        'station' => ['name' => 'Doullens', 'wikidata' => 'Q22248350'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1944-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Doullens', 232235487),
+        'quote' => 'rétabli pendant la Seconde Guerre mondiale (du 1er septembre 1940 au 5 mai 1941 vers Canaples et Amiens ainsi qu\'Arras, puis de cette date à 1944 vers Frévent), pour être finalement supprimé.',
+        'reason' => 'fin du service voyageurs en 1944 ; en 1960 la gare dispose de voies de garage et dessert plusieurs embranchements particuliers (même article)',
+    ],
+    // Gimouille : terminus d'un embranchement de 2 km de Saincaize, ouvert « uniquement à la petite vitesse
+    // (marchandises) » : jamais de voyageurs (comme Lille-Saint-Sauveur).
+    [
+        'station' => ['name' => 'Gimouille', 'wikidata' => 'Q115867420'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1868-05-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Gimouille', 239346753),
+        'quote' => 'Ouverte uniquement à la petite vitesse (marchandises), la gare ferroviaire est établie en parallèle au canal.',
+        'reason' => 'gare aux marchandises dès son ouverture le 1er mai 1868, sans service voyageurs ; fermée en 1980 (même article)',
+    ],
+    // La Rapée : « ancienne gare française aux marchandises », construite en 1862 pour desservir les entrepôts de Bercy.
+    [
+        'station' => ['name' => 'La Rapée', 'wikidata' => 'Q22248480'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1862-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de La Rapée', 235032490),
+        'quote' => 'La gare de La Rapée est une ancienne gare française aux marchandises, désaffectée, de la ligne de Paris-Lyon à Marseille-Saint-Charles à Paris, en France.',
+        'reason' => 'gare aux marchandises dès sa construction en 1862 (stockage et desserte des entrepôts de vins de Bercy) : jamais de voyageurs ; à ne pas confondre avec La Rapée-Bercy de la Petite Ceinture',
+    ],
 ];
