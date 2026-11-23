@@ -131,6 +131,7 @@ return [
     'earliest' => [
         'electrification' => 'On this line no earlier than electrification: :date',
         'section' => 'On this line no earlier than the first electrification of a section: :date (:section)',
+        'conflict' => 'A source dates its service here before the first electrification known to VFF (:date): an earlier electrification is probably missing.',
     ],
     'doubt' => [
         'title' => 'Mentioned, service not established (:count)',

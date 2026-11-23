@@ -4,12 +4,9 @@ namespace App\Services;
 
 use App\Models\Line;
 use App\Models\LineMaterial;
-use App\Models\LineMaterialPeriod;
 use App\Models\Material;
-use App\Services\Materials\ElectrificationBound;
-use App\Services\Materials\LineMaterialDoubt;
 use App\Services\Materials\LineMaterialEnd;
-use App\Services\Materials\MaterialFamilyMembers;
+use App\Services\Materials\LineMaterialFacts;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -415,50 +412,19 @@ final class LineSheet
         // Liens de la ligne et leurs périodes sûres, lus une fois : périodes de chaque série (toutes sources
         // réunies, de la plus ancienne à la plus récente) et relations assurées (LineMaterial::relations), datées
         // ou non : une relation sans date (« Argentan - Granville ») se montre aussi.
-        $materialLinks = LineMaterial::query()->where('line_id', $line->id)->with('shownPeriods')->get()->groupBy('material_id');
-        $materialPeriods = $materialLinks
-            ->map(fn ($links): array => $links->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
-                ->sortBy(fn (LineMaterialPeriod $p): array => [($p->start_date ?? $p->end_date)?->toDateString() ?? '9999', $p->end_date?->toDateString() ?? '9999'])
-                ->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
-            ->filter()
-            ->all();
-        $materialRelations = $materialLinks
+        $materialLinks = LineMaterial::query()->where('line_id', $line->id)->with(['material', 'shownPeriods'])->get();
+        // Périodes, borne d'électrification, doute et famille de chaque série, comme l'API (LineMaterialFacts).
+        $facts = LineMaterialFacts::forLine($line, $materialLinks);
+        $materialRelations = $materialLinks->groupBy('material_id')
             ->map(fn ($links): array => array_values($links->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()))
             ->all();
 
-        // Électricité sans caténaire : une série électrique n'a pas circulé sur la ligne avant son électrification
-        // (ElectrificationBound) ; la borne est servie avec son motif, jamais comme une date de service.
-        $bound = $line->materials->contains(fn ($m): bool => ElectrificationBound::isElectric($m)) ? ElectrificationBound::lineDate($line) : null;
-
-        // Séries et leurs versions liées à la même ligne : la famille n'est pas montrée à côté de ses versions.
-        $slugs = $line->materials->pluck('slug')->all();
-        $hidden = [];
-        $familyOf = [];
-        foreach ($line->materials as $m) {
-            $family = MaterialFamilyMembers::familyOf($m->slug);
-            if ($family !== null && in_array($family, $slugs, true)) {
-                $familyOf[$m->slug] = $family;
-            }
-        }
-        $familyNames = $line->materials->whereIn('slug', array_unique(array_values($familyOf)))->pluck('name', 'slug')->all();
-        foreach ($line->materials->whereIn('slug', array_unique(array_values($familyOf))) as $family) {
-            // Une famille qui porte des périodes sûres que ses versions n'ont pas garde sa tuile.
-            if (empty($materialPeriods[$family->id])) {
-                $hidden[$family->slug] = true;
-            }
-        }
-
         // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
         // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
-        // les plus anciennes d'abord.
+        // les plus anciennes d'abord. Une famille repliée dans ses versions liées n'a pas de tuile.
         // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-        return LineMaterialEnd::sort($line->materials->unique('id')->reject(fn ($m) => isset($hidden[$m->slug]))->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks, $bound, $familyOf, $familyNames): array {
-            $periods = $materialPeriods[$m->id] ?? [];
-            $earliest = null;
-            if ($bound !== null && ElectrificationBound::appliesTo($m, $bound['date'])) {
-                $periods = ElectrificationBound::clampPeriods($periods, $bound);
-                $earliest = ['reason' => ElectrificationBound::REASON] + $bound;
-            }
+        return LineMaterialEnd::sort($line->materials->unique('id')->reject(fn ($m) => $facts->folded($m->id))->values()->map(function ($m) use ($facts, $materialRelations): array {
+            $periods = $facts->periods($m->id);
 
             return [
                 'slug' => $m->slug,
@@ -478,12 +444,14 @@ final class LineSheet
                 'periods' => $periods,
                 'relations' => $materialRelations[$m->id] ?? [],
                 // Date la plus ancienne possible sur la ligne et son motif (`reason` : `electrification`), null sans borne.
-                'earliest_on_line' => $earliest,
+                // `conflict` : une période sourcée commence avant (elle garde sa date ; électrification plus ancienne
+                // probablement absente de VFF).
+                'earliest_on_line' => $facts->earliest($m->id),
                 // Lien que toutes les sources mettent en doute (essai, présentation, commande, acheminement à vide…) :
                 // `LineMaterialDoubt::REASONS`, null pour une série qui a circulé. La fiche le range à part.
-                'link_doubt' => empty($periods) ? LineMaterialDoubt::reason($materialLinks[$m->id] ?? []) : null,
+                'link_doubt' => $facts->doubt($m->id),
                 // Famille dont la série est une version, quand la famille est aussi liée à la ligne.
-                'family' => isset($familyOf[$m->slug]) ? ['slug' => $familyOf[$m->slug], 'name' => $familyNames[$familyOf[$m->slug]] ?? $familyOf[$m->slug]] : null,
+                'family' => $facts->family($m->id),
                 // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
                 'image' => Material::thumbnail($m->image),
                 // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.

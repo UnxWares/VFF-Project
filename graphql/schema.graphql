@@ -2705,6 +2705,25 @@ type LineMaterialLink {
 
     "Fournisseur et licence de la source du lien."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+
+    """
+    Comme `LineSheetMaterial.link_doubt` : raison du doute quand toutes les preuves de la série sur la ligne
+    en portent un et qu'aucune période n'est datée (`trial`, `one_off`, `order`…), nulle pour une série qui a
+    circulé. Calculé sur tous les liens de la série sur la ligne.
+    """
+    link_doubt: String @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
+    Comme `LineSheetMaterial.earliest_on_line` : borne « pas avant la première électrification connue » d'une
+    série électrique, avec `conflict` quand une période sourcée commence avant (la période garde sa date).
+    """
+    earliest_on_line: LineSheetMaterialBound @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    "Comme `LineSheetMaterial.family` : famille dont la série est une version, quand la famille est aussi liée à la ligne."
+    family: LineSheetMaterialFamily @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    "Vrai pour une famille que la fiche de la ligne ne montre pas, parce qu'une de ses versions liées à la ligne a circulé."
+    folded_into_versions: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 """
@@ -5790,7 +5809,7 @@ type LineSheetMaterial {
 
 "Borne de date d'une série sur une ligne."
 type LineSheetMaterialBound {
-    "Motif de la borne : `electrification` (pas avant la première électrification connue de la ligne, entière ou d'une section)."
+    "Motif de la borne : `electrification` (pas avant la première électrification connue de la ligne, entière ou d'une section ; ne déplace que les périodes sans source)."
     reason: String!
 
     "Date de la borne (`AAAA-MM-JJ`)."
@@ -5801,6 +5820,13 @@ type LineSheetMaterialBound {
 
     "Section nommée (`Bernay - Lisieux`) quand la première électrification est celle d'une section et non de la ligne entière, nulle sinon."
     section: String
+
+    """
+    Vrai quand une période sourcée de la série commence avant la borne : la période garde sa date (une date
+    sourcée ne se déplace jamais) et une électrification plus ancienne manque probablement dans VFF ; la borne
+    n'est alors pas une date sûre.
+    """
+    conflict: Boolean!
 }
 
 "Famille d'une série (voir `LineSheetMaterial.family`)."
@@ -5874,7 +5900,7 @@ type LineSheetMaterialPeriod {
     "Précision du début : `day`, `month` ou `year`."
     start_precision: String
 
-    "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon."
+    "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon. Seule une période sans source est ramenée : une date sourcée ne se déplace jamais."
     start_bounded_by: String
 
     "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."

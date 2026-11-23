@@ -77,7 +77,9 @@ final class ElectrificationBound
     }
 
     /**
-     * Périodes dont le début précède la borne, ramené à la borne ; un début absent reste absent.
+     * Périodes déduites (sans source) dont le début précède la borne, ramené à la borne ; un début absent reste
+     * absent. Une période datée par une source garde toujours sa date : si elle commence avant la borne, c'est la
+     * borne qui est fausse (électrification plus ancienne absente de VFF), voir conflicts().
      *
      * @param  list<array<string, mixed>>  $periods
      * @param  array{date: string, precision: string}  $bound
@@ -87,7 +89,7 @@ final class ElectrificationBound
     {
         foreach ($periods as $i => $period) {
             $start = $period['start_date'] ?? null;
-            if (is_string($start) && $start < $bound['date']) {
+            if (is_string($start) && $start < $bound['date'] && ! self::isSourced($period)) {
                 $periods[$i]['start_date'] = $bound['date'];
                 $periods[$i]['start_precision'] = $bound['precision'];
                 $periods[$i]['start_bounded_by'] = self::REASON;
@@ -95,5 +97,52 @@ final class ElectrificationBound
         }
 
         return $periods;
+    }
+
+    /**
+     * Une période sourcée commence-t-elle avant la borne (startsBefore) ? La source date la circulation : une électrification
+     * plus ancienne manque probablement dans VFF (vff:material-bound-conflicts les liste).
+     *
+     * @param  list<array<string, mixed>>  $periods
+     * @param  array{date: string, precision: string}  $bound
+     */
+    public static function conflicts(array $periods, array $bound): bool
+    {
+        foreach ($periods as $period) {
+            if (self::isSourced($period) && self::startsBefore($period, $bound)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Le début de la période précède-t-il la borne, lu à la précision du début ? « 1960 » (année) ne précède pas le
+     * 12 mai 1960 ; « septembre 1985 » (mois) précède 2012.
+     *
+     * @param  array<string, mixed>  $period
+     * @param  array{date: string, precision: string}  $bound
+     */
+    public static function startsBefore(array $period, array $bound): bool
+    {
+        $start = $period['start_date'] ?? null;
+        if (! is_string($start)) {
+            return false;
+        }
+        $length = match ($period['start_precision'] ?? null) {
+            'year' => 4,
+            'month' => 7,
+            default => 10,
+        };
+
+        return substr($start, 0, $length) < substr($bound['date'], 0, $length);
+    }
+
+    /** @param  array<string, mixed>  $period */
+    private static function isSourced(array $period): bool
+    {
+        return (is_string($period['source_url'] ?? null) && $period['source_url'] !== '')
+            || (is_string($period['source'] ?? null) && $period['source'] !== '');
     }
 }

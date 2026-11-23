@@ -6,6 +6,7 @@ use App\Models\LineMaterial;
 use App\Models\Material;
 use App\Services\Api\Provenance;
 use App\Services\Materials\LineMaterialEnd;
+use App\Services\Materials\LineMaterialFacts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,9 +17,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class LineMaterialLinkResource extends JsonResource
 {
+    /** Attribut de la requête qui porte les faits de la ligne listée (LineMaterialFacts), posé par la liste d'une ligne. */
+    public const FACTS = 'vff.line_material_facts';
+
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        $facts = $request->attributes->get(self::FACTS);
+        $facts = $facts instanceof LineMaterialFacts ? $facts : null;
+
         return [
             /**
              * La ligne (`slug`, `code` SNCF Réseau à 6 chiffres ou nul, `name`), présente dans la fiche d'une série.
@@ -167,6 +174,42 @@ class LineMaterialLinkResource extends JsonResource
             'end' => $this->resource->relationLoaded('material') && $this->resource->relationLoaded('shownPeriods')
                 ? LineMaterialEnd::of($this->material, $this->shownPeriods->map(fn ($p): array => $p->toSheet())->values()->all())
                 : null,
+            /**
+             * Liste d'une ligne seulement, comme la fiche de la ligne (calculé sur tous les liens de la série, quels
+             * que soient les filtres) : raison du doute quand toutes les preuves de la série sur la ligne en portent
+             * un et qu'aucune période n'est datée (`trial`, `one_off`, `order`, `positioning`, `preserved`,
+             * `possible`, `diverted`, `restricted`, `component`, `section`, `other`), nulle pour une série qui a
+             * circulé. La fiche range ces séries à part (« citées, sans service attesté »).
+             *
+             * @example null
+             */
+            'link_doubt' => $this->when($facts !== null, fn (): ?string => $facts?->doubt($this->material_id)),
+            /**
+             * Liste d'une ligne seulement : borne « pas avant l'électrification » d'une série électrique, comme la
+             * fiche de la ligne : `reason` (`electrification`), `date` (`AAAA-MM-JJ`), `precision`, `section`
+             * (section électrifiée la première, nulle pour la ligne entière), `conflict` (vrai quand une période
+             * sourcée de la série commence avant la borne : la période garde sa date, et une électrification plus
+             * ancienne manque probablement dans VFF ; la borne n'est alors pas une date sûre). Nulle sans borne.
+             * Les périodes (`periods`) sont toutes sourcées : elles ne sont jamais déplacées par la borne.
+             *
+             * @var array{reason: string, date: string, precision: string, section: string|null, conflict: bool}|null
+             */
+            'earliest_on_line' => $this->when($facts !== null, fn (): ?array => $facts?->earliest($this->material_id)),
+            /**
+             * Liste d'une ligne seulement : famille dont la série est une version (`slug`, `name`), quand la famille
+             * est aussi liée à la ligne, nulle sinon.
+             *
+             * @var array{slug: string, name: string}|null
+             */
+            'family' => $this->when($facts !== null, fn (): ?array => $facts?->family($this->material_id)),
+            /**
+             * Liste d'une ligne seulement : vrai pour une famille que la fiche de la ligne ne montre pas, parce
+             * qu'une de ses versions liées à la ligne a circulé (la fiche montre les versions avec le nom de la
+             * famille).
+             *
+             * @example false
+             */
+            'folded_into_versions' => $this->when($facts !== null, fn (): bool => (bool) $facts?->folded($this->material_id)),
             /**
              * Fournisseur et licence de la source du lien (`provider`, `name`, `license`, `license_status`).
              *

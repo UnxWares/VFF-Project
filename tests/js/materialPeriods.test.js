@@ -33,6 +33,8 @@ const fr = {
     'materials.earliest.electrification': 'Sur la ligne au plus tôt à l’électrification : :date',
     'materials.earliest.section':
         'Sur la ligne au plus tôt à la première électrification d’une portion : :date (:section)',
+    'materials.earliest.conflict':
+        'Une source date sa circulation ici avant la première électrification connue dans VFF (:date) : une électrification plus ancienne manque probablement.',
 };
 const t = (key, opts = {}) =>
     Object.entries(opts).reduce((s, [k, v]) => s.replace(`:${k}`, String(v)), fr[key] ?? key);
@@ -253,6 +255,22 @@ describe('borne d’électrification', () => {
             ),
         ).toBe(
             'Sur la ligne au plus tôt à la première électrification d’une portion : 1989 (Bernay - Lisieux)',
+        );
+    });
+
+    it('signale le conflit au lieu de la borne quand une période sourcée est plus ancienne', () => {
+        expect(
+            earliestText(
+                {
+                    reason: 'electrification',
+                    date: '2012-01-01',
+                    precision: 'year',
+                    conflict: true,
+                },
+                t,
+            ),
+        ).toBe(
+            'Une source date sa circulation ici avant la première électrification connue dans VFF (2012) : une électrification plus ancienne manque probablement.',
         );
     });
 

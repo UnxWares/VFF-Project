@@ -16,6 +16,20 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   `line` et `station` de `network_events`, `media`, `accidents` et `materials` acceptent maintenant un ancien slug (ils
   répondaient par une erreur de validation). Ajout seul ; la clé est absente sans ancienne adresse.
 
+- Matériel d'une ligne (fiche `materials`, REST `GET /api/v1/lines/{line}/materials`, GraphQL `LineMaterialLink`, MCP `line_materials`) :
+  une date sourcée ne se déplace plus. Une période datée par une source qui commence avant la première électrification connue dans VFF
+  garde sa date (BB 25500 sur Grenoble - Montmélian depuis septembre 1985, BB 22200 sur Paris - Brest en 1983) : la borne
+  `earliest_on_line` porte alors `conflict` = `true` (une électrification plus ancienne manque probablement dans VFF ; la borne n'est
+  pas une date sûre), et `start_bounded_by` ne s'applique plus qu'aux périodes sans source. Les périodes servies portent toutes une
+  source : aucune n'est déplacée. Ajout seul (`LineSheetMaterialBound.conflict`).
+
+- Matériel d'une ligne : l'API REST (`GET /api/v1/lines/{line}/materials`, chaque lien), GraphQL (`LineMaterialLink`) et l'outil MCP
+  `line_materials` (chaque série) donnent ce que la fiche de la ligne en dit : `link_doubt` (série seulement citée, en essais, en
+  présentation, en commande...), `earliest_on_line` (borne d'électrification, avec `conflict`), `family` (famille dont la série est une
+  version) et `folded_into_versions` (famille que la fiche ne montre pas parce qu'une de ses versions a circulé) ; MCP : `doubtful`
+  compte les séries douteuses. Calculés sur tous les liens de la série sur la ligne, quels que soient les filtres. Aucun lien n'est
+  retiré des listes. Sur la fiche, une famille qui a circulé reste montrée quand ses versions liées ne sont que douteuses. Ajout seul.
+
 - Médias (REST `media`, galeries `lines|stations|materials/{slug}/media`, GraphQL `Media.captions`, outil MCP `media`) : nouveau champ
   `captions` (objet avec les clés `fr`, `en` et `de` présentes seulement pour les langues écrites, ou `null`), la légende par langue d'une
   image proposée par un contributeur. `caption` reste la légende principale (le français, sinon la première langue donnée ; pour une image

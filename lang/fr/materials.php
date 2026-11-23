@@ -132,6 +132,7 @@ return [
     'earliest' => [
         'electrification' => "Sur la ligne au plus tôt à l’électrification\u{a0}: :date",
         'section' => "Sur la ligne au plus tôt à la première électrification d’une portion\u{a0}: :date (:section)",
+        'conflict' => "Une source date sa circulation ici avant la première électrification connue dans VFF (:date)\u{a0}: une électrification plus ancienne manque probablement.",
     ],
     'doubt' => [
         'title' => 'Cités, sans service attesté (:count)',

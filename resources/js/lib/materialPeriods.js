@@ -254,16 +254,18 @@ export function doubtText(reason, t) {
 /**
  * Borne de date d'une série sur la ligne (`earliest_on_line`) : « Sur la ligne au plus tôt à
  * l'électrification : juin 1996 » ; quand la première électrification est celle d'une section, elle est
- * nommée (« … à la première électrification d'une portion : 1989 (Bernay - Lisieux) »). Null sans borne ou
- * pour un motif inconnu.
+ * nommée (« … à la première électrification d'une portion : 1989 (Bernay - Lisieux) »). Quand une période
+ * sourcée commence avant (`conflict`), la borne n'est pas dite comme un fait : la fiche signale qu'une
+ * électrification plus ancienne manque probablement. Null sans borne ou pour un motif inconnu.
  *
- * @param {?{ reason: string, date: string, precision?: ?string, section?: ?string }} earliest
+ * @param {?{ reason: string, date: string, precision?: ?string, section?: ?string, conflict?: boolean }} earliest
  * @param {(key: string, opts?: object) => string} t traduction
  * @param {string} lang langue de l'interface (fr, en, de)
  */
 export function earliestText(earliest, t, lang = 'fr') {
     if (!earliest?.date || earliest.reason !== 'electrification') return null;
     const date = formatEventDate(earliest.date, earliest.precision ?? 'year', lang);
+    if (earliest.conflict) return String(t('materials.earliest.conflict', { date }));
     return String(
         earliest.section
             ? t('materials.earliest.section', { date, section: earliest.section })
