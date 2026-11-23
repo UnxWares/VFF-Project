@@ -233,9 +233,9 @@ décrites plus haut sont faites ; ce qui reste tient en quatre groupes.
   un par un (altitude de la voie estimée d'après le terrain, trous du tracé sous le profil, seconde série d'ouvertures
   datées au jour, fusion des lignes du même couloir, pilote de fusion des sources à 1 m sur le Calvados, photos de rue
   Panoramax pour tout le réseau) ; les audits des tronçons et des gares sont ensuite repassés sur la base complète.
-- Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, puis pose des
+- Mise en production : messagerie de `vff-project.org` (chez Hetzner comme le reste d'UnxWares, avec `contact@` et `privacy@`), hébergement sur l'infrastructure d'UnxWares, puis pose des
   services déjà prêts (suivi des erreurs et de la disponibilité avec GlitchTip et Kener, planificateur, temps réel
-  Reverb, relais des vignettes de Wikimedia Commons, fond de carte libre, sauvegarde de la base).
+  Reverb, relais des vignettes de Wikimedia Commons, fond de carte libre, sauvegarde de la base chez Infomaniak Swiss Backup, chiffrée par restic).
 - Enrichissement continu : relecture des gares et des tronçons, signalisation datée au-delà des sources libres déjà
   lues, fonds d'images et d'archives ouverts, accidents à seconde source, fusion des tracés à 1 m sur tout le réseau.
 - Recherche : reconstitutions 3D de lieux disparus à partir de photos d'archives (pas commencée).
@@ -400,13 +400,13 @@ SHA de commit et chaque tâche n'a que le droit de lire le dépôt.
 - Instagram : [@vff_project](https://www.instagram.com/vff_project)
 - GitHub : [UnxWares/VFF-Project](https://github.com/UnxWares/VFF-Project)
 - Éditeur : [UnxWares](https://www.unxwares.com)
-- Contact : `contact@vff-project.org` (la messagerie du domaine n'est pas encore ouverte)
+- Contact : `contact@vff-project.org` (la messagerie du domaine, chez Hetzner, n'est pas encore ouverte)
 
 ## Soutenir le projet
 
 Les dons passeront par UnxWares Open Source & Community (UWOSC), l'association soutenue par UnxWares pour ses
-projets libres, en cours de création. La page `/donate` est en place ; la plateforme (Patreon ou HelloAsso) sera
-choisie avec le statut de l'association.
+projets libres, en cours de création. Aucun don n'est branché avant sa création ; ensuite la plateforme sera
+HelloAsso. La page `/donate` est en place et reste au futur d'ici là.
 
 ## Licence
 

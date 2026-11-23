@@ -173,7 +173,7 @@ aux lignes : il porte sur des personnes.
 ## Suite proposée
 
 1. **Inventaires de FranceArchives (APE-EAD, Licence Ouverte)** : obtenir l'archive par un téléchargement fait à la
-   main dans un navigateur (ou demander à l'équipe de FranceArchives un accès pour les moissonneurs), puis en extraire les
+   main dans un navigateur (ou, voie retenue le 23/11, demander à l'équipe de FranceArchives un accès de moissonneur : courriel préparé dans `storage/app/reports/agents/aprem-2111/courriel-franchearchives.md`, à envoyer par Baptiste), puis en extraire les
    composants dont l'intitulé parle de chemin de fer (séries S départementales, F/14), et les rattacher avec le même
    comparateur. À mesurer d'abord sur deux ou trois départements : taille du fichier, part des intitulés qui nomment
    deux lieux, précision sur 40 notices relues.

@@ -36,10 +36,10 @@ un chemin construit à partir d'une variable. Un retour arrière **renomme** ou 
 - Un serveur d'UnxWares sous Debian 13, avec un accès `sudo`, les ports 80 et 443 ouverts au public, et rien
   d'autre que SSH (22). PostgreSQL (5432), Valkey (6379) et Reverb (8080) n'écoutent que sur la boucle locale.
 - Ses adresses IPv4 et IPv6, notées `SERVEUR_IPV4` et `SERVEUR_IPV6` ci-dessous.
-- L'accès au gestionnaire DNS de `vff-project.org` (Infomaniak) et à la messagerie d'UnxWares.
+- L'accès au gestionnaire DNS de `vff-project.org` (Infomaniak) et à la messagerie d'UnxWares (Hetzner).
 - Une seconde machine (ou au moins un autre hôte) pour la page d'état Kener : une page d'état hébergée sur le
   serveur qu'elle surveille tombe avec lui.
-- Un dépôt S3 hors du serveur pour les sauvegardes chiffrées (recommandé : Infomaniak Swiss Backup, bucket dédié).
+- Un dépôt S3 hors du serveur pour les sauvegardes chiffrées (décidé le 23/11 : Infomaniak Swiss Backup, compartiment à part, chiffré par restic).
 - Le dump de référence de la base et l'archive du fond de carte (étapes 4 et 15), préparés sur le poste.
 
 Hypothèses du kit (à garder, ou à changer partout à la fois) : code dans `/srv/vff`, PHP 8.5 dans `/usr/bin/php`,
@@ -423,7 +423,7 @@ Noter les valeurs actuelles avant de changer (retour arrière), baisser le TTL �
 | `www.vff-project.org` | CNAME | `vff-project.org.` |
 | `erreurs.vff-project.org` | A, AAAA | `SERVEUR_IPV4`, `SERVEUR_IPV6` (GlitchTip) |
 | `status.vff-project.org` | A, AAAA | adresses de la machine de Kener |
-| `vff-project.org` | **MX** | `10 <serveur de réception de la messagerie d'UnxWares>.` (**absent aujourd'hui** : `contact@` et `privacy@` ne reçoivent rien) |
+| `vff-project.org` | **MX** | `10 <serveur de réception de la messagerie d'UnxWares chez Hetzner>.` (**absent aujourd'hui** : `contact@` et `privacy@` ne reçoivent rien) |
 | `vff-project.org` | TXT | `v=spf1 mx <mécanisme du relais d'envoi> -all` |
 | `<sélecteur>._domainkey.vff-project.org` | TXT | clé DKIM donnée par la messagerie |
 | `_dmarc.vff-project.org` | TXT | `v=DMARC1; p=quarantine; rua=mailto:contact@vff-project.org` |
@@ -433,7 +433,8 @@ Noter les valeurs actuelles avant de changer (retour arrière), baisser le TTL �
 SERVEUR_IPV4=<…> SERVEUR_IPV6=<…> sudo -E deploy/bin/mise-en-production.sh --verifier --etape dns
 ```
 
-- Contrôle : chaque ligne `OK` ; un courriel envoyé à `contact@vff-project.org` arrive.
+- Messagerie (décision du 23/11) : celle d'UnxWares chez Hetzner, avec deux boîtes à créer, `contact@vff-project.org` et `privacy@vff-project.org` ; c'est la condition du courriel des notifications du site.
+- Contrôle : chaque ligne `OK` ; un courriel envoyé à `contact@vff-project.org` et un autre à `privacy@vff-project.org` arrivent.
 - Retour arrière : remettre les valeurs notées (TTL court : effet en quelques minutes).
 
 ## Fin du parcours et versions suivantes
@@ -458,7 +459,6 @@ nouvelle ; avec migration, restauration de la sauvegarde, étape 8).
 
 ## Ce qui reste à décider par Baptiste
 
-- La machine de production et celle de Kener (adresses), le relais d'envoi et la boîte de réception de la messagerie.
-- La destination S3 des sauvegardes (recommandé : Swiss Backup, bucket dédié, clés d'écriture seule).
-- Les comptes, jetons et webhooks du poste à ne pas mettre en production (étape 4).
-- `VFF_BASEMAP_ONLINE` (fond libre en ligne sur `/maps`, ou seulement hors ligne).
+- La machine de production et celle de Kener (adresses).
+- Décidé le 23/11 : la messagerie est celle d'UnxWares chez Hetzner (`contact@`, `privacy@`, étape 19) ; la destination des sauvegardes est Infomaniak Swiss Backup, compartiment à part, clés d'écriture seule (étape 7) ; `VFF_BASEMAP_ONLINE` passe à vrai à la mise en production, avec l'archive auto-hébergée (étape 15) et OpenFreeMap seulement en secours.
+- Reste à fournir : le relais d'envoi et les deux boîtes de la messagerie, les clés du compartiment, les comptes, jetons et webhooks du poste à ne pas mettre en production (étape 4).

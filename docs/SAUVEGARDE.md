@@ -1,7 +1,7 @@
 # Sauvegarde de la base de production
 
-État au 23/11/2026 : le kit est prêt et essayé sur un poste de développement (base de test). Reste à choisir la
-destination hors site avec l'hébergement, à installer sur le serveur et à brancher le suivi : étape 7 de
+État au 23/11/2026 : le kit est prêt et essayé sur un poste de développement (base de test). Destination hors site décidée le
+23/11/2026 : Infomaniak Swiss Backup, compartiment à part, chiffré par restic. Reste à créer le compartiment, à installer sur le serveur et à brancher le suivi : étape 7 de
 `docs/MISE-EN-PRODUCTION.md` (`deploy/bin/mise-en-production.sh --appliquer --etape sauvegarde`). Rien n'est installé ni
 activé sur le poste de développement : les unités systemd `deploy/systemd/vff-backup.*` et
 `vff-restore-test.*` sont pour le serveur seulement.
@@ -59,14 +59,13 @@ ses bases neuves (étape 3 de `docs/MISE-EN-PRODUCTION.md`, faite par le script)
 `--no-comments` (le commentaire d'une extension n'est modifiable que par son propriétaire). Les binaires `pg_dump` et `pg_restore` doivent être de version supérieure ou
 égale à celle du serveur (PostgreSQL 18 aujourd'hui) : `PG_BIN_DIR` désigne le bon dossier.
 
-## 3. Envoi chiffré hors site : restic vers un S3 suisse (recommandé)
+## 3. Envoi chiffré hors site : restic vers Infomaniak Swiss Backup (décidé le 23/11/2026)
 
 Même modèle que les sauvegardes du poste de développement : restic chiffre côté client (contenu, noms, arborescence,
-AES-256) ; sans le mot de passe du dépôt, l'hébergeur ne lit rien. Un S3 suisse (par exemple Infomaniak Swiss Backup,
-déjà utilisé pour le poste) garde les données sous droit suisse, hors du serveur de production et hors du fournisseur
-d'hébergement : un incident chez l'hébergeur n'emporte pas les sauvegardes. Ce choix est une recommandation, à
-confirmer avec l'hébergement : tout dépôt restic (S3 compatible, SFTP, rclone, stockage de l'hébergeur) fonctionne en
-changeant `RESTIC_REPOSITORY`.
+AES-256) ; sans le mot de passe du dépôt, l'hébergeur ne lit rien. Infomaniak Swiss Backup (S3, déjà utilisé pour le poste, mais dans un
+compartiment à part, avec ses propres clés) garde les données sous droit suisse, hors du serveur de production et hors du fournisseur
+d'hébergement : un incident chez l'hébergeur n'emporte pas les sauvegardes. Tout autre dépôt restic (S3 compatible, SFTP,
+rclone) fonctionnerait en changeant `RESTIC_REPOSITORY`, si la destination devait changer un jour.
 
 Variables (voir `backup.env.example`) :
 
@@ -207,7 +206,7 @@ dossier de l'application (`APP_DIR=/srv/vff`) et lance `ARTISAN_CMD`.
 
 ## 8. Reste à décider
 
-- Destination hors site : S3 suisse (recommandé), ou service de l'hébergeur ; bucket dédié, clés d'écriture seule.
+- Destination hors site : décidée le 23/11/2026, Infomaniak Swiss Backup, compartiment à part, clés d'écriture seule ; reste à le créer.
 - Si l'hébergeur propose sa propre sauvegarde ou une restauration à un instant donné : s'en servir en plus du dump.
 - Moniteurs de battement dans Kener ou GlitchTip une fois installés.
 - Conservation : les sauvegardes contiennent des comptes ; un compte effacé disparaît des sauvegardes au plus tard à
