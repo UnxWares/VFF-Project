@@ -745,6 +745,79 @@ class JunctionRepairTest extends TestCase
         $this->assertSame([[0.0, 0.0], [1100.0, 10.0], [1200.0, 500.0]], $this->freeEnds());
     }
 
+    // ─── Raccords pendants (8 ter) ──────────────────────────────────────
+
+    /** Ligne 472 (111000) à 7.37770, 48.74410 : portion recalée sur OSM, raccord droit de 37 m qui ne touche plus rien. */
+    private function danglingConnector(): void
+    {
+        $this->part('osm', [[[262.1, -53.6], [152.6, 19.6], [127.9, 36.2], [85.8, 64.5], [62.7, 79.8], [57.1, 83.5], [44.6, 91.8]]], [], 'osm');
+        $this->connector([[57.1, 83.5], [36.8, 52.7]]);
+    }
+
+    public function test_straight_connector_whose_far_end_touches_nothing_is_removed(): void
+    {
+        $this->danglingConnector();
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(36.9, $stats['dangling_connector_removed_m'], 0.1);
+        $this->assertEqualsWithDelta(0.0, $this->totalLength('connector'), 0.01);
+        $this->assertSame([[44.6, 91.8], [262.1, -53.6]], $this->freeEnds());
+
+        // Second passage sans effet.
+        $this->assertSame(0, $this->repair()['dangling_connector_removed']);
+    }
+
+    public function test_dangling_connector_where_another_line_ends_is_kept(): void
+    {
+        $this->danglingConnector();
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        // L'autre ligne arrive au milieu du raccord : le retirer laisserait sa jonction en l'air.
+        $this->part('osm', [[[-300, -200], [46.9, 68.1]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(36.9, $this->totalLength('connector'), 0.1);
+    }
+
+    public function test_dangling_connector_whose_free_end_lies_on_another_line_is_kept(): void
+    {
+        $this->danglingConnector();
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        // Le dessin d'une autre ligne passe par le bout libre : contact à 0 m que le retrait ferait perdre.
+        $this->part('osm', [[[-400, 52.7], [36.8, 52.7], [500, 52.7]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+    }
+
+    public function test_dangling_connector_that_nearly_reaches_another_portion_of_the_line_is_kept(): void
+    {
+        // Forme de la ligne 341116 au Havre (49.50357, 0.19200) : raccord de 15 m qui part du bout d'une voie et manque de
+        // 4,3 m la voie suivante de la même ligne. Le retirer ouvrirait un trou de 16 m sur la voie (lines.reference_holes).
+        $this->part('osm', [[[-500, 0], [0, 0]]], [], 'osm');
+        $this->part('bdtopo', [[[18.5, 4.5], [600, 4.5]]], [], 'bdtopo');
+        $this->connector([[0, 0], [14.5, 3.5]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(14.9, $this->totalLength('connector'), 0.1);
+    }
+
+    public function test_connector_held_at_both_ends_is_not_a_dangling_connector(): void
+    {
+        $this->danglingConnector();
+        $this->part('osm', [[[36.8, 52.7], [-200, -150]]], [], 'osm');
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+    }
+
     public function test_real_reversal_whose_branches_part_is_kept(): void
     {
         // Rebroussement : la seconde branche repart à 153° et s'écarte de la première (gare en impasse).

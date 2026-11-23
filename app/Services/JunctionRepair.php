@@ -104,6 +104,16 @@ use Illuminate\Support\Facades\DB;
  *      autre ligne touche ce bout ou un bout du raccord que la ligne ne
  *      toucherait plus, ou si le bout est plus long. Retirer une arête d'une boucle ne
  *      détache rien : la ligne reste d'un seul tenant.
+ *   8 ter. Raccords pendants : un raccord droit d'au plus JOG_MAX_M dont un bout
+ *      ne touche plus aucun autre morceau de la ligne (la portion qu'il reliait
+ *      est partie avec une règle précédente ou un passage antérieur) ne relie
+ *      rien : c'est un bout de trait qui pend au bout de la ligne. Il est
+ *      retiré, sauf si une autre ligne finit sur lui ou si le dessin d'une
+ *      autre ligne le touche hors des 2 m qui le rattachent à la ligne (le
+ *      contact à 0 m serait perdu), ou si son bout libre passe à moins de
+ *      DANGLING_NEAR_M d'un autre morceau de la ligne (il le relie presque :
+ *      le retirer ouvrirait un trou). Seul le raccord part : la portion qu'il
+ *      touche garde tous ses raccords.
  *   9. Longs trous (de HOLE_MAX_M à LONG_GAP_MAX_M) d'une ligne disparue : depuis
  *      un bout libre, chemin sur les voies NON rattachées d'une voie abandonnée
  *      (OSM abandoned, razed, disused, dismantled ; BD TOPO « Sans objet ») vers
@@ -280,6 +290,13 @@ class JunctionRepair
     /** Règle 8 bis : bout de portion laissé en l'air par le retrait du raccord, coupé avec lui jusqu'à cette longueur (m). */
     public const LOOP_STUB_MAX_M = 150.0;
 
+    /**
+     * Règle 8 ter : un raccord pendant dont le bout libre passe à moins de DANGLING_NEAR_M d'un autre morceau de la ligne
+     * relie presque deux morceaux ; le retirer ouvrirait un trou plus grand (ligne 341116 au Havre : raccord de 15 m qui
+     * manque la voie suivante de 4,3 m, trou de 16 m une fois retiré). Il est gardé.
+     */
+    public const DANGLING_NEAR_M = 10.0;
+
     /** Arrivée en T (règle 7 e) : distance minimale (m) du pied du raccord aux bouts de la portion précise. */
     public const TEE_MID_M = 5.0;
 
@@ -435,7 +452,7 @@ class JunctionRepair
      * @return array<string, float|int> jog_removed, jog_restored, jog_smoothed (+ _m), hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
      *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
-     *                                  long_gap_filled (+ _m),
+     *                                  dangling_connector_removed (+ _m), long_gap_filled (+ _m),
      *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough
      */
     public function repair(int $lineId): array
@@ -450,6 +467,7 @@ class JunctionRepair
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0, 'tee_smoothed' => 0, 'tee_smoothed_m' => 0.0,
             'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'drawing_joined' => 0, 'drawing_joined_m' => 0.0,
             'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
+            'dangling_connector_removed' => 0, 'dangling_connector_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0,
             'terminus_extended' => 0, 'terminus_extended_m' => 0.0, 'terminus_rough' => 0];
 
@@ -484,6 +502,9 @@ class JunctionRepair
         // les allers-retours, qui coupent le bout que le raccord retiré laisse en l'air.
         $this->removeLoopJogs($stats);
         $this->removeSpurs($stats);
+        // Après les retraits (8, 8 bis), qui peuvent laisser pendre un raccord ; avant les longs trous, qui partent des
+        // bouts libres (un raccord pendant donnerait un faux départ).
+        $this->removeDanglingConnectors($stats);
         $this->fillLongGaps($stats);
         // Règle 10, allumée par défaut : en dernier, une fois les bouts raccordés aux autres lignes (5, 5 bis, 7 c).
         if ($this->extendToStations) {
@@ -1174,6 +1195,60 @@ class JunctionRepair
             $stats['spur_removed_m'] += $j;
             $this->debug && $this->log[] = ['spur_node' => $e['sid'], 'm' => round($j)];
         }
+    }
+
+    // ─── 8 ter. Raccords pendants ──────────────────────────────────────
+
+    /**
+     * Règle 8 ter (cf. docblock) : raccords droits dont un bout est libre. Répété tant qu'un raccord part (deux raccords
+     * bout à bout). Un raccord libre aux deux bouts (plus rien ne le tient) part aussi.
+     */
+    private function removeDanglingConnectors(array &$stats): void
+    {
+        do {
+            $removed = 0;
+            foreach ($this->freeEnds() as $e) {
+                if (! $e['conn']) {
+                    continue;
+                }
+                $full = $this->subCoords($e['sid']);
+                if (! $full || ! $this->isFreeEnd($e['sid'], $e['k'])) {
+                    continue;
+                }
+                $len = $this->plen($full);
+                if ($len > self::JOG_MAX_M) {
+                    continue;
+                }
+                // Orientée du bout tenu vers le bout libre ; les 2 premiers mètres (contact avec la ligne) ne comptent pas.
+                $toward = $e['k'] === 1 ? $full : array_reverse($full);
+                $tail = $len > 2 ? $this->subLine($toward, 2.0, $len) : $toward;
+                if ($this->holdsOtherLine($tail) || $this->touchesOtherLine($tail)) {
+                    $this->debug && $this->log[] = ['dangling_connector' => $e['sid'], 'skip' => 'autre ligne sur le raccord'];
+
+                    continue;
+                }
+                if ($this->nearOwnLine($e['sid'], $e['x'], $e['y'], self::DANGLING_NEAR_M)) {
+                    $this->debug && $this->log[] = ['dangling_connector' => $e['sid'], 'skip' => 'relie presque un autre morceau de la ligne'];
+
+                    continue;
+                }
+                $this->removeSubs([$e['sid']]);
+                $stats['dangling_connector_removed']++;
+                $stats['dangling_connector_removed_m'] += $len;
+                $removed++;
+                $this->debug && $this->log[] = ['dangling_connector' => $e['sid'], 'm' => round($len, 1)];
+            }
+        } while ($removed > 0);
+    }
+
+    /** Un autre morceau de la ligne (hors $sid) passe-t-il à moins de $tol m du point ? */
+    private function nearOwnLine(int $sid, float $x, float $y, float $tol): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            SELECT 1 AS x FROM jr_sub o
+            WHERE NOT o.removed AND o.sid <> :sid AND ST_DWithin(o.g, ST_SetSRID(ST_MakePoint(:x, :y), 2154), :tol)
+            LIMIT 1
+            SQL, ['sid' => $sid, 'x' => $x, 'y' => $y, 'tol' => $tol]);
     }
 
     /**
