@@ -79,7 +79,7 @@ final class InvariantExceptions
             $errors[] = 'reviewed_at : date AAAA-MM-JJ attendue';
         }
         foreach (['reason', 'source_url'] as $k) {
-            if (is_string($e[$k] ?? null) && (str_contains($e[$k], "\u{2014}") || str_contains($e[$k], ' -- '))) {
+            if (is_string($e[$k] ?? null) && preg_match('/\x{2014}| -- /u', $e[$k]) === 1) {
                 $errors[] = "{$k} : pas de tiret long";
             }
         }
