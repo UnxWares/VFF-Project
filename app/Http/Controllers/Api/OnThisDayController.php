@@ -7,6 +7,7 @@ use App\Services\OnThisDay;
 use Closure;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Illuminate\Validation\Rule;
 class OnThisDayController extends Controller
 {
     /**
-     * Ce jour-là : les faits datés au jour d'une date du calendrier.
+     * Ce jour-là : les faits du jour dans les années passées.
      *
      * Ce qui s'est passé ce jour-là les années précédentes (sans l'année demandée : `GET /on-this-day/11-23` donne
      * les 23 novembre de toutes les années), trié par année : ouvertures, réouvertures et fermetures de lignes et de
@@ -36,6 +37,8 @@ class OnThisDayController extends Controller
      * `meta.coverage` donne le nombre de jours de l'année qui ont au moins un fait.
      */
     #[PathParameter('monthDay', 'Mois et jour « MM-JJ » (29 février accepté). Par défaut : aujourd\'hui.', example: '11-23')]
+    #[QueryParameter('types', 'Types de faits, séparés par des virgules : milestone, opening, reopening, closure, electrification, signalling, demolition, accident.', type: 'string', example: 'opening,closure')]
+    #[QueryParameter('lang', 'Langue des textes rédigés (dates, portions, titres) : fr (défaut), en ou de.', example: 'fr')]
     #[ApiResponse(200, 'Les faits du jour (extrait).', examples: [[
         'data' => [
             'day' => '11-23', 'count' => 1,

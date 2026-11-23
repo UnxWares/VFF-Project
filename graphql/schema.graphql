@@ -1617,6 +1617,7 @@ type StationHeritageDesignation {
 
 "Un auteur d'un bâtiment, tel que la notice Mérimée le nomme."
 type StationHeritageArchitect {
+    "Nom de l'auteur, tel que la notice Mérimée l'écrit."
     name: String!
 
     "Rôle écrit par la notice (`architecte`, `ingénieur`, `sculpteur`…), nul sinon."

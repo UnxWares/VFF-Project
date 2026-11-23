@@ -25,10 +25,35 @@ class WhatWasHereRequest extends FormRequest
     public function rules(): array
     {
         return [
+            /**
+             * Latitude WGS 84 en degrés décimaux.
+             *
+             * @example 48.39
+             */
             'lat' => ['required', 'numeric', 'between:-90,90'],
+            /**
+             * Longitude WGS 84 en degrés décimaux.
+             *
+             * @example -4.49
+             */
             'lng' => ['required', 'numeric', 'between:-180,180'],
+            /**
+             * Année de 1800 à 2100 (aujourd'hui par défaut).
+             *
+             * @example 1930
+             */
             'year' => ['sometimes', 'integer', 'min:1800', 'max:2100'],
+            /**
+             * Rayon de recherche en mètres, 100 à 1 000 (400 par défaut).
+             *
+             * @example 400
+             */
             'radius_m' => ['sometimes', 'integer', 'min:'.self::MIN_RADIUS_M, 'max:'.self::MAX_RADIUS_M],
+            /**
+             * Langue des libellés : fr (défaut), en ou de.
+             *
+             * @example fr
+             */
             'lang' => ['sometimes', 'string', 'in:fr,en,de'],
         ];
     }

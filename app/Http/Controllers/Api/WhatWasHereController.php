@@ -9,7 +9,6 @@ use App\Mcp\Support\WikipediaExcerpts;
 use App\Services\Map\WhatWasHere;
 use App\Services\MapDataCache;
 use Dedoc\Scramble\Attributes\Group;
-use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\Response;
 
@@ -34,11 +33,6 @@ class WhatWasHereController extends Controller
      * `distance_m` est `null` et `pk_m` est arrondi à 100 m. Les faits d'une source à usage non commercial ne
      * sont jamais servis.
      */
-    #[QueryParameter('lat', 'Latitude WGS 84 en degrés décimaux.', required: true, type: 'number', example: 48.39)]
-    #[QueryParameter('lng', 'Longitude WGS 84 en degrés décimaux.', required: true, type: 'number', example: -4.49)]
-    #[QueryParameter('year', "Année de 1800 à 2100 (aujourd'hui par défaut).", type: 'integer', example: 1930)]
-    #[QueryParameter('radius_m', 'Rayon de recherche en mètres, 100 à 1 000 (400 par défaut).', type: 'integer', example: 400)]
-    #[QueryParameter('lang', 'Langue des libellés : fr (défaut), en ou de.', type: 'string', example: 'fr')]
     #[ApiResponse(200, 'Lignes, gares, événements et accidents autour du point.', examples: [[
         'point' => ['lat' => 48.8765, 'lng' => 2.3245, 'radius_m' => 400],
         'year' => 1930,
