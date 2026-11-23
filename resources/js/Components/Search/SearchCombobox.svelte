@@ -122,6 +122,7 @@
                 ...results.materials,
                 ...results.accidents,
                 ...results.communes,
+                ...results.glossary,
             ].every((r) => r.approximate),
     );
     const listShown = $derived(options.length > 0 && (!floating || isOpen));
