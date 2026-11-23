@@ -258,6 +258,7 @@ class StationController extends Controller
      */
     #[PathParameter('station', 'Identifiant (slug) de la gare, tel que renvoyé par l\'annuaire ou la recherche.', example: 'brest')]
     #[ApiResponse(200, 'Fiche de la gare de Brest (listes raccourcies).', examples: [StationSheetExample::BODY])]
+    #[ApiResponse(301, "Fiche fusionnée dans une autre (deux fiches pour une même gare) : l'en-tête `Location` donne la même adresse sous le slug de la fiche gardée.")]
     #[ApiResponse(404, 'Gare inconnue.', examples: [ErrorExamples::STATION_NOT_FOUND])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(Station $station, StationSheet $sheet): JsonResponse

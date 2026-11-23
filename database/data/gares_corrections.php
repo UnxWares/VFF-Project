@@ -4989,6 +4989,35 @@ return [
         'reason' => 'le schéma de la ligne place Saint-Samson au PK 4,207 ; la ligne ferme aux voyageurs le 27/09/1986 et aux marchandises le 01/02/1988 (date déduite à tort comme fermeture de la gare)',
     ],
 
+    // Fusions de fiches (action « merge », rapport aprem-2111/fusion-fiches.md) : deux fiches pour une gare que le schéma de sa ligne
+    // ne compte qu'une fois. Les règles du rapprochement les gardaient distinctes (ancien bâtiment OSM à plus de 150 m de la gare SNCF) ;
+    // exclure l'une aurait perdu son UIC ou ses sources. La fiche gardée est la fiche SNCF (UIC, slug sans suffixe de département).
+
+    // Pleine-Fougères (16445 SNCF, UIC 87478255, PK 121,099 de la ligne 415000 ; 22882 nœud OSM n2514130142 was:railway=station et
+    // source argentanwebferro). Le tableau des gares de la ligne de Caen à Rennes donne 48° 31′ 47″ N, 1° 33′ 58″ O : le nœud OSM est à 6 m,
+    // le point SNCF à 164 m (les deux à 159 m l'un de l'autre, sur la voie) ; position de la fiche absorbée.
+    [
+        'station' => ['name' => 'Pleine-Fougères', 'uic' => '87478255'],
+        'action' => 'merge',
+        'absorbed' => ['name' => 'Pleine-Fougères', 'osm' => 'n2514130142'],
+        'position' => 'absorbed',
+        'source_url' => $wp('Ligne de Caen à Rennes', 237081548),
+        'quote' => 'Pleine-Fougères (fermée)',
+        'reason' => 'une seule gare de Pleine-Fougères sur la ligne de Caen à Rennes (schéma : PK 121,099 ; tableau des gares : 48° 31′ 47″ N, 1° 33′ 58″ O) : la fiche OSM n2514130142 (was:railway=station, à 6 m de ces coordonnées) est la fiche SNCF 87478255 (à 164 m), position du nœud OSM',
+    ],
+    // Condé-sur-Vire (16293 SNCF, UIC 87447177, PK 11,650 de la ligne 414000 ; 22996 nœud OSM n14143415501 razed:railway=station, schéma
+    // Wikipédia et lignes-oubliees au même PK, 169 m). Le schéma de la ligne de Saint-Lô à Guilberville ne compte qu'une gare de Condé-sur-Vire.
+    // Aucune source citable ne donne de coordonnées (ni article de la gare, ni tableau) : position SNCF gardée.
+    [
+        'station' => ['name' => 'Condé-sur-Vire', 'uic' => '87447177'],
+        'action' => 'merge',
+        'absorbed' => ['name' => 'Condé-sur-Vire', 'osm' => 'n14143415501'],
+        'position' => 'kept',
+        'source_url' => $wp('Ligne de Saint-Lô à Guilberville', 235911791),
+        'quote' => 'Condé-sur-Vire',
+        'reason' => 'une seule gare de Condé-sur-Vire au schéma de la ligne de Saint-Lô à Guilberville, au PK 11,650 de la fiche SNCF 87447177 comme de la liste lignes-oubliees : l\'ancienne gare rasée d\'OSM (n14143415501, à 169 m) est la même gare ; aucune coordonnée sourcée ne départage les positions, celle de la SNCF est gardée',
+    ],
+
     // ── 41. Ouvertures des gares encore ouvertes datées à l'année par Wikidata ou déduites de la ligne, cinquième relecture contre
     // l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 42 gares des 120 suivantes par fréquentation
     // (de Montchanin 0,39 M à Vernaison 0,18 M ; audit-gares-5, 23/11/2026, rapport

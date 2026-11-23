@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\ManualStations;
 use App\Services\StationCorrections;
+use App\Services\StationMerger;
 use App\Services\StationTimeline;
 use App\Support\StationNames;
 use Illuminate\Console\Command;
@@ -40,6 +41,13 @@ use Illuminate\Support\Str;
  * Liens défaits (database/data/gares_corrections.php, action « unlink ») : une gare visée par son UIC
  * ou son objet OSM ne prend pas le Q-id désigné (tag wikidata d'un objet OHM posé sur une autre gare),
  * et l'élément Wikidata de ce Q-id ne la rejoint pas ; les objets qui portent le tag restent rattachés.
+ *
+ * Fusions (action « merge ») : deux fiches qui désignent la même gare (une seule gare au schéma de la ligne)
+ * mais que les règles gardent distinctes (ancien bâtiment à plus de 150 m de la gare SNCF) deviennent une
+ * seule gare, après le rapprochement : la fiche gardée garde son id et son slug, prend les objets sources de
+ * l'autre (UIC, Q-id, noms, dates), et la position de la fiche désignée par la correction (règle de
+ * positionOf appliquée aux seuls objets de cette fiche) ; App\Services\StationMerger reprend médias,
+ * rattachements, accidents et événements, et l'adresse de la fiche absorbée redirige (station_redirects).
  *
  * Idempotent : une gare garde son id et son slug d'une exécution à l'autre
  * (via station_sources.station_id). --fresh repart de zéro (efface les gares,
@@ -83,7 +91,10 @@ class ConsolidateStations extends Command
     /** @var array<int, int> liens défaits : n° → objets sources qui désignent la gare */
     private array $unlinkHits = [];
 
-    public function handle(StationCorrections $corrections): int
+    /** @var list<array{kept: array<string, string>, absorbed: array<string, string>, position: string, source_url: string}> fusions (StationCorrections) */
+    private array $merges = [];
+
+    public function handle(StationCorrections $corrections, StationMerger $merger): int
     {
         ini_set('memory_limit', '2G');
         // L'instance de la commande est réutilisée d'un appel à l'autre dans un même
@@ -94,6 +105,7 @@ class ConsolidateStations extends Command
         $this->grid = [];
         $this->unlinks = $corrections->unlinks();
         $this->unlinkHits = array_fill(0, count($this->unlinks), 0);
+        $this->merges = $corrections->merges();
         $this->loadRecords();
         $this->info(count($this->recs).' objets sources');
 
@@ -135,6 +147,7 @@ class ConsolidateStations extends Command
                 $bySource["{$src}/{$method}"] = ($bySource["{$src}/{$method}"] ?? 0) + 1;
             }
         }
+        $this->applyMerges();
         $this->info(sprintf('%d gares après dédoublonnage', count($this->clusters)));
         ksort($bySource);
         foreach ($bySource as $k => $v) {
@@ -150,12 +163,12 @@ class ConsolidateStations extends Command
             return self::SUCCESS;
         }
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($merger) {
             if ($this->option('fresh')) {
                 DB::table('station_sources')->update(['station_id' => null]);
                 DB::table('stations')->delete();
             }
-            $this->persist();
+            $this->persist($merger);
         });
 
         $this->report();
@@ -211,6 +224,78 @@ class ConsolidateStations extends Command
         }
 
         return $out;
+    }
+
+    /**
+     * Fusions de fiches (action « merge ») : la gare de la fiche absorbée rejoint celle de la fiche gardée.
+     * Chaque fiche est la gare d'un objet source désigné par son identifiant (UIC sur 7 chiffres, objet OSM,
+     * élément Wikidata) et dont les noms comprennent celui de la correction. Fiche introuvable, ou les deux
+     * déjà réunies : signalé, rien n'est changé.
+     */
+    private function applyMerges(): void
+    {
+        foreach ($this->merges as $merge) {
+            $label = "fusion {$merge['absorbed']['name']} dans {$merge['kept']['name']}";
+            $kept = $this->clusterOf($merge['kept']);
+            $absorbed = $this->clusterOf($merge['absorbed']);
+            if ($kept === null || $absorbed === null) {
+                $this->warn("  {$label} : ".($kept === null ? 'fiche gardée' : 'fiche absorbée').' introuvable dans les sources');
+
+                continue;
+            }
+            [$kc, $keptRec] = $kept;
+            [$ac] = $absorbed;
+            if ($kc === $ac) {
+                $this->line("  {$label} : déjà une seule gare");
+
+                continue;
+            }
+            $a = $this->clusters[$ac];
+            $c = &$this->clusters[$kc];
+            // La fiche gardée : celle de l'objet qui la désigne (sinon l'id majoritaire des membres l'emporterait).
+            $c['kept_id'] ??= $this->recs[$keptRec]->station_id;
+            $c['absorbed_ids'] = array_values(array_unique(array_filter([...($c['absorbed_ids'] ?? []), ...($a['absorbed_ids'] ?? []),
+                ...array_map(fn ($m) => $this->recs[$m]->station_id, $a['members'])], fn ($id) => $id !== null && $id !== $c['kept_id'])));
+            if ($merge['position'] === 'absorbed') {
+                $c['position_members'] = $a['position_members'] ?? $a['members'];
+            }
+            $c['members'] = [...$c['members'], ...$a['members']];
+            $c['sources'] += $a['sources'];
+            $c['names'] = array_values(array_unique([...$c['names'], ...$a['names']]));
+            $c['uic'] ??= $a['uic'];
+            $c['qid'] ??= $a['qid'];
+            $c['unlinked'] = ($c['unlinked'] ?? []) + ($a['unlinked'] ?? []);
+            $c['unlink_keys'] = ($c['unlink_keys'] ?? []) + ($a['unlink_keys'] ?? []);
+            $c['active'] = $c['active'] || $a['active'];
+            $c['merged'] = true;
+            unset($c);
+            unset($this->clusters[$ac]);
+            $this->line("  {$label} : réunies (position de la fiche ".($merge['position'] === 'absorbed' ? 'absorbée' : 'gardée').')');
+        }
+    }
+
+    /**
+     * Gare (n° de groupe) et objet source désignés par une fiche d'une fusion ; null si aucun objet ne la désigne.
+     *
+     * @param  array<string, string>  $side  name + uic, wikidata ou osm
+     * @return array{0: int, 1: int}|null
+     */
+    private function clusterOf(array $side): ?array
+    {
+        $name = StationNames::normalize($side['name']);
+        foreach ($this->clusters as $cid => $c) {
+            foreach ($c['members'] as $m) {
+                $r = $this->recs[$m];
+                $byId = (isset($side['uic']) && $r->uic7 !== null && $r->uic7 === substr($side['uic'], 0, 7))
+                    || (isset($side['osm']) && $r->source === 'osm' && $r->source_ref === $side['osm'])
+                    || (isset($side['wikidata']) && $r->source === 'wikidata' && $r->source_ref === $side['wikidata']);
+                if ($byId && in_array($name, $r->names, true)) {
+                    return [$cid, $m];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -486,7 +571,7 @@ class ConsolidateStations extends Command
 
     // ── Écriture ────────────────────────────────────────────────────────────
 
-    private function persist(): void
+    private function persist(StationMerger $merger): void
     {
         $now = now();
         $built = [];
@@ -530,7 +615,11 @@ class ConsolidateStations extends Command
             // Gare existante : id majoritaire parmi les membres déjà rattachés.
             $ids = array_filter(array_map(fn ($m) => $this->recs[$m]->station_id, $this->clusters[$cid]['members']));
             $sid = null;
-            if ($ids) {
+            $forced = $this->clusters[$cid]['kept_id'] ?? null;
+            if ($forced !== null && isset($existing[$forced]) && ! isset($keptIds[$forced])) {
+                // Fusion : la fiche gardée garde son id et son slug, quel que soit le nombre d'objets de l'autre.
+                $sid = (int) $forced;
+            } elseif ($ids) {
                 $counts = array_count_values($ids);
                 arsort($counts);
                 // Gare connue des seules listes par ligne : l'ancienne gare d'un membre n'est reprise que si son nom
@@ -567,6 +656,17 @@ class ConsolidateStations extends Command
             }
         }
         unset($s);
+
+        // Fusions : ce qui pointe vers la fiche absorbée passe à la fiche gardée, avant sa suppression (orpheline).
+        foreach ($built as $cid => $s) {
+            foreach ($s['id'] ? ($this->clusters[$cid]['absorbed_ids'] ?? []) : [] as $absorbed) {
+                if (isset($existing[$absorbed]) && ! isset($keptIds[$absorbed])) {
+                    $moved = array_filter($merger->merge((int) $absorbed, (int) $s['id']));
+                    $this->line(sprintf('  fiche %d (%s) fondue dans %d : %s', $absorbed, $existing[$absorbed], $s['id'],
+                        $moved === [] ? 'rien à reprendre' : implode(', ', array_map(fn ($k, $v) => "{$k} {$v}", array_keys($moved), $moved))));
+                }
+            }
+        }
 
         // Gares orphelines (plus aucune source) : supprimées.
         $orphans = array_diff(array_keys($existing), array_keys($keptIds));
@@ -662,12 +762,11 @@ class ConsolidateStations extends Command
         $manual = $by(ManualStations::SOURCE);
         $prov = [];
 
-        // Position. Gare connue seulement des listes par ligne (lignes-oubliees, schémas Wikipédia,
-        // placées par vff:import-station-sources --source=pk) : la position la plus précise.
+        // Position (fusion « position absorbed » : parmi les seuls objets de la fiche absorbée).
         $osmPos = $osmActive[0] ?? (array_values(array_filter($osm, fn ($r) => $r->lifecycle !== 'unknown'))[0] ?? ($osm[0] ?? null));
-        $listed = array_values(array_filter($members, fn ($r) => is_numeric($r->props['precision_m'] ?? null)));
-        usort($listed, fn ($a, $b) => (int) $a->props['precision_m'] <=> (int) $b->props['precision_m']);
-        $pos = $sncf ?? $sncfV ?? $osmPos ?? $wd ?? ($ohm[0] ?? ($listed[0] ?? $members[0]));
+        $pos = self::positionOf(isset($c['position_members']) ? array_map(fn ($m) => $this->recs[$m], $c['position_members']) : $members);
+        // Fusion : la position est celle que la correction a choisie, preuve à l'appui (pas « à vérifier »).
+        $merged = $c['merged'] ?? false;
         $prov['geom'] = $pos->source;
         if (is_numeric($pos->props['precision_m'] ?? null)) {
             // Précision estimée de la position (m) et méthode : pk (PK calé sur le tracé) ou commune.
@@ -839,10 +938,31 @@ class ConsolidateStations extends Command
             'provenance' => $prov,
             'position_source' => $pos->source,
             'position_spread_m' => $spread,
-            'position_flagged' => $spread > 100,
+            'position_flagged' => $spread > 100 && ! $merged,
             'sources_count' => count($members),
             'events' => $events,
         ];
+    }
+
+    /**
+     * Objet source qui donne la position d'une gare : SNCF > SNCF voyageurs > OSM (en service, puis désaffecté,
+     * puis bâtiment) > Wikidata (celui qui porte l'UIC, puis le premier) > OHM > liste par ligne la plus précise
+     * (lignes-oubliees, schémas Wikipédia, placées par vff:import-station-sources --source=pk) > premier objet.
+     *
+     * @param  non-empty-list<object>  $members
+     */
+    private static function positionOf(array $members): object
+    {
+        $by = fn (string $src) => array_values(array_filter($members, fn ($r) => $r->source === $src));
+        $osm = $by('osm');
+        $osmPos = array_values(array_filter($osm, fn ($r) => $r->lifecycle === 'active'))[0]
+            ?? (array_values(array_filter($osm, fn ($r) => $r->lifecycle !== 'unknown'))[0] ?? ($osm[0] ?? null));
+        $wds = $by('wikidata');
+        usort($wds, fn ($a, $b) => [$b->uic_code !== null, $a->dist ?? 0] <=> [$a->uic_code !== null, $b->dist ?? 0]);
+        $listed = array_values(array_filter($members, fn ($r) => is_numeric($r->props['precision_m'] ?? null)));
+        usort($listed, fn ($a, $b) => (int) $a->props['precision_m'] <=> (int) $b->props['precision_m']);
+
+        return $by('sncf')[0] ?? $by('sncf_voyageurs')[0] ?? $osmPos ?? $wds[0] ?? $by('ohm')[0] ?? $listed[0] ?? $members[0];
     }
 
     /**

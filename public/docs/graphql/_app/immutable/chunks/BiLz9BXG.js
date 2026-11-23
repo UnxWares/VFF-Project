@@ -216,7 +216,7 @@ type Query {
     "Slug de la ligne : \`rfn-\` suivi du code à 6 chiffres pour le réseau ferré national."
     slug: String!
   ): Line
-  "Une gare, par son slug (ex. \`rennes\`)."
+  "Une gare, par son slug (ex. \`rennes\`). L'ancien slug d'une fiche fusionnée dans une autre donne la fiche gardée, dont le champ \`slug\` est le slug actuel (comme la redirection 301 de \`GET /api/v1/stations/{station}\`)."
   station(
     "Slug de la gare."
     slug: String!

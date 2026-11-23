@@ -48,13 +48,24 @@ use Illuminate\Support\Facades\DB;
  *                  Lu par vff:consolidate-stations au rattachement : la gare ne prend pas ce Q-id et
  *                  l'élément Wikidata ne la rejoint pas ; les objets qui portent le tag restent rattachés
  *                  (seul le Q-id est ignoré). Gare visée par « uic » ou « osm » (lue sur les sources, avant
- *                  la consolidation), « name » en contrôle ; sans effet dans vff:build-station-eras.
+ *                  la consolidation), « name » en contrôle ; sans effet dans vff:build-station-eras ;
+ *   - merge      : deux fiches désignent la même gare (une seule gare dans le schéma de la ligne, même PK) :
+ *                  la fiche « station » est gardée (son id, son slug), la fiche « absorbed » s'y fond. Les deux
+ *                  sont visées par « uic », « wikidata » ou « osm » (lus sur les sources, avant la consolidation,
+ *                  « name » en contrôle) ; « position » dit laquelle donne la position (kept ou absorbed, preuve
+ *                  dans « reason » : coordonnées d'un tableau des gares, d'une infobox). Appliquée par
+ *                  vff:consolidate-stations (App\Services\StationMerger : sources, noms, identifiants, médias,
+ *                  rattachements, accidents et événements passent à la fiche gardée, l'adresse de la fiche
+ *                  absorbée redirige en 301) ; sans effet dans vff:build-station-eras.
  *
  * Champs communs : source_url, quote (citation courte), reason. Pas de tiret long.
  */
 final class StationCorrections
 {
-    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink'];
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink', 'merge'];
+
+    /** Fiche dont la fusion (action « merge ») reprend la position. */
+    public const MERGE_POSITIONS = ['kept', 'absorbed'];
 
     /** Sources dont un lien peut être défait (action « unlink »). */
     public const UNLINK_SOURCES = ['wikidata'];
@@ -124,10 +135,37 @@ final class StationCorrections
             || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st) || (! isset($st['uic']) && ! isset($st['osm'])))) {
             $errors[] = 'unlink : source wikidata, ref (Q-id), gare visée par uic ou osm';
         }
+        if ($action === 'merge') {
+            $errors = [...$errors, ...self::validateMerge($c)];
+        }
         foreach (['reason', 'quote'] as $k) {
             if (isset($c[$k]) && (str_contains((string) $c[$k], "\u{2014}") || str_contains((string) $c[$k], '--'))) {
                 $errors[] = "{$k} : tiret long";
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Erreurs propres à une fusion : les deux fiches visées par un identifiant de source, distinctes, et la
+     * fiche qui donne la position.
+     *
+     * @param  array<string, mixed>  $c
+     * @return list<string>
+     */
+    private static function validateMerge(array $c): array
+    {
+        $errors = [];
+        $keys = ['uic', 'wikidata', 'osm'];
+        $byId = fn ($st) => is_array($st) && isset($st['name']) && array_intersect_key($st, array_flip($keys)) !== [] && ! isset($st['near']);
+        if (! $byId($c['station'] ?? null) || ! $byId($c['absorbed'] ?? null)) {
+            $errors[] = 'merge : station et absorbed visées par name + uic, wikidata ou osm';
+        } elseif (array_filter($keys, fn ($k) => isset($c['station'][$k], $c['absorbed'][$k]) && $c['station'][$k] === $c['absorbed'][$k]) !== []) {
+            $errors[] = 'merge : station et absorbed désignent la même fiche';
+        }
+        if (! in_array($c['position'] ?? null, self::MERGE_POSITIONS, true)) {
+            $errors[] = 'merge : position kept ou absorbed';
         }
 
         return $errors;
@@ -181,6 +219,25 @@ final class StationCorrections
                     'source' => (string) $c['source'],
                     'ref' => (string) $c['ref'],
                 ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Fusions de fiches (action « merge »), valides, pour vff:consolidate-stations, dans l'ordre du fichier.
+     *
+     * @return list<array{kept: array<string, string>, absorbed: array<string, string>, position: string, source_url: string}>
+     */
+    public function merges(): array
+    {
+        $side = fn (array $st) => array_map('strval', array_intersect_key($st, array_flip(['name', 'uic', 'wikidata', 'osm'])));
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'merge' && self::validate($c) === []) {
+                $out[] = ['kept' => $side($c['station']), 'absorbed' => $side($c['absorbed']),
+                    'position' => (string) $c['position'], 'source_url' => (string) $c['source_url']];
             }
         }
 
@@ -268,6 +325,8 @@ final class StationCorrections
                     'current' => (bool) ($out['current'][$sid] = (string) $c['status']),
                     // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
                     'unlink' => true,
+                    // Appliquée par vff:consolidate-stations (StationMerger) : la fiche absorbée n'existe plus ici.
+                    'merge' => true,
                     'pk' => DB::update(<<<'SQL'
                         UPDATE station_lines SET pk_m = ?, pk_source = 'correction', updated_at = NOW()
                         WHERE station_id = ? AND line_id IN (SELECT id FROM lines WHERE code = ?)

@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MarkOfflineReadable;
+use App\Http\Middleware\RedirectMergedStationSlug;
 use App\Http\Middleware\RedirectRetiredLineSlug;
 use App\Http\Middleware\RequirePrivateBroadcastChannel;
 use App\Http\Middleware\SecurityHeaders;
@@ -152,6 +153,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Fiche de ligne demandée sous un ancien slug (database/data/line_slug_redirects.php) : 301 vers la
         // même adresse sous le nouveau, pour le site, l'API et le tracé de la carte, au lieu du 404.
         $exceptions->render(fn (NotFoundHttpException $e, Request $request) => RedirectRetiredLineSlug::fromMissingLine($e, $request));
+        // Gare demandée sous l'ancien slug d'une fiche fusionnée (table station_redirects) : 301 vers la même adresse
+        // sous le slug de la fiche gardée (API : fiche, médias, horaires…).
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => RedirectMergedStationSlug::fromMissingStation($e, $request));
 
         // Page d'erreur d'une URL inconnue (404) ou d'une méthode non autorisée (405) :
         // aucune route n'a été trouvée, le groupe web (SetLocale) n'a pas tourné.

@@ -51,6 +51,7 @@ use App\Http\Controllers\TouristRailwayController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
+use App\Models\Station;
 use App\Services\Contributions\ContributionLimits;
 use App\Services\NetworkGraph\GraphDiagnostics;
 use App\Services\NetworkGraph\GraphFeatureDetails;
@@ -58,7 +59,6 @@ use App\Services\NetworkGraph\GraphTiles;
 use App\Services\Reputation\ReputationLevels;
 use App\Services\Webhooks\WebhookSubscriptions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -79,11 +79,10 @@ Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 's
 Route::get('/stations', [StationController::class, 'index'])->name('stations.index');
 Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     ->name('stations.show')
-    // Ancien slug (osm-<id>-…) → redirection 301 permanente vers le slug canonique.
+    // Ancien slug (osm-<id>-…, fiche fusionnée dans une autre) → redirection 301 permanente vers le slug canonique.
     ->missing(function (Request $request) {
         $old = $request->route('station');
-        $sid = DB::table('station_redirects')->where('old_slug', $old)->value('station_id');
-        if ($sid && ($canon = DB::table('stations')->where('id', $sid)->value('slug'))) {
+        if (is_string($old) && ($canon = Station::redirectSlugFor($old)) !== null) {
             return redirect()->route('stations.show', $canon, 301);
         }
         abort(404);
