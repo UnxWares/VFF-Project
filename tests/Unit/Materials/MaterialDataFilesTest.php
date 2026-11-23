@@ -179,7 +179,7 @@ class MaterialDataFilesTest extends TestCase
     /**
      * Notes des relations ambiguës (material_relation_lines.php) : deux extrémités, des codes de ligne, une révision
      * figée et la phrase citée. Paris - Laon, Neussargues - Saint-Chély-d'Apcher, Nancy - Neufchâteau, Bordeaux -
-     * Limoges et Limoges - Gannat : retraits de l'import complet du 23/11 (rapport aprem-2111/materiel-derive.md).
+     * Limoges et Limoges - Gannat : retraits de l'import complet du 23/11 (rapport aprem-2111/materiel-derive.md) ; puis huit relations de plus (rapport aprem-2111/materiel-relations.md).
      */
     public function test_every_ambiguous_relation_note_is_complete_and_cited(): void
     {
@@ -201,5 +201,8 @@ class MaterialDataFilesTest extends TestCase
         $this->assertContains('Nancy - Neufchâteau', $relations);
         $this->assertContains('Bordeaux - Limoges', $relations);
         $this->assertContains('Limoges - Gannat', $relations);
+        foreach (['Paris-Montparnasse - Mantes-la-Jolie', 'Nancy - Pont-Saint-Vincent', 'Limoges - Agen', 'Lille - Don-Sainghin', 'Lille - Béthune', 'Lille - Saint-Pol-sur-Ternoise', 'Saint-Pol-sur-Ternoise - Étaples', 'Arras - Dunkerque'] as $relation) {
+            $this->assertContains($relation, $relations);
+        }
     }
 }
