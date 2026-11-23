@@ -34,7 +34,7 @@ class RackRailwaysTest extends TestCase
 
     public function test_the_known_rack_railways_are_listed(): void
     {
-        foreach (['archeo-ligne-de-saint-gervais-a-bionnassay', 'archeo-ligne-de-chamonix-a-montenvers', 'archeo-ligne-de-saint-ignace-a-la-rhune', 'hors-rfn-panoramique-des-domes'] as $slug) {
+        foreach (['ligne-de-saint-gervais-a-bionnassay', 'ligne-de-chamonix-a-montenvers', 'ligne-de-saint-ignace-a-la-rhune', 'hors-rfn-panoramique-des-domes'] as $slug) {
             $this->assertTrue(RackRailways::isRack($slug), $slug);
         }
         $this->assertFalse(RackRailways::isRack('rfn-896000'));
@@ -42,7 +42,7 @@ class RackRailwaysTest extends TestCase
 
     public function test_present_gives_the_source_and_its_licence(): void
     {
-        $rack = RackRailways::present('archeo-ligne-de-chamonix-a-montenvers');
+        $rack = RackRailways::present('ligne-de-chamonix-a-montenvers');
 
         $this->assertNotNull($rack);
         $this->assertSame('strub', $rack['system']);

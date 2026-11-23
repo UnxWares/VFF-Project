@@ -297,7 +297,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $argenton = $this->line('Ligne de Port-de-Piles à Argenton-sur-Creuse', '598000', ['length_official_m' => 15500]);
         $this->reference($argenton, 'LINESTRING(2.1 46.0, 2.2 46.0)');
         $this->gare('598000', 'Le Blanc');
-        $blanc = $this->archeoLine('Ligne de Port-de-Piles au Blanc', 'archeo-ligne-de-port-de-piles-au-blanc');
+        $blanc = $this->archeoLine('Ligne de Port-de-Piles au Blanc', 'rfn-598000');
         $this->reference($blanc, 'LINESTRING(2.0 46.0, 2.1 46.0)');
         $t = $this->trace('archeoferroviaire', 'a-ppb', 'LINESTRING(2.0 46.0, 2.1 46.0)', $blanc->id, 'Port-de-Piles Le Blanc', 'created');
         // Part du même terminus, mais La Châtre n'est pas un lieu de la ligne : autre ligne.

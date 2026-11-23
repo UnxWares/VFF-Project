@@ -695,7 +695,7 @@ return [
     [
         // Tramway de Pithiviers à Toury : la voie touristique va jusqu'à la base de loisirs de Bellébat
         // (prolongement de 1971) ; forme déclarée pour que le tracé de la ligne l'atteigne.
-        'line' => 'archeo-ligne-de-pithiviers-a-toury',
+        'line' => 'ligne-de-pithiviers-a-toury',
         'trace' => [
             'bbox' => [2.20, 48.17, 2.25, 48.20],
             'bdtopo' => ['toponyme' => 'Pithiviers-Bellébat'],
@@ -725,7 +725,7 @@ return [
         // Ligne de Sceaux (552000, RER B) : la section Laplace - Bourg-la-Reine de l'ouverture de 1846 n'est
         // pas résolue par lieux (tracé de référence fragmenté) : portion déclarée par emprise. Les autres
         // ouvertures de la ligne sont dans database/data/line_event_corrections.php.
-        'line' => 'archeo-ligne-de-sceaux',
+        'line' => 'ligne-de-sceaux',
         'trace' => [
             'bbox' => [2.05, 48.69, 2.345, 48.85],
             'osm' => ['layers' => ['rail'], 'operator' => '^RATP', 'name' => '^Ligne de Sceaux'],

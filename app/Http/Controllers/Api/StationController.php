@@ -87,7 +87,7 @@ class StationController extends Controller
             'department_code' => '29', 'uic_code' => null, 'wikidata_id' => null,
             'opened_at' => '1923-08-12', 'opened_precision' => 'day', 'opened_after' => null, 'closed_at' => '1967-04-10', 'closed_precision' => 'day', 'closed_after' => null,
             'lat' => 48.2732755, 'lng' => -4.5948215, 'position_flagged' => false, 'sources_count' => 1,
-            'lines' => [['slug' => 'archeo-ligne-de-chateaulin-a-camaret', 'code' => null, 'name' => 'Ligne de Châteaulin à Camaret']], 'lines_more' => 0,
+            'lines' => [['slug' => 'ligne-de-chateaulin-a-camaret', 'code' => null, 'name' => 'Ligne de Châteaulin à Camaret']], 'lines_more' => 0,
             'links' => ['web' => 'https://vff-project.org/stations/camaret-sur-mer', 'self' => 'https://vff-project.org/api/v1/stations/camaret-sur-mer'],
         ]],
         'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => 'https://vff-project.org/api/v1/stations?department=29&era=1930&sort=opened&order=desc&per_page=1&facets=true&cursor=eyJzb3J0X251bGwiOjAsInNvcnRfa2V5IjoiMTkyMy0wOC0xMiIsImlkIjo0MjAxMywiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ'],

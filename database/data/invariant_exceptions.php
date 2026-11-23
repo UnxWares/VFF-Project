@@ -52,17 +52,17 @@ return [
         'reason' => 'gare de marchandises inaugurée le 1er mai 1873, « précédant de quelques mois l\'ouverture de la halte des voyageurs » : gare postérieure à la section de la ligne de Fives à Mouscron (1842)'],
 
     // ── Lignes dont la perte de kilomètres n'est pas un événement oublié ──
-    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'archeo-ligne-militaire-de-coucy-les-eppes', 'reviewed_at' => $day,
-        'source_url' => 'https://vff-project.org/lines/archeo-ligne-militaire-de-coucy-les-eppes',
+    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'ligne-militaire-de-coucy-les-eppes', 'reviewed_at' => $day,
+        'source_url' => 'https://vff-project.org/lines/ligne-militaire-de-coucy-les-eppes',
         'reason' => 'ligne militaire hors réseau national datée de son seul début (1953, nom du tracé) et sans fin connue : l\'ère 2030, état du jour, ne garde que les portions confirmées en service (0,4 km sur 2,2)'],
-    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'archeo-ligne-militaire-du-champ-de-tir-de-kergroix', 'reviewed_at' => $day,
-        'source_url' => 'https://vff-project.org/lines/archeo-ligne-militaire-du-champ-de-tir-de-kergroix',
+    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'ligne-militaire-du-champ-de-tir-de-kergroix', 'reviewed_at' => $day,
+        'source_url' => 'https://vff-project.org/lines/ligne-militaire-du-champ-de-tir-de-kergroix',
         'reason' => 'ligne militaire hors réseau national datée de son seul début (1916, OpenHistoricalMap) et sans fin connue : l\'ère 2030, état du jour, ne garde que les portions confirmées en service (0,8 km sur 3,7)'],
-    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'archeo-lignes-minieres-du-bassin-minier-du-nord-secteur-de-vimy', 'reviewed_at' => $day,
-        'source_url' => 'https://vff-project.org/lines/archeo-lignes-minieres-du-bassin-minier-du-nord-secteur-de-vimy',
+    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'lignes-minieres-du-bassin-minier-du-nord-secteur-de-vimy', 'reviewed_at' => $day,
+        'source_url' => 'https://vff-project.org/lines/lignes-minieres-du-bassin-minier-du-nord-secteur-de-vimy',
         'reason' => 'ligne minière hors réseau national datée de son seul début (1866, OpenHistoricalMap) et sans fin connue : aucune portion confirmée en service en 2030'],
-    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'archeo-voie-industrielle-de-bouee-a-cordemais', 'reviewed_at' => $day,
-        'source_url' => 'https://vff-project.org/lines/archeo-voie-industrielle-de-bouee-a-cordemais',
+    ['invariant' => 'lines.km_drop_without_event', 'slug' => 'voie-industrielle-de-bouee-a-cordemais', 'reviewed_at' => $day,
+        'source_url' => 'https://vff-project.org/lines/voie-industrielle-de-bouee-a-cordemais',
         'reason' => 'voie industrielle hors réseau national datée de ses seuls débuts (1970 et 1982, OpenHistoricalMap) et sans fin connue : aucune portion confirmée en service en 2030'],
     // ── Gares déplacées : la fiche porte la position de la gare actuelle, le tracé de l'ère suit l'ancien emplacement
     // (traces-tronques, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/traces-tronques.md) ──

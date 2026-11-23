@@ -39,7 +39,7 @@ return [
     ['kind' => 'fragment', 'line' => '261000', 'at' => [2.34500, 49.87796], 'max_m' => 30,
         'reason' => 'Amiens, pont sur la Somme : 12 m sur la voie sud du faisceau, alors que la ligne suit la voie nord à 48 m',
         'source' => $fragments.'151-205303-3.png)', 'reviewed_at' => $day],
-    ['kind' => 'fragment', 'line' => 'archeo-ligne-militaire-de-somme-bionne-a-courtemont-1914-1918', 'at' => [4.75724, 49.13993], 'max_m' => 70,
+    ['kind' => 'fragment', 'line' => 'ligne-militaire-de-somme-bionne-a-courtemont-1914-1918', 'at' => [4.75724, 49.13993], 'max_m' => 70,
         'reason' => 'tracé archeo non recalé de 51 m dans un champ, parallèle à la courbe de la ligne à 87 m',
         'source' => $fragments.'2936-235236-8.png)', 'reviewed_at' => $day],
 

@@ -84,10 +84,10 @@ class StationTerminusOverridesTest extends TestCase
         foreach (self::file() as $e) {
             $byKey[$e['line'].'|'.StationTerminusOverrides::key($e['terminus'])] = $e;
         }
-        $laBalme = $byKey['archeo-ligne-de-lyon-a-la-balme|lyon'];
+        $laBalme = $byKey['ligne-de-lyon-a-la-balme|lyon'];
         $this->assertSame('none', $laBalme['decision']);
         $this->assertStringContainsString('title=Ancien_tramway_de_Lyon&oldid=241111716', (string) $laBalme['source_url']);
-        $pontcharra = 'archeo-ligne-de-pontcharra-a-sainte-foy-largentiere';
+        $pontcharra = 'ligne-de-pontcharra-a-sainte-foy-largentiere';
         $this->assertSame(['none', 'none'], [$byKey[$pontcharra.'|pontcharra']['decision'], $byKey[$pontcharra.'|sainte foy l argentiere']['decision']]);
         $this->assertSame([], StationTerminusOverrides::validate($byKey[$pontcharra.'|sainte foy l argentiere'], 'Ligne de Pontcharra à Sainte-Foy-l’Argentière'));
     }

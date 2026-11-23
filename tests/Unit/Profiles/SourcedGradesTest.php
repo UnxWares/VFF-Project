@@ -114,6 +114,6 @@ class SourcedGradesTest extends TestCase
         $decimals = array_filter(SourcedGrades::all(), fn (array $e): bool => is_float($e['max_grade_permil']));
 
         $this->assertNotEmpty($decimals);
-        $this->assertSame(7.8, SourcedGrades::present('archeo-ligne-de-bondy-a-aulnay-sous-bois', 'terrain_only')['max_grade_permil'] ?? null);
+        $this->assertSame(7.8, SourcedGrades::present('ligne-de-bondy-a-aulnay-sous-bois', 'terrain_only')['max_grade_permil'] ?? null);
     }
 }

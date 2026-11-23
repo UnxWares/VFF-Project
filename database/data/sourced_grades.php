@@ -31,7 +31,7 @@
  * @return array<string, array{max_grade_permil: int|float, provider: string, license: string, source_url: string, source_title: string, quote: string}>
  */
 return [
-    'archeo-ligne-dannecy-a-thones' => [
+    'ligne-dannecy-a-thones' => [
         'max_grade_permil' => 60,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -39,7 +39,7 @@ return [
         'source_title' => 'Tramway d\'Annecy à Thônes',
         'quote' => 'pente = 60 ; longueur = 22',
     ],
-    'archeo-ligne-de-bastia-a-ajaccio' => [
+    'ligne-de-bastia-a-ajaccio' => [
         'max_grade_permil' => 30,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -47,7 +47,7 @@ return [
         'source_title' => 'Ligne de Bastia à Ajaccio',
         'quote' => 'texte : « Ici, les déclivités maximales sont de 30 ‰ contrairement aux normes en vigueur sur le reste du réseau. »',
     ],
-    'archeo-ligne-de-biarritz-la-negresse-a-biarritz-ville' => [
+    'ligne-de-biarritz-la-negresse-a-biarritz-ville' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -55,7 +55,7 @@ return [
         'source_title' => 'Ligne de Biarritz-la-Négresse à Biarritz-Ville',
         'quote' => 'pente = 15 ; longueur = 3.2',
     ],
-    'archeo-ligne-de-bondy-a-aulnay-sous-bois' => [
+    'ligne-de-bondy-a-aulnay-sous-bois' => [
         'max_grade_permil' => 7.8,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -63,7 +63,7 @@ return [
         'source_title' => 'Ligne de Bondy à Aulnay-sous-Bois',
         'quote' => 'pente = 7.8 ; longueur = 8',
     ],
-    'archeo-ligne-de-bouxwiller-a-ingwiller' => [
+    'ligne-de-bouxwiller-a-ingwiller' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -71,7 +71,7 @@ return [
         'source_title' => 'Ligne de Bouxwiller à Ingwiller',
         'quote' => 'pente = 10 ; texte : « profil en faible pente de 6 à 10 mm/m »',
     ],
-    'archeo-ligne-de-castres-a-murat-sur-vebre' => [
+    'ligne-de-castres-a-murat-sur-vebre' => [
         'max_grade_permil' => 40,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -79,7 +79,7 @@ return [
         'source_title' => 'Chemin de fer de Castres à Murat-sur-Vèbre',
         'quote' => 'pente = 6 ; texte : « rampe quasi continue sur les 75 km du trajet, pouvant atteindre les 40 ‰ »',
     ],
-    'archeo-ligne-de-chantilly-a-crepy-en-valois' => [
+    'ligne-de-chantilly-a-crepy-en-valois' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -87,7 +87,7 @@ return [
         'source_title' => 'Ligne de Chantilly - Gouvieux à Crépy-en-Valois',
         'quote' => 'pente = 15 ; longueur = 33',
     ],
-    'archeo-ligne-de-charleval-a-serqueux' => [
+    'ligne-de-charleval-a-serqueux' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -95,7 +95,7 @@ return [
         'source_title' => 'Ligne de Charleval à Serqueux',
         'quote' => 'pente = 10 ; longueur = 35,9',
     ],
-    'archeo-ligne-de-charmes-a-rambervillers' => [
+    'ligne-de-charmes-a-rambervillers' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -103,7 +103,7 @@ return [
         'source_title' => 'Ligne de Charmes à Rambervillers',
         'quote' => 'pente = 15 ; longueur = 27,946',
     ],
-    'archeo-ligne-de-chars-a-marines' => [
+    'ligne-de-chars-a-marines' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -111,7 +111,7 @@ return [
         'source_title' => 'Ligne de Chars à Marines',
         'quote' => 'pente = 20 ; longueur = 6',
     ],
-    'archeo-ligne-de-concarneau-a-quimperle' => [
+    'ligne-de-concarneau-a-quimperle' => [
         'max_grade_permil' => 25,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -119,7 +119,7 @@ return [
         'source_title' => 'Ligne de Quimperlé à Concarneau',
         'quote' => 'texte : « …ligne quittait la gare PO de Quimperlé pour gagner Pont-Aven, via Moëlan-sur-Mer et Riec-sur-Bélon, franchissant une région vallonnée et le fleuve côtier Bélon près de Pont Guily ; les rampes atteignaient souvent 25 ‰. »',
     ],
-    'archeo-ligne-de-dinard-a-saint-briac' => [
+    'ligne-de-dinard-a-saint-briac' => [
         'max_grade_permil' => 45,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -127,7 +127,7 @@ return [
         'source_title' => 'Tramway de Saint-Briac à Dinard',
         'quote' => 'pente = 45 ; longueur = 9',
     ],
-    'archeo-ligne-de-domfront-a-pontaubault' => [
+    'ligne-de-domfront-a-pontaubault' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -135,7 +135,7 @@ return [
         'source_title' => 'Ligne de Domfront à Pontaubault',
         'quote' => 'pente = 15 ; numéro = 437000',
     ],
-    'archeo-ligne-de-douai-a-blanc-misseron' => [
+    'ligne-de-douai-a-blanc-misseron' => [
         'max_grade_permil' => 6,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -143,7 +143,7 @@ return [
         'source_title' => 'Ligne de Douai à Blanc-Misseron',
         'quote' => 'pente = 6 ; longueur = 46',
     ],
-    'archeo-ligne-de-dreux-a-auneau-ville' => [
+    'ligne-de-dreux-a-auneau-ville' => [
         'max_grade_permil' => 12,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -151,7 +151,7 @@ return [
         'source_title' => 'Ligne d\'Auneau-Ville à Dreux',
         'quote' => 'pente = 12 ; longueur = 49.2',
     ],
-    'archeo-ligne-de-grenoble-a-villard-de-lans' => [
+    'ligne-de-grenoble-a-villard-de-lans' => [
         'max_grade_permil' => 68,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -159,7 +159,7 @@ return [
         'source_title' => 'Tramway Grenoble - Villard-de-Lans',
         'quote' => 'pente = 68 ; longueur = 39',
     ],
-    'archeo-ligne-de-hazebrouck-a-hondschoote' => [
+    'ligne-de-hazebrouck-a-hondschoote' => [
         'max_grade_permil' => 25,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -167,7 +167,7 @@ return [
         'source_title' => 'Chemin de fer de Hazebrouck à Bergues et Hondschoote',
         'quote' => 'pente = 25 ; texte : « La voie comprenait quelques rampes atteignant 25 ‰ »',
     ],
-    'archeo-ligne-de-hussigny-godbrange-a-audun-le-tiche' => [
+    'ligne-de-hussigny-godbrange-a-audun-le-tiche' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -175,7 +175,7 @@ return [
         'source_title' => 'Ligne d\'Audun-le-Tiche à Hussigny-Godbrange',
         'quote' => 'pente = 15 ; longueur = 8.8',
     ],
-    'archeo-ligne-de-lamothe-a-arcachon' => [
+    'ligne-de-lamothe-a-arcachon' => [
         'max_grade_permil' => 5,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -183,7 +183,7 @@ return [
         'source_title' => 'Ligne de Lamothe à Arcachon',
         'quote' => 'pente = 5 ; longueur = 16.043',
     ],
-    'archeo-ligne-de-marcoing-a-masnieres' => [
+    'ligne-de-marcoing-a-masnieres' => [
         'max_grade_permil' => 12,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -191,7 +191,7 @@ return [
         'source_title' => 'Ligne de Marcoing à Masnières',
         'quote' => 'pente = 12 ; texte : « une rampe de 12 ‰ sur environ un kilomètre »',
     ],
-    'archeo-ligne-de-meaux-a-dammartin' => [
+    'ligne-de-meaux-a-dammartin' => [
         'max_grade_permil' => 33,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -199,7 +199,7 @@ return [
         'source_title' => 'Tramway de Meaux à Dammartin',
         'quote' => 'pente = 33 ; longueur = 29.273',
     ],
-    'archeo-ligne-de-miniac-morvan-a-la-gouesniere' => [
+    'ligne-de-miniac-morvan-a-la-gouesniere' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -207,7 +207,7 @@ return [
         'source_title' => 'Ligne de Miniac-Morvan à La Gouesnière - Cancale - Saint-Méloir',
         'quote' => 'pente = 15 ; longueur = 11.5',
     ],
-    'archeo-ligne-de-monterolier-a-saint-saens' => [
+    'ligne-de-monterolier-a-saint-saens' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -215,7 +215,7 @@ return [
         'source_title' => 'Ligne de Montérolier - Buchy à Saint-Saëns',
         'quote' => 'pente = 20 ; longueur = 10',
     ],
-    'archeo-ligne-de-montpellier-a-rabieux' => [
+    'ligne-de-montpellier-a-rabieux' => [
         'max_grade_permil' => 25,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -223,7 +223,7 @@ return [
         'source_title' => 'Ligne de Montpellier à Rabieux',
         'quote' => 'pente = 25 ; longueur = 45,632',
     ],
-    'archeo-ligne-de-motteville-a-monterolier-buchy' => [
+    'ligne-de-motteville-a-monterolier-buchy' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -231,7 +231,7 @@ return [
         'source_title' => 'Ligne de Montérolier - Buchy à Motteville',
         'quote' => 'pente = 10 ; longueur = 35.601',
     ],
-    'archeo-ligne-de-pithiviers-a-toury' => [
+    'ligne-de-pithiviers-a-toury' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -239,7 +239,7 @@ return [
         'source_title' => 'Tramway de Pithiviers à Toury',
         'quote' => 'pente = 10 ; longueur = 30.613',
     ],
-    'archeo-ligne-de-ponte-leccia-a-calvi' => [
+    'ligne-de-ponte-leccia-a-calvi' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -247,7 +247,7 @@ return [
         'source_title' => 'Ligne de Ponte-Leccia à Calvi',
         'quote' => 'texte : « La déclivité maximale est 20 ‰ et le rayon de courbe minimal de 100 m, mais ce rayon est uniquement appliqué sur les sections les plus difficiles. »',
     ],
-    'archeo-ligne-de-pre-en-pail-a-mayenne' => [
+    'ligne-de-pre-en-pail-a-mayenne' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -255,7 +255,7 @@ return [
         'source_title' => 'Ligne de Pré-en-Pail à Mayenne',
         'quote' => 'pente = 20 ; longueur = 45',
     ],
-    'archeo-ligne-de-remiremont-a-gerardmer' => [
+    'ligne-de-remiremont-a-gerardmer' => [
         'max_grade_permil' => 48,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -263,7 +263,7 @@ return [
         'source_title' => 'Tramway de Remiremont à Gérardmer',
         'quote' => 'pente = 48 ; longueur = 26.6',
     ],
-    'archeo-ligne-de-saint-amand-a-blanc-misseron' => [
+    'ligne-de-saint-amand-a-blanc-misseron' => [
         'max_grade_permil' => 7,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -271,7 +271,7 @@ return [
         'source_title' => 'Ligne de Saint-Amand-les-Eaux à Blanc-Misseron',
         'quote' => 'pente = 7 ; longueur = 23.047',
     ],
-    'archeo-ligne-de-sille-le-guillaume-a-juigne' => [
+    'ligne-de-sille-le-guillaume-a-juigne' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -279,7 +279,7 @@ return [
         'source_title' => 'Ligne de Juigné-sur-Sarthe à Sillé-le-Guillaume',
         'quote' => 'pente = 15 ; longueur = 44',
     ],
-    'archeo-ligne-de-tarascon-sur-ariege-a-auzat' => [
+    'ligne-de-tarascon-sur-ariege-a-auzat' => [
         'max_grade_permil' => 40,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -287,7 +287,7 @@ return [
         'source_title' => 'Ligne de Tarascon-sur-Ariège à Auzat',
         'quote' => 'pente = 40 ; longueur = 16.145',
     ],
-    'archeo-ligne-de-thionville-a-mondorf-les-bains' => [
+    'ligne-de-thionville-a-mondorf-les-bains' => [
         'max_grade_permil' => 33.3,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -295,7 +295,7 @@ return [
         'source_title' => 'Ligne de Thionville à Mondorf-les-Bains',
         'quote' => 'pente = 33,3 ; longueur = 25,9',
     ],
-    'archeo-ligne-de-turckheim-a-trois-epis' => [
+    'ligne-de-turckheim-a-trois-epis' => [
         'max_grade_permil' => 97.7,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -303,7 +303,7 @@ return [
         'source_title' => 'Tramway de Turckheim aux Trois-Épis',
         'quote' => 'pente = 97.7 ; longueur = 8.7',
     ],
-    'archeo-ligne-de-vitre-a-martigne-ferchaud' => [
+    'ligne-de-vitre-a-martigne-ferchaud' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -311,7 +311,7 @@ return [
         'source_title' => 'Ligne de Martigné-Ferchaud à Vitré',
         'quote' => 'pente = 15 ; longueur = 38',
     ],
-    'archeo-ligne-de-wingen-sur-moder-a-saint-louis-les-bitche' => [
+    'ligne-de-wingen-sur-moder-a-saint-louis-les-bitche' => [
         'max_grade_permil' => 17,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -319,7 +319,7 @@ return [
         'source_title' => 'Ligne de Wingen-sur-Moder à Saint-Louis-lès-Bitche et frontière',
         'quote' => 'pente = 17 ; longueur = 12.046',
     ],
-    'archeo-ligne-de-wissembourg-a-lauterbourg' => [
+    'ligne-de-wissembourg-a-lauterbourg' => [
         'max_grade_permil' => 5,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
@@ -327,7 +327,7 @@ return [
         'source_title' => 'Ligne de Wissembourg à Lauterbourg-Gare',
         'quote' => 'pente = 5 ; longueur = 20.745',
     ],
-    'archeo-ligne-du-queroy-a-thiviers' => [
+    'ligne-du-queroy-a-thiviers' => [
         'max_grade_permil' => 16,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',

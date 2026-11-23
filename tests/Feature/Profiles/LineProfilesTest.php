@@ -514,8 +514,8 @@ class LineProfilesTest extends TestCase
     public function test_a_rack_railway_withholds_the_measured_grade_and_exposes_the_sourced_one(): void
     {
         // La ligne de test devient Chamonix - Montenvers, déclarée dans database/data/rack_railways.php.
-        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'archeo-ligne-de-chamonix-a-montenvers']);
-        $slug = 'archeo-ligne-de-chamonix-a-montenvers';
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'ligne-de-chamonix-a-montenvers']);
+        $slug = 'ligne-de-chamonix-a-montenvers';
         $this->fakeIgn();
         $this->artisan('vff:compute-line-profiles', ['--line' => [$slug]])->assertSuccessful();
 

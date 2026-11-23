@@ -885,133 +885,133 @@
     ],
     "lines": [
         {
-            "slug": "archeo-deviation-dangouleme-ville",
+            "slug": "deviation-dangouleme-ville",
             "name": "Déviation d'Angoulême-Ville",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-dangouleme-ville-a-confolens",
+            "slug": "ligne-dangouleme-ville-a-confolens",
             "name": "Ligne d'Angoulême-Ville à Confolens",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-dangouleme-ville-a-matha",
+            "slug": "ligne-dangouleme-ville-a-matha",
             "name": "Ligne d'Angoulême-Ville à Matha",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-dangouleme-ville-a-roumazieres",
+            "slug": "ligne-dangouleme-ville-a-roumazieres",
             "name": "Ligne d'Angoulême-Ville à Roumazières",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-daulnay-sous-bois-a-senlis",
+            "slug": "ligne-daulnay-sous-bois-a-senlis",
             "name": "Ligne d'Aulnay-sous-Bois à Senlis",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-bondy-a-aulnay-sous-bois",
+            "slug": "ligne-de-bondy-a-aulnay-sous-bois",
             "name": "Ligne de Bondy à Aulnay-sous-Bois",
             "code": "958000",
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-caen-saint-pierre-a-courseulles",
+            "slug": "ligne-de-caen-saint-pierre-a-courseulles",
             "name": "Ligne de Caen-Saint-Pierre à Courseulles",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-la-motte-daveillans-a-notre-dame-de-vaux",
+            "slug": "ligne-de-la-motte-daveillans-a-notre-dame-de-vaux",
             "name": "Ligne de La Motte-d’Aveillans à Notre-Dame-de-Vaux",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-laroche-migennes-a-lisle-angely",
+            "slug": "ligne-de-laroche-migennes-a-lisle-angely",
             "name": "Ligne de Laroche-Migennes à L’Isle-Angély",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-lecousse-a-saint-hilaire-du-harcouet",
+            "slug": "ligne-de-lecousse-a-saint-hilaire-du-harcouet",
             "name": "Ligne de Lécousse à Saint-Hilaire-du-Harcouët",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-saint-etienne-a-maclas",
+            "slug": "ligne-de-saint-etienne-a-maclas",
             "name": "Ligne de Saint-Etienne à Maclas",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-saint-etienne-terrasse-a-la-fouillouse",
+            "slug": "ligne-de-saint-etienne-terrasse-a-la-fouillouse",
             "name": "Ligne de Saint-Etienne-Terrasse à La Fouillouse",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-saint-hilaire-a-landivy",
+            "slug": "ligne-de-saint-hilaire-a-landivy",
             "name": "Ligne de Saint-Hilaire à Landivy",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-saint-hilaire-de-brens-a-jallieu",
+            "slug": "ligne-de-saint-hilaire-de-brens-a-jallieu",
             "name": "Ligne de Saint-Hilaire-de-Brens à Jallieu",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-de-saint-michel-de-maurienne-a-mont-cenis",
+            "slug": "ligne-de-saint-michel-de-maurienne-a-mont-cenis",
             "name": "Ligne de Saint-Michel-de-Maurienne à Mont-Cenis",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-doctroi-notre-dame-a-canet-plage",
+            "slug": "ligne-doctroi-notre-dame-a-canet-plage",
             "name": "Ligne d'Octroi-Notre-Dame à Canet-Plage",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-doctroi-notre-dame-a-rivesaltes",
+            "slug": "ligne-doctroi-notre-dame-a-rivesaltes",
             "name": "Ligne d'Octroi-Notre-Dame à Rivesaltes",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-doctroi-saint-martin-a-octroi-notre-dame",
+            "slug": "ligne-doctroi-saint-martin-a-octroi-notre-dame",
             "name": "Ligne d'Octroi-Saint-Martin à Octroi-Notre-Dame",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-militaire-de-cirey-a-haie-saint-pierre",
+            "slug": "ligne-militaire-de-cirey-a-haie-saint-pierre",
             "name": "Ligne militaire de Cirey à Haie-Saint-Pierre",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-militaire-de-coolus-a-saint-hilaire-au-temple-1914-1918",
+            "slug": "ligne-militaire-de-coolus-a-saint-hilaire-au-temple-1914-1918",
             "name": "Ligne militaire de Coolus à Saint-Hilaire-au-Temple (1914-1918)",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-militaire-de-mont-notre-dame-a-fismes-1914-1918",
+            "slug": "ligne-militaire-de-mont-notre-dame-a-fismes-1914-1918",
             "name": "Ligne militaire de Mont-Notre-Dame à Fismes (1914-1918)",
             "code": null,
             "historical_operator": null
         },
         {
-            "slug": "archeo-ligne-militaire-de-mont-notre-dame-a-paars-1914-1918",
+            "slug": "ligne-militaire-de-mont-notre-dame-a-paars-1914-1918",
             "name": "Ligne militaire de Mont-Notre-Dame à Paars (1914-1918)",
             "code": null,
             "historical_operator": null

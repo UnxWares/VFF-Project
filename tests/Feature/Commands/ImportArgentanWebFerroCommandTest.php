@@ -43,7 +43,7 @@ class ImportArgentanWebFerroCommandTest extends TestCase
         $this->sandboxStorage();
         Sleep::fake();
 
-        $this->montsecret = Line::factory()->create(['slug' => 'archeo-ligne-de-montsecret-aux-maures', 'name' => 'Ligne de Montsecret aux Maures',
+        $this->montsecret = Line::factory()->create(['slug' => 'ligne-de-montsecret-aux-maures', 'name' => 'Ligne de Montsecret aux Maures',
             'code' => null, 'network' => 'secondaire']);
         foreach ([['montsecret-vassy', 'Montsecret-Vassy', 0], ['tinchebray', 'Tinchebray', 11510], ['les-maures', 'Les Maures', 19445]] as [$slug, $name, $pk]) {
             $station = $this->station($slug, $name, 48.8, -0.7 + $pk / 100000);
@@ -57,10 +57,10 @@ class ImportArgentanWebFerroCommandTest extends TestCase
             'description' => 'closure', 'source' => 'wikipedia-reseaux', 'confidence' => 'medium', 'created_at' => now(), 'updated_at' => now()]);
 
         $this->useDataFile('argentanwebferro.php', [
-            'articles' => ['de-montsecret-vassy-aux-maures' => ['lines' => ['archeo-ligne-de-montsecret-aux-maures']]],
+            'articles' => ['de-montsecret-vassy-aux-maures' => ['lines' => ['ligne-de-montsecret-aux-maures']]],
             'facts' => [],
             'added' => [],
-            'photo_albums' => ['Montsecret-Les Maures' => ['archeo-ligne-de-montsecret-aux-maures']],
+            'photo_albums' => ['Montsecret-Les Maures' => ['ligne-de-montsecret-aux-maures']],
             'photos' => ['own_work' => ['photo couleur de l\'auteur' => [501]]],
         ]);
         $this->fakeSite();
@@ -176,7 +176,7 @@ class ImportArgentanWebFerroCommandTest extends TestCase
         $operator = DB::table('argentanwebferro_facts')->where('kind', 'operator')->first();
 
         $this->useDataFile('argentanwebferro.php', [
-            'articles' => ['de-montsecret-vassy-aux-maures' => ['lines' => ['archeo-ligne-de-montsecret-aux-maures']]],
+            'articles' => ['de-montsecret-vassy-aux-maures' => ['lines' => ['ligne-de-montsecret-aux-maures']]],
             'facts' => [
                 $opening->fingerprint => ['from' => 'Montsecret-Vassy', 'to' => 'Les Maures', 'note' => 'ligne entière'],
                 $operator->fingerprint => ['reject' => 'essai'],
