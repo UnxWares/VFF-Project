@@ -340,6 +340,8 @@ class BuildLineReferences extends Command
                 $j['tee_smoothed'] ?? 0, $this->km($j['tee_smoothed_m'] ?? 0), $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
             $this->line(sprintf('  bouts posés sur la voie d\'une autre ligne dessinée à côté : %d raccordés à son dessin par une courbe estimée (%s km)',
                 $j['drawing_joined'] ?? 0, $this->km($j['drawing_joined_m'] ?? 0)));
+            $this->line(sprintf('  trous sur le dessin d\'une autre ligne : %d comblés par ce dessin, au bit près (%s km)',
+                $j['hole_on_drawing'] ?? 0, $this->km($j['hole_on_drawing_m'] ?? 0)));
             if (! $this->option('no-join-lateral')) {
                 $this->line(sprintf('  bouts arrêtés à côté de la voie traversante d\'une autre ligne : %d raccordés par les voies précises (%s km), %d par une courbe estimée (%s km)',
                     $j['lateral_routed'] ?? 0, $this->km($j['lateral_routed_m'] ?? 0), $j['lateral_smoothed'] ?? 0, $this->km($j['lateral_smoothed_m'] ?? 0)));
