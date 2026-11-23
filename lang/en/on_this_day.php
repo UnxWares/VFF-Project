@@ -5,7 +5,7 @@ return [
     'meta_title' => 'On this day',
     'meta_description' => 'What happened on a calendar day in earlier years: openings and closures of lines and stations, electrifications, commissionings, accidents, each fact with its year, source and sheet.',
     'hero_title' => 'On this day',
-    'hero_subtitle' => 'For a day of the calendar, the French railway facts the encyclopedia knows to that exact day, year after year: lines and stations opened or closed, electrifications, commissionings. Each fact links to its sheet and its source.',
+    'hero_subtitle' => 'For a day of the calendar, the French railway facts the encyclopaedia knows to that exact day, year after year: lines and stations opened or closed, electrifications, commissionings. Each fact links to its sheet and its source.',
     'today_badge' => 'Today',
 
     'nav_label' => 'Choose a day',
@@ -67,7 +67,7 @@ return [
     'method' => [
         'day' => 'Only dates known to the exact day are shown here. When two sources date the same fact to different days, or when only the month or the year is given, the fact stays in the chronology and does not appear on a day.',
         'sources' => 'Each fact has at least one source whose facts may be published, cited with its link. Facts known only from other sources are not shown.',
-        'stations' => 'Station openings and closures are those retained by the station sheet; a date deduced from the opening of a line is not a fact about the station and is not shown.',
+        'stations' => 'Station openings and closures are those the station page uses; a date deduced from the opening of a line is not a fact about the station and is not shown.',
         'accidents' => 'The accidents shown have a reviewed sheet; a sheet still to be checked does not appear.',
         'cache' => 'The list for a day is computed once a day and kept in cache.',
     ],

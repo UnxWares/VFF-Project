@@ -237,7 +237,7 @@ return [
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
     // Diagramm „Wo und wann“ der Streckenseite (LineSpaceTime.svelte): die abgerollte Strecke, ein Band je Phase.
     'spacetime' => [
-        'intro' => 'Jedes Band zeigt die ganze Strecke von einem Ende zum anderen an einem Datum, an dem sie sich ändert: So sehen Sie, wo sie eröffnet wurde, den Personenverkehr verlor, stillgelegt, abgebaut oder wiedereröffnet wurde. Ein Strich unter dem Band markiert, was sich an diesem Datum ändert. Wählen Sie ein Datum, um seine Ereignisse und Quellen zu lesen.',
+        'intro' => 'Jedes Band zeigt die ganze Strecke von einem Ende zum anderen an einem Datum, an dem sie sich ändert: So sehen Sie, wo sie eröffnet wurde, wo der Personenverkehr endete und wo sie stillgelegt, abgebaut oder wiedereröffnet wurde. Ein Strich unter dem Band markiert, was sich an diesem Datum ändert. Wählen Sie ein Datum, um seine Ereignisse und Quellen zu lesen.',
         'label' => 'Die Strecke Datum für Datum',
         'label_ends' => 'Die Strecke Datum für Datum, von :from bis :to',
         'legend' => 'Legende des Diagramms',

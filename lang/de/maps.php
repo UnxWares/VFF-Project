@@ -510,7 +510,7 @@ return [
         'close' => 'Fenster schließen',
         'today' => 'Lage heute',
         'at_year' => 'Lage im Jahr :year',
-        'around' => 'Um :coords',
+        'around' => 'Bei :coords',
         'loading' => 'Suche läuft…',
         'error' => 'Diese Angaben können gerade nicht geladen werden.',
         'retry' => 'Erneut versuchen',
@@ -538,8 +538,8 @@ return [
 
     // Liste des Angezeigten: die Strecken und Bahnhöfe des sichtbaren Ausschnitts als Textalternative zur Karte.
     'listing' => [
-        'button' => 'Liste des Angezeigten',
-        'title' => 'Liste des Angezeigten',
+        'button' => 'Angezeigte Strecken und Bahnhöfe',
+        'title' => 'Angezeigte Strecken und Bahnhöfe',
         'close' => 'Liste schließen',
         'intro' => 'Die Strecken und Bahnhöfe des auf der Karte sichtbaren Ausschnitts in der gewählten Epoche. Die Liste aktualisiert sich, wenn Sie die Karte nicht mehr bewegen; jeder Name öffnet das Datenblatt.',
         'filter_lines' => 'Strecken: Zustand',

@@ -511,8 +511,8 @@ return [
         'accident_distance' => ":km\u{00A0}km from the station",
         'accident_commune' => 'location known only to the municipality',
         'to_review' => 'Record to be checked',
-        'not_retained' => 'Date not retained',
-        'not_retained_hint' => 'Date given by this source, but different from the one this page retains.',
+        'not_retained' => 'Date not used',
+        'not_retained_hint' => 'Date given by this source, but different from the one this page uses.',
         'source' => 'Source:',
         'also' => 'Also: :list',
         'precision' => [

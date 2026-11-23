@@ -90,11 +90,11 @@ return [
     'elec_intro' => 'The first electrified lines date from the 1900s. Today, more than half of the open kilometres are electrified.',
     'elec_caption' => 'Length of open, electrified lines at the end of each decade, with its share of the open network.',
     'elec_table' => 'Open electrified lines by decade',
-    'elec_value' => ':km, :share %',
-    'elec_sr' => ':label: :km electrified, :share % of the open network.',
+    'elec_value' => ':km, :share%',
+    'elec_sr' => ':label: :km electrified, :share% of the open network.',
 
     'tracks_title' => 'Single and double track',
-    'tracks_text' => 'Today, :double of lines are double track and :single single track, that is :share % double track.',
+    'tracks_text' => 'Today, :double of lines are double track and :single single track, that is :share% double track.',
     'tracks_note' => 'Main tracks according to the operating regime of the lines as published by SNCF Réseau, for today’s network only. Portions whose regime does not give the number of tracks (bidirectional signalling) are not counted. The data does not exist for past decades.',
     'tracks_missing' => 'The number of tracks has not been imported yet: this share will be given here, for today’s network only, once it is. It does not exist for past decades.',
 
@@ -128,7 +128,7 @@ return [
     'def_events_text' => 'Openings, reopenings, closures (all, to passengers, to freight) and liftings entered with a date in a line’s timeline, counted in the period in which they fall. A date that is only the year inferred from the name of a trace is not counted.',
     'def_events_source' => 'VFF line timelines: Wikipedia, Wikidata, OpenHistoricalMap, lignes-oubliees.fr and the local sources cited on each line.',
     'def_stations_term' => 'Stations open to passengers',
-    'def_stations_text' => 'Stations whose status at the end of the year is "open to passengers". A station is closed when all its lines are closed or when it is no longer in use.',
+    'def_stations_text' => 'Stations whose status at the end of the year is “open to passengers”. A station is closed when all its lines are closed or when it is no longer in use.',
     'def_stations_source' => 'VFF stations and halts, from OpenStreetMap, SNCF Réseau’s list of stations (ODbL) and Wikidata.',
     'def_electrified_term' => 'Electrified share',
     'def_electrified_text' => 'Kilometres of open, electrified lines divided by the open kilometres, parallel tracks included. The result can differ from the share published by the operator, which counts differently.',

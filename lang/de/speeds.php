@@ -40,6 +40,6 @@ return [
     ],
     'source_link' => 'Wikipedia',
     'source_hint' => 'Artikel „:title“, gelesene Version',
-    'source' => 'Quelle: SNCF Réseau, Streckenhöchstgeschwindigkeit (ODbL). Höchstgeschwindigkeit der Strecke, ohne vorübergehende Langsamfahrstellen und ohne Geschwindigkeiten einzelner Zuggattungen. Kilometrierung von SNCF Réseau.',
+    'source' => 'Quelle: SNCF Réseau, Streckenhöchstgeschwindigkeit (ODbL). Höchstgeschwindigkeit der Strecke, ohne vorübergehende Langsamfahrstellen und ohne Geschwindigkeiten einzelner Zuggattungen. Streckenkilometer nach der Zählung von SNCF Réseau.',
     'history_source' => 'Datierte Änderungen: Wikipedia-Artikel (CC BY-SA 4.0), Fakten mit einem Link auf die gelesene Version.',
 ];

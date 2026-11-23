@@ -5,7 +5,7 @@ return [
     'meta_title' => 'A chronology of French railways',
     'meta_description' => 'French railways year by year since 1827: line openings and closures, reopenings, electrifications, signalling, rolling stock and major accidents, each fact with its source.',
     'hero_title' => 'A chronology of French railways',
-    'hero_subtitle' => 'Year by year since 1827, what the encyclopedia knows about the network: lines opened, closed and sometimes reopened, electrifications, signalling, rolling stock and major accidents. Each fact links to its page and its source.',
+    'hero_subtitle' => 'Year by year since 1827, what the encyclopaedia knows about the network: lines opened, closed and sometimes reopened, electrifications, signalling, rolling stock and major accidents. Each fact links to its page and its source.',
     'computed' => 'Computed on :date',
     'link_home' => 'A chronology of French railways, year by year',
     'link_network' => 'The same years in figures: the network decade by decade',
@@ -78,7 +78,7 @@ return [
     'external' => '(external site)',
 
     'method_title' => 'How this chronology is built',
-    'method_intro' => 'It was computed on :date from the encyclopedia’s pages.',
+    'method_intro' => 'It was computed on :date from the encyclopaedia’s pages.',
     'method' => [
         'sources' => 'Facts come from the line chronologies (Wikipedia, Wikidata, OpenHistoricalMap, Lignes oubliées, sourced corrections by VFF…), the signalling history, the accident and rolling stock pages, and six national milestones taken from Wikipedia.',
         'dedup' => 'A fact reported by several sources (same line, same kind, same section, same year) is counted once, with all its sources. Sections of a line opened on the same day make a single fact.',
