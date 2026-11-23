@@ -153,6 +153,13 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     passées (R2) : seules comptent les fins datées avant l'ère qui touchent le tronçon
     (`storage/app/reports/agents/aprem-2111/audit-t1bc-r2.md`). T1b et T1c ne sont pas appliqués : jugés à la
     main, ils se trompent plus souvent qu'ils n'ont raison (même rapport).
+    `2026-11-23.1` (23/11/2026, quatrième contrôle à la main, 120 constats,
+    `storage/app/reports/agents/aprem-2111/relecture-audits.md`) : R5, une ouverture localisée tardive (à plus de
+    `OPENING_CONFLICT_YEARS` ans de celle d'une autre source, localisée aussi sur le tronçon) n'est plus qu'un avis
+    faible, comme dans le moteur (`EraTimeline::earlierConflictingOpening`) ; R6, une source qui ne date que la fin
+    des voyageurs (sans ouverture) confirme le fret seul d'un tronçon en service, ou contredit un tronçon mixte ; R7,
+    une source sans aucun événement des voyageurs ne contredit plus le trafic (« voyageurs attendus » vient du
+    service par défaut d'une ouverture, raison `traffic_assumed`, avis faible).
 
 ## État des mesures (21/11/2026, fin d'après-midi)
 
@@ -172,5 +179,9 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
   pour T1b, 7 sur 10 pour T1c, avec la moitié des cas illisibles dans les faisceaux (`aprem-2111/audit-t1bc-r2.md`).
 - Tests : couverture de `SegmentAuditor` de 91 à 99,5 %, mutation de `AuditGrader` de 92 à 97 % et de
   `DateComparison` de 66 à 84 %.
+- Quatrième contrôle (23/11/2026) : 120 constats tirés par type, gravité et époque ; 17 % portaient sur un tronçon
+  que le moteur avait remplacé depuis la passe (14 % des lignes d'audit de `vff`, 86 lignes : l'audit décrit un
+  tronçon disparu). `php artisan vff:audit-segments --stale` n'audite que les lignes dont l'audit est périmé
+  (tronçon audité disparu ou jamais audité) : à lancer après chaque rejeu du moteur.
 - À lancer sur `vff` quand le moteur sera rejoué : `vff:audit-segments --era=2030` (6 minutes environ), puis les ères
   passées (plus d'une heure, en `--shard=i/4`).

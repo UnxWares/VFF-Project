@@ -299,6 +299,25 @@ final class SegmentAuditor
     }
 
     /**
+     * Lignes dont l'audit est périmé : un tronçon audité n'existe plus (le moteur a été rejoué depuis la
+     * passe : l'audit décrit alors un tronçon disparu, avec sa géométrie recopiée) ou un tronçon n'a
+     * jamais été audité. Relevé du 23/11/2026 : 54 195 lignes d'audit sur 390 097 (14 %) décrivent un tronçon disparu et 56 755 tronçons n'ont pas d'audit, sur 86 lignes.
+     *
+     * @return list<int>
+     */
+    public function staleLineIds(): array
+    {
+        return array_map(fn (object $r): int => (int) $r->line_id, DB::select(<<<'SQL'
+            SELECT a.line_id FROM segment_audits a
+            WHERE a.scope = 'segment' AND NOT EXISTS (SELECT 1 FROM line_segments s WHERE s.id = a.segment_id)
+            UNION
+            SELECT s.line_id FROM line_segments s
+            WHERE NOT EXISTS (SELECT 1 FROM segment_audits a WHERE a.scope = 'segment' AND a.segment_id = s.id)
+            ORDER BY 1
+            SQL));
+    }
+
+    /**
      * Retire les audits périmés : couples (ligne, ère) qui n'ont plus aucun tronçon, par exemple une
      * ligne qui a perdu tous ses tronçons d'une ère depuis la passe précédente (synthèse et tronçons).
      *
@@ -410,14 +429,53 @@ final class SegmentAuditor
                 'agrees' => $judged['agrees'],
                 'why' => $judged['why'],
                 'near_date' => $judged['near_date'],
-                'weak' => $unlocatedEnd || in_array($source, AuditGrader::WEAK_SOURCES, true),
+                'weak' => $unlocatedEnd || in_array($source, AuditGrader::WEAK_SOURCES, true) || $judged['traffic_assumed'],
                 'unlocated_end' => $unlocatedEnd,
+                'traffic_assumed' => $judged['traffic_assumed'],
                 'priority' => EraTimeline::SOURCE_PRIORITY[$source] ?? 10,
                 'events' => array_map(fn (array $e): array => ['id' => $e['id'], 'type' => $e['type'], 'date' => $e['date']],
                     array_slice($applicable, -4)),
                 'first_opening_year' => $judged['first_opening_year'],
                 'passenger_end_only' => $judged['passenger_end_only'],
             ];
+        }
+
+        return $this->outvoteLateOpenings($verdicts, $bySource, $year, $limit);
+    }
+
+    /**
+     * R5 (règles .9) : une ouverture localisée tardive, battue par une ouverture localisée plus
+     * ancienne d'une autre source, n'est plus un avis ferme. Le moteur fait de même quand deux sources
+     * datent l'ouverture d'une portion à plus de OPENING_CONFLICT_YEARS d'écart (EraTimeline::
+     * earlierConflictingOpening) : la date tardive est presque toujours un autre événement mal typé
+     * (reconstruction « tracé définitif », réouverture au fret, électrification). Saint-Étienne -
+     * Lyon en 1850 : Wikipédia ne localise qu'un « tracé définitif » de 1857 là où OpenHistoricalMap
+     * date 1827, et la ligne existait.
+     *
+     * @param  list<array<string, mixed>>  $verdicts
+     * @param  array<string, list<array<string, mixed>>>  $bySource
+     * @return list<array<string, mixed>>
+     */
+    private function outvoteLateOpenings(array $verdicts, array $bySource, int $year, string $limit): array
+    {
+        $located = [];
+        foreach ($bySource as $source => $list) {
+            $years = array_map(fn (array $e): int => (int) substr($e['date'], 0, 4), array_filter($list,
+                fn (array $e): bool => ! $e['whole'] && str_starts_with($e['type'], 'opening')));
+            $located[$source] = $years === [] ? null : min($years);
+        }
+        foreach ($verdicts as $i => $v) {
+            $late = $located[$v['source']] ?? null;
+            if ($v['kind'] !== 'events' || $v['agrees'] || $late === null || $late <= $year || ! in_array($v['expected']['class'], ['not_open', 'gone'], true)) {
+                continue;
+            }
+            foreach ($located as $other => $earlier) {
+                if ($other !== $v['source'] && $earlier !== null && $earlier <= $year && $earlier < $late - EraTimeline::OPENING_CONFLICT_YEARS) {
+                    $verdicts[$i]['weak'] = true;
+                    $verdicts[$i]['late_opening_outvoted'] = $other;
+                    break;
+                }
+            }
         }
 
         return $verdicts;
@@ -427,7 +485,7 @@ final class SegmentAuditor
      * Avis d'une liste d'événements d'une source, ou null si elle ne dit rien de cette date.
      *
      * @param  list<array<string, mixed>>  $list
-     * @return array{expected: array{class: string, traffic: ?string}, agrees: bool, why: ?string, near_date: bool, first_opening_year: ?int, passenger_end_only: bool}|null
+     * @return array{expected: array{class: string, traffic: ?string}, agrees: bool, why: ?string, near_date: bool, first_opening_year: ?int, passenger_end_only: bool, traffic_assumed: bool}|null
      */
     private function judge(object $s, array $list, int $year, bool $current, ?int $prevYear, string $limit, string $defaults, bool $passengerImpliesFreight): ?array
     {
@@ -459,8 +517,17 @@ final class SegmentAuditor
         };
         $expected = $expect($year, $current, $prevYear, $current ? $limit : null);
         if (! $openings && $expected['class'] === 'open') {
-            // Rien n'est encore fermé selon elle : elle ne dit rien de l'état à cette date.
-            return null;
+            // R6 (règles .9) : une source qui ne date que la fin des voyageurs (sans ouverture) dit tout de
+            // même que la portion est en fret seul : elle confirme ou contredit le trafic du tronçon.
+            // Elle ne parle que d'un tronçon en service : sur un tronçon fermé elle reste muette sur la fermeture.
+            $passengerEnd = AuditGrader::statusClass($s->status) === 'open'
+                && ($timeline->stateAt($year, $current, $prevYear, $current ? $limit : null)['traffic'] ?? null) === 'freight'
+                && array_filter($list, fn (array $e): bool => $e['type'] === 'closure_passenger' && $e['date'] <= $limit) !== [];
+            if (! $passengerEnd) {
+                // Rien n'est encore fermé selon elle : elle ne dit rien de l'état à cette date.
+                return null;
+            }
+            $expected['traffic'] = 'freight';
         }
         [$agrees, $why] = AuditGrader::compare($s->status, $s->traffic_type, $expected);
         if (! $agrees && in_array($expected['class'], ['closed', 'gone'], true)
@@ -475,7 +542,7 @@ final class SegmentAuditor
             if ($otherEnds === [] && $withoutPassengerEnds !== $list
                 && $expect($year, $current, $prevYear, $current ? $limit : null, $timelineOf($withoutPassengerEnds))['class'] === 'open') {
                 return ['expected' => ['class' => 'open', 'traffic' => 'freight'], 'agrees' => true, 'why' => null, 'near_date' => false,
-                    'first_opening_year' => $firstOpening, 'passenger_end_only' => true];
+                    'first_opening_year' => $firstOpening, 'passenger_end_only' => true, 'traffic_assumed' => false];
             }
         }
         $knowsEnds = array_filter($list, fn (array $e): bool => (bool) preg_match('/^closure|^declassification|^dismantling|^conversion/', $e['type'])) !== [];
@@ -491,8 +558,16 @@ final class SegmentAuditor
             }
         }
 
+        // R7 (règles .9) : une source qui ne date aucun événement des voyageurs ne sait pas que le tronçon
+        // est en fret seul ; son « voyageurs attendus » vient du service par défaut d'une ouverture sans
+        // précision, pas d'un fait. Son avis sur le trafic est faible (Compiègne - Soissons 1970,
+        // Pouilly-sous-Charlieu - Clermain 1940 : OpenHistoricalMap sans fin des voyageurs, lignes-oubliées
+        // la date).
+        $trafficAssumed = ! $agrees && $why === 'expected_passengers'
+            && array_filter($list, fn (array $e): bool => $e['date'] <= $limit && str_contains($e['type'], 'passenger')) === [];
+
         return ['expected' => $expected, 'agrees' => $agrees, 'why' => $why, 'near_date' => $nearDate, 'first_opening_year' => $firstOpening,
-            'passenger_end_only' => false];
+            'passenger_end_only' => false, 'traffic_assumed' => $trafficAssumed];
     }
 
     /**

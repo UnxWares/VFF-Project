@@ -89,7 +89,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.8';
+    public const RULE_VERSION = '2026-11-23.1';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;

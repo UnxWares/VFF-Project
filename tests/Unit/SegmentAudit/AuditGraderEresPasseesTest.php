@@ -82,6 +82,6 @@ class AuditGraderEresPasseesTest extends TestCase
 
     public function test_rule_version(): void
     {
-        $this->assertSame('2026-11-21.8', AuditGrader::RULE_VERSION);
+        $this->assertSame('2026-11-23.1', AuditGrader::RULE_VERSION);
     }
 }

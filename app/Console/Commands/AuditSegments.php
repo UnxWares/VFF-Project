@@ -17,12 +17,14 @@ use Illuminate\Support\Facades\DB;
  *   php artisan vff:audit-segments --line=405000 --line=371000          # lignes témoins
  *   php artisan vff:audit-segments --era=2030 --dry-run                 # mesure sans rien écrire
  *   php artisan vff:audit-segments --shard=1/4 &  (… --shard=4/4)       # tout le réseau, 4 processus
+ *   php artisan vff:audit-segments --stale                              # après un rejeu du moteur : seulement les lignes périmées
  */
 class AuditSegments extends Command
 {
     protected $signature = 'vff:audit-segments
         {--line=* : Ligne à auditer : identifiant, code à 6 chiffres ou slug (répétable ; par défaut toutes les lignes qui ont des tronçons)}
         {--era=* : Année d\'une ère à auditer (répétable ; par défaut toutes les ères où la ligne a des tronçons)}
+        {--stale : Audite seulement les lignes dont l\'audit est périmé (tronçon audité disparu depuis un rejeu du moteur, ou tronçon jamais audité)}
         {--shard= : Morceau i/n des lignes (identifiant modulo n égal à i - 1), pour plusieurs processus en parallèle}
         {--dry-run : Calcule et affiche les notes sans rien écrire}';
 
@@ -128,6 +130,9 @@ class AuditSegments extends Command
                 $ids[] = (int) $id;
             }
             $query->whereIn('id', $ids);
+        }
+        if ($this->option('stale')) {
+            $query->whereIn('id', app(SegmentAuditor::class)->staleLineIds());
         }
         if ($shard !== null) {
             $query->whereRaw('id % ? = ?', [$shard[1], $shard[0] - 1]);
