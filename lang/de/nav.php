@@ -45,6 +45,7 @@ return [
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',
         'more' => 'Alle Ergebnisse',
+        'all_results' => 'Alle Ergebnisse für „:query“',
         'all_lines' => 'Alle Strecken mit „:query“',
         'all_stations' => 'Alle Bahnhöfe mit „:query“',
         'all_accidents' => 'Alle Unfälle mit „:query“',

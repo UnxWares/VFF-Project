@@ -109,7 +109,7 @@ describe('searchGroups', () => {
         });
         expect(groups.map((g) => g.type)).toEqual(['line', 'station', 'material', 'more']);
         const options = groups.flatMap((g) => g.items);
-        expect(options.map((o) => o.index)).toEqual([0, 1, 2, 3, 4]);
+        expect(options.map((o) => o.index)).toEqual([0, 1, 2, 3, 4, 5]);
         expect(new Set(options.map((o) => o.id)).size).toBe(options.length);
         expect(options[0]).toMatchObject({ href: '/lines/rfn-440000', plate: '440000' });
         expect(options[1]).toMatchObject({ href: '/stations/vire', detail: 'Vire Normandie (14)' });
@@ -136,10 +136,12 @@ describe('searchGroups', () => {
             idPrefix: 's',
         });
         expect(after[0].items.map((i) => i.href)).toEqual([
+            '/search?q=Saint%20L%C3%B4',
             '/lines?q=Saint%20L%C3%B4',
             '/stations?q=Saint%20L%C3%B4',
         ]);
-        expect(after[0].items[0].name).toBe('nav.search.all_lines(Saint Lô)');
+        expect(after[0].items[0].name).toBe('nav.search.all_results(Saint Lô)');
+        expect(after[0].items[1].name).toBe('nav.search.all_lines(Saint Lô)');
     });
 });
 
@@ -214,6 +216,7 @@ describe('searchGroups : accidents', () => {
     it('un lien vers l’annuaire des accidents seulement quand des accidents répondent', () => {
         const more = run().find((g) => g.type === 'more');
         expect(more.items.map((i) => i.href)).toEqual([
+            '/search?q=bretigny',
             '/lines?q=bretigny',
             '/stations?q=bretigny',
             '/accidents?q=bretigny',
@@ -222,6 +225,7 @@ describe('searchGroups : accidents', () => {
             (g) => g.type === 'more',
         );
         expect(without.items.map((i) => i.href)).toEqual([
+            '/search?q=bretigny',
             '/lines?q=bretigny',
             '/stations?q=bretigny',
         ]);
@@ -231,7 +235,7 @@ describe('searchGroups : accidents', () => {
     });
     it('les indices restent continus avec le groupe des accidents', () => {
         const options = run().flatMap((g) => g.items);
-        expect(options.map((o) => o.index)).toEqual([0, 1, 2, 3]);
+        expect(options.map((o) => o.index)).toEqual([0, 1, 2, 3, 4]);
     });
 });
 

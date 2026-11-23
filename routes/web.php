@@ -30,6 +30,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpenDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
@@ -79,6 +80,8 @@ Route::get('/materials', [MaterialController::class, 'index'])->name('materials.
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
+// Page de résultats de la recherche (Entrée dans la recherche de l'en-tête et de l'accueil) : non indexée.
+Route::get('/search', [SearchPageController::class, 'index'])->middleware('throttle:public-api')->name('search');
 // Quiz du rail : dix questions tirées d'une graine (adresse partageable), réponse vérifiée par le serveur
 // après le choix, photo du matériel par une redirection ; rien n'est enregistré.
 Route::get('/quiz', [QuizController::class, 'index'])->middleware('throttle:30,1')->name('quiz');

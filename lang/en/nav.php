@@ -45,6 +45,7 @@ return [
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',
         'more' => 'All results',
+        'all_results' => 'All results for “:query”',
         'all_lines' => 'All lines containing “:query”',
         'all_stations' => 'All stations containing “:query”',
         'all_accidents' => 'All accidents containing “:query”',

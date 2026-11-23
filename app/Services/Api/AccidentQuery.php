@@ -77,7 +77,7 @@ final class AccidentQuery
             } else {
                 $search = SearchQuery::parse($q);
                 $keys = SearchFields::keys('accident', 'accidents.');
-                $approximate = $search->canBeFuzzy() && ! $search->where(Accident::query(), $keys)->exists();
+                $approximate = $search->onlyApproximate(Accident::query(), $keys);
                 $search->where($query, $keys, approximate: $approximate);
             }
         }

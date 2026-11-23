@@ -171,6 +171,21 @@ final class SearchQuery
         });
     }
 
+    /**
+     * Rien ne correspond mot pour mot dans `$base` (et la recherche approchée a un sens) : les listes montrent alors
+     * les noms approchés.
+     *
+     * @template TBuilder of QueryBuilder|EloquentBuilder
+     *
+     * @param  TBuilder  $base
+     * @param  array{0: string, 1: string}  $keys  clés SQL du nom et de tous les noms (SearchFields::keys)
+     * @param  array{0: string, 1: list<mixed>}|null  $extra
+     */
+    public function onlyApproximate(QueryBuilder|EloquentBuilder $base, array $keys, ?array $extra = null): bool
+    {
+        return $this->canBeFuzzy() && ! $this->where($base, $keys, $extra)->exists();
+    }
+
     /** Une recherche approchée a-t-elle un sens (assez de lettres, pas un code) ? */
     public function canBeFuzzy(): bool
     {

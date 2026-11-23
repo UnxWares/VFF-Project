@@ -188,7 +188,7 @@ final class MaterialQuery
         // ne correspond mot pour mot.
         $parsed = SearchQuery::parse($search);
         $keys = SearchFields::keys('material', 'materials.');
-        $approximate = $parsed->canBeFuzzy() && ! $parsed->where(Material::query(), $keys)->exists();
+        $approximate = $parsed->onlyApproximate(Material::query(), $keys);
 
         return $parsed->where($query, $keys, approximate: $approximate);
     }

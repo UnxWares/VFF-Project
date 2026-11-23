@@ -2,7 +2,7 @@
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { fitWords } from '$lib/fitWords.js';
-    import { searchGroups, stepIndex } from '$lib/siteSearch.js';
+    import { searchGroups, searchPageHref, stepIndex } from '$lib/siteSearch.js';
 
     /**
      * Recherche de tout le site : rubriques (Carte, Lignes, Gares…), lignes, gares et matériel
@@ -10,7 +10,8 @@
      * Choisir un résultat ouvre directement sa page.
      *
      * Combobox ARIA 1.2 : le focus reste dans le champ, les flèches parcourent les résultats
-     * (aria-activedescendant), Entrée ouvre le résultat actif (le premier sinon). Le nombre de
+     * (aria-activedescendant), Entrée ouvre le résultat actif, sinon la page de tous les résultats
+     * (/search?q=…, deux caractères au moins ; la première rubrique pour un texte plus court). Le nombre de
      * résultats, l'absence de résultat et les erreurs sont annoncés par une zone d'état présente
      * dès le départ.
      *
@@ -207,9 +208,16 @@
             e.preventDefault();
             move(-1);
         } else if (e.key === 'Enter') {
-            if (!listShown) return;
-            e.preventDefault();
-            pick(options[activeIndex >= 0 ? activeIndex : 0], e);
+            if (listShown && activeIndex >= 0) {
+                e.preventDefault();
+                pick(options[activeIndex], e);
+            } else if (query.length >= 2) {
+                e.preventDefault();
+                pick({ href: searchPageHref(query) }, e);
+            } else if (listShown) {
+                e.preventDefault();
+                pick(options[0], e);
+            }
         } else if (e.key === 'Escape' && floating) {
             if (isOpen && (listShown || messageShown)) {
                 e.preventDefault();

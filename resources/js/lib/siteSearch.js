@@ -1,6 +1,7 @@
 // Recherche de tout le site (Components/Search) : logique pure, testée par tests/js/siteSearch.test.js.
 // Les résultats viennent de GET /api/v1/search (lignes, gares, matériel roulant, accidents) ; s'y ajoutent les
-// rubriques du site et deux liens vers les annuaires filtrés (trois quand des accidents répondent).
+// rubriques du site, le lien vers la page de résultats complète (/search) et deux liens vers les annuaires filtrés
+// (trois quand des accidents répondent).
 
 import { accidentDate } from './accidentText.js';
 
@@ -48,7 +49,7 @@ export function accidentDetail(accident, lang = 'fr') {
 
 /**
  * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, accidents, puis
- * « Tous les résultats » (annuaires filtrés, une fois la recherche faite). Les groupes vides sont
+ * « Tous les résultats » (page de résultats, puis annuaires filtrés, une fois la recherche faite). Les groupes vides sont
  * retirés ; chaque option reçoit un indice continu et un identifiant (aria-activedescendant).
  *
  * @param {object} p
@@ -133,6 +134,11 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 searched && query.length >= 2
                     ? [
                           {
+                              href: searchPageHref(query),
+                              name: t('nav.search.all_results', { query }),
+                              icon: 'bi-search',
+                          },
+                          {
                               href: `/lines?q=${encoded}`,
                               name: t('nav.search.all_lines', { query }),
                               icon: 'bi-list-ul',
@@ -162,6 +168,11 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
         id: `${idPrefix}-group-${g.type}`,
         items: g.items.map((item) => ({ ...item, index, id: `${idPrefix}-opt-${index++}` })),
     }));
+}
+
+/** Adresse de la page de résultats complète d'une recherche (Entrée dans le champ, « Tous les résultats pour… »). */
+export function searchPageHref(query) {
+    return `/search?q=${encodeURIComponent(query)}`;
 }
 
 /** Option suivante ou précédente, en boucle ; sans option active, la première (ou la dernière). */
