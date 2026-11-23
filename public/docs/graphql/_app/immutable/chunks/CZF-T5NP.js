@@ -3164,7 +3164,8 @@ type Accident {
   Vérification de la date et du lieu (\`vff:verify-accidents\`) : \`rule\` (\`primary_source\`, \`two_sources\`,
   \`wikidata_wikipedia\`, \`wikipedia_editions\` ou absente), \`date\` et \`place\` (valeur retenue ; sources qui concordent \`confirmed_by\`,
   qui divergent \`disagreeing\`, communes voisines \`nearby\`, chacune avec \`provider\`, \`role\`, \`url\` et la date de
-  lecture \`retrieved_at\`), \`families\`, \`kind\` (nature lue dans une source), \`aliases\` (autres éléments Wikidata du
+  lecture \`retrieved_at\`), \`families\` (familles qui confirment, dont \`press\` pour la presse d'époque numérisée),
+  \`deaths\` (bilan comparé aux articles de presse), \`kind\` (nature lue dans une source), \`aliases\` (autres éléments Wikidata du
   même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
   """
   verification: JSON
@@ -5067,10 +5068,38 @@ type LineSheetMaterial {
   periods: [LineSheetMaterialPeriod!]!
   "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (\`notes\`) : voir \`LineMaterialLink.relations\`."
   relations: [LineMaterialRelation!]!
+  "Date la plus ancienne possible de la série sur la ligne, quand une règle la borne : une série électrique n'a pas circulé avant la première électrification connue de la ligne ou d'une de ses sections. Nulle sans borne. Ce n'est pas une date de service."
+  earliest_on_line: LineSheetMaterialBound
+  "Raison pour laquelle toutes les sources mettent en doute que la série ait assuré le service sur la ligne : \`trial\` (essais), \`one_off\` (circulation exceptionnelle, présentation, train spécial), \`order\` (commande), \`positioning\` (acheminement à vide vers un atelier), \`preserved\` (préservation), \`possible\` (possibilité étudiée), \`diverted\` (train détourné), \`restricted\` (réservé à une autre portion), \`component\` (pièce reprise d'une autre série), \`section\` (section d'essais ou de records) ou \`other\`. Nulle pour une série qui a circulé. La fiche web range ces séries à part."
+  link_doubt: String
+  "Famille dont la série est une version, quand la famille est aussi liée à la ligne (la famille n'est alors pas listée à côté de ses versions) : \`Autorail grande capacité\` pour le X 76500, Z 27500 et B 82500. Nulle sinon."
+  family: LineSheetMaterialFamily
   "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo ou quand la photo ne convient pas (original trop petit, plan, dessin, intérieur, ou écartée après relecture : \`database/data/material_photo_exclusions.php\`). Image complète : \`Material.image\`."
   image: LineSheetMaterialImage
   "Fin de circulation telle que les sources la connaissent (jamais déduite). Les séries de \`LineSheet.materials\` viennent de la plus récente à la plus ancienne : encore en service sans fin connue sur la ligne, puis fin la plus récente, puis début, puis nom."
   end: LineSheetMaterialEnd!
+}
+
+
+"Borne de date d'une série sur une ligne."
+type LineSheetMaterialBound {
+  "Motif de la borne : \`electrification\` (pas avant la première électrification connue de la ligne, entière ou d'une section)."
+  reason: String!
+  "Date de la borne (\`AAAA-MM-JJ\`)."
+  date: String!
+  "Précision de la date : \`day\`, \`month\` ou \`year\`."
+  precision: String!
+  "Section nommée (\`Bernay - Lisieux\`) quand la première électrification est celle d'une section et non de la ligne entière, nulle sinon."
+  section: String
+}
+
+
+"Famille d'une série (voir \`LineSheetMaterial.family\`)."
+type LineSheetMaterialFamily {
+  "Slug de la famille."
+  slug: String!
+  "Nom de la famille."
+  name: String!
 }
 
 
@@ -5122,6 +5151,8 @@ type LineSheetMaterialPeriod {
   start_date: String
   "Précision du début : \`day\`, \`month\` ou \`year\`."
   start_precision: String
+  "Motif quand le début a été ramené à une borne (\`electrification\` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon."
+  start_bounded_by: String
   "Fin (\`AAAA-MM-JJ\`), nulle si la source ne la donne pas."
   end_date: String
   "Précision de la fin : \`day\`, \`month\` ou \`year\`."
