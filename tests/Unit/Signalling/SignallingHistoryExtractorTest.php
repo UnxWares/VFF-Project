@@ -175,4 +175,25 @@ class SignallingHistoryExtractorTest extends TestCase
 
         $this->assertCount(1, $facts);
     }
+
+    public function test_a_date_that_only_introduces_the_clause_dates_the_system(): void
+    {
+        $facts = $this->extract('* Le 13 septembre 1977, mise en service de l\'électrification et de la signalisation en block automatique lumineux (BAL).');
+
+        $this->assertSame(['BAL', '1977-09-13', 'high'], [$facts[0]['system'], $facts[0]['date'], $facts[0]['confidence']]);
+    }
+
+    public function test_the_date_of_an_electrification_is_shared_by_a_coordinated_commissioning_of_the_block(): void
+    {
+        $facts = $this->extract('* 1er juin 1996 : mise en service de l\'électrification de la ligne en 25 kV et mise en service des signalisations de type block automatique lumineux (BAL).');
+
+        $this->assertCount(1, $facts);
+        $this->assertSame(['BAL', '1996-06-01', 'day'], [$facts[0]['system'], $facts[0]['date'], $facts[0]['precision']]);
+    }
+
+    public function test_an_electrification_date_is_not_given_to_a_block_installed_later(): void
+    {
+        $this->assertSame([], $this->extract('Elle est électrifiée depuis le 15 septembre 1966, équipée du block automatique lumineux (BAL).'));
+        $this->assertSame([], $this->extract('* En 1995, mise en service de l\'électrification, installation du block manuel.'));
+    }
 }
