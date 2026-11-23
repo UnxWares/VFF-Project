@@ -1054,8 +1054,10 @@ seuil 9 sur 11), avec deux règles propres au fonds :
   une ligne (le document va aux deux lignes ; au-delà de deux, il est ambigu et ne va à aucune).
 
 Les notices des thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de
-personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise. Précision mesurée le
-22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse. Une liste vide ne
+personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise (elle est seulement lue, quand le titre ne nomme aucune ligne, pour
+juger le rattachement : raison `read_in_description`, 0 point). Précision mesurée le
+22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse ; même résultat le
+23/11/2026 pour les notices rattachées par leur description. Une liste vide ne
 veut pas dire que les archives de la SNCF n'ont rien sur la ligne : le jeu de données n'en décrit qu'une partie.
 
 | Paramètre | Type | Obligatoire | Description |

@@ -60,7 +60,7 @@ class LineArchiveRecordsTest extends TestCase
     public function test_the_import_attaches_the_records_that_name_a_line_and_nothing_else(): void
     {
         $this->artisan('vff:import-sncf-archives', ['--file' => self::FIXTURE])
-            ->expectsOutputToContain('Notices : 7 ; lues : 6 (1 écartées : sans titre ni lien, type inconnu ou thème sur des personnes) ; jugées : 3 ; retenues : 4 sur 3 ligne(s) ; ambiguës : 0.')
+            ->expectsOutputToContain('Notices : 7 ; lues : 6 (1 écartées : sans titre ni lien, type inconnu ou thème sur des personnes) ; jugées : 3 ; retenues : 4 (dont 0 par la description) sur 3 ligne(s) ; ambiguës : 0.')
             ->expectsOutputToContain('notices des Archives SNCF en base : 0 avant, 4 après.')
             ->assertSuccessful();
 

@@ -8,7 +8,7 @@ aux lignes et comment, et ce qui reste à faire. Il ne recopie aucun inventaire 
 | Source | Commande | Table | Notices | Lignes | API |
 |:-|:-|:-|-:|-:|:-|
 | Gallica (BnF), documents numérisés en accès libre | `vff:import-gallica` | `line_archive_documents` | 236 | 61 | `GET /api/v1/lines/{line}/archives`, GraphQL `Line.archives`, MCP `line_archives` |
-| Archives SNCF, jeu de données `archives-sncf-sardo` | `vff:import-sncf-archives` | `line_archive_records` | 198 | 65 | `GET /api/v1/lines/{line}/archive-records`, GraphQL `Line.archive_records`, MCP `line_archive_records` |
+| Archives SNCF, jeu de données `archives-sncf-sardo` | `vff:import-sncf-archives` | `line_archive_records` | 198 en base (433 prêtes avec la lecture des descriptions, à appliquer) | 65 (125 prêtes) | `GET /api/v1/lines/{line}/archive-records`, GraphQL `Line.archive_records`, MCP `line_archive_records` |
 
 Les deux sources s'affichent dans la section « Dans les archives » de la fiche ligne, chacune sous son intertitre
 quand les deux sont présentes.
@@ -22,8 +22,9 @@ JSON complet en une requête (`/api/explore/v2.1/catalog/datasets/archives-sncf-
 modification du jeu : 21/12/2023.
 
 1. **Lecture** (`SardoParser`) : titre, type (`document`, `image`, `video`), thème et sous-thème, service versant,
-   boîte, titulaire des droits, date et lien. La description n'est jamais gardée : celle des dossiers de contentieux
-   ou de personnel nomme des agents. Les thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués,
+   boîte, titulaire des droits, date et lien. La description n'est jamais gardée ni servie : celle des dossiers de
+   contentieux ou de personnel nomme des agents. Elle est seulement lue en mémoire pour juger le rattachement (voir
+   « Lecture des descriptions »). Les thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués,
    contentieux, questions de personnel) sont écartés en entier : 1 118 notices.
 2. **Date** : début et fin du dossier (années) ; à défaut la date de prise de vue, dont le 1er du mois se lit au mois
    et le 1er janvier à l'année (le fonds y range les photographies datées du seul mois ou de la seule année).
@@ -33,7 +34,7 @@ modification du jeu : 21/12/2023.
 4. **Jugement** : le comparateur de Gallica (`ArchiveMatcher`), sans changement, seuil 9 sur 11. Une notice va à la
    ligne au meilleur score, à deux lignes au plus à égalité ; au-delà (gare de trois lignes), à aucune.
 
-Résultat du 22/11/2026 : 250 notices nomment deux lieux d'une même ligne, 198 sont retenues sur 65 lignes (189 avant
+Résultat du 22/11/2026, par le titre seul : 250 notices nomment deux lieux d'une même ligne, 198 sont retenues sur 65 lignes (189 avant
 la lecture des listes de lignes), 2 sont ambiguës. Ce sont surtout des photographies de gares des années 1960 à 1990
 (« Esplanade de la gare d'Alençon située sur la ligne du Mans à Mézidon ») et quelques dossiers (reconstruction des
 ouvrages après 1944, électrification Nord-Paris, rapports des Ponts et chaussées de 1860-1870).
@@ -43,8 +44,57 @@ ouvrages après 1944, électrification Nord-Paris, rapports des Ponts et chauss�
 l'électrification de Paris - Lille (Lens n'est pas sur cette ligne) et la reconstruction du viaduc de l'Aigle « sur la
 ligne entre Miramas et Fos-sur-Mer », rattachée à la ligne de Miramas à L'Estaque.
 
-Rappel limité : seul le titre est lu. Les 930 notices dont la DESCRIPTION cite « ligne de X à Y » ne sont pas lues ;
-les lire demanderait de séparer les lignes citées en passant de celles dont parle le dossier.
+#### Lecture des descriptions (23/11/2026)
+
+**Licence.** Le jeu de données entier est publié sous ODbL (métadonnées de l'API Opendatasoft : `license` « Open
+Database License (ODbL) », https://data.sncf.com/pages/licence, éditeur SNCF) ; la description est un champ de ce jeu,
+sans licence propre : elle peut donc être réutilisée avec mention de l'origine. VFF choisit pourtant de ne pas la
+reprendre (elle nomme des agents dans les dossiers de personnel et de contentieux) : elle sert seulement à juger le
+rattachement, en mémoire, et l'API continue de ne servir que titre, type, cote, date et lien.
+
+**Règle.** La description n'est lue que pour une notice dont le titre ne nomme aucune ligne au seuil (titres
+génériques comme « Les destructions d'ouvrages d'art » ou « Les travaux en gare de Thiennes pour l'autorité
+allemande », dont la description dit « Ligne ARRAS à HAZEBROUCK, gare de THIENNES »). Elle passe par le même
+comparateur, avec des garde-fous plus stricts, tous nécessaires :
+
+1. la description d'un dossier de personnes ou de litiges (contentieux, blessés, tués, victimes, demandeurs) n'est pas
+   lue, ni une description de plus de 1 500 caractères (index, inventaire de sujets : « Fiches documentaires ») ;
+2. **mentions en passant** : un « par », « via », « sur », « sous », « avec », « vers », « depuis » (ou un participe comme
+   « traversant », « franchissant ») suivi de « la ligne », « le chemin de fer » ou « la voie ferrée » retire cette
+   mention jusqu'à la fin de la proposition : la ligne n'y est qu'un lieu de la scène ou l'un d'une liste
+   (« installations sinistrées sur les lignes de Paris à Creil par Epluches et d'Amiens à Rouen »). 49 des 864
+   descriptions qui citent une ligne sont touchées ;
+3. la ligne doit être décrite comme une voie ferrée entre deux lieux (`rail_route`, jamais un simple trajet ni deux
+   lieux nommés), au seuil 9 sur 11 inchangé ;
+4. **une seule ligne décrite** (`SardoParser::statedLines`), dès les 300 premiers caractères : une seconde ligne, souvent
+   l'intitulé de la notice suivante tronqué à la fin, ne dit pas laquelle est le sujet (« Pont sur la Doller [...]
+   Ligne de Sewen à Cernay ») ; deux lignes citées, même toutes deux connues de VFF, ne rattachent rien ;
+5. VFF ne reconnaît pas plus de deux lignes pour cette ligne décrite, et toutes les lignes qui passent sont gardées
+   (sinon ambigu).
+
+La raison `read_in_description` (0 point) est ajoutée au score, et le rapport CSV a une colonne `read` (`title` ou
+`description`).
+
+**Précision mesurée** (23/11/2026, sur le résultat final) : deux tirages de 40 rattachements par description, relus à
+la main contre le texte de la notice (graines 2311 et 5) : 78 justes, 2 douteuses, aucune fausse. Les deux douteuses :
+le viaduc de la Largue, près de Dannemarie, rangé par la notice sous la ligne de Colmar à Neuf-Brisach (l'intitulé de
+la notice nomme cette ligne, l'ouvrage n'y est pas), et le viaduc de Tournemire sous « Ligne de Capdenac à Rodez et de
+Viviez à Decazeville » (la seconde ligne n'est pas comptée). Avant les garde-fous 4 et 5, une première lecture
+rattachait 354 notices dont plusieurs fausses (un pont de la Doller à deux lignes, une ligne citée au milieu d'un
+inventaire militaire, des fiches de contentieux) ; resserrée, la lecture en rattache 235 sans fausse sur les deux
+tirages.
+
+**Gain à blanc** (`--dry-run`, base du 23/11/2026) : 235 rattachements par la description (234 notices, 80 lignes dont
+60 sans aucune notice jusque-là), s'ajoutant aux 198 par le titre : 433 notices rattachées sur 125 lignes (65 avant),
+7 ambiguës. Presque tout est de type `document` : les destructions d'ouvrages d'art de 1944 à 1947 (107), les albums
+photographiques des reconstructions (27), les travaux en gare pour l'autorité allemande, les plans parcellaires des
+terrains à acquérir, les traités et conventions de lignes (14). Le rattachement ne porte que sur des lignes : VFF
+n'a pas de lien entre une notice d'archives et une gare ; les gares nommées par les descriptions (Thiennes, Chauny,
+Curgies, Romescamps...) restent seulement dans les lieux reconnus de la notice (`match.places`).
+
+Reste non lu : les descriptions de plus de 1 500 caractères ou qui décrivent deux lignes ou plus (un dossier qui
+liste « lignes de A à B, de C à D » n'est rattaché à aucune). Les rattacher à chaque ligne demanderait de juger chaque
+article du dossier, ce que le jeu de données ne découpe pas.
 
 Relance : `bin/php artisan vff:import-sncf-archives --download --dry-run --report=storage/app/data/archives-sncf/candidats.csv`,
 puis sans `--dry-run`. Chaque import remplace toutes les notices de la source.
@@ -127,6 +177,6 @@ aux lignes : il porte sur des personnes.
    composants dont l'intitulé parle de chemin de fer (séries S départementales, F/14), et les rattacher avec le même
    comparateur. À mesurer d'abord sur deux ou trois départements : taille du fichier, part des intitulés qui nomment
    deux lieux, précision sur 40 notices relues.
-2. **Descriptions des Archives SNCF** : lire la description en plus du titre, avec une règle propre aux mentions en
-   passant, puis mesurer la précision avant tout import.
+2. **Descriptions des Archives SNCF** : fait le 23/11/2026 (voir « Lecture des descriptions »), à appliquer en base ; reste
+   à lire les listes de plusieurs lignes d'un même dossier.
 3. **Calames et Europeana** : sondage des notices ferroviaires françaises.
