@@ -3291,4 +3291,17 @@ return [
         'source_url' => 'https://www.ecologie.gouv.fr/presse/visite-francois-durovray-du-poste-daiguillage-regulation-ligne-grande-vitesse-lgv-sud-est',
         'reason' => 'siège technique de SNCF Réseau (poste d\'aiguillage et de régulation de la LGV Paris - Lyon), rendez-vous de visite « Centre Henri Lang, 16 rue Chrétien de Troyes, Paris 12e » (communiqué du ministère de la Transition écologique) ; deuxième source : Journées du patrimoine 2024 (OpenAgenda) ; l\'UIC 87999999 est fictif : pas une gare',
     ],
+    // ── 29. Fermeture de l'ancienne gare de Sceaux (gares-dates-nuit, 23/11/2026). Wikidata P3999 et l'article de la gare
+    // disent « 1894 » sans jour ; les archives municipales de Sceaux donnent le jour : la gare est désaffectée le 17/04/1894,
+    // avec la transformation de la ligne de Sceaux (le prolongement de Bourg-la-Reine à Robinson est inauguré en mai 1893).
+    [
+        'station' => ['name' => 'Gare embarcadère de Sceaux', 'wikidata' => 'Q96605529'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1894-04-17',
+        'precision' => 'day',
+        'source_url' => 'https://archives.sceaux.fr/loctroi',
+        'quote' => 'En 1883, le bureau se trouvait au 35 rue Houdan c\'est à dire dans les bâtiments de la gare de Sceaux. Elle est désaffectée définitivement le 17 avril 1894 avec transformation de la ligne de Sceaux.',
+        'reason' => 'précise la fermeture « 1894 » de Wikidata et de l\'article Gare de Sceaux (ancienne) (oldid 241389426) ; la commune rachète les bâtiments en juin 1894 (même page)',
+    ],
 ];
