@@ -87,28 +87,34 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 ### Carte
 
 - Carte MapLibre du réseau à 21 époques (1830 à 2030), adresse partageable (`?era=1930`), comparaison de deux
-  époques et vue « toutes les époques » où chaque tronçon prend la couleur de sa dernière décennie en service.
+  époques (différences superposées, ou rideau déplaçable entre deux époques sur une même carte, lui aussi dans
+  l'adresse) et vue « toutes les époques » où chaque tronçon prend la couleur de sa dernière décennie en service.
 - Vue ferroviaire (`/maps?view=schema`) : plan schématique de chaque époque, axes à 0, 45 ou 90 degrés, calculé par
   le serveur depuis le graphe de l'époque ([docs/VUE-FERROVIAIRE.md](docs/VUE-FERROVIAIRE.md)).
 - Calques superposables : accidents, passages à niveau, signalisation (y compris son historique par époque), voies
   vertes sur d'anciennes lignes, fond OpenRailwayMap ; fonds historiques de l'IGN et teinte des époques anciennes.
 - Zoom jusqu'au niveau 19 sur le fond de carte libre ; le centre et le zoom sont dans l'adresse de `/maps` et se partagent.
 - Recherche de lignes, gares et accidents, la même partout (en-tête, carte, annuaires, API) : sans égard pour les accents, les
-  tirets et les abréviations, avec tolérance aux fautes de frappe ; itinéraire historique (« Paris - Brest en 1950 ») et comparaison d'un
+  tirets et les abréviations, avec tolérance aux fautes de frappe, et une page de résultats complets (`/search`,
+  ouverte par Entrée ou « Tous les résultats ») avec les correspondances surlignées et une suggestion « vouliez-vous
+  dire » ; itinéraire historique (« Paris - Brest en 1950 ») et comparaison d'un
   trajet entre deux époques.
 - Carte intégrable sur un autre site (iframe).
 
 ### Fiches
 
-- Lignes (`/lines/{slug}`) : tracé par période, chronologie datée, frise par décennie, gares par époque, longueur,
-  électrification (ligne dite électrifiée quand la majorité de ses tronçons en service l'est), vitesses, signalisation
+- Lignes (`/lines/{slug}`) : tracé par période, schéma « Où et quand » (une bande par phase, mises bout à bout le
+  long de la ligne, relié à la carte de la phase), chronologie datée, frise par décennie, gares par époque, longueur,
+  électrification (ligne dite électrifiée quand la majorité de ses tronçons en service l'est), vitesses maximales par PK
+  (SNCF Réseau, ODbL) et changements de vitesse datés lus dans Wikipédia, signalisation
   par PK, nombre de voies et liaison radio sol-train (GSM-R) par portion de PK (SNCF Réseau, ODbL), profil en long de toute
   la ligne (altitudes de l'IGN, déclivité maximale mesurée sur la voie ou, à défaut, reprise de l'infobox de Wikipédia ou
   de SNCF Réseau avec la source et la part de ligne couverte, crémaillères ; là où la base de l'IGN n'a pas la voie,
   altitude estimée d'après le terrain et étalonnée sur le LiDAR HD, avec son erreur, en cours de mise en service), matériel roulant avec photos, passages à niveau, voies
   vertes, archives de Gallica et des Archives SNCF (titre, classement et lien, jamais l'image), galerie de médias
   crédités, sources, et « histoires » d'archives sur un événement.
-- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, quais (longueur et PK, SNCF Réseau), frise, mini-carte ;
+- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, quais (longueur et PK, SNCF Réseau), frise, mini-carte, et la vie de la gare en une chronologie
+  datée (événements regroupés, dessertes, noms, accidents proches, vues aériennes) ;
   une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle. Une gare fermée aux voyageurs
   mais encore desservie par le fret (Onnaing) est dite « fret seul » ; sur la carte d'une époque, une gare fermée
   n'apparaît fermée qu'à l'époque de sa fermeture, puis disparaît. Une ouverture connue à un intervalle s'écrit « entre A et B ».
@@ -131,6 +137,10 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   `resources/content/journal` (français, anglais, allemand), flux Atom et RSS, lus aussi par l'API et le serveur MCP
   ([docs/REDACTION.md](docs/REDACTION.md)).
 - Quiz (`/quiz`) : reconnaître une ligne ou un matériel.
+- Le réseau en chiffres (`/network`) : longueurs, gares, électrification, fermetures et accidents par décennie.
+- Données ouvertes (`/open-data`) : jeux sous ODbL (réseau par époque en CSV et GeoJSON, événements datés, accidents,
+  matériel roulant), limités aux sources dont la licence le permet, avec leur archive ZIP et leur licence.
+- Impression : les fiches s'impriment et s'enregistrent en PDF A4 propre.
 
 ### Contributions
 
@@ -153,7 +163,11 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 - GraphQL (Lighthouse) en complément : lecture de tout le modèle et mutations de contribution ; référence Magidoc
   sur `/docs/graphql` et GraphiQL sur `/graphiql`.
 - Serveur MCP en lecture seule (`POST /mcp`, ou `php artisan mcp:start vff` en local) pour que les assistants IA
-  interrogent l'encyclopédie avec ses sources et ses licences ([docs/MCP.md](docs/MCP.md)).
+  interrogent l'encyclopédie avec ses sources et ses licences : 38 outils, dont `what_was_here` (ce qui existait en
+  un lieu à une époque), `network_in_area`, `compare_line_eras`, `line_stops`, `station_aerial`, `line_speeds` et
+  `station_attendance` ([docs/MCP.md](docs/MCP.md)).
+- Les chiffres du réseau par décennie sont servis par `GET /api/v1/stats/network`, les vitesses d'une ligne par
+  `GET /api/v1/lines/{line}/speeds` et `Line.speeds`, la chronologie d'une gare par sa fiche (`chronology`).
 - Le nombre de voies et la liaison radio d'une ligne sont servis par `GET /api/v1/lines/{line}/infrastructure`,
   `Line.infrastructure` et l'outil `line_infrastructure`, les quais par la fiche d'une gare. Un instantané versionné
   du contrat de l'API fait échouer un test si un champ disparaît sans avoir été annoncé dans
@@ -207,6 +221,8 @@ Le détail est dans [ROADMAP.md](ROADMAP.md).
   : code commité, à lancer sur la base.
 - Temps réel en production (lancer Reverb et le proxy WebSocket, code prêt) ; relais des vignettes de Wikimedia Commons
   (`VFF_COMMONS_PROXY`, code prêt, désactivé) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
+- Adresses de lignes neutres : `vff:neutralize-line-slugs` retire le préfixe de source des adresses et garde une
+  redirection 301 de chaque ancienne (acceptées par GraphQL et le MCP) ; le renommage reste à appliquer à la base.
 - Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, installation de Kener et
   de GlitchTip (la part application et la documentation sont faites), sauvegarde de la base de production.
 - Reconstitutions 3D de lieux disparus à partir de photos d'archives (recherche, pas commencée).
@@ -310,6 +326,7 @@ make migrate                 # migrations
 make docs-graphql            # après une modification du schéma GraphQL : référence Magidoc
 bin/php artisan list vff     # commandes du projet (imports, moteur de la carte, audits, contrôles)
 bin/php artisan vff:check-invariants   # invariants des données, en lecture seule
+bin/php artisan vff:export-open-data   # jeux de données ouverts (ODbL) dans public/downloads/open-data
 # options et ordre des commandes de données : docs/COMMANDES.md
 ```
 

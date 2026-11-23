@@ -15,17 +15,17 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 0 - Fondations | ✅ faite, reste l'installation des outils de suivi des erreurs sur l'hébergement |
 | 1 - Modèle de données | ✅ faite, jalon atteint |
 | 2 - Carte interactive | ✅ faite, géolocalisation comprise |
-| 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
-| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD, profil en long (2 630 lignes), matériel sur les fiches de ligne avec photos, contexte sourcé de 548 accidents, audit automatique des tronçons et des gares, déclivité sourcée de l'infobox Wikipédia (213 lignes), journal de bord faits ; altitude de la voie estimée d'après le terrain écrite (à appliquer), profils des lignes restantes et relecture des audits à faire |
+| 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques (différences ou rideau déplaçable) et vue empilée comprises |
+| 4 - Fiches détaillées | 🟡 lignes (schéma « Où et quand », vitesses par PK), gares (chronologie de la vie de la gare), matériel, accidents, impression des fiches, JSON-LD, profil en long (2 630 lignes), matériel sur les fiches de ligne avec photos, contexte sourcé de 548 accidents, audit automatique des tronçons et des gares, déclivité sourcée de l'infobox Wikipédia (213 lignes), journal de bord faits ; altitude de la voie estimée d'après le terrain écrite (à appliquer), profils des lignes restantes et relecture des audits à faire |
 | 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, notifications, réputation, modération, signalements, suppression et export du compte faits ; formulaires d'événement et de média à faire |
-| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution ; audits, profil par point et altitude, pagination commune aux trois API ; GTFS validé par MobilityData et prolongé le long des voies partagées, tuiles légères `fields=map`, en-têtes de sécurité et limites, recherche commune à l'en-tête, à la carte et aux trois API |
+| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution ; audits, profil par point et altitude, pagination commune aux trois API ; chiffres du réseau (`/api/v1/stats/network`) et vitesses d'une ligne, GTFS validé par MobilityData et prolongé le long des voies partagées, tuiles légères `fields=map`, en-têtes de sécurité et limites, recherche commune à l'en-tête, à la carte et aux trois API |
 | 7 - GraphQL | 🟡 lecture publique et mutations de contribution faites, limite de complexité (5 000 points, 15 niveaux), abonnements écrits et désactivés par défaut ; Reverb en production à faire |
 | 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | 🟡 couverture 1830-2030 et modèle d'extraction des voies publiés ; fusion des sources à 1 m (LiDAR, photos aériennes, vecteurs) en cours, passe nationale et `ortho-v2` à faire |
-| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable, lisible hors ligne avec images et fond de carte libre, journal de bord (`/journal`) et plans du site faits ; dons à faire |
+| 11 - Communauté | 🟡 trilingue, données ouvertes ODbL (`/open-data`), page « Le réseau en chiffres », carte intégrable, application installable, lisible hors ligne avec images et fond de carte libre, journal de bord (`/journal`) et plans du site faits ; dons à faire |
 | 12 - Mise en production | 🟡 pages légales, engagements RGPD, audit RGAA (100 %, totalement conforme), configuration nginx de référence et part application du suivi des erreurs faits ; messagerie, hébergement final et outils de suivi à faire |
-| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
+| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP (38 outils), signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
 **En base (développement, lecture du 23/11/2026)** : 2 690 lignes, 9 395 gares, 15 682 événements datés, 71 438 médias, 21 époques, 727 séries de matériel roulant (2 609 liens avec les lignes, 369 périodes de circulation datées), 548 fiches d'accidents avec un contexte sourcé, 729 534 points de profil en long sur 2 630 lignes, 105 faits datés de signalisation. Le moteur de la carte est rejoué par étapes depuis le 21/11 : certains chiffres bougent encore (fusions de lignes de section, doublons d'accidents fondus).
 
@@ -40,6 +40,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 5. Fusion des sources de géométrie à 1 m : pilote sur le Calvados, puis passe nationale (phase 10).
 6. Médias : appliquer les droits par image, intégrer les fonds d'images ouverts, trier les photos de rue Panoramax avant tout import (phase 13).
 7. Historique de la signalisation par époque (phase 13) : d'autres sources datées restent à trouver.
+8. Adresses de lignes neutres : appliquer le renommage des 1 614 adresses à préfixe de source, avec les redirections 301 déjà commitées (phase 4).
 
 ---
 
@@ -61,6 +62,7 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] Perf : hero background PNG 2.7 MB → WebP 179 KB desktop / 117 KB tablet / 63 KB mobile (-93 %)
 - [x] CI GitHub Actions : Pint, traductions, PHPStan + Larastan, contrôles statiques (tirets, clés i18n, palette carte, routes), PHPUnit, Prettier, ESLint, svelte-check, build Vite, suite Playwright de fumée sur un jeu de données minimal (`E2eSeeder`)
 - [x] Suites de tests parallèles, une base par suite (`VFF_TEST_DB=vff_xxx_test`)
+- [x] Contrat des commandes : toute commande qui écrit accepte `--dry-run`, vérifié par un test (`DryRunCommandsTest`, qui couvre aussi les chiffres du réseau et les vitesses)
 - [x] Tests de mutation : services purs (`make mutation`) et règles métier critiques (`make mutation-critical` : moteur de la carte historique, desserte des gares, validation à deux, dates partielles, énumérations, matériel, images), 93 % des mutants tués, seuil de 92 % qui bloque les régressions ; hors CI bloquante (un quart d'heure)
 - [x] Suite Playwright de fumée avec axe-core (54 tests : pages principales, deux largeurs d'écran, français et anglais), en local et en CI (`docs/TESTS-E2E.md`)
 - [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
@@ -116,6 +118,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Calques superposés (bouton « Calques ») : accidents, passages à niveau et signalisation cochés ensemble, un fond OpenRailwayMap au plus, état gardé dans l'adresse (`?layer=…&layer=…`)
 - [x] Clic sur une ligne → panneau latéral (`LineDrawer`) avec fiche minimale
 - [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
+- [x] Page de résultats complets `/search` (Entrée ou « Tous les résultats » depuis la recherche), correspondances surlignées et suggestion « vouliez-vous dire », même moteur que l'en-tête et les trois API
 - [x] Légende dynamique (`MapLegend`)
 - [x] Tuiles vectorielles MVT (`/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`), avec `?fields=map` pour la carte du site : seulement les propriétés dont elle a besoin, environ 60 % d'octets de moins (réponse par défaut inchangée)
 - [x] Géolocalisation de l'utilisateur (sur demande, position jamais envoyée)
@@ -132,6 +135,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Époque 2030 = état du réseau au jour même, recalculée chaque jour à partir des événements datés
 - [x] Vue « toutes les époques » : chaque tronçon teinté par sa dernière décennie en service (érosion du réseau)
 - [x] Comparaison de deux époques (différences superposées, kilomètres par changement, adresse partageable)
+- [x] Rideau de comparaison : deux époques sur une même carte, séparées par un rideau qu'on déplace, dans l'adresse
 
 🎯 **Jalon "Time Travel"** : atteint.
 
@@ -147,6 +151,8 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [x] Galerie des médias triés par date (même galerie sur les fiches gare et série de matériel quand elles ont des images ; images des événements dans la chronologie)
   - [x] Liste des gares par époque
   - [x] Longueur, électrification, vitesses, signalisation
+  - [x] « Où et quand » : schéma espace-temps de la ligne, une bande par phase, mises bout à bout le long de la ligne et reliées à la carte de la phase
+  - [x] Vitesses maximales par PK (SNCF Réseau, ODbL) et changements de vitesse datés lus dans Wikipédia (`vff:import-line-speeds`), section de la fiche, `GET /api/v1/lines/{line}/speeds`, GraphQL `Line.speeds` et outil MCP `line_speeds`
   - [x] Sources et notes de sources
   - [x] Matériel roulant historique : 2 586 liens ligne × série attestés (relations Intercités et TER routées par les gares et les extrémités nommées, trois règles de routage écrites, aucun lien réimporté sans relecture), avec les années de circulation quand une source les date (`vff:import-material-periods`) ; séries les plus récentes d'abord, avec photo et année de fin de circulation sur la fiche de ligne (243 séries reliées sur 266 ont une image)
   - [x] Dénivelé : profil en long (altitudes IGN BD TOPO et RGE ALTI, `vff:compute-line-profiles`, section de la fiche, `GET /api/v1/lines/{line}/profile`, GraphQL `Line.profile`, outil MCP `line_profile`)
@@ -154,6 +160,10 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [~] Altitude de la voie estimée d'après des coupes RGE ALTI là où BD TOPO n'a pas la voie, étalonnée sur le LiDAR HD de l'IGN (93 % des points à moins de 1 m quand le tracé est à 5 m de la voie), servie avec son erreur mesurée (`99d608af`) ; code commité, migration et recalcul à lancer sur `vff`
   - [ ] Profil : les lignes sans tracé de référence continu, et les déclivités maximales ni mesurées sur la voie ni sourcées
 - [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte) ; une ouverture connue à un intervalle s'écrit « entre A et B » (fiche, liste de la ligne, annuaire, `opened_after` en REST, GraphQL et MCP) ; liens gare × ligne faux exclus par un fichier de corrections lu par `vff:attach-stations`
+- [x] Vie d'une gare en une chronologie datée sur sa fiche : événements regroupés, dessertes, noms, accidents proches, vues aériennes ; servie aussi par REST (`chronology` de la fiche) et GraphQL
+- [x] Impression : feuille de style dédiée, les fiches s'impriment et s'enregistrent en PDF A4 propre
+- [x] Page « Le réseau en chiffres » (`/network`) : agrégats par décennie calculés par `vff:compute-network-figures`, `GET /api/v1/stats/network`
+- [~] Adresses de lignes neutres : `vff:neutralize-line-slugs` retire le préfixe de source des adresses, redirections 301 des anciennes (REST, GraphQL, MCP) commitées ; renommage de la base à appliquer
 - [x] Pages `/materials` et `/materials/{slug}` avec 727 séries (voir phase 13)
 - [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage
 
@@ -195,6 +205,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Export GTFS valide au validateur de MobilityData 8.0.1 (0 erreur en 1930, 1980 et 2030) : distances d'arrêts le long de la forme, trajets de deux arrêts au moins, horaires synthétiques à 60 km/h (fictifs), contact du flux et `attributions.txt` (ODbL) ; formes des trajets prolongées le long de la voie d'une autre ligne jusqu'à la gare terminus
 - [x] Recherche commune à l'en-tête, à la carte, aux annuaires, au REST, au GraphQL et au MCP : insensible aux accents, aux tirets et aux abréviations, préfixes de mots, tolérance aux fautes de frappe (trigrammes), tri par pertinence, clés de recherche générées et indexées (migration appliquée) ; bonne fiche en premier dans 98,7 % de 78 requêtes d'essai (14 % avant), mesure du 22/11 (`aprem-2111/recherche.md`)
 - [x] En-têtes de sécurité sur toutes les réponses (HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`), limites GraphQL (400 requêtes par lot, 2 Mio de corps, erreur 413) et limites par IP sur les formulaires d'authentification, cookie de session sécurisé par défaut (`docs/API.md`, `docs/DEPLOIEMENT-NGINX.md`)
+- [x] Données ouvertes : `vff:export-open-data` produit des jeux ODbL (réseau par époque, événements datés, accidents, matériel roulant) avec LISEZMOI, licence et archive ZIP, limités aux sources dont la licence le permet, lus par la page `/open-data` ; lancée à la main, jamais planifiée
 - [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
@@ -313,7 +324,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
   - [ ] Fonds d'images à intégrer : associations, archives et bibliothèques, Flickr sous licence libre, licence vérifiée image par image ; courriels aux détenteurs préparés (`aprem-2111/sources-images*.md`)
   - [~] Photos de rue Panoramax triées par ce qu'elles voient : bâtiment voyageur d'OpenStreetMap ou BD TOPO dans le champ de la caméra, autres bâtiments BD TOPO comme obstacles, panoramas à cap incertain écartés. Photos hors sujet de 65 % à 10 % sur un tirage de 60 gares, 12 % au recensement de 34 photos sur 1 500 gares, mais environ 160 gares gardées au lieu de 800 (IGN seul) ; objectif de moins de 5 % non atteint ; aucun import lancé (`aprem-2111/panoramax-tri.md`)
 - [x] **Rames remarquables** : la rame TGV Sud-Est 01 « Patrick » (fiche de la série, section « Rames remarquables » en REST, GraphQL et MCP, recherche du site) et son clin d'œil sur toutes les pages (taper « patrick » hors d'un champ de saisie ; mouvement réduit respecté, rien envoyé ni stocké), redessinée en SVG à l'échelle
-- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (23 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation et matériel par ligne, 3 invites, lecture seule, `docs/MCP.md`)
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (38 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation, matériel et vitesses par ligne, ce qui existait en un lieu (`what_was_here`), réseau dans une zone, arrêts d'une ligne et vues aériennes et fréquentation d'une gare ; 3 invites, lecture seule, `docs/MCP.md`)
 
 ---
 
@@ -328,6 +339,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Quiz / mini-jeu : reconnaître la ligne / le matériel (`/quiz` : dix questions tirées d'une graine partageable, tracés redistribuables seulement, photos Commons créditées, réponse vérifiée par le serveur, rien d'enregistré)
 - [x] Export GPX/KML d'un tracé (`/api/v1/lines/{slug}/gpx` et `/kml`, sauf les géométries que l'API retient)
 - [x] Voies vertes sur d'anciennes lignes (données OSM importées) : rattachement mesuré (vff:link-greenways), section de la fiche ligne, calque de la carte, API REST et GraphQL
+- [ ] Prêts, pas encore commités : « Ce jour-là » (faits du rail à une date), « Qu'y avait-il ici ? » par clic sur la carte, chronologie du rail en France, chemins de fer touristiques, histoire de l'électrification par section, patrimoine protégé des gares, liste textuelle de ce que montre la carte
 
 ---
 
