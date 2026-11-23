@@ -3,6 +3,7 @@
 namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\VffServer;
+use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Tools\SearchTool;
 use App\Models\Era;
 use App\Models\Line;
@@ -135,6 +136,28 @@ class VffMcpServerTest extends TestCase
             }
         }
         $this->assertSame(['query'], $tools['search']['inputSchema']['required']);
+    }
+
+    /**
+     * Les textes publics du serveur (instructions, descriptions des outils et de leurs arguments) ne nomment pas la
+     * source à usage non commercial : ils disent « une source à usage non commercial ». Son crédit reste dans les
+     * réponses qui la citent (bloc `attribution`, registre de sources_and_licences).
+     */
+    public function test_public_texts_never_name_the_non_commercial_source(): void
+    {
+        $init = $this->rpc('initialize', ['protocolVersion' => '2025-06-18', 'capabilities' => (object) [], 'clientInfo' => ['name' => 'test', 'version' => '1']])
+            ->assertOk();
+        $this->assertNotEmpty($init->json('result.instructions'));
+        $texts = ['instructions' => (string) $init->json('result.instructions')];
+        foreach ((array) $this->rpc('tools/list')->assertOk()->json('result.tools') as $tool) {
+            // Les valeurs permises (`enum` de sources_and_licences) sont des clés du registre, pas du texte.
+            $texts[$tool['name']] = implode("\n", [$tool['description'], ...array_column($tool['inputSchema']['properties'] ?? [], 'description')]);
+        }
+        foreach ($texts as $where => $text) {
+            foreach (NonCommercialSources::PROVIDERS as $provider) {
+                $this->assertStringNotContainsStringIgnoringCase($provider, $text, "{$where} nomme une source à usage non commercial");
+            }
+        }
     }
 
     public function test_resources_are_listed(): void
