@@ -573,6 +573,7 @@ return [
         'sections' => 'Named sections',
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
+        'schematic' => 'Diagram',
         'profile' => 'Gradient profile',
         'speeds' => 'Speeds',
         'electrification' => 'Electrification',

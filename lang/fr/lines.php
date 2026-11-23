@@ -574,6 +574,7 @@ return [
         'sections' => 'Sections',
         'heritage' => 'Train touristique',
         'tech' => 'Technique',
+        'schematic' => 'Schéma',
         'profile' => 'Profil en long',
         'speeds' => 'Vitesses',
         'electrification' => 'Électrification',

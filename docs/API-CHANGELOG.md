@@ -21,6 +21,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /lines/{line}/schematic?era=AAAA` (schéma de ligne par PK : gares et haltes avec leurs correspondances, bifurcations en pleine voie, passages à niveau, ouvrages d'art, et quatre bandes `tracks`, `electrification`, `signalling`, `speed`, chacune avec `available` ; `eras[]` donne les ères proposées ; aux ères passées, les jeux de SNCF Réseau ne sont pas proposés). 404 pour une ligne ou une ère inconnue, 422 pour une ère illisible. En cache. Ajout seul.
 - Desserte d'un jour ouvrable type (un mardi d'une semaine sans jour férié, d'après les horaires ouverts SNCF, Transilien et ZOU !,
   ODbL) : REST `GET /api/v1/stations/{station}/timetable` et champ `timetable` de la fiche `GET /api/v1/stations/{station}` (avec
   `links.timetable`) : trains par type et par sens, premières et dernières heures, destinations directes, jeu d'horaires utilisé ;

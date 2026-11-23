@@ -573,6 +573,7 @@ return [
         'sections' => 'Abschnitte',
         'heritage' => 'Museumsbahn',
         'tech' => 'Technik',
+        'schematic' => 'Streckenband',
         'profile' => 'Höhenprofil',
         'speeds' => 'Geschwindigkeiten',
         'electrification' => 'Elektrifizierung',

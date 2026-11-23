@@ -33,6 +33,7 @@
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import LineElectrification from '$components/Lines/LineElectrification.svelte';
     import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
+    import LineSchematic from '$components/Lines/LineSchematic.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { Link } from '@inertiajs/svelte';
@@ -137,6 +138,7 @@
         'sections',
         'heritage',
         'tech',
+        'schematic',
         'profile',
         'speeds',
         'electrification',
@@ -1266,6 +1268,11 @@
                     <LineSignallingHistory history={signalling_history} />
                 {/if}
             </SheetSection>
+        {/if}
+
+        <!-- Schéma de ligne par PK : chargé à la demande (API dédiée, en cache), aucune requête de plus pour la page. -->
+        {#if stations.length >= 2}
+            <LineSchematic slug={line.slug} />
         {/if}
 
         {#if profile}

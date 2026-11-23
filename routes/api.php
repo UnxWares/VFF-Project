@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
+use App\Http\Controllers\Api\LineSchematicController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineSpeedController;
 use App\Http\Controllers\Api\LineStopsController;
@@ -159,6 +160,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/structures', [LineStructureController::class, 'index'])->name('api.lines.structures');
     // Voies (régime d'exploitation) et radio sol-train (GSM-R) de SNCF Réseau, ODbL : App\Services\Sncf\LineInfrastructure.
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
+    // Schéma de ligne par PK (gares, bifurcations, PN, ouvrages, voies, courant, signalisation, vitesse) : App\Services\Lines\LineSchematic.
+    Route::get('/v1/lines/{line:slug}/schematic', [LineSchematicController::class, 'show'])->name('api.lines.schematic');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
     // Notices des fonds d'archives (Archives SNCF, ODbL) : App\Services\Archives\LineArchives::records.
     Route::get('/v1/lines/{line:slug}/archive-records', [LineArchiveRecordController::class, 'index'])->name('api.lines.archive-records');
