@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Resources\LineEventResource;
 use App\Mcp\Support\Lookup;
+use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Support\VffTool;
 use App\Models\LineEvent;
 use App\Services\Archives\LineArchives;
@@ -58,18 +59,25 @@ class LineStoriesTool extends VffTool
             return $this->fail('line_not_found', ['query' => $input['line']], ['suggestions' => $this->suggestions($input['line'], 'lines')]);
         }
         $stories = app(EventStories::class);
+        // Jamais les faits d'une source non commerciale (NonCommercialSources), comme les autres outils : ni comme
+        // événement d'une histoire, ni parmi ses sources. Un fait rapporté seulement par une telle source n'a pas d'histoire ici.
+        $nonCommercial = app(NonCommercialSources::class);
+        $served = fn (LineEvent $e): bool => ! $nonCommercial->excludes('line_events', $e->source, $e->source_url);
         $lineData = ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name];
 
         if (! isset($input['event'])) {
             $available = $stories->available($line, true);
-            $events = LineEvent::query()->whereIn('id', array_keys($available))->get()->keyBy('id');
+            $events = LineEvent::query()->whereIn('id', array_merge(array_keys($available), ...array_column($available, 'event_ids')))
+                ->get()->keyBy('id');
             $items = [];
             foreach ($available as $id => $counts) {
-                $event = $events->get($id);
+                $kept = array_values(array_filter($counts['event_ids'] === [] ? [$id] : $counts['event_ids'],
+                    fn (int $m): bool => ($e = $events->get($m)) instanceof LineEvent && $served($e)));
+                $event = $kept === [] ? null : $events->get($kept[0]);
                 if ($event instanceof LineEvent) {
                     $items[] = [
                         'event' => LineEventResource::make($event)->resolve(),
-                        'source_event_ids' => $counts['event_ids'],
+                        'source_event_ids' => $kept,
                         'images' => $counts['images'],
                         'documents' => $counts['documents'],
                         'vff_url' => self::url('/lines/'.$line->slug.'/stories/'.$id),
@@ -93,6 +101,15 @@ class LineStoriesTool extends VffTool
         $story = $stories->story($line, $event, true);
         if ($story === null) {
             return $this->fail('no_story', ['event' => $event->id], ['rules' => LineStoryController::rules()]);
+        }
+        $members = LineEvent::query()->whereIn('id', array_column($story['sources'], 'id'))->get()->keyBy('id');
+        $story['sources'] = array_values(array_filter($story['sources'],
+            fn (array $e): bool => ($m = $members->get($e['id'])) instanceof LineEvent && $served($m)));
+        if ($story['sources'] === []) {
+            return $this->fail('no_story', ['event' => $event->id], ['rules' => LineStoryController::rules()]);
+        }
+        if (! in_array($story['event']['id'], array_column($story['sources'], 'id'), true)) {
+            $story['event'] = $story['sources'][0];
         }
 
         return $this->respond(

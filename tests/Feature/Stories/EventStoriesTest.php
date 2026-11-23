@@ -512,6 +512,34 @@ class EventStoriesTest extends TestCase
         $this->assertSame('event_not_on_line', $elsewhere['error']);
     }
 
+    /** L'outil MCP ne sert jamais un fait d'une source non commerciale : ni comme événement, ni parmi les sources. */
+    public function test_the_mcp_tool_never_serves_a_non_commercial_source(): void
+    {
+        // Même ouverture rapportée aussi par la source non commerciale, et une fermeture rapportée par elle seule.
+        $same = $this->event('opening', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez',
+            'source' => 'archeoferroviaire', 'confidence' => 'high', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article1']);
+        $alone = $this->event('closure', '1845-06-01', ['source' => 'manual', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article2']);
+        $this->assertNotNull(app(EventStories::class)->story($this->line, $alone), 'la fermeture a une histoire sur le site');
+
+        foreach ([$this->opening, $same] as $asked) {
+            [$story, $error] = $this->tool('line_stories', ['line' => 'rfn-340000', 'event' => $asked->id]);
+            $this->assertFalse($error);
+            $this->assertSame($this->opening->id, $story['event']['id']);
+            $this->assertSame([$this->opening->id], array_column($story['sources'], 'id'));
+        }
+
+        [$none, $noneError] = $this->tool('line_stories', ['line' => 'rfn-340000', 'event' => $alone->id]);
+        $this->assertTrue($noneError);
+        $this->assertSame('no_story', $none['error']);
+
+        [$list] = $this->tool('line_stories', ['line' => 'rfn-340000']);
+        $ids = array_merge(array_column(array_column($list['stories'], 'event'), 'id'), ...array_column($list['stories'], 'source_event_ids'));
+        $this->assertContains($this->opening->id, $ids);
+        $this->assertNotContains($same->id, $ids);
+        $this->assertNotContains($alone->id, $ids);
+        $this->assertSame(1, $list['total']);
+    }
+
     /**
      * @param  array<string, mixed>  $arguments
      * @return array{0: array<string, mixed>, 1: bool}
