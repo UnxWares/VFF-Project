@@ -111,6 +111,11 @@ class MaterialLinesMapTest extends TestCase
         $this->getJson('/materials/inconnu/map.json')->assertNotFound();
     }
 
+    public function test_the_page_route_is_rate_limited_like_the_api(): void
+    {
+        $this->getJson('/materials/bb-15000/map.json')->assertOk()->assertHeader('X-RateLimit-Limit');
+    }
+
     public function test_the_fiche_gives_the_page_the_map_address(): void
     {
         $this->get('/materials/bb-15000')->assertInertia(fn ($page) => $page->where('map_url', '/materials/bb-15000/map.json'));

@@ -72,9 +72,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
                 ->name('lines.portions');
             // Carte des lignes d'une fiche de matériel : tracé allégé et dates, lus par la page quand la carte
-            // s'affiche, sans session ni cookie (App\Http\Controllers\MaterialMapController).
+            // s'affiche, sans session ni cookie (App\Http\Controllers\MaterialMapController). Elle dessine aussi les
+            // tracés non redistribuables et son premier calcul lit tous les tronçons des lignes de la série : débit
+            // limité comme les itinéraires de /maps/route et les tuiles.
             Route::get('/materials/{slug}/map.json', MaterialMapController::class)
                 ->where('slug', '[a-z0-9-]{1,255}')
+                ->middleware('throttle:public-api')
                 ->name('materials.map');
             // Flux du journal et plans du site : publics, en cache, donc sans session ni cookie (hors du groupe
             // web). La langue des flux vient de `?lang=` puis d'Accept-Language (`Vary`).
