@@ -4318,4 +4318,231 @@ return [
         'quote' => 'Dès 1945, la ligne Central-Var est alors limitée à la section Meyrargues - Tanneron',
         'reason' => 'arrêt du service : viaduc de la Siagne détruit le 24/08/1944 et jamais reconstruit, la section est de Tanneron ne rouvre pas (fermeture officielle du reste le 02/01/1950)',
     ],
+
+    // ── 39. Ouvertures des gares encore ouvertes datées à l'année par Wikidata ou déduites de la ligne, troisième relecture contre
+    // l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 2 des 6 cas laissés à décider par la section 37
+    // (Marseille-Saint-Charles, Montpellier-Saint-Roch) et 18 gares des 80 suivantes par fréquentation (audit-gares-3, 23/11/2026,
+    // rapport storage/app/reports/agents/aprem-2111/audit-gares-3.md). Lorsque la gare a déménagé, la fiche garde la date de la première
+    // gare de la ville, comme pour Reims (section 37).
+
+    // Marseille-St-Charles (id 17963)
+    [
+        'station' => ['name' => 'Marseille-St-Charles', 'uic' => '87751008'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1848-01-16',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Marseille-Saint-Charles', 241581746),
+        'quote' => 'Le 16 janvier 1848 : mise en exploitation publique de la ligne entre Marseille et Rognonas',
+        'reason' => 'article de la gare (oldid 241581746, « Dates clés ») : le 8 janvier 1848 est l\'inauguration de la gare et le premier convoi officiel, la mise en exploitation publique de la ligne Marseille - Rognonas date du 16 janvier 1848 ; article de la ligne « Ligne de Paris-Lyon à Marseille-Saint-Charles » (oldid 241214704) : sections de l\'ancienne ligne d\'Avignon à Marseille ouvertes en 1847 et 1849, compagnie en cessation de paiements en 1848, ce qui place le service de Marseille en 1848. Précise l\'année 1848 de Wikidata au jour d\'ouverture au public (et non à l\'inauguration).',
+    ],
+    // Montpellier-St-Roch (id 18151)
+    [
+        'station' => ['name' => 'Montpellier-St-Roch', 'uic' => '87773002'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1839-03-08',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Tarascon à Sète-Ville', 236799571),
+        'quote' => '8 mars 1839 dans les chemins de fer, mise en service de Montpellier à Sète',
+        'reason' => 'article de la ligne « Ligne de Tarascon à Sète-Ville » (oldid 236799571, chronologie et Palau 2.4 « Montpellier - Cette : 8 mars 1839 ») : mise en service pour les voyageurs le 8 mars 1839 ; article de la gare (oldid 239952248) : la première gare de Montpellier est le terminus de cette ligne, la gare actuelle ne date que de la ligne de Nîmes (service le 9 janvier 1845). La fiche garde la date de la première gare de la ville comme VFF le fait pour Reims ; précise l\'année 1839 de Wikidata au jour.',
+    ],
+    // Viry-Châtillon (id 17343)
+    [
+        'station' => ['name' => 'Viry-Châtillon', 'uic' => '87681312'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1959-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Viry-Châtillon', 236226689),
+        'quote' => 'infobox, mise en service : janvier 1959',
+        'reason' => 'article de la gare (oldid 236226689, infobox : janvier 1959). Précise l\'année 1959 de Wikidata au mois.',
+    ],
+    // Les Noues (id 15530)
+    [
+        'station' => ['name' => 'Les Noues', 'uic' => '87276238'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1964-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare des Noues', 238918749),
+        'quote' => 'La gare est ouverte en 1964 grâce à l\'augmentation de la population du quartier',
+        'reason' => 'article de la gare (oldid 238918749) : la ligne de Saint-Denis à Creil ouvre en 1859, la gare des Noues est une création de 1964. Remplace l\'année 1859 de Wikidata (ouverture de la ligne).',
+    ],
+    // Aubergenville-Élisabethville (id 16057)
+    [
+        'station' => ['name' => 'Aubergenville-Élisabethville', 'uic' => '87386730'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1891-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Aubergenville-Élisabethville', 230660645),
+        'quote' => 'La halte d\'Aubergenville est mise en service en 1891 par la compagnie des chemins de fer de l\'Ouest',
+        'reason' => 'article de la gare (oldid 230660645, infobox : 1891, catégorie 1891) : halte créée en 1891, développée en gare dans les années 1930. Remplace le 09/05/1843 déduit de l\'ouverture de la ligne.',
+    ],
+    // Avenue-du-Président-Kennedy-Radio-France (id 16637)
+    [
+        'station' => ['name' => 'Avenue-du-Président-Kennedy-Radio-France', 'uic' => '87543207'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1904-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de l\'avenue du Président-Kennedy', 236109269),
+        'quote' => 'Elle est ouverte en 1904, après l\'inauguration de la ligne, en 1900 et était dénommé Halte du quai de Passy',
+        'reason' => 'article de la gare (oldid 236109269) : halte du quai de Passy ouverte en 1904, la ligne datant de 1900. Remplace l\'année 1988 de Wikidata (mise en service de la ligne C du RER). Confiance moyenne : l\'infobox donne 1988.',
+    ],
+    // Lens (id 15923)
+    [
+        'station' => ['name' => 'Lens', 'uic' => '87345025'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1860-10-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lens à Ostricourt', 235337741),
+        'quote' => '6 octobre 1860 : mise en service de Lens à Leforest par la Compagnie du Nord',
+        'reason' => 'article de la gare (oldid 241513442, infobox : 1860 ; le chemin de fer arrive à Lens en 1860) ; article de la ligne « Ligne de Lens à Ostricourt » (oldid 235337741) : Lens à Leforest mis en service le 6 octobre 1860, Lens en est le terminus. Remplace l\'année 1927 de Wikidata (inauguration du bâtiment le 15/08/1927).',
+    ],
+    // Champagne-Ardenne-TGV (id 15103)
+    [
+        'station' => ['name' => 'Champagne-Ardenne-TGV', 'uic' => '87171926'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2007-06-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Champagne-Ardenne TGV', 241441371),
+        'quote' => 'Elle est mise en service le 10 juin 2007',
+        'reason' => 'article de la gare (oldid 241441371, infobox et phrase) : mise en service le 10 juin 2007 avec la première phase de la LGV Est européenne. Précise l\'année 2007 de Wikidata au jour.',
+    ],
+    // Plaisir-Les Clayes (id 16121)
+    [
+        'station' => ['name' => 'Plaisir-Les Clayes', 'uic' => '87393629'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1973-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Plaisir - Les Clayes', 240747926),
+        'quote' => 'Elle est mise en service en janvier 1973',
+        'reason' => 'article de la gare (oldid 240747926, infobox et phrase) : création de la gare en janvier 1973. Remplace l\'année 1864 déduite de l\'ouverture de la ligne.',
+    ],
+    // Sens (id 17392)
+    [
+        'station' => ['name' => 'Sens', 'uic' => '87683003'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sens', 232264091),
+        'quote' => 'Sa mise en service intervient le 12 août 1849, avec l\'ouverture au trafic de la section de Paris à Tonnerre',
+        'reason' => 'article de la gare (oldid 232264091, infobox) et article de la ligne « Ligne de Paris-Lyon à Marseille-Saint-Charles » (oldid 241214704) : toute la section de Paris à Tonnerre est ouverte le 12 août 1849. Précise l\'année 1849 de Wikidata au jour.',
+    ],
+    // Libercourt (id 15938)
+    [
+        'station' => ['name' => 'Libercourt', 'uic' => '87345256'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1865-06-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Libercourt', 241123982),
+        'quote' => 'Une station provisoire est ouverte en juin 1865 par la Compagnie des mines de Carvin',
+        'reason' => 'article de la gare (oldid 241123982, infobox : 1865). Précise l\'année 1865 de Wikidata au mois.',
+    ],
+    // Orchies (id 15643)
+    [
+        'station' => ['name' => 'Orchies', 'uic' => '87286583'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1870-06-22',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Fives à Hirson', 240286509),
+        'quote' => 'de Lille à Valenciennes, le 22 juin 1870',
+        'reason' => 'article de la ligne « Ligne de Fives à Hirson » (oldid 240286509) : Lille - Valenciennes ouvre le 22 juin 1870 ; article de la gare (oldid 235030548) : le projet de 1867 est seulement approuvé le 5 juin 1867 et la position de la station d\'Orchies reste à fixer. Remplace l\'année 1867 de Wikidata (approbation du tracé). Confiance moyenne : l\'article de la gare ne date pas l\'ouverture.',
+    ],
+    // Provins (id 14901)
+    [
+        'station' => ['name' => 'Provins', 'uic' => '87116160'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1858-12-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Provins', 236932202),
+        'quote' => 'Le chemin de fer arriva à Provins le 11 décembre 1858',
+        'reason' => 'article de la gare (oldid 236932202) et article de la ligne « Ligne de Longueville à Esternay » (oldid 235342288) : l\'embranchement vers Provins est ouvert au trafic le 11 décembre 1858. Précise l\'année 1858 de Wikidata au jour.',
+    ],
+    // Aix-en-Provence (id 17972)
+    [
+        'station' => ['name' => 'Aix-en-Provence', 'uic' => '87751404'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-10-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aix-en-Provence', 241049588),
+        'quote' => 'La ligne de Rognac à Aix-en-Provence sera ouverte le 10 octobre 1856',
+        'reason' => 'article de la gare (oldid 241049588, infobox : 1856 première gare, 1877 gare actuelle) et article de la ligne « Ligne de Rognac à Aix-en-Provence » (oldid 235989403) : ouverture à l\'exploitation le 10 octobre 1856, première gare d\'Aix. La fiche garde la date de la première gare de la ville comme pour Reims ; remplace l\'année 1877 de Wikidata (gare actuelle, relocalisée).',
+    ],
+    // Grenoble Universités-Gières (id 17948)
+    [
+        'station' => ['name' => 'Grenoble Universités-Gières', 'uic' => '87747402'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-09-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Grenoble-Universités-Gières', 235031984),
+        'quote' => 'Le 15 septembre 1864, mise en service de la ligne Grenoble - Montmélian (50 km), et de la gare de « Gières-Uriage »',
+        'reason' => 'article de la gare (oldid 235031984) et article de la ligne « Ligne de Grenoble à Montmélian » (oldid 239895345) : mise en service le 15 septembre 1864. Précise l\'année 1864 de Wikidata au jour.',
+    ],
+    // Arles (id 18012)
+    [
+        'station' => ['name' => 'Arles', 'uic' => '87753657'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1848-01-16',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Arles', 235030325),
+        'quote' => 'Elle est bâtie en 1848 lors de la création du chemin de fer d\'Avignon à Marseille',
+        'reason' => 'article de la gare d\'Arles (oldid 235030325, infobox : 1848) ; article de la gare de Marseille-Saint-Charles (oldid 241581746) : mise en exploitation publique de la ligne entre Marseille et Rognonas, via Arles, le 16 janvier 1848 (inauguration le 8 janvier). Précise l\'année 1848 de Wikidata au jour. Confiance moyenne : l\'article d\'Arles ne donne que l\'année.',
+    ],
+    // Montmélian (id 17839)
+    [
+        'station' => ['name' => 'Montmélian', 'uic' => '87741181'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-10-20',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montmélian', 241354307),
+        'quote' => 'Le 20 octobre 1856 est mise en service la ligne d\'Aix-les-Bains à Saint-Jean-de-Maurienne. Une station est créée à Montmélian',
+        'reason' => 'article de la gare (oldid 241354307) : station créée à Montmélian à l\'ouverture de la ligne d\'Aix-les-Bains à Saint-Jean-de-Maurienne le 20 octobre 1856. Précise l\'année 1856 de Wikidata au jour.',
+    ],
+    // Cholet (id 16515)
+    [
+        'station' => ['name' => 'Cholet', 'uic' => '87484303'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-09-24',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Cholet', 238676072),
+        'quote' => 'La section de La Possonnière à Cholet a été mise en service le 24 septembre 1866',
+        'reason' => 'article de la gare (oldid 238676072) : construite pour l\'inauguration de la ligne La Possonnière - Niort ; article de la ligne « Ligne de La Possonnière à Niort » (oldid 241119292) : La Possonnière - Cholet mis en service le 24 septembre 1866 (Cholet - Niort le 26/12/1868). Remplace l\'année 1865 de Wikidata (construction).',
+    ],
+    // Dunkerque (id 15585)
+    [
+        'station' => ['name' => 'Dunkerque', 'uic' => '87281006'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1848-09-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Dunkerque', 234757520),
+        'quote' => 'Le chemin de fer arrive à Dunkerque en 1848',
+        'reason' => 'article de la gare (oldid 234757520, catégorie 1848) et article de la ligne « Ligne d\'Arras à Dunkerque-Locale » (oldid 239736601) : mise en service d\'Hazebrouck à Dunkerque le 1er septembre 1848. Remplace l\'année 1838 de Wikidata.',
+    ],
+    // Chalon-sur-Saône (id 17716)
+    [
+        'station' => ['name' => 'Chalon-sur-Saône', 'uic' => '87725002'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-09-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Chalon-sur-Saône', 233473917),
+        'quote' => '1 septembre 1849 dans les chemins de fer, ancienne gare de Chalon-Ville',
+        'reason' => 'article de la gare (oldid 233473917, infobox) et article de la ligne « Ligne de Paris-Lyon à Marseille-Saint-Charles » (oldid 241214704) : ouverture au public de la section Dijon - Chalon-sur-Saône le 1er septembre 1849. La fiche garde la date de la première gare de la ville (gare actuelle de 1893) comme pour Reims ; précise l\'année 1849 de Wikidata au jour.',
+    ],
 ];
