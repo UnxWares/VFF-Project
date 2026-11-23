@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Mareuil-le-Port (Port-à-Binson) du 18 février 1923 (recherche du 21/11/2026).
 return [
     'slug' => '1923-02-18-mareuil-le-port',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1923' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Repéré, non lu (accès bloqué). Selon l\'extrait de recherche, une dépêche situerait la collision près d\'Épernay le 19 février 1923 et donnerait 15 à 16 morts et une trentaine de blessés : à confronter aux 13 morts de la liste. Le lien avec cet accident n\'est pas confirmé.',
         ],
+        'kb-1923-02-21-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het spoorwegongeluk bij Epernay.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1923-02-21',
+            'locator' => 'article « Het spoorwegongeluk bij Epernay. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010656493:mpeg21:a0178:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 21 février : l\'accident de dimanche soir vers 19 h à Port-à-Binson, entre Épernay et Château-Thierry, express Paris-Strasbourg, attribué à la négligence du personnel de la gare ; le titre est consacré à Épernay.',
+        ],
+        'kb-1923-02-19-voorwaarts' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen. Het spoorwegongeluk te Epernay.',
+            'publisher' => 'Voorwaarts (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1923-02-19',
+            'locator' => 'article « Telegrammen. Het spoorwegongeluk te Epernay. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010210467:mpeg21:a0114:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 19 février : 16 morts et 31 blessés dans l\'accident d\'Épernay.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -80,6 +108,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 19 et 21 février 1923 situent l\'accident du dimanche soir (18 février) vers 19 h à Port-à-Binson, entre Épernay et Château-Thierry, sur l\'express Paris-Strasbourg, avec 16 morts et 31 blessés dans une dépêche du 19, contre 13 morts et 35 blessés dans la fiche. Date, lieu et nature sont confirmés ; le bilan diffère.',
+                'en' => 'Two Dutch newspapers of 19 and 21 February 1923 place the accident of Sunday evening (18 February) at about 7 pm at Port-à-Binson, between Épernay and Château-Thierry, on the Paris-Strasbourg express, with 16 dead and 31 injured in a dispatch of the 19th, against 13 dead and 35 injured in the record. Date, place and nature are confirmed; the toll differs.',
+                'de' => 'Zwei niederländische Zeitungen vom 19. und 21. Februar 1923 verlegen das Unglück vom Sonntagabend (18. Februar) gegen 19 Uhr nach Port-à-Binson zwischen Épernay und Château-Thierry, auf den Schnellzug Paris-Straßburg, mit 16 Toten und 31 Verletzten in einer Meldung vom 19., gegenüber 13 Toten und 35 Verletzten in der Datenbank. Datum, Ort und Art sind bestätigt; die Bilanz weicht ab.',
+                'sources' => ['kb-1923-02-21-algemeen-handelsblad', 'kb-1923-02-19-voorwaarts'],
+            ],
             [
                 'fr' => 'L\'accident a fait treize morts et trente-cinq blessés selon la liste de Wikipédia, qui renvoie à la presse parisienne des 19 et 20 février 1923.',
                 'en' => 'The accident left thirteen dead and thirty-five injured according to the Wikipedia list, which refers to the Paris press of 19 and 20 February 1923.',

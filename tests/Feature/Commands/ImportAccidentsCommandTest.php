@@ -472,14 +472,15 @@ class ImportAccidentsCommandTest extends TestCase
         $other = Accident::query()->whereNull('wikidata_id')->firstOrFail();
         // Un ancien nom n'est plus donné à une autre fiche.
         $this->assertSame('2026-01-11-millas-2', $other->slug);
-        $slugs = Accident::query()->pluck('slug', 'id')->all();
+        $slugs = Accident::query()->orderBy('id')->pluck('slug', 'id')->all();
 
         // Base existante : le slug n'est jamais recalculé, même si la table change.
         $this->app->instance(AccidentSlugTable::class, new AccidentSlugTable([
             ['key' => 'wikidata:Q45757847', 'from' => '2017-12-14-millas', 'slug' => '2017-12-14-autre', 'reason' => 'x'],
         ]));
         $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
-        $this->assertSame($slugs, Accident::query()->pluck('slug', 'id')->all());
+        // Ordre fixé par id : PostgreSQL rend les lignes mises à jour dans un ordre quelconque (échec intermittent du 23/11/2026).
+        $this->assertSame($slugs, Accident::query()->orderBy('id')->pluck('slug', 'id')->all());
     }
 
     public function test_a_hand_written_record_is_imported_as_one_more_source(): void

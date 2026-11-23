@@ -164,7 +164,10 @@ class AccidentDetailResource extends AccidentResource
                  * allemand qui cite sa propre référence (livre, presse), famille `wikipedia-edition` ; nul : aucune règle satisfaite), `date` et `place` (valeur retenue, et pour
                  * chacune les sources qui concordent `confirmed_by`, celles qui divergent `disagreeing`, les communes
                  * voisines `nearby` ; chaque source avec `provider`, `role`, `url`, sa valeur et `retrieved_at`, la date
-                 * de lecture), `families`, `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
+                 * de lecture), `families` (familles qui confirment la date et le lieu : `official`, `wikipedia`, `wikidata`,
+                 * `wikidata-bare`, `wikipedia-edition`, `press` pour la presse d'époque numérisée, plusieurs articles ne
+                 * comptant que pour une famille), `deaths` (bilan de la fiche et articles de presse qui le confirment ou
+                 * en donnent un autre, absent si aucun article n'en donne), `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
                  * (autres éléments Wikidata du même accident, gardés avec leurs sources).
                  *
                  * @var array<string, mixed>|null
@@ -207,7 +210,7 @@ class AccidentDetailResource extends AccidentResource
              *
              * `corrections` : valeurs de la fiche corrigées d'après ces documents : `field` (`occurred_on`,
              * `occurred_at_time`, `deaths`, `injuries`), `before` (valeur d'avant), `value`, `references`, `reason` par
-             * langue. Listes vides si la fiche n'a pas de contexte.
+             * langue, `single_source` (vrai quand la valeur ne repose que sur la liste des accidents de Wikipédia et reste à confirmer). Listes vides si la fiche n'a pas de contexte.
              *
              * @var array{checked_on: string|null, sections: list<array{section: string, entries: list<array{text: array<string, string>, references: list<string>, quote: array{text: string, lang: string, reference: string}|null}>}>, references: list<array<string, mixed>>, images: list<array<string, mixed>>, corrections: list<array<string, mixed>>}
              */

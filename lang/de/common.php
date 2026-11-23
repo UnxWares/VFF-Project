@@ -11,6 +11,7 @@ return [
 
     // Gemeinsame Texte der Komponenten (Seitennavigation, externe Links).
     'new_tab' => 'öffnet in einem neuen Tab',
+    'external_same_tab' => 'externer Link, öffnet in diesem Tab',
     'note_ref' => 'Anmerkung',
     'required' => 'Pflichtfeld',
     'pagination' => 'Seitennavigation',
@@ -28,4 +29,14 @@ return [
         'close' => 'Schließen',
         'announce' => 'Eine kleine Überraschung: TGV 01 „Patrick“, der erste Triebzug des TGV Sud-Est (1978). Ein Link unten auf dem Bildschirm führt zu seiner Seite.',
     ],
+    // Ausdruck der Seiten: Fußzeile (resources/css/print.css, resources/js/lib/print.js).
+    'print' => [
+        'printed_on' => 'Gedruckt am :date',
+        'page' => 'Seite',
+        'of' => 'von',
+    ],
+
+    // Steckbrief: Abschnitte, die direkt nach der ersten Anzeige geladen werden (verzögerte Props).
+    'sheet_loading' => 'Der Rest der Seite wird geladen …',
+    'sheet_loading_label' => 'Rest der Seite, wird geladen',
 ];

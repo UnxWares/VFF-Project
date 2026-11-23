@@ -19,6 +19,8 @@
     import { mediaLicenseHref, mediaLicenseLabel, mediaSourceHref } from '$lib/mediaCredits.js';
     import {
         answerHref,
+        difficultyKey,
+        factHints,
         lineHints,
         materialHints,
         quizHref,
@@ -65,8 +67,11 @@
     const hints = $derived(
         game === 'lines'
             ? lineHints(question?.hints, t, lang)
-            : materialHints(question?.hints, t, lang),
+            : game === 'facts'
+              ? factHints(question?.hints)
+              : materialHints(question?.hints, t, lang),
     );
+    const isFacts = $derived(game === 'facts');
     const trace = $derived(question?.trace ?? null);
     const bar = $derived(trace ? scaleBar(trace.m_per_unit, trace.width) : null);
     const photo = $derived(question?.photo ?? null);
@@ -203,7 +208,7 @@
                     {@const r = results[q.index]}
                     {#if r}
                         <li>
-                            <Link href={r.answer.url}>{r.answer.label}</Link>
+                            <Link href={r.answer.url}>{r.answer.title ?? r.answer.label}</Link>
                             <span class={['vff-badge', r.correct ? 'success' : 'muted']}>
                                 <i
                                     class={['bi', r.correct ? 'bi-check2' : 'bi-x']}
@@ -239,8 +244,21 @@
                 {t('quiz.play.progress', { current: index + 1, total })}
             </h2>
 
-            <div class="layout">
-                <div class="visual">
+            {#if isFacts}
+                <p class="difficulty">
+                    {t('quiz.facts.difficulty', {
+                        level: t(`quiz.facts.levels.${difficultyKey(question.difficulty)}`),
+                    })}
+                </p>
+                {#if question.subject}
+                    <p class="subject" lang={question.topic === 'milestone' ? lang : 'fr'}>
+                        {question.subject}
+                    </p>
+                {/if}
+            {/if}
+
+            <div class={['layout', { facts: isFacts }]}>
+                <div class="visual" hidden={isFacts}>
                     {#if game === 'lines'}
                         {#if trace && trace.paths.length}
                             <figure class="trace">
@@ -303,28 +321,32 @@
                 </div>
 
                 <div class="side">
-                    <div class="hints">
-                        <button
-                            type="button"
-                            class="vff-btn quiet"
-                            aria-expanded={hintsOpen}
-                            aria-controls="quiz-hints"
-                            onclick={() => (hintsOpen = !hintsOpen)}
-                        >
-                            <i
-                                class={['bi', hintsOpen ? 'bi-chevron-up' : 'bi-chevron-down']}
-                                aria-hidden="true"
-                            ></i>
-                            {t(hintsOpen ? 'quiz.hints.hide' : 'quiz.hints.show')}
-                        </button>
-                        <div id="quiz-hints" hidden={!hintsOpen}>
-                            {@render hintList()}
+                    {#if !isFacts || hints.length}
+                        <div class="hints">
+                            <button
+                                type="button"
+                                class="vff-btn quiet"
+                                aria-expanded={hintsOpen}
+                                aria-controls="quiz-hints"
+                                onclick={() => (hintsOpen = !hintsOpen)}
+                            >
+                                <i
+                                    class={['bi', hintsOpen ? 'bi-chevron-up' : 'bi-chevron-down']}
+                                    aria-hidden="true"
+                                ></i>
+                                {t(hintsOpen ? 'quiz.hints.hide' : 'quiz.hints.show')}
+                            </button>
+                            <div id="quiz-hints" hidden={!hintsOpen}>
+                                {@render hintList()}
+                            </div>
+                            {#if !hintsOpen}
+                                <!-- Indices repliés : copie pour les lecteurs d'écran, qui décrit le tracé ou la photo. -->
+                                <div id="quiz-hints-text" class="vff-sr-only">
+                                    {@render hintList()}
+                                </div>
+                            {/if}
                         </div>
-                        {#if !hintsOpen}
-                            <!-- Indices repliés : copie pour les lecteurs d'écran, qui décrit le tracé ou la photo. -->
-                            <div id="quiz-hints-text" class="vff-sr-only">{@render hintList()}</div>
-                        {/if}
-                    </div>
+                    {/if}
 
                     {#snippet hintList()}
                         {#if hints.length}
@@ -343,7 +365,11 @@
 
                     <form onsubmit={submit} novalidate>
                         <fieldset disabled={!!result || stale}>
-                            <legend>{t(`quiz.play.question_${game}`)}</legend>
+                            <legend
+                                >{isFacts
+                                    ? question.prompt
+                                    : t(`quiz.play.question_${game}`)}</legend
+                            >
                             <ul class="options">
                                 {#each question.options as o (o.key)}
                                     {@const state = optionState(o.key)}
@@ -410,23 +436,50 @@
                                 <blockquote lang={result.fact.lang}>
                                     <p>{result.fact.text}</p>
                                 </blockquote>
-                                <p class="source">
-                                    {t('quiz.answer.source', {
-                                        source: result.fact.source.name,
-                                    })}{#if result.fact.source.url},
+                                {#if result.fact.sources?.length}
+                                    <ul class="source sources">
+                                        {#each result.fact.sources as src (`${src.name}|${src.url}`)}
+                                            <li>
+                                                {t('quiz.answer.source', {
+                                                    source: src.name,
+                                                })}{#if src.url},
+                                                    <a
+                                                        href={src.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        >{t(
+                                                            'quiz.answer.source_page',
+                                                        )}{@render ext()}</a
+                                                    >{/if}{#if src.license && src.license_url},
+                                                    <a
+                                                        href={src.license_url}
+                                                        target="_blank"
+                                                        rel="license noopener noreferrer"
+                                                        >{src.license}{@render ext()}</a
+                                                    >{/if}
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                {:else if result.fact.source}
+                                    <p class="source">
+                                        {t('quiz.answer.source', {
+                                            source: result.fact.source.name,
+                                        })}{#if result.fact.source.url},
+                                            <a
+                                                href={result.fact.source.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                lang="fr"
+                                                >{result.fact.source.title}{@render ext()}</a
+                                            >{/if},
                                         <a
-                                            href={result.fact.source.url}
+                                            href={result.fact.source.license_url}
                                             target="_blank"
-                                            rel="noopener noreferrer"
-                                            lang="fr">{result.fact.source.title}{@render ext()}</a
-                                        >{/if},
-                                    <a
-                                        href={result.fact.source.license_url}
-                                        target="_blank"
-                                        rel="license noopener noreferrer"
-                                        >{result.fact.source.license}{@render ext()}</a
-                                    >
-                                </p>
+                                            rel="license noopener noreferrer"
+                                            >{result.fact.source.license}{@render ext()}</a
+                                        >
+                                    </p>
+                                {/if}
                             {/if}
                             <p>
                                 <Link href={result.answer.url} class="vff-link"
@@ -497,6 +550,34 @@
     .visual,
     .side {
         min-width: 0;
+    }
+
+    /* Questions de texte (jeu « Culture du rail ») : une seule colonne, sans visuel. */
+    .layout.facts {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 760px;
+    }
+
+    .difficulty {
+        margin: calc(-1 * var(--vff-space-3)) 0 var(--vff-space-4);
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
+    }
+
+    .subject {
+        margin: 0 0 var(--vff-space-5);
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-h3);
+        font-weight: 700;
+        line-height: 1.3;
+        text-wrap: balance;
+    }
+
+    .sources {
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
 
     .side {

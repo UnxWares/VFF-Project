@@ -10,12 +10,14 @@ use App\Models\Station;
 use App\Services\Api\MediaGallery;
 use App\Services\Api\SortedCursor;
 use App\Services\Api\StationDirectoryQuery;
+use App\Services\Media\Aerial\AerialImages;
 use App\Services\StationSheet;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 #[Group('Gares', "L'annuaire des gares, haltes et points d'arrêt, actuels et disparus, et la fiche complète de chaque gare : dates, présence par décennie, lignes desservies, sources.", weight: 2)]
 class StationController extends Controller
@@ -72,6 +74,8 @@ class StationController extends Controller
     #[QueryParameter('region', 'Code INSEE de la région (`11`, `24`, `27`, `28`, `32`, `44`, `52`, `53`, `75`, `76`, `84`, `93`, `94`, outre-mer `01` à `06`) : gares de ses départements. Liste avec les noms : `/regions`.', type: 'string', example: '53')]
     #[QueryParameter('era', "Année d'une ère (décennie de 1830 à 2030) : statut à cette ère, gares absentes de l'ère exclues. Une année sans ère donne HTTP 422.", type: 'int', example: 1930)]
     #[QueryParameter('flagged', 'Seulement les gares dont la position est à vérifier : `true` ou `false`.', type: 'boolean', example: false)]
+    #[QueryParameter('heritage', 'Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable : `true` ou `false`.', type: 'boolean', example: false)]
+    #[QueryParameter('accessible', 'Seulement les gares accessibles au moins en partie aux personnes à mobilité réduite d\'après SNCF Gares & Connexions (jeu NeTEx « Accessibilité des gares », ODbL) : `true` ou `false`. Détail d\'une gare : `GET /api/v1/stations/{station}/accessibility`.', type: 'boolean', example: false)]
     #[QueryParameter('sort', 'Clé de tri : `name` (par défaut), `city`, `opened` ou `closed`.', type: 'string', default: 'name', example: 'opened')]
     #[QueryParameter('order', 'Sens du tri : `asc` (par défaut) ou `desc`.', type: 'string', default: 'asc', example: 'asc')]
     #[QueryParameter('facets', 'Ajouter le nombre de gares par statut (`meta.facets`) et par département (`meta.department_facets`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: true)]
@@ -83,7 +87,7 @@ class StationController extends Controller
             'department_code' => '29', 'uic_code' => null, 'wikidata_id' => null,
             'opened_at' => '1923-08-12', 'opened_precision' => 'day', 'opened_after' => null, 'closed_at' => '1967-04-10', 'closed_precision' => 'day', 'closed_after' => null,
             'lat' => 48.2732755, 'lng' => -4.5948215, 'position_flagged' => false, 'sources_count' => 1,
-            'lines' => [['slug' => 'archeo-ligne-de-chateaulin-a-camaret', 'code' => null, 'name' => 'Ligne de Châteaulin à Camaret']], 'lines_more' => 0,
+            'lines' => [['slug' => 'ligne-de-chateaulin-a-camaret', 'code' => null, 'name' => 'Ligne de Châteaulin à Camaret']], 'lines_more' => 0,
             'links' => ['web' => 'https://vff-project.org/stations/camaret-sur-mer', 'self' => 'https://vff-project.org/api/v1/stations/camaret-sur-mer'],
         ]],
         'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => 'https://vff-project.org/api/v1/stations?department=29&era=1930&sort=opened&order=desc&per_page=1&facets=true&cursor=eyJzb3J0X251bGwiOjAsInNvcnRfa2V5IjoiMTkyMy0wOC0xMiIsImlkIjo0MjAxMywiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ'],
@@ -153,6 +157,16 @@ class StationController extends Controller
      *   (`line_closed`, `station_closed` ou `null`), `active_current`
      *   (desservie par une portion en service aujourd'hui), `era_years`
      *   (décennies où la gare est un arrêt de la ligne) ;
+     * - `lines[].neighbours` : gares voisines le long de la ligne, par PK
+     *   croissant : `previous` et `next` (chacune `null` en bout de ligne ;
+     *   `neighbours` vaut `null` quand le PK de la gare sur la ligne est
+     *   inconnu). Chaque voisine donne `slug`, `name`, `type`, `status`
+     *   (statut d'aujourd'hui : `active`, `tourist`, `no_commercial`,
+     *   `declassified` ou `gone`), `distance_m` (distance le long de la ligne,
+     *   écart de PK en mètres), `last_open_era` (dernière ère où elle était
+     *   ouverte, seulement si elle ne l'est plus, sinon `null`) et `links`.
+     *   Sont écartés les points techniques, les fiches hors réseau ferré et
+     *   les gares jamais desservies par la ligne ;
      * - `lines[].service_start` / `lines[].service_end` : date de l'événement
      *   de ligne qui ouvre (ferme) la desserte de la gare, quand elle est
      *   sûre. `date` (`AAAA-MM-JJ`) se lit avec `precision` : `day`, `month`
@@ -168,6 +182,26 @@ class StationController extends Controller
      *   `{"date": "1879-03-31", "precision": "day", "event_id": 416}`,
      *   `service_end` = `{"date": "1938-05-15", "precision": "day",
      *   "event_id": 417}` (fermeture aux voyageurs) ;
+     * - `chronology` : vie de la gare en une liste datée, du plus ancien au
+     *   plus récent (section « Chronologie » de la page). `kind` : `event`
+     *   (événement de la gare, nature dans `type`), `line_start` / `line_end`
+     *   (début, fin de la desserte par une ligne sans événement de la gare à
+     *   la même date ; sinon la ligne est jointe à l'événement dans `lines`,
+     *   avec `role` `start` ou `end`), `name` (nom porté et daté par une
+     *   source : `name.name`, `name.from`, `name.to` ; `name.from` est nul
+     *   pour un nom dont on ne connaît que la fin, l'entrée est alors datée
+     *   de `name.to`), `accident` (accident
+     *   dont la gare est la gare la plus proche du lieu, à 3 km au plus, 30
+     *   au plus : bloc `accident` avec `distance_m`, `location_precision` et
+     *   `to_review`). Chaque entrée a sa `date`, sa `precision` (`day`,
+     *   `month`, `year`, `decade`, `after`, `before`, `range` avec `after`),
+     *   `estimated` (date déduite des lignes ou des tracés), sa `source` et
+     *   `source_url`. Les dates d'un même événement qui se recouvrent (« 1934 »
+     *   de Wikidata, « 23 juillet 1934 » de Wikipédia) ne font qu'une entrée,
+     *   la plus précise ; les autres sources sont dans `also`. `retained` vaut
+     *   `false` pour une date d'ouverture ou de fermeture avancée par une
+     *   source mais différente de celle de la fiche. `event_id` et
+     *   `links.event` : événement de ligne qui date une desserte ;
      * - `sources` : provenance brute, en lecture seule, de chaque source
      *   rattachée. Identité : `source`, `ref` (identifiant dans la source),
      *   `name`, `url` (lien vers l'objet), `lifecycle` (état selon la source),
@@ -187,6 +221,22 @@ class StationController extends Controller
      *   et la licence ;
      * - `neighbors` : gares à moins de 10 km (12 au plus), de la plus proche
      *   à la plus lointaine ;
+     * - `attendance` : fréquentation annuelle (SNCF Gares & Connexions, ODbL) : voyageurs et non-voyageurs
+     *   par année depuis 2015, `latest`, `series_break` (méthode de calcul différente à partir de 2025),
+     *   `attribution` et `provenance` ; même bloc que `GET /api/v1/stations/{station}/attendance`. `null` quand
+     *   les jeux n'en donnent aucune pour la gare ;
+     * - `timetable` : desserte d'un jour ouvrable type (un mardi, semaine sans jour férié) d'après les horaires ouverts SNCF
+     *   et Transilien : `trains`, `by_type`, `first`, `last`, `directions[]`, `destinations[]`, `feeds[]`, `attribution` ; même
+     *   bloc que `GET /api/v1/stations/{station}/timetable`. `null` quand aucun train de voyageurs ne s'y arrête ce jour-là ;
+     * - `accessibility` : accessibilité et services d'aujourd'hui d'après SNCF Gares & Connexions (ODbL) : `access` (accessible en
+     *   partie ou non, cheminement sans marche, quais), `elevators` (ascenseurs recensés et leur état publié à la dernière lecture),
+     *   `amenities` (boucle magnétique, bandes d'éveil, toilettes…), `assistance` (assistance en gare, horaires), `sales` (guichet,
+     *   automates), `bike_parking`, `datasets[]`, `attribution` ; même bloc que `GET /api/v1/stations/{station}/accessibility`.
+     *   `null` quand les jeux n'ont rien pour la gare ;
+     * - `heritage` : patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou
+     *   inscrits, label Architecture contemporaine remarquable, Inventaire général) : protection et date de l'arrêté,
+     *   architectes, construction, style, référence Mérimée avec son lien, image libre ; même bloc que
+     *   `GET /api/v1/stations/{station}/heritage`. `null` quand VFF ne connaît aucun patrimoine pour la gare ;
      * - `platforms` : quais de la gare d'après le jeu « Liste des quais » de
      *   SNCF Réseau (ODbL, état actuel du réseau, jeu mis à jour le
      *   `dataset_modified`) : `count` (quais distincts ; un quai central qui
@@ -201,7 +251,7 @@ class StationController extends Controller
      *   donne aucun quai pour la gare, ce qui ne veut pas dire qu'elle n'en a
      *   pas (gare fermée, halte absente du jeu) ;
      * - `links` : page web (`web`) et points d'accès liés : chronologie
-     *   paginée (`events`), médias (`media`), accidents survenus près de la
+     *   paginée (`events`), vues aériennes de l'IGN (`aerial`), médias (`media`), accidents survenus près de la
      *   gare (`accidents` : ceux dont elle est la gare la plus proche du
      *   lieu), département de la gare (`department`). Chaque ligne de `lines`
      *   et chaque gare de `neighbors` porte aussi `links` (`web`, `api`).
@@ -265,5 +315,37 @@ class StationController extends Controller
             'station' => ['slug' => $station->slug, 'name' => $station->name],
             ...$gallery->page($station, $request->validated()),
         ])->header('Cache-Control', 'public, max-age=300');
+    }
+
+    /**
+     * Vues aériennes historiques d'une gare.
+     *
+     * Une vue par période de la BD ORTHO historique de l'IGN (1950-1965, 1965-1980, 1980-1995), centrée sur la
+     * gare : 500 m sur 300 m, 640 x 384 px, JPEG servi par VFF (`url`, relative au site). Une période qui ne
+     * couvre pas la gare répond 404 à son adresse : la liste donne les trois périodes sans savoir d'avance
+     * lesquelles existent. Licence Ouverte 2.0 : affichez `attribution` avec l'image. `source_url` ouvre le
+     * même lieu dans « Remonter le temps » de l'IGN. Liste vide si les vues sont désactivées sur l'instance.
+     */
+    #[PathParameter('station', 'Identifiant (slug) de la gare, tel que renvoyé par l\'annuaire ou la recherche.', example: 'brest')]
+    #[ApiResponse(200, 'Les vues proposées, une par période.', examples: [[
+        'station' => ['slug' => 'brest', 'name' => 'Brest'],
+        'data' => [[
+            'period' => '1950-1965', 'from' => 1950, 'to' => 1965, 'url' => '/media/aerial/brest/1950-1965.jpg',
+            'layer' => 'ORTHOIMAGERY.ORTHOPHOTOS.1950-1965', 'attribution' => 'IGN, photographies aériennes 1950-1965, Licence Ouverte 2.0',
+            'license' => 'Licence Ouverte 2.0', 'license_url' => 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/',
+            'source_url' => 'https://remonterletemps.ign.fr/comparer?lon=-4.47920&lat=48.38799&z=17',
+            'commercial_ok' => true, 'derivatives_ok' => true,
+        ]],
+    ]])]
+    #[ApiResponse(404, 'Gare inconnue.', examples: [ErrorExamples::STATION_NOT_FOUND])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function aerial(Station $station): JsonResponse
+    {
+        $pos = DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lng FROM stations WHERE id = ?', [$station->id]);
+
+        return response()->json([
+            'station' => ['slug' => $station->slug, 'name' => $station->name],
+            'data' => AerialImages::views($station->slug, (float) $pos->lat, (float) $pos->lng),
+        ])->header('Cache-Control', 'public, max-age=3600');
     }
 }

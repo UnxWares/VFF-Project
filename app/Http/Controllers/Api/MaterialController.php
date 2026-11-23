@@ -10,6 +10,7 @@ use App\Http\Resources\MaterialResource;
 use App\Models\Material;
 use App\Services\Api\MaterialQuery;
 use App\Services\Api\MediaGallery;
+use App\Services\Materials\MaterialLinesMap;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -120,6 +121,56 @@ class MaterialController extends Controller
             ->select('line_materials.*')]);
 
         return MaterialDetailResource::make($material)->response()->header('Cache-Control', 'public, max-age=600');
+    }
+
+    /** Exemple de la carte des lignes : BB 15000 (lecture de la base le 23/11/2026), réduit à deux lignes et à deux points de tracé chacune. */
+    private const MAP_EXAMPLE = [
+        'material' => ['slug' => 'bb-15000', 'name' => 'BB 15000', 'in_service_from' => 1971, 'in_service_to' => null],
+        'lines' => [
+            [
+                'slug' => 'rfn-74000', 'code' => '074000', 'name' => "Ligne d'Épernay à Reims", 'confidence' => 'medium',
+                'kind' => 'wikipedia_material_article', 'source' => 'wikipedia',
+                'source_url' => 'https://fr.wikipedia.org/w/index.php?title=BB_15000&oldid=237800094',
+                'article' => 'BB 15000', 'quote' => 'Paris Est - Reims - Charleville-Mézieres', 'periods' => [],
+                'geometry' => ['type' => 'MultiLineString', 'coordinates' => [[[4.0204, 49.2561], [4.0186, 49.2548]]]],
+                'geometry_withheld' => false,
+            ],
+            [
+                'slug' => 'rfn-390000', 'code' => '390000', 'name' => 'Ligne de Lisieux à Trouville-Deauville', 'confidence' => 'medium',
+                'kind' => 'wikipedia_line_article', 'source' => 'wikipedia',
+                'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lisieux_%C3%A0_Trouville_-_Deauville&oldid=235342270',
+                'article' => 'Ligne de Lisieux à Trouville - Deauville',
+                'quote' => "Les BB 16000 ont laissé place depuis 2007 à des BB 15000 en provenance du réseau Est, libérées par l'ouverture de la LGV Est européenne.",
+                'periods' => [],
+                'geometry' => ['type' => 'MultiLineString', 'coordinates' => [[[0.2315, 49.1384], [0.2362, 49.1351]]]],
+                'geometry_withheld' => false,
+            ],
+        ],
+    ];
+
+    /**
+     * Carte des lignes d'une série.
+     *
+     * Les lignes parcourues par la série, avec de quoi les dessiner et les dater : `lines[]` porte le
+     * `geometry` GeoJSON (MultiLineString, WGS 84) de chaque ligne, **allégé** (simplifié à 40 m environ,
+     * coordonnées à 4 décimales : pour situer la ligne, pas pour la mesurer ; pour le tracé précis, voir
+     * `/lines/{line}/segments`), toutes ères confondues, ainsi que la fiabilité du lien (`confidence` :
+     * `high` ou `medium`, `low` à confirmer), sa source (`source`, `source_url` : permalien de la révision qui
+     * porte la phrase source, voir `evidence` dans la fiche de la série) et les périodes datées par une source
+     * (`periods`, même forme que dans la fiche : début, fin, précisions, `source_url`), l'article cité et la phrase source (`article`, `quote`, extrait sous CC BY-SA 4.0 : citez l'article). Une ligne sans période
+     * est attestée sans date : ne dites pas qu'elle était desservie à telle date.
+     *
+     * Règle des droits des tracés, comme `/lines/{line}/segments` : les tronçons d'une source qui n'autorise pas
+     * la redistribution ne sont pas servis ; `geometry_withheld` vaut `true` quand une partie du tracé manque,
+     * `geometry` est `null` quand tout manque. Réponse gardée en cache côté serveur et 10 minutes côté client.
+     */
+    #[PathParameter('material', 'Slug de la série, tel que renvoyé par la liste (`slug`).', example: 'bb-15000')]
+    #[ApiResponse(200, 'Les lignes de la série avec leur tracé allégé, leur confiance, leur source et leurs périodes (ici la BB 15000, réduite à deux lignes et deux points de tracé chacune).', examples: [self::MAP_EXAMPLE])]
+    #[ApiResponse(404, 'Série inconnue (slug introuvable).', examples: [MaterialExamples::MATERIAL_NOT_FOUND])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function map(Material $material, MaterialLinesMap $map): JsonResponse
+    {
+        return response()->json($map->for($material))->header('Cache-Control', 'public, max-age=600');
     }
 
     /**

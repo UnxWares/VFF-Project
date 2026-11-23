@@ -76,7 +76,7 @@ class SourceController extends Controller
      * (`license_status`), la mention à reproduire, la phrase exacte des
      * conditions et les pages qui les établissent, avec leur date de lecture.
      */
-    #[PathParameter('provider', 'Clé du fournisseur (`osm`, `sncf`, `ign`, `ohm`, `wikidata`, `wikipedia`, `commons`, `jorf`, `lignes-oubliees`, `archeoferroviaire`…).', example: 'sncf')]
+    #[PathParameter('provider', 'Clé du fournisseur (`osm`, `sncf`, `ign`, `ohm`, `wikidata`, `wikipedia`, `commons`, `jorf`, `lignes-oubliees`…).', example: 'sncf')]
     #[ApiResponse(200, 'Le fournisseur `ign`.', examples: [[
         'data' => [
             'provider' => 'ign', 'name' => 'IGN (BD TOPO, BD ORTHO historique)',

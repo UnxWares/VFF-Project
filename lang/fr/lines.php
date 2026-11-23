@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalisation par PK',
         'heritage' => 'Exploitation associative',
         'route_through_time' => 'Le tracé dans le temps',
+        'spacetime' => 'Où et quand',
         'history' => 'Histoire de la ligne',
         'chronicle' => 'Chronologie détaillée, portion par portion',
         'notes' => 'Notes et sources',
@@ -120,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB). Sur une LGV, la signalisation est en cabine.',
         'protection' => 'Contrôle de vitesse :',
+        'remote_control' => 'Commande centralisée :',
         'cabin' => 'Signalisation en cabine :',
         'block' => 'Cantonnement :',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -127,6 +129,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, block automatique lumineux',
             'BAL-VB' => 'BAL de voie banalisée',
+            'NONE' => 'Sans cantonnement',
             'BAL-Tram' => 'Block automatique tramway',
             'BAPR' => 'BAPR, block automatique à permissivité restreinte',
             'BAPR-DV' => 'BAPR de double voie',
@@ -137,6 +140,7 @@ return [
             'CAPI' => 'CAPI, cantonnement assisté par informatique',
             'CT' => 'Cantonnement téléphonique de double voie',
             'CT-VU' => 'Cantonnement téléphonique de voie unique',
+            'CC' => 'CC, commande centralisée (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (jusqu’à 300 km/h)',
             'TVM-430' => 'TVM 430 (jusqu’à 320 km/h)',
             'ETCS_L1' => 'ETCS niveau 1',
@@ -199,7 +203,9 @@ return [
         'all_states' => 'En service et fermées',
         'heritage' => 'Seulement les lignes de train touristique',
         'sort_label' => 'Trier par',
+        'sort_relevance' => 'Pertinence',
         'sort_name' => 'Nom, de A à Z',
+        'approximate' => "Aucune ligne ne correspond exactement à «\u{00A0}:query\u{00A0}»\u{00A0}: voici les noms les plus proches.",
         'sort_name_desc' => 'Nom, de Z à A',
         'sort_code' => 'Code de ligne',
         'reset' => 'Réinitialiser les filtres',
@@ -232,6 +238,22 @@ return [
     ],
 
     // Phases de la ligne (App\Services\LinePhases) : sélecteur à côté de la carte.
+    // Diagramme « où et quand » de la fiche (LineSpaceTime.svelte) : la ligne déroulée, une bande par phase.
+    'spacetime' => [
+        'intro' => 'Chaque bande montre la ligne entière, d’un bout à l’autre, à une date où elle change : on voit où elle a ouvert, perdu ses voyageurs, fermé, été déposée ou rouverte. Un trait sous la bande marque ce qui change à cette date. Choisissez une date pour lire ses événements et leurs sources.',
+        'label' => 'La ligne date par date',
+        'label_ends' => 'La ligne date par date, de :from à :to',
+        'legend' => 'Légende du diagramme',
+        'changed' => 'Change à cette date',
+        'state' => 'État : :list.',
+        'state_part' => ':state du km :from au km :to',
+        'range' => 'Du km :from au km :to',
+        'since' => 'Depuis : :date',
+        'loading' => 'Lecture du tracé…',
+        'failed' => 'Le tracé de la ligne n’a pas pu être lu : le diagramme n’est pas disponible.',
+        'order_note' => 'Kilomètres comptés le long du tracé connu, dans l’ordre des points kilométriques ; un embranchement est placé à la suite de la ligne principale.',
+    ],
+
     'phases' => [
         'title' => 'Phases de la ligne',
         'intro' => 'La ligne entière à chaque date où la voie ou le trafic change, d’après les dates des sources. La carte s’ouvre sur la ligne à sa longueur maximale ; choisissez une phase pour voir son état complet à cette date.',
@@ -307,6 +329,8 @@ return [
         'col_fact' => 'Fait et source',
         'col_status' => 'Usage sur la fiche',
         'differs_from' => 'Autre date pour le même fait :',
+        'correct' => 'Corriger',
+        'correct_label' => 'Proposer une correction : :event, :date',
         'conflict_title' => 'Les sources divergent',
         'status' => [
             'retained' => 'Retenu',
@@ -546,6 +570,7 @@ return [
     'toc' => [
         'label' => 'Sommaire de la fiche',
         'trace' => 'Tracé',
+        'spacetime' => 'Où et quand',
         'about' => 'À propos',
         'history' => 'Histoire',
         'decades' => 'Décennies',
@@ -553,14 +578,24 @@ return [
         'sections' => 'Sections',
         'heritage' => 'Train touristique',
         'tech' => 'Technique',
+        'schematic' => 'Schéma',
         'profile' => 'Profil en long',
+        'speeds' => 'Vitesses',
+        'electrification' => 'Électrification',
         'level-crossings' => 'Passages à niveau',
         'greenways' => 'Voie verte',
+        'structures' => 'Ouvrages d’art',
         'chronicle' => 'Chronologie',
         'materials' => 'Matériel',
         'accidents' => 'Accidents',
         'gallery' => 'Photos',
+        'further-reading' => 'Pour aller plus loin',
         'archives' => 'Archives',
         'notes' => 'Sources',
+    ],
+
+    // Données structurées (JSON-LD) de la fiche ligne.
+    'json_ld' => [
+        'length' => 'Longueur officielle (km)',
     ],
 ];

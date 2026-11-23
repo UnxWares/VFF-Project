@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 13 janvier 1906, d\'après Le Matin du 14 janvier : vers 15 h, un train de marchandises qui manœuvre en gare d\'Auterive pour laisser passer l\'express venant de Toulouse déraille sur un aiguillage ; les wagons télescopent la machine, qui verse, chaudière percée ; le chauffeur et le chef de train sont tués, le mécanicien est brûlé.',
         ],
         'vaderland-1906-01-15' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het vaderland du 15 janvier 1906',
-            'publisher' => 'Het vaderland',
+            'publisher' => 'Het vaderland (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1906-01-15',
             'locator' => null,

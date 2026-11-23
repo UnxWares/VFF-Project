@@ -33,7 +33,7 @@ return [
         'reading_other' => ':count minute read',
         'toc' => 'Article contents',
         'fallback' => 'This article is not available in English yet: here is the original French text.',
-        'disclosure_title' => 'Declaration of interest',
+        'disclosure_title' => 'Commitment',
         'cited' => 'In the encyclopaedia',
         'cited_lines' => 'Lines',
         'cited_stations' => 'Stations',

@@ -120,6 +120,8 @@ class EnumRulesTest extends TestCase
             yield $system => [$system, SignallingRole::Cab];
         }
         yield 'KVB' => ['KVB', SignallingRole::SpeedControl];
+        yield 'CC' => ['CC', SignallingRole::RemoteControl];
+        yield 'CCVU n’est pas un code' => ['CCVU', null];
         yield 'BAL sans préfixe exact' => ['BALX', null];
     }
 
@@ -131,8 +133,9 @@ class EnumRulesTest extends TestCase
 
     public function test_licences_accepted_for_an_uploaded_image(): void
     {
-        $this->assertSame(['public_domain', 'cc0-1.0', 'cc-by-4.0', 'cc-by-sa-4.0', 'etalab-2.0'], ContentLicense::mediaValues());
-        $this->assertSame([ContentLicense::PublicDomain, ContentLicense::Cc0, ContentLicense::CcBy4, ContentLicense::CcBySa4, ContentLicense::Etalab2],
+        $this->assertSame(['public_domain', 'cc0-1.0', 'cc-by-4.0', 'cc-by-3.0', 'cc-by-2.5', 'cc-by-2.0', 'cc-by-sa-4.0',
+            'cc-by-sa-3.0', 'cc-by-sa-2.5', 'cc-by-sa-2.0', 'etalab-2.0'], ContentLicense::mediaValues());
+        $this->assertSame([...array_filter(ContentLicense::cases(), fn (ContentLicense $l): bool => ! in_array($l, [ContentLicense::AllRightsReserved, ContentLicense::Unknown], true))],
             ContentLicense::forMedia());
         $this->assertFalse(ContentLicense::AllRightsReserved->allowsMedia());
         $this->assertTrue(ContentLicense::Etalab2->allowsMedia());
@@ -145,6 +148,9 @@ class EnumRulesTest extends TestCase
         yield 'CC0' => [ContentLicense::Cc0, 'CC0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'public_domain', false];
         yield 'CC BY' => [ContentLicense::CcBy4, 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/', 'open_license', true];
         yield 'CC BY-SA' => [ContentLicense::CcBySa4, 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/', 'open_license', true];
+        yield 'CC BY 2.5' => [ContentLicense::CcBy25, 'CC BY 2.5', 'https://creativecommons.org/licenses/by/2.5/', 'open_license', true];
+        yield 'CC BY-SA 3.0' => [ContentLicense::CcBySa3, 'CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/', 'open_license', true];
+        yield 'CC BY-SA 2.0' => [ContentLicense::CcBySa2, 'CC BY-SA 2.0', 'https://creativecommons.org/licenses/by-sa/2.0/', 'open_license', true];
         yield 'Licence Ouverte' => [ContentLicense::Etalab2, 'Licence Ouverte 2.0', 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/', 'open_license', true];
         yield 'tous droits réservés' => [ContentLicense::AllRightsReserved, 'Tous droits réservés', null, 'unknown', false];
         yield 'inconnue' => [ContentLicense::Unknown, 'Licence inconnue', null, 'unknown', false];
@@ -154,6 +160,17 @@ class EnumRulesTest extends TestCase
     public function test_licence_names_links_rights_and_attribution(ContentLicense $licence, string $label, ?string $url, string $rights, bool $attribution): void
     {
         $this->assertSame([$label, $url, $rights, $attribution], [$licence->label(), $licence->url(), $licence->rightsStatus(), $licence->attributionRequired()]);
+    }
+
+    public function test_licence_families_and_versions(): void
+    {
+        $this->assertSame(['public_domain', null], [ContentLicense::PublicDomain->family(), ContentLicense::PublicDomain->version()]);
+        $this->assertSame(['cc0', '1.0'], [ContentLicense::Cc0->family(), ContentLicense::Cc0->version()]);
+        $this->assertSame(['cc-by', '2.5'], [ContentLicense::CcBy25->family(), ContentLicense::CcBy25->version()]);
+        $this->assertSame(['cc-by-sa', '3.0', true], [ContentLicense::CcBySa3->family(), ContentLicense::CcBySa3->version(), ContentLicense::CcBySa3->shareAlike()]);
+        $this->assertFalse(ContentLicense::CcBy2->shareAlike());
+        $this->assertSame(['etalab', '2.0'], [ContentLicense::Etalab2->family(), ContentLicense::Etalab2->version()]);
+        $this->assertSame([null, null], [ContentLicense::AllRightsReserved->version(), ContentLicense::Unknown->version()]);
     }
 
     public function test_cab_signalling_without_version_or_level(): void

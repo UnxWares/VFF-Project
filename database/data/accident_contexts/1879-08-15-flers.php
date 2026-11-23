@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Flers du 15 août 1879 (recherche du 21/11/2026).
 return [
     'slug' => '1879-08-15-flers',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -47,9 +47,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Liste non exhaustive des accidents des lignes de l\'Ouest et de l\'État ; une ligne pour 1879 : déraillement d\'un train d\'Argentan à Granville entre Flers et Montsecret-Vassy, sans bilan. Auteur non indiqué.',
         ],
+        'ddb-1879-08-19-nationale' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nationale Emscher Zeitung du 19 août 1879',
+            'publisher' => 'Nationale Emscher Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1879-08-19',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/BCTSXBO3SJEGFWUMCIUXGQGSLOI6TGW7?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 16 août : hier, entre Flers et Montsecret, un train de voyageurs heurte un train de marchandises dans une tranchée assez profonde et une courbe prononcée.',
+        ],
+        'kb-1879-08-20-opregte-haarlemsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'MEDEDEELINGEN VAN VERSCHILLENDEN AARD.',
+            'publisher' => 'Opregte Haarlemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1879-08-20',
+            'locator' => 'article « MEDEDEELINGEN VAN VERSCHILLENDEN AARD. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000004044:mpeg21:a00013:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 20 août : l\'accident entre Flers et Montsecret serait dû à un instant d\'inattention du sous-chef de la gare de Flers, qui a donné le signal du départ.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'La Nationale Emscher Zeitung du 19 août 1879 rapporte, dans une dépêche de Paris du 16, qu\'entre Flers et Montsecret un train de voyageurs a heurté la veille (le 15 août) un train de marchandises dans une tranchée assez profonde et une courbe prononcée, ce qui a empêché les mécaniciens de freiner à temps. Date, lieu et nature sont confirmés ; l\'extrait lu ne donne pas le bilan.',
+                'en' => 'The Nationale Emscher Zeitung of 19 August 1879 reports, in a Paris dispatch of the 16th, that between Flers and Montsecret a passenger train hit a goods train the day before (15 August) in a fairly deep cutting and a sharp curve, which prevented the drivers from braking in time. Date, place and nature are confirmed; the extract read does not give the toll.',
+                'de' => 'Die Nationale Emscher Zeitung vom 19. August 1879 berichtet in einer Pariser Meldung vom 16., zwischen Flers und Montsecret sei am Vortag (15. August) ein Personenzug in einem ziemlich tiefen Einschnitt und einer starken Kurve mit einem Güterzug zusammengestoßen, was die Lokführer am rechtzeitigen Bremsen hinderte. Datum, Ort und Art sind bestätigt; der gelesene Auszug nennt die Bilanz nicht.',
+                'sources' => ['ddb-1879-08-19-nationale'],
+            ],
             [
                 'fr' => 'Le 15 août 1879, vers 6 h 30, un train de voyageurs est entré en collision avec un train de marchandises entre les gares de Flers (Orne) et de Montsecret-Vassy, sur la ligne d\'Argentan à Granville.',
                 'en' => 'On 15 August 1879, at about 6.30 am, a passenger train collided with a goods train between the stations of Flers (Orne) and Montsecret-Vassy, on the Argentan to Granville line.',
@@ -85,6 +119,14 @@ return [
                 'en' => 'The Wikipedia list places the accident between Montsecret-Vassy and Flers, not in Flers station itself: the exact location (commune, kilometre point) is not established. Attaching the record to the commune of Flers is therefore approximate.',
                 'de' => 'Die Wikipedia-Liste verortet den Unfall zwischen Montsecret-Vassy und Flers und nicht im Bahnhof Flers selbst: Der genaue Ort (Gemeinde, Kilometerpunkt) ist nicht gesichert. Die Zuordnung der Karteikarte zur Gemeinde Flers ist daher nur ungefähr.',
                 'sources' => ['wp-liste-1870'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'L\'Opregte Haarlemsche Courant du 20 août 1879 attribue l\'accident entre Flers et Montsecret à un instant d\'inattention du sous-chef de la gare de Flers, qui aurait donné le signal du départ. Cela confirme le lieu et donne une cause ; l\'extrait lu ne donne pas le bilan.',
+                'en' => 'The Opregte Haarlemsche Courant of 20 August 1879 attributes the accident between Flers and Montsecret to a moment of inattention by the deputy station master at Flers, who is said to have given the departure signal. This confirms the place and gives a cause; the extract read does not give the toll.',
+                'de' => 'Die Opregte Haarlemsche Courant vom 20. August 1879 führt das Unglück zwischen Flers und Montsecret auf einen Augenblick der Unaufmerksamkeit des Hilfsbahnhofsvorstehers von Flers zurück, der das Abfahrtssignal gegeben haben soll. Das bestätigt den Ort und nennt eine Ursache; der gelesene Auszug nennt die Bilanz nicht.',
+                'sources' => ['kb-1879-08-20-opregte-haarlemsche-courant'],
             ],
         ],
     ],

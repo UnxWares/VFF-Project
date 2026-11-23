@@ -214,6 +214,17 @@ class VffMcpAccidentToolsTest extends TestCase
         $this->assertStringContainsString('accidents', $data['message']);
     }
 
+    public function test_accident_sheet_of_a_merged_duplicate_answers_with_the_kept_record(): void
+    {
+        $kept = Accident::query()->where('slug', '2013-07-12-bretigny-sur-orge')->sole();
+        Accident::factory()->on('2013-07-13')->create(['slug' => '2013-07-13-doublon', 'alias_of_id' => $kept->id]);
+
+        [$data, $error] = $this->tool('get_accident', ['accident' => '2013-07-13-doublon']);
+
+        $this->assertFalse($error);
+        $this->assertSame('2013-07-12-bretigny-sur-orge', $data['accident']['slug']);
+    }
+
     public function test_compare_eras_returns_the_rest_summary(): void
     {
         [$data, $error] = $this->tool('compare_eras', ['from' => 1930, 'to' => 1980]);

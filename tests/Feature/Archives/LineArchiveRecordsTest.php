@@ -173,7 +173,7 @@ class LineArchiveRecordsTest extends TestCase
     {
         $this->import();
 
-        $this->get('/lines/rfn-430000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-430000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->where('archives.total', 0)
             ->where('archive_records.total', 2)
@@ -183,7 +183,7 @@ class LineArchiveRecordsTest extends TestCase
             ->where('archive_records.items.1.reference', '33453')
             ->where('archive_records.items.1.date_precision', 'month'));
 
-        $this->get('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('archive_records.total', 0)
             ->where('archive_records.items', []));
     }

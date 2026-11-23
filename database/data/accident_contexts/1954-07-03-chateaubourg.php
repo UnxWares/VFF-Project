@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision du 3 juillet 1954 (Châteaubourg, Ardèche ; fiche « Tournon-sur-Rhône ») (recherche du 21/11/2026).
 return [
     'slug' => '1954-07-03-chateaubourg',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-de' => [
             'provider' => 'wikipedia-de',
@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Situe la collision à Châteaubourg (Ardèche), d\'après Le Progrès (30/07/2019) et Le Monde (07/07/1954).',
         ],
+        'ddb-1954-07-05-honnefer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zugzusammenstoß fordert 34 Tote',
+            'publisher' => 'Honnefer Volkszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1954-07-05',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/TIQFD2X5E2Q6FGFP4MVNVJIBZ6HUOOU2?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève : collision d\'une locomotive avec un autorail diesel, aiguillages mal placés ; 34 morts identifiés et 30 blessés selon les rapports disponibles.',
+        ],
+        'kb-1954-07-05-de-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Franse treinramp eist 34 doden',
+            'publisher' => 'De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1954-07-05',
+            'locator' => 'article « Franse treinramp eist 34 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ABCDDD:010843785:mpeg21:a0088:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche AP et Reuter du 4 juillet : au moins 34 morts et 27 blessés graves ; samedi soir, près du village de Châteaubourg, un train de marchandises heurte un train de voyageurs de quatre voitures.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -86,6 +114,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Honnefer Volkszeitung du 5 juillet 1954 titre sur 34 morts et 30 blessés à la suite du heurt d\'une locomotive contre un autorail diesel, avec des aiguillages mal placés ; la brève ne nomme pas le lieu dans la partie lue. Bilan de la fiche : 33 morts.',
+                'en' => 'The Honnefer Volkszeitung of 5 July 1954 headlines 34 dead and 30 injured after a locomotive ran into a diesel railcar, with points set wrongly; the part read does not name the place. Record toll: 33 dead.',
+                'de' => 'Die Honnefer Volkszeitung vom 5. Juli 1954 meldet 34 Tote und 30 Verletzte, nachdem eine Lokomotive in einen Dieseltriebwagen gerast war, bei falsch gestellten Weichen; im gelesenen Teil wird der Ort nicht genannt. Bilanz der Datenbank: 33 Tote.',
+                'sources' => ['ddb-1954-07-05-honnefer'],
+            ],
+            [
+                'fr' => 'La Volkskrant du 5 juillet 1954 (dépêche AP et Reuter du 4) situe la collision le samedi soir (3 juillet) près du village de Châteaubourg, un train de marchandises ayant heurté un train de voyageurs de quatre voitures, avec au moins 34 morts et 27 blessés graves, contre 33 morts dans la fiche. Date, lieu et nature sont confirmés.',
+                'en' => 'The Volkskrant of 5 July 1954 (AP and Reuter dispatch of the 4th) places the collision on Saturday evening (3 July) near the village of Châteaubourg, a goods train having run into a four-carriage passenger train, with at least 34 dead and 27 seriously injured, against 33 dead in the record. Date, place and nature are confirmed.',
+                'de' => 'Die Volkskrant vom 5. Juli 1954 (AP- und Reuter-Meldung vom 4.) verlegt den Zusammenstoß auf den Samstagabend (3. Juli) in die Nähe des Dorfes Châteaubourg, wo ein Güterzug auf einen aus vier Wagen bestehenden Reisezug auffuhr, mit mindestens 34 Toten und 27 Schwerverletzten, gegenüber 33 Toten in der Datenbank. Datum, Ort und Art sind bestätigt.',
+                'sources' => ['kb-1954-07-05-de-volkskrant'],
+            ],
             [
                 'fr' => 'Les messages de forum comptent 37 morts, dont 2 décédés plus tard des suites de l\'accident, et près de 50 blessés ; l\'article allemand donne 33 morts sans mentionner de blessés.',
                 'en' => 'The forum posts count 37 dead, 2 of whom died later of their injuries, and nearly 50 injured; the German article gives 33 dead and does not mention injured.',

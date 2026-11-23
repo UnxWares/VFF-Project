@@ -28,7 +28,7 @@
   "lines": {
    "data": [
     {
-     "slug": "archeo-antenne-de-la-flotte",
+     "slug": "antenne-de-la-flotte",
      "code": null,
      "name": "Antenne de La Flotte",
      "network": "secondaire",
@@ -38,7 +38,7 @@
      "heritage": false
     },
     {
-     "slug": "archeo-antenne-militaire-de-hessange-1930-1940",
+     "slug": "antenne-militaire-de-hessange-1930-1940",
      "code": null,
      "name": "Antenne militaire de Hessange (1930-1940)",
      "network": "militaire",

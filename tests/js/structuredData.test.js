@@ -10,6 +10,8 @@ import {
     shorten,
     stationSchema,
     websiteSchema,
+    communeSchema,
+    datasetSchema,
     wikidataUrl,
     wikipediaUrl,
 } from '../../resources/js/lib/structuredData.js';
@@ -88,18 +90,27 @@ describe('websiteSchema', () => {
     });
     const [site, org] = data['@graph'];
 
-    it('décrit le site et sa recherche vers l’annuaire des lignes', () => {
+    it('décrit le site et sa recherche vers la page de résultats', () => {
         expect(site['@type']).toBe('WebSite');
         expect(site.url).toBe('https://vff-project.org/');
         expect(site.potentialAction.target.urlTemplate).toBe(
-            'https://vff-project.org/lines?q={search_term_string}',
+            'https://vff-project.org/search?q={search_term_string}',
         );
         expect(site.potentialAction['query-input']).toBe('required name=search_term_string');
         expect(site.publisher['@id']).toBe(org['@id']);
     });
-    it('nomme UnxWares comme éditeur, sans logo inventé', () => {
-        expect(org).toMatchObject({ '@type': 'Organization', name: 'UnxWares' });
-        expect(org.logo).toBeUndefined();
+    it('nomme UnxWares comme éditeur, avec l’icône du site pour logo', () => {
+        expect(org).toMatchObject({
+            '@type': 'Organization',
+            name: 'UnxWares',
+            legalName: 'UnxWares SAS',
+        });
+        expect(org.logo).toEqual({
+            '@type': 'ImageObject',
+            url: 'https://vff-project.org/icons/icon-512.png',
+            width: 512,
+            height: 512,
+        });
     });
 });
 
@@ -118,6 +129,16 @@ describe('breadcrumbSchema', () => {
             },
             { '@type': 'ListItem', position: 2, name: 'Lignes', item: `${ORIGIN}/lines` },
         ]);
+    });
+});
+
+describe('imageObject, légende par langue', () => {
+    const media = { ...MEDIA, caption: 'La gare en 1962', captions: { en: 'The station in 1962' } };
+
+    it('prend la légende de la langue de la page, sinon la principale', () => {
+        expect(imageObject(media, 'en').caption).toBe('The station in 1962');
+        expect(imageObject(media, 'de').caption).toBe('La gare en 1962');
+        expect(imageObject(media).caption).toBe('La gare en 1962');
     });
 });
 
@@ -185,6 +206,118 @@ describe('lineSchema', () => {
         expect(Object.keys(data).sort()).toEqual(
             ['@context', '@id', '@type', 'additionalType', 'name', 'url'].sort(),
         );
+    });
+});
+
+describe('lineSchema : terminus, longueur, ligne touristique', () => {
+    const line = {
+        slug: 'rfn-1',
+        name: 'Ligne touristique',
+        current_traffic: 'heritage',
+        facts: [
+            { key: 'length', scope: 'item', km: 409 },
+            { key: 'length', scope: 'line', km: 12.5 },
+        ],
+    };
+    const stations = [
+        { slug: 'a', name: 'Départ', is_terminal: true },
+        { slug: 'm', name: 'Milieu', is_terminal: false },
+        { slug: 'z', name: 'Arrivée', is_terminal: true },
+    ];
+    it('cite les gares terminus et la longueur de la ligne entière', () => {
+        const data = compact(
+            lineSchema({ origin: ORIGIN, line, stations, lengthLabel: 'Longueur' }),
+        );
+        expect(data['@type']).toBe('TouristAttraction');
+        expect(data.containsPlace.map((s) => s.name)).toEqual(['Départ', 'Arrivée']);
+        expect(data.containsPlace[0].url).toBe(`${ORIGIN}/stations/a`);
+        expect(data.additionalProperty).toMatchObject({
+            name: 'Longueur',
+            value: 12.5,
+            unitCode: 'KMT',
+        });
+    });
+    it('reste un lieu quand le trafic n’est pas touristique, sans longueur sans fait', () => {
+        const data = compact(
+            lineSchema({ origin: ORIGIN, line: { ...line, current_traffic: 'mixed', facts: [] } }),
+        );
+        expect(data['@type']).toBe('Place');
+        expect(data.additionalProperty).toBeUndefined();
+        expect(data.containsPlace).toBeUndefined();
+    });
+});
+
+describe('communeSchema', () => {
+    it('décrit la ville, son code INSEE, son département et ses gares', () => {
+        const data = compact(
+            communeSchema({
+                origin: ORIGIN,
+                commune: {
+                    slug: '93010-bondy',
+                    name: 'Bondy',
+                    insee: '93010',
+                    department_name: 'Seine-Saint-Denis',
+                },
+                stations: [{ slug: 'bondy', name: 'Bondy' }],
+            }),
+        );
+        expect(data['@type']).toBe('City');
+        expect(data.identifier.value).toBe('93010');
+        expect(data.containedInPlace.name).toBe('Seine-Saint-Denis');
+        expect(data.containsPlace[0].url).toBe(`${ORIGIN}/stations/bondy`);
+    });
+    it('cite 20 gares au plus', () => {
+        const stations = Array.from({ length: 30 }, (_, i) => ({ slug: `s${i}`, name: `S${i}` }));
+        expect(
+            communeSchema({ origin: ORIGIN, commune: { slug: 'x', name: 'X' }, stations })
+                .containsPlace,
+        ).toHaveLength(20);
+    });
+});
+
+describe('datasetSchema', () => {
+    const datasets = [
+        {
+            kind: 'events',
+            generated_on: '2026-11-20',
+            archive: { url: '/downloads/open-data/events.zip', bytes: 1000 },
+            files: [
+                { name: 'events.csv', url: '/downloads/open-data/events/events.csv', bytes: 4000 },
+            ],
+        },
+        {
+            kind: 'network',
+            era: 2030,
+            archive: { url: '/downloads/open-data/n.zip', bytes: 2000 },
+            files: [
+                { name: 'lines.geojson', url: '/downloads/open-data/n/lines.geojson', bytes: 9000 },
+            ],
+        },
+    ];
+    const data = compact(
+        datasetSchema({
+            origin: ORIGIN,
+            datasets,
+            licence: { url: 'https://opendatacommons.org/licenses/odbl/1-0/' },
+            name: 'Données ouvertes',
+            description: 'Description',
+            lang: 'fr',
+            siteName: 'Voies Ferrées de France',
+            partName: (d) => d.kind,
+            partDescription: (d) => `desc ${d.kind}`,
+        }),
+    );
+    it('est sous licence ODbL, avec un jeu par entrée et ses fichiers', () => {
+        expect(data['@type']).toBe('Dataset');
+        expect(data.license).toBe('https://opendatacommons.org/licenses/odbl/1-0/');
+        expect(data.isAccessibleForFree).toBe(true);
+        expect(data.hasPart).toHaveLength(2);
+        expect(data.hasPart[0].distribution[0].contentUrl).toBe(
+            `${ORIGIN}/downloads/open-data/events.zip`,
+        );
+        expect(data.hasPart[0].distribution[1].encodingFormat).toBe('text/csv');
+        expect(data.hasPart[1].distribution[1].encodingFormat).toBe('application/geo+json');
+        expect(data.creator.legalName).toBe('UnxWares SAS');
     });
 });
 

@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article de l\'époque cité par Wikipédia, repéré et non lu (archives payantes, adresse précise non retrouvée) ; à consulter directement.',
         ],
+        'kb-1974-08-05-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp met tien doden in Bretagne',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1974-08-05',
+            'locator' => 'article « Treinramp met tien doden in Bretagne », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010619708:mpeg21:a0058:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 5 août : « hier soir », l\'express Caen-Rennes déraille dans une courbe près de Dol-de-Bretagne ; dix morts, dont le conducteur (d\'autres journaux du même jour parlent d\'abord de six).',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '35095', 'deaths' => 10],
+        ],
     ],
     'sections' => [
         'circumstances' => [

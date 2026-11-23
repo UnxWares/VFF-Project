@@ -144,7 +144,7 @@ final class SignallingCorrectionsFile
         if (! is_array($t) || ! in_array($t['source'] ?? null, self::TARGET_SOURCES, true)) {
             return 'fait visé : source inconnue (wikipedia ou manual)';
         }
-        if (! preg_match('/^(?:BAL|BAPR|BM|CT|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/D', (string) ($t['system'] ?? ''))) {
+        if (! preg_match('/^(?:BAL|BAPR|BM|CT|CC|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/D', (string) ($t['system'] ?? ''))) {
             return 'fait visé : système inconnu';
         }
         if (! preg_match('/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/D', (string) ($t['date'] ?? ''))) {

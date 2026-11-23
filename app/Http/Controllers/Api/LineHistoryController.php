@@ -40,10 +40,10 @@ class LineHistoryController extends Controller
      * - `accident`, `other`.
      *
      * `source` indique la provenance (`wikipedia`, `wikidata`, `ohm`,
-     * `lignes-oubliees`, `archeoferroviaire`, `osm`, `manual`…) et
+     * `lignes-oubliees`, `osm`, `manual`…) et
      * `source_url` le document consulté : citez-les en réutilisant la donnée.
-     * Les événements `archeoferroviaire` ne sont pas sous ODbL : usage non
-     * commercial uniquement, avec un crédit et un lien vers `source_url`.
+     * Les événements d'un fournisseur à `open_licence: false` (voir `/sources`)
+     * ne sont pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers `source_url`.
      *
      * **`status_by_era`** : pour chaque ère (instantané au 31/12 de l'année,
      * 2030 = aujourd'hui) où la ligne a des tronçons, le statut et le trafic

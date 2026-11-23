@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne Mézières-Charleville-Hirson, à un kilomètre de la gare, express pour Lille, trois morts, une vingtaine de blessés, fanfare ; renvoie à Le Figaro du 11 août 1902 (non lu).',
         ],
         'delpher-courant-1902-08-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het spoorwegongeluk te Mézières',
@@ -34,7 +34,7 @@ return [
             'note' => 'Presse néerlandaise reprenant les journaux français : déroulement, bilan (trois morts, dix-neuf blessés dont dix graves), cause non établie.',
         ],
         'delpher-vlaardingsche-1902-08-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Nieuwsberichten',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêche du 10 août : départ de Charleville à 6 h 50, société de musique de 200 personnes du personnel des ateliers de Mohon, tender sorti des rails.',
         ],
         'delpher-middelburgsche-1902-08-12' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Middelburgsche Courant du 12 août 1902',

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Amiens du 13 août 1925 (recherche du 21/11/2026).
 return [
     'slug' => '1925-08-13-amiens',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1925' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,35 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article d\'anniversaire détaillé (horaires, vitesses relevées, secours, mécanicien inculpé) ; pas de compte rendu de procès.',
         ],
+        'ddb-1925-08-15-hamburger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hamburger Echo du 15 août 1925',
+            'publisher' => 'Hamburger Echo (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1925-08-15',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/XLBHQKUPRWS4J7RML73AWRZANC2CZWAJ?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 15 août : accident de jeudi après-midi avant l\'entrée en gare d\'Amiens, vitesse excessive, freins défaillants au dernier moment ; 11 morts, 160 blessés graves et 75 légers.',
+        ],
+        'kb-1925-08-14-nieuwenhuis' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De spoorwegramp bij Amiens.',
+            'publisher' => 'Nieuwenhuis (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1925-08-14',
+            'locator' => 'article « De spoorwegramp bij Amiens. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010668586:mpeg21:a0006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche d\'Amiens du 14 août : « hier soir », déraillement en gare d\'Amiens ; 11 morts d\'après le dernier télégramme, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '80021', 'deaths' => 11, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -72,6 +101,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Hamburger Echo du 15 août 1925 rapporte l\'accident du jeudi après-midi (13 août) avant l\'entrée en gare d\'Amiens, dû avant tout à une vitesse excessive, avec 11 morts, 160 blessés graves et 75 blessés légers selon les derniers chiffres, contre 12 morts et 160 blessés dans la fiche. Date, lieu et nature sont confirmés ; le bilan diffère d\'un mort.',
+                'en' => 'The Hamburger Echo of 15 August 1925 reports the accident of Thursday afternoon (13 August) before the entry into Amiens station, due above all to excessive speed, with 11 dead, 160 seriously and 75 lightly injured according to the latest figures, against 12 dead and 160 injured in the record. Date, place and nature are confirmed; the toll differs by one death.',
+                'de' => 'Das Hamburger Echo vom 15. August 1925 berichtet über das Unglück vom Donnerstagnachmittag (13. August) vor der Einfahrt in den Bahnhof Amiens, vor allem wegen überhöhter Geschwindigkeit, mit 11 Toten, 160 Schwer- und 75 Leichtverletzten nach den letzten Zahlen, gegenüber 12 Toten und 160 Verletzten in der Datenbank. Datum, Ort und Art sind bestätigt; die Bilanz weicht um einen Toten ab.',
+                'sources' => ['ddb-1925-08-15-hamburger'],
+            ],
             [
                 'fr' => 'L\'accident a fait 12 morts et environ 160 blessés, dont une soixantaine à 70 grièvement atteints selon France 3. Neuf corps ont été retirés d\'abord des décombres, dont celui du chef de train, et quatre victimes sont mortes après les premiers secours.',
                 'en' => 'The accident left 12 dead and about 160 injured, around 70 of them seriously according to France 3. Nine bodies were first recovered from the wreckage, including the train manager, and four victims died after the first rescue.',

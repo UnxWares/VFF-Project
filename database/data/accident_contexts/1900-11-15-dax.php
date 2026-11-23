@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident du Sud-Express près de Dax du 15 novembre 1900 (recherche du 21/11/2026).
 return [
     'slug' => '1900-11-15-dax',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1900' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Message de forum sans source citée : Saint-Geours-de-Maremne, 15 novembre 1900, 14 morts ; ni heure ni cause.',
         ],
+        'ddb-1900-11-19-general-anzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'General-Anzeiger für Dortmund du 19 novembre 1900',
+            'publisher' => 'General-Anzeiger für Dortmund (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1900-11-19',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/X77G3XBEB3CJLBZKU5J4O7E7EOLHSKRN?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Récit : 13 corps mutilés, train de 34 voyageurs dont 30 dans le wagon-restaurant, la chaîne se rompt derrière le wagon-restaurant qui bascule ; la duchesse Canevaro cherche son mari parmi les morts ; blessés soignés à Dax et Bayonne ; dépêche de Paris du 17 novembre.',
+        ],
+        'kb-1900-11-19-rotterdamsch-nieuwsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Gemengd Nieuws. De Spoorwegengelukkenreeks zet',
+            'publisher' => 'Rotterdamsch Nieuwsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-11-19',
+            'locator' => 'article « Gemengd Nieuws. De Spoorwegengelukkenreeks zet », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBDDD02:000203264:mpeg21:a0078:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 19 novembre : catastrophe du Sud-Express près de Dax, dans le sud de la France ; au total 14 morts, dont 3 morts avant-hier soir de leurs blessures.',
+        ],
+        'kb-1900-11-17-oukoop' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'Gebr. Oukoop (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-11-17',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001943386:mpeg21:a00010:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Bayonne datée du 15 novembre : le Sud-Express déraille près de Dax et roule sur une digue ; douze morts comptés jusque-là, bilan provisoire.',
+            'facts' => ['date' => '1900-11-15', 'commune_insee' => '40088', 'deaths' => 12, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -86,6 +129,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le General-Anzeiger für Dortmund du 19 novembre 1900 décrit l\'accident de Dax, avec 13 corps mutilés, un train de 34 voyageurs dont 30 dans le wagon-restaurant, et des blessés soignés à Dax et à Bayonne, selon une dépêche de Paris du 17 novembre. Cela confirme le lieu et le bilan de 13 morts de la fiche.',
+                'en' => 'The General-Anzeiger für Dortmund of 19 November 1900 describes the Dax accident, with 13 mutilated bodies, a train of 34 passengers, 30 of them in the dining car, and injured treated at Dax and Bayonne, according to a Paris dispatch of 17 November. This confirms the place and the toll of 13 dead in the record.',
+                'de' => 'Der General-Anzeiger für Dortmund vom 19. November 1900 beschreibt das Unglück von Dax mit 13 verstümmelten Leichen, einem Zug mit 34 Reisenden, davon 30 im Speisewagen, und in Dax und Bayonne gepflegten Verwundeten, nach einer Pariser Meldung vom 17. November. Das bestätigt den Ort und die Bilanz von 13 Toten der Datenbank.',
+                'sources' => ['ddb-1900-11-19-general-anzeiger'],
+            ],
+            [
+                'fr' => 'Le Rotterdamsch Nieuwsblad du 19 novembre 1900 parle de la catastrophe du Sud-Express près de Dax et compte 14 morts au total, dont trois blessés morts l\'avant-veille au soir, contre 13 dans la fiche et dans la presse allemande du même jour. Le lieu est confirmé ; l\'écart d\'un mort tient à ces décès tardifs.',
+                'en' => 'The Rotterdamsch Nieuwsblad of 19 November 1900 reports the Sud-Express disaster near Dax and counts 14 dead in all, including three injured who died the evening before last, against 13 in the record and in the German press of the same day. The place is confirmed; the difference of one death comes from these late deaths.',
+                'de' => 'Das Rotterdamsch Nieuwsblad vom 19. November 1900 berichtet über die Katastrophe des Sud-Express bei Dax und zählt insgesamt 14 Tote, darunter drei am vorletzten Abend gestorbene Verletzte, gegenüber 13 in der Datenbank und in der deutschen Presse desselben Tages. Der Ort ist bestätigt; der Unterschied von einem Toten rührt von diesen späten Todesfällen.',
+                'sources' => ['kb-1900-11-19-rotterdamsch-nieuwsblad'],
+            ],
             [
                 'fr' => 'Selon Wikipédia en anglais, la plupart des victimes se trouvaient dans le wagon-restaurant, où une trentaine de voyageurs déjeunaient ; le train transportait 34 voyageurs et 13 membres du personnel. Le câble télégraphique étant coupé, la nouvelle n\'est parvenue à Dax qu\'à 15 h 30 ; les premiers secours sont venus de Bayonne, et des paysans avaient évacué entre-temps des blessés vers une ferme voisine. La circulation a repris vers 18 h sur une voie provisoire.',
                 'en' => 'According to English Wikipedia, most victims were in the dining car, where about thirty passengers were having lunch; the train carried 34 passengers and 13 staff. With the telegraph cable cut, news reached Dax only at 3.30 pm; the first relief came from Bayonne, and local farmers had meanwhile taken injured people to a nearby farm. Traffic resumed at about 6 pm on a temporary track.',

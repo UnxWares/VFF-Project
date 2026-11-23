@@ -7,7 +7,7 @@ namespace App\Support\Monitoring;
  * requête ni fragment (donc sans `?signature=` d'une URL signée), et sans secret dans le chemin. Un segment
  * de 32 caractères ou plus (lettres, chiffres, `-`, `_`) qui ressemble à un jeton devient `[token]` : le
  * jeton de `/reset-password/{token}` (64 caractères) ne doit pas sortir avec l'erreur d'une page qui le
- * porte. Un slug de mots en minuscules séparés par des tirets (`archeo-ligne-de-boulogne-ville-a-bonningues`)
+ * porte. Un slug de mots en minuscules séparés par des tirets (`ligne-de-boulogne-ville-a-bonningues`)
  * reste lisible ; un UUID ou une suite hexadécimale est un jeton.
  */
 final class RedactedUrl

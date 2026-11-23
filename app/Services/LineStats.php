@@ -89,22 +89,20 @@ final class LineStats
         // Longueur de LIGNE (route-km) depuis la géométrie officielle SNCF
         // (centerline simple) plutôt que la somme des voies OSM (track-km, ~×2
         // en double voie). Fallback OSM pour les lignes hors référentiel SNCF.
-        $sncfKm = $line->code
-            ? (float) (DB::selectOne(
-                'SELECT SUM(ST_Length(geom::geography)) / 1000.0 AS km FROM sncf_line_geometries WHERE code_ligne = ?',
-                [$line->code],
-            )->km ?? 0)
-            : 0.0;
+        // Tension dominante (MODE) parmi les segments électrifiés - évite qu'une
+        // valeur OSM aberrante isolée (MAX) fausse l'affichage. Contrôle KVB de l'ère.
+        // Trois lectures indexées réunies en une (chantier « budget des fiches » du 23/11/2026).
+        $scalars = DB::selectOne(
+            'SELECT (SELECT SUM(ST_Length(geom::geography)) / 1000.0 FROM sncf_line_geometries WHERE code_ligne = ?) AS sncf_km,
+                    (SELECT MODE() WITHIN GROUP (ORDER BY voltage_v) FROM line_segments
+                      WHERE line_id = ? AND era_id = ? AND electrified AND voltage_v IS NOT NULL) AS voltage_v,
+                    (SELECT BOOL_OR(kvb_equipped) FROM line_signalling WHERE line_id = ? AND era_id = ?) AS any_kvb',
+            [$line->code, $line->id, $eraId, $line->id, $eraId],
+        );
+        $sncfKm = $line->code ? (float) ($scalars->sncf_km ?? 0) : 0.0;
         $totalLenM = (float) ($stats->total_len_m ?? 0);
         $routeKm = $sncfKm > 0 ? $sncfKm : $totalLenM / 1000.0;
-
-        // Tension dominante (MODE) parmi les segments électrifiés - évite qu'une
-        // valeur OSM aberrante isolée (MAX) fausse l'affichage.
-        $voltageV = DB::selectOne(
-            'SELECT MODE() WITHIN GROUP (ORDER BY voltage_v) AS v
-             FROM line_segments WHERE line_id = ? AND era_id = ? AND electrified AND voltage_v IS NOT NULL',
-            [$line->id, $eraId],
-        )?->v;
+        $voltageV = $scalars->voltage_v ?? null;
 
         $electrifiedPct = $totalLenM > 0 ? (int) round((float) $stats->elec_len_m / $totalLenM * 100) : 0;
 
@@ -115,27 +113,27 @@ final class LineStats
         // avant le BAL des raccordements) ; contrôle de vitesse sans la signalisation
         // en cabine déjà citée (la TVM est les deux : une seule mention). Une tranche à deux
         // systèmes (ETCS niveau 2 et TVM, `signalling_systems`) compte pour chacun des deux.
-        $sigAgg = DB::selectOne(
-            'SELECT BOOL_OR(kvb_equipped) AS any_kvb FROM line_signalling WHERE line_id = ? AND era_id = ?',
-            [$line->id, $eraId],
-        );
-        $signallingCoverage = array_map(fn ($r) => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)], DB::select(
-            'SELECT s.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
+        // Signalisation et contrôle de vitesse lus ensemble (`kind`), chacun dans son ordre.
+        $coverage = collect(DB::select(
+            "SELECT 'signalling' AS kind, s.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
              FROM line_signalling ls
              CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_array_length(ls.signalling_systems) > 0
                  THEN ls.signalling_systems ELSE jsonb_build_array(ls.signalling) END) AS s(code)
              WHERE ls.line_id = ? AND ls.era_id = ? AND ls.signalling IS NOT NULL
-             GROUP BY s.code ORDER BY m DESC, s.code',
-            [$line->id, $eraId],
-        ));
-        $cabCodes = array_values(array_filter(array_column($signallingCoverage, 'code'), fn ($c) => (bool) preg_match('/^(TVM-|ETCS_|ERTMS_)/', (string) $c)));
-        $protectionCoverage = array_values(array_filter(array_map(fn ($r) => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)], DB::select(
-            'SELECT p.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
+             GROUP BY s.code
+             UNION ALL
+             SELECT 'protection' AS kind, p.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
              FROM line_signalling ls, jsonb_array_elements_text(ls.train_protection::jsonb) AS p(code)
              WHERE ls.line_id = ? AND ls.era_id = ? AND ls.train_protection IS NOT NULL
-             GROUP BY p.code ORDER BY m DESC, p.code',
-            [$line->id, $eraId],
-        )), fn ($p) => ! in_array($p['code'], $cabCodes, true)));
+             GROUP BY p.code
+             ORDER BY kind, m DESC, code",
+            [$line->id, $eraId, $line->id, $eraId],
+        ))->groupBy('kind');
+        $km = fn ($r): array => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)];
+        $signallingCoverage = $coverage->get('signalling', collect())->map($km)->values()->all();
+        $cabCodes = array_values(array_filter(array_column($signallingCoverage, 'code'), fn ($c) => (bool) preg_match('/^(TVM-|ETCS_|ERTMS_)/', (string) $c)));
+        $protectionCoverage = array_values(array_filter($coverage->get('protection', collect())->map($km)->values()->all(),
+            fn ($p) => ! in_array($p['code'], $cabCodes, true)));
         $trainProtection = array_column($protectionCoverage, 'code');
 
         // Électrification : part du tracé de l'ère et tensions, chacune avec sa longueur (Paris - Brest :
@@ -175,7 +173,7 @@ final class LineStats
             'gauge_mm' => $stats->gauge_mm,
             'signalling' => $signallingCoverage ? implode(', ', array_column($signallingCoverage, 'code')) : null,
             'train_protection' => $trainProtection ? implode(', ', $trainProtection) : null,
-            'kvb_equipped' => (bool) ($sigAgg->any_kvb ?? false),
+            'kvb_equipped' => (bool) ($scalars->any_kvb ?? false),
             'dismantled_at_min' => $stats->dismantled_at_min,
             'dismantled_at_max' => $stats->dismantled_at_max,
         ];

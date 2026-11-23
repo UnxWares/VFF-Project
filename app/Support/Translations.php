@@ -23,8 +23,9 @@ class Translations
      * dans les props Inertia (`errors`). Les exclure évite d'alourdir chaque page.
      * `mcp` : réponses du serveur MCP (app/Mcp), jamais affichées par les pages.
      * `graphql` : erreurs de l'API GraphQL (App\GraphQL\Support\QueryLimitErrorHandler).
+     * `glossary_terms` : définitions du glossaire, envoyées par App\Support\Glossary dans les props de la page.
      */
-    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp', 'graphql'];
+    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp', 'graphql', 'glossary_terms'];
 
     /**
      * Durée de vie des calculs en cache (s). Leur clé porte l'empreinte des fichiers de langue

@@ -49,7 +49,7 @@ class WikidataMaterialSource
     {
         $cached = $refresh ? [] : $this->cache->load('candidates');
         if (isset($cached['qids']) && is_array($cached['qids'])) {
-            return $cached['qids'];
+            return self::withExtraSeries($cached['qids']);
         }
 
         $class = $this->rules->rollingStockClass();
@@ -65,7 +65,27 @@ class WikidataMaterialSource
         sort($qids, SORT_NATURAL);
         $this->cache->save('candidates', ['qids' => $qids, 'fetched_at' => now()->toIso8601String()]);
 
-        return $qids;
+        return self::withExtraSeries($qids);
+    }
+
+    /**
+     * Ajoute les séries de database/data/material_extra_series.php (articles rangés dans le matériel français dont
+     * l'élément Wikidata n'a ni exploitant ni pays) aux candidats de la requête.
+     *
+     * @param  list<string>  $qids
+     * @return list<string>
+     */
+    private static function withExtraSeries(array $qids): array
+    {
+        if (! config('vff.materials.extra_series', true)) {
+            return $qids;
+        }
+        /** @var list<array{material: string, title: string, category: string}> $extra */
+        $extra = require database_path('data/material_extra_series.php');
+        $all = array_values(array_unique([...$qids, ...array_column($extra, 'material')]));
+        sort($all, SORT_NATURAL);
+
+        return $all;
     }
 
     /**

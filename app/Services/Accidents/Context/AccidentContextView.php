@@ -93,6 +93,7 @@ final class AccidentContextView
                 'value' => $c['value'],
                 'references' => $c['references'],
                 'reason' => $c['reason'],
+                'single_source' => (bool) ($c['single_source'] ?? false),
             ], $accident->context_corrections ?? []),
         ];
     }

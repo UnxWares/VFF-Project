@@ -7,8 +7,10 @@ use App\Models\Material;
 use App\Models\Media;
 use App\Services\Media\CommonsMetadata;
 use App\Support\MaterialDateCorrections;
+use App\Support\MaterialDateSupplements;
 use App\Support\MaterialPhotoChoices;
 use App\Support\MaterialPhotoExclusions;
+use App\Support\MaterialTypeOverrides;
 
 /**
  * Traduit un élément Wikidata (réduit par WikidataMaterialSource::trimEntity) en fiche de
@@ -75,6 +77,10 @@ final readonly class WikidataMaterialMapper
             $type = $fallback;
             $typeProvenance = ['source' => 'wikipedia', 'ref' => 'Catégorie:'.$fallback[1]];
         }
+        if ($type === null && ($override = MaterialTypeOverrides::for($qid)) !== null) {
+            $type = [$override[0], $override[1]];
+            $typeProvenance = ['source' => 'wikipedia', 'ref' => $override[1]];
+        }
         if ($type === null || $typeProvenance === null) {
             return self::SKIP_NO_TYPE;
         }
@@ -84,6 +90,9 @@ final readonly class WikidataMaterialMapper
             $typeProvenance = ['source' => 'wikipedia', 'ref' => $infobox['title'].'#infobox:Type', 'revid' => $infobox['revid']];
         }
         [$name, $nameRef] = $this->name($entity);
+        if ($name === null && ($handName = MaterialTypeOverrides::nameFor($qid)) !== null) {
+            [$name, $nameRef] = [$handName, 'sitelink:dewiki'];
+        }
         if ($name === null) {
             return self::SKIP_NO_NAME;
         }
@@ -131,6 +140,45 @@ final readonly class WikidataMaterialMapper
             }
         }
 
+        // Valeurs que Wikidata ne donne pas : relevé à la main d'une source citée, puis infobox de l'article (jamais celle
+        // d'un article commun à plusieurs séries). Une valeur de Wikidata n'est jamais remplacée.
+        $units = self::units($claims['P1092'] ?? []);
+        $builderText = ($named = array_filter(array_unique(array_column($builders, 'name')), Material::isReadableName(...))) !== []
+            ? mb_strimwidth(implode(', ', $named), 0, 255, '…') : null;
+        $filled = [];
+        $own = $infobox !== null && ! ($infobox['shared'] ?? false) ? $infobox : null;
+        $years = $own !== null ? WikipediaMaterialInfobox::serviceYears($own['parameters']) : [];
+        $unitsRead = $own !== null ? WikipediaMaterialInfobox::unitsBuilt($own['parameters']) : null;
+        $builderRead = $infobox !== null ? WikipediaMaterialInfobox::builder($infobox['parameters']) : null;
+        $candidates = [
+            'in_service_from' => isset($years['from']) ? [$years['from']['year'], $years['from']] : null,
+            'in_service_to' => isset($years['to']) ? [$years['to']['year'], $years['to']] : null,
+            'units_built' => $unitsRead !== null ? [$unitsRead['value'], $unitsRead + ['basis' => 'nombre d\'engins construits']] : null,
+            'builder' => $builderRead !== null ? [$builderRead, ['field' => 'constructeur', 'quote' => $builderRead, 'basis' => 'constructeur']] : null,
+        ];
+        $values = ['in_service_from' => $from, 'in_service_to' => $to, 'units_built' => $units, 'builder' => $builderText];
+        foreach ($values as $property => $current) {
+            if ($current !== null) {
+                continue;
+            }
+            if (($row = MaterialDateSupplements::for($qid, $property)) !== null) {
+                $values[$property] = $row['value'];
+                $filled[$property] = array_filter(['source' => 'wikipedia', 'ref' => $row['source'], 'revid' => $row['revid'], 'quote' => $row['quote'], 'basis' => $row['basis']], fn (mixed $v): bool => $v !== null);
+            } elseif ($candidates[$property] !== null && $infobox !== null) {
+                [$value, $entry] = $candidates[$property];
+                $values[$property] = $value;
+                $filled[$property] = ['source' => 'wikipedia', 'ref' => $infobox['title'].'#infobox:'.$entry['field'], 'revid' => $infobox['revid'], 'quote' => $entry['quote'], 'basis' => $entry['basis']];
+            }
+        }
+        $from = is_int($values['in_service_from']) ? $values['in_service_from'] : null;
+        $to = is_int($values['in_service_to']) ? $values['in_service_to'] : null;
+        $units = is_int($values['units_built']) ? $values['units_built'] : null;
+        $builderText = is_string($values['builder']) ? $values['builder'] : null;
+        if ($from !== null && $to !== null && $to < $from) {
+            $to = null;
+            unset($filled['in_service_to']);
+        }
+
         [$speed, $speedOrigin] = $this->maxConverted($claims['P2052'] ?? [], fn (float $a, string $u): ?int => $this->rules->speedKmh($a, $u), 'Q180154');
         [$power, $powerOrigin] = $this->maxConverted($claims['P2109'] ?? [], fn (float $a, string $u): ?int => $this->rules->powerKw($a, $u), 'Q3320608');
 
@@ -170,13 +218,12 @@ final readonly class WikidataMaterialMapper
             'designations' => $this->designations($entity, $name) ?: null,
             'description' => self::plain($entity['descriptions']['fr'] ?? null),
             // Texte joint sans les constructeurs sans libellé (nom = identifiant Wikidata, Material::isReadableName).
-            'builder' => ($named = array_filter(array_unique(array_column($builders, 'name')), Material::isReadableName(...))) !== []
-                ? mb_strimwidth(implode(', ', $named), 0, 255, '…') : null,
+            'builder' => $builderText,
             'builders' => $builders ?: null,
             'operators' => $operators ?: null,
             'in_service_from' => $from,
             'in_service_to' => $to,
-            'units_built' => self::units($claims['P1092'] ?? []),
+            'units_built' => $units,
             'max_speed_kmh' => $speed,
             'power_kw' => $power,
             'electrification' => $electrification ?: null,
@@ -206,7 +253,7 @@ final readonly class WikidataMaterialMapper
                 $provenance[$field] = $ref($what);
             }
         }
-        $provenance = array_replace($provenance, $corrected);
+        $provenance = array_replace($provenance, $corrected, $filled);
         if ($speedOrigin !== null && $speed !== null) {
             $provenance['max_speed_kmh']['original'] = $speedOrigin;
         }

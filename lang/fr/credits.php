@@ -124,7 +124,7 @@ return [
             'home_map_title' => 'Fond de la page d’accueil',
             'home_map_text' => "Détail recadré et teinté en sépia de la «\u{00A0}Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs\u{00A0}», dressée par Alexandre Vuillemin et publiée par A. Logerot (Paris, 1865). Exemplaire de la Bibliothèque du Congrès (Washington), domaine public.",
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Documents numérisés qui parlent d’une ligne : projets, plans, photographies. VFF reprend seulement leur notice (titre, date, cote ; Licence Ouverte) et renvoie vers Gallica pour les consulter. Le document lui-même se réutilise selon les conditions de la BnF.',
+            'gallica_text' => 'Documents numérisés qui parlent d’une ligne : projets, plans, photographies. VFF reprend seulement leur notice (titre, date, cote ; Licence Ouverte) et renvoie vers Gallica pour les consulter. Le document lui-même se réutilise selon les conditions de la BnF. Les notices du catalogue général de la BnF (auteurs, titre, éditeur, année, ISBN ; Licence Ouverte) alimentent aussi la section « Pour aller plus loin » des fiches, avec un lien vers la notice.',
             'sncf_archives_title' => 'Archives SNCF',
             'sncf_archives_text' => 'Dossiers, photographies et films des archives du groupe SNCF dont le titre désigne une ligne. VFF reprend leur notice (titre, date, numéro du dossier ; jeu de données sous ODbL) et renvoie vers archives.sncf.com pour les consulter.',
             'commons_title' => 'Wikipédia et Wikimedia Commons',

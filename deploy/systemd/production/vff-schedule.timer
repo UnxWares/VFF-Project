@@ -1,0 +1,14 @@
+# Déclenche vff-schedule.service chaque minute (le planificateur Laravel décide lui-même quelles tâches sont dues).
+# Pour le SERVEUR de production. Un passage encore en cours n'est pas doublé : systemd ne relance pas un service
+# oneshot déjà actif, et chaque tâche est en onOneServer() / withoutOverlapping.
+[Unit]
+Description=VFF - planificateur Laravel, chaque minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=false
+Unit=vff-schedule.service
+
+[Install]
+WantedBy=timers.target

@@ -38,6 +38,9 @@ class Material extends Model
 
     protected $guarded = ['id'];
 
+    /** Clés de recherche calculées par PostgreSQL (App\Support\Search\SearchFields) : jamais exposées. */
+    protected $hidden = ['search_name', 'search_all'];
+
     protected $casts = [
         'type' => MaterialType::class,
         'in_service_from' => 'integer',

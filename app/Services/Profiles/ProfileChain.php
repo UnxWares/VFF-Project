@@ -19,6 +19,13 @@ namespace App\Services\Profiles;
  * de Dijkstra), qui suit l'artère principale et laisse de côté épis, raccordements et boucles de
  * gare, qui sont assemblés ensuite en embranchements (assemble, append). Les lacunes empruntées sont rendues à part :
  * aucune altitude n'y est mesurée, la courbe s'y interrompt.
+ *
+ * Raccords en T (splitAtTees) : ST_LineMerge ne coupe pas un morceau là où un autre s'y accroche par
+ * son bout (raccord posé au milieu d'une voie, pas sur l'un de ses sommets d'extrémité). Sans coupe,
+ * le graphe n'a pas de nœud à cet endroit et le parcours ne peut pas tourner : il saute à vol d'oiseau
+ * vers le morceau suivant (Moret - Lyon, 23/11/2026 : 75,8 km de faux trous entre Saint-Étienne et
+ * Roanne alors que la voie était dessinée en entier). Chaque morceau est donc coupé au point le plus
+ * proche de tout bout d'un autre morceau posé à moins de TEE_M de son intérieur.
  */
 final class ProfileChain
 {
@@ -30,6 +37,13 @@ final class ProfileChain
      * choisit le meilleur passage) ; au-delà, une seule arête par paire de composantes.
      */
     public const NEAR_GAP_M = 5000.0;
+
+    /**
+     * Bout d'un morceau posé à moins de cela de l'INTÉRIEUR d'un autre : l'autre est coupé au point le
+     * plus proche (splitAtTees). Jusqu'à SNAP_M le bout et la coupe ne font qu'un nœud ; au-delà, une
+     * courte lacune les relie au lieu d'un saut vers le bout lointain du morceau.
+     */
+    public const TEE_M = 150.0;
 
     /** Longueur sous laquelle un reste du référentiel n'est pas ajouté en embranchement. */
     public const MIN_BRANCH_M = 100.0;
@@ -67,7 +81,8 @@ final class ProfileChain
      */
     public static function assemble(array $parts): ?array
     {
-        $main = (new self)->run($parts);
+        // Coupe aux raccords en T une seule fois : les embranchements reprennent les morceaux déjà coupés.
+        $main = (new self)->run(self::splitAtTees($parts));
         if ($main === null) {
             return null;
         }
@@ -196,6 +211,104 @@ final class ProfileChain
         }
 
         return ['path' => $path, 'rest' => $rest];
+    }
+
+    /**
+     * Coupe chaque morceau au point le plus proche de tout bout d'un morceau (lui compris) posé à
+     * moins de TEE_M de son intérieur et à plus de SNAP_M de ses propres bouts : un raccord en T
+     * devient un nœud du graphe (le bout s'y fond jusqu'à SNAP_M, une courte lacune l'y relie au-delà). Calcul plan local (équirectangulaire), exact à mieux que 0,1 m à
+     * cette distance.
+     *
+     * @param  list<list<array{0: float, 1: float}>>  $parts
+     * @return list<list<array{0: float, 1: float}>>
+     */
+    public static function splitAtTees(array $parts): array
+    {
+        $ends = [];
+        foreach ($parts as $coords) {
+            if (count($coords) >= 2) {
+                $ends[] = $coords[0];
+                $ends[] = $coords[count($coords) - 1];
+            }
+        }
+        if (count($ends) < 4) {
+            return $parts;
+        }
+        $lat0 = deg2rad($ends[0][1]);
+        $kx = cos($lat0) * 111_320.0;
+        $ky = 110_574.0;
+        $out = [];
+        foreach ($parts as $coords) {
+            $n = count($coords);
+            if ($n < 2) {
+                $out[] = $coords;
+
+                continue;
+            }
+            $xy = array_map(fn (array $c): array => [$c[0] * $kx, $c[1] * $ky], $coords);
+            $xs = array_column($xy, 0);
+            $ys = array_column($xy, 1);
+            [$minX, $maxX, $minY, $maxY] = [min($xs) - self::TEE_M, max($xs) + self::TEE_M, min($ys) - self::TEE_M, max($ys) + self::TEE_M];
+            $cuts = [];
+            foreach ($ends as $p) {
+                $px = $p[0] * $kx;
+                $py = $p[1] * $ky;
+                if ($px < $minX || $px > $maxX || $py < $minY || $py > $maxY
+                    || ProfilePath::distance($p, $coords[0]) <= self::SNAP_M || ProfilePath::distance($p, $coords[$n - 1]) <= self::SNAP_M) {
+                    continue;
+                }
+                $best = null;
+                for ($i = 0; $i < $n - 1; $i++) {
+                    [$ax, $ay] = $xy[$i];
+                    [$bx, $by] = $xy[$i + 1];
+                    if (min($ax, $bx) - self::TEE_M > $px || max($ax, $bx) + self::TEE_M < $px
+                        || min($ay, $by) - self::TEE_M > $py || max($ay, $by) + self::TEE_M < $py) {
+                        continue;
+                    }
+                    $dx = $bx - $ax;
+                    $dy = $by - $ay;
+                    $len2 = $dx * $dx + $dy * $dy;
+                    $t = $len2 > 0 ? max(0.0, min(1.0, (($px - $ax) * $dx + ($py - $ay) * $dy) / $len2)) : 0.0;
+                    $d = hypot($ax + $t * $dx - $px, $ay + $t * $dy - $py);
+                    if ($d <= self::TEE_M && ($best === null || $d < $best[2])) {
+                        $best = [$i, $t, $d];
+                    }
+                }
+                if ($best !== null) {
+                    $cuts[] = [$best[0], $best[1]];
+                }
+            }
+            if ($cuts === []) {
+                $out[] = $coords;
+
+                continue;
+            }
+            usort($cuts, fn (array $a, array $b): int => $a[0] <=> $b[0] ?: $a[1] <=> $b[1]);
+            $piece = [$coords[0]];
+            $next = 0;
+            for ($i = 0; $i < $n - 1; $i++) {
+                while ($next < count($cuts) && $cuts[$next][0] === $i) {
+                    $t = $cuts[$next][1];
+                    $q = [$coords[$i][0] + $t * ($coords[$i + 1][0] - $coords[$i][0]), $coords[$i][1] + $t * ($coords[$i + 1][1] - $coords[$i][1])];
+                    if ($q !== $piece[count($piece) - 1]) {
+                        $piece[] = $q;
+                    }
+                    if (count($piece) >= 2) {
+                        $out[] = $piece;
+                    }
+                    $piece = [$q];
+                    $next++;
+                }
+                if ($coords[$i + 1] !== $piece[count($piece) - 1]) {
+                    $piece[] = $coords[$i + 1];
+                }
+            }
+            if (count($piece) >= 2) {
+                $out[] = $piece;
+            }
+        }
+
+        return $out;
     }
 
     /** @param array{0: float, 1: float} $point */

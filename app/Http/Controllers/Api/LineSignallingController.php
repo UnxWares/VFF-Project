@@ -54,7 +54,9 @@ class LineSignallingController extends Controller
      *   `CT` (cantonnement téléphonique de double voie), `TVM-300` / `TVM-430` (signalisation
      *   en cabine des LGV, sans signaux latéraux), `ETCS_L1` / `ETCS_L2`.
      *   Suffixes : `-VB` voie banalisée (circulation dans les deux sens sur
-     *   chaque voie), `-VU` voie unique, `-Tram` section tram-train ;
+     *   chaque voie), `-VU` voie unique, `-Tram` section tram-train. `NONE` : SNCF Réseau
+     *   déclare la section « Sans cantonnement » (valeur à part entière, qui ne veut pas dire
+     *   « donnée absente » : une section absente de la liste est, elle, inconnue) ;
      * - `signalling_systems` : **tous** les systèmes de cantonnement installés sur la
      *   tranche, code principal (`signalling`) en premier. En général un seul ; deux sur les
      *   LGV équipées à la fois de l'ETCS niveau 2 et de la TVM (`["ETCS_L2", "TVM-300"]` sur
@@ -128,11 +130,13 @@ class LineSignallingController extends Controller
      *
      * Pour chaque fait :
      * - `system` : `BAL` (block automatique lumineux), `BAPR` (block automatique à permissivité restreinte),
-     *   `BM` (block manuel, toutes variantes), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430` ou `TVM`
+     *   `BM` (block manuel, toutes variantes), `CT` (cantonnement téléphonique), `CC` (commande centralisée : CCVU, CCR,
+     *   PCD, commande à distance des postes depuis un poste central ; ce n'est pas un cantonnement), `TVM-300`, `TVM-430` ou `TVM`
      *   (version non précisée), `ETCS_L1`, `ETCS_L2` ou `ETCS` (niveau non précisé), `KVB` ;
      * - `role` : `block` (cantonnement, qui espace les trains), `cab` (signalisation en cabine, TVM et ETCS : à
      *   la fois cantonnement et contrôle de vitesse ; une ligne à grande vitesse n'a pas de BAL), `speed_control`
-     *   (contrôle de vitesse : le KVB n'est **jamais** un cantonnement) ;
+     *   (contrôle de vitesse : le KVB n'est **jamais** un cantonnement), `remote_control` (commande centralisée `CC` :
+     *   commande à distance des postes, qui se combine avec un cantonnement sans le remplacer) ;
      * - `date` (`AAAA-MM-JJ`) et `date_precision` (`day`, `month` ou `year` : le jour ou le mois manquants
      *   sont complétés par `01`, ne les lisez pas comme une date exacte) ;
      * - `reliability` : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine
@@ -150,7 +154,8 @@ class LineSignallingController extends Controller
      *   (l'article ne dit pas) ;
      * - `section` (portion nommée seulement, sinon null) : `from`, `to` (lieux tels qu'écrits), `location`
      *   (`stations` : placée par les deux gares d'extrémité trouvées sur la ligne et leurs PK calés,
-     *   `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
+     *   `landmarks` : une extrémité au moins est un point remarquable de la ligne (bifurcation, raccordement,
+     *   origine, fin, frontière ; gare de l'autre bout s'il y en a une), `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
      *   inventé), `pk_start_m` et `pk_end_m` (PK de la portion placée, en mètres, null sinon), `from_station`
      *   et `to_station` (`slug`, `name`, `pk_m` de chaque gare retenue, null sinon) ;
      * - `source` : `provider` (`wikipedia`, ou `manual` pour un fait daté par des documents), `title` de

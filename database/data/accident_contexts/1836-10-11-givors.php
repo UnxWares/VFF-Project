@@ -34,11 +34,11 @@ return [
             'note' => 'Entrée du 11 octobre 1836 pour la France : un employé de la ligne de Saint-Étienne à Lyon tombe sur la voie et est décapité par un train ; l\'entrée le dit premier accident de train en France et cite le même numéro de La Presse (17 octobre 1836).',
         ],
         'haye-1836-10-20' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'France, Paris, 17 octobre',
-            'publisher' => 'Journal de La Haye',
+            'publisher' => 'Journal de La Haye (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1836-10-20',
             'locator' => null,

@@ -3,7 +3,7 @@
 return [
     'meta_title' => 'VFF - Französische Bahnstrecken',
     'meta_description' => 'Eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, eine Karte des Netzes für jedes Jahrzehnt und Archivmaterial mit Quellenangaben.',
-    'share_image_alt' => 'Das Logo von Voies Ferrées de France auf Alexandre Vuillemins Eisenbahnkarte von 1865',
+    'share_image_alt' => 'Das französische Eisenbahnnetz in Betrieb, orange gezeichnet, mit Logo und Namen von Voies Ferrées de France',
 
     // Großes Titelbild (VFF-Scheibe zwischen zwei TGV): Zeile unter der Scheibe und zwei Aktionen.
     'hero' => [

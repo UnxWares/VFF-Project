@@ -28,13 +28,13 @@ class ApiDocsTest extends TestCase
 
     /** Routes publiques de routes/api.php présentées sur la page /api et documentées dans la spécification. */
     private const V1_PATHS = [
-        '/stats', '/eras', '/eras/{year}',
+        '/stats', '/stats/network', '/stats/coverage', '/chronology', '/chronology/{decade}', '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
         '/eras/{year}/schematic.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
-        '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
+        '/tourist-railways', '/heritage', '/projects', '/companies', '/companies/{company}', '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
         '/lines/{line}/gpx', '/lines/{line}/kml',
         '/lines/{line}/history',
         '/lines/{line}/pk',
@@ -63,8 +63,15 @@ class ApiDocsTest extends TestCase
     /** Annuaires, fiches, ères et sources : codes de réponse documentés, avec leur corps d'exemple. */
     private const ERROR_CODES = [
         '/stats' => [200, 429],
+        '/stats/network' => [200, 429],
+        '/stats/coverage' => [200, 429],
+        '/chronology' => [200, 422, 429],
+        '/chronology/{decade}' => [200, 404, 422, 429],
         '/eras' => [200, 429],
         '/eras/{year}' => [200, 404, 429],
+        '/tourist-railways' => [200, 422, 429],
+        '/heritage' => [200, 422, 429],
+        '/projects' => [200, 422, 429],
         '/lines' => [200, 422, 429],
         '/lines/{line}' => [200, 404, 422, 429],
         '/lines/{line}/segments' => [200, 404, 422, 429],
@@ -277,7 +284,7 @@ class ApiDocsTest extends TestCase
         // Les scripts sont des fichiers externes (pas de script en ligne, voir la CSP) : on lit leur contenu.
         preg_match_all('#<script src="(/docs/graphql/_app/vff/[^"]+)"#', $html, $scripts);
         $code = implode("\n", array_map(fn (string $src): string => (string) file_get_contents(public_path(ltrim($src, '/'))), $scripts[1]));
-        $this->assertStringContainsString("main.lang = 'fr'", $code);
+        $this->assertStringContainsString("main.lang = guide[1] ? guide[1].slice(1) : 'fr'", $code);
         $this->assertStringContainsString('theme=(dark|light)', $code, 'le thème du cookie du site doit être lu');
         $this->assertStringContainsString('<title>Guide - Introduction - VFF API GraphQL</title>', $html);
 

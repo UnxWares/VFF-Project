@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\JunctionRepair;
+use App\Services\LineReferenceExclusions;
 use App\Services\SingleAxis;
 use App\Services\SourceAgreement;
 use App\Services\TraceConflation;
@@ -21,6 +22,17 @@ use Illuminate\Support\Facades\Storage;
  *
  *      contrib (corrections validées)  →  bdtopo (IGN, 2,5 m)  →  osm (~2 m)
  *      →  archeoferroviaire (~1-3 m aux sommets, cordes)  →  ohm  →  sncf (généralisé)
+ *
+ * 1 bis. Trous comblés par une voie rattachée en second (bridgeSecondaryHoles, --no-secondary-bridge l'éteint) :
+ *    une trace archeo ou OHM rattachée à la ligne en second (source_trace_lines, rôle « secondary », sa ligne
+ *    principale étant une autre ligne VFF, souvent créée depuis archeo pour une section : Dreux - Acquigny pour
+ *    Saint-Georges-Motel - Grand-Quevilly) ne servait jamais au tracé de la ligne, qui gardait un trou de
+ *    plusieurs dizaines de kilomètres. Seul le morceau qui COMBLE un trou est pris : hors de la géométrie déjà
+ *    retenue, au moins BRIDGE_MIN_M, ses deux bouts à moins de BRIDGE_END_M du tracé, dont l'un d'une extrémité
+ *    libre (jamais un autre itinéraire entre deux points d'un tracé continu, jamais le prolongement vers l'autre
+ *    ligne, jamais la trace d'une ligne d'un autre réseau ou d'un autre écartement, un tramway par exemple), repris
+ *    du dessin de la ligne qui porte la trace en principal (voie partagée à 0 m) ou, sans ce dessin, recalé comme sa
+ *    source et privé de ses doublons parallèles. Mesure du 23/11/2026 : rapport trous-trace.md.
  *
  * 2. Recalage (App\Services\TraceConflation) : un morceau archeo, OHM ou SNCF
  *    est remplacé, portion par portion, par la géométrie précise qui suit le
@@ -75,6 +87,19 @@ use Illuminate\Support\Facades\Storage;
  *    abandonnées non rattachées (OSM, BD TOPO « Sans objet ») quand le chemin
  *    passe les contrôles (gares, PK, autres lignes) ; un chemin qui s'arrête à
  *    moins d'1 km de l'autre bout laisse ce dernier trou visible.
+ *    Règle 10 (allumée par défaut, --no-extend-to-stations l'éteint) : un
+ *    bout arrêté à plus de 30 m de sa gare terminus est prolongé jusqu'à elle
+ *    le long de la trace source qui l'atteint (au plus 2 km ; voies précises,
+ *    sinon trace archeo ou OHM, jamais une forme SNCF Réseau), arrêté au
+ *    contact d'une autre ligne déjà dessinée, jamais en travers d'une voie.
+ *    Règle 11 (allumée par défaut, --no-join-lateral l'éteint) : un bout
+ *    arrêté à côté de la voie traversante d'une autre ligne (0,5 à 30 m,
+ *    presque parallèle), dans une gare desservie par les deux, est raccordé
+ *    à son dessin par les voies précises réelles (au plus 400 m, en
+ *    convergeant), sinon par une courbe estimée « raccord-lisse » qui ne
+ *    croise aucune voie ; jamais entre écartements différents, entre lignes
+ *    jamais en service à la même ère, ni entre une voie en tunnel et une
+ *    voie au sol.
  *
  * 4. Croisement des sources (App\Services\SourceAgreement) : chaque morceau
  *    est redécoupé par indice de confiance (high / medium / low) avec le
@@ -86,8 +111,19 @@ use Illuminate\Support\Facades\Storage;
  *    retirés quelle que soit leur longueur (chevauchements bout à bout de
  *    deux tracés, raccords en double), extrémités recollées au bit près
  *    (raccords en T : sommet inséré), raccords de moins de 6 m fusionnés avec
- *    la portion qu'ils prolongent. Sans lui, le moteur décennal produit des
- *    tronçons en double et des tronçons de longueur nulle.
+ *    la portion qu'ils prolongent, bulle courte (moins de 100 m, deux chemins
+ *    à moins de 5 m entre les deux mêmes nœuds) dont un côté longe le dessin
+ *    d'une autre ligne : ce côté retiré, sans contact à 0 m perdu
+ *    (Lyon-Perrache, 830000 sur la voie convergente de 750000), sauf pour une
+ *    autre ligne qui y arrive en le longeant : sa jonction est à refaire, et
+ *    la commande indique les lignes à reconstruire ensuite. Sans lui, le
+ *    moteur décennal produit des tronçons en double et des tronçons de
+ *    longueur nulle.
+ *
+ * 5 bis. Retraits à la main (App\Services\LineReferenceExclusions, database/data/line_reference_exclusions.php) :
+ *    une voie source listée pour une ligne n'entre pas dans son tracé (ni tracé rattaché, ni voie proposée par le
+ *    recalage et la continuité) ; un fragment listé (ligne, point, longueur maximale) est retiré après le nettoyage.
+ *    Relus à chaque reconstruction : un recalcul ne fait pas revenir ce qui a été retiré.
  *
  * 6. Arrondi des sommets (App\Support\TrackRounding) : chaque sommet où le
  *    tracé tourne de 6 à 35° devient un arc de cercle tangent aux deux segments
@@ -104,6 +140,7 @@ use Illuminate\Support\Facades\Storage;
  *   php artisan vff:build-line-references --report-only     # mesures + rapports CSV
  *   php artisan vff:build-line-references --no-conflate     # ancien comportement
  *   php artisan vff:build-line-references --no-single-axis  # sans l'étape « un seul axe »
+ *   php artisan vff:build-line-references --line=4500 --no-extend-to-stations  # sans la règle 10 (bouts non prolongés jusqu'à leur gare)
  */
 class BuildLineReferences extends Command
 {
@@ -113,7 +150,10 @@ class BuildLineReferences extends Command
         {--no-agreement : sans croisement des sources (ni confiance ni divergences)}
         {--no-single-axis : garder les portions dédoublées d\'une même ligne (pas d\'étape « un seul axe »)}
         {--no-junction-repair : sans l\'étape de continuité sur les voies réelles (sauts, trous, jonctions)}
+        {--no-secondary-bridge : ne pas combler les trous par les traces rattachées à la ligne en second (source_trace_lines)}
         {--no-rounding : sans l\'arrondi des sommets (tracés gardés en segments droits)}
+        {--no-extend-to-stations : ne pas prolonger jusqu\'à leur gare terminus les bouts arrêtés avant elle (règle 10, allumée par défaut)}
+        {--no-join-lateral : ne pas raccorder les bouts arrêtés à côté de la voie traversante d\'une autre ligne (règle 11, allumée par défaut)}
         {--report-only : mesurer la précision du tracé actuel et réécrire les rapports, sans rien reconstruire}
         {--shard= : i/n - ne traiter qu\'une ligne sur n (processus parallèles ; rapports avec --report-only ensuite)}';
 
@@ -134,6 +174,15 @@ class BuildLineReferences extends Command
         ['sncf', 250, 'TRUE', true],
     ];
 
+    /** Trou comblé par une trace rattachée en second : longueur minimale du morceau (m). */
+    private const BRIDGE_MIN_M = 1000;
+
+    /** Trou comblé par une trace rattachée en second : distance maximale des bouts au tracé, et de l'un à une extrémité libre (m). */
+    private const BRIDGE_END_M = 150;
+
+    /** Trous comblés par une trace rattachée en second : nombre, longueur (m). */
+    private array $bridgeStats = [];
+
     /** Morceaux résiduels plus courts que ça = artefacts de bord de tampon. */
     private const MIN_PART_M = 60;
 
@@ -146,7 +195,8 @@ class BuildLineReferences extends Command
     /** Raccord maximal entre une extrémité découpée et la géométrie déjà retenue (m). */
     private const MAX_STITCH_M = 60;
 
-    private const PRECISE = ['contrib', 'bdtopo', 'osm', 'ign-historique'];
+    /** Ordre des géométries précises (un morceau fusionné après la BD TOPO et OSM, comme dans TraceConflation). */
+    private const PRECISE = ['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique'];
 
     /** Libellés des actions de line_reference_duplicates (rapport trace-doublons*.csv). */
     private const DUPLICATE_ACTIONS = [
@@ -164,8 +214,20 @@ class BuildLineReferences extends Command
     /** Nettoyage final : bouts superposés retirés, raccords en double, extrémités recollées, raccords fusionnés. */
     private array $tidyStats = [];
 
+    /**
+     * Nettoyage final : lignes dont une extrémité posée sur un côté de bulle retiré est à raccorder de nouveau.
+     *
+     * @var array<int, true>
+     */
+    private array $rejoinLines = [];
+
     /** Continuité sur les voies réelles (JunctionRepair) : sauts, trous, changements de voie, prolongements, dépassements. */
     private array $repairStats = [];
+
+    /** Retraits à la main : voies exclues, fragments retirés (nombre, m), entrées sans fragment trouvé. */
+    private array $exclusionStats = [];
+
+    private LineReferenceExclusions $exclusions;
 
     /** Arrondi des sommets : sommets arrondis, points ajoutés. */
     private array $roundingStats = [];
@@ -185,6 +247,10 @@ class BuildLineReferences extends Command
     public function handle(): int
     {
         ini_set('memory_limit', '2G');
+        $this->exclusions = app(LineReferenceExclusions::class);
+        foreach ($this->exclusions->errors() as $error) {
+            $this->warn('  retraits à la main : '.$error.' (non appliqué)');
+        }
         $lineIds = $this->targetLines();
         $partial = (bool) $this->option('line') || (bool) $this->option('shard');
         $this->info(count($lineIds).' lignes à traiter');
@@ -192,6 +258,8 @@ class BuildLineReferences extends Command
             return self::SUCCESS;
         }
 
+        $this->junctionRepair->extendToStations = ! $this->option('no-extend-to-stations');
+        $this->junctionRepair->joinLateral = ! $this->option('no-join-lateral');
         $t = microtime(true);
         $n = $this->conflation->preparePool($partial ? $this->envelope($lineIds) : null);
         $this->line(sprintf('  pool de géométries : %d traces (%.1f s)', $n, microtime(true) - $t));
@@ -251,29 +319,53 @@ class BuildLineReferences extends Command
         if ($j = $this->repairStats) {
             $this->line(sprintf('  continuité (avant un seul axe) : %d trous comblés tout droit par la voie précise (%s km)',
                 $j['straight_hole_filled'] ?? 0, $this->km($j['straight_hole_filled_m'] ?? 0)));
+            $this->line(sprintf('  relais des morceaux fusionnés : %d bouts recollés au bout de la voie qui les prolonge (%s m d\'écart en tout)',
+                $j['fused_relay'] ?? 0, number_format($j['fused_relay_m'] ?? 0, 1, ',', ' ')));
             $this->line(sprintf('  continuité : %d sauts entre voies parallèles retirés (%d remis faute de voie réelle), %d trous comblés (%s km), %d changements de voie sur aiguillage réel (%s km), %s km de bouts et %s km de restes parallèles retirés, %d embranchements prolongés jusqu\'à la jonction (%s km), %s km de dépassements coupés',
                 $j['jog_removed'] ?? 0, $j['jog_restored'] ?? 0, $j['hole_filled'] ?? 0, $this->km($j['hole_filled_m'] ?? 0), $j['rerouted'] ?? 0, $this->km($j['rerouted_m'] ?? 0),
                 $this->km($j['stub_trimmed_m'] ?? 0), $this->km($j['remnant_removed_m'] ?? 0), $j['extended'] ?? 0, $this->km($j['extended_m'] ?? 0), $this->km($j['overshoot_trimmed_m'] ?? 0)));
-            $this->line(sprintf('  arrivées de tracés imprécis : %d refaites par la voie réelle (%s km), %d par une courbe lissée estimée « raccord-lisse » (%s km) ; %d bouts raccordés à la voie d\'une autre ligne (%s km), %d trous comblés par une courbe faute de chemin sur les voies précises (%s km), courbes estimées',
+            $this->line(sprintf('  arrivées de tracés imprécis : %d refaites par la voie réelle (%s km), %d par une courbe lissée estimée « raccord-lisse » (%s km), %d arrivées en T lissées (%s km) ; %d bouts raccordés à la voie d\'une autre ligne (%s km), %d trous comblés par une courbe faute de chemin sur les voies précises (%s km), courbes estimées',
                 $j['leg_rerouted'] ?? 0, $this->km($j['leg_rerouted_m'] ?? 0), $j['leg_smoothed'] ?? 0, $this->km($j['leg_smoothed_m'] ?? 0),
-                $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
+                $j['tee_smoothed'] ?? 0, $this->km($j['tee_smoothed_m'] ?? 0), $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
             $this->line(sprintf('  bouts posés sur la voie d\'une autre ligne dessinée à côté : %d raccordés à son dessin par une courbe estimée (%s km)',
                 $j['drawing_joined'] ?? 0, $this->km($j['drawing_joined_m'] ?? 0)));
-            $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d raccords coudés qui fermaient une boucle retirés (%s km), %d éperons en aller-retour retirés (%s km)',
+            if (! $this->option('no-join-lateral')) {
+                $this->line(sprintf('  bouts arrêtés à côté de la voie traversante d\'une autre ligne : %d raccordés par les voies précises (%s km), %d par une courbe estimée (%s km)',
+                    $j['lateral_routed'] ?? 0, $this->km($j['lateral_routed_m'] ?? 0), $j['lateral_smoothed'] ?? 0, $this->km($j['lateral_smoothed_m'] ?? 0)));
+            }
+            $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d raccords coudés qui fermaient une boucle retirés (%s km), %d éperons en aller-retour retirés (%s km), %d raccords pendants retirés (%s km)',
                 $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['loop_jog_removed'] ?? 0, $this->km($j['loop_jog_removed_m'] ?? 0),
-                $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
+                $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0), $j['dangling_connector_removed'] ?? 0, $this->km($j['dangling_connector_removed_m'] ?? 0)));
             $this->line(sprintf('  longs trous : %d suivis sur une voie abandonnée (%s km), dont %d incomplets (%s km laissés visibles) ; %d refusés',
                 $j['long_gap_filled'] ?? 0, $this->km($j['long_gap_filled_m'] ?? 0), $j['long_gap_partial'] ?? 0, $this->km($j['long_gap_left_m'] ?? 0),
                 $j['long_gap_refused'] ?? 0));
+            if (! $this->option('no-extend-to-stations')) {
+                $this->line(sprintf('  bouts arrêtés avant leur gare terminus : %d prolongés le long de la trace source (%s km), dont %d sur la trace grossière faute de voie précise',
+                    $j['terminus_extended'] ?? 0, $this->km($j['terminus_extended_m'] ?? 0), $j['terminus_rough'] ?? 0));
+            }
+        }
+        if ($b = $this->bridgeStats) {
+            $this->line(sprintf('  trous comblés par une trace rattachée en second : %d morceaux (%s km avant recalage), %d morceaux repris du dessin de la ligne qui porte la section',
+                $b['bridged'] ?? 0, $this->km($b['bridged_m'] ?? 0), $b['shared'] ?? 0));
         }
         if ($r = $this->roundingStats) {
             $this->line(sprintf('  arrondi des sommets : %d sommets arrondis en arc de cercle (%d points ajoutés)',
                 $r['rounded'] ?? 0, $r['added_points'] ?? 0));
         }
         if ($n = $this->tidyStats) {
-            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
-                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
+            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m, et %s m de bulles le long d\'une autre ligne), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
+                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['bubble_m'] ?? 0, 0, ',', ' '), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
                 number_format($n['isolated_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
+        }
+        if ($this->rejoinLines) {
+            $codes = DB::table('lines')->whereIn('id', array_keys($this->rejoinLines))->orderBy('id')->pluck('code', 'id');
+            $this->warn(sprintf('  bulles : %d extrémités d\'autres lignes posées sur un côté retiré, à raccorder de nouveau : reconstruire ensuite --line=%s (%s)',
+                $this->tidyStats['bubble_rejoin'] ?? 0, implode(',', $codes->keys()->all()), implode(', ', $codes->all())));
+        }
+        if ($x = $this->exclusionStats) {
+            $this->line(sprintf('  retraits à la main : %d voies sources écartées, %d fragments retirés (%s m)%s',
+                $x['traces'] ?? 0, $x['removed'] ?? 0, number_format($x['removed_m'] ?? 0, 0, ',', ' '),
+                ($x['missing'] ?? []) ? ' ; sans fragment trouvé : retraits n° '.implode(', ', $x['missing']) : ''));
         }
 
         $t = microtime(true);
@@ -400,22 +492,59 @@ class BuildLineReferences extends Command
         DB::delete('DELETE FROM line_reference_divergences WHERE line_id = ?', [$lineId]);
         DB::delete('DELETE FROM line_reference_duplicates WHERE line_id = ?', [$lineId]);
 
+        // Voies écartées à la main pour cette ligne (LineReferenceExclusions) : hors des tracés rattachés et du recalage.
+        // Une voie écartée en entier sort aussi du pool pour toute la ligne (la continuité ne la reprend pas) ; une
+        // voie coupée autour d'un point y revient avant la continuité, qui peut refaire le passage le long de la
+        // voie réelle (courbe estimée). Tout est remis pour la ligne suivante (l'annulation de la transaction aussi).
+        $cuts = $this->exclusions->tracesFor($lineId);
+        $whole = array_column(array_filter($cuts, fn ($c) => $c['radius_m'] === null), 'id');
+        $partial = array_values(array_filter($cuts, fn ($c) => $c['radius_m'] !== null));
+        $cutArgs = [
+            'ci' => $this->pgIds(array_column($partial, 'id')),
+            'cx' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lon']), $partial)).'}',
+            'cy' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lat']), $partial)).'}',
+            'cr' => '{'.implode(',', array_map(fn ($c) => sprintf('%.2F', $c['radius_m']), $partial)).'}',
+        ];
+        // Zone retirée d'une voie (Lambert-93), NULL si la voie n'est pas coupée.
+        $zone = static fn (string $id): string => "(SELECT ST_Union(ST_Buffer(ST_Transform(ST_SetSRID(ST_MakePoint(c.x, c.y), 4326), 2154), c.r, 16))
+            FROM unnest(CAST(:ci AS bigint[]), CAST(:cx AS float8[]), CAST(:cy AS float8[]), CAST(:cr AS float8[])) c(i, x, y, r) WHERE c.i = {$id})";
+        $zoneHeld = $zone('h.id');
+        $zoneTrace = $zone('source_traces.id');
+        $held = $cuts && DB::selectOne("SELECT to_regclass('pg_temp.cf_pool') IS NOT NULL AS ok")->ok === true;
+        if ($held) {
+            $ids = $this->pgIds(array_column($cuts, 'id'));
+            DB::statement('CREATE TEMP TABLE IF NOT EXISTS lr_held (LIKE cf_pool)');
+            DB::insert('INSERT INTO lr_held SELECT * FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$ids]);
+            DB::delete('DELETE FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$ids]);
+            DB::insert(<<<SQL
+                INSERT INTO cf_pool (id, family, cls, prio, cand, line_id, len, g)
+                SELECT h.id, h.family, h.cls, h.prio, h.cand, h.line_id, ST_Length(d.geom), d.geom
+                FROM lr_held h, LATERAL (SELECT {$zoneHeld} AS z) z, LATERAL ST_Dump(ST_CollectionExtract(ST_Difference(h.g, z.z), 2)) d
+                WHERE z.z IS NOT NULL AND ST_Length(d.geom) > 0.5
+                SQL, $cutArgs);
+        }
+        $this->exclusionStats['traces'] = ($this->exclusionStats['traces'] ?? 0) + count($cuts);
+
         // Géométrie déjà retenue (EWKB hex, Lambert-93), enrichie source après source.
         $acc = null;
         $this->junctionRecords = [];
         foreach (self::SOURCES as [$source, $tolerance, $filter, $coarse]) {
             $g = DB::selectOne(<<<SQL
-                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(ST_Transform(geom, 2154)))), 'hex') AS ewkb,
-                       jsonb_agg(id ORDER BY id)::text AS ids
-                FROM source_traces
-                WHERE line_id = :line AND source = :source AND {$filter}
+                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(g))), 'hex') AS ewkb, jsonb_agg(id ORDER BY id)::text AS ids
+                FROM (
+                    SELECT id, CASE WHEN z.z IS NULL THEN ST_Transform(geom, 2154) ELSE ST_CollectionExtract(ST_Difference(ST_Transform(geom, 2154), z.z), 2) END AS g
+                    FROM source_traces, LATERAL (SELECT {$zoneTrace} AS z) z
+                    WHERE line_id = :line AND source = :source AND {$filter}
+                      AND id <> ALL(CAST(:excluded AS bigint[]))
                   -- Une correction validée (contrib) remplace les tracés qu'elle désigne.
                   AND id NOT IN (
                       SELECT (jsonb_array_elements_text(properties->'supersedes'))::bigint
                       FROM source_traces WHERE source = 'contrib' AND properties->'supersedes' IS NOT NULL -- (pas l'opérateur « ? » : PDO le prend pour un paramètre)
                   )
+                ) t
+                WHERE NOT ST_IsEmpty(g)
                 HAVING COUNT(*) > 0
-                SQL, ['line' => $lineId, 'source' => $source]);
+                SQL, ['line' => $lineId, 'source' => $source, 'excluded' => $this->pgIds($whole)] + $cutArgs);
             if (! $g || ! $g->ewkb) {
                 continue;
             }
@@ -453,20 +582,16 @@ class BuildLineReferences extends Command
                 }
             }
 
-            foreach ($added as [$matched, $matchedIds, $ewkb]) {
-                DB::insert(<<<'SQL'
-                    INSERT INTO line_reference_parts (line_id, source, source_trace_ids, matched_source, matched_trace_ids, length_m, geom, created_at, updated_at)
-                    SELECT ?, ?, CAST(? AS jsonb), ?, CAST(? AS jsonb), ROUND(ST_Length(g))::int, ST_Multi(ST_Transform(g, 4326)), NOW(), NOW()
-                    FROM (SELECT ST_GeomFromEWKB(decode(?, 'hex')) AS g) t
-                    WHERE ST_Length(g) > 0
-                    SQL, [$lineId, $source, $g->ids, $matched, $matched && $matched !== 'connector' ? json_encode($matchedIds) : null, $ewkb]);
-            }
+            $this->insertParts($lineId, $source, $g->ids, $added);
+            $acc = $this->accumulate($acc, $added);
+        }
 
-            $acc = DB::selectOne(<<<'SQL'
-                SELECT encode(ST_AsEWKB(ST_Union(ARRAY(
-                    SELECT ST_GeomFromEWKB(decode(x, 'hex')) FROM unnest(CAST(:geoms AS text[])) x
-                ))), 'hex') AS ewkb
-                SQL, ['geoms' => '{'.implode(',', array_filter(array_merge([$acc], array_column($added, 2)))).'}'])->ewkb;
+        if ($acc !== null && ! $this->option('no-secondary-bridge') && ! $this->option('no-conflate')) {
+            $acc = $this->bridgeSecondaryHoles($lineId, $acc, $whole);
+        }
+
+        if ($held) {
+            $this->restorePool(array_column($partial, 'id'));
         }
 
         // Trous de la ligne comblés tout droit par la voie précise (avant « un seul axe » : voie continue).
@@ -510,7 +635,17 @@ class BuildLineReferences extends Command
             foreach ($this->singleAxis->tidy($lineId) as $k => $v) {
                 $this->tidyStats[$k] = ($this->tidyStats[$k] ?? 0) + $v;
             }
+            $this->rejoinLines += array_fill_keys($this->singleAxis->rejoinLines, true);
             $this->timings['nettoyage'] = ($this->timings['nettoyage'] ?? 0) + microtime(true) - $t;
+        }
+
+        // Fragments retirés à la main (après le nettoyage, qui pourrait sinon les recoller), puis voies remises au pool.
+        $f = $this->exclusions->removeFragments($lineId);
+        $this->exclusionStats['removed'] = ($this->exclusionStats['removed'] ?? 0) + $f['removed'];
+        $this->exclusionStats['removed_m'] = ($this->exclusionStats['removed_m'] ?? 0) + $f['removed_m'];
+        $this->exclusionStats['missing'] = array_merge($this->exclusionStats['missing'] ?? [], $f['missing']);
+        if ($held) {
+            $this->restorePool($whole);
         }
 
         // Arrondi des sommets, une fois le tracé définitif (après le nettoyage qui recolle les extrémités).
@@ -528,6 +663,146 @@ class BuildLineReferences extends Command
                   FROM line_reference_parts WHERE line_id = ? GROUP BY source) s
             HAVING COUNT(*) > 0
             SQL, [$lineId, $lineId]);
+    }
+
+    /**
+     * Trous comblés par les traces archeo ou OHM rattachées à la ligne en second (étape 1 bis) : le morceau de la
+     * trace hors de la géométrie retenue dont les deux bouts la touchent (à BRIDGE_END_M près), l'un à une
+     * extrémité libre, d'au moins BRIDGE_MIN_M, recalé sur la voie précise comme les autres morceaux de sa source.
+     *
+     * @param  list<int>  $excluded  voies écartées à la main pour cette ligne
+     * @return string géométrie retenue (EWKB hex, Lambert-93), enrichie des morceaux ajoutés
+     */
+    private function bridgeSecondaryHoles(int $lineId, string $acc, array $excluded): string
+    {
+        // Sources grossières des tracés d'origine (la forme SNCF Réseau, généralisée, n'est jamais prise ici).
+        foreach (array_filter(self::SOURCES, fn (array $s): bool => in_array($s[0], ['archeoferroviaire', 'ohm'], true)) as [$source, $tolerance, $filter]) {
+            $g = DB::selectOne(<<<SQL
+                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(ST_Transform(st.geom, 2154)))), 'hex') AS ewkb, jsonb_agg(st.id ORDER BY st.id)::text AS ids
+                FROM source_trace_lines stl JOIN source_traces st ON st.id = stl.source_trace_id
+                JOIN lines l ON l.id = stl.line_id LEFT JOIN lines o ON o.id = st.line_id
+                WHERE stl.line_id = :line AND stl.role = 'secondary' AND st.source = :source AND {$filter}
+                  AND st.line_id IS DISTINCT FROM :line2 AND st.id <> ALL(CAST(:excluded AS bigint[]))
+                  -- Même réseau et même écartement que la ligne qui porte la trace (jamais la voie d'un tramway).
+                  AND (o.id IS NULL OR (o.network IS NOT DISTINCT FROM l.network
+                       AND (o.gauge_mm_default IS NULL OR l.gauge_mm_default IS NULL OR o.gauge_mm_default = l.gauge_mm_default)))
+                HAVING COUNT(*) > 0
+                SQL, ['line' => $lineId, 'line2' => $lineId, 'source' => $source, 'excluded' => $this->pgIds($excluded)]);
+            if (! $g?->ewkb) {
+                continue;
+            }
+            $bufTol = $this->buffer($acc, (float) $tolerance);
+            if (! $resid = $this->cut($g->ewkb, $bufTol, self::BRIDGE_MIN_M)) {
+                continue;
+            }
+            // Extrémités libres de la géométrie retenue : bouts de ses morceaux fusionnés touchés par aucun autre.
+            $bridge = DB::selectOne(<<<'SQL'
+                WITH a0 AS (SELECT ST_GeomFromEWKB(decode(:acc, 'hex')) AS g),
+                a AS (SELECT ST_LineMerge(g) AS g FROM a0),
+                parts AS (SELECT d.geom AS g FROM a, LATERAL ST_Dump(a.g) d),
+                ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts),
+                free AS (SELECT ST_Collect(e.p) AS g FROM ends e WHERE (SELECT COUNT(*) FROM parts WHERE ST_DWithin(parts.g, e.p, 1)) = 1),
+                r AS (SELECT d.geom AS g FROM ST_Dump(ST_GeomFromEWKB(decode(:r, 'hex'))) d)
+                SELECT encode(ST_AsEWKB(ST_Collect(r.g)), 'hex') AS ewkb, COUNT(*) AS n, COALESCE(SUM(ST_Length(r.g)), 0) AS m
+                FROM r, free, a0
+                WHERE ST_Length(r.g) >= :min AND free.g IS NOT NULL
+                  AND ST_DWithin(ST_StartPoint(r.g), a0.g, :end) AND ST_DWithin(ST_EndPoint(r.g), a0.g, :end2)
+                  AND (ST_DWithin(ST_StartPoint(r.g), free.g, :end3) OR ST_DWithin(ST_EndPoint(r.g), free.g, :end4))
+                  AND ST_Distance(ST_StartPoint(r.g), ST_EndPoint(r.g)) > 2 * :end5
+                HAVING COUNT(*) > 0
+                SQL, ['acc' => $acc, 'r' => $resid, 'min' => self::BRIDGE_MIN_M] + array_fill_keys(['end', 'end2', 'end3', 'end4', 'end5'], self::BRIDGE_END_M + $tolerance));
+            if (! $bridge?->ewkb) {
+                continue;
+            }
+            // La section est d'abord reprise du dessin de la ligne qui porte la trace en principal (voie partagée, même
+            // géométrie au bit près : masquée ensuite par vff:build-shared-track, sans doublon décalé) ; à défaut de ce
+            // dessin, la trace est recalée comme sa source.
+            $shared = $this->sharedDrawing($lineId, $g->ids, $bridge->ewkb, (float) $bridge->m, $acc);
+            if ($shared) {
+                foreach ($shared as [$partSource, $partIds, $piece]) {
+                    $this->insertParts($lineId, $partSource, $partIds, [$piece]);
+                }
+                $added = array_column($shared, 2);
+                $this->bridgeStats['shared'] = ($this->bridgeStats['shared'] ?? 0) + count($shared);
+            } else {
+                $added = $this->conflate($lineId, $source, $g->ewkb, $bridge->ewkb, $acc, $bufTol);
+                if (! $added) {
+                    continue;
+                }
+                $this->insertParts($lineId, $source, $g->ids, $added);
+            }
+            // Raccord des bouts au tracé : tolérance de la source (30 ou 40 m, au-dessus de MATCH_TOL_M) + 5 m.
+            if ($stitch = $this->stitch(array_column($added, 2), $acc, min($tolerance + 5, self::MAX_STITCH_M))) {
+                $added[] = ['connector', [], $stitch];
+                $this->insertParts($lineId, $source, $g->ids, [['connector', [], $stitch]]);
+            }
+            $this->bridgeStats['bridged'] = ($this->bridgeStats['bridged'] ?? 0) + (int) $bridge->n;
+            $this->bridgeStats['bridged_m'] = ($this->bridgeStats['bridged_m'] ?? 0) + (float) $bridge->m;
+            $acc = $this->accumulate($acc, $added);
+        }
+
+        return $acc;
+    }
+
+    /**
+     * Dessin déjà construit de la section par la ligne qui porte en principal les traces rattachées en second : ses
+     * morceaux (source et provenance gardées) dans un couloir de BRIDGE_END_M autour du morceau qui comble le trou,
+     * hors de la géométrie déjà retenue. Rendu seulement s'il couvre au moins 80 % du morceau.
+     *
+     * @return list<array{0: string, 1: string, 2: array{0: ?string, 1: array<int, int>, 2: string}}>
+     */
+    private function sharedDrawing(int $lineId, string $traceIds, string $bridge, float $bridgeM, string $acc): array
+    {
+        $rows = DB::select(<<<'SQL'
+            WITH b AS (SELECT ST_Buffer(ST_GeomFromEWKB(decode(:b, 'hex')), :w) AS g),
+            a AS (SELECT ST_Buffer(ST_GeomFromEWKB(decode(:acc, 'hex')), :tol) AS g),
+            owners AS (SELECT DISTINCT st.line_id FROM source_traces st WHERE st.id IN (SELECT jsonb_array_elements_text(CAST(:ids AS jsonb))::bigint) AND st.line_id IS NOT NULL AND st.line_id <> :line),
+            o AS (
+                SELECT p.source, p.matched_source, p.matched_trace_ids, p.source_trace_ids,
+                       ST_CollectionExtract(ST_Difference(ST_Intersection(ST_Transform(p.geom, 2154), b.g), a.g), 2) AS g
+                FROM line_reference_parts p, b, a
+                WHERE p.line_id IN (SELECT line_id FROM owners) AND p.geom && ST_Transform(b.g, 4326) AND ST_Intersects(ST_Transform(p.geom, 2154), b.g)
+            )
+            SELECT source, matched_source, COALESCE(matched_trace_ids::text, '[]') AS mids, source_trace_ids::text AS ids, encode(ST_AsEWKB(d.geom), 'hex') AS ewkb, ST_Length(d.geom) AS m
+            FROM o, LATERAL ST_Dump(o.g) d
+            WHERE ST_Length(d.geom) >= 1
+            SQL, ['b' => $bridge, 'w' => self::BRIDGE_END_M, 'acc' => $acc, 'tol' => self::MATCH_TOL_M, 'ids' => $traceIds, 'line' => $lineId]);
+        if (array_sum(array_map(fn ($r) => (float) $r->m, $rows)) < 0.8 * $bridgeM) {
+            return [];
+        }
+
+        return array_map(fn ($r) => [(string) $r->source, (string) $r->ids, [$r->matched_source, (array) json_decode((string) $r->mids, true), (string) $r->ewkb]], $rows);
+    }
+
+    /**
+     * Morceaux ajoutés au tracé de la ligne (line_reference_parts).
+     *
+     * @param  array<int, array{0: ?string, 1: array<int, int>, 2: string}>  $added
+     */
+    private function insertParts(int $lineId, string $source, string $ids, array $added): void
+    {
+        foreach ($added as [$matched, $matchedIds, $ewkb]) {
+            DB::insert(<<<'SQL'
+                INSERT INTO line_reference_parts (line_id, source, source_trace_ids, matched_source, matched_trace_ids, length_m, geom, created_at, updated_at)
+                SELECT ?, ?, CAST(? AS jsonb), ?, CAST(? AS jsonb), ROUND(ST_Length(g))::int, ST_Multi(ST_Transform(g, 4326)), NOW(), NOW()
+                FROM (SELECT ST_GeomFromEWKB(decode(?, 'hex')) AS g) t
+                WHERE ST_Length(g) > 0
+                SQL, [$lineId, $source, $ids, $matched, $matched && $matched !== 'connector' ? json_encode($matchedIds) : null, $ewkb]);
+        }
+    }
+
+    /**
+     * Géométrie retenue enrichie des morceaux ajoutés (EWKB hex, Lambert-93).
+     *
+     * @param  array<int, array{0: ?string, 1: array<int, int>, 2: string}>  $added
+     */
+    private function accumulate(?string $acc, array $added): string
+    {
+        return DB::selectOne(<<<'SQL'
+            SELECT encode(ST_AsEWKB(ST_Union(ARRAY(
+                SELECT ST_GeomFromEWKB(decode(x, 'hex')) FROM unnest(CAST(:geoms AS text[])) x
+            ))), 'hex') AS ewkb
+            SQL, ['geoms' => '{'.implode(',', array_filter(array_merge([$acc], array_column($added, 2)))).'}'])->ewkb;
     }
 
     /**
@@ -947,6 +1222,17 @@ class BuildLineReferences extends Command
     private function km(float $m): string
     {
         return number_format($m / 1000, 1, ',', ' ');
+    }
+
+    /** Remet au pool de géométries les voies retenues pour la ligne (retirées ou coupées le temps du calcul). */
+    private function restorePool(array $ids): void
+    {
+        if (! $ids) {
+            return;
+        }
+        DB::delete('DELETE FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
+        DB::insert('INSERT INTO cf_pool SELECT * FROM lr_held WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
+        DB::delete('DELETE FROM lr_held WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
     }
 
     private function pgIds(array $ids): string

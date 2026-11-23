@@ -6,8 +6,13 @@ use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Station;
 use App\Services\Api\MediaGallery;
+use App\Services\Communes\CommuneRail;
+use App\Services\Heritage\StationHeritage;
+use App\Services\Media\Aerial\AerialImages;
+use App\Services\Sncf\StationAttendance;
 use App\Services\StationDirectory;
 use App\Services\StationSheet;
+use App\Support\FrenchDepartments;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,18 +31,30 @@ class StationController extends Controller
 {
     use ReadsListFilters;
 
+    /** Clés de StationSheet::page reçues au premier affichage de la fiche (sans les gares voisines, différées). */
+    public const PAGE_KEYS = ['station', 'eras', 'events', 'lines', 'sources', 'chronology'];
+
+    /** Groupe des props différées de la fiche (Inertia::defer) : une seule requête après le premier affichage. */
+    public const DEFERRED_GROUP = 'sheet';
+
     public function index(Request $request, StationDirectory $directory): Response
     {
         $q = $this->filterString($request, 'q', trim: true);
         $status = $this->filterString($request, 'status');
         $dept = $this->filterString($request, 'dept', trim: true);
         $flagged = $request->boolean('flagged');
+        $heritage = $request->boolean('heritage');
+        $accessible = $request->boolean('accessible');
         $sort = $this->filterString($request, 'sort');
-        $sort = in_array($sort, ['name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : 'name';
+        // Sans tri choisi : pertinence avec une recherche, sinon le nom.
+        $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : '';
+        $order = $sort !== '' ? $sort : ($q !== '' ? 'relevance' : 'name');
         $eras = Era::orderBy('year')->get(['id', 'year', 'is_current']);
         $era = $request->integer('era') ? $eras->firstWhere('year', $request->integer('era')) : null;
 
-        $base = $directory->base(['q' => $q, 'department' => $dept, 'flagged' => $flagged], $era);
+        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged, 'heritage' => $heritage, 'accessible' => $accessible];
+        $approximate = $directory->approximate($filters, $era);
+        $base = $directory->base($filters, $era, $approximate);
         $statusExpr = $directory->statusExpression($era);
 
         $list = $directory->whereStatus(clone $base, $status, $era)
@@ -47,9 +64,9 @@ class StationController extends Controller
                 EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, s.opened_precision,
                 (s.provenance->>'opened_after')::int AS opened_after, EXTRACT(YEAR FROM s.closed_at)::int AS closed_year,
                 s.provenance->>'opened_at' AS opened_source, s.provenance->>'closed_at' AS closed_source,
-                (s.provenance->>'closed_after')::int AS closed_after
+                (s.provenance->>'closed_after')::int AS closed_after, s.closed_precision
             SQL)
-            ->tap(fn ($b) => $this->orderIndex($b, $sort, $q))
+            ->tap(fn ($b) => $this->orderIndex($b, $directory, $order, $q, $approximate))
             ->paginate(50)
             ->appends($request->query());
         $linesByStation = $directory->lines(collect($list->items())->pluck('id')->all());
@@ -67,7 +84,11 @@ class StationController extends Controller
                 'last_page' => $list->lastPage(),
                 'total' => $list->total(),
             ],
-            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'sort' => $sort],
+            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'heritage' => $heritage, 'accessible' => $accessible, 'sort' => $order],
+            // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
+            'sort_chosen' => $sort !== '',
+            // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.
+            'approximate' => $approximate,
             'overall' => $directory->overall(),
             'counts' => $directory->counts($base, $era),
             'eras' => $eras->pluck('year'),
@@ -76,40 +97,52 @@ class StationController extends Controller
     }
 
     /**
-     * Ordre de l'annuaire : alphabétique FRANÇAIS (collation ICU : accents et capitales sans effet sur le rang).
-     * Tri par nom avec une recherche : nom exact, puis noms qui commencent par le terme, puis le reste.
-     * Les dates absentes viennent toujours en dernier.
+     * Ordre de l'annuaire : pertinence de la recherche (StationDirectory::orderByRelevance), ou alphabétique FRANÇAIS
+     * (collation ICU : accents et capitales sans effet sur le rang). Les dates absentes viennent toujours en dernier.
      */
-    private function orderIndex(Builder $builder, string $sort, string $q): void
+    private function orderIndex(Builder $builder, StationDirectory $directory, string $sort, string $q, bool $approximate): void
     {
         $name = 's.name COLLATE "fr-x-icu"';
 
         match ($sort) {
+            'relevance' => $directory->orderByRelevance($builder, $q, $approximate)->orderByRaw("{$name}, s.id"),
             'name-desc' => $builder->orderByRaw("{$name} DESC, s.id"),
             'city' => $builder->orderByRaw("s.city IS NULL, s.city COLLATE \"fr-x-icu\", {$name}, s.id"),
             'opened' => $builder->orderByRaw("s.opened_at IS NULL, s.opened_at, {$name}, s.id"),
             'closed' => $builder->orderByRaw("s.closed_at IS NULL, s.closed_at, {$name}, s.id"),
-            default => $this->orderByName($builder, $q, $name),
+            default => $builder->orderByRaw("{$name}, s.id"),
         };
     }
 
-    private function orderByName(Builder $builder, string $q, string $name): void
+    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance, StationHeritage $heritage, CommuneRail $communes): Response
     {
-        if ($q !== '') {
-            $builder->orderByRaw(
-                'CASE WHEN lower(s.name) = lower(?) THEN 0 WHEN s.name ILIKE ? THEN 1 ELSE 2 END',
-                [$q, $this->prefixPattern($q)],
-            );
-        }
-        $builder->orderByRaw("{$name}, s.id");
-    }
+        // Premier affichage : en-tête, « À propos », patrimoine, décennies, chronologie, lignes et sources. Fiche
+        // construite une fois, et seulement quand la réponse la demande : le chargement des props différées ne la refait pas.
+        $built = null;
+        $core = function () use (&$built, $sheet, $station): array {
+            return $built ??= $sheet->page($station, withNeighbors: false);
+        };
+        // Plus bas dans la page : props différées, demandées juste après le premier affichage, en un seul groupe
+        // (une requête) ; la page pose à leur place un état de chargement (chantier « budget des fiches », 23/11/2026).
+        $defer = fn (callable $callback) => Inertia::defer($callback, self::DEFERRED_GROUP);
 
-    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery): Response
-    {
         return Inertia::render('Stations/Show', [
-            ...$sheet->page($station),
+            ...array_map(fn (string $key) => fn () => $core()[$key], array_combine(self::PAGE_KEYS, self::PAGE_KEYS)),
+            // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Wikidata) : nul sans table ou sans donnée.
+            // Au premier affichage : la section suit « À propos ».
+            'heritage' => fn () => $heritage->forStation((int) $station->id),
+            // Vues aériennes historiques de l'IGN (relais /media/aerial) : une par période, absente si hors couverture.
+            'aerial_views' => fn () => AerialImages::views($station->slug, $core()['station']['lat'], $core()['station']['lng'], (int) $station->id),
+            // Gares voisines (carte et liste de la section « Situation »).
+            'neighbors' => $defer(fn () => $sheet->neighbors((int) $station->id)),
+            // Nom du département de la gare (table fixe) : son nom mène à sa fiche « Le rail du département ».
+            'department_name' => fn () => FrenchDepartments::find((string) ($core()['station']['department_code'] ?? ''))[0] ?? null,
+            // Fiche « Le rail à <commune> » de la commune de la gare (nulle sans fiche) : le nom de la commune y mène.
+            'commune' => $defer(fn () => $sheet->commune((int) $station->id, $communes)),
             // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
-            'media_count' => $gallery->count($station),
+            'media_count' => $defer(fn () => $gallery->count($station)),
+            // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
+            'attendance' => $defer(fn () => $attendance->forStation((int) $station->id)),
         ]);
     }
 }

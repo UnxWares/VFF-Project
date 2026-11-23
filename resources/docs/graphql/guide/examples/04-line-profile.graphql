@@ -1,0 +1,11 @@
+query LineProfile {
+  line(slug: "rfn-420000") {
+    name
+    profile(max_points: 40) {
+      length_m
+      step_m
+      summary { min_altitude_m max_altitude_m ascent_m descent_m max_grade_permil }
+      points { distance_m pk_m altitude_m }
+    }
+  }
+}

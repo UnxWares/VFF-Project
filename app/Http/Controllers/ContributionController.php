@@ -183,6 +183,10 @@ class ContributionController extends Controller
                 if ($c->type === EventContributions::TYPE) {
                     // Événements déjà connus de la même famille sur la ligne : doublon ou contradiction visibles.
                     $item['similar_events'] = $events->similarEvents($c);
+                    // Correction : l'événement visé tel qu'il est maintenant (null s'il a disparu ou a déjà été neutralisé).
+                    if (isset($c->payload['corrects']['event_id'])) {
+                        $item['corrected_event'] = EventContributions::correctable((int) $c->target_id, (int) $c->payload['corrects']['event_id']);
+                    }
                 }
                 if ($c->type === LineMaterialContributions::TYPE) {
                     // Liens déjà connus du couple et règle relue maintenant avec la phrase citée.

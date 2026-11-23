@@ -16,6 +16,13 @@ describe('correctionValue', () => {
         expect(correctionValue('deaths', null)).toBeNull();
         expect(correctionValue('occurred_at_time', '17:11', 'fr')).toBe('17 h 11');
         expect(correctionValue('occurred_at_time', '17:11', 'en')).toBe('17:11');
+        expect(correctionValue('commune_insee', '42156', 'fr')).toBe('42156');
+        expect(
+            correctionValue('kind', 'collision', 'fr', (k) =>
+                k === 'accidents.kinds.collision' ? 'Collision' : k,
+            ),
+        ).toBe('Collision');
+        expect(correctionValue('kind', 'collision', 'fr')).toBe('collision');
         expect(correctionValue('occurred_on', '2013-07-12', 'fr')).toMatch(/12 juillet 2013/);
         expect(correctionValue('injuries', 1200, 'fr')).toMatch(/^1\s200$/u);
     });

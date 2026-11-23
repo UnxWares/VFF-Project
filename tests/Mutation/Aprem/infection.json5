@@ -1,0 +1,21 @@
+// Tests de mutation (Infection) du code de l'après-midi : contexte des abonnés GraphQL, coupure des connexions temps réel, canaux privés, contrat d'API, gares manuelles, pentes SNCF, origine du site.
+//   bin/php vendor/bin/infection -c tests/Mutation/Aprem/infection.json5 --threads=2 --only-covering-test-cases --filter=Support/ApiContract.php
+// 2 threads maximum, sous flock /tmp/claude-1000/vff-check.lock. Base : VFF_TEST_DB=vff_n2211_mutation_aprem_test.
+// Rapports : storage/app/reports/infection/aprem/.
+{
+    "source": {
+        "directories": ["../../../app"],
+        "excludes": ["#^(?!(GraphQL/Support/SubscriptionContextSerializer|Services/Realtime/RealtimeRevocation|Http/Middleware/RequirePrivateBroadcastChannel|Support/ApiContract|Services/ManualStations|Services/Profiles/SncfGrades|Support/Seo/SiteOrigin|Services/WikipediaLineParser)\\.php$)#"]
+    },
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 2,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/aprem/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/aprem/infection.log",
+        "json": "../../../storage/app/reports/infection/aprem/infection.json",
+        "summary": "../../../storage/app/reports/infection/aprem/summary.log"
+    },
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

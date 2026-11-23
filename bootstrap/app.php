@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AerialImageController;
 use App\Http\Controllers\BasemapArchiveController;
 use App\Http\Controllers\CommonsImageController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LinePortionsController;
+use App\Http\Controllers\MaterialMapController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
@@ -14,6 +16,7 @@ use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MarkOfflineReadable;
+use App\Http\Middleware\RedirectRetiredLineSlug;
 use App\Http\Middleware\RequirePrivateBroadcastChannel;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -34,6 +37,7 @@ use Inertia\Inertia;
 use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -67,6 +71,14 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
                 ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
                 ->name('lines.portions');
+            // Carte des lignes d'une fiche de matériel : tracé allégé et dates, lus par la page quand la carte
+            // s'affiche, sans session ni cookie (App\Http\Controllers\MaterialMapController). Elle dessine aussi les
+            // tracés non redistribuables et son premier calcul lit tous les tronçons des lignes de la série : débit
+            // limité comme les itinéraires de /maps/route et les tuiles.
+            Route::get('/materials/{slug}/map.json', MaterialMapController::class)
+                ->where('slug', '[a-z0-9-]{1,255}')
+                ->middleware('throttle:public-api')
+                ->name('materials.map');
             // Flux du journal et plans du site : publics, en cache, donc sans session ni cookie (hors du groupe
             // web). La langue des flux vient de `?lang=` puis d'Accept-Language (`Vary`).
             Route::get('/journal/atom.xml', [JournalController::class, 'atom'])->name('journal.atom');
@@ -80,6 +92,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/media/commons/{path}', CommonsImageController::class)
                 ->where('path', '.+')
                 ->name('media.commons');
+            // Vues aériennes historiques des gares (IGN, Licence Ouverte 2.0), sans session ni cookie : emprise tirée
+            // de la seule position de la gare en base (App\Services\Media\Aerial\AerialImages).
+            Route::get('/media/aerial/{station}/{period}.jpg', AerialImageController::class)
+                ->where(['station' => '[a-z0-9-]{1,120}', 'period' => '\d{4}-\d{4}'])
+                ->name('media.aerial');
         },
     )
     // Temps réel (config/realtime.php) : autorisation des canaux privés par /broadcasting/auth, pour un
@@ -94,6 +111,8 @@ return Application::configure(basePath: dirname(__DIR__))
             TrackLastSeen::class,
             // Pages publiques qu'un visiteur non connecté peut relire hors ligne (service worker).
             MarkOfflineReadable::class,
+            // `?line=` portant l'ancien slug d'une ligne renommée : 301 vers le nouveau.
+            RedirectRetiredLineSlug::class,
         ]);
         // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy, Permissions-Policy, HSTS. Dans la pile
         // globale pour couvrir toutes les familles de réponses (web, API, GraphQL, MCP, dictionnaires, fond
@@ -101,7 +120,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(SecurityHeaders::class);
 
         // API publique : erreurs de validation en anglais (pas de langue de page).
-        $middleware->api(prepend: [ApiLocale::class]);
+        $middleware->api(prepend: [ApiLocale::class], append: [RedirectRetiredLineSlug::class]);
 
         // `theme` est posé côté client en JS (clair) pour que le toggle clair/
         // sombre soit instantané sans appel serveur. `locale` est désormais
@@ -129,6 +148,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Accept : sans cela, un paramètre invalide sans `Accept: application/json` redirigeait vers l'accueil.
         // Les pages web, /graphql et /mcp ne sont pas concernés.
         $exceptions->shouldRenderJsonWhen(fn (Request $request, Throwable $e): bool => $request->is('api/*') || $request->expectsJson());
+
+        // Fiche de ligne demandée sous un ancien slug (database/data/line_slug_redirects.php) : 301 vers la
+        // même adresse sous le nouveau, pour le site, l'API et le tracé de la carte, au lieu du 404.
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => RedirectRetiredLineSlug::fromMissingLine($e, $request));
 
         // Page d'erreur d'une URL inconnue (404) ou d'une méthode non autorisée (405) :
         // aucune route n'a été trouvée, le groupe web (SetLocale) n'a pas tourné.

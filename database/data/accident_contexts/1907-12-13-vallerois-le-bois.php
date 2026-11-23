@@ -20,7 +20,7 @@ return [
             'note' => 'Entrée du 13 décembre 1907 (vers 15 h 15) : omnibus pour Besançon à l\'arrêt en gare de Vallerois-le-Bois, ligne de Besançon-Viotte à Vesoul, percuté par un train de marchandises de même sens ; bilan finalement d\'un mort et sept blessés.',
         ],
         'delpher-courant-1907-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongeluk in Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche de Besançon du 12 décembre : deux trains se sont heurtés à Vallerois-le-Bois, cinq morts et quinze blessés.',
         ],
         'delpher-vaderland-1907-12-13' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen. Een treinbotsing',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même dépêche de Besançon du 12 décembre.',
         ],
         'delpher-courant-1907-12-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengde Berichten',

@@ -58,6 +58,51 @@ const PAGES = [
         titre: { fr: /Connexion - VFF/, en: /VFF/ },
         cle: (p) => p.locator('#email'),
     },
+    // Pages ajoutées la nuit du 22 au 23/11/2026, sur les entités du jeu minimal (E2eSeeder : commune
+    // et département de la gare d'Andelot, compagnie calculée). Le titre exact est posé côté client,
+    // d'où la forme générique.
+    { nom: 'recherche', chemin: '/search?q=limoges', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    { nom: 'chronologie', chemin: '/chronology', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    { nom: 'ce jour-là', chemin: '/on-this-day', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    {
+        nom: 'trains touristiques',
+        chemin: '/tourist-railways',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
+    { nom: 'glossaire', chemin: '/glossary', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    {
+        nom: 'fiche commune',
+        chemin: '/communes/39009-andelot-en-montagne',
+        titre: { fr: /Andelot-en-Montagne - VFF/, en: /Andelot-en-Montagne - VFF/ },
+        cle: h1,
+    },
+    {
+        nom: 'fiche département',
+        chemin: '/departments/39-jura',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
+    {
+        nom: 'fiche compagnie',
+        chemin: '/companies/sncf-reseau',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
+    { nom: 'projets', chemin: '/projects', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    { nom: 'près de moi', chemin: '/nearby', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    {
+        nom: 'statistiques des accidents',
+        chemin: '/accidents/statistics',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
+    {
+        nom: 'frise du matériel',
+        chemin: '/materials/timeline',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
     {
         nom: 'page introuvable',
         chemin: '/cette-page-n-existe-pas',

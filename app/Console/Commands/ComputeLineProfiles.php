@@ -23,6 +23,8 @@ use Throwable;
  *   php artisan vff:compute-line-profiles --all --dry-run --report=storage/app/x.csv   # couverture, sans appel
  *   php artisan vff:compute-line-profiles --all --prefill-tiles # remplit le cache de la BD TOPO, sans calcul
  *   php artisan vff:compute-line-profiles --all --stats-only    # chiffres recalculés depuis line_profile_points
+ *   php artisan vff:compute-line-profiles --all --force --estimate-track   # voie estimée d'après le terrain hors BD TOPO
+ *   php artisan vff:compute-line-profiles --terrain-only --limit=100 --estimate-track   # par lots : seules les lignes qui ont encore des points à l'altitude du terrain
  *
  * Une ligne déjà calculée (avec --force ou --line) dont le profil ne peut plus l'être (tracé
  * retiré, aucune altitude) perd son ancien profil, et la sortie le signale. Le calcul s'arrête
@@ -39,6 +41,8 @@ class ComputeLineProfiles extends Command
         {--report= : Avec --dry-run, fichier CSV de la couverture de chaque ligne}
         {--prefill-tiles : Remplir le cache des tuiles de la BD TOPO des lignes choisies, sans calculer}
         {--stats-only : Recalculer seulement les chiffres (déclivité, dénivelés) à partir des points déjà en base, sans appeler l\'IGN}
+        {--estimate-track : Hors BD TOPO, altitude de la voie estimée d\'après le terrain (coupe en travers du RGE ALTI, source rge_track) au lieu de l\'altitude du terrain ; environ 31 fois plus de points demandés à l\'IGN}
+        {--terrain-only : Seulement les lignes dont le profil a encore des points à l\'altitude du terrain (rge_alti), recalculées même si elles ont un profil, --limit par lot ; avec --estimate-track ces points deviennent rge_track, la commande peut donc être relancée jusqu\'à épuisement}
         {--max-cache-mb=4096 : Taille du cache au-delà de laquelle la commande s\'arrête}';
 
     protected $description = 'Calcule le profil en long des lignes sur leur tracé de référence (BD TOPO et RGE ALTI de l\'IGN).';
@@ -70,6 +74,7 @@ class ComputeLineProfiles extends Command
             fputcsv($report, ['slug', 'reference_m', 'path_m', 'covered_m', 'off_path_m', 'gaps', 'points'], escape: '');
         }
 
+        $builder->estimateTrack((bool) $this->option('estimate-track'));
         $failures = 0;
         foreach ($lines as $n => $line) {
             $label = "{$line->slug} ({$line->name})";
@@ -105,11 +110,11 @@ class ComputeLineProfiles extends Command
                     continue;
                 }
                 $o = $profile->altitude_sources;
-                $this->info(sprintf('%s : %.1f km (%.1f km mesurés sur %.1f km de référentiel, %d trou(s)), %d à %d m, +%d m / -%d m, déclivité max %s, %d ouvrage(s), %d gare(s), PK calé sur %d ; points BD TOPO %d, RGE ALTI %d, interpolés %d, sans altitude %d',
+                $this->info(sprintf('%s : %.1f km (%.1f km mesurés sur %.1f km de référentiel, %d trou(s)), %d à %d m, +%d m / -%d m, déclivité max %s, %d ouvrage(s), %d gare(s), PK calé sur %d ; points BD TOPO %d, RGE ALTI %d, voie estimée %d, interpolés %d, sans altitude %d',
                     $label, $profile->length_m / 1000, (int) $profile->covered_m / 1000, $profile->trace_length_m / 1000, count($profile->gaps),
                     $profile->min_altitude_m, $profile->max_altitude_m, $profile->ascent_m, $profile->descent_m, $profile->max_grade_permil === null ? 'non publiée ('.$profile->max_grade_withheld.')' : sprintf('%.1f ‰', $profile->max_grade_permil),
                     count($profile->structures), count($profile->stations), $profile->pk_anchors,
-                    $o['bdtopo'], $o['rge_alti'], $o['interpolated'], $o['missing']));
+                    $o['bdtopo'], $o['rge_alti'], $o['rge_track'] ?? 0, $o['interpolated'], $o['missing']));
             } catch (Throwable $e) {
                 $failures++;
                 $this->error("{$label} : {$e->getMessage()}");
@@ -175,7 +180,7 @@ class ComputeLineProfiles extends Command
     private function cacheMb(GeoplateformeClient $client): int
     {
         $bytes = 0;
-        foreach (['bdtopo-tuiles', 'rge-alti-noeuds'] as $kind) {
+        foreach (['bdtopo-tuiles', 'rge-alti-noeuds', GeoplateformeClient::FINE_NODES_DIR] as $kind) {
             foreach (glob($client->cacheDir().'/'.$kind.'/*.json.gz') ?: [] as $file) {
                 $bytes += (int) filesize($file);
             }
@@ -213,7 +218,9 @@ class ComputeLineProfiles extends Command
         if (! $this->option('all')) {
             $query->limit(max(1, (int) $this->option('limit')));
         }
-        if ($this->option('stats-only')) {
+        if ($this->option('terrain-only')) {
+            $query->whereIn('lines.id', DB::table('line_profile_points')->select('line_id')->where('source', 'rge_alti'));
+        } elseif ($this->option('stats-only')) {
             $query->whereIn('lines.id', LineProfile::query()->select('line_id'));
         } elseif (! $this->option('force') && ! $this->option('prefill-tiles') && ! $this->option('dry-run')) {
             $query->whereNotIn('lines.id', LineProfile::query()->select('line_id'));

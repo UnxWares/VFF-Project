@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\DB;
  * 2. points tous les 100 à 250 m selon la longueur (ProfilePath::stepFor) ;
  * 3. altitude de la VOIE quand un tronçon de la BD TOPO passe à moins de TRACK_TOLERANCE_M du
  *    point (géométrie 3D, interpolée le long du tronçon) ; sinon altitude du terrain (RGE ALTI),
+ *    ou, avec estimateTrack() (option --estimate-track, éteinte par défaut), altitude de la voie
+ *    estimée d'après le terrain : plateforme repérée sur une coupe en travers puis lissage le long
+ *    de la ligne (TrackFromTerrain, source `rge_track`, erreur mesurée servie par l'API),
  *    sauf dans un tunnel ou sur un pont de la BD TOPO sans altitude : interpolation entre les deux
  *    têtes de l'ouvrage, puisque le modèle de terrain y donne le dessus de la montagne ou le fond
  *    de la vallée. Mesure du 2026-11-19 sur Saint-Gervais - Vallorcine : 90 ‰ avec la BD TOPO
@@ -70,7 +73,25 @@ final class LineProfileBuilder
     /** Motif du dernier profil non calculé par compute() : no_trace, outside_france, no_altitude. */
     private ?string $skipReason = null;
 
+    /** Altitude de la voie estimée d'après le terrain là où la BD TOPO n'en donne pas (TrackFromTerrain). */
+    private bool $estimateTrack = false;
+
+    /** Distance le long du parcours entre le point et ceux qui donnent la direction de sa coupe en travers. */
+    private const CROSS_DIRECTION_M = 5.0;
+
     public function __construct(private readonly GeoplateformeClient $client) {}
+
+    /**
+     * Active (ou éteint) l'altitude de la voie estimée d'après le terrain pour les points sans
+     * altitude de la BD TOPO : une coupe de 31 points par point au lieu d'un seul point, soit
+     * environ 31 fois plus de points demandés au calcul altimétrique de l'IGN.
+     */
+    public function estimateTrack(bool $on = true): self
+    {
+        $this->estimateTrack = $on;
+
+        return $this;
+    }
 
     /** Appels réseau faits aux services de l'IGN depuis la création du service. */
     public function networkCalls(): int
@@ -173,10 +194,14 @@ final class LineProfileBuilder
             fn (array $t, int $i): bool => $t['z'] === null && ! in_array($t['kind'], ['tunnel', 'bridge'], true) && $inFrance[$i],
             ARRAY_FILTER_USE_BOTH,
         ));
-        $terrain = $needTerrain === [] ? [] : array_combine(
-            $needTerrain,
-            $this->client->elevations(array_map(fn (int $i): array => $coords[$i], $needTerrain)),
-        );
+        $terrain = match (true) {
+            $needTerrain === [] => [],
+            $this->estimateTrack => $this->trackFromTerrain($path, $samples, $needTerrain, (float) $plan['step']),
+            default => array_combine(
+                $needTerrain,
+                $this->client->elevations(array_map(fn (int $i): array => $coords[$i], $needTerrain)),
+            ),
+        };
 
         // Provenance de chaque mesure, avant la chasse aux aberrations.
         $points = [];
@@ -186,6 +211,7 @@ final class LineProfileBuilder
             $points[] = [$d, $z];
             $measured[] = match (true) {
                 $track[$i]['z'] !== null => 'bdtopo',
+                $z !== null && $this->estimateTrack => TrackFromTerrain::SOURCE,
                 $z !== null => 'rge_alti',
                 default => null,
             };
@@ -208,7 +234,10 @@ final class LineProfileBuilder
             return null;
         }
 
-        $origins = ['bdtopo' => 0, 'rge_alti' => 0, 'interpolated' => 0, 'missing' => 0];
+        // `rge_track` compté seulement avec l'estimation : les profils sans elle gardent leur forme.
+        $origins = $this->estimateTrack
+            ? ['bdtopo' => 0, 'rge_alti' => 0, TrackFromTerrain::SOURCE => 0, 'interpolated' => 0, 'missing' => 0]
+            : ['bdtopo' => 0, 'rge_alti' => 0, 'interpolated' => 0, 'missing' => 0];
         foreach ($points as $i => $p) {
             $origins[$p[1] === null ? 'missing' : ($measured[$i] ?? 'interpolated')]++;
         }
@@ -278,6 +307,61 @@ final class LineProfileBuilder
     }
 
     /**
+     * Altitude de la voie estimée d'après le terrain aux points `$indices` du parcours
+     * (TrackFromTerrain) : coupe en travers de chaque point (RGE ALTI, grille fine), plateforme,
+     * puis lissage de chaque suite de points consécutifs d'un même morceau. Null hors couverture.
+     *
+     * @param  list<float>  $samples  distances des points du parcours
+     * @param  list<int>  $indices  points sans altitude de la BD TOPO, hors ouvrages, en France
+     * @return array<int, float|null>
+     */
+    private function trackFromTerrain(ProfilePath $path, array $samples, array $indices, float $step): array
+    {
+        $length = $path->length();
+        $width = 2 * TrackFromTerrain::HALF_M + 1;
+        $sections = [];
+        foreach ($indices as $i) {
+            $d = $samples[$i];
+            // Direction prise sur le morceau du point : de l'autre côté d'un trou, le parcours saute ailleurs.
+            $before = max(0.0, $d - self::CROSS_DIRECTION_M);
+            $after = min($length, $d + self::CROSS_DIRECTION_M);
+            $sections[] = TrackFromTerrain::crossSection(
+                $path->pointAt($path->inGap($before) ? $d : $before),
+                $path->pointAt($d),
+                $path->pointAt($path->inGap($after) ? $d : $after),
+            );
+        }
+        $heights = array_chunk($this->client->fineElevations(array_merge(...$sections)), $width);
+        $platform = [];
+        foreach ($indices as $k => $i) {
+            $platform[$i] = TrackFromTerrain::platform($heights[$k]);
+        }
+
+        // Suites de points consécutifs du même morceau, lissées chacune.
+        $pieceOf = [];
+        foreach (ProfileStats::pieces(array_map(fn (float $d): array => [$d, null], $samples), $path->gaps) as $k => [$first, $last]) {
+            for ($i = $first; $i <= $last; $i++) {
+                $pieceOf[$i] = $k;
+            }
+        }
+        $out = [];
+        $run = [];
+        foreach ($indices as $n => $i) {
+            $run[] = $i;
+            $next = $indices[$n + 1] ?? null;
+            if ($next === null || $next !== $i + 1 || $pieceOf[$next] !== $pieceOf[$i]) {
+                $smoothed = TrackFromTerrain::smooth(array_map(fn (int $j): ?float => $platform[$j], $run), $step);
+                foreach ($run as $r => $j) {
+                    $out[$j] = $smoothed[$r];
+                }
+                $run = [];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Drapeaux de la règle de publication de la déclivité (ProfileStats::summarize), un par point :
      * altitude mesurée sur la voie (BD TOPO), point en tunnel, altitude interpolée. Dans un tunnel,
      * l'altitude de la BD TOPO est reconstituée par l'IGN et peut être fausse près des têtes : à
@@ -285,7 +369,8 @@ final class LineProfileBuilder
      * premier kilomètre (50,9 ‰ pour 35 ‰ au plus sur cette ligne).
      *
      * @param  list<array{0: float|int, 1: float|null}>  $points  altitudes finales
-     * @param  list<string|null>  $sources  provenance de la mesure (bdtopo, rge_alti, null)
+     * @param  list<string|null>  $sources  provenance de la mesure (bdtopo, rge_alti, rge_track, null) ;
+     *                                      la voie estimée d'après le terrain compte comme le terrain
      * @param  list<string|null>  $structures  ouvrage sous le point (tunnel, bridge, ground, null)
      * @return list<array{track: bool, tunnel: bool, interpolated: bool}>
      */

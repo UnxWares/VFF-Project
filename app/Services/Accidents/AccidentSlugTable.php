@@ -44,6 +44,18 @@ final class AccidentSlugTable
     }
 
     /** Ancien slug d'une fiche renommée : une autre fiche ne le reprend pas. */
+    /** Adresse actuelle d'une fiche renommée (« from » de la table vers son « slug »), null si l'adresse n'a jamais été retirée. */
+    public function renamedTo(string $slug): ?string
+    {
+        foreach ($this->rows() as $row) {
+            if ($row['from'] === $slug && $row['slug'] !== $slug) {
+                return $row['slug'];
+            }
+        }
+
+        return null;
+    }
+
     public function isRetired(string $slug): bool
     {
         return isset($this->retired[$slug]);

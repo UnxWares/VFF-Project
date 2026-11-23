@@ -7,6 +7,9 @@ import {
     endText,
     relationNotes,
     relationsList,
+    splitDoubtful,
+    doubtText,
+    earliestText,
 } from '$lib/materialPeriods.js';
 
 // Traduction de test : textes français des clés `materials.periods.*`.
@@ -25,6 +28,11 @@ const fr = {
     'materials.relations.notes.fuel': 'au biodiesel :fuel (:feedstock) depuis :since',
     'materials.relations.notes.reported': 'bilan publié en :date',
     'materials.relations.feedstock.rapeseed': 'colza',
+    'materials.doubt.reasons.trial': 'essais',
+    'materials.doubt.reasons.other': 'mention incertaine',
+    'materials.earliest.electrification': 'Sur la ligne au plus tôt à l’électrification : :date',
+    'materials.earliest.section':
+        'Sur la ligne au plus tôt à la première électrification d’une portion : :date (:section)',
 };
 const t = (key, opts = {}) =>
     Object.entries(opts).reduce((s, [k, v]) => s.replace(`:${k}`, String(v)), fr[key] ?? key);
@@ -204,5 +212,52 @@ describe('relationNotes', () => {
     it('ne renvoie rien sans note', () => {
         expect(relationNotes(undefined, t)).toEqual([]);
         expect(relationNotes([{ label: 'A - B' }], t)).toEqual([]);
+    });
+});
+
+describe('séries citées sans service attesté', () => {
+    it('range à part les séries dont le lien est mis en doute', () => {
+        const a = { slug: 'a', link_doubt: null };
+        const b = { slug: 'b', link_doubt: 'trial' };
+        const c = { slug: 'c' };
+        expect(splitDoubtful([a, b, c])).toEqual({ served: [a, c], doubtful: [b] });
+        expect(splitDoubtful(undefined)).toEqual({ served: [], doubtful: [] });
+    });
+
+    it('dit la raison, ou une mention incertaine pour une raison inconnue', () => {
+        expect(doubtText('trial', t)).toBe('essais');
+        expect(doubtText('nouvelle_raison', t)).toBe('mention incertaine');
+    });
+});
+
+describe('borne d’électrification', () => {
+    it('dit la date la plus ancienne à la précision de la source', () => {
+        expect(
+            earliestText({ reason: 'electrification', date: '1996-06-01', precision: 'month' }, t),
+        ).toBe('Sur la ligne au plus tôt à l’électrification : juin 1996');
+        expect(
+            earliestText({ reason: 'electrification', date: '1996-06-01', precision: 'year' }, t),
+        ).toBe('Sur la ligne au plus tôt à l’électrification : 1996');
+    });
+
+    it('nomme la portion quand la première électrification est celle d’une section', () => {
+        expect(
+            earliestText(
+                {
+                    reason: 'electrification',
+                    date: '1989-01-01',
+                    precision: 'year',
+                    section: 'Bernay - Lisieux',
+                },
+                t,
+            ),
+        ).toBe(
+            'Sur la ligne au plus tôt à la première électrification d’une portion : 1989 (Bernay - Lisieux)',
+        );
+    });
+
+    it('ne dit rien sans borne ni pour un motif inconnu', () => {
+        expect(earliestText(null, t)).toBeNull();
+        expect(earliestText({ reason: 'autre', date: '1996-06-01' }, t)).toBeNull();
     });
 });

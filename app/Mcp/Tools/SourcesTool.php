@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('sources_and_licences')]
 #[Title('Sources et licences')]
 #[Description(<<<'TXT'
-Sources de VFF et conditions de réutilisation : licence de la base (ODbL 1.0) et, pour chaque fournisseur (OpenStreetMap, SNCF Open Data, IGN, OpenHistoricalMap, Wikipédia, Wikidata, Wikimedia Commons, Journal officiel, lignes-oubliees, archeoferroviaire…), son nom, sa licence, la mention à reproduire, `open_licence` (false = pas de licence ouverte écrite : reprendre seulement avec la mention et le lien demandés, parfois sans usage commercial), les pages qui établissent la licence et leur date de lecture.
+Sources de VFF et conditions de réutilisation : licence de la base (ODbL 1.0) et, pour chaque fournisseur (OpenStreetMap, SNCF Open Data, IGN, OpenHistoricalMap, Wikipédia, Wikidata, Wikimedia Commons, Journal officiel, lignes-oubliees…), son nom, sa licence, la mention à reproduire, `open_licence` (false = pas de licence ouverte écrite : reprendre seulement avec la mention et le lien demandés, parfois sans usage commercial), les pages qui établissent la licence et leur date de lecture.
 Le champ `provider` des autres outils renvoie à ces fournisseurs. Sans argument : tous les fournisseurs.
 Exemple : {} ; {"provider": "osm", "lang": "en"}.
 TXT)]

@@ -20,7 +20,7 @@ return [
             'note' => 'À Glanges, entre Brive et Limoges, vers 5 h 20, un train de marchandises tamponne dans le brouillard le fourgon et une voiture de queue du rapide Toulouse-Paris arrêté à un sémaphore ; un mort, quatre blessés dont un député de la Corrèze.',
         ],
         'delpher-vlaardingsche-1905-10-11' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd nieuws',
@@ -34,7 +34,7 @@ return [
             'note' => 'Express Toulouse-Paris parti le vendredi à 23 h 37, arrêté par une avarie, train de marchandises parti de Glanges à 2 h 33, erreur sur l\'aiguille ; un wagon renversé, une voyageuse tuée.',
         ],
         'delpher-nieuwsvandendag-1905-10-10' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Nieuws van den Dag du 10 octobre 1905',
@@ -48,7 +48,7 @@ return [
             'note' => 'Entre Glanges et Pierre-Buffière, un train arrêté est heurté par un autre : une femme tuée, plusieurs voyageurs blessés dont dix grièvement.',
         ],
         'delpher-haarlemsche-1905-10-11' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengde berichten',

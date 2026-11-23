@@ -3,7 +3,7 @@
 // Contexte sourcé de la catastrophe ferroviaire de Meudon du 8 mai 1842 (recherche du 21/11/2026).
 return [
     'slug' => '1842-05-08-meudon',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,9 +89,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Notice de l\'éditeur (Comité des travaux historiques et scientifiques) : extrait de 22 pages, vendu en PDF ; cité par la bibliographie de Wikipédia, non lu.',
         ],
+        'kb-1842-05-12-journal-de-la-haye' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Catastrophe sur le Chemin de Fer  de Paris à Versailles.',
+            'publisher' => 'Journal de La Haye (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1842-05-12',
+            'locator' => 'article « Catastrophe sur le Chemin de Fer  de Paris à Versailles. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010256729:mpeg21:a0002:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Récit du dimanche soir : catastrophe sur le chemin de fer de Paris à Versailles (rive gauche), dans le trajet de Bellevue à Meudon, une des deux locomotives a éclaté.',
+        ],
+        'kb-1842-05-12-nederlandsche-staatscourant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK.',
+            'publisher' => 'Nederlandsche Staatscourant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1842-05-12',
+            'locator' => 'article « FRANKRIJK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010084659:mpeg21:a0004:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Le train parti de Versailles à cinq heures et demie comptait une vingtaine de voitures ; deux locomotives en tête et une troisième à l\'arrière ; une roue de la première locomotive se brise.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Le Journal de La Haye et la Nederlandsche Staatscourant du 12 mai 1842 décrivent la catastrophe du dimanche soir (8 mai) entre les stations de Bellevue et de Meudon, sur le chemin de fer de Paris à Versailles rive gauche : un train d\'une vingtaine de voitures parti de Versailles vers 17 h 30, tiré par deux locomotives et poussé par une troisième. Date et lieu concordent ; les passages lus ne donnent pas de bilan, et l\'explosion d\'une locomotive que l\'un d\'eux avance n\'est pas retenue par les autres sources du dossier.',
+                'en' => 'The Journal de La Haye and the Nederlandsche Staatscourant of 12 May 1842 describe the disaster of Sunday evening (8 May) between Bellevue and Meudon stations on the Paris-Versailles left bank railway: a train of about twenty carriages that left Versailles at about 5.30 pm, hauled by two locomotives and pushed by a third. Date and place agree; the passages read give no toll, and the locomotive explosion that one of them puts forward is not retained by the other sources in the file.',
+                'de' => 'Das Journal de La Haye und die Nederlandsche Staatscourant vom 12. Mai 1842 beschreiben die Katastrophe vom Sonntagabend (8. Mai) zwischen den Stationen Bellevue und Meudon auf der Eisenbahn Paris-Versailles linkes Ufer: ein Zug von etwa zwanzig Wagen, der gegen 17.30 Uhr Versailles verließ, gezogen von zwei Lokomotiven und geschoben von einer dritten. Datum und Ort stimmen überein; die gelesenen Stellen nennen keine Bilanz, und die von einem Blatt vorgebrachte Explosion einer Lokomotive wird von den übrigen Quellen der Akte nicht gestützt.',
+                'sources' => ['kb-1842-05-12-journal-de-la-haye', 'kb-1842-05-12-nederlandsche-staatscourant'],
+            ],
             [
                 'fr' => 'Le dimanche 8 mai 1842, jour de la fête du roi Louis-Philippe et des grandes eaux de Versailles, un train quitte vers 17 h 30 la gare de Versailles-Rive-Gauche pour Paris. Il compte 17 voitures en bois et transporte 768 voyageurs.',
                 'en' => 'On Sunday 8 May 1842, the feast day of King Louis-Philippe and the day of the Versailles fountain displays, a train left Versailles-Rive-Gauche station for Paris at about 5.30 pm. It had 17 wooden carriages and carried 768 passengers.',

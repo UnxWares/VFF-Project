@@ -48,7 +48,17 @@ le mode sombre sur l'accueil et sur la fiche de ligne.
 ## Fichiers
 
 - `playwright.config.js` : adresse cible, projets (viewports), rapports.
-- `tests/e2e/fixtures.js` : espion console et réseau, langue, thème, axe-core, liste des défauts connus.
+- `tests/e2e/fixtures.js` : espion console et réseau, langue, thème, axe-core, liste des défauts connus, relais
+  externes simulés.
+- `tests/e2e/vue-aerienne.jpg` : image servie à la place des vues aériennes de l'IGN.
+
+## Services externes
+
+La suite vérifie nos pages, pas les services tiers. Le relais `/media/aerial/{gare}/{période}.jpg` lit le WMS de l'IGN
+à la première demande : depuis un runner de CI, l'IGN répond parfois 503, et une période sans couverture au point de
+la gare du jeu minimal répond 404 (série 45148007135 du 23/11/2026, fiche gare en échec). La fixture `relaisSimules`
+répond donc à sa place avec `vue-aerienne.jpg`, pour chaque page et contre n'importe quel serveur ; le relais lui-même
+est couvert par `tests/Feature/Media/AerialImageRelayTest.php`.
 - `tests/e2e/fumee.spec.js` : les pages et les scénarios.
 
 ## Défauts connus
@@ -71,10 +81,14 @@ DB_DATABASE=vff_xxx_test bin/php artisan migrate --force
 DB_DATABASE=vff_xxx_test bin/php artisan db:seed --class='Database\Seeders\E2eSeeder' --force
 ```
 
+Le seeder range aussi les fiches des départements et des compagnies dans le cache. Sur une base `*_test`, les clés du
+cache prennent le nom de la base dans leur préfixe (`config/cache.php`) : le seeder et le serveur de la suite, lancés
+avec le même `DB_DATABASE`, partagent leurs clés sans toucher à celles du site de dev, qui utilise le même Valkey.
+
 ## Intégration continue
 
 Le job `e2e` de `.github/workflows/ci.yml` démarre PostgreSQL + PostGIS et Valkey en services, migre la base
 `vff_e2e_test`, lance `E2eSeeder`, construit le front (`pnpm build`), démarre `php artisan serve` sur 127.0.0.1:8000,
-installe Chromium (`pnpm exec playwright install --with-deps chromium`) puis lance `pnpm test:e2e` (`CI=1` : une
+installe Chromium (gardé en cache par version de Playwright ; `playwright install-deps` seulement si le navigateur ne démarre pas sans les bibliothèques système) puis lance `pnpm test:e2e` (`CI=1` : une
 relance par test, rapport HTML). En cas d'échec, `storage/app/reports/e2e/html` et `traces` sont publiés en artefact
 `playwright-report`. Durée visée : moins de 10 minutes (la suite seule dure environ 1 min 10 en local).

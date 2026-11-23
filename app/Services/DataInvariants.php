@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Console\Commands\AttachStations;
 use App\Console\Commands\BuildSharedTrack;
+use App\Enums\AccidentKind;
+use App\Services\Accidents\AccidentImporter;
 use App\Services\Materials\MaterialGaugeRule;
 use App\Services\Materials\MaterialTractionRule;
 use App\Support\Lgv;
@@ -43,7 +45,8 @@ use Illuminate\Support\Facades\DB;
  *   - patrimoine : train touristique / musée en service, vélorail fermé ;
  *   - pas de tiret long (U+2014) ni de double tiret dans les textes affichés ;
  *   - ère courante : pas de tronçon patrimoine sur une gare voyageurs desservie ;
- *   - pas de lien ligne × matériel dont l'écartement contredit celui de la ligne, sauf source explicite.
+ *   - pas de lien ligne × matériel dont l'écartement contredit celui de la ligne, sauf source explicite ;
+ *   - pas de doublon d'accident : deux fiches publiées du même jour et de même nature proches l'une de l'autre.
  */
 class DataInvariants
 {
@@ -139,6 +142,19 @@ class DataInvariants
 
     public const JUNCTION_RAY_M = 60;
 
+    /**
+     * lines.junction_gap_lateral : bout libre à côté (JUNCTION_ARRIVAL_M, JUNCTION_LATERAL_M] d'une voie traversante
+     * (au moins JUNCTION_LATERAL_THROUGH_M de dessin dans un rayon de JUNCTION_LATERAL_WINDOW_M du bout), à au plus
+     * JUNCTION_LATERAL_STATION_M d'une gare desservie par les deux lignes.
+     */
+    public const JUNCTION_LATERAL_M = 30;
+
+    public const JUNCTION_LATERAL_STATION_M = 1000;
+
+    public const JUNCTION_LATERAL_WINDOW_M = 40;
+
+    public const JUNCTION_LATERAL_THROUGH_M = 60;
+
     /** Suite masquée : ligne cherchée jusqu'à JUNCTION_MASKED_SEARCH_M (au-delà : « aucune ligne dessinée »). */
     public const JUNCTION_MASKED_SEARCH_M = 50;
 
@@ -170,6 +186,7 @@ class DataInvariants
         'segments.heritage_status' => 'Patrimoine incohérent : vélorail en service, train touristique ou musée fermé, type sans drapeau (tronçons)',
         'segments.inactive_with_traffic' => 'Tronçon fermé ou déposé avec un trafic renseigné (tronçons)',
         'lines.junction_gap' => 'Jonction dessinée qui ne touche pas : bout de branche à plus de 0,5 m (JUNCTION_GAP_M) du dessin de la ligne qu\'il rejoint (suite masquée sous elle, ou arrivée à moins de 1,5 m ou cap vers elle) (bout × ère)',
+        'lines.junction_gap_lateral' => 'Jonction latérale non fermée : bout de ligne en service à 1,5-30 m (JUNCTION_LATERAL_M) du côté d\'une voie traversante d\'une autre ligne en service, dans une gare desservie par les deux lignes, sans la toucher (bout × ère)',
         'texts.long_dash' => 'Texte affiché avec un tiret long (U+2014) ou un double tiret (textes)',
         // Ajout « petits-correctifs » (2026-10-19), isolé en fin de liste.
         'segments.current_heritage_on_served_station' => 'Ère courante : tronçon patrimoine (associatif) qui porte une gare voyageurs SNCF desservie (lignes)',
@@ -196,10 +213,56 @@ class DataInvariants
         // Ajout « materiel-electrification » (2026-11-19), isolé en fin de liste : BB 9300 et BB 7200 (1 500 V
         // continu) reliées à Valence - Moirans (25 kV) par une phrase sur un changement de machine à Toulouse.
         'line_materials.traction_conflict' => 'Lien ligne × série électrique dont aucun système ne couvre '.(MaterialTractionRule::MIN_SHARE * 100).' % de la longueur de la ligne à une ère au moins de son service, sans phrase qui nomme la tension ni exception relue (liens)',
+        // Ajout « accidents-doublons » (2026-11-22), isolé en fin de liste : la liste de Wikipédia nommait parfois une gare
+        // du parcours du train (Caen pour Cléon, Marseille pour Saint-Raphaël) et créait une seconde fiche.
+        'accidents.same_day_nearby' => 'Deux fiches d\'accident publiées du même jour (date au jour), de même nature, à moins de '.(AccidentImporter::ROUTE_MAX_M / 1000).' km, sans alias ni couple relu dans database/data/accident_distinct_pairs.php (paires)',
     ];
 
     /** @param  list<string>|null  $only  clés (ou préfixes, ex. « segments ») à vérifier */
-    public function __construct(private ?array $only = null) {}
+    private ?InvariantExceptions $exceptions;
+
+    public function __construct(private ?array $only = null, ?InvariantExceptions $exceptions = null)
+    {
+        $this->exceptions = $exceptions;
+    }
+
+    /**
+     * Condition SQL qui écarte les cas légitimes listés dans database/data/invariant_exceptions.php pour un invariant
+     * (App\Services\InvariantExceptions) : « AND alias.slug NOT IN (...) », vide s'il n'y en a pas.
+     */
+    private function exceptionClause(string $invariant, string $alias): string
+    {
+        $slugs = ($this->exceptions ??= new InvariantExceptions)->slugs($invariant);
+        if ($slugs === []) {
+            return '';
+        }
+        $pdo = DB::connection()->getPdo();
+
+        return " AND {$alias}.slug NOT IN (".implode(', ', array_map(fn (string $slug) => $pdo->quote($slug), $slugs)).')';
+    }
+
+    /**
+     * Condition SQL « la gare est le terminus nommé d'une section dont l'ouverture tombe à son ouverture, à
+     * STATION_OPENED_TOLERANCE_DAYS près » : la section est celle de la gare même si sa géométrie résolue s'arrête à plus
+     * de 300 m, si son PK sort de la fenêtre ou si elle n'est pas résolue (le nom suffit, quelle que soit la résolution). Noms comparés sans accent, tiret ni abréviation (vff_search_key), la
+     * parenthèse du nom de la gare retirée (« Rédange (Moselle) »), le nom de la section pouvant être le début de celui de
+     * la gare (« Prades » pour « Prades-Molitg-les-Bains »). Alias de la gare : s.
+     */
+    private function namedTerminusOpening(): string
+    {
+        $days = self::STATION_OPENED_TOLERANCE_DAYS;
+        $name = "vff_search_key(regexp_replace(s.name, '\\s*\\(.*\\)\\s*\$', ''))";
+
+        return <<<SQL
+            AND NOT EXISTS (
+                SELECT 1 FROM station_lines slt
+                JOIN line_events let ON let.line_id = slt.line_id AND let.type IN ('opening', 'opening_passenger') AND let.date_precision = 'day'
+                WHERE slt.station_id = s.id AND let.event_date <= s.opened_at + {$days}
+                  AND ({$name} = vff_search_key(let.section_from) OR {$name} = vff_search_key(let.section_to)
+                       OR {$name} LIKE vff_search_key(let.section_from) || ' %' OR {$name} LIKE vff_search_key(let.section_to) || ' %')
+            )
+            SQL;
+    }
 
     /**
      * Invariant dont la requête échoue : compté violé (1 cas), avec le message dans `error`.
@@ -429,7 +492,7 @@ class DataInvariants
                   AND ST_DWithin(ls.geom::geography, s.geom::geography, {$r})
                 LIMIT 1
             ) near ON true
-            WHERE se.status = 'active' AND NOT se.uncertain AND near.hit IS NULL
+            WHERE se.status = 'active' AND NOT se.uncertain AND near.hit IS NULL{$this->exceptionClause('stations.active_without_track', 's')}
             SQL, fn ($r) => sprintf('%d : %s (gare #%d)', $r->year, $r->name, $r->id), order: 'sort, name');
     }
 
@@ -555,7 +618,7 @@ class DataInvariants
             JOIN e ON e.prev_id = p.era_id
             LEFT JOIN km c ON c.line_id = p.line_id AND c.era_id = e.id
             JOIN lines l ON l.id = p.line_id
-            WHERE p.km > 0 AND COALESCE(c.kept_km, 0) < p.km * ? AND p.km - COALESCE(c.kept_km, 0) >= ?
+            WHERE p.km > 0 AND COALESCE(c.kept_km, 0) < p.km * ? AND p.km - COALESCE(c.kept_km, 0) >= ?{$this->exceptionClause('lines.km_drop_without_event', 'l')}
               AND NOT EXISTS (
                   SELECT 1 FROM line_events ev
                   WHERE ev.line_id = p.line_id
@@ -618,7 +681,7 @@ class DataInvariants
         return $this->violations(<<<SQL
             WITH c AS MATERIALIZED (
                 SELECT p.line_id, d.geom AS g FROM line_reference_parts p, LATERAL ST_Dump(p.geom) d
-                WHERE ((p.matched_source IS NULL AND p.source NOT IN ('contrib', 'bdtopo', 'osm', 'ign-historique')) OR p.matched_source = 'connector')
+                WHERE ((p.matched_source IS NULL AND p.source NOT IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique')) OR p.matched_source = 'connector')
                   AND ST_Length(d.geom::geography) >= {$step} * ({$samples} - 1)
             ),
             s AS MATERIALIZED (
@@ -693,28 +756,33 @@ class DataInvariants
             ['min' => self::HOLE_MIN_M, 'max' => self::HOLE_MAX_M, 'cover' => self::HOLE_COVER_M, 'cover2' => self::HOLE_COVER_M]);
     }
 
-    /** @return array{count: int, examples: list<string>} */
-    private function linesJunctionGap(): array
+    /**
+     * Bouts libres du dessin (CTE `n`, une ligne par bout × ère) avec la ligne dessinée la plus proche à
+     * plus de JUNCTION_GAP_M (`oline`, `d`, `ost` : statut de sa portion), le drapeau `masked` (suite masquée) et le
+     * rayon `ry`. Partagé par lines.junction_gap et lines.junction_gap_lateral. Liaisons : voir les noms ci-dessous.
+     *
+     * @return array{sql: string, drawn: \Closure(string, string, float, string=): string, bindings: array<string, float|int>}
+     */
+    private function junctionEnds(): array
     {
         // Alias « xs » : partsJoinSql utilise lui-même « x » dans sa sous-requête de signature.
         $px = TrackPriority::partsJoinSql('xs');
         // Dessin (parties non masquées) des portions de la ligne `{$cond}` proches du point (en 4326, index GIST).
         $drawn = fn (string $cond, string $near, float $deg, string $era = 'en.era_id') => <<<SQL
-            SELECT xs.id, xs.line_id, COALESCE(xd.path[1], 0) AS k0, ST_Transform(xd.geom, 2154) AS g
+            SELECT xs.id, xs.line_id, xs.status AS st, COALESCE(xd.path[1], 0) AS k0, ST_Transform(xd.geom, 2154) AS g
             FROM line_segments xs {$px} CROSS JOIN LATERAL ST_Dump(part.g) xd
             WHERE xs.era_id = {$era} AND {$cond} AND NOT part.covered AND xs.geom && ST_Expand({$near}, {$deg})
             SQL;
         $parts = TrackPriority::partsJoinSql('ls');
         $same = $drawn('xs.line_id = en.line_id', 'en.p4', 0.00002);
         $other = $drawn('xs.line_id <> en.line_id', 'en.p4', 0.0008);
-        $ray = $drawn('xs.line_id = n.oline', 'ST_Transform(n.ry, 4326)', 0.00004, 'n.era_id');
         // Parties masquées (de la ligne, ou d'une autre ligne : relais) au bout.
         $own = str_replace('NOT part.covered', 'part.covered', $same);
         $hidden = str_replace('NOT part.covered', 'part.covered', $drawn('TRUE', 'en.p4', 0.00002));
 
-        return $this->violations(<<<SQL
+        $sql = <<<SQL
             WITH d AS MATERIALIZED (
-                SELECT ls.id, ls.line_id, ls.era_id, COALESCE(dd.path[1], 0) AS k0, ST_Transform(dd.geom, 2154) AS g
+                SELECT ls.id, ls.line_id, ls.era_id, ls.status AS st, COALESCE(dd.path[1], 0) AS k0, ST_Transform(dd.geom, 2154) AS g
                 FROM line_segments ls {$parts} CROSS JOIN LATERAL ST_Dump(part.g) dd
                 WHERE NOT part.covered
             ),
@@ -738,18 +806,32 @@ class DataInvariants
                 WHERE NOT EXISTS (SELECT 1 FROM ({$same}) s WHERE NOT (s.id = en.id AND s.k0 = en.k0) AND ST_DWithin(s.g, en.p, 0.5))
             ),
             n AS MATERIALIZED (
-                SELECT en.*, o.line_id AS oline, o.d,
+                SELECT en.*, o.line_id AS oline, o.d, o.st AS ost,
                        -- Suite masquée (toute distance) ; relais sur la partie masquée d'une autre ligne : dessin à au plus CORRIDOR_M.
                        (EXISTS (SELECT 1 FROM ({$own}) c WHERE ST_DWithin(c.g, en.p, 0.5))
                         OR (COALESCE(o.d, 1e9) <= :corridor AND EXISTS (SELECT 1 FROM ({$hidden}) c WHERE ST_DWithin(c.g, en.p, 0.5)))) AS masked,
                        ST_MakeLine(en.p, ST_Translate(en.p, :ray * sin(en.az), :ray * cos(en.az))) AS ry
                 FROM fr en
                 LEFT JOIN LATERAL (
-                    SELECT o.line_id, ST_Distance(o.g, en.p) AS d FROM ({$other}) o
+                    SELECT o.line_id, o.st, ST_Distance(o.g, en.p) AS d FROM ({$other}) o
                     WHERE ST_DWithin(o.g, en.p, :search) ORDER BY ST_Distance(o.g, en.p), o.id LIMIT 1
                 ) o ON TRUE
                 WHERE o.d IS NULL OR o.d > :gap
             )
+            SQL;
+
+        return ['sql' => $sql, 'drawn' => $drawn, 'bindings' => ['corridor' => BuildSharedTrack::CORRIDOR_M, 'ray' => self::JUNCTION_RAY_M,
+            'search' => self::JUNCTION_MASKED_SEARCH_M, 'gap' => self::JUNCTION_GAP_M]];
+    }
+
+    /** @return array{count: int, examples: list<string>} */
+    private function linesJunctionGap(): array
+    {
+        ['sql' => $ends, 'drawn' => $drawn, 'bindings' => $bindings] = $this->junctionEnds();
+        $ray = $drawn('xs.line_id = n.oline', 'ST_Transform(n.ry, 4326)', 0.00004, 'n.era_id');
+
+        return $this->violations(<<<SQL
+            {$ends}
             SELECT y.year, l.code, l.name, ol.code AS ocode, ol.name AS oname, n.d, n.masked,
                    ST_Y(n.p4) AS lat, ST_X(n.p4) AS lon, COALESCE(n.d, 1000) AS sort
             FROM n
@@ -763,8 +845,57 @@ class DataInvariants
             $r->d === null ? 'masqué sans ligne dessinée à moins de '.self::JUNCTION_MASKED_SEARCH_M.' m'
                 : sprintf('à %s m de %s %s', number_format((float) $r->d, 2, ',', ' '), $r->ocode ?? '-', $r->oname).($r->masked ? ' (suite masquée)' : ''),
             $r->lat, $r->lon),
-            ['corridor' => BuildSharedTrack::CORRIDOR_M, 'ray' => self::JUNCTION_RAY_M, 'search' => self::JUNCTION_MASKED_SEARCH_M, 'gap' => self::JUNCTION_GAP_M,
-                'reach' => self::JUNCTION_REACH_M, 'arrival' => self::JUNCTION_ARRIVAL_M, 'arrival2' => self::JUNCTION_ARRIVAL_M]);
+            $bindings + ['reach' => self::JUNCTION_REACH_M, 'arrival' => self::JUNCTION_ARRIVAL_M, 'arrival2' => self::JUNCTION_ARRIVAL_M]);
+    }
+
+    /**
+     * Jonction latérale non fermée : bout libre qui s'arrête à côté (et non vers) une voie traversante, ce que
+     * lines.junction_gap ne compte pas (bout parallèle à plus de JUNCTION_ARRIVAL_M, ou à plus de JUNCTION_REACH_M).
+     * Conditions cumulées, qui écartent les voies voisines sans lien (LGV le long de la ligne classique, terminus
+     * côte à côte) : portions du bout et de l'autre ligne en service, autre ligne à au plus JUNCTION_LATERAL_M
+     * et traversante (au moins JUNCTION_LATERAL_THROUGH_M de dessin dans un rayon de JUNCTION_LATERAL_WINDOW_M du bout),
+     * gare desservie par les DEUX lignes à au plus JUNCTION_LATERAL_STATION_M du bout (elles se rejoignent là), et dessin
+     * de la ligne ne touchant pas déjà l'autre dans ses 30 derniers mètres (bout qui dépasse), écartements compatibles
+     * (non renseigné : voie normale). Exclut les bouts déjà
+     * comptés par lines.junction_gap.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function linesJunctionGapLateral(): array
+    {
+        ['sql' => $ends, 'drawn' => $drawn, 'bindings' => $bindings] = $this->junctionEnds();
+        $ray = $drawn('xs.line_id = n.oline', 'ST_Transform(n.ry, 4326)', 0.00004, 'n.era_id');
+        // Dessin de l'autre ligne autour du bout (traversante ?) et sous les 30 derniers mètres de la ligne (bout qui dépasse).
+        $win = $drawn('xs.line_id = n.oline', 'n.p4', 0.0006, 'n.era_id');
+        $tail = $drawn('xs.line_id = n.oline', 'n.p4', 0.0004, 'n.era_id');
+        $last = 'CASE WHEN n.k = 0 THEN ST_LineSubstring(n.g, 0, LEAST(1, 30 / ST_Length(n.g))) ELSE ST_LineSubstring(n.g, GREATEST(0, 1 - 30 / ST_Length(n.g)), 1) END';
+        $active = self::ACTIVE;
+
+        return $this->violations(<<<SQL
+            {$ends}
+            SELECT y.year, l.code, l.name, ol.code AS ocode, ol.name AS oname, n.d, sh.name AS station,
+                   ST_Y(n.p4) AS lat, ST_X(n.p4) AS lon, n.d AS sort
+            FROM n
+            JOIN eras y ON y.id = n.era_id
+            JOIN lines l ON l.id = n.line_id
+            JOIN lines ol ON ol.id = n.oline
+            JOIN LATERAL (
+                SELECT s.name FROM station_lines a JOIN station_lines b ON b.station_id = a.station_id AND b.line_id = n.oline
+                JOIN stations s ON s.id = a.station_id
+                WHERE a.line_id = n.line_id AND s.geom && ST_Expand(n.p4, 0.02)
+                  AND ST_DWithin(ST_Transform(s.geom, 2154), n.p, :station)
+                ORDER BY ST_Distance(ST_Transform(s.geom, 2154), n.p) LIMIT 1
+            ) sh ON TRUE
+            WHERE NOT n.masked AND n.d <= :lateral AND n.st IN {$active} AND n.ost IN {$active}
+              -- Écartements différents (Train Jaune et voie normale à Latour-de-Carol) : jamais la même voie.
+              AND COALESCE(l.gauge_mm_default, 1435) = COALESCE(ol.gauge_mm_default, 1435)
+              AND NOT (n.d <= :arrival OR EXISTS (SELECT 1 FROM ({$ray}) r WHERE ST_DWithin(r.g, n.ry, :arrival2)))
+              AND (SELECT COALESCE(SUM(ST_Length(ST_Intersection(w.g, ST_Buffer(n.p, :window)))), 0) FROM ({$win}) w) >= :through
+              AND NOT EXISTS (SELECT 1 FROM ({$tail}) t WHERE ST_DWithin(t.g, {$last}, 0.02))
+            SQL, fn ($r) => sprintf('%d : %s %s : bout à %s m de %s %s, gare commune %s (%.5f, %.5f)', $r->year, $r->code ?? '-', $r->name,
+            number_format((float) $r->d, 2, ',', ' '), $r->ocode ?? '-', $r->oname, $r->station, $r->lat, $r->lon),
+            $bindings + ['lateral' => self::JUNCTION_LATERAL_M, 'station' => self::JUNCTION_LATERAL_STATION_M, 'window' => self::JUNCTION_LATERAL_WINDOW_M,
+                'through' => self::JUNCTION_LATERAL_THROUGH_M, 'arrival' => self::JUNCTION_ARRIVAL_M, 'arrival2' => self::JUNCTION_ARRIVAL_M]);
     }
 
     /** @return array{count: int, examples: list<string>} */
@@ -979,6 +1110,7 @@ class DataInvariants
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND COALESCE(s.provenance->>'opened_at', '') NOT LIKE 'inferred:%'
               AND COALESCE(s.provenance->>'kind', '') = ''
+              {$this->namedTerminusOpening()}{$this->exceptionClause('stations.opened_before_lines', 's')}
             GROUP BY s.id
             HAVING MIN(le.event_date) - s.opened_at > {$days}
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
@@ -1008,7 +1140,7 @@ class DataInvariants
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
-              AND COALESCE(s.provenance->>'kind', '') = ''
+              AND COALESCE(s.provenance->>'kind', '') = ''{$this->exceptionClause('stations.ohm_opened_before_lines', 's')}
             GROUP BY s.id
             HAVING MIN(le.event_date) > s.opened_at + INTERVAL '{$months} months'
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
@@ -1044,7 +1176,7 @@ class DataInvariants
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
-              AND COALESCE(s.provenance->>'kind', '') = ''
+              AND COALESCE(s.provenance->>'kind', '') = ''{$this->exceptionClause('stations.ohm_opened_off_section', 's')}
             GROUP BY s.id
             HAVING BOOL_AND(s.opened_at < le.event_date - INTERVAL '{$months} months' OR s.opened_at > le.event_date + INTERVAL '{$years} years')
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
@@ -1165,6 +1297,38 @@ class DataInvariants
             fn (array $c): string => sprintf('%s × %s (lien %d) : %s', $c['line'], $c['material'], $c['id'], $c['reason']),
             array_slice($conflicts, 0, self::EXAMPLES),
         )];
+    }
+
+    /**
+     * Doublons d'accident probables : deux fiches publiées (hors alias, nature publiable) du même jour, dates au jour,
+     * de même nature, à moins de AccidentImporter::ROUTE_MAX_M. Les couples relus et jugés distincts sont listés dans
+     * database/data/accident_distinct_pairs.php. Une fiche en double se déclare alias de l'autre (`aliases` de son
+     * fichier de contexte), ce qui garde son adresse en redirection 301.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function accidentsSameDayNearby(): array
+    {
+        $distinct = [];
+        foreach (require database_path('data/accident_distinct_pairs.php') as [$x, $y]) {
+            array_push($distinct, "{$x}|{$y}", "{$y}|{$x}");
+        }
+        $published = fn (string $t): string => AccidentKind::publishableSql($t);
+
+        return $this->violations(<<<SQL
+            SELECT ST_Distance(a.geom::geography, b.geom::geography) AS sort, a.slug AS a_slug, b.slug AS b_slug, a.kind,
+                   ST_Distance(a.geom::geography, b.geom::geography) / 1000 AS km
+            FROM accidents a
+            JOIN accidents b ON b.id > a.id AND b.occurred_on = a.occurred_on AND b.kind = a.kind
+            WHERE a.alias_of_id IS NULL AND b.alias_of_id IS NULL
+              AND a.date_precision = 'day' AND b.date_precision = 'day'
+              AND a.geom IS NOT NULL AND b.geom IS NOT NULL
+              AND ST_DWithin(a.geom::geography, b.geom::geography, :max)
+              AND {$published('a')} AND {$published('b')}
+              AND NOT (a.slug || '|' || b.slug = ANY (CAST(:distinct AS text[])))
+            SQL, fn ($r) => sprintf('%s et %s (%s, %s km)', $r->a_slug, $r->b_slug, $r->kind, $this->km($r->km)),
+            ['max' => AccidentImporter::ROUTE_MAX_M, 'distinct' => '{'.implode(',', array_map(fn (string $p): string => '"'.$p.'"', $distinct)).'}'],
+            order: 'sort');
     }
 
     // ─── Outils ──────────────────────────────────────────────────────────

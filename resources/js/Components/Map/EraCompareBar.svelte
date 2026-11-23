@@ -3,15 +3,25 @@
     import { formatNumber } from '$lib/typo.js';
     import { swatchStyle } from '$lib/railStyle.js';
     import { compareSummary, orderPair } from '$lib/epochViews.js';
+    import { COMPARE_MODES } from '$lib/eraCurtain.js';
 
     /**
      * Comparaison de deux décennies, sous la carte (à la place de la frise) : choix des deux
      * décennies et résumé chiffré des différences, lu par les lecteurs d'écran à chaque
      * changement (zone d'état). Chiffres : GET /api/v1/eras/{from}/compare/{to}.
      *
-     * Props : eras (décennies, croissantes), currentEra, from et to (bindables, from < to).
+     * Présentation sur la carte : rideau (une décennie de chaque côté) ou différences colorées.
+     *
+     * Props : eras (décennies, croissantes), currentEra, from et to (bindables, from < to),
+     * mode (bindable) : 'curtain' | 'changes'.
      */
-    let { eras = [], currentEra = null, from = $bindable(), to = $bindable() } = $props();
+    let {
+        eras = [],
+        currentEra = null,
+        from = $bindable(),
+        to = $bindable(),
+        mode = $bindable('curtain'),
+    } = $props();
 
     const uid = $props.id();
     const lang = $derived($i18n.language);
@@ -77,6 +87,18 @@
             {/each}
         </select>
     </div>
+
+    <fieldset class="modes">
+        <legend class="modes-label">{$i18n.t('maps.curtain.mode_label')}</legend>
+        <div class="segments">
+            {#each COMPARE_MODES as m (m)}
+                <label class="segment">
+                    <input type="radio" name={`${uid}-mode`} value={m} bind:group={mode} />
+                    <span>{$i18n.t(`maps.curtain.mode_${m}`)}</span>
+                </label>
+            {/each}
+        </div>
+    </fieldset>
 
     <div class="figures">
         {#await request}
@@ -147,6 +169,82 @@
         width: auto;
         min-width: 7.5rem;
     }
+    /* Présentation : deux segments, comme le choix de la vue au-dessus de la carte. */
+    .modes {
+        display: flex;
+        flex: none;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+    .modes-label {
+        float: left;
+        margin-right: 8px;
+        padding: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text);
+        white-space: nowrap;
+    }
+    .segments {
+        display: flex;
+        min-width: 0;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-sm);
+        background-color: var(--vff-bg-elevated);
+    }
+    .segment {
+        position: relative;
+        display: flex;
+        flex: 1 1 0;
+    }
+    .segment + .segment {
+        border-left: 1px solid var(--vff-border-control);
+    }
+    .segment input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .segment span {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 4px 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text);
+        white-space: nowrap;
+        transition: background-color var(--vff-transition);
+    }
+    .segment:first-child span {
+        border-radius: calc(var(--vff-radius-sm) - 1px) 0 0 calc(var(--vff-radius-sm) - 1px);
+    }
+    .segment:last-child span {
+        border-radius: 0 calc(var(--vff-radius-sm) - 1px) calc(var(--vff-radius-sm) - 1px) 0;
+    }
+    .segment:hover span {
+        background-color: var(--vff-bg-muted);
+    }
+    .segment input:checked + span {
+        background-color: var(--vff-bg-accent);
+        color: var(--vff-accent-ink);
+        font-weight: 600;
+    }
+    .segment input:focus-visible + span {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: calc(-1 * var(--vff-focus-width));
+    }
     .figures {
         flex: 1 1 360px;
         min-width: 0;
@@ -201,6 +299,12 @@
         .pickers select {
             flex: 1;
             min-width: 0;
+        }
+        .modes {
+            width: 100%;
+        }
+        .segments {
+            flex: 1;
         }
         .figures ul {
             gap: 2px 16px;

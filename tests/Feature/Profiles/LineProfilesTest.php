@@ -393,12 +393,12 @@ class LineProfilesTest extends TestCase
     public function test_line_sheet_receives_the_profile_only_once_computed(): void
     {
         $this->fakeIgn();
-        $this->get('/lines/'.$this->line->slug)->assertOk()
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('profile', null));
 
         $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
 
-        $this->get('/lines/'.$this->line->slug)->assertOk()
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('profile.summary.max_altitude_m', 120)
                 ->has('profile.stations', 2)
@@ -415,7 +415,7 @@ class LineProfilesTest extends TestCase
             DB::table('line_profile_points')->insert($chunk);
         }
         $profile->update(['length_m' => 624_750]);
-        $sheet = $this->get('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props']['profile'];
+        $sheet = $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props']['profile'];
         $this->assertLessThanOrEqual(LineProfiles::SHEET_MAX_POINTS, count($sheet['points']));
         $this->assertGreaterThan(500, count($sheet['points']));
         $this->assertEquals([0, 100, null], $sheet['points'][0]);
@@ -514,8 +514,8 @@ class LineProfilesTest extends TestCase
     public function test_a_rack_railway_withholds_the_measured_grade_and_exposes_the_sourced_one(): void
     {
         // La ligne de test devient Chamonix - Montenvers, déclarée dans database/data/rack_railways.php.
-        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'archeo-ligne-de-chamonix-a-montenvers']);
-        $slug = 'archeo-ligne-de-chamonix-a-montenvers';
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'ligne-de-chamonix-a-montenvers']);
+        $slug = 'ligne-de-chamonix-a-montenvers';
         $this->fakeIgn();
         $this->artisan('vff:compute-line-profiles', ['--line' => [$slug]])->assertSuccessful();
 
@@ -598,5 +598,53 @@ class LineProfilesTest extends TestCase
         $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
             ->assertJsonPath('summary.max_grade_permil', 12.3)
             ->assertJsonPath('sourced_grade', null);
+    }
+
+    public function test_a_published_grade_is_served_with_the_sourced_one_alongside_and_the_trace_holes(): void
+    {
+        $slug = 'rfn-405000';
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => $slug]);
+        $this->fakeIgn();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$slug]])->assertSuccessful();
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        // Mesure publiée de 12,3 ‰ ; un vrai trou de 2 km, et le trou conventionnel d'un embranchement.
+        $profile->update([
+            'max_grade_permil' => 12.3, 'max_grade_from_m' => 0, 'max_grade_to_m' => 1000, 'max_grade_direction' => 'up', 'max_grade_withheld' => null,
+            'gaps' => [['from_m' => 3000, 'to_m' => 5000], ['from_m' => 9000, 'to_m' => 9500]],
+            'branches' => [['from_m' => 9500, 'to_m' => 10000]],
+            'covered_m' => 18000,
+        ]);
+
+        $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
+            ->assertJsonPath('summary.max_grade_permil', 12.3)
+            ->assertJsonPath('sourced_grade', null)
+            ->assertJsonPath('sourced_grade_compared.max_grade_permil', 10)
+            ->assertJsonPath('sourced_grade_compared.difference_permil', 2.3)
+            ->assertJsonPath('sourced_grade_compared.source.provider', 'wikipedia')
+            ->assertJsonPath('trace_holes.count', 1)
+            ->assertJsonPath('trace_holes.length_m', 2000)
+            ->assertJsonPath('trace_holes.share', 0.1)
+            ->assertJsonPath('trace_holes.ranges', [['from_m' => 3000, 'to_m' => 5000]]);
+
+        $data = $this->postJson('/graphql', ['query' => '{ line(slug: "'.$slug.'") { profile { sourced_grade_compared { max_grade_permil difference_permil source { provider attribution url } } trace_holes { count length_m share ranges { from_m to_m } } } } }'])
+            ->assertOk()->json('data.line.profile');
+        $this->assertEqualsWithDelta(2.3, $data['sourced_grade_compared']['difference_permil'], 0.001);
+        $this->assertSame('Wikipédia', $data['sourced_grade_compared']['source']['attribution']);
+        $this->assertSame(['count' => 1, 'length_m' => 2000, 'share' => 0.1, 'ranges' => [['from_m' => 3000, 'to_m' => 5000]]], $data['trace_holes']);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+                'name' => 'line_profile', 'arguments' => ['line' => $slug, 'max_points' => 10],
+            ]])->assertOk()->json('result');
+        $payload = json_decode($result['content'][0]['text'], true);
+        $this->assertEqualsWithDelta(10.0, $payload['profile']['sourced_grade_compared']['max_grade_permil'], 0.001);
+        $this->assertSame(1, $payload['profile']['trace_holes']['count']);
+        $this->assertStringContainsString('Wikip', json_encode($payload['attribution'], JSON_UNESCAPED_UNICODE) ?: '');
+
+        // Mesure non publiée : la source passe dans `sourced_grade`, rien à côté.
+        $profile->update(['max_grade_permil' => null, 'max_grade_from_m' => null, 'max_grade_to_m' => null, 'max_grade_direction' => null, 'max_grade_withheld' => 'terrain_only']);
+        $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
+            ->assertJsonPath('sourced_grade.max_grade_permil', 10)
+            ->assertJsonPath('sourced_grade_compared', null);
     }
 }

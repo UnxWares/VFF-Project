@@ -106,7 +106,7 @@ class SentryScrubberMutationTest extends TestCase
 
     public function test_redacted_url_keeps_long_word_slugs_of_lines_and_accidents(): void
     {
-        $line = 'archeo-ligne-de-boulogne-ville-a-bonningues';
+        $line = 'ligne-de-boulogne-ville-a-bonningues';
         $accident = 'accident-ferroviaire-de-bretigny-sur-orge-2013';
         $this->assertGreaterThanOrEqual(32, strlen($line));
         $this->assertSame("https://h.org/lines/$line", RedactedUrl::of("https://h.org/lines/$line"));

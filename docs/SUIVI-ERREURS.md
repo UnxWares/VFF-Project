@@ -1,7 +1,7 @@
 # Suivi des erreurs et de la disponibilité
 
 Ce que l'application fournit pour être surveillée, et comment brancher les outils auto-hébergés d'UnxWares
-(GlitchTip ou Bugsink pour les erreurs, Uptime Kuma pour la disponibilité). Rien ne dépend d'eux : sans outil,
+(GlitchTip ou Bugsink pour les erreurs, Kener pour la disponibilité ; hébergement et sondes dans `docs/SUIVI-PRODUCTION.md`). Rien ne dépend d'eux : sans outil,
 l'application écrit ses erreurs dans des journaux et répond à `/up` et `/up/details`.
 
 ## Ce qui est en place dans l'application
@@ -35,16 +35,10 @@ plus de 50 échecs, moins de 1024 Mo libres, calcul de l'ère de plus de 48 h ; 
 ne répond pas, **401** si le jeton manque, **429** au-delà du débit. La réponse ne contient jamais de chemin, de nom de
 machine, de message d'erreur ni de donnée de compte.
 
-## Brancher Uptime Kuma
+## Brancher Kener
 
-1. Installer Uptime Kuma sur l'infrastructure d'UnxWares (image `louislam/uptime-kuma`, derrière le même reverse proxy,
-   sur un sous-domaine privé de `vff-project.org`).
-2. Générer un jeton long (`openssl rand -hex 32`), le poser dans `HEALTH_TOKEN` côté VFF.
-3. Moniteur « HTTP(s) - Mots-clés » sur `https://vff-project.org/up/details`, en-tête
-   `Authorization: Bearer <jeton>`, mot-clé `"status":"ok"`, intervalle 60 s, 3 tentatives. Un moniteur de type
-   « HTTP(s) » simple sur `/up` sert de sonde de secours.
-4. Alerte par courriel ou par le canal d'équipe auto-hébergé ; pas de service tiers américain.
-5. Page d'état publique facultative, fournie par Uptime Kuma lui-même.
+Voir `docs/SUIVI-PRODUCTION.md` (sondes sur `/up`, `/up/details` avec `HEALTH_TOKEN`, l'API, les tuiles et le fond de
+carte ; alertes et incidents). Côté VFF : générer un jeton long (`openssl rand -hex 32`), le poser dans `HEALTH_TOKEN`.
 
 ## Brancher GlitchTip ou Bugsink (erreurs du serveur)
 
@@ -91,7 +85,7 @@ vff:notify-legal-change`).
 
 ## Ce qui reste pour l'hébergement
 
-- Installer Uptime Kuma et GlitchTip ou Bugsink sur l'infrastructure d'UnxWares (ressources, sauvegardes, accès).
+- Installer Kener et GlitchTip (ou Bugsink) sur l'infrastructure d'UnxWares (ressources, sauvegardes, accès).
 - Poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN`, `APP_VERSION` en production et configurer les moniteurs et alertes.
 - Choisir l'outil d'alerte (courriel, canal d'équipe auto-hébergé).
 - Faire tourner le planificateur et un travailleur de file sur le serveur (sinon `queue` reste à zéro sans signification).

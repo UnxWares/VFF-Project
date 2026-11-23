@@ -11,6 +11,7 @@ return [
 
     // Shared component texts (pagination, external links).
     'new_tab' => 'opens in a new tab',
+    'external_same_tab' => 'external link, opens in this tab',
     'note_ref' => 'Note',
     'required' => 'required',
     'pagination' => 'Pagination',
@@ -28,4 +29,14 @@ return [
         'close' => 'Close',
         'announce' => 'A small nod: TGV 01 “Patrick”, the first TGV Sud-Est set (1978). A link at the bottom of the screen leads to its page.',
     ],
+    // Printing a sheet: page footer (resources/css/print.css, resources/js/lib/print.js).
+    'print' => [
+        'printed_on' => 'Printed on :date',
+        'page' => 'Page',
+        'of' => 'of',
+    ],
+
+    // Sheet: sections loaded right after the first render (deferred props), loading state.
+    'sheet_loading' => 'Loading the rest of the page…',
+    'sheet_loading_label' => 'Rest of the page, loading',
 ];

@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 13 décembre 1845 : sur le chemin de fer de Paris à Orléans, en gare de Saint-Michel-sur-Orge, un convoi de marchandises à l\'arrêt pour prendre de l\'eau est rattrapé par le train qui le dédoublait, conduit par un mécanicien novice ; un inspecteur chargé de superviser ce mécanicien est tué.',
         ],
         'limbourg-1845-12-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Journal du Limbourg du 18 décembre 1845',
-            'publisher' => 'Journal du Limbourg',
+            'publisher' => 'Journal du Limbourg (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1845-12-18',
             'locator' => null,

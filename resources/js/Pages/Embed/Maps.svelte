@@ -1,13 +1,24 @@
 <script>
-    import { onMount, untrack } from 'svelte';
+    import { onDestroy, onMount, tick, untrack } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import RailMap from '$components/Map/RailMap.svelte';
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
+    import EraPlayer from '$components/Map/EraPlayer.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import { i18n } from '$lib/i18n.js';
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers } from '$lib/mapLayers.js';
     import { readTint } from '$lib/eraTint.js';
+    import { readMapView } from '$lib/mapView.js';
+    import {
+        DEFAULT_SPEED,
+        createPlayback,
+        isPlaybackGesture,
+        openKmByYear,
+        playbackYears,
+        stepYear,
+    } from '$lib/eraPlayback.js';
 
     /**
      * Page d'intégration iframe - pleine fenêtre, sans en-tête ni pied de page.
@@ -64,7 +75,11 @@
     let zoom = $state(5.5);
     // Sans ?center ni ?zoom : la France entière, quel que soit le format du cadre (lu avant la
     // création de la carte, qui se fait au montage de RailMap, avant celui de cette page).
-    const fitFrance = readParam('center') === null && readParam('zoom') === null;
+    const fitFrance = (() => {
+        if (typeof window === 'undefined') return true;
+        const asked = readMapView(window.location.search);
+        return asked.center === null && asked.zoom === null;
+    })();
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showAttribution = $state(true);
@@ -109,6 +124,95 @@
         }
     }
 
+    // Lecture des époques : la même que sur /maps (lib/eraPlayback.js, EraPlayer.svelte), ouverte par le
+    // bouton lecture de la frise. Elle remplace la frise le temps de la lecture, avec pause, vitesse et
+    // quitter, s'arrête au premier geste (appui, molette, touche) et n'avance jamais seule quand le système
+    // demande des animations réduites (pas à pas seulement).
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
+    const playbackYearList = $derived(playbackYears(erasProp?.length ? erasProp : ERAS));
+    const openKm = $derived(openKmByYear(erasProp));
+    let playbackOpen = $state(false);
+    let playbackPlaying = $state(false);
+    let playbackEnded = $state(false);
+    let playbackSpeed = $state(DEFAULT_SPEED);
+    let playbackStatus = $state('');
+    let playbackButton = $state();
+    // Seule l'ère suivante est préchargée, pendant la lecture.
+    const preloadEra = $derived(
+        playbackPlaying ? stepYear(playbackYearList, selectedEra, 1) : null,
+    );
+    const playbackYearText = (year) =>
+        year === currentEraYear ? $i18n.t('maps.timeline.value_today') : String(year);
+
+    const playback = createPlayback({
+        years: () => playbackYearList,
+        getYear: () => selectedEra,
+        onStep: (year) => (selectedEra = year),
+        onChange: ({ playing, ended }) => {
+            playbackPlaying = playing;
+            playbackEnded = ended;
+            playbackStatus = playing
+                ? $i18n.t('maps.playback.status_playing')
+                : ended
+                  ? $i18n.t('maps.playback.status_ended')
+                  : $i18n.t('maps.playback.status_paused', { year: playbackYearText(selectedEra) });
+        },
+    });
+    onDestroy(() => playback.destroy());
+
+    async function openPlayback() {
+        if (playbackOpen) {
+            if (!reducedMotion.current) playback.toggle();
+            return;
+        }
+        playbackOpen = true;
+        if (!reducedMotion.current) playback.play();
+        await tick();
+        (
+            playbackButton ??
+            /** @type {HTMLElement|null} */ (
+                frameEl?.querySelector('.era-player button:not(:disabled)')
+            )
+        )?.focus();
+    }
+
+    async function closePlayback() {
+        playback.pause();
+        playbackOpen = false;
+        playbackStatus = '';
+        await tick();
+        /** @type {HTMLElement|null} */ (frameEl?.querySelector('.timeline .play-btn'))?.focus();
+    }
+
+    function stepPlayback(delta) {
+        const moved = delta > 0 ? playback.next() : playback.prev();
+        if (moved) playbackStatus = playbackYearText(selectedEra);
+    }
+
+    function setPlaybackSpeed(next) {
+        playback.setSpeed(next);
+        playbackSpeed = playback.speed;
+    }
+
+    // Au moindre geste hors des commandes de la lecture, la lecture s'arrête.
+    $effect(() => {
+        if (!playbackPlaying) return;
+        const stop = (/** @type {Event} */ e) => {
+            if (isPlaybackGesture(e)) playback.pause();
+        };
+        const types = ['pointerdown', 'wheel', 'keydown', 'touchstart'];
+        for (const type of types)
+            window.addEventListener(type, stop, { capture: true, passive: true });
+        return () => {
+            for (const type of types) window.removeEventListener(type, stop, { capture: true });
+        };
+    });
+
+    // Système passé en animations réduites pendant la lecture : arrêt, pas à pas seulement.
+    $effect(() => {
+        if (reducedMotion.current) untrack(() => playback.pause());
+    });
+
     function readParam(name) {
         if (typeof window === 'undefined') return null;
         return new URL(window.location.href).searchParams.get(name);
@@ -136,14 +240,9 @@
         ormLayer = layers.orm;
         if (layers.data.includes('accidents')) loadAccidents();
 
-        const centerParam = readParam('center');
-        if (centerParam) {
-            const [lng, lat] = centerParam.split(',').map(Number);
-            if (Number.isFinite(lng) && Number.isFinite(lat)) center = [lng, lat];
-        }
-
-        const zoomParam = Number.parseFloat(readParam('zoom'));
-        if (Number.isFinite(zoomParam)) zoom = zoomParam;
+        const view = readMapView(window.location.search);
+        if (view.center) center = view.center;
+        if (view.zoom !== null) zoom = view.zoom;
 
         const theme = readParam('theme');
         if (theme === 'dark' || theme === 'light') {
@@ -179,6 +278,8 @@
         signalling={drawn.signalling}
         greenways={drawn.greenways}
         onZoomChange={(z) => (mapZoom = z)}
+        onEraShown={(year) => playback.shown(year)}
+        {preloadEra}
         {dataVersion}
         {center}
         {zoom}
@@ -238,13 +339,33 @@
         {/if}
     </RailMap>
 
-    {#if showTimeline}
+    {#if showTimeline && playbackOpen}
+        <EraPlayer
+            year={selectedEra}
+            years={playbackYearList}
+            todayEra={currentEraYear}
+            openKm={openKm[selectedEra] ?? null}
+            playing={playbackPlaying}
+            ended={playbackEnded}
+            speed={playbackSpeed}
+            stepOnly={reducedMotion.current}
+            status={playbackStatus}
+            bind:playButton={playbackButton}
+            onToggle={() => playback.toggle()}
+            onPrev={() => stepPlayback(-1)}
+            onNext={() => stepPlayback(1)}
+            onSpeed={setPlaybackSpeed}
+            onClose={closePlayback}
+        />
+    {:else if showTimeline}
         <TimelineSlider
             eras={ERAS}
             {emptyYears}
             currentEra={currentEraYear}
             labels={eraLabels}
             bind:value={selectedEra}
+            onPlay={openPlayback}
+            playing={playbackPlaying}
         />
     {/if}
 </main>
@@ -266,7 +387,8 @@
     .embed-root :global(.rail-map) {
         height: 100% !important;
     }
-    .embed-root :global(.timeline) {
+    .embed-root :global(.timeline),
+    .embed-root :global(.era-player) {
         flex-shrink: 0;
     }
 

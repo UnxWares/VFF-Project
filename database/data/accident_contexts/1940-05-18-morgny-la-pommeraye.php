@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Morgny (Morgny-la-Pommeraye) du 18 mai 1940 (recherche du 21/11/2026).
 return [
     'slug' => '1940-05-18-morgny-la-pommeraye',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'liste-1940' => [
             'provider' => 'wikipedia',
@@ -32,6 +32,20 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Situe la gare à Morgny-la-Pommeraye (Seine-Maritime).',
+        ],
+        'sncf-gares-morgny' => [
+            'provider' => 'sites-web',
+            'kind' => 'data',
+            'reliability' => 'official',
+            'title' => 'Liste des gares, enregistrement Morgny (UIC 87411439)',
+            'publisher' => 'SNCF Open Data',
+            'author' => null,
+            'published' => null,
+            'locator' => 'ligne 321000, PK 100+303',
+            'url' => 'https://data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-gares/records?where=libelle%3D%22Morgny%22',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Jeu de données officiel des gares du réseau ferré : la gare de Morgny (ligne 321000, Amiens à Rouen) est rattachée à la commune de Morgny-la-Pommeraye, en Seine-Maritime.',
         ],
         'commune-morgny' => [
             'provider' => 'wikipedia',
@@ -122,7 +136,7 @@ return [
         [
             'field' => 'commune_insee',
             'value' => '76453',
-            'sources' => ['gare-morgny', 'commune-morgny'],
+            'sources' => ['sncf-gares-morgny', 'gare-morgny', 'commune-morgny'],
             'fr' => 'La gare de Morgny, sur la ligne d\'Amiens à Rouen, est à Morgny-la-Pommeraye (Seine-Maritime), et non à Morgny dans l\'Eure.',
             'en' => 'Morgny station, on the Amiens to Rouen line, is in Morgny-la-Pommeraye (Seine-Maritime), not in Morgny in the Eure.',
             'de' => 'Der Bahnhof Morgny an der Strecke Amiens-Rouen liegt in Morgny-la-Pommeraye (Seine-Maritime) und nicht in Morgny im Département Eure.',

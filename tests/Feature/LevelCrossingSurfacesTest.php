@@ -35,7 +35,7 @@ class LevelCrossingSurfacesTest extends TestCase
 
     public function test_line_sheet_has_the_counts_and_the_list_in_pk_order(): void
     {
-        $this->get('/lines/rfn-70000')
+        $this->getWithDeferredProps('/lines/rfn-70000')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
@@ -108,7 +108,7 @@ class LevelCrossingSurfacesTest extends TestCase
     {
         $this->seedLevelCrossing('30000030001', '070000', 200000, 49.1, 3.7, 'CLASSE 50');
 
-        $this->get('/lines/rfn-70000')->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-70000')->assertInertia(fn (Assert $page) => $page
             ->where('level_crossings.total', 3)
             ->where('level_crossings.items.2', [
                 'id' => '30000030001', 'label' => 'PN 01', 'class' => 50, 'group' => null,

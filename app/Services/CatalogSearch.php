@@ -7,6 +7,11 @@ use App\Models\Era;
 use App\Models\Line;
 use App\Models\Material;
 use App\Services\Materials\NotableUnits;
+use App\Support\Search\SearchFields;
+use App\Support\Search\SearchQuery;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,6 +34,9 @@ final class CatalogSearch
     /** Longueur minimale de la requête (caractères) : en dessous, listes vides. */
     public const MIN_LENGTH = 2;
 
+    /** En dessous de ce nombre de fiches trouvées, la liste est complétée par des fiches approchées. */
+    public const FUZZY_BELOW = 3;
+
     public function __construct(private readonly NotableUnits $notableUnits) {}
 
     /**
@@ -45,87 +53,76 @@ final class CatalogSearch
             return ['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => []];
         }
 
-        // Jokers LIKE (% _) et caractère d'échappement (\) pris au pied de la
-        // lettre : « 100% » cherche « 100% », « %% » ne renvoie pas tout.
-        $needle = addcslashes($q, '\\%_');
-        $like = '%'.$needle.'%';
-
-        // Pertinence (0 = meilleure) : correspondance exacte, début, mot du nom (après un espace,
-        // un tiret ou une apostrophe), puis le reste. Même gabarit pour les lignes (nom ou code,
-        // espaces du code ignorés : « 420000 » trouve « 420 000 ») et les gares.
-        $exact = $needle;
-        $prefix = $needle.'%';
-        $words = ['% '.$needle.'%', '%-'.$needle.'%', "%'".$needle.'%', '%’'.$needle.'%'];
-        $wordSql = implode(' OR ', array_fill(0, count($words), 'unaccent(%1$s) ILIKE unaccent(?)'));
-        $noSpace = str_replace(' ', '', $needle);
+        $sq = SearchQuery::parse($q);
+        if ($sq->isEmpty() && self::dateCondition($q) === null) {
+            return ['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => []];
+        }
+        $digits = $sq->digits();
 
         // Ligne « en service » : au moins une portion en service à l'ère courante.
         $eraId = Era::where('is_current', true)->value('id') ?? Era::orderByDesc('year')->value('id');
 
-        $lineRank = 'CASE
-            WHEN unaccent(lines.name) ILIKE unaccent(?) OR unaccent(replace(lines.code, \' \', \'\')) ILIKE unaccent(?) THEN 0
-            WHEN unaccent(lines.name) ILIKE unaccent(?) OR unaccent(replace(lines.code, \' \', \'\')) ILIKE unaccent(?) THEN 1
-            WHEN '.sprintf($wordSql, 'lines.name').' THEN 2
-            ELSE 3 END';
-        $lines = $lineLimit <= 0 ? [] : Line::query()
-            ->where(function ($w) use ($like, $noSpace) {
-                $w->whereRaw('unaccent(name) ILIKE unaccent(?)', [$like])
-                    ->orWhereRaw('unaccent(code) ILIKE unaccent(?)', [$like])
-                    ->orWhereRaw("unaccent(replace(code, ' ', '')) ILIKE unaccent(?)", ['%'.$noSpace.'%']);
-            })
-            ->orderByRaw($lineRank, [$exact, $noSpace, $prefix, $noSpace.'%', ...$words])
-            ->orderByRaw('CASE WHEN EXISTS (
+        $lines = $lineLimit <= 0 ? [] : $this->ranked(
+            Line::query()->toBase(),
+            $sq,
+            SearchFields::keys('line', 'lines.'),
+            // Code à 6 chiffres, espaces ignorées : « 570 000 », « 570000 » et « 5700 » trouvent 570000.
+            $digits !== null && strlen($digits) >= 3 ? ["replace(COALESCE(lines.code, ''), ' ', '') LIKE ?", [$digits.'%'], "replace(COALESCE(lines.code, ''), ' ', '') = ?", [$digits]] : null,
+            [["CASE WHEN EXISTS (
                 SELECT 1 FROM line_segments s
-                WHERE s.line_id = lines.id AND s.era_id = ? AND s.status IN (\'in_service\', \'single_track\')
-            ) THEN 0 ELSE 1 END', [$eraId])
-            ->orderByRaw('name COLLATE "fr-x-icu"')
-            ->orderBy('id')
-            ->limit($lineLimit)
-            ->get(['slug', 'name', 'code'])
-            ->map(fn ($l) => [
-                'type' => 'line',
-                'slug' => (string) $l->slug,
-                'name' => (string) $l->name,
-                'code' => $l->code,
-            ])->values()->all();
+                WHERE s.line_id = lines.id AND s.era_id = ? AND s.status IN ('in_service', 'single_track')
+            ) THEN 0 ELSE 1 END", [$eraId]], ['lines.name COLLATE "fr-x-icu"', []], ['lines.id', []]],
+            ['lines.slug', 'lines.name', 'lines.code'],
+            $lineLimit,
+        )->map(fn ($l) => [
+            'type' => 'line',
+            'slug' => (string) $l->slug,
+            'name' => (string) $l->name,
+            'code' => $l->code,
+            'approximate' => (bool) $l->approximate,
+        ])->values()->all();
 
-        $stations = $stationLimit <= 0 ? [] : DB::select(
-            'SELECT slug, name, city, department_code,
-                   ST_X(geom) AS lng, ST_Y(geom) AS lat
-            FROM stations
-            WHERE unaccent(name) ILIKE unaccent(?)
-            ORDER BY
-              CASE
-                WHEN unaccent(name) ILIKE unaccent(?) THEN 0
-                WHEN unaccent(name) ILIKE unaccent(?) THEN 1
-                WHEN '.sprintf($wordSql, 'name').' THEN 2
-                ELSE 3 END,
-              name COLLATE "fr-x-icu",
-              id
-            LIMIT ?',
-            [$like, $exact, $prefix, ...$words, $stationLimit],
-        );
+        // Gare : code UIC (début, 4 chiffres au moins) ou numéro de département (« 44 », « 2A », « 971 »).
+        $stationExtra = null;
+        if ($digits !== null && strlen($digits) >= 4) {
+            $stationExtra = ['stations.uic_code LIKE ?', [$digits.'%'], 'stations.uic_code = ?', [$digits]];
+        } elseif (preg_match('/^(\d{2,3}|2[ab])$/i', trim($q)) === 1) {
+            $stationExtra = ['stations.department_code = ?', [strtoupper(trim($q))], 'FALSE', []];
+        }
+        $stations = $stationLimit <= 0 ? [] : $this->ranked(
+            DB::table('stations'),
+            $sq,
+            SearchFields::keys('station', 'stations.'),
+            $stationExtra,
+            // À pertinence égale : gares ouvertes aux voyageurs, puis les plus desservies, puis l'ordre alphabétique.
+            [["CASE WHEN stations.status = 'active' THEN 0 ELSE 1 END", []],
+                ['(SELECT COUNT(*) FROM station_lines sl WHERE sl.station_id = stations.id) DESC', []],
+                ['stations.name COLLATE "fr-x-icu"', []], ['stations.id', []]],
+            ['stations.slug', 'stations.name', 'stations.city', 'stations.department_code', DB::raw('ST_X(stations.geom) AS lng'), DB::raw('ST_Y(stations.geom) AS lat')],
+            $stationLimit,
+        )->all();
 
         // Surnom d'une rame remarquable (« Patrick », « TGV Patrick ») : sa série vient en tête, avec la rame.
         $notable = $materialLimit <= 0 ? [] : $this->notableUnits->matching($q);
-        $materials = $materialLimit <= 0 ? [] : Material::query()
-            ->where(function ($w) use ($like, $notable): void {
-                $w->whereRaw('unaccent(name) ILIKE unaccent(?)', [$like])->orWhereIn('slug', array_keys($notable));
-            })
-            ->orderByRaw('CASE WHEN slug IN ('.implode(',', array_fill(0, max(1, count($notable)), '?')).') THEN 0 ELSE 1 END', array_keys($notable) ?: [''])
-            ->orderBy('id')
-            ->limit($materialLimit)
-            ->get(['slug', 'name', 'type', 'builder'])
-            ->map(fn ($m) => [
-                'type' => 'material',
-                'slug' => (string) $m->slug,
-                'name' => (string) $m->name,
-                'kind' => $m->type,
-                'builder' => $m->builder,
-                'notable_unit' => $notable[$m->slug] ?? null,
-            ])->values()->all();
+        $materials = $materialLimit <= 0 ? [] : $this->ranked(
+            Material::query()->toBase(),
+            $sq,
+            SearchFields::keys('material', 'materials.'),
+            $notable === [] ? null : ['materials.slug IN ('.implode(',', array_fill(0, count($notable), '?')).')', array_keys($notable), 'materials.slug IN ('.implode(',', array_fill(0, count($notable), '?')).')', array_keys($notable)],
+            [['materials.name COLLATE "fr-x-icu"', []], ['materials.id', []]],
+            ['materials.slug', 'materials.name', 'materials.type', 'materials.builder'],
+            $materialLimit,
+        )->map(fn ($m) => [
+            'type' => 'material',
+            'slug' => (string) $m->slug,
+            'name' => (string) $m->name,
+            'kind' => $m->type,
+            'builder' => $m->builder,
+            'notable_unit' => $notable[$m->slug] ?? null,
+            'approximate' => (bool) $m->approximate,
+        ])->values()->all();
 
-        $accidents = $accidentLimit <= 0 ? [] : $this->accidents($q, $needle, $accidentLimit);
+        $accidents = $accidentLimit <= 0 ? [] : $this->accidents($q, $sq, $accidentLimit);
 
         return [
             'lines' => $lines,
@@ -137,6 +134,7 @@ final class CatalogSearch
                 'department_code' => $r->department_code,
                 'lat' => (float) $r->lat,
                 'lng' => (float) $r->lng,
+                'approximate' => (bool) $r->approximate,
             ], $stations)),
             'materials' => $materials,
             'accidents' => $accidents,
@@ -144,68 +142,95 @@ final class CatalogSearch
     }
 
     /**
-     * Accidents publiés dont un nom (français, anglais ou allemand), la commune ou la date correspond.
-     * Même pertinence que les gares : exact, début, mot, reste (le reste comprend le lieu et la date
-     * lus dans l'identifiant et les dates cherchées par leur chiffre) ; à pertinence égale, ordre
-     * alphabétique français du nom, puis date.
+     * Accidents publiés dont un nom (français, anglais ou allemand) ou la commune correspond, ou, pour une requête
+     * qui est une date, dont la date correspond. Même pertinence que les gares (sur le nom français) ; à pertinence égale, ordre alphabétique
+     * français du nom, puis date.
      *
      * @return list<array<string, mixed>>
      */
-    private function accidents(string $q, string $needle, int $limit): array
+    private function accidents(string $q, SearchQuery $sq, int $limit): array
     {
-        $fields = ["accidents.name->>'fr'", "accidents.name->>'en'", "accidents.name->>'de'", 'accidents.commune_name'];
-        $match = fn (string $pattern): array => [
-            implode(' OR ', array_map(fn (string $f) => "unaccent(COALESCE({$f}, '')) ILIKE unaccent(?)", $fields)),
-            array_fill(0, count($fields), $pattern),
-        ];
-        [$exactSql, $exactBind] = $match($needle);
-        [$prefixSql, $prefixBind] = $match($needle.'%');
-        [$containsSql, $containsBind] = $match('%'.$needle.'%');
-        $wordSql = [];
-        $wordBind = [];
-        foreach (['% '.$needle.'%', '%-'.$needle.'%', "%'".$needle.'%', '%’'.$needle.'%'] as $pattern) {
-            [$sql, $bind] = $match($pattern);
-            $wordSql[] = "({$sql})";
-            array_push($wordBind, ...$bind);
-        }
+        // Une date ne cherche que par la date (« 01/03/1950 » ne doit pas trouver l'accident du 1er mars par ses chiffres).
         $date = self::dateCondition($q);
+        $rows = $this->ranked(
+            Accident::query()->withCoordinates(),
+            $date === null ? $sq : SearchQuery::parse(''),
+            SearchFields::keys('accident', 'accidents.'),
+            $date === null ? null : [$date[0], $date[1], 'FALSE', []],
+            [["COALESCE(accidents.name->>'fr', accidents.slug) COLLATE \"fr-x-icu\"", []], ['accidents.occurred_on', []], ['accidents.id', []]],
+            [],
+            $limit,
+        );
 
-        return Accident::query()
-            ->withCoordinates()
-            ->where(function ($w) use ($containsSql, $containsBind, $needle, $date): void {
-                $w->whereRaw("({$containsSql})", $containsBind)
-                    // L'identifiant commence par la date (2013-07-12-bretigny-sur-orge) : « 2013-07 » le trouve.
-                    ->orWhereRaw('unaccent(accidents.slug) ILIKE unaccent(?)', ['%'.$needle.'%']);
-                if ($date !== null) {
-                    $w->orWhereRaw("({$date[0]})", $date[1]);
+        return $rows->map(fn (Accident $a) => [
+            'type' => 'accident',
+            'slug' => $a->slug,
+            'name' => $a->nameIn('fr'),
+            'names' => [
+                'fr' => $a->nameIn('fr'),
+                'en' => $a->nameIn('en'),
+                'de' => $a->nameIn('de'),
+            ],
+            'date' => $a->occurred_on->toDateString(),
+            'date_precision' => $a->date_precision->value,
+            'kind' => $a->kind->value,
+            'commune' => $a->commune_name,
+            'department_code' => $a->department_code,
+            'lat' => $a->lat,
+            'lng' => $a->lng,
+            'approximate' => (bool) $a->getAttribute('approximate'),
+        ])->values()->all();
+    }
+
+    /**
+     * Fiches trouvées par SearchQuery, classées (rang du nom, puis `$tieBreak`), puis, s'il en manque, complétées
+     * par les plus ressemblantes (fautes de frappe), marquées `approximate`.
+     *
+     * @template TBuilder of QueryBuilder|EloquentBuilder
+     *
+     * @param  TBuilder  $base
+     * @param  array{0: string, 1: string}  $keys  clés SQL du nom et de tous les noms (SearchFields::keys)
+     * @param  array{0: string, 1: list<mixed>, 2: string, 3: list<mixed>}|null  $extra  autre correspondance (code, date) et sa condition d'égalité (rang 0)
+     * @param  list<array{0: string, 1: list<mixed>}>  $tieBreak
+     * @param  list<mixed>  $columns  colonnes lues (vide : celles déjà choisies par `$base`)
+     * @return Collection<int, mixed>
+     */
+    private function ranked(QueryBuilder|EloquentBuilder $base, SearchQuery $sq, array $keys, ?array $extra, array $tieBreak, array $columns, int $limit): Collection
+    {
+        [$nameKey, $allKey] = $keys;
+        [$match, $matchBind] = $sq->matchSql($allKey, anywhere: true);
+        [$rank, $rankBind] = $sq->rankSql($nameKey, $allKey);
+        $exact = (clone $base)
+            ->where(function ($w) use ($match, $matchBind, $extra): void {
+                $w->whereRaw("({$match})", $matchBind);
+                if ($extra !== null) {
+                    $w->orWhereRaw("({$extra[0]})", $extra[1]);
                 }
             })
-            ->orderByRaw(
-                "CASE WHEN {$exactSql} THEN 0 WHEN {$prefixSql} THEN 1 WHEN ".implode(' OR ', $wordSql).' THEN 2 ELSE 3 END',
-                [...$exactBind, ...$prefixBind, ...$wordBind],
-            )
-            ->orderByRaw("COALESCE(accidents.name->>'fr', accidents.slug) COLLATE \"fr-x-icu\"")
-            ->orderBy('accidents.occurred_on')
-            ->orderBy('accidents.id')
-            ->limit($limit)
-            ->get()
-            ->map(fn (Accident $a) => [
-                'type' => 'accident',
-                'slug' => $a->slug,
-                'name' => $a->nameIn('fr'),
-                'names' => [
-                    'fr' => $a->nameIn('fr'),
-                    'en' => $a->nameIn('en'),
-                    'de' => $a->nameIn('de'),
-                ],
-                'date' => $a->occurred_on->toDateString(),
-                'date_precision' => $a->date_precision->value,
-                'kind' => $a->kind->value,
-                'commune' => $a->commune_name,
-                'department_code' => $a->department_code,
-                'lat' => $a->lat,
-                'lng' => $a->lng,
-            ])->values()->all();
+            ->orderByRaw($extra === null ? $rank : "CASE WHEN {$extra[2]} THEN 0 ELSE {$rank} END", [...($extra[3] ?? []), ...$rankBind]);
+        foreach ($tieBreak as [$sql, $bind]) {
+            $exact->orderByRaw($sql, $bind);
+        }
+        $select = fn ($b, bool $approximate) => $columns === []
+            ? $b->addSelect(DB::raw(($approximate ? 'TRUE' : 'FALSE').' AS approximate'))
+            : $b->select([...$columns, DB::raw(($approximate ? 'TRUE' : 'FALSE').' AS approximate')]);
+        $found = $select($exact, false)->limit($limit)->get();
+
+        // Fautes de frappe : seulement quand la correspondance exacte ne donne rien ou peu.
+        if ($found->count() >= min($limit, self::FUZZY_BELOW) || ! $sq->canBeFuzzy()) {
+            return $found;
+        }
+        // Fautes de frappe cherchées dans le nom seul (SearchQuery::where).
+        [$fuzzy, $fuzzyBind] = $sq->fuzzySql($nameKey);
+        [$order, $orderBind] = $sq->fuzzyOrderSql($nameKey);
+        $approx = (clone $base)->whereRaw($fuzzy, $fuzzyBind)->whereRaw("NOT ({$match})", $matchBind)
+            ->when($extra !== null, fn ($b) => $b->whereRaw("NOT COALESCE(({$extra[0]}), FALSE)", $extra[1]))
+            ->orderByRaw($order, $orderBind);
+        foreach ($tieBreak as [$sql, $bind]) {
+            $approx->orderByRaw($sql, $bind);
+        }
+
+        return $found->concat($select($approx, true)->limit($limit - $found->count())->get());
     }
 
     /**
@@ -217,7 +242,7 @@ final class CatalogSearch
      *
      * @return array{0: string, 1: list<string|int>}|null
      */
-    private static function dateCondition(string $q): ?array
+    public static function dateCondition(string $q): ?array
     {
         $q = trim($q);
         $never = ['FALSE', []];

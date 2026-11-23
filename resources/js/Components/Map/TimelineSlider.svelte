@@ -1,5 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import { i18n } from '$lib/i18n.js';
     import { visibleLabels } from '$lib/timelineLabels.js';
 
@@ -19,8 +20,11 @@
      *   currentEra : décennie actuelle (défaut : la dernière)
      *   labels     : { [année]: nom de l'époque } (noms en français, affichés sur le site français)
      *   playIntervalMs : durée d'une étape en lecture automatique
+     *   onPlay     : lecture confiée à la page (/maps : mode Lecture, EraPlayer.svelte) ; le bouton
+     *                l'appelle au lieu de lancer la minuterie de la frise
+     *   playing    : lecture de la page en cours (icône du bouton), avec `onPlay`
      */
-    /** @type {{ eras?: number[], emptyYears?: number[], value?: number, currentEra?: number|null, labels?: Record<number, string>, playIntervalMs?: number }} */
+    /** @type {{ eras?: number[], emptyYears?: number[], value?: number, currentEra?: number|null, labels?: Record<number, string>, playIntervalMs?: number, onPlay?: (() => void)|null, playing?: boolean }} */
     let {
         eras = [1990, 2000, 2010, 2020, 2030],
         emptyYears = [],
@@ -28,6 +32,8 @@
         currentEra = null,
         labels = {},
         playIntervalMs = 2500,
+        onPlay = null,
+        playing = false,
     } = $props();
 
     /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
@@ -36,7 +42,11 @@
     const todayEra = $derived(currentEra ?? eras[eras.length - 1]);
     const thisYear = new Date().getFullYear();
 
-    let isPlaying = $state(false);
+    // Animations réduites demandées par le système : la lecture automatique par minuterie (sans `onPlay`)
+    // n'est pas proposée ; seule la lecture confiée à la page l'est (elle passe alors au pas à pas).
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
+    let timerPlaying = $state(false);
+    const isPlaying = $derived(onPlay ? playing : timerPlaying);
     let timer = null;
     // Annonce des changements qui ne viennent pas du curseur (lecture, période, point cliqué) :
     // le curseur annonce déjà sa valeur quand on le manipule au clavier.
@@ -171,13 +181,18 @@
     }
 
     function togglePlay() {
+        if (onPlay) {
+            onPlay();
+            return;
+        }
+        if (reducedMotion.current) return;
         if (isPlaying) {
             stopPlay();
             return;
         }
         // Au bout de la frise : repartir du début.
         if (value === eras[eras.length - 1]) select(eras[0]);
-        isPlaying = true;
+        timerPlaying = true;
         timer = setInterval(() => {
             const next = step(1);
             if (next === value) {
@@ -189,7 +204,7 @@
     }
 
     function stopPlay() {
-        isPlaying = false;
+        timerPlaying = false;
         if (timer) {
             clearInterval(timer);
             timer = null;
@@ -201,15 +216,18 @@
 
 <div class="timeline" role="group" aria-label={t('maps.timeline.aria_label')}>
     <div class="timeline-head">
-        <button
-            type="button"
-            class="play-btn"
-            onclick={togglePlay}
-            aria-label={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
-            title={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
-        >
-            <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}" aria-hidden="true"></i>
-        </button>
+        {#if onPlay || !reducedMotion.current}
+            <button
+                type="button"
+                class="play-btn"
+                data-playback-control
+                onclick={togglePlay}
+                aria-label={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
+                title={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
+            >
+                <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}" aria-hidden="true"></i>
+            </button>
+        {/if}
 
         <p class="year-display">
             <span class="year-value">{displayYear}</span>

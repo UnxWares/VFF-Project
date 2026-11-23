@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\DB;
  *   vff:import-materials --no-planned    # sans les liens directs des sections « Dessertes réalisées ou prévues »
  *   vff:import-materials --no-attested   # sans les séries non rattachées à la France
  *   vff:import-materials --dry-run       # lit et compte, sans écrire en base (liens à créer et à retirer)
+ *   vff:import-materials --materials=Q120253257,Q572856   # n'écrit que les fiches et les liens de ces séries
  */
 class ImportMaterials extends Command
 {
@@ -46,7 +47,8 @@ class ImportMaterials extends Command
         {--no-links : N\'importe que les fiches}
         {--no-planned : Ne lit pas les liens directs vers des lignes des sections « Dessertes réalisées ou prévues »}
         {--no-attested : N\'ajoute pas les séries que Wikidata ne rattache pas à la France}
-        {--dry-run : Lit les sources et compte, sans écrire en base}';
+        {--dry-run : Lit les sources et compte, sans écrire en base}
+        {--materials= : Éléments Wikidata des seules séries dont les fiches et les liens sont écrits, séparés par des virgules}';
 
     /** Une seconde au moins entre deux appels aux serveurs Wikimedia. */
     private const MIN_INTERVAL_MS = 1000;
@@ -61,9 +63,13 @@ class ImportMaterials extends Command
         $rules = WikidataMaterialRules::default();
         $source = new WikidataMaterialSource(new CommonsClient(minIntervalMs: self::MIN_INTERVAL_MS), $cache, $rules);
         $wikipedia = new WikipediaArticleSource(app(WikimediaClient::class), $cache);
+        $only = $this->onlyMaterials();
+        if ($only === false) {
+            return self::FAILURE;
+        }
 
         if (! $this->option('links-only')) {
-            $this->importMaterials($source, $wikipedia, $rules, $cache, $refresh, $dryRun);
+            $this->importMaterials($source, $wikipedia, $rules, $cache, $refresh, $dryRun, $only === null ? null : array_keys($only));
         }
         if (! $this->option('no-links')) {
             $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase(), plannedSections: ! $this->option('no-planned'));
@@ -82,11 +88,12 @@ class ImportMaterials extends Command
             $relations = $linker->relationStats();
             $this->line(sprintf('  Itinéraires cités : %d (%d écartés, arrêt intermédiaire nommé) ; paires de gares : %d (%d ambiguës, %d sans chemin), arrêts introuvables : %d.',
                 $relations['itineraries'], $relations['itineraries_partial'], $relations['pairs'], $relations['pairs_ambiguous'], $relations['pairs_without_path'], $relations['stops_unresolved']));
-            $this->report($linker, $links);
+            $materialIds = $only === null ? null : array_values($only);
+            $this->report($linker, $links, $materialIds);
             if ($dryRun) {
                 $this->warn('--dry-run : rien n\'est écrit.');
             } else {
-                $stats = $linker->write($links);
+                $stats = $linker->write($links, $materialIds);
                 $this->info("Liens : {$stats['created']} créé(s), {$stats['updated']} mis à jour, {$stats['removed']} retiré(s).");
             }
         }
@@ -95,14 +102,39 @@ class ImportMaterials extends Command
     }
 
     /**
+     * Séries désignées par --materials (QID → id), null sans l'option, false si un QID est inconnu.
+     *
+     * @return array<string, int>|false|null
+     */
+    private function onlyMaterials(): array|false|null
+    {
+        $option = trim((string) $this->option('materials'));
+        if ($option === '') {
+            return null;
+        }
+        $qids = array_values(array_unique(array_filter(array_map('trim', explode(',', $option)))));
+        $ids = DB::table('materials')->whereIn('wikidata_id', $qids)->pluck('id', 'wikidata_id')->map(fn ($id): int => (int) $id)->all();
+        $missing = array_diff($qids, array_keys($ids));
+        if ($missing !== []) {
+            $this->error('--materials : série(s) absente(s) de la base : '.implode(', ', $missing));
+
+            return false;
+        }
+        $this->info('Écriture limitée à '.count($ids).' série(s) : '.implode(', ', $qids).'.');
+
+        return $ids;
+    }
+
+    /**
      * Bilan avant écriture : liens écartés (exclusion relue, écartement, électrification), liens à créer, à mettre à jour et à retirer.
      *
      * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     * @param  list<int>|null  $materialIds  séries seules écrites (--materials)
      */
-    private function report(LineMaterialLinker $linker, array $links): void
+    private function report(LineMaterialLinker $linker, array $links, ?array $materialIds = null): void
     {
         $rejected = $linker->rejected();
-        $diff = LineMaterialLinker::diff($links);
+        $diff = LineMaterialLinker::diff($links, $materialIds);
         $keys = [...array_keys($rejected), ...$diff['created'], ...$diff['updated'], ...$diff['removed']];
         $lineIds = array_map(fn (string $k): int => (int) explode(':', $k)[0], $keys);
         $materialIds = array_map(fn (string $k): int => (int) explode(':', $k)[1], $keys);
@@ -135,7 +167,8 @@ class ImportMaterials extends Command
         }
     }
 
-    private function importMaterials(WikidataMaterialSource $source, WikipediaArticleSource $wikipedia, WikidataMaterialRules $rules, SourceCache $cache, bool $refresh, bool $dryRun): void
+    /** @param  list<string>|null  $onlyQids  séries seules écrites (--materials) */
+    private function importMaterials(WikidataMaterialSource $source, WikipediaArticleSource $wikipedia, WikidataMaterialRules $rules, SourceCache $cache, bool $refresh, bool $dryRun, ?array $onlyQids = null): void
     {
         $qids = $source->candidates($refresh);
         $this->info(count($qids).' série(s) candidate(s) dans Wikidata.');
@@ -230,6 +263,9 @@ class ImportMaterials extends Command
         $this->table(['motif d\'exclusion', 'séries'], collect($skipped)->map(fn (array $q, string $k): array => [$k, count($q)])->values()->all());
         $this->table(['catégorie', 'fiches'], collect($records)->countBy('type')->map(fn (int $n, string $t): array => [$t, $n])->values()->all());
 
+        if ($onlyQids !== null) {
+            $records = array_values(array_filter($records, fn (array $r): bool => in_array($r['wikidata_id'], $onlyQids, true)));
+        }
         $stats = (new MaterialImporter)->import($records, $dryRun);
         $this->info(($dryRun ? 'Fiches (à blanc) : ' : 'Fiches : ')."{$stats['created']} créée(s), {$stats['updated']} mise(s) à jour, {$stats['unchanged']} inchangée(s).");
         if ($stats['fields'] !== []) {

@@ -38,7 +38,8 @@ class ApiDocumentationCoverageTest extends TestCase
             if (! str_starts_with($route->uri(), 'api/v1/') || ! in_array('GET', $route->methods(), true)) {
                 continue;
             }
-            $paths[] = (string) preg_replace('/\{(\w+):\w+\}/', '{$1}', substr($route->uri(), strlen('api/v1')));
+            // Paramètre facultatif (« {monthDay?} ») : la spécification le décrit comme un paramètre de chemin.
+            $paths[] = (string) preg_replace('/\{(\w+)(?::\w+)?\??\}/', '{$1}', substr($route->uri(), strlen('api/v1')));
         }
         sort($paths);
 

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Achères du 3 juillet 1926 (recherche du 21/11/2026).
 return [
     'slug' => '1926-07-03-acheres',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1926' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Analyse annuelle officielle des accidents de 1926, citée par Wikipédia ; à consulter pour les causes établies.',
         ],
+        'ddb-1926-07-06-rheinisches' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Rheinisches Volksblatt du 6 juillet 1926',
+            'publisher' => 'Rheinisches Volksblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1926-07-06',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/2I4VTEY3QNMM65BGNPDMWU7KWRIYNM24?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche wtb du 5 juillet : samedi soir, le rapide Le Havre-Paris déraille entre Achères et Poissy ; 18 morts et 97 blessés selon les premières constatations, dont 32 rentrés chez eux.',
+        ],
+        'kb-1926-07-06-de-gooi-en-eemlander' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN. Het spoorwegongeluk nabij Achères.',
+            'publisher' => 'De Gooi- en Eemlander (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1926-07-06',
+            'locator' => 'article « TELEGRAMMEN. Het spoorwegongeluk nabij Achères. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011168936:mpeg21:a0078:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 6 juillet : 19 morts et 100 blessés dans la catastrophe d\'Achères ; le mécanicien n\'avait pas été averti du changement de voie.',
+        ],
+        'ddb-1926-07-05-bergische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Bergische Zeitung du 5 juillet 1926',
+            'publisher' => 'Bergische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1926-07-05',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/WJZD2VCPUP3G2BAYN6Q6636QO2QSV7AN?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche WTB de Paris du 4 juillet : le rapide Le Havre-Paris déraille « hier soir » entre Achères et Poissy ; environ 20 morts et 50 blessés, la tempête d\'orage tenue pour cause.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -110,6 +152,18 @@ return [
         ],
         'victims' => [
             [
+                'fr' => 'Une dépêche wtb publiée le 6 juillet 1926 place le déraillement du rapide Le Havre-Paris le samedi soir (3 juillet) entre Achères et Poissy, avec 18 morts et 97 blessés, dont 32 déjà rentrés chez eux. Le nombre de morts concorde avec la fiche ; celui des blessés est plus élevé (67 dans la fiche).',
+                'en' => 'A wtb dispatch published on 6 July 1926 places the derailment of the Le Havre-Paris express on Saturday evening (3 July) between Achères and Poissy, with 18 dead and 97 injured, 32 of whom had already gone home. The number of dead matches the record; the number of injured is higher (67 in the record).',
+                'de' => 'Eine am 6. Juli 1926 veröffentlichte wtb-Meldung verlegt die Entgleisung des Schnellzugs Le Havre-Paris auf Samstagabend (3. Juli) zwischen Achères und Poissy, mit 18 Toten und 97 Verletzten, von denen 32 schon nach Hause zurückgekehrt waren. Die Zahl der Toten stimmt mit der Datenbank überein, die der Verletzten ist höher (67 in der Datenbank).',
+                'sources' => ['ddb-1926-07-06-rheinisches'],
+            ],
+            [
+                'fr' => 'De Gooi- en Eemlander du 6 juillet 1926 évoque la catastrophe d\'Achères avec 19 morts et 100 blessés, le mécanicien n\'ayant pas été averti que la circulation avait été détournée d\'une voie principale vers une voie secondaire ; le chiffre est de un mort de plus que la fiche (18) et la presse allemande donne 97 blessés (67 dans la fiche).',
+                'en' => 'De Gooi- en Eemlander of 6 July 1926 mentions the Achères disaster with 19 dead and 100 injured, the driver not having been warned that traffic had been diverted from a main line to a side line; the figure is one dead more than the record (18) and the German press gives 97 injured (67 in the record).',
+                'de' => 'De Gooi- en Eemlander vom 6. Juli 1926 erwähnt das Unglück von Achères mit 19 Toten und 100 Verletzten, wobei der Lokführer nicht gewarnt worden war, dass der Verkehr von einem Hauptgleis auf ein Nebengleis umgeleitet worden war; die Zahl liegt einen Toten über der Datenbank (18), und die deutsche Presse nennt 97 Verletzte (67 in der Datenbank).',
+                'sources' => ['kb-1926-07-06-de-gooi-en-eemlander'],
+            ],
+            [
                 'fr' => 'Le bilan est de 18 morts et 67 blessés.',
                 'en' => 'The toll is 18 dead and 67 injured.',
                 'de' => 'Die Bilanz beträgt 18 Tote und 67 Verletzte.',
@@ -130,6 +184,14 @@ return [
                     'wiki-ouest-etat',
                     'wp-3-juillet',
                 ],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Jour : le samedi 3 juillet 1926 est confirmé par deux dépêches WTB, l\'une datée du 4 juillet (« hier soir »), l\'autre du 5 juillet (« samedi soir »), et par la liste de Wikipédia (20 h 10) ; les numéros du 5 juillet qui disent « hier » ou « dimanche » reprennent la date de la dépêche. Bilan : 18 morts (fiche), 19 ou une vingtaine selon d\'autres dépêches ; blessés 50 à 100 contre 67 dans la fiche : désaccord non tranché.',
+                'en' => 'Day: Saturday 3 July 1926 is confirmed by two WTB dispatches, one dated 4 July ("yesterday evening"), the other 5 July ("Saturday evening"), and by the Wikipedia list (8.10 pm); the issues of 5 July saying "yesterday" or "Sunday" take over the date of the dispatch. Toll: 18 dead (record), 19 or about twenty according to other dispatches; injured 50 to 100 against 67 in the record: disagreement not settled.',
+                'de' => 'Tag: Samstag, der 3. Juli 1926, ist durch zwei WTB-Meldungen bestätigt, eine vom 4. Juli ("gestern abend"), eine vom 5. Juli ("Samstag abend"), sowie durch die Wikipedia-Liste (20.10 Uhr); die Ausgaben vom 5. Juli, die "gestern" oder "Sonntag" sagen, übernehmen das Datum der Meldung. Bilanz: 18 Tote (Datensatz), 19 oder rund zwanzig laut anderen Meldungen; Verletzte 50 bis 100 gegenüber 67 im Datensatz: Widerspruch nicht geklärt.',
+                'sources' => ['ddb-1926-07-06-rheinisches', 'ddb-1926-07-05-bergische', 'kb-1926-07-06-de-gooi-en-eemlander', 'wp-liste-1926'],
             ],
         ],
     ],

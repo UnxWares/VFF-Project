@@ -176,7 +176,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'collision',
-            'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            'sources' => ['wp-liste-1916', 'wp-gare-serquigny', 'petit-havre-1916-03-01', 'ddb-1916-03-03-reichsbote'],
             'fr' => 'Deux articles de Wikipédia décrivent un tamponnement par l\'arrière d\'un train arrêté à un signal ; la fiche indiquait un déraillement.',
             'en' => 'Two Wikipedia articles describe a rear-end collision with a train stopped at a signal; the record said derailment.',
             'de' => 'Zwei Wikipedia-Artikel beschreiben einen Auffahrunfall auf einen an einem Signal haltenden Zug; der Eintrag nannte eine Entgleisung.',

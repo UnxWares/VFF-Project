@@ -134,6 +134,9 @@ class SingleAxis
     /** Bout libre qui dépasse le croisement avec une autre portion de la ligne en la longeant (< NEAR_M) : longueur max coupée (m). */
     public const CROSS_STUB_MAX_M = 30.0;
 
+    /** Bulle au bout d'une portion (cf. trimEndBubbles) : côté plus court ignoré (géométrie d'aiguillage) (m). */
+    public const BUBBLE_MIN_M = 10.0;
+
     /** Fragment isolé (cf. dropIsolatedFragments) : longueur max retirée (m), = MIN_PART_M de vff:build-line-references. */
     public const ISOLATED_MAX_M = 60.0;
 
@@ -156,6 +159,14 @@ class SingleAxis
     private bool $ready = false;
 
     private bool $tidyReady = false;
+
+    /**
+     * Lignes dont une extrémité posée sur un côté de bulle retiré par le dernier tidy() (cf. trimEndBubbles) est à
+     * raccorder de nouveau : leur tracé de référence est à reconstruire ensuite.
+     *
+     * @var list<int>
+     */
+    public array $rejoinLines = [];
 
     /** Diagnostic : séries examinées et décision (rempli si $debug). */
     public bool $debug = false;
@@ -221,6 +232,10 @@ class SingleAxis
      *      qui dépasse de moins de CROSS_STUB_MAX_M le point où elle croise une
      *      autre portion de la ligne, en la longeant à moins de NEAR_M, est coupé
      *      au croisement (deux tracés de la même voie qui se croisent en biais).
+     *   1 quater. Bulles au bout d'une portion longue (cf. trimEndBubbles) : de
+     *      deux chemins de moins de MIN_RUN_M entre les deux mêmes nœuds, à moins
+     *      de NEAR_M l'un de l'autre, celui qui longe le dessin d'une autre ligne
+     *      part (voie de cette ligne empruntée deux fois), sans contact perdu.
      *   2. Recollage exact : les extrémités à moins de SNAP_M l'une de l'autre
      *      prennent les mêmes coordonnées, au bit près ; une extrémité posée sur
      *      une portion (raccord en T) devient un sommet de celle-ci. Sinon le
@@ -240,10 +255,11 @@ class SingleAxis
      * tracé source retirés sont listés dans line_reference_duplicates (cause
      * « superposition », ou « fragment isolé »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m et bubble_m (compris dans les deux premiers), bubble_rejoin (extrémités d'autres lignes à raccorder de nouveau, cf. rejoinLines), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
      */
     public function tidy(int $lineId): array
     {
+        $this->rejoinLines = [];
         $this->prepareTidy();
         DB::delete('DELETE FROM tx_sub');
         DB::insert(<<<'SQL'
@@ -253,7 +269,7 @@ class SingleAxis
                         WHEN p.matched_source IS NULL AND p.source = 'contrib' THEN 0
                         WHEN p.matched_source IS NULL AND p.source = 'bdtopo' THEN 1
                         WHEN p.matched_source IS NULL AND p.source = 'osm' THEN 2
-                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN 3
+                        WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN 3
                         ELSE 4 END,
                    d.geom
             FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
@@ -265,6 +281,7 @@ class SingleAxis
         $records = $this->trimCoincident($stats);
         $this->dropNearDuplicates($stats, $records);
         $this->trimCrossedStubs($stats, $records);
+        $this->trimEndBubbles($lineId, $stats, $records);
         $stats['snapped'] = $this->snapEnds();
 
         // Portions dégénérées, puis doublons exacts (après recollage) : la moins fiable / la plus courte part.
@@ -557,6 +574,130 @@ class SingleAxis
     }
 
     /**
+     * Bulles courtes au bout d'une portion longue (cf. tidy, 1 quater). L'extrémité P de la portion A est posée sur la
+     * portion B (raccord en T), et A rejoint l'extrémité Q de B à moins de MIN_RUN_M de P en la longeant à moins de NEAR_M
+     * (au moins NEAR_SHARE de chaque côté) : de P à Q, la ligne est dessinée deux fois, une bulle entre les deux mêmes
+     * nœuds (deux tronçons en double à chaque ère). dropNearDuplicates ne la voit pas : A est longue (Lyon-Perrache,
+     * 830000 : 33 m de la voie convergente de 750000 au début d'une portion de 2,4 km, à 3 m de la voie de 830000,
+     * rejeu du 23/11/2026). Seule une bulle dont un côté longe le dessin d'une autre ligne est retirée : c'est la voie
+     * de cette autre ligne, empruntée deux fois. Le côté le plus proche (en moyenne) de ce dessin part : le début de A
+     * (A commence alors en Q, sur l'extrémité de B) ou la fin de B (B finit alors en P, sur l'extrémité de A). Rien ne
+     * part si une autre portion de la ligne finit sur ce côté hors de P et de Q, ou si l'extrémité d'une autre ligne
+     * posée dessus (SNAP_M) ne toucherait plus le reste de la ligne : pas de contact à 0 m perdu. Une seule exception
+     * (cf. bubbleSideRejoins) : l'autre ligne arrive sur ce côté en le longeant, sur la voie qu'elle dessine elle-même.
+     */
+    private function trimEndBubbles(int $lineId, array &$stats, array &$records): void
+    {
+        $cands = DB::select(<<<'SQL'
+            WITH e AS (
+                SELECT t.sid, e.k, e.p, t.g, ST_Length(t.g) AS len FROM tx_sub t, LATERAL (VALUES (0, ST_StartPoint(t.g)), (1, ST_EndPoint(t.g))) e(k, p)
+                WHERE NOT t.removed AND NOT t.conn AND ST_Length(t.g) >= :min
+            )
+            SELECT e.sid, e.k, e.len, b.sid AS bsid, ST_Length(b.g) AS blen,
+                   ST_LineLocatePoint(b.g, e.p) AS bp, q.k AS bk, ST_LineLocatePoint(e.g, q.p) AS aq
+            FROM e
+            JOIN tx_sub b ON NOT b.removed AND NOT b.conn AND b.sid <> e.sid AND ST_DWithin(b.g, e.p, :snap)
+                AND NOT ST_DWithin(ST_StartPoint(b.g), e.p, :snap2) AND NOT ST_DWithin(ST_EndPoint(b.g), e.p, :snap3)
+            CROSS JOIN LATERAL (VALUES (0, ST_StartPoint(b.g)), (1, ST_EndPoint(b.g))) q(k, p)
+            WHERE ST_DWithin(e.g, q.p, :snap4)
+              AND CASE WHEN e.k = 0 THEN ST_LineLocatePoint(e.g, q.p) ELSE 1 - ST_LineLocatePoint(e.g, q.p) END * e.len BETWEEN :min2 AND :max
+            ORDER BY e.sid, e.k, b.sid, q.k
+            SQL, ['min' => self::BUBBLE_MIN_M, 'min2' => self::BUBBLE_MIN_M, 'max' => self::MIN_RUN_M,
+            'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M, 'snap4' => self::SNAP_M]);
+        $done = [];
+        foreach ($cands as $c) {
+            $sid = (int) $c->sid;
+            $bsid = (int) $c->bsid;
+            if (isset($done[$sid]) || isset($done[$bsid])) {
+                continue;
+            }
+            // Côtés de la bulle, de P à Q : [a0, a1] sur A, [b0, b1] sur B (abscisses 0-1).
+            [$a0, $a1] = (int) $c->k === 0 ? [0.0, (float) $c->aq] : [(float) $c->aq, 1.0];
+            [$b0, $b1] = (int) $c->bk === 0 ? [0.0, (float) $c->bp] : [(float) $c->bp, 1.0];
+            $m = DB::selectOne(<<<'SQL'
+                WITH a AS (SELECT ST_LineSubstring(g, :a0, :a1) AS g FROM tx_sub WHERE sid = :sid),
+                b AS (SELECT ST_LineSubstring(g, :b0, :b1) AS g FROM tx_sub WHERE sid = :bsid),
+                o AS (SELECT ST_Collect(ST_Transform(d.geom, 2154)) AS g FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, a
+                      WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(a.g, :near), 4326))
+                SELECT ST_Length(ST_Intersection(a.g, ST_Buffer(b.g, :near2))) / NULLIF(ST_Length(a.g), 0) AS sa,
+                       ST_Length(ST_Intersection(b.g, ST_Buffer(a.g, :near3))) / NULLIF(ST_Length(b.g), 0) AS sb,
+                       (SELECT AVG(ST_Distance(o.g, ST_LineInterpolatePoint(a.g, f / 10.0))) FROM generate_series(0, 10) f) AS da,
+                       (SELECT AVG(ST_Distance(o.g, ST_LineInterpolatePoint(b.g, f / 10.0))) FROM generate_series(0, 10) f) AS db
+                FROM a, b, o
+                SQL, ['a0' => $a0, 'a1' => $a1, 'b0' => $b0, 'b1' => $b1, 'sid' => $sid, 'bsid' => $bsid, 'line' => $lineId,
+                'near' => self::NEAR_M, 'near2' => self::NEAR_M, 'near3' => self::NEAR_M]);
+            if ($m === null || (float) $m->sa < self::NEAR_SHARE || (float) $m->sb < self::NEAR_SHARE || $m->da === null) {
+                continue;
+            }
+            // Le côté le plus proche du dessin de l'autre ligne part, s'il le longe (NEAR_M en moyenne).
+            $cutA = (float) $m->da <= (float) $m->db;
+            if (min((float) $m->da, (float) $m->db) > self::NEAR_M) {
+                continue;
+            }
+            [$csid, $f0, $f1, $keep] = $cutA ? [$sid, $a0, $a1, (int) $c->k === 0 ? [$a1, 1.0] : [0.0, $a0]]
+                : [$bsid, $b0, $b1, (int) $c->bk === 0 ? [$b1, 1.0] : [0.0, $b0]];
+            $rejoin = $this->bubbleSideRejoins($lineId, $csid, $f0, $f1, $cutA ? $bsid : $sid);
+            if ($rejoin === null) {
+                continue;
+            }
+            $cut = DB::selectOne("SELECT encode(ST_AsEWKB(ST_LineSubstring(g, ?, ?)), 'hex') AS ewkb, ST_Length(g) * CAST(? AS float8) AS m FROM tx_sub WHERE sid = ?",
+                [$f0, $f1, $f1 - $f0, $csid]);
+            DB::update('UPDATE tx_sub SET g = ST_LineSubstring(g, ?, ?) WHERE sid = ?', [$keep[0], $keep[1], $csid]);
+            $stats['superposed_m'] += (float) $cut->m;
+            $stats['bubble_m'] = ($stats['bubble_m'] ?? 0) + (float) $cut->m;
+            $records[] = ['sid' => $csid, 'ksid' => $cutA ? $bsid : $sid, 'ewkb' => $cut->ewkb];
+            $done[$sid] = $done[$bsid] = true;
+            $stats['bubble_rejoin'] = ($stats['bubble_rejoin'] ?? 0) + count($rejoin);
+            $this->rejoinLines = array_values(array_unique([...$this->rejoinLines, ...$rejoin]));
+        }
+    }
+
+    /**
+     * Côté [f0, f1] de la portion $sid retirable (cf. trimEndBubbles) : aucune autre portion de la ligne (hors $other)
+     * n'y finit, et toute extrémité d'une autre ligne posée dessus (SNAP_M) touche encore le reste de la ligne. Rend
+     * null si le côté reste, sinon les lignes dont l'extrémité est à raccorder de nouveau.
+     *
+     * Exception, la seule : l'extrémité d'une autre ligne qui arrive sur ce côté en le longeant (sa portion est à moins
+     * de NEAR_M du côté sur au moins BUBBLE_MIN_M). Cette ligne dessine elle-même la voie du côté retiré, et sa jonction
+     * s'est posée sur le double que la ligne y dessinait : à Lyon-Perrache, la règle 11 de 750000 finit sur le côté de
+     * 33 m de 830000, et ce contact gardait la bulle d'un rejeu à l'autre (le saut de 830000 n'est pas lissé, règle
+     * 1 bis de JunctionRepair, pour la même raison). Le côté longeant l'autre à moins de NEAR_M, l'extrémité reste à
+     * quelques mètres de la voie gardée (1,6 m à Perrache) : la reconstruction de cette ligne la raccorde de nouveau à
+     * 0 m (règles 5 bis et 11). Une ligne qui arrive en travers (embranchement) garde le côté.
+     *
+     * @return list<int>|null
+     */
+    private function bubbleSideRejoins(int $lineId, int $sid, float $f0, float $f1, int $other): ?array
+    {
+        $r = DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_LineSubstring(g, :f0, :f1) AS g FROM tx_sub WHERE sid = :sid),
+            k AS (SELECT ST_Collect(x.g) AS g FROM (
+                      SELECT t.g FROM tx_sub t WHERE NOT t.removed AND t.sid <> :sid2
+                      UNION ALL SELECT ST_LineSubstring(t.g, 0, :g0) FROM tx_sub t WHERE t.sid = :sid3 AND CAST(:g0b AS float8) > 0
+                      UNION ALL SELECT ST_LineSubstring(t.g, :g1, 1) FROM tx_sub t WHERE t.sid = :sid4 AND CAST(:g1b AS float8) < 1) x),
+            o AS (SELECT r.line_id, e.p, ST_Transform(d.geom, 2154) AS g
+                  FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, s,
+                       LATERAL (VALUES (ST_Transform(ST_StartPoint(d.geom), 2154)), (ST_Transform(ST_EndPoint(d.geom), 2154))) e(p)
+                  WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(s.g, 2), 4326) AND ST_DWithin(s.g, e.p, :snap2)),
+            lost AS (SELECT o.line_id, ST_Length(ST_Intersection(o.g, ST_Buffer(s.g, :near))) >= :along AS along
+                     FROM o, k, s WHERE NOT ST_DWithin(k.g, o.p, :snap3))
+            SELECT NOT EXISTS (
+                       SELECT 1 FROM tx_sub t, s, LATERAL (VALUES (ST_StartPoint(t.g)), (ST_EndPoint(t.g))) e(p)
+                       WHERE NOT t.removed AND t.sid <> :sid5 AND t.sid <> :other AND ST_DWithin(s.g, e.p, :snap))
+                   AND NOT EXISTS (SELECT 1 FROM lost WHERE NOT lost.along) AS ok,
+                   (SELECT string_agg(DISTINCT CAST(lost.line_id AS text), ',') FROM lost) AS rejoin
+            FROM s, k
+            SQL, ['f0' => $f0, 'f1' => $f1, 'sid' => $sid, 'sid2' => $sid, 'sid3' => $sid, 'sid4' => $sid, 'sid5' => $sid, 'other' => $other,
+            'g0' => $f0, 'g0b' => $f0, 'g1' => $f1, 'g1b' => $f1, 'line' => $lineId, 'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M,
+            'near' => self::NEAR_M, 'along' => self::BUBBLE_MIN_M]);
+        if ($r === null || ! $r->ok) {
+            return null;
+        }
+
+        return $r->rejoin === null ? [] : array_map(intval(...), explode(',', $r->rejoin));
+    }
+
+    /**
      * Bout superposé [extrémité, f] retirable : assez long, et soit il déborde l'extrémité de la
      * portion gardée la plus proche (chevauchement bout à bout), soit il est long (≥ MIN_COINCIDENT_M).
      * Sinon c'est une divergence d'aiguillage : l'écart croît dès l'extrémité.
@@ -757,9 +898,9 @@ class SingleAxis
                 INSERT INTO line_reference_duplicates (line_id, action, reason, source, matched_source, trace_ids, kept_source, kept_matched_source,
                     kept_trace_ids, length_m, gap_median_m, geom, created_at, updated_at)
                 SELECT :line, 'removed', :reason, p.source, p.matched_source,
-                       CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
+                       CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
                        kp.source, kp.matched_source,
-                       CASE WHEN kp.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN kp.matched_trace_ids ELSE kp.source_trace_ids END,
+                       CASE WHEN kp.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN kp.matched_trace_ids ELSE kp.source_trace_ids END,
                        ROUND(ST_Length(x.g))::int, ROUND(COALESCE(k.d, 0)::numeric, 1), ST_Transform(x.g, 4326), NOW(), NOW()
                 FROM tx_sub s
                 JOIN line_reference_parts p ON p.id = s.part_id
@@ -800,7 +941,7 @@ class SingleAxis
                 SELECT COALESCE(jsonb_agg(st.id ORDER BY st.id), '[]'::jsonb)
                 FROM line_reference_parts p
                 JOIN source_traces st ON st.id IN (
-                    SELECT jsonb_array_elements_text(CASE WHEN matched IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END)::bigint)
+                    SELECT jsonb_array_elements_text(CASE WHEN matched IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END)::bigint)
                 WHERE p.id = part AND st.geom && ST_Transform(ST_Expand(g, dist + 1), 4326)
                   AND ST_DWithin(ST_Transform(st.geom, 2154), g, dist)
                   -- Tracé qui court réellement sous la portion (pas seulement croisé).
@@ -861,7 +1002,7 @@ class SingleAxis
                    CASE WHEN matched_source IS NULL AND source = 'contrib' THEN 0
                         WHEN matched_source IS NULL AND source = 'bdtopo' THEN 1
                         WHEN matched_source IS NULL AND source = 'osm' THEN 2
-                        WHEN matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN 3
+                        WHEN matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN 3
                         ELSE 4 END,
                    ST_Length(g), GREATEST(1, ROUND(ST_Length(g) / :step))::int, g
             FROM pieces

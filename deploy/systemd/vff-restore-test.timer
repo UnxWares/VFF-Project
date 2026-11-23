@@ -1,0 +1,12 @@
+# Essai de restauration mensuel : le premier dimanche du mois à 5 h (après la sauvegarde de la nuit).
+# SERVEUR seulement, NON INSTALLÉ sur le poste de développement.
+[Unit]
+Description=VFF - essai mensuel de restauration
+
+[Timer]
+OnCalendar=Sun *-*-01..07 05:00:00
+Persistent=true
+Unit=vff-restore-test.service
+
+[Install]
+WantedBy=timers.target

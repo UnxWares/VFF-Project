@@ -49,3 +49,52 @@ export function hiddenEdges({ scrollLeft, scrollWidth, clientWidth }) {
         after: left + clientWidth < scrollWidth - 1,
     };
 }
+
+/**
+ * Remet la section visée à sa place après un saut d'ancre. Les sections hors écran sont en
+ * `content-visibility: auto` : celles que le saut amène près de l'écran se mettent en page avec leur
+ * vraie hauteur, et l'écart avec l'estimation décale la cible de quelques dizaines de pixels. Chaque
+ * image, on mesure l'écart entre le haut de la section et sa marge de défilement et on le corrige,
+ * jusqu'à ce que la position soit stable (10 images) ou au bout de 1 s. Un geste de l'utilisateur
+ * (molette, toucher, clavier, souris) arrête la correction. Renvoie la fonction qui l'arrête.
+ *
+ * @param {string} id identifiant de la section visée
+ * @param {{ document?: Document, requestAnimationFrame?: Function, cancelAnimationFrame?: Function,
+ *   getComputedStyle?: Function, scrollBy?: Function, addEventListener?: Function,
+ *   removeEventListener?: Function, performance?: { now: () => number }, scrollY?: number }} [env] fenêtre (injectable pour les tests)
+ * @returns {() => void}
+ */
+export function settleOnSection(id, env = globalThis.window) {
+    const gestures = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+    const started = env.performance?.now?.() ?? Date.now();
+    let handle = 0;
+    let stable = 0;
+    let done = false;
+
+    function stop() {
+        if (done) return;
+        done = true;
+        env.cancelAnimationFrame(handle);
+        for (const g of gestures) env.removeEventListener(g, stop);
+    }
+
+    function step() {
+        const el = env.document.getElementById(id);
+        if (!el) return stop();
+        const margin = Number.parseFloat(env.getComputedStyle(el).scrollMarginTop) || 0;
+        const diff = el.getBoundingClientRect().top - margin;
+        if (Math.abs(diff) > 1.5) {
+            const before = env.scrollY;
+            env.scrollBy({ top: diff, behavior: 'instant' });
+            // Fin de page : la position ne bouge plus, inutile d'insister.
+            stable = env.scrollY === before ? stable + 1 : 0;
+        } else stable += 1;
+        const elapsed = (env.performance?.now?.() ?? Date.now()) - started;
+        if (stable >= 10 || elapsed > 1000) return stop();
+        handle = env.requestAnimationFrame(step);
+    }
+
+    for (const g of gestures) env.addEventListener(g, stop, { passive: true });
+    handle = env.requestAnimationFrame(step);
+    return stop;
+}

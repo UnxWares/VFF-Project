@@ -61,7 +61,7 @@
         color: var(--vff-text-muted);
     }
     h1 {
-        max-width: 24ch;
+        max-width: 13.5em;
         margin: 0;
         font-family: var(--vff-font-display);
         font-size: var(--vff-fs-h1);
@@ -71,7 +71,7 @@
         text-wrap: balance;
     }
     .subtitle {
-        max-width: 60ch;
+        max-width: 34.8em;
         margin: 14px 0 0;
         font-family: var(--vff-font-body);
         font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
@@ -81,6 +81,11 @@
     }
     .status {
         margin: 18px 0 0;
+    }
+    /* Le badge est nowrap par défaut : un état long (en, de) dépassait 320 px. */
+    .status :global(.vff-badge) {
+        max-width: 100%;
+        white-space: normal;
     }
     @media (max-width: 600px) {
         .page-hero {

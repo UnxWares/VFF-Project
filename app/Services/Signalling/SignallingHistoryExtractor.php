@@ -38,7 +38,7 @@ use App\Services\WikipediaLineParser;
 final class SignallingHistoryExtractor
 {
     /** Verbe ou nom de mise en service. */
-    private const VERB = '/\bmis(?:e|es)?\s+en\s+(?:service|place|œuvre)|\bentr\w+\s+en\s+service|\binstall\w+|\bpos(?:é|ée|és|ées|ent|er)\b|\bpose\b|\béquip\w+|\bdot(?:é|ée|és|ées|ation)\b|\bétend\w+|\bétendu\w*|\bextension\b|\bdéploy\w+|\bgénéralis\w+|\binaugur\w+|\brempla[cç]\w+|\bactiv(?:é|ée|ation)\b|\bsubstitu\w+|\bintrodui\w+|\binstauré\w*/iu';
+    private const VERB = '/\bmis(?:e|es)?\s+en\s+(?:service|place|œuvre)|\bentr\w+\s+en\s+service|\binstall\w+|\bpos(?:é|ée|és|ées|ent|er)\b|\bpose\b|\béquip\w+|\bdot(?:é|ée|és|ées|ation)\b|\bétend\w+|\bétendu\w*|\bextension\b|\bdéploy\w+|\bgénéralis\w+|\binaugur\w+|\brempla[cç]\w+|\bactiv(?:é|ée|ation)\b|\bsubstitu\w+|\bintrodui\w+|\bintroduction\b|\bassur(?:é|ée|és|ées)\s+grâce\s+(?:au|à)\b|\binstauré\w*/iu';
 
     /** Futur, projet, retrait : pas une mise en service passée. */
     private const NEGATIVE = '/\b(?:sera|seront|serait|seraient|prévu\w*|projet\w*|doit|doivent|devai(?:t|ent)|devrait|devraient|envisag\w+|programm\w+|futur\w*|à terme|souhait\w+|étud(?:e|es|ié\w*)|supprim\w+|abandonn\w+|dépos\w+|retir\w+|désaffect\w+|déman\w+|désactiv\w+|rempla[cç]era\w*|fermeture|fermé\w*)\b/iu';
@@ -152,6 +152,12 @@ final class SignallingHistoryExtractor
         return $this->deduplicated(array_map($this->withCleanPlaces(...), $facts));
     }
 
+    /** Texte brut d'un article, tel que l'extracteur le lit (pour retrouver la phrase d'un complément relu). */
+    public function plainText(string $wikitext, string $title): string
+    {
+        return $this->parser->toPlainText($wikitext, $title);
+    }
+
     /**
      * Lieux de la portion sans le système qui les précède : « Le BAPR de Rezé » → « Rezé ». Un lieu qui
      * n'est plus qu'un système, ou vide, est retiré ; une portion sans lieu ni PK n'est plus une portion.
@@ -195,18 +201,30 @@ final class SignallingHistoryExtractor
         }
         $out = [];
         $previousHadVerb = false;
+        $coordinatedDate = null;
         foreach ($this->clauses($sentence) as $clause) {
+            // « 1er juin 1996 : mise en service de l'électrification et mise en service du BAL » : la date de la
+            // première action est celle de la seconde quand celle-ci répète « mise en service » (le système
+            // n'a pas de date propre, la phrase les coordonne).
+            $carried = $coordinatedDate;
+            $coordinatedDate = null;
+            if (SignallingSystems::mentions($clause) === [] && preg_match('/\bmise\s+en\s+service\b[^.]*\b(?:électrification|caténaire)/iu', $clause)
+                && count($ownDates = $this->datesOf($clause)) === 1) {
+                $coordinatedDate = $ownDates[0];
+            }
             $hasVerb = (bool) preg_match(self::VERB, $clause);
             $verbOk = $hasVerb || ($previousHadVerb && preg_match(self::CONTINUATION, $clause));
             $previousHadVerb = $hasVerb || $previousHadVerb && preg_match(self::CONTINUATION, $clause);
             $mentions = SignallingSystems::mentions($clause);
-            if ($mentions === [] || ! $verbOk || preg_match(self::NEGATIVE, $clause) || str_contains($clause, '⟦')) {
+            if ($mentions === [] || ! $verbOk || preg_match(self::NEGATIVE, $framed = $this->withoutFraming($clause)) || str_contains($framed, '⟦')) {
                 continue;
             }
             $dates = $this->datesOf($clause);
             $viaReference = false;
             $doubtful = false;
-            if ($dates === [] && $inherited !== null) {
+            if ($dates === [] && $carried !== null && preg_match('/^mise\s+en\s+service\b/iu', $clause)) {
+                $dates = [['pos' => 0] + array_diff_key($carried, ['pos' => true])];
+            } elseif ($dates === [] && $inherited !== null) {
                 $doubtful = (bool) ($inherited['doubtful'] ?? false);
                 $dates = [['pos' => 0] + array_diff_key($inherited, ['doubtful' => true])];
             } elseif ($dates === [] && $previousDate !== null && preg_match(self::SAME_TIME, $clause, $same)) {
@@ -256,6 +274,16 @@ final class SignallingHistoryExtractor
         }
 
         return $out;
+    }
+
+    /**
+     * Proposition sans son complément de cadre : « …, dans le cadre du programme d'électrification, … » ou « …, dans le cadre
+     * du projet VMI » nomment un programme ou un projet qui n'est pas celui de la phrase (un projet futur) : leurs mots ne
+     * rendent pas le fait futur.
+     */
+    private function withoutFraming(string $clause): string
+    {
+        return (string) preg_replace('/,?\s*\bdans\s+le\s+cadre\s+(?:du|de\s+la|des|de\s+l[’\']|d[’\'])(?:⟦[^⟧]*⟧|[^,.;⟦])*/iu', '', $clause);
     }
 
     /**
@@ -325,7 +353,9 @@ final class SignallingHistoryExtractor
         for ($i = 1; $i < count($tokens); $i += 2) {
             // Une autre action (électrification, ouverture…) coupe toujours : sa date n'est pas celle du système.
             $otherAction = (bool) preg_match('/^(?:électrifi|ouvert|fermé|relié|construit|prolong|déclass)/iu', $tokens[$i + 1]);
-            if ($otherAction || ($this->hasDate($current) && SignallingSystems::mentions($current) === [])) {
+            // « Le 13 septembre 1977, mise en service du BAL » : une simple date d'introduction n'est pas une autre action.
+            $bareDate = (bool) preg_match('/^\W*(?:(?:le|en|depuis(?:\s+le)?|dès(?:\s+le)?|au|à\s+partir\s+du)\s+)?(?:(?:1er|\d{1,2})\s+)?(?:\p{L}+\s+)?(?:1[89]\d\d|20[0-3]\d)\W*$/iu', $current);
+            if ($otherAction || (! $bareDate && $this->hasDate($current) && SignallingSystems::mentions($current) === [])) {
                 $out[] = $current;
                 $current = $tokens[$i + 1];
 

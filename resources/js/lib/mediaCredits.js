@@ -82,9 +82,36 @@ export function mergeAuthors(rows) {
 // Crédit d'une image publiée (galerie des fiches, images des événements de la chronologie) :
 // mêmes règles partout, d'après les champs de MediaResource.
 
+/**
+ * Légende dans la langue demandée quand le contributeur l'a donnée (`captions`), sinon la légende
+ * principale (`caption`), null sans légende.
+ * @param {any} m média (MediaResource)
+ * @param {string|null} [lang] langue de la page
+ * @returns {string|null}
+ */
+export function mediaCaption(m, lang = null) {
+    const own = lang ? m?.captions?.[lang] : null;
+    return own || m?.caption || null;
+}
+
+/**
+ * Langue de la légende rendue par mediaCaption() quand elle est connue (légendes par langue), sinon
+ * undefined : l'attribut `lang` n'est alors pas posé.
+ * @param {any} m
+ * @param {string|null} [lang]
+ * @returns {string|undefined}
+ */
+export function mediaCaptionLang(m, lang = null) {
+    const captions = m?.captions;
+    if (!captions || typeof captions !== 'object') return undefined;
+    if (lang && captions[lang]) return lang;
+    return Object.keys(captions).find((k) => captions[k] === m.caption);
+}
+
 /** Titre lisible : la légende de la source quand elle est courte (phrase), sinon le titre du fichier. */
-export function mediaHeading(m) {
-    return m?.caption && m.caption.length <= 160 ? m.caption : (m?.title ?? '');
+export function mediaHeading(m, lang = null) {
+    const caption = mediaCaption(m, lang);
+    return caption && caption.length <= 160 ? caption : (m?.title ?? '');
 }
 
 /** Licence affichée telle que fournie par la source ; à défaut, le statut des droits traduit. */

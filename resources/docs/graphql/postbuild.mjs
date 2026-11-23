@@ -76,7 +76,8 @@ const COOKIE_THEME =
     'const saved = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/); ' +
     "const prefersDarkScheme = saved ? saved[1] === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches";
 
-// Blocs de texte français : tout le guide, et les descriptions (paragraphes et listes) des
+// Blocs de texte français : tout le guide (le guide anglais et le guide allemand, /guide-en/ et /guide-de/,
+// portent leur propre langue), et les descriptions (paragraphes et listes) des
 // pages de requêtes et de types. Les libellés du gabarit (titres « Arguments », étiquettes « Query »,
 // noms de champs) restent en anglais.
 const LANG_MARKER = 'data-vff-lang';
@@ -87,8 +88,12 @@ const LANG_SCRIPT = `<script ${LANG_MARKER}>
         document.querySelectorAll('.bx--header-panel').forEach(function (el) { el.lang = 'fr'; });
         var main = document.getElementById('main-content');
         if (!main) return;
-        if (location.pathname.indexOf('/guide/') !== -1) main.lang = 'fr';
-        else main.removeAttribute('lang');
+        var guide = location.pathname.match(/\\/guide(-en|-de)?\\//);
+        if (guide) {
+            main.lang = guide[1] ? guide[1].slice(1) : 'fr';
+            return;
+        }
+        main.removeAttribute('lang');
         main.querySelectorAll(french).forEach(function (el) { el.lang = 'fr'; });
     }
     new MutationObserver(mark).observe(document.documentElement, { childList: true, subtree: true });

@@ -745,6 +745,79 @@ class JunctionRepairTest extends TestCase
         $this->assertSame([[0.0, 0.0], [1100.0, 10.0], [1200.0, 500.0]], $this->freeEnds());
     }
 
+    // ─── Raccords pendants (8 ter) ──────────────────────────────────────
+
+    /** Ligne 472 (111000) à 7.37770, 48.74410 : portion recalée sur OSM, raccord droit de 37 m qui ne touche plus rien. */
+    private function danglingConnector(): void
+    {
+        $this->part('osm', [[[262.1, -53.6], [152.6, 19.6], [127.9, 36.2], [85.8, 64.5], [62.7, 79.8], [57.1, 83.5], [44.6, 91.8]]], [], 'osm');
+        $this->connector([[57.1, 83.5], [36.8, 52.7]]);
+    }
+
+    public function test_straight_connector_whose_far_end_touches_nothing_is_removed(): void
+    {
+        $this->danglingConnector();
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(36.9, $stats['dangling_connector_removed_m'], 0.1);
+        $this->assertEqualsWithDelta(0.0, $this->totalLength('connector'), 0.01);
+        $this->assertSame([[44.6, 91.8], [262.1, -53.6]], $this->freeEnds());
+
+        // Second passage sans effet.
+        $this->assertSame(0, $this->repair()['dangling_connector_removed']);
+    }
+
+    public function test_dangling_connector_where_another_line_ends_is_kept(): void
+    {
+        $this->danglingConnector();
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        // L'autre ligne arrive au milieu du raccord : le retirer laisserait sa jonction en l'air.
+        $this->part('osm', [[[-300, -200], [46.9, 68.1]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(36.9, $this->totalLength('connector'), 0.1);
+    }
+
+    public function test_dangling_connector_whose_free_end_lies_on_another_line_is_kept(): void
+    {
+        $this->danglingConnector();
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        // Le dessin d'une autre ligne passe par le bout libre : contact à 0 m que le retrait ferait perdre.
+        $this->part('osm', [[[-400, 52.7], [36.8, 52.7], [500, 52.7]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+    }
+
+    public function test_dangling_connector_that_nearly_reaches_another_portion_of_the_line_is_kept(): void
+    {
+        // Forme de la ligne 341116 au Havre (49.50357, 0.19200) : raccord de 15 m qui part du bout d'une voie et manque de
+        // 4,3 m la voie suivante de la même ligne. Le retirer ouvrirait un trou de 16 m sur la voie (lines.reference_holes).
+        $this->part('osm', [[[-500, 0], [0, 0]]], [], 'osm');
+        $this->part('bdtopo', [[[18.5, 4.5], [600, 4.5]]], [], 'bdtopo');
+        $this->connector([[0, 0], [14.5, 3.5]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+        $this->assertEqualsWithDelta(14.9, $this->totalLength('connector'), 0.1);
+    }
+
+    public function test_connector_held_at_both_ends_is_not_a_dangling_connector(): void
+    {
+        $this->danglingConnector();
+        $this->part('osm', [[[36.8, 52.7], [-200, -150]]], [], 'osm');
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['dangling_connector_removed']);
+    }
+
     public function test_real_reversal_whose_branches_part_is_kept(): void
     {
         // Rebroussement : la seconde branche repart à 153° et s'écarte de la première (gare en impasse).
@@ -1450,5 +1523,139 @@ class JunctionRepairTest extends TestCase
             $this->assertLessThanOrEqual(5.0, $dev);
         }
         $this->assertSame(0, $stats['long_gap_filled'] - $stats['long_gap_partial'], 'aucun raccord complet au bout d\'en face');
+    }
+
+    // ─── 7 e. Arrivée en T d'un tracé imprécis ──────────────────────────
+
+    /**
+     * Ligne 123000 près de Bollwiller (7.509793, 47.815288), forme relevée le 22/11/2026 : le tracé archeo d'une branche
+     * arrive en biais (cap nord-ouest) et finit à 30 m de la voie BD TOPO, raccordé au milieu de celle-ci par un raccord
+     * droit à 90°. Tronc vers le nord (x = 0), tracé archeo depuis le sud-est.
+     */
+    private function teeArrival(): void
+    {
+        $this->line->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[0, -1000], [0, 1000]]]);
+        $this->part('archeoferroviaire', [[[400, -250], [30, 0]]]);
+        $this->connector([[30, 0], [0, 0]], 'archeoferroviaire');
+    }
+
+    /** Distance (m) du point au dessin de la ligne, hors courbes lissées (les voies d'origine). */
+    private function distToKeptTrack(float $x, float $y): float
+    {
+        return (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d
+            FROM line_reference_parts WHERE line_id = ? AND matched_source IS DISTINCT FROM ?
+            SQL, [self::X0 + $x, self::Y0 + $y, $this->line->id, JunctionRepair::SMOOTHED])->d;
+    }
+
+    public function test_rough_branch_arriving_square_on_the_middle_of_a_precise_track_is_eased_into_it(): void
+    {
+        $this->teeArrival();
+
+        $stats = $this->repair();
+
+        // Le raccord à 90° et la fin du tracé archeo sont remplacés par une courbe tangente, prise dans le sens de marche.
+        $this->assertSame(1, $stats['tee_smoothed']);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        $this->assertLessThan(JunctionRepair::KINK_DEG, $this->maxKink());
+        $curve = DB::selectOne(<<<'SQL'
+            SELECT ST_X(ST_EndPoint(g)) AS x, ST_Y(ST_EndPoint(g)) AS y, ST_X(ST_StartPoint(g)) AS x0, ST_Y(ST_StartPoint(g)) AS y0
+            FROM (SELECT (ST_Dump(ST_Transform(geom, 2154))).geom AS g FROM line_reference_parts WHERE line_id = ? AND matched_source = ?) c
+            SQL, [$this->line->id, JunctionRepair::SMOOTHED]);
+        $this->assertNotNull($curve);
+        // Jonction sur la voie précise à 0 m, au nord du pied du raccord (cap d'arrivée nord-ouest), voie entière gardée.
+        $this->assertLessThan(0.01, abs($curve->x - self::X0));
+        $this->assertGreaterThan(0, $curve->y - self::Y0);
+        $this->assertEqualsWithDelta(2000, (float) DB::selectOne(
+            "SELECT SUM(ST_Length(ST_Transform(geom, 2154))) AS m FROM line_reference_parts WHERE line_id = ? AND source = 'bdtopo'", [$this->line->id])->m, 0.01);
+        // Départ de la courbe sur le tracé archeo d'origine, qui garde son autre bout.
+        $this->assertLessThan(0.01, $this->distToKeptTrack($curve->x0 - self::X0, $curve->y0 - self::Y0));
+        $this->assertSame([[0.0, -1000.0], [0.0, 1000.0], [400.0, -250.0]], $this->freeEnds());
+
+        $this->assertSame(0, $this->repair()['tee_smoothed'], 'second passage sans effet');
+    }
+
+    public function test_tee_arrival_where_another_line_ends_on_the_connector_is_kept(): void
+    {
+        $this->teeArrival();
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[15, 300], [15, 0]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['tee_smoothed']);
+        $this->assertEqualsWithDelta(30, $this->totalLength('connector'), 0.01);
+    }
+
+    public function test_tee_arrival_keeps_the_junction_of_another_portion_of_the_line_on_the_rough_trace(): void
+    {
+        // Une autre portion de la ligne se raccorde au tracé archeo à 20 m de son bout : la courbe ne peut pas partir
+        // au-delà, et cette jonction reste sur le dessin.
+        $this->teeArrival();
+        $u = [-370 / hypot(370, 250), 250 / hypot(370, 250)];
+        $p = [30 - 20 * $u[0], -20 * $u[1]];
+        $this->part('osm', [[[$p[0], $p[1]], [$p[0] + 200, $p[1] + 300]]]);
+
+        $this->repair();
+
+        $this->assertLessThan(0.5, (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d
+            FROM line_reference_parts WHERE line_id = ? AND source <> 'osm'
+            SQL, [self::X0 + $p[0], self::Y0 + $p[1], $this->line->id])->d);
+    }
+
+    public function test_tee_arrival_is_kept_when_the_curve_would_cross_another_track(): void
+    {
+        // Une voie d'une autre ligne passe dans l'angle entre le raccord et le tronc, sans toucher le tracé remplacé : la
+        // courbe la couperait (ligne 439000 près de Laval, 22/11/2026 : courbe passée par-dessus la voie qu'elle rejoignait).
+        $this->teeArrival();
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[1, 30], [200, 30]]], [], null, $other);
+
+        $this->assertSame(0, $this->repair()['tee_smoothed']);
+        $this->assertEqualsWithDelta(30, $this->totalLength('connector'), 0.01);
+    }
+
+    public function test_tee_arrival_keeps_the_contact_of_the_rough_trace_with_another_line(): void
+    {
+        // Le tracé archeo passe sur le dessin d'une autre ligne 40 m avant son bout (jonction à 0 m) : la courbe qui
+        // partirait plus loin en arrière laisserait cette ligne à l'écart. L'arrivée reste telle quelle.
+        $this->teeArrival();
+        $u = [-370 / hypot(370, 250), 250 / hypot(370, 250)];
+        $p = [30 - 40 * $u[0], -40 * $u[1]];
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[$p[0] + 300 * $u[1], $p[1] - 300 * $u[0]], [$p[0] - 300 * $u[1], $p[1] + 300 * $u[0]]]], [], null, $other);
+
+        $this->repair();
+
+        $this->assertLessThan(0.5, (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 + $p[0], self::Y0 + $p[1], $this->line->id])->d);
+    }
+
+    public function test_tee_arrival_is_kept_when_the_precise_track_folds_back_near_the_foot(): void
+    {
+        $this->line->update(['network' => 'principal']);
+        // Voie précise avec une pointe (aller-retour de 8 m) à 20 m au nord du pied du raccord : la courbe passerait de l'autre côté.
+        $this->part('bdtopo', [[[0, -1000], [0, 20], [0, 12], [0, 1000]]]);
+        $this->part('archeoferroviaire', [[[400, -250], [30, 0]]]);
+        $this->connector([[30, 0], [0, 0]], 'archeoferroviaire');
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['tee_smoothed']);
+        $this->assertEqualsWithDelta(30, $this->totalLength('connector'), 0.01);
+    }
+
+    public function test_precise_branch_arriving_square_on_a_precise_track_is_not_a_tee_arrival(): void
+    {
+        // La règle 7 e ne remplace que la fin d'un tracé imprécis : une branche précise (OSM) reste telle quelle.
+        $this->line->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[0, -1000], [0, 1000]]]);
+        $this->part('osm', [[[400, -250], [30, 0]]]);
+        $this->connector([[30, 0], [0, 0]], 'osm');
+
+        $this->assertSame(0, $this->repair()['tee_smoothed']);
     }
 }

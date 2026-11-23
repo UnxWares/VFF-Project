@@ -1,4 +1,5 @@
 <script>
+    import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { colon, formatLocale, formatNumber, NBSP } from '$lib/typo.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -6,17 +7,22 @@
     import {
         altitudeDomain,
         areaPath,
+        comparisonKind,
         crossesGap,
         GRADE_WINDOW_M,
         gradeAt,
+        holeStations,
         labelledStations,
         linePath,
+        indexAtPk,
         nearestIndex,
+        pkFromUrl,
         nearestStation,
         rackSentence,
         showsCumulativeClimb,
         sourceLang,
         ticks,
+        touchesRanges,
     } from '$lib/lineProfile.js';
 
     /**
@@ -25,7 +31,8 @@
      * gares de la ligne, fermées comprises, les tunnels et les trous du tracé (bandes, la courbe s'y
      * interrompt), lecture au survol (distance, PK estimé, altitude, déclivité locale, gare proche),
      * gares atteignables au clavier, puis le tableau des altitudes des gares (alternative au
-     * graphique) et la source.
+     * graphique) et la source. Les ouvrages d'art de la fiche (`structures`, LineStructures::forSheet) ajoutent
+     * une bande pleine sous la courbe pour les viaducs et grands ponts, et le nom de l'ouvrage à la lecture.
      *
      * @type {{ profile: {
      *   era_year: number|null, step_m: number, length_m: number,
@@ -36,18 +43,24 @@
      *     source: { title: string, url: string } } | null,
      *   sourced_grade?: { max_grade_permil: number, covered_share?: number|null,
      *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string } } | null,
+     *   sourced_grade_compared?: { max_grade_permil: number, covered_share?: number|null, difference_permil: number,
+     *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string, attribution: string } } | null,
+     *   trace_holes?: { count: number, length_m: number, share: number|null,
+     *     ranges: Array<{ from_m: number, to_m: number }> },
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
-     *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
+     *   altitude_sources: { bdtopo: number, rge_alti: number, rge_track?: number, interpolated: number, missing: number },
      *   gaps: Array<{ from_m: number, to_m: number }>,
      *   branches?: Array<{ from_m: number, to_m: number }>,
      *   terrain_ranges?: Array<{ from_m: number, to_m: number }>,
+     *   track_estimate_ranges?: Array<{ from_m: number, to_m: number }>,
      *   stations: Array<{ slug: string, name: string, distance_m: number, altitude_m: number|null, pk_m: number|null,
      *     status?: string }>,
      *   computed_at: string,
-     * } }}
+     * }, structures?: Array<{ id: number, kind: 'tunnel'|'viaduct'|'bridge', name: string|null,
+     *   distance_from_m: number|null, distance_to_m: number|null }> }}
      */
-    let { profile } = $props();
+    let { profile, structures = [] } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -82,6 +95,29 @@
                   }),
               })
             : t('profile.sourced_grade_wikipedia'),
+    );
+    // Mesure publiée : la valeur d'une source écrite est donnée à côté, avec l'écart, jamais à sa place.
+    const compared = $derived(profile.sourced_grade_compared ?? null);
+    const comparedText = $derived.by(() => {
+        if (!compared) return null;
+        const kind = comparisonKind(compared.difference_permil);
+        const text = t(`profile.compared_${kind}`, {
+            provider: compared.source.attribution,
+            grade: permil(compared.max_grade_permil),
+            diff: permil(Math.abs(compared.difference_permil)),
+        });
+        return compared.source.provider === 'sncf'
+            ? `${text} ${t('profile.compared_sncf_share', {
+                  share: formatNumber(compared.covered_share ?? 0, lang, {
+                      style: 'percent',
+                      maximumFractionDigits: 0,
+                  }),
+              })}`
+            : text;
+    });
+    // Vrais trous du tracé de référence (sans les trous conventionnels des embranchements).
+    const holes = $derived(
+        profile.trace_holes ?? { count: 0, length_m: 0, share: null, ranges: [] },
     );
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
@@ -127,7 +163,14 @@
               }),
     );
     const terrain = $derived(profile.terrain_ranges ?? []);
+    // Parties à l'altitude de la voie estimée d'après le terrain (source rge_track, servie par l'API).
+    const estimated = $derived(profile.track_estimate_ranges ?? []);
     const tunnels = $derived(profile.structures.filter((x) => x.kind === 'tunnel'));
+    // Ouvrages d'art placés sur le profil : viaducs et grands ponts dessinés, nom de tout ouvrage lu au survol.
+    const placed = $derived(
+        structures.filter((s) => s.distance_from_m !== null && s.distance_to_m !== null),
+    );
+    const spans = $derived(placed.filter((s) => s.kind !== 'tunnel'));
     const hasBreaks = $derived(profile.altitude_sources.missing > 0 || profile.gaps.length > 0);
     const hasClosed = $derived(profile.stations.some(closed));
     const computedOn = $derived(
@@ -142,9 +185,10 @@
     // bande des tunnels sous la courbe, altitudes (avec l'unité) à gauche, kilomètres en bas.
     let width = $state(0);
     const narrow = $derived(width > 0 && width < 600);
-    const height = $derived(narrow ? 240 : 300);
+    // Hauteur de la courbe inchangée (190 ou 250 px) ; 8 px de plus en haut séparent l'altitude la plus haute des noms de gares.
+    const height = $derived(narrow ? 248 : 308);
     // Marges en px pour des textes de 17 px (altitudes à gauche, kilomètres et légende de l'axe en bas).
-    const pad = $derived({ top: 36, right: 12, bottom: 50, left: narrow ? 72 : 84 });
+    const pad = $derived({ top: 44, right: 12, bottom: 50, left: narrow ? 72 : 84 });
     const plotW = $derived(Math.max(10, width - pad.left - pad.right));
     const plotH = $derived(height - pad.top - pad.bottom);
     const baseY = $derived(pad.top + plotH);
@@ -155,11 +199,19 @@
         () => (z) => pad.top + (1 - (z - domain[0]) / (domain[1] - domain[0])) * plotH,
     );
     const yTicks = $derived(ticks(domain[0], domain[1], narrow ? 3 : 4));
-    const xTicks = $derived(
-        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 72))).filter(
-            (k) => k * 1000 <= profile.length_m,
-        ),
-    );
+    const xTicks = $derived.by(() => {
+        const kept = [];
+        let lastEnd = -Infinity;
+        for (const k of ticks(0, profile.length_m / 1000, Math.max(2, Math.floor(plotW / 72)))) {
+            if (k * 1000 > profile.length_m) continue;
+            // Graduation gardée seulement si elle ne touche pas la précédente (libellés de 17 px : 9,2 px par caractère).
+            const half = (formatNumber(k, lang).length * 9.2) / 2;
+            if (x(k * 1000) - half < lastEnd + 8) continue;
+            kept.push(k);
+            lastEnd = x(k * 1000) + half;
+        }
+        return kept;
+    });
     const line = $derived(linePath(profile.points, x, y, profile.gaps));
     const area = $derived(areaPath(profile.points, x, y, baseY, profile.gaps));
     // Largeur d'un nom en Inter 17 px : 9,2 px par caractère en moyenne (7,6 px mesurés à 14 px).
@@ -190,6 +242,12 @@
         hover = i >= 0 && profile.points[i][1] !== null ? i : null;
         station = nearestStation(profile.stations, x, x(d));
     }
+    // Arrivée depuis la recherche d'un PK (`?pk=120500#profile`) : la lecture s'ouvre sur ce point.
+    $effect.pre(() => {
+        const pk = pkFromUrl(page.url);
+        const i = pk === null ? -1 : indexAtPk(profile.points, pk);
+        if (i >= 0 && profile.points[i][1] !== null) hover = i;
+    });
     function leave() {
         hover = null;
         station = null;
@@ -210,7 +268,15 @@
             z,
             pk: pk ?? null,
             grade: z === null ? null : gradeAt(profile.points, d, profile.gaps, gradeWindow),
+            // Fenêtre qui touche le terrain ou la voie estimée : déclivité estimée, pas mesurée sur la voie.
+            gradeEstimated:
+                touchesRanges(terrain, d - gradeWindow / 2, d + gradeWindow / 2) ||
+                touchesRanges(estimated, d - gradeWindow / 2, d + gradeWindow / 2),
             tunnel: tunnels.some((tu) => d >= tu.from_m && d <= tu.to_m),
+            structure:
+                placed.find(
+                    (s) => s.name && d >= s.distance_from_m - 50 && d <= s.distance_to_m + 50,
+                )?.name ?? null,
             station,
             left: x(d) > pad.left + plotW / 2,
         };
@@ -232,7 +298,17 @@
                 >.
             </p>
         {:else if gradeWhere}
-            <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
+            <p class="grade-where">
+                {t('profile.grade')}{colon(lang)}{gradeWhere}{#if compared && comparedText}.
+                    {comparedText}{colon(lang)}<a
+                        href={compared.source.url}
+                        rel="external"
+                        lang={compared.source.provider === 'sncf'
+                            ? 'fr'
+                            : sourceLang(compared.source.url)}>{compared.source.title}</a
+                    >.
+                {/if}
+            </p>
         {:else if sourced}
             <p class="grade-where">
                 {sourcedText}{colon(lang)}<a
@@ -247,6 +323,44 @@
             <p class="grade-where">
                 {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'none'}`)}
             </p>
+        {/if}
+
+        {#if holes.count > 0}
+            <div class="holes">
+                <p>
+                    {t('profile.holes', {
+                        count: holes.count,
+                        km: km(holes.length_m),
+                        share: formatNumber(holes.share ?? 0, lang, {
+                            style: 'percent',
+                            maximumFractionDigits: 1,
+                        }),
+                    })}
+                    {#if (holes.share ?? 0) >= 0.25}{t('profile.holes_large')}{/if}
+                </p>
+                <details class="list">
+                    <summary>{t('profile.holes_list', { count: holes.count })}</summary>
+                    <ul>
+                        {#each holes.ranges as h (h.from_m)}
+                            {@const around = holeStations(profile.stations, h, profile.gaps)}
+                            <li>
+                                {t('profile.hole_at', {
+                                    from: km(h.from_m),
+                                    to: km(h.to_m),
+                                    length: km(h.to_m - h.from_m),
+                                })}{#if around.before && around.after}{t('profile.hole_between', {
+                                        from: around.before.name,
+                                        to: around.after.name,
+                                    })}{:else if around.before}{t('profile.hole_after', {
+                                        name: around.before.name,
+                                    })}{:else if around.after}{t('profile.hole_before', {
+                                        name: around.after.name,
+                                    })}{/if}
+                            </li>
+                        {/each}
+                    </ul>
+                </details>
+            </div>
         {/if}
 
         <!-- Nom de la figure : le titre de la section, pas la légende (figcaption) qui ne liste que les motifs. -->
@@ -321,6 +435,17 @@
                             />
                         {/each}
 
+                        {#each spans as sp (sp.id)}
+                            <rect
+                                class="span"
+                                x={x(sp.distance_from_m)}
+                                y={baseY + 3}
+                                width={Math.max(4, x(sp.distance_to_m) - x(sp.distance_from_m))}
+                                height="6"
+                                rx="1"
+                            />
+                        {/each}
+
                         {#each tunnels as tu (tu.from_m)}
                             <rect
                                 class="tunnel"
@@ -339,13 +464,13 @@
                                     class="station-tick"
                                     x1={x(st.distance_m)}
                                     x2={x(st.distance_m)}
-                                    y1={pad.top - 6}
+                                    y1={pad.top - 11}
                                     y2={stationY(st)}
                                 />
                                 <text
                                     class="station-name"
                                     x={x(st.distance_m)}
-                                    y={pad.top - 12}
+                                    y={pad.top - 18}
                                     text-anchor={named.get(st)}>{st.name}</text
                                 >
                             {/if}
@@ -358,6 +483,16 @@
                         {#each terrain as r (r.from_m)}
                             <line
                                 class="terrain"
+                                x1={x(r.from_m)}
+                                x2={Math.max(x(r.from_m) + 3, x(r.to_m))}
+                                y1={baseY - 3}
+                                y2={baseY - 3}
+                            />
+                        {/each}
+                        <!-- Voie estimée d'après le terrain : tirets longs au pied de la courbe. -->
+                        {#each estimated as r (r.from_m)}
+                            <line
+                                class="estimated"
                                 x1={x(r.from_m)}
                                 x2={Math.max(x(r.from_m) + 3, x(r.to_m))}
                                 y1={baseY - 3}
@@ -442,22 +577,35 @@
                                 >{/if}
                             {#if reading.z !== null}<span>{metres(reading.z)}</span>{/if}
                             {#if reading.grade !== null}<span
-                                    >{t('profile.local_grade', {
-                                        grade: permil(reading.grade),
-                                    })}</span
+                                    >{t(
+                                        reading.gradeEstimated
+                                            ? 'profile.local_grade_estimated'
+                                            : 'profile.local_grade',
+                                        { grade: permil(reading.grade) },
+                                    )}</span
                                 >{/if}
                             {#if reading.tunnel}<span class="muted">{t('profile.in_tunnel')}</span
+                                >{/if}
+                            {#if reading.structure}<span class="muted"
+                                    >{t('profile.structure_at', { name: reading.structure })}</span
                                 >{/if}
                         </div>
                     {/if}
                 {/if}
             </div>
-            {#if tunnels.length || profile.gaps.length || hasClosed || branches.length || terrain.length}
+            {#if tunnels.length || spans.length || profile.gaps.length || hasClosed || branches.length || terrain.length || estimated.length}
                 <figcaption>
                     {#if tunnels.length}
                         <span class="legend-item"
                             ><span class="legend-swatch" aria-hidden="true"></span>{t(
                                 'profile.tunnel_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if spans.length}
+                        <span class="legend-item"
+                            ><span class="legend-swatch span-swatch" aria-hidden="true"></span>{t(
+                                'profile.span_legend',
                             )}</span
                         >
                     {/if}
@@ -472,6 +620,13 @@
                         <span class="legend-item"
                             ><span class="legend-terrain" aria-hidden="true"></span>{t(
                                 'profile.terrain_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if estimated.length}
+                        <span class="legend-item"
+                            ><span class="legend-estimated" aria-hidden="true"></span>{t(
+                                'profile.track_estimate_legend',
                             )}</span
                         >
                     {/if}
@@ -536,6 +691,9 @@
         {/if}
 
         <p class="source">{t('profile.source', { date: computedOn })}</p>
+        {#if estimated.length}
+            <p class="source">{t('profile.track_estimate_note')}</p>
+        {/if}
     </div>
 </SheetSection>
 
@@ -557,6 +715,22 @@
     }
     .grade-where {
         margin-top: calc(-1 * var(--vff-space-3));
+    }
+    /* Tracé incomplet : texte courant (pas atténué), la liste des trous repliée sous la phrase. */
+    .holes {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        max-width: var(--vff-measure);
+    }
+    .holes p {
+        margin: 0;
+        line-height: var(--vff-lh-body);
+    }
+    .holes ul {
+        margin: 0;
+        padding-inline-start: var(--vff-space-5);
+        line-height: var(--vff-lh-body);
     }
     .chart {
         margin: 0;
@@ -598,6 +772,13 @@
         stroke-width: 2;
         stroke-linejoin: round;
         stroke-linecap: round;
+    }
+    /* Viaduc ou grand pont : bande pleine, à la place des hachures du tunnel. */
+    .span {
+        fill: var(--vff-text-muted);
+    }
+    .legend-swatch.span-swatch {
+        background: var(--vff-text-muted);
     }
     .tunnel {
         fill: url(#profile-tunnel);
@@ -642,6 +823,16 @@
     .legend-terrain {
         width: 24px;
         border-top: 2px dotted var(--vff-text-muted);
+    }
+    .estimated {
+        stroke: var(--vff-text-muted);
+        stroke-width: 2;
+        stroke-dasharray: 8 4;
+        stroke-linecap: round;
+    }
+    .legend-estimated {
+        width: 24px;
+        border-top: 2px dashed var(--vff-text-muted);
     }
     .gap-hatch {
         stroke: var(--vff-border);

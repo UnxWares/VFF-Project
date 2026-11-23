@@ -1,0 +1,19 @@
+# Essai de restauration de la dernière sauvegarde dans une base temporaire (SERVEUR seulement, NON INSTALLÉ).
+# Il restaure, compare les comptes, lance vff:check-invariants, puis supprime la base temporaire.
+[Unit]
+Description=VFF - essai de restauration de la dernière sauvegarde
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=vffbackup
+Group=vffbackup
+ExecStart=/opt/vff/backup/vff-restore-test.sh /etc/vff/backup.env
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=6h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/vff

@@ -31,6 +31,7 @@ final class LineDossier
         private readonly Attribution $attribution,
         private readonly LineSignallingHistory $signallingHistory,
         private readonly LineStations $stations,
+        private readonly ServedEventDates $served,
     ) {}
 
     /**
@@ -45,7 +46,9 @@ final class LineDossier
             [$line->id],
         );
         $segmentIds = $era ? $line->segments()->where('era_id', $era->id)->pluck('id')->all() : [];
-        $eventCount = DB::table('line_events')->where('line_id', $line->id)->count();
+        // Événements servis (sans ceux d'une source non commerciale, LineEvents) : le compte est celui de la liste.
+        $eventRows = $this->events->query($line->id)->get();
+        $eventCount = $eventRows->count();
         $stats = $this->stats->forEra($line, $segmentIds, $era?->id, $eventCount);
 
         $phases = LinePhases::forLine($line);
@@ -66,8 +69,15 @@ final class LineDossier
             ? LineFacts::build($line, $encyclopedia, $stats, $era ? (int) $era->year : null, (bool) ($era->is_current ?? false))
             : [];
 
-        $eventRows = $this->events->query($line->id)->get();
         $byId = $eventRows->keyBy('id');
+        $stationRows = $this->stations->forLine((int) $line->id)['stations'];
+        // Borne de desserte dont l'événement vient d'une source non commerciale : remplacée ou nulle (ServedEventDates).
+        $requests = [];
+        foreach ($stationRows as $i => $st) {
+            $requests["{$i}:start"] = ['bound' => $st['service_start'], 'role' => 'start', 'station_id' => (int) $st['id']];
+            $requests["{$i}:end"] = ['bound' => $st['service_end'], 'role' => 'end', 'station_id' => (int) $st['id']];
+        }
+        $servedBounds = $this->served->bounds($requests);
         $providers = DB::table('line_segments')->where('line_id', $line->id)->distinct()->pluck('source')
             ->map(fn ($s) => $this->attribution->providerFor('line_segments', $s))->all();
         foreach ($eventRows as $e) {
@@ -120,6 +130,7 @@ final class LineDossier
                 'history' => $signallingHistory,
             ],
             'facts' => array_map(fn (array $f) => array_diff_key($f, array_flip(['scope'])), $facts),
+            // Date dont le seul événement vient d'une source non commerciale : non datée ici (ServedEventDates).
             'phases' => array_map(function (array $ph) use ($category, $byId, $lang) {
                 return [
                     'date' => $ph['precision'] === 'range' ? null : $ph['date'],
@@ -138,7 +149,7 @@ final class LineDossier
                     ], $ph['changes']),
                     'in_service_after_km' => round($ph['active_m'] / 1000, 1),
                 ];
-            }, $phases['phases']),
+            }, $this->served->phases($phases['phases'], $phases['portions'])),
             'best_phase' => $phases['best'],
             'decades' => array_map(fn (array $d) => [
                 'year' => $d['year'],
@@ -147,7 +158,7 @@ final class LineDossier
             ], $phases['decades']),
             // Gares de la ligne dans l'ordre du tracé, avec leur période de desserte par cette ligne (années,
             // et date sûre avec l'événement qui la donne : StationServiceDates).
-            'stations' => array_map(fn (array $st) => [
+            'stations' => array_map(fn (array $st, int|string $i) => [
                 'slug' => $st['slug'],
                 'name' => $st['name'],
                 'pk_km' => $st['pk_m'] !== null ? round($st['pk_m'] / 1000, 3) : null,
@@ -156,10 +167,10 @@ final class LineDossier
                 'served_until' => $st['served_until'],
                 'served_until_kind' => $st['served_until_kind'],
                 'years_source' => $st['years_source'],
-                'service_start' => StationServiceDates::written($st['service_start'], $lang),
-                'service_end' => StationServiceDates::written($st['service_end'], $lang),
+                'service_start' => StationServiceDates::written($servedBounds["{$i}:start"], $lang),
+                'service_end' => StationServiceDates::written($servedBounds["{$i}:end"], $lang),
                 'status_today' => $st['status_today'],
-            ], $this->stations->forLine((int) $line->id)['stations']),
+            ], $stationRows, array_keys($stationRows)),
             'event_count' => $eventCount,
         ];
         if ($withEvents) {

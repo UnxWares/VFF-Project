@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Saint-Antoine-du-Rocher du 29 juillet 1925 (recherche du 21/11/2026).
 return [
     'slug' => '1925-07-29-saint-antoine-du-rocher',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1925' => [
             'provider' => 'wikipedia',
@@ -89,9 +89,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Analyse officielle annuelle des accidents, citée par Wikipédia ; à consulter pour les causes établies.',
         ],
+        'ddb-1925-07-31-schwerter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schwerter Zeitung du 31 juillet 1925',
+            'publisher' => 'Schwerter Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1925-07-31',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/ZNQ6XCRQNEVMJHNBHCBQL6BGCUCPW5EN?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 30 juillet : selon Le Petit Parisien, un train a déraillé la veille au soir sur la ligne Le Mans-Tours près de Saint-Antoine-du-Rocher ; trois morts et douze blessés, puis, selon d\'autres dépêches, le mécanicien et onze voyageurs tués.',
+        ],
+        'kb-1925-08-01-de-limburger' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongelukken.',
+            'publisher' => 'De Limburger (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1925-08-01',
+            'locator' => 'article « Spoorwegongelukken. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001212065:mpeg21:a00003:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 1er août : un express du Mans à Tours déraille à minuit à l\'entrée de la gare de Saint-Antoine-du-Rocher en franchissant l\'aiguille ; le train, en retard, roulait trop vite.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'De Limburger du 1er août 1925 situe le déraillement de l\'express du Mans à Tours à minuit, à l\'entrée de la gare de Saint-Antoine-du-Rocher, en passant l\'aiguille, le train en retard roulant trop vite ; le journal le place dans la nuit de jeudi, alors que la liste de Wikipédia donne le 29 juillet. Les dépêches du 30 juillet confirment une catastrophe survenue autour de minuit, donc dans la nuit du 29 au 30 juillet.',
+                'en' => 'De Limburger of 1 August 1925 places the derailment of the Le Mans to Tours express at midnight, at the entrance of Saint-Antoine-du-Rocher station, over the points, the late train running too fast; the newspaper puts it in the night of Thursday, whereas the Wikipedia list gives 29 July. The dispatches of 30 July confirm a disaster around midnight, hence in the night of 29 to 30 July.',
+                'de' => 'De Limburger vom 1. August 1925 verlegt die Entgleisung des Expresszuges von Le Mans nach Tours um Mitternacht an den Einfahrtsbereich des Bahnhofs Saint-Antoine-du-Rocher, beim Überfahren der Weiche, wobei der verspätete Zug zu schnell fuhr; die Zeitung nennt die Nacht von Donnerstag, während die Wikipedia-Liste den 29. Juli angibt. Die Meldungen vom 30. Juli bestätigen eine Katastrophe um Mitternacht, also in der Nacht vom 29. auf den 30. Juli.',
+                'sources' => ['kb-1925-08-01-de-limburger'],
+            ],
             [
                 'fr' => 'L\'accident a lieu dans la nuit du 29 au 30 juillet 1925, vers minuit, en gare de Saint-Antoine-du-Rocher (Indre-et-Loire), sur la ligne de Tours au Mans. Le train concerné est l\'express Le Mans-Tours.',
                 'en' => 'The accident took place in the night of 29 to 30 July 1925, at about midnight, at Saint-Antoine-du-Rocher station (Indre-et-Loire), on the Tours-Le Mans line. The train involved was the Le Mans-Tours express.',
@@ -113,6 +147,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Une dépêche allemande du 30 juillet 1925 relaie Le Petit Parisien : un train a déraillé la veille au soir sur la ligne du Mans à Tours près de Saint-Antoine-du-Rocher, avec d\'abord trois morts et environ douze blessés, puis, selon d\'autres dépêches, le mécanicien et onze voyageurs tués. La fiche donne 19 morts, bilan final.',
+                'en' => 'A German dispatch of 30 July 1925 relays Le Petit Parisien: a train derailed the previous evening on the Le Mans to Tours line near Saint-Antoine-du-Rocher, with first three dead and about twelve injured, then, according to other dispatches, the driver and eleven passengers killed. The record gives 19 dead, the final toll.',
+                'de' => 'Eine deutsche Meldung vom 30. Juli 1925 gibt Le Petit Parisien wieder: Am Vorabend sei ein Zug auf der Strecke Le Mans-Tours bei Saint-Antoine-du-Rocher entgleist, zunächst mit drei Toten und etwa zwölf Verletzten, dann nach anderen Meldungen mit dem Lokführer und elf getöteten Reisenden. Die Datenbank nennt 19 Tote, die endgültige Zahl.',
+                'sources' => ['ddb-1925-07-31-schwerter'],
+            ],
             [
                 'fr' => 'Le bilan est de 19 morts, dont le mécanicien, et de 30 blessés. Le chauffeur est grièvement brûlé.',
                 'en' => 'The toll is 19 dead, including the driver, and 30 injured. The fireman was seriously burned.',
@@ -156,6 +196,12 @@ return [
                     'turonensis',
                     'cheminots-forum',
                 ],
+            ],
+            [
+                'fr' => 'Jour : la fiche garde le 29 juillet 1925. Une dépêche du 30 juillet parle d\'un déraillement « la veille au soir » et un journal du 1er août de « minuit » ; la liste de Wikipédia, Turonensis et une note de forum disent le 29 ou « vers 0 h 10 » le 30. L\'accident a donc lieu au tournant de minuit, dans la nuit du 29 au 30 juillet ; l\'heure n\'étant pas établie à la minute, la date de la fiche n\'est pas changée. Bilan : 3 puis 12 morts selon les premières dépêches, 19 selon les sources finales.',
+                'en' => 'Day: the record keeps 29 July 1925. A dispatch of 30 July speaks of a derailment "the previous evening" and a newspaper of 1 August of "midnight"; the Wikipedia list, Turonensis and a forum note say the 29th or "about 12.10 am" on the 30th. The accident thus happened around midnight, in the night of 29 to 30 July; as the time is not established to the minute, the date of the record is not changed. Toll: 3 then 12 dead according to the first dispatches, 19 according to the final sources.',
+                'de' => 'Tag: Der Datensatz behält den 29. Juli 1925. Eine Meldung vom 30. Juli spricht von einer Entgleisung "am Vorabend" und eine Zeitung vom 1. August von "Mitternacht"; die Wikipedia-Liste, Turonensis und ein Forumsbeitrag nennen den 29. oder "gegen 0.10 Uhr" am 30. Das Unglück geschah also um Mitternacht, in der Nacht vom 29. auf den 30. Juli; da die Uhrzeit nicht minutengenau feststeht, wird das Datum des Datensatzes nicht geändert. Bilanz: 3, dann 12 Tote laut den ersten Meldungen, 19 laut den endgültigen Quellen.',
+                'sources' => ['ddb-1925-07-31-schwerter', 'kb-1925-08-01-de-limburger', 'wp-liste-1925', 'turonensis', 'cheminots-forum'],
             ],
         ],
     ],

@@ -7,11 +7,11 @@ return [
     'checked_on' => '2026-11-22',
     'sources' => [
         'delpher-1872-06-24-arnhemsche' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengde berigten',
-            'publisher' => 'Arnhemsche courant (presse néerlandaise numérisée, Delpher)',
+            'publisher' => 'Arnhemsche courant  (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1872-06-24',
             'locator' => 'p. 2',

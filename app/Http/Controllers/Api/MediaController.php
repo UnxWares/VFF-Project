@@ -55,7 +55,8 @@ class MediaController extends Controller
      * libre, `unknown` inconnu), `commercial_ok`
      * (usage commercial permis, `null` si inconnu), `share_alike` (partage
      * dans les mêmes conditions exigé), `attribution_required` (mention de
-     * l'auteur obligatoire). Une image que le site montre avec une simple
+     * l'auteur obligatoire), `rights_uncertain` (la licence du fonds est
+     * « incertaine » : à signaler avec l'image). Une image que le site montre avec une simple
      * autorisation de son auteur (`permission`) n'est jamais diffusée par
      * l'API : elle n'est ni dans la liste ni dans les compteurs, et sa fiche
      * répond 404 (même règle que GraphQL, l'outil MCP `media` et les
@@ -110,6 +111,7 @@ class MediaController extends Controller
             'id' => 2930, 'provider' => 'commons', 'provider_label' => 'Wikimedia Commons', 'type' => 'photo',
             'title' => 'Sainte-Sève ligne Morlaix - Roscoff',
             'caption' => 'La ligne Morlaix - Roscoff au lieu-dit "Les Quatre Vents" sur la commune de Sainte-Sève après l\'orage du 3 juin 2018.',
+            'captions' => null,
             'thumb_url' => 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg/500px-Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',
             'display_url' => 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg/1280px-Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',
             'source_url' => 'https://commons.wikimedia.org/wiki/File:Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',
@@ -163,6 +165,7 @@ class MediaController extends Controller
         'id' => 2930, 'provider' => 'commons', 'provider_label' => 'Wikimedia Commons', 'type' => 'photo',
         'title' => 'Sainte-Sève ligne Morlaix - Roscoff',
         'caption' => 'La ligne Morlaix - Roscoff au lieu-dit "Les Quatre Vents" sur la commune de Sainte-Sève après l\'orage du 3 juin 2018.',
+        'captions' => null,
         'thumb_url' => 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg/500px-Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',
         'display_url' => 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg/1280px-Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',
         'source_url' => 'https://commons.wikimedia.org/wiki/File:Sainte-S%C3%A8ve_ligne_Morlaix_-_Roscoff.jpg',

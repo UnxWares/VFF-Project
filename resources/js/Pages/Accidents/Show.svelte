@@ -13,6 +13,7 @@
     import {
         CONFIDENCE_TONE,
         accidentDate,
+        confirmingFamilies,
         distanceText,
         providerKey,
         timeText,
@@ -20,7 +21,8 @@
     } from '$lib/accidentText.js';
     import { colon, formatLocale, formatNumber } from '$lib/typo.js';
 
-    let { accident } = $props();
+    /** `commune_page` : adresse relative de la fiche « Le rail à <commune> » (nulle sans fiche). */
+    let { accident, commune_page = null } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const name = $derived(accident.name[lang] ?? accident.name.fr);
@@ -35,6 +37,19 @@
             .filter((l) => accident.wikipedia?.[l])
             .map((l) => [l, accident.wikipedia[l]]),
     );
+
+    /** « Wikipédia et la presse d'époque numérisée » : familles qui ont confirmé la date et la commune d'une fiche relue. */
+    const reviewedBy = $derived.by(() => {
+        const labels = confirmingFamilies(accident.review).map((f) =>
+            String($i18n.t(`accidents.show.families.${f}`)),
+        );
+        return labels.length
+            ? new Intl.ListFormat(formatLocale(lang), {
+                  style: 'long',
+                  type: 'conjunction',
+              }).format(labels)
+            : '';
+    });
 
     const unknown = $derived(String($i18n.t('accidents.show.unknown')));
     const statItems = $derived([
@@ -154,6 +169,11 @@
                 <div class="vff-prose">
                     <p>{summary}</p>
                     <p class="note">{$i18n.t('accidents.show.summary_note')}</p>
+                    {#if reviewedBy}
+                        <p class="note">
+                            {$i18n.t('accidents.show.reviewed_by', { families: reviewedBy })}
+                        </p>
+                    {/if}
                 </div>
                 {#if accident.review.notes.length || wikipedia.length}
                     <div class="aside-col">
@@ -233,13 +253,35 @@
                     {#if place.commune}
                         <div>
                             <dt>{$i18n.t('accidents.show.commune')}</dt>
-                            <dd>{place.commune}</dd>
+                            <dd>
+                                {#if commune_page}
+                                    <a class="vff-link" href="/communes/{commune_page}"
+                                        >{place.commune}<span class="vff-sr-only">
+                                            : {$i18n.t('communes.title', {
+                                                name: place.commune,
+                                            })}</span
+                                        ></a
+                                    >
+                                {:else}
+                                    {place.commune}
+                                {/if}
+                            </dd>
                         </div>
                     {/if}
                     {#if place.department}
                         <div>
                             <dt>{$i18n.t('accidents.show.department')}</dt>
-                            <dd>{place.department} ({place.department_code})</dd>
+                            <dd>
+                                <a class="vff-link" href="/departments/{place.department_code}"
+                                    >{place.department} ({place.department_code})<span
+                                        class="vff-sr-only"
+                                    >
+                                        : {$i18n.t('departments.commune_link', {
+                                            name: place.department,
+                                        })}</span
+                                    ></a
+                                >
+                            </dd>
                         </div>
                     {/if}
                     {#if located}
@@ -290,6 +332,15 @@
                                         ),
                                     })}</span
                                 >
+                            </dd>
+                        </div>
+                    {:else if located && place.precision === 'commune' && place.commune}
+                        <div>
+                            <dt>{$i18n.t('accidents.show.nearest_station')}</dt>
+                            <dd class="muted">
+                                {$i18n.t('accidents.show.station_unspecified', {
+                                    commune: place.commune,
+                                })}
                             </dd>
                         </div>
                     {/if}

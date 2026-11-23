@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $distance_m
  * @property int|null $pk_m
  * @property float|null $altitude_m
- * @property string|null $source bdtopo | rge_alti | null
+ * @property string|null $source bdtopo | rge_alti | rge_track | null
  * @property bool $interpolated
  * @property string|null $structure tunnel | bridge | null
  * @property int $piece

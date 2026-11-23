@@ -154,7 +154,7 @@ seule ère de sa fermeture, puis disparaît des ères suivantes (debout, démoli
 | `--parallel=1` | Processus parallèles, une ère par processus (4 au plus conseillé). |
 | `--today=` | Date du jour (AAAA-MM-JJ) de l'ère courante, aujourd'hui par défaut. |
 | `--skip-infer` | Interne : dates déduites déjà recalculées par le processus parent. |
-| `--rules=` | Règles facultatives de l'audit des gares, séparées par des virgules : `g3` (ouverture déduite bornée par la carte), `g6` (fermeture tirée de la fin des voyageurs de la ligne rattachée par PK) ; `none` : aucune. Défaut : clé `stations.era_rules` (`VFF_STATION_ERA_RULES`, vide). Voir [AUDIT-GARES.md](AUDIT-GARES.md). |
+| `--rules=` | Règles facultatives de l'audit des gares, séparées par des virgules : `g3` (ouverture déduite bornée par la carte), `g6` (fermeture tirée de la fin des voyageurs de la ligne rattachée par PK), `g7` (gare à code UIC sans fermeture datée et absente de la fréquentation SNCF 2015-2024 : fermée à l'ère 2020, fermeture datée « avant 2015 ») ; `none` : aucune. Défaut : clé `stations.era_rules` (`VFF_STATION_ERA_RULES`, vide). Voir [AUDIT-GARES.md](AUDIT-GARES.md). |
 
 ## Lignes, tracés et audits
 
@@ -172,6 +172,20 @@ Quatre notes par tronçon et par ère (classement, placement, exactitude, tracé
 
 Exemples : `vff:audit-segments --line=405000 --line=371000` (lignes témoins), `vff:audit-segments --era=2030
 --dry-run`, ou quatre processus `--shard=1/4` à `--shard=4/4` pour tout le réseau.
+
+### `vff:compute-coverage-figures`
+
+Mesure ce que sait l'encyclopédie (page `/network/coverage`, `GET /api/v1/stats/coverage`) : pour les lignes (ouverture et
+fermeture datées au jour, au mois ou à l'année, tracé précis à moins de 3 m, électrification, signalisation, vitesses,
+ouvrages d'art), les gares (dates, photo, fréquentation, desserte, patrimoine, accessibilité, anciens noms), les accidents
+(fiches relues) et le matériel (séries datées), en nombre et en part, avec la part issue de sources sous licence ouverte
+(registre `database/data/source_rights.php`), puis par ère. Lecture seule, chaque requête bornée à 30 s, résultat rangé dans
+le cache sans expiration avec sa date de calcul ; une table facultative absente (fréquentation, dessertes, patrimoine,
+accessibilité) donne une mesure « pas encore importée », jamais une erreur. Aucune planification : à relancer après un import.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Calcule et affiche les mesures sans toucher au cache. |
 
 ### `vff:compute-line-profiles`
 
@@ -218,6 +232,36 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
 | `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte, longueur de la portion la plus raide). |
 
+### `vff:import-wikipedia-grades`
+
+Déclivités maximales lues dans les articles de Wikipédia des lignes, déjà en cache
+(`storage/app/data/signalisation-historique/wikipedia`, rempli par `vff:import-signalling-history`) : aucun appel réseau, la
+base n'est jamais modifiée. Champ `pente` de l'infobox quand l'article est bien celui de la ligne (longueur à 25 % près, ou
+numéro de ligne égal à son code), sinon déclivité maximale écrite dans le texte (une seule valeur, sans fourchette ni portion
+nommée), reprise seulement si elle s'accorde avec la mesure du profil. Article partagé par plusieurs lignes et lignes à
+crémaillère écartés. Résultat fusionné dans `database/data/sourced_grades.php` (lu par la fiche et l'API : `sourced_grade`,
+`sourced_grade_compared`) : ajouts et mises à jour seulement, rien n'est effacé, une entrée tirée du texte n'est jamais
+remplacée. Règles : `App\Services\Profiles\WikipediaGrades`. Relancer la commande sur les mêmes articles donne le même fichier.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Bilan seulement, aucun fichier écrit. |
+| `--articles-dir=` | Dossier du cache des articles. |
+| `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
+| `--csv=` | Rapport détaillé par ligne (slug, titre, lecture, effet sur le fichier, valeur de Wikipédia, mesure, motif de non-publication). |
+
+### `vff:profile-trace-holes`
+
+Lignes dont le tracé de référence a de vrais trous sous le profil en long (les trous conventionnels posés devant chaque
+embranchement ne comptent pas) : nombre de lignes, de trous, km de trous à vol d'oiseau, trous de plus de 5 km, lignes dont
+les trous font 25 % du parcours ou plus, lignes sans profil, puis les lignes aux plus grands trous. Lecture seule.
+
+| Option | Effet |
+|:-|:-|
+| `--min-m=0` | Ne compter que les trous d'au moins cette longueur (mètres). |
+| `--top=30` | Nombre de lignes affichées. |
+| `--csv=` | Liste complète, un trou par ligne du CSV (slug, nom, nombre et longueur des trous, part, motif, bornes du trou). |
+
 ### `vff:import-sncf-track-regime`
 
 Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par
@@ -256,6 +300,68 @@ que le régime d'exploitation.
 | `--cache-dir=` | Dossier du cache. |
 | `--csv=` | Rapport par ligne (km par système). |
 
+### `vff:import-station-timetables`
+
+Calcule la desserte d'un jour ouvrable type des gares et des lignes d'après les horaires ouverts : GTFS SNCF (TER, Intercités, TGV INOUI,
+OUIGO), Transilien (RER compris) et, pour les gares que ces deux flux ne desservent pas, les trains régionaux ZOU ! (flux déclarés dans
+`database/data/station_service_feeds.php`, lus par `StationService\GtfsFeedStore`, cache `storage/app/data/gtfs`, dossier `.nobackup`,
+User-Agent du robot VFF). Le jour type est un mardi de semaine sans jour férié, médian en nombre de trains parmi les mardis proches que
+couvrent tous les horaires de référence ; les cars sont écartés. Rattachement des arrêts aux gares par code UIC, puis nom, puis position
+(`StationStopMatcher`, comme `vff:import-station-service`). Écrit `station_timetables` (trains par type et par sens, premières et dernières
+heures, destinations directes, horaires utilisés) et `line_timetables` (trains par jour, chacun compté une fois par ligne dont il parcourt
+deux gares consécutives), remplacées entièrement. Points d'accès : `GET /api/v1/stations/{station}/timetable`, `timetable` des fiches REST,
+GraphQL `Station.timetable` et `LineSheet.timetable`, outils MCP `station_timetable` et `line_timetable`.
+
+| Option | Effet |
+|---|---|
+| `--no-store` | Mesure seule : résumé et rapports, rien n'est écrit en base. |
+| `--from-cache` | Réutilise les flux déjà téléchargés. |
+| `--date=AAAA-MM-JJ` | Jour à lire, au lieu du mardi type choisi dans les horaires. |
+| `--today=AAAA-MM-JJ` | Date du jour (défaut : aujourd'hui). |
+| `--report=dossier` | Écrit `couverture.csv`, `gares-sans-desserte.csv` et `flux.json`. |
+
+### `vff:import-station-accessibility`
+
+Importe l'accessibilité et les services des gares d'aujourd'hui d'après sept jeux ouverts de SNCF Gares & Connexions et SNCF
+Voyageurs (ODbL) : « Accessibilité des gares » (NeTEx : accès des personnes à mobilité réduite, quais, ascenseurs recensés),
+« Equipements d'accessibilité en gare » (boucle magnétique, bandes d'éveil, toilettes…), assistance en gare (horaires), état de
+fonctionnement des ascenseurs, points de vente (guichet, automates), stationnement vélo sécurisé, et le référentiel « Gares de
+voyageurs » qui relie codes UIC et trigrammes à l'identifiant commun. Une gare du référentiel peut porter plusieurs codes UIC :
+chaque fiche de VFF reconnue (`StationAttendanceMatcher`) reçoit les informations. Une absence n'est jamais une négation : seul le NeTEx
+répond oui ou non (`mobility` : `partial` ou `none`, c'est-à-dire non déclarée accessible par SNCF). Toutes les lignes `sncf` de
+`station_accessibility` sont remplacées d'un coup, dans une transaction ; aucune autre table n'est écrite. Cache
+`storage/app/sources/sncf-accessibility/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement ; l'état des ascenseurs est
+celui de la lecture (`--refresh` pour celui du jour). Points d'accès : `GET /api/v1/stations/{station}/accessibility`, `accessibility`
+de la fiche REST, filtre `accessible` de l'annuaire (web, REST, MCP), GraphQL `Station.accessibility`, outil MCP `station_accessibility`.
+Migration `2026_12_17_010000_create_station_accessibility_table` ; application : `storage/app/reports/agents/aprem-2111/gares-accessibilite-appliquer.sh`.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : couverture par statut, gares non rattachées, gares ouvertes sans information. |
+| `--refresh` | Télécharge de nouveau les jeux au lieu du cache local. |
+| `--cache-dir=dossier` | Dossier du cache (défaut : `storage/app/sources/sncf-accessibility`). |
+| `--csv=dossier` | Écrit `non-rattachees.csv`, `doublons.csv` et `sans-information.csv`. |
+
+### `vff:import-sncf-attendance`
+
+Importe la fréquentation annuelle des gares : jeux SNCF Open Data « Fréquentation en gares » (SNCF Gares & Connexions, ODbL),
+archive 2015-2024 (`frequentation-gares-archive`) et jeu courant 2025 et suivantes (`frequentation-gares`), dans
+`station_attendances` : une ligne par gare et par année, voyageurs (`passengers`) et voyageurs avec non-voyageurs (`footfall`).
+Rattachement à la gare de VFF par code UIC ; les doublons de fiches (« Grasse », « Virville-Manneville ») sont départagés par le
+département du code postal, quelques gares sans code connu par le nom et le département, un alias vérifié à la main
+(`StationAttendanceMatcher::ALIASES`). `series` sépare 2015-2024 de 2025 : SNCF écrit que les deux méthodes de calcul ne sont pas
+directement comparables. Une gare du jeu sans gare de VFF n'est pas écrite (rapport `non-rattachees.csv`). Toutes les lignes
+`sncf` sont remplacées d'un coup ; aucune autre table n'est écrite. Cache `storage/app/sources/sncf-attendance/` (dossier
+`.nobackup`), licence et éditeur vérifiés au téléchargement. Points d'accès : `GET /api/v1/stations/{station}/attendance`,
+`attendance` de la fiche REST, GraphQL `Station.attendance`, outil MCP `station_attendance`.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : rattachement par règle, gares non rattachées, couverture par statut, gares ouvertes sans fréquentation. |
+| `--refresh` | Télécharge de nouveau les jeux au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Dossier des rapports CSV (lignes prévues, non rattachées, doublons, gares ouvertes sans fréquentation). |
+
 ### `vff:import-sncf-platforms`
 
 Importe les quais des gares de voyageurs du jeu SNCF Open Data « Liste des quais » (SNCF Réseau, ODbL) dans
@@ -292,6 +398,8 @@ les sources. Écrit dans les tables du moteur.
 | `--no-single-axis` | Garde les portions dédoublées d'une même ligne. |
 | `--no-junction-repair` | Sans l'étape de continuité sur les voies réelles (sauts, trous, jonctions). |
 | `--no-rounding` | Sans l'arrondi des sommets (segments droits). |
+| `--no-extend-to-stations` | Éteint la règle 10 (allumée par défaut), qui prolonge jusqu'à sa gare terminus, le long de la trace source, un bout arrêté avant elle. |
+| `--no-join-lateral` | Éteint la règle 11 (allumée par défaut), qui raccorde au dessin de la voie traversante d'une autre ligne un bout arrêté à côté d'elle dans une gare commune. |
 | `--report-only` | Mesure la précision du tracé actuel et réécrit les rapports, sans rien reconstruire. |
 | `--shard=i/n` | Une ligne sur `n`, pour des processus parallèles. |
 
@@ -308,10 +416,22 @@ quand la part de ses tronçons en service électrifiés atteint le seuil de la f
 | `--dry-run` | Calcule et affiche les lignes qui changent de sens, sans écrire. |
 | `--show=40` | Nombre de lignes affichées par sens. |
 
+### `vff:electrification-history-coverage`
+
+Lecture seule : mesure la couverture de l'histoire de l'électrification (service `LineElectrificationHistory`, lue à la
+volée dans `line_events` et `sncf_line_electrification`, rien à importer). Affiche les lignes électrifiées qui ont au moins
+une date de mise sous tension sûre, avec et sans les raccordements, le nombre de faits rendus par nature et le nombre
+d'événements écartés comme ambigus.
+
+| Option | Effet |
+|:-|:-|
+| `--line=` | Code ou slug d'une ligne : ses tranches SNCF et ses faits datés, un par ligne, pour vérifier à la main. |
+| `--missing=0` | Liste N lignes électrifiées (hors raccordements) sans date sûre. |
+
 ### `vff:merge-split-lines`
 
-Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en cinq passes rejouables : `sections`,
-`article`, `couverture`, `orphelines`, `homonymes`. Écrit dans les tables du moteur ; `vff:rebuild-history` l'enchaîne,
+Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en six passes rejouables : `sections`,
+`article`, `couverture`, `orphelines`, `homonymes`, `couloir`. Écrit dans les tables du moteur ; `vff:rebuild-history` l'enchaîne,
 et il faut relancer ensuite `vff:build-line-references` sur les lignes touchées. Rapport CSV de relecture dans
 `storage/app/reports/merge-split-lines[-dry-run].csv`.
 
@@ -331,6 +451,32 @@ Règles de la passe `sections` ajoutées les 21 et 22/11 (fusion des lignes de s
   sinon le cas reste « à relire ». Une ligne qui part d'une gare de la ligne ou aboutit à son tracé est refusée.
 - Mesure du 22/11 sur la copie : 12 tracés complétés (470 km de plus), `lines.junction_gap` à 0.
 
+Passe `couloir` (22/11) : une ligne créée par `vff:link-traces` (sans code) dont le tracé de référence court dans le
+couloir d'une ligne à code est cette ligne dessinée une seconde fois. Elle y est fusionnée si au moins 60 % de son tracé
+est à 40 m au plus du tracé de la ligne à code (et 80 % à 40 m de lignes à code), si les deux lignes sont de la même
+catégorie et si ses deux toponymes sont des lieux de la ligne, ou l'un d'eux et l'autre une commune ou une gare à 3 km au
+plus de son tracé. Une ligne secondaire, militaire ou industrielle qui longe une ligne du réseau principal est refusée,
+une ligne à code n'est jamais fusionnée, et un tracé dans le couloir de deux lignes à code reste « à relire ». Passe à
+blanc du 22/11 sur `vff` : 4 fusions (Aire-sur-la-Lys à Isbergues, Avesnes à Flaumont, Gravigny à Amfreville, Louviers à
+Caudebec-lès-Elbeuf), 7 refus.
+
+### `vff:neutralize-line-slugs`
+
+Slug neutre des lignes dont le slug porte un préfixe de source (`archeo-`) : le préfixe est retiré, suffixe `-2`, `-3`… en cas de
+collision (`App\Services\Lines\NeutralLineSlugs`). Chaque ancien slug, et celui d'une ligne fusionnée dans une autre
+(`alt_names.merged`), va dans `database/data/line_slug_redirects.php` : 301 du site et de l'API, ancien slug accepté par GraphQL et
+le MCP. Idempotente.
+
+```bash
+bin/php artisan vff:neutralize-line-slugs --dry-run [-v]     # liste (toute avec -v) et collisions, rien d'écrit
+bin/php artisan vff:neutralize-line-slugs --map-only         # fichier des correspondances seulement
+bin/php artisan vff:neutralize-line-slugs --rewrite-files    # renomme (une transaction), écrit le fichier, réécrit les slugs cités
+bin/php artisan cache:clear                                  # ensuite : carte, tuiles, plan du site
+```
+
+`--rewrite-files` remplace les anciens slugs entiers cités dans `app`, `database/data`, `docs`, `graphql`, `resources/js` et `tests`.
+Les lignes créées ensuite par `vff:link-traces` reçoivent directement un slug neutre.
+
 ### Règles du moteur ajoutées à `vff:build-line-references`
 
 Les options sont celles du tableau plus haut. Trois règles de continuité du tracé de référence (étape `--no-junction-repair`
@@ -344,6 +490,21 @@ et nettoyage `--no-single-axis`) sont arrivées les 21 et 22/11 ; leur docblock 
   refusée si les écartements diffèrent, si le bout croise déjà le dessin ou si la courbe double la ligne.
 - Règle 8 bis : un raccord droit de moins de 60 m, coudé de plus de 35 degrés, qui ferme une boucle (ses deux bouts déjà reliés par le reste de la
   ligne) est retiré avec le bout de portion qu'il laissait en l'air, sauf si une autre ligne finit sur lui (`3cc2e0d`).
+- Règle 10 (allumée par défaut, `--no-extend-to-stations` l'éteint) : un bout libre arrêté à plus de 30 m d'une gare de sa
+  ligne qui se trouve au-delà de lui, quand une trace rattachée à la ligne passe à moins de 5 m du bout et à moins de
+  15 m de la gare, est prolongé jusqu'à la gare le long de cette trace (sur les voies précises qui la suivent, sinon sur
+  la trace archeo ou OHM elle-même, gardée comme tracé grossier ; jamais sur une forme SNCF Réseau, généralisée, dont
+  les 5 m ne sont pas garantis). Le prolongement s'arrête au premier contact avec le dessin d'une autre ligne (jonction
+  à 0 m) et il est refusé s'il double une autre ligne dès le bout, s'il croise une voie ou s'il dépasse 2 km.
+- Règle 11 (allumée par défaut, `--no-join-lateral` l'éteint) : un bout libre arrêté à côté du dessin d'une autre ligne
+  (de 0,5 à 30 m, presque parallèle, voie traversante sur au moins 60 m autour du bout), quand une gare est desservie par
+  les deux lignes à moins d'1 km, que les écartements sont compatibles, que les deux lignes sont en service à une même ère
+  près du bout et qu'elles sont au même niveau (jamais une voie en tunnel contre une voie au sol), est raccordé au dessin
+  de l'autre ligne : par les voies précises réelles (au plus 400 m, sans s'écarter de plus de 35 m, sans longer l'autre
+  ligne à l'écart sur plus de 150 m, sans la traverser, sans doubler la ligne), sinon par une courbe estimée
+  « raccord-lisse » tangente aux deux voies, devant le bout, de rayon plausible, qui se rapproche toujours de l'autre
+  ligne et ne croise ni une voie précise ni le dessin d'une ligne (refusée devant une voie précise en impasse). La
+  jonction tombe à 0 m ; ce sont les bouts que compte l'invariant `lines.junction_gap_lateral`.
 
 Ces règles ne s'appliquent au réseau qu'au prochain recalcul des lignes (scripts d'application des rapports d'agents, voir
 `REPRISE.md`).
@@ -459,6 +620,35 @@ Rattache aux lignes les documents numérisés de Gallica qui en parlent (métado
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de tous les documents jugés, retenus ou non, avec leur score et ses raisons. |
 
+### `vff:import-bibliography`
+
+Rattache aux lignes et aux gares les ouvrages et articles qui en traitent (tables `bibliography_entries` et
+`bibliography_links`, section « Pour aller plus loin » des fiches, `GET /api/v1/lines/{line}/bibliography` et
+`GET /api/v1/stations/{station}/bibliography`). Trois sources : livres du catalogue général de la BnF (API SRU
+documentée, notices sous Licence Ouverte), références `{{Ouvrage}}` / `{{Article}}` et section « Bibliographie » des
+articles de Wikipédia des lignes et des gares, « décrit par » (P1343) et « sujet principal » (P921) de Wikidata.
+Seules les notices sont reprises (auteurs, titre, éditeur, année, ISBN, lien) ; aucune page de livre n'est lue. Une
+requête toutes les 5 secondes au plus, User-Agent du projet, cache disque (`storage/app/data/bibliographie`,
+`storage/app/data/gallica`, dossiers `.nobackup`). Les liens de chaque source traitée sont remplacés pour les lignes
+et gares traitées ; une ligne dont une requête échoue garde ses liens. Table absente (migration non appliquée) :
+`--dry-run` fonctionne, l'écriture est refusée. Méthode, rattachement prudent et couverture :
+`storage/app/reports/agents/aprem-2111/bibliographie.md`.
+
+| Option | Effet |
+|:-|:-|
+| `--source=` | `bnf`, `wikipedia` ou `wikidata`, répétable ; les trois par défaut. |
+| `--line=` / `--station=` | Slug traité, répétable ; toutes les lignes (articles en premier) et les gares ayant un article ou un élément Wikidata par défaut. |
+| `--no-stations` | Ne traite aucune gare. |
+| `--no-isbn-lookup` | Ne cherche pas dans la BnF les ISBN des références de Wikipédia et de Wikidata (sinon une requête pour quinze ISBN, pour lier la notice). |
+| `--bnf-stations` | Interroge aussi la BnF pour chaque gare (une requête par gare, long). |
+| `--limit=` | Nombre de lignes (et de gares avec `--bnf-stations`) interrogées à la BnF au plus. |
+| `--threshold=` | Score minimal d'une notice de la BnF rattachée à une ligne (9 par défaut, sur 11). |
+| `--interval=` | Millisecondes entre deux requêtes (5000 au moins, 5000 par défaut). |
+| `--offline` / `--from-cache` | Caches seulement (BnF, Wikidata, Wikipédia) / articles de Wikipédia en cache seulement. |
+| `--refresh` | Ignore les caches et relit les sources. |
+| `--dry-run` | Calcule tout sans écrire. |
+| `--report=` | Fichier CSV de tous les rattachements retenus. |
+
 ### `vff:import-sncf-archives`
 
 Rattache aux lignes les notices du jeu de données « Archives SNCF » (dossiers, photographies et films du Service
@@ -474,6 +664,22 @@ source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
 | `--threshold=` | Score minimal d'une notice rattachée (9 par défaut, sur 11). |
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
+
+### `vff:import-structures`
+
+Ouvrages d'art des lignes (tunnels, viaducs, grands ponts) : tables `structures` et `line_structures`. Assemble les tronçons
+de voie de la BD TOPO en tunnel ou sur pont (cache de tuiles du profil en long, `storage/app/data/altimetrie/bdtopo-tuiles/`),
+les nomme par les constructions de la BD TOPO et par Wikidata (nom, dates, protection, Mérimée, image), garde les tunnels et
+ponts nommés d'une ligne déposée, puis rattache chaque ouvrage aux lignes dont le tracé le suit (toutes ères), avec ses PK
+estimés sur le profil en long. Caches régénérables dans `storage/app/data/ouvrages/` (`.nobackup`). Lit `line_segments`,
+`eras` et `line_profile_points`, n'écrit que les deux tables des ouvrages, qu'il remplace à chaque passage. Méthode et
+seuils : `App\Services\Structures\StructureImporter`. Environ 2 minutes avec les caches.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Calcule tout sans écrire. |
+| `--offline` | N'utilise que les caches (tuiles absentes ignorées, Wikidata et Commons non relus). |
+| `--refresh-wikidata` | Relit Wikidata au lieu du cache `wikidata.json`. |
 
 ### `vff:import-materials`
 
@@ -524,7 +730,22 @@ dans `database/data/signalling_history_sources.php`. Les deux ne touchent que `l
 | `--dry-run` | Affiche le bilan sans écrire (avec `-v`, les faits ; un fait corrigé y apparaît en fiabilité `hidden`). |
 | `--corrections=` | Autre fichier de corrections que celui de `database/data/`. |
 | `--line=`, `--limit=`, `--offline`, `--refresh`, `--cache-dir=` | Import Wikipédia seulement : lignes lues, articles du cache. |
+| `--supplements=` | Import Wikipédia seulement : autre fichier de faits relus que celui de `database/data/`. |
 | `--file=` | Import des documents seulement : autre fichier de faits. |
+
+Faits relus (`database/data/signalling_history_wikipedia_supplements.php`, contrôlé par
+`App\Services\Signalling\SignallingSupplementsFile`) : l'import Wikipédia range aussi les faits que l'extracteur prudent
+laisse passer et qu'une personne a relus dans l'article de la ligne, d'une gare ou d'une LGV. Chaque fait porte sa phrase
+(`quote`, liens ôtés, tirets écrits « - ») ; elle est cherchée dans l'article en cache à chaque import, absente (l'article
+a changé) la commande échoue après son bilan et ne range pas le fait. Le fait est rangé comme un fait de Wikipédia (source
+Wikipédia, permalien de la révision lue, origine `text`, fiabilité `high` pour un jour ou un mois, `medium` pour une année).
+Un complément se neutralise par une correction comme tout fait de Wikipédia. Un complément d'une ligne absente de la base
+est ignoré.
+
+La commande centralisée (système `CC` : CCVU, CCR, PCD, rôle `remote_control`) ne se lit que dans ces faits relus : l'extracteur
+ne la repère pas dans les textes. Ce n'est pas un cantonnement : un fait `CC` ne remplace aucun BAL, BAPR ou block manuel (et
+n'est remplacé que par une autre commande centralisée), et la carte des époques passées la dessine en trait fin pointillé
+par-dessus le cantonnement.
 
 Une correction vise un fait par sa ligne, son système, sa date et sa portion, et porte une action, des sources (un
 document officiel ou deux sites différents), une citation et une raison :
@@ -545,6 +766,24 @@ Sud-Est (752000), qui date du basculement des postes et du centre de commande de
 Met à jour l'instantané du contrat de l'API publique (`tests/Fixtures/api-contract.json` : REST, GraphQL, MCP). Les ajouts y
 entrent seuls ; `--accept-removals` accepte aussi un retrait ou un changement de type, à annoncer dans
 [API-CHANGELOG.md](API-CHANGELOG.md) (le test `ApiContractTest` échoue sinon).
+
+### `vff:export-open-data`
+
+Jeux de données ouverts sous ODbL 1.0, lancés à la main (aucune tâche planifiée) : réseau d'une ère (`lignes`,
+`sections`, `gares` en CSV et GeoJSON), `evenements`, `accidents`, `materiel`, chacun avec `LISEZMOI.txt`,
+`LICENCE.txt` et une archive ZIP, plus `catalogue.json` lu par la page `/open-data`. Écrit dans
+`public/downloads/open-data/` (servi en statique, ignoré par git). Lecture seule de la base, idempotente (même base
+et même `--date`, mêmes octets). Seules les sources autorisées par `database/data/source_rights.php` entrent
+(`App\Services\OpenData\OpenDataRights`) ; le reste est retiré ou remplacé par une donnée libre et compté.
+
+| Option | Effet |
+|:-|:-|
+| `--era=` | Ère(s) du réseau, répétable ; défaut : l'ère courante. |
+| `--all-eras` | Réseau de toutes les ères. |
+| `--only=` | `network`, `events`, `accidents`, `materials`, répétable (défaut : tous). |
+| `--lines=` | Échantillon : slugs séparés par des virgules ; écrit dans `storage/app/open-data-sample`, jamais dans le dossier public. |
+| `--output=` | Autre dossier de sortie. |
+| `--date=` | Date du jeu (AAAA-MM-JJ). |
 
 ## Contrôles
 
@@ -572,3 +811,13 @@ journal de bord ([REDACTION.md](REDACTION.md)), plans du site (`/sitemap.xml`, `
 
 Pas de commande artisan : `scripts/basemap-pmtiles.sh [zone] [zoom] [date]` construit l'archive PMTiles
 (`DRY_RUN=1` pour mesurer). Détails, réglages et service : [FOND-DE-CARTE.md](FOND-DE-CARTE.md).
+
+## Carte
+
+### `vff:warm-tiles`
+
+Remplit le cache serveur (Valkey) des tuiles de la carte aux petits zooms (0 à 6 par défaut) pour toutes les ères, sous la clé de la route `GET /api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`. Sans elle, la première visite après un recalcul des données paie 0,5 à 1 s par tuile (2 à 3 s sous charge) ; une tuile réchauffée vit 24 h. Seules les tuiles qui touchent l'emprise des tracés sont calculées (22 par ère jusqu'au zoom 6, 462 pour les 22 ères). Ne modifie aucune table.
+
+- `--era=` (répétable), `--max-zoom=6` (0 à 10), `--fields=map|all|both` (défaut `map`, ce que lit la carte du site), `--pause-ms=50` et `--statement-timeout=30` (débit borné), `--refresh` (recalcule aussi l'existant), `--dry-run` (compte, ne calcule rien).
+- Durée et place mesurées le 23/11/2026 : environ 0,2 à 0,5 s par tuile, 1 Mo gzip par ère (0,5 à 1,3), soit 2 à 3 minutes et une vingtaine de Mo pour `map` ; trois fois plus avec `both`.
+- À lancer à la main ou en dernière ligne de l'application du moteur (aucun cron) : `bin/php artisan vff:warm-tiles`. La clé contient la version des données (`map-data:version`, relue toutes les 60 s) : lancer après la dernière écriture.

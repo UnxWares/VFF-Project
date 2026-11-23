@@ -164,6 +164,8 @@ class CheckInvariantsCommandTest extends TestCase
             'segments.heritage_status' => 3,
             'segments.inactive_with_traffic' => 1,
             'lines.junction_gap' => 1,
+            // Jonction latérale (test_lateral_junction_gap_needs_a_through_track_a_shared_station_and_compatible_gauges) : aucune ici.
+            'lines.junction_gap_lateral' => 0,
             'texts.long_dash' => 3,
             'segments.current_heritage_on_served_station' => 0,
             'segments.current_lgv_not_electrified' => 1,
@@ -182,6 +184,8 @@ class CheckInvariantsCommandTest extends TestCase
             'line_materials.doubtful_confidence' => 0,
             // Électrification des liens ligne × matériel (MaterialTractionInvariantTest) : aucun lien ici.
             'line_materials.traction_conflict' => 0,
+            // Doublons d'accident (AccidentRouteDuplicatesTest) : aucune fiche ici.
+            'accidents.same_day_nearby' => 0,
         ], $counts);
 
         $this->assertStringContainsString('200000 Ligne de Bravo à Charlie', $results['segments.current_freight_on_passenger_code']['examples'][0]);
@@ -217,6 +221,52 @@ class CheckInvariantsCommandTest extends TestCase
             $this->assertLessThanOrEqual(DataInvariants::EXAMPLES, count($r['examples']));
             $this->assertCount(min($r['count'], DataInvariants::EXAMPLES), $r['examples'], $r['key']);
         }
+    }
+
+    /**
+     * Jonction latérale : bout de ligne en service qui s'arrête à côté d'une voie traversante, dans une gare
+     * desservie par les deux lignes. Seul le bout A est compté ; B (aucune gare commune), C (écartements
+     * différents), D (portion fermée), E (à 40 m) sont conformes.
+     */
+    public function test_lateral_junction_gap_needs_a_through_track_a_shared_station_and_compatible_gauges(): void
+    {
+        $main = $this->line('Ligne de Main', [2030 => ['in_service', 'mixed']], code: '200100');
+        $m = "(SELECT ST_Transform(geom, 2154) FROM line_segments WHERE line_id = {$main->id})";
+        $at = fn (float $f, float $dy) => "ST_Translate(ST_LineInterpolatePoint({$m}, {$f}), 0, {$dy})";
+        $branch = function (string $name, float $f, float $dy, string $status = 'in_service', ?int $gauge = null) use ($at): Line {
+            $l = Line::factory()->create(['name' => $name, 'code' => null, 'network' => null, 'is_lgv' => false, 'description' => null, 'gauge_mm_default' => $gauge]);
+            // Branche venue de 300 m au nord, qui longe la voie à $dy m sur les derniers 100 m puis s'arrête.
+            DB::table('line_segments')->insert(['line_id' => $l->id, 'era_id' => $this->eras[2030]->id, 'status' => $status,
+                'traffic_type' => $status === 'in_service' ? 'mixed' : 'unknown', 'is_heritage' => false, 'created_at' => now(), 'updated_at' => now(),
+                'geom' => DB::raw("ST_Transform(ST_MakeLine(ARRAY[{$at($f - 0.02, 300)}, {$at($f - 0.01, $dy)}, {$at($f, $dy)}]), 4326)")]);
+
+            return $l;
+        };
+        $serve = function (string $stationName, float $f, Line ...$lines) use ($main): void {
+            $lon = 2.30 + 0.1 * $f;
+            $station = $this->station($stationName, $lon, $main->lat, [2030 => 'active']);
+            foreach ($lines as $line) {
+                DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $line->id, 'method' => 'test', 'created_at' => now(), 'updated_at' => now()]);
+            }
+        };
+        $a = $branch('Ligne de Branche A', 0.30, 6.0);
+        $serve('Gare Lateral', 0.30, $main, $a);
+        $b = $branch('Ligne de Branche B', 0.40, 6.0);
+        $serve('Gare Seule B', 0.40, $b);
+        $c = $branch('Ligne de Branche C', 0.50, 6.0, gauge: 1000);
+        $serve('Gare Metrique', 0.50, $main, $c);
+        $d = $branch('Ligne de Branche D', 0.60, 6.0, status: 'abandoned');
+        $serve('Gare Fermee', 0.60, $main, $d);
+        $e = $branch('Ligne de Branche E', 0.70, 40.0);
+        $serve('Gare Eloignee', 0.70, $main, $e);
+
+        $r = collect((new DataInvariants(['lines.junction_gap_lateral']))->run())->keyBy('key')['lines.junction_gap_lateral'];
+
+        $this->assertSame(1, $r['count'], implode(' | ', $r['examples']));
+        $this->assertMatchesRegularExpression('/^2030 : - Ligne de Branche A : bout à [56],\d\d m de 200100 Ligne de Main, gare commune Gare Lateral \(\d+\.\d{5}, 2\.3\d{4}\)$/u', $r['examples'][0]);
+        // L'ancien invariant ne le comptait pas : bout parallèle, ni arrivée à 1,5 m ni cap vers la voie.
+        $old = collect((new DataInvariants(['lines.junction_gap']))->run())->keyBy('key')['lines.junction_gap'];
+        $this->assertSame(0, $old['count'], implode(' | ', $old['examples']));
     }
 
     public function test_heritage_segment_on_a_served_passenger_station(): void

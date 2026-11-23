@@ -59,7 +59,7 @@ class QueryParameterRobustnessTest extends TestCase
                     ->component($component)
                     ->where('currentEraYear', 2030)
                     ->has('eras', 2)
-                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true])
+                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true, 'open_km' => null, 'colorings' => ['electrification', 'speed']])
                     ->where('eras.1.is_current', true));
         }
     }
@@ -69,7 +69,7 @@ class QueryParameterRobustnessTest extends TestCase
         $version = fn () => $this->get('/maps')->viewData('page')['props']['dataVersion'];
 
         $before = $version();
-        $this->assertMatchesRegularExpression('/^\d+-2$/', $before);
+        $this->assertMatchesRegularExpression('/^\d+-2-m\d+$/', $before);
 
         DB::table('line_segments')->update(['updated_at' => now()->addMinute()]);
         $this->assertNotSame($before, $version());
@@ -153,9 +153,10 @@ class QueryParameterRobustnessTest extends TestCase
     {
         return [
             // [recherche, nom de la ligne témoin, nombre attendu]
-            'pourcent seul' => ['%', 'Ligne 100 % électrique', 1],
-            'souligné seul' => ['_', 'Embranchement_privé', 1],
-            'antislash' => ['\\', 'Voie \\ de service', 1],
+            // Ponctuation seule : la recherche ignore la ponctuation (App\Support\Search), rien ne sort, jamais tout.
+            'pourcent seul' => ['%', 'Ligne 100 % électrique', 0],
+            'souligné seul' => ['_', 'Embranchement_privé', 0],
+            'antislash' => ['\\', 'Voie \\ de service', 0],
             'pourcent sans témoin' => ['%', 'Ligne sans joker', 0],
             'souligné sans témoin' => ['_', 'Ligne sans joker', 0],
         ];

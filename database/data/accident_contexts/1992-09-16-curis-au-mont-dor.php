@@ -6,11 +6,11 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'presse-curis-a' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dode bij treinongeluk Frankrijk',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1992-09-17',
             'locator' => null,
@@ -20,11 +20,11 @@ return [
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher).',
         ],
         'presse-curis-b' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Trein ravage bij Lyon',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1992-09-17',
             'locator' => null,

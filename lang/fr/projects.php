@@ -1,0 +1,83 @@
+<?php
+
+// « Projets : réouvertures et lignes nouvelles » (/projects) : textes de la page. Les données viennent de
+// App\Services\RailProjects (catalogue database/data/projets_ferroviaires.php) ; les résumés des projets sont en français.
+return [
+    'meta_title' => 'Projets : réouvertures et lignes nouvelles',
+    'meta_description' => 'Les projets ferroviaires français pas encore en service : réouvertures au service voyageurs, lignes nouvelles et LGV, RER métropolitains, électrifications. Pour chacun, l’état, la date de chaque étape franchie, les porteurs et la source de chaque fait daté.',
+    'hero_title' => 'Projets : réouvertures et lignes nouvelles',
+    'hero_subtitle' => ':count projets ferroviaires en France, avec leur état, la date de chaque étape franchie et la source de chaque fait. Une date annoncée pour plus tard est toujours indiquée comme prévue, avec celui qui l’annonce.',
+    'link_figures' => 'Projets : réouvertures et lignes nouvelles',
+
+    'filters_title' => 'Rechercher un projet',
+    'search_label' => 'Nom, ligne, porteur ou région',
+    'search_hint' => 'Ex. : Limoges, LGV, Région Occitanie',
+    'filter_state' => 'État',
+    'all_states' => 'Tous les états',
+    'filter_kind' => 'Type de projet',
+    'all_kinds' => 'Tous les types',
+    'filter_region' => 'Région',
+    'all_regions' => 'Toutes les régions',
+    'results' => 'Projets : :count',
+    'reset' => 'Réinitialiser',
+    'empty_title' => 'Aucun projet trouvé',
+    'empty_text' => 'Essayez un autre mot, ou retirez un filtre.',
+
+    'kinds' => [
+        'reopening' => 'Réouverture au service voyageurs',
+        'new_line' => 'Ligne nouvelle',
+        'lgv' => 'Ligne à grande vitesse',
+        'rer' => 'RER métropolitain',
+        'electrification' => 'Électrification',
+    ],
+    'states' => [
+        'study' => 'Étude',
+        'debate' => 'Débat public',
+        'dup' => 'Utilité publique déclarée',
+        'funding' => 'Financement acté',
+        'works' => 'Travaux',
+        'suspended' => 'Suspendu ou reporté',
+    ],
+    'state_help' => [
+        'study' => 'La dernière étape franchie est une étude.',
+        'debate' => 'La dernière étape franchie est un débat public ou une concertation.',
+        'dup' => 'Le projet est déclaré d’utilité publique.',
+        'funding' => 'Le financement est acté, les travaux n’ont pas commencé.',
+        'works' => 'Les travaux ont commencé.',
+        'suspended' => 'Le projet est suspendu, reporté sans date ou abandonné.',
+    ],
+    'stages' => [
+        'study' => 'Étude',
+        'debate' => 'Débat public ou concertation',
+        'dup' => 'Déclaration d’utilité publique',
+        'funding' => 'Financement',
+        'works' => 'Travaux',
+        'service' => 'Service voyageurs',
+        'commissioning' => 'Mise en service',
+    ],
+    'stage_done' => 'Franchie',
+    'stage_planned' => 'Prévue',
+    'stage_source' => 'Source',
+    'source_published' => 'publiée le :date',
+
+    'planned_line' => 'Mise en service prévue : :date, selon :source.',
+    'planned_line_next' => 'Prochaine étape prévue : :stage, :date, selon :source.',
+    'no_planned' => 'Aucune mise en service datée par une source.',
+    'porteurs' => 'Porteurs',
+    'regions' => 'Régions',
+    'lines' => 'Fiche de ligne',
+    'stages_title' => 'Étapes',
+    'no_stages' => 'Aucune étape datée.',
+    'checked' => 'Sources vérifiées le :date.',
+    'summary_lang_note' => 'Résumé en français.',
+
+    'table_label' => 'Liste des projets ferroviaires',
+    'list_label' => 'Projets ferroviaires',
+
+    'method_title' => 'Comment lire cette page',
+    'method_dates' => 'Une étape « franchie » a une date passée et une source ; une étape « prévue » est une date annoncée par un maître d’ouvrage, une région ou l’État, qui peut changer : elle n’est jamais présentée comme certaine. Quand une source ne donne que l’année ou le mois, la page n’en dit pas plus.',
+    'method_state' => 'L’état d’un projet est celui de sa dernière étape franchie, dans l’ordre : étude, débat public, déclaration d’utilité publique, financement, travaux. Un projet dont la mise en service a eu lieu sort de la liste et reprend sa place dans la fiche de sa ligne.',
+    'method_sources' => 'Les sources sont les documents officiels d’abord (SNCF Réseau, régions, préfectures, contrats de plan État-région, Légifrance pour les décrets, débats publics de la Commission nationale du débat public), puis la presse régionale. Wikipédia ne sert qu’à recouper.',
+    'method_scope' => 'La liste ne prétend pas être exhaustive : elle couvre les projets dont l’état et les dates ont pu être vérifiés dans des sources publiques.',
+    'api_link' => 'Les mêmes données en JSON : /api/v1/projects',
+];

@@ -8,6 +8,7 @@ return [
     'system' => [
         'BM' => 'BM, manual block',
         'CT' => 'Telephone block',
+        'CC' => 'Centralised control (CCVU, CCR, PCD)',
         'TVM' => 'TVM',
         'ETCS' => 'ETCS',
     ],

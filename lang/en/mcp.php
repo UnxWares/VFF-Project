@@ -28,6 +28,8 @@ return [
     ],
 
     'errors' => [
+        'invalid_day' => 'Invalid day: give an existing month (1 to 12) and day of the month, both or neither (default: today).',
+        'invalid_period' => 'Invalid period: give either `year` or `decade` (a multiple of 10), within the range of the chronology (1827 to today).',
         'unknown_arguments' => 'Unknown arguments: :names.',
         'line_not_found' => 'Line not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'no_geometry' => 'The route of “:line” does not exist for the :year era: no kilometre point.',
@@ -39,6 +41,9 @@ return [
         'journal_not_found' => 'Logbook article not found: “:query”. Call the journal tool without arguments to list the articles.',
         'era_not_found' => 'No network map for :year (see the available eras).',
         'same_era' => 'Both years fall in the same map era (:year): choose two different decades (see the available eras).',
+        'invalid_area' => 'Invalid area: give either a full rectangle (south, west, north, east, with north > south and east > west) or a full circle (lat, lng, radius_km), not both.',
+        'area_too_large' => 'Area too large: a rectangle is at most :height° high and :width° wide, a circle at most :radius km in radius. Split the area or use network_at_era for the whole of France.',
+        'area_too_small' => 'Area too small: a rectangle is at least :side° on each side, a circle at least :radius km in radius (some sources\' tracks may not be redistributed).',
         'graph_not_built' => 'The rail graph for this period has not been computed yet: no route can be calculated for now.',
         'ambiguous_station' => 'Several stations match: use a slug from the candidates.',
         'same_station' => 'Departure and arrival are the same station.',

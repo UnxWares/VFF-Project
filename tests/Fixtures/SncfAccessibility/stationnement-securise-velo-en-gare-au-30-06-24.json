@@ -1,0 +1,26 @@
+{
+ "dataset": "stationnement-securise-velo-en-gare-au-30-06-24",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "code_gare": "ALC",
+   "nom_de_la_gare": "Alpha-Centre",
+   "region": "IDF",
+   "gare_lom_hors_lom": "LOM",
+   "objectif_decret_lom": "10",
+   "nombre_places_au_06_24": 4,
+   "nombre_places_au_12_24": 6
+  },
+  {
+   "code_gare": "BRV",
+   "nom_de_la_gare": "Bravo",
+   "region": "PACA",
+   "gare_lom_hors_lom": "Hors LOM",
+   "objectif_decret_lom": "N/C",
+   "nombre_places_au_06_24": 2,
+   "nombre_places_au_12_24": 2
+  }
+ ]
+}

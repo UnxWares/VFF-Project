@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de Charenton du 5 septembre 1881 (recherche du 21/11/2026).
 return [
     'slug' => '1881-09-05-charenton-le-pont',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-charenton' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Adresse relevée dans les références de Wikipédia ; non lu.',
         ],
+        'kb-1881-09-08-de-grondwet' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorweg-Berichten',
+            'publisher' => 'De Grondwet (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1881-09-08',
+            'locator' => 'article « Spoorweg-Berichten », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMGARO01:000168363:mpeg21:a0005:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 5 septembre : le matin, l\'express de Marseille heurte à Charenton un train de voyageurs venant de Montargis ; 13 morts et 15 blessés dans le premier bilan.',
+        ],
+        'kb-1881-09-09-de-tijd' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'SPOORWEGRAMP TE CHARENTON.',
+            'publisher' => 'De Tijd (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1881-09-09',
+            'locator' => 'article « SPOORWEGRAMP TE CHARENTON. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010266013:mpeg21:a0053:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 9 septembre : le train omnibus no 584 de Corbeil à Paris est à l\'arrêt en gare quand l\'express no 10 arrive à pleine vitesse.',
+        ],
+        'kb-1881-09-06-bosch-zoon' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'L.E. Bosch & Zoon (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1881-09-06',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253122068:mpeg21:a00019:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du lundi 5 septembre : « ce matin », le rapide de Marseille heurte à Charenton un train de voyageurs venu de Montargis ; treize morts, bilan provisoire.',
+            'facts' => ['date' => '1881-09-05', 'commune_insee' => '94018', 'deaths' => 13, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -106,6 +149,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 8 et 9 septembre 1881 confirment la collision du 5 septembre à Charenton entre l\'express de Marseille (no 10) et le train omnibus no 584 de Corbeil à Paris, à l\'arrêt en gare, avec 13 morts et 15 blessés dans le premier bilan, contre 22 morts et 81 blessés dans la fiche, qui est le bilan final.',
+                'en' => 'Two Dutch newspapers of 8 and 9 September 1881 confirm the collision of 5 September at Charenton between the Marseille express (no. 10) and the stopping train no. 584 from Corbeil to Paris, standing in the station, with 13 dead and 15 injured in the first toll, against 22 dead and 81 injured in the record, which is the final toll.',
+                'de' => 'Zwei niederländische Zeitungen vom 8. und 9. September 1881 bestätigen den Zusammenstoß vom 5. September in Charenton zwischen dem Schnellzug aus Marseille (Nr. 10) und dem im Bahnhof haltenden Personenzug Nr. 584 von Corbeil nach Paris, mit 13 Toten und 15 Verletzten in der ersten Bilanz, gegenüber 22 Toten und 81 Verletzten in der Datenbank, der endgültigen Bilanz.',
+                'sources' => ['kb-1881-09-08-de-grondwet', 'kb-1881-09-09-de-tijd'],
+            ],
             [
                 'fr' => 'Le bilan est de 22 morts et 81 blessés. Seize voyageurs sont morts sur place, trois presque aussitôt, et trois autres dans les jours suivants ; sur les blessés, 63 avaient été officiellement dénombrés au 17 septembre, d\'autres s\'étant fait connaître pendant l\'enquête.',
                 'en' => 'The toll is 22 dead and 81 injured. Sixteen passengers died on the spot, three almost immediately, and three more in the following days; of the injured, 63 had been officially counted by 17 September, others coming forward during the inquiry.',

@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $off_path_m
  * @property int $pk_anchors
  * @property list<array{from_m: int, to_m: int, kind: string}> $structures
- * @property array{bdtopo: int, rge_alti: int, interpolated: int, missing: int} $altitude_sources
+ * @property array{bdtopo: int, rge_alti: int, rge_track?: int, interpolated: int, missing: int} $altitude_sources
  * @property list<array{from_m: int, to_m: int}> $gaps
  * @property list<array{from_m: int, to_m: int}> $branches
  * @property list<array{slug: string, name: string, distance_m: int, altitude_m: float|null, pk_m: int|null, status?: string, offset_m?: int}> $stations

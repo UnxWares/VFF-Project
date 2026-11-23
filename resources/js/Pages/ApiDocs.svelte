@@ -38,6 +38,7 @@
         { key: 'graphql', href: '/docs/graphql' },
         { key: 'graphiql', href: '/graphiql' },
         { key: 'schema', href: '/docs/schema.graphql' },
+        { key: 'open_data', href: '/open-data' },
     ];
 
     const access = [{ key: 'readonly' }, { key: 'no_key' }, { key: 'limit' }, { key: 'licence' }];
@@ -48,6 +49,10 @@
             key: 'network',
             items: [
                 { path: '/api/v1/stats', key: 'stats' },
+                { path: '/api/v1/stats/network', key: 'stats_network' },
+                { path: '/api/v1/stats/coverage', key: 'stats_coverage' },
+                { path: '/api/v1/chronology', key: 'chronology' },
+                { path: '/api/v1/chronology/{decade}', key: 'chronology_decade' },
                 { path: '/api/v1/eras', key: 'eras' },
                 { path: '/api/v1/eras/{year}', key: 'era' },
                 { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
@@ -61,6 +66,8 @@
             key: 'lines',
             items: [
                 { path: '/api/v1/lines', key: 'lines' },
+                { path: '/api/v1/tourist-railways', key: 'tourist_railways' },
+                { path: '/api/v1/projects', key: 'projects' },
                 { path: '/api/v1/lines/{line}', key: 'line' },
                 { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
                 { path: '/api/v1/lines/{line}/geojson?era={year}', key: 'line_geojson' },
@@ -79,6 +86,11 @@
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
                 { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
                 { path: '/api/v1/lines/{line}/signalling-history', key: 'signalling_history' },
+                { path: '/api/v1/lines/{line}/speeds', key: 'speeds' },
+                {
+                    path: '/api/v1/lines/{line}/electrification-history',
+                    key: 'electrification_history',
+                },
                 { path: '/api/v1/lines/{line}/profile', key: 'profile' },
                 {
                     path: '/api/v1/lines/{line}/profile/points?pk_from_m={pk}&pk_to_m={pk}',
@@ -101,6 +113,7 @@
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
                 { path: '/api/v1/lines/{line}/infrastructure', key: 'line_infrastructure' },
+                { path: '/api/v1/lines/{line}/structures', key: 'line_structures' },
                 { path: '/api/v1/lines/{line}/archives', key: 'line_archives' },
                 { path: '/api/v1/lines/{line}/archive-records', key: 'line_archive_records' },
                 { path: '/api/v1/lines/{line}/stories/{event}', key: 'line_stories' },
@@ -132,6 +145,7 @@
                 { path: '/api/v1/stations/{station}', key: 'station' },
                 { path: '/api/v1/stations/{station}/events', key: 'station_events' },
                 { path: '/api/v1/stations/{station}/media', key: 'station_media' },
+                { path: '/api/v1/heritage', key: 'heritage' },
             ],
         },
         {
@@ -141,6 +155,13 @@
                 { path: '/api/v1/departments/{department}', key: 'department' },
                 { path: '/api/v1/regions', key: 'regions' },
                 { path: '/api/v1/regions/{region}', key: 'region' },
+            ],
+        },
+        {
+            key: 'companies',
+            items: [
+                { path: '/api/v1/companies', key: 'companies' },
+                { path: '/api/v1/companies/{company}', key: 'company' },
             ],
         },
         {
@@ -210,6 +231,7 @@
         'station_audits',
         'line_greenways',
         'line_infrastructure',
+        'line_structures',
         'line_archives',
         'line_archive_records',
         'line_stories',
@@ -217,7 +239,22 @@
         'line_materials',
         'locate_on_line',
         'signalling_history',
+        'line_speeds',
+        'line_electrification_history',
         'list_departments',
+        'what_was_here',
+        'network_in_area',
+        'compare_line_eras',
+        'line_stops',
+        'station_aerial',
+        'station_attendance',
+        'station_accessibility',
+        'station_timetable',
+        'line_timetable',
+        'station_heritage',
+        'on_this_day',
+        'network_chronology',
+        'tourist_railways',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.
@@ -313,13 +350,13 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
   "offset": 0,
   "items": [
     {
-      "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+      "line_slug": "ligne-de-landerneau-a-lesneven",
       "line_code": null,
       "line_name": "Ligne de Landerneau à Lesneven",
       "segment_id": 9309008,
       "status": "abandoned",
       "traffic_type": "unknown",
-      "trace_source": "archeoferroviaire",
+      "trace_source": "bdtopo",
       "length_m": 53,
       "grades": { "classification": "fair", "placement": "poor", "accuracy": "poor", "trace": "poor" },
       "worst_grade": "poor",
@@ -476,7 +513,7 @@ JSON`;
       "total": 26,
       "items": [
         {
-          "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+          "line_slug": "ligne-de-landerneau-a-lesneven",
           "length_m": 53,
           "worst_grade": "POOR",
           "reasons": { "placement": ["median_over_tolerance"], "accuracy": ["hole"], "…": "…" }
@@ -511,7 +548,7 @@ JSON`;
     "content": [
       {
         "type": "text",
-        "text": "{\\"era_year\\":2030,\\"total\\":26,\\"limit\\":1,\\"offset\\":0,\\"items\\":[{\\"line_slug\\":\\"archeo-ligne-de-landerneau-a-lesneven\\",\\"segment_id\\":9309008,\\"worst_grade\\":\\"poor\\",\\"…\\":\\"…\\"}],\\"vff_url\\":\\"https://vff-project.org/lines\\",\\"attribution\\":{\\"…\\":\\"…\\"}}"
+        "text": "{\\"era_year\\":2030,\\"total\\":26,\\"limit\\":1,\\"offset\\":0,\\"items\\":[{\\"line_slug\\":\\"ligne-de-landerneau-a-lesneven\\",\\"segment_id\\":9309008,\\"worst_grade\\":\\"poor\\",\\"…\\":\\"…\\"}],\\"vff_url\\":\\"https://vff-project.org/lines\\",\\"attribution\\":{\\"…\\":\\"…\\"}}"
       }
     ],
     "isError": false

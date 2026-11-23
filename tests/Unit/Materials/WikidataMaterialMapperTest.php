@@ -345,6 +345,46 @@ class WikidataMaterialMapperTest extends TestCase
         $this->assertSame(1964, $other['in_service_to'], 'une autre série n\'est pas touchée');
     }
 
+    /**
+     * Dates, nombre construit et constructeur que Wikidata ne donne pas : lus dans l'infobox de l'article (jamais celle d'un
+     * article de famille), avec leur provenance ; une valeur de Wikidata n'est jamais remplacée.
+     */
+    public function test_values_missing_from_wikidata_are_read_from_the_article_infobox_with_their_provenance(): void
+    {
+        $entity = $this->bb15000(['P729' => [], 'P1092' => [], 'P176' => []]);
+        $infobox = $this->infobox(['mise en service' => 'de 1963-1968', 'retrait' => '1993', 'nombre' => '80 locomotives', 'constructeur' => 'Brissonneau et Lotz']);
+
+        $sheet = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], [], [], $infobox);
+        $this->assertSame([1963, 1993, 80, 'Brissonneau et Lotz'], [$sheet['in_service_from'], $sheet['in_service_to'], $sheet['units_built'], $sheet['builder']]);
+        $this->assertSame(['source' => 'wikipedia', 'ref' => 'BB 15000#infobox:mise en service', 'revid' => 237800094, 'quote' => 'de 1963-1968', 'basis' => 'mise en service'], $sheet['provenance']['in_service_from']);
+        $this->assertSame('BB 15000#infobox:retrait', $sheet['provenance']['in_service_to']['ref']);
+        $this->assertSame('BB 15000#infobox:nombre', $sheet['provenance']['units_built']['ref']);
+        $this->assertSame('BB 15000#infobox:constructeur', $sheet['provenance']['builder']['ref']);
+
+        $shared = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], [], [], $this->infobox(['mise en service' => '2014', 'nombre' => '558'], shared: true));
+        $this->assertSame([null, null], [$shared['in_service_from'], $shared['units_built']], 'article de famille : ni dates ni effectif');
+
+        $withWikidata = $this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $infobox);
+        $this->assertSame([1971, 65], [$withWikidata['in_service_from'], $withWikidata['units_built']], 'Wikidata passe avant l\'article');
+        $this->assertSame('Q746572#P729', $withWikidata['provenance']['in_service_from']['ref']);
+    }
+
+    /** Relevé à la main d'une source citée (database/data/material_date_supplements.php) : avant l'infobox, après Wikidata. */
+    public function test_a_hand_read_value_fills_a_missing_date_with_its_quote_and_revision(): void
+    {
+        $entity = $this->bb15000(['P729' => []]);
+
+        // Q2876781 (BB 10001) : mise en service de la BB 10001 en 1953, alors que l'infobox donne 1951 pour la BB 8051.
+        $sheet = $this->mapper->map('Q2876781', $entity, ['Q625151'], self::LABELS, [], [], [], $this->infobox(['période de service' => '1951 - 1964']));
+        $this->assertSame(1953, $sheet['in_service_from']);
+        $this->assertSame('BB 10001', $sheet['provenance']['in_service_from']['ref']);
+        $this->assertSame(197296109, $sheet['provenance']['in_service_from']['revid']);
+        $this->assertSame('BB 8051 : juin 1951 ; BB 10001 : 1953', $sheet['provenance']['in_service_from']['quote']);
+
+        $other = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], []);
+        $this->assertNull($other['in_service_from'], 'une autre série n\'est pas touchée');
+    }
+
     /** Photo choisie après relecture (database/data/material_photo_choices.php) : avant l'infobox, licence revérifiée. */
     public function test_a_reviewed_photo_choice_comes_first_and_keeps_its_provenance(): void
     {
@@ -363,5 +403,28 @@ class WikidataMaterialMapperTest extends TestCase
 
         $sheet = $this->mapper->map('Q432779', $entity, ['Q625151'], self::LABELS, [], [$file => ['rights_status' => 'unknown'] + $meta], [], null);
         $this->assertNull($sheet['image'], 'licence non libre : pas d\'image');
+    }
+
+    /** Série que ni Wikidata ni l'article ne rangent : catégorie posée à la main (database/data/material_type_overrides.php), en dernier recours. */
+    public function test_a_hand_set_type_applies_only_when_nothing_else_ranges_the_series(): void
+    {
+        $entity = $this->bb15000([]);
+
+        $sheet = $this->mapper->map('Q2876837', $entity, [], self::LABELS, [], self::COMMONS);
+        $this->assertIsArray($sheet);
+        $this->assertSame('locomotive_diesel', $sheet['type']);
+        $this->assertStringContainsString('oldid=1274723261', $sheet['provenance']['type']['ref']);
+
+        $ranged = $this->mapper->map('Q2876837', $entity, ['Q625151'], self::LABELS, [], self::COMMONS);
+        $this->assertSame('locomotive_electrique', $ranged['type'], 'Wikidata range la série : la ligne ne sert plus');
+
+        $unnamed = $this->bb15000([]);
+        $unnamed['labels'] = [];
+        $unnamed['sitelinks'] = [];
+        $named = $this->mapper->map('Q139678896', $unnamed, [], self::LABELS, [], self::COMMONS);
+        $this->assertSame(['2D2 5546 à 5550', 'locomotive_electrique'], [$named['name'], $named['type']], 'sans libellé : le nom posé à la main');
+        $this->assertSame(WikidataMaterialMapper::SKIP_NO_NAME, $this->mapper->map('Q2876837', $unnamed, [], self::LABELS, [], self::COMMONS));
+
+        $this->assertSame(WikidataMaterialMapper::SKIP_NO_TYPE, $this->mapper->map('Q1', $entity, [], self::LABELS, [], self::COMMONS));
     }
 }

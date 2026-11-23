@@ -4,6 +4,8 @@
 export function scrollToContent() {
     window.scrollTo({
         top: window.innerHeight * 2 - 130,
-        behavior: 'smooth',
+        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
     });
 }

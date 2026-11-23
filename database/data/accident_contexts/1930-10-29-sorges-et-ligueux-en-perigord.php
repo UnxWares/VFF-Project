@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement de Ligueux du 29 octobre 1930 (recherche du 21/11/2026).
 return [
     'slug' => '1930-10-29-sorges-et-ligueux-en-perigord',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'rail4402' => [
             'provider' => 'sites-web',
@@ -75,9 +75,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia (de), non lu (Gallica inaccessible).',
         ],
+        'ddb-1930-10-30-deutsche' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Deutsche allgemeine Zeitung du 30 octobre 1930',
+            'publisher' => 'Deutsche allgemeine Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1930-10-30',
+            'locator' => 'p. 9',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SQ7P6AHBXQQRSNU2GGW6CWSMJO62E7MK?issuepage=9',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 30 octobre : accident près de Périgueux, locomotives renversées, morts dont les mécaniciens des deux locomotives, voie arrachée sur plusieurs mètres, secousse ressentie à Ligueux ; sur douze voitures, trois seulement à peu près intactes.',
+        ],
+        'kb-1930-10-30-de-standaard' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Frankrijk.',
+            'publisher' => 'De Standaard (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1930-10-30',
+            'locator' => 'article « Spoorwegongeluk in Frankrijk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001875027:mpeg21:a00003:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 30 octobre : hier après-midi, sur la ligne Lyon-Bordeaux, à la gare de Ligueux, un train tiré par deux locomotives déraille, la plate-forme s\'étant sans doute affaissée sous les pluies ; 16 morts recueillis, 5 blessés graves et 25 légers.',
+        ],
+        'kb-1930-10-31-limburgsch-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het spoorwegongeluk bij Périgueux Tot nu toe 18 dooden en 40 gewonden.',
+            'publisher' => 'Limburgsch Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1930-10-31',
+            'locator' => 'article « Het spoorwegongeluk bij Périgueux Tot nu toe 18 dooden en 40 gewonden. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010930907:mpeg21:a0181:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 31 octobre : 18 morts et 40 blessés dont 9 en danger de mort, à Ligueux, à 20 km de Périgueux.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'La Deutsche allgemeine Zeitung du 30 octobre 1930 relate un accident de train (la voie arrachée, une secousse ressentie sur le trajet vers Ligueux) : les deux locomotives du train se sont renversées, leurs mécaniciens figurent parmi les morts et seules trois des douze voitures sont restées à peu près intactes. L\'article lu ne donne pas de bilan chiffré.',
+                'en' => 'The Deutsche allgemeine Zeitung of 30 October 1930 reports a train accident (track torn up, a violent jolt felt on the way to Ligueux): both locomotives of the train overturned, their drivers were among the dead, and only three of the twelve carriages stayed roughly intact. The article read gives no numerical toll.',
+                'de' => 'Die Deutsche allgemeine Zeitung vom 30. Oktober 1930 berichtet über ein Zugunglück (Gleis herausgerissen, heftige Erschütterung auf der Fahrt nach Ligueux): Beide Lokomotiven des Zuges stürzten um, ihre Führer waren unter den Toten, und nur drei der zwölf Wagen blieben einigermaßen unbeschädigt. Der gelesene Artikel nennt keine Zahl der Opfer.',
+                'sources' => ['ddb-1930-10-30-deutsche'],
+            ],
             [
                 'fr' => 'L\'express Genève - Lyon - Bordeaux, remorqué par deux locomotives, circule sur la ligne de Limoges à Périgueux, alors exploitée par la Compagnie du chemin de fer de Paris à Orléans. Il roule en descente à environ 100 km/h.',
                 'en' => 'The Geneva - Lyon - Bordeaux express, hauled by two locomotives, was running on the Limoges to Périgueux line, then operated by the Paris-Orléans company. It was travelling downhill at about 100 km/h.',
@@ -94,6 +142,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 30 et 31 octobre 1930 confirment le déraillement de la veille, l\'après-midi du 29 octobre, d\'un train tiré par deux locomotives à la gare de Ligueux, à 20 km de Périgueux, avec 16 puis 18 morts et 40 blessés dont 9 en danger de mort, contre 17 morts dans la fiche, l\'affaissement de la plate-forme sous les pluies étant avancé comme cause.',
+                'en' => 'Two Dutch newspapers of 30 and 31 October 1930 confirm the derailment on the previous day, the afternoon of 29 October, of a train hauled by two locomotives at Ligueux station, 20 km from Périgueux, with 16 then 18 dead and 40 injured, 9 of them in danger of death, against 17 dead in the record, a subsidence of the embankment after rain being put forward as the cause.',
+                'de' => 'Zwei niederländische Zeitungen vom 30. und 31. Oktober 1930 bestätigen die Entgleisung am Vortag, dem Nachmittag des 29. Oktober, eines von zwei Lokomotiven gezogenen Zuges im Bahnhof Ligueux, 20 km von Périgueux, mit 16, dann 18 Toten und 40 Verletzten, davon 9 in Lebensgefahr, gegenüber 17 Toten in der Datenbank, wobei eine Absenkung des Bahndamms nach Regen als Ursache genannt wird.',
+                'sources' => ['kb-1930-10-30-de-standaard', 'kb-1930-10-31-limburgsch-dagblad'],
+            ],
             [
                 'fr' => 'Le bilan retenu est de 17 morts, dont trois Suisses, et d\'une quarantaine de blessés. Selon les premières dépêches, le train transportait notamment environ 210 émigrants roumains.',
                 'en' => 'The accepted toll is 17 dead, including three Swiss nationals, and about forty injured. According to the first dispatches, the train was carrying about 210 Romanian emigrants, among others.',

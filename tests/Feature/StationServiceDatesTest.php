@@ -146,6 +146,35 @@ class StationServiceDatesTest extends TestCase
         $this->getJson(route('api.events.show', $this->events['opening']))->assertOk()->assertJsonPath('data.date', '1879-03-31');
     }
 
+    /**
+     * Début et fin de desserte datés par un événement d'une source non commerciale : inchangés sur la page et en
+     * REST (règle de la mention). Dans get_station et get_line, seul un événement servi de même date qui couvre la
+     * gare (même règle que la page) le remplace : l'ouverture de même date sur une autre portion (opening_far) ne
+     * compte pas, la date est nulle ; une ouverture servie de la portion de la gare la remplace.
+     */
+    public function test_mcp_never_dates_a_service_by_a_non_commercial_source_only(): void
+    {
+        $this->witnesses();
+        DB::table('line_events')->whereIn('id', [$this->events['opening'], $this->events['closure']])
+            ->update(['source' => 'archeoferroviaire', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article7']);
+        $both = function (): array {
+            $station = $this->mcp('get_station', ['station' => 'saint-calais'])['lines'][0];
+            $line = array_column($this->mcp('get_line', ['line' => $this->line->slug, 'include_events' => false])['line']['stations'], null, 'slug')['saint-calais'];
+
+            return [[$station['service_start']['event_id'] ?? null, $station['service_end']], [$line['service_start']['event_id'] ?? null, $line['service_end']]];
+        };
+
+        $this->getJson('/api/v1/stations/saint-calais')->assertOk()
+            ->assertJsonPath('data.lines.0.service_start.event_id', $this->events['opening'])
+            ->assertJsonPath('data.lines.0.service_end.event_id', $this->events['closure']);
+        $this->assertSame([[null, null], [null, null]], $both(), 'opening_far ne couvre pas la gare : aucune date');
+
+        $covering = $this->event('opening', '1879-03-31', 'day', [0, 20_000]);
+        $this->getJson('/api/v1/stations/saint-calais')->assertOk()
+            ->assertJsonPath('data.lines.0.service_start.event_id', $this->events['opening']);
+        $this->assertSame([[$covering, null], [$covering, null]], $both(), 'ouverture servie de la portion de la gare');
+    }
+
     public function test_mcp_writes_each_date_at_its_own_precision(): void
     {
         $this->witnesses();

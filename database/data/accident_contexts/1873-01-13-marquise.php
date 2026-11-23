@@ -20,11 +20,11 @@ return [
             'note' => 'Place le déraillement de l\'express Boulogne-Paris en gare de Marquise à 2 h 10, sur un aiguillage : trois voitures détruites, deux morts et quelques blessés ; cite Le Petit Journal du 15 janvier 1873.',
         ],
         'dzh-1873-01-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dagblad van Zuidholland en \'s Gravenhage du 18 janvier 1873',
-            'publisher' => 'Dagblad van Zuidholland en \'s Gravenhage',
+            'publisher' => 'Dagblad van Zuidholland en \'s Gravenhage (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1873-01-18',
             'locator' => null,

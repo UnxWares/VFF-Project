@@ -39,6 +39,37 @@ final class WikipediaListReader
     private const NOT_PLACE = '/^(?:Ligne |LGV |Compagnie |Société |Chemin de fer|Réseau |Chemins de fer|Gare |Station |Halte |Tramway|Métro|Train |Trains |TGV|TER|RER|Intercités|Transilien|Corail|Autorail|Locomotive|Automotrice|Rame |Wagon|Voiture|Camion|Poids|Passage à niveau|Tunnel|Viaduc|Pont |Catégorie:|Fichier:|Image:|[A-Z]{1,3} ?\d|[A-Z]{1,4}$|\d)/u';
 
     /**
+     * Titres d'articles qui ne sont pas des lieux : objets, fonctions, matériels, personnes, organismes, événements,
+     * régions, fleuves, pays et villes étrangères tirés des puces réelles de la liste (« Cellule », « Carré »,
+     * « Ambulant postal », « Garde-barrière »...). Texte normalisé (minuscules, sans accents). Un lieu réel absent
+     * des communes et des gares de VFF reste de toute façon sans position : le contrôle par la base est celui
+     * d'AccidentLocator.
+     */
+    private const NOT_PLACE_NAMES = [
+        'aber wrac h', 'academie des sciences', 'administration des chemins de fer de l etat', 'albane', 'albert gisclard',
+        'alsace', 'alsace lorraine', 'alstom', 'ambulant postal', 'amedee ponceau', 'amsterdam', 'andre chadeau', 'areva',
+        'armand fallieres', 'armee de terre', 'arpajonnais', 'ascension', 'auvergne', 'avertissement', 'bale', 'bandage',
+        'block systeme', 'bogie', 'bruxelles', 'bureau ambulant', 'canfranc', 'carre', 'castres olympique', 'cellule',
+        'cher', 'clain', 'code verlant', 'conscrit', 'conseil de guerre', 'controle de vitesse par balises', 'couplage', 'crampton',
+        'credit foncier de france', 'deraillement', 'detecteur de boites chaudes', 'deutsche bahn', 'dispositif orsec',
+        'double traction', 'eboulis', 'ecole centrale paris', 'edouard de billy', 'element a turbine a gaz',
+        'emile gabory', 'emile verhaeren', 'engelbertus de waal', 'espagne', 'euro cargo rail', 'exode de 1940 en france',
+        'expedition de salonique', 'famille de dietrich', 'fiacre', 'fidji', 'fourgon', 'fourgon ferroviaire',
+        'fourgon postal', 'france', 'francois marty', 'frein a air', 'garde barriere', 'garde frein', 'geneve',
+        'guerre franco allemande de 1870', 'haut fourneau', 'haut le pied', 'indemnite de guerre',
+        'jacques henri de bourbon', 'jean jaures', 'josaia raisuqe', 'jules dumont d urville', 'jules petiet', 'lot',
+        'marne', 'monaco monte carlo', 'mouscron', 'munich', 'noel', 'orb', 'organisation de l armee secrete', 'ouveze', 'pacific',
+        'palefrenier', 'paul carbone', 'pelerinage', 'petange', 'pierre villey', 'poste d aiguillage',
+        'postes telegraphes et telephones', 'premiere guerre mondiale', 'pullman', 'quievrain', 'raoul dautry',
+        'reserve militaire', 'riviera mediterraneenne', 'rome express', 'sarrebruck', 'serre frein', 'saint petersbourg',
+        'sud express', 'talgo', 'tar', 'teoz', 'thouet', 'train tram', 'transport express regional', 'troupe', 'vintimille',
+        'yonne', 'port bou', 'le siecle', 'le populaire du centre', 'le capitole', 'conseil regional de provence alpes cote d azur',
+    ];
+
+    /** Débuts de titres qui ne désignent jamais un lieu (voies, matériels, organismes, événements, listes). */
+    private const NOT_PLACE_START = '/^(?:citroen |renault |route nationale|rue |place |avenue |boulevard |liste |sabotage |accident |ancien tramway|cfd |regie |voies ferrees|corps |chemin de fer du |triage et ateliers|guerre |deroulement |organisation |conseil |armee |labourd )/u';
+
+    /**
      * Un train qui heurte une personne (texte normalisé : minuscules, sans accents) : la personne est l'objet
      * direct d'un verbe conjugué. Un participe présent (« la locomotive écrasant les voyageurs ») décrit les
      * suites d'une autre collision, pas un heurt de personne.
@@ -51,6 +82,34 @@ final class WikipediaListReader
      * par celui qui le suivait ») : les voyageurs cités ensuite sont ses victimes (Jussey, 28/08/1881).
      */
     private const VEHICLE_STRUCK = '/\b(?:(?:percut|heurt|tamponn|prend|prennent)\w*\s+(?:(?:de plein fouet|en echarpe|par l arriere)\s+)?(?:un |une |le |la |les |l |des )?(?:autre |second |deuxieme )?(?:train|express|rapide|convoi|omnibus|locomotive|machine|rame|autorail|wagon|tgv|ter|marchandises|camion|autocar|car|bus|tracteur|voiture)\w*|(?:train|express|rapide|convoi|omnibus|rame)s? tamponn\w*|(?:train|express|rapide|convoi|omnibus|rame)s?(?: \w+){0,15} (?:est|sont|fut|furent) (?:percut|heurt|tamponn|pris en echarpe)\w* par|se telescop\w*|en echarpe|collision)\b/';
+
+    /**
+     * Ce qui précède un lieu et dit que l'accident n'a PAS eu lieu à ce lieu même : origine ou destination du train
+     * (« venant de », « pour », « reliant »), ligne ou parcours (« sur la ligne de », « de X à Y »). Texte en minuscules.
+     */
+    private const TERMINAL = '/\b(?:venant|provenant|arrivant|partant|parti|partie|quittant|quitte|quittait|allant|reliant|desservant|relation|destination|direction|depuis|pour|ligne|jusqu[\'’]à|jusqu[\'’]a|se rendant|rejoignant|en route vers|à destination)\s*(?:(?:de|du|des|d[\'’])\s*)?(?:la |le |les |l[\'’])?$|\b(?:allant|se rendant|se dirigeant)\s+(?:à|a|au|aux)\s*(?:la |le |les |l[\'’])?$|\b(?:reliant|allant|venant|relation|service|ligne|trajet|parcours)\s+[^.;:,]{1,50}?\s(?:à|a|et|pour)\s*(?:la |le |l[\'’])?$/iu';
+
+    /**
+     * Ce qui précède un lieu et dit que l'accident a eu lieu près de ce lieu, pas à ce lieu : approche, entrée, sortie,
+     * abords, distance, avant ou après la gare, entre deux gares (texte en minuscules).
+     */
+    private const NEAR = '/\b(?:approche|sortie|abords?|alentours|environs|proximit[ée]|pr[èe]s|proche|vers|entre|apr[èe]s|avant|banlieue|faubourg|zone|c[ôo]t[ée]|aval|amont|(?<!à )niveau|derri[èe]re|devant|hauteur|port[ée]e|d[ée]but|fin|bout|limite|mètres?|m|kilom[èe]tres?|km|lieues?|chef de gare|ateliers?|d[ée]p[ôo]t|triage|arriv\w+|entrant|entr[ée]e?s?)\s*(?:(?:de|du|des|d[\'’]|à|au|aux|en|dans)\s*)?(?:la |le |les |l[\'’])?$|\bentre\s+[^.;:]{1,60}?\set\s*(?:la |le |les |l[\'’])?$/iu';
+
+    /** Mots qui désignent un train (texte en minuscules). */
+    private const TRAIN_WORD = '(?:trains?|express|rapides?|omnibus|directs?|convois?|mixtes?|autorails?|train-poste|train-autos|micheline|navette)';
+
+    /** Ce qui peut séparer un mot de train de sa désignation : « de marchandises », « de nuit », « 3462 », « 1re classe ». */
+    private const TRAIN_KIND = '(?:\s+(?:de|du|des|d[\'’]|voyageurs|marchandises|messageries|nuit|jour|plaisir|banlieue|mar[ée]e|poste|bestiaux|minerai|sp[ée]cial|facultatif|supplémentaire|transatlantique|rapide|express|direct|mixte|omnibus|lourd|\d+[a-z]*|\d+re|\d+e|classe))*';
+
+    /**
+     * Ce qui précède un lieu et en fait un bout de la désignation d'un train, pas le lieu de l'accident : « le train
+     * Sète-Bordeaux » (second bout), « l'express de », « le rapide de ». Texte en minuscules. Le premier bout d'une paire
+     * se reconnaît à ce qui le suit (inTrainDesignation).
+     */
+    private const TRAIN_NAME = '/\b'.self::TRAIN_WORD.self::TRAIN_KIND.'\s+(?:(?:le|la|les|saint|sainte|port|mont)\s+)?\p{L}[\p{L}\'’.-]*?\s*[-–—]\s*$|\b(?:express|rapides?|omnibus|directs?)\s+(?:de|du|d[\'’])\s*(?:l[\'’])?$/u';
+
+    /** Ce qui précède une gare où l'accident a lieu : « en gare de », « à la gare de », « dans la gare de », « à ». */
+    private const IN_STATION = '/(?:^|[\s(,:;\x{2013}-])(?:en|à|dans|au|sur le quai de|sur les voies de)\s+(?:la\s+|le\s+)?(?:gare\s+(?:de la |de |d[\'’]|du |des )?)?$/iu';
 
     /** @var array<string, string> nom normalisé d'un département → code */
     private static array $departments = [];
@@ -65,7 +124,7 @@ final class WikipediaListReader
     /**
      * @return list<array{
      *   date: string, precision: AccidentDatePrecision, anchor: ?string,
-     *   places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>,
+     *   places: list<array{0: string, 1: ?string}>, station: ?string, listed: array{places: list<array{0: string, 1: ?string}>, station: ?string}, approximate: bool, place_basis: ?string, line_articles: list<string>,
      *   deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool
      * }>
      */
@@ -155,7 +214,7 @@ final class WikipediaListReader
     /**
      * Faits d'une puce, d'après la suite de la ligne.
      *
-     * @return array{date: string, precision: AccidentDatePrecision, places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}
+     * @return array{date: string, precision: AccidentDatePrecision, places: list<array{0: string, 1: ?string}>, station: ?string, listed: array{places: list<array{0: string, 1: ?string}>, station: ?string}, approximate: bool, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}
      */
     private function facts(string $date, string $rest): array
     {
@@ -165,15 +224,30 @@ final class WikipediaListReader
 
         $lines = [];
         $station = null;
+        $listedStation = null;
         $places = [];
+        // Lieux tels que la liste les nomme, faux lieux compris : ils fixent l'identifiant de la puce (AccidentCandidate),
+        // qui ne doit pas changer quand la lecture écarte un faux lieu ou une gare qui n'est pas le lieu.
+        $listed = [];
         foreach ($links as $link) {
             $target = $link['target'];
             if (preg_match('/^(?:Ligne|LGV) /iu', $target)) {
                 $lines[] = mb_strtoupper(mb_substr($target, 0, 1)).mb_substr(preg_replace('/\s*#.*$/u', '', $target) ?? $target, 1);
             } elseif (preg_match("/^Gare (?:de |d['’]|du |des |de la )(.+)$/iu", $target, $m)) {
                 $name = trim(preg_replace('/\s*\(.*\)$/u', '', $m[1]) ?? $m[1]);
-                $station ??= $name;
-                $places[] = ['name' => $name, 'department' => null, 'rank' => $this->rank($link, $plain), 'at' => $link['at']];
+                // La gare n'est le lieu de l'accident que si le texte dit « en gare de » : « à l'approche de », « entre X
+                // et Y », « près de », « venant de » ne placent pas l'accident dans la gare (pas de position à 0 m).
+                $in = $this->inStation($link);
+                $ofTrain = $this->inTrainDesignation($link);
+                if ($in && ! $ofTrain) {
+                    $station ??= $name;
+                }
+                $listedStation ??= $name;
+                $place = ['name' => $name, 'department' => null, 'rank' => $this->rank($link, $plain), 'at' => $link['at'], 'weak' => ! $in];
+                $listed[] = $place;
+                if (! $ofTrain) {
+                    $places[] = $place;
+                }
             } elseif (mb_strtolower(mb_substr($target, 0, 1)) !== mb_substr($target, 0, 1)
                 && ! preg_match(self::NOT_PLACE, $target) && $this->department($target) === null) {
                 // Un lieu est un nom propre : un lien en minuscules (« serre-frein ») n'en est pas un.
@@ -184,24 +258,36 @@ final class WikipediaListReader
                     $dept = $this->department($m[2]);
                 }
                 $dept ??= $link['parenthesis'] !== null ? $this->department($link['parenthesis']) : null;
-                $places[] = ['name' => trim($name), 'department' => $dept, 'rank' => $this->rank($link, $plain), 'at' => $link['at']];
+                $place = ['name' => trim($name), 'department' => $dept, 'rank' => $this->rank($link, $plain), 'at' => $link['at']];
+                $listed[] = $place;
+                if ($this->isPlaceName($target) && ! $this->inTrainDesignation($link)) {
+                    $places[] = $place;
+                }
             }
         }
         // Lieu cité sans lien, en tête de puce : « Courtonne-La-Meurdrac (Calvados) : collision… ».
-        if ($places === [] || ! array_any($places, fn ($p) => $p['at'] <= 2)) {
+        if ($listed === [] || ! array_any($listed, fn ($p) => $p['at'] <= 2)) {
             $lead = $this->leadingPlace($plain);
             if ($lead !== null) {
-                array_unshift($places, $lead);
+                array_unshift($listed, $lead);
+                if ($this->isPlaceName($lead['name'])) {
+                    array_unshift($places, $lead);
+                }
             }
         }
         usort($places, fn ($a, $b) => [$a['rank'], $a['at']] <=> [$b['rank'], $b['at']]);
+        usort($listed, fn ($a, $b) => [$a['rank'], $a['at']] <=> [$b['rank'], $b['at']]);
         // Table de correspondance de VFF (database/data/accident_places.php) : le lieu que le texte nomme sans
         // lien lisible. Elle prime sur la lecture automatique, qui s'y trompait (un nom de ligne, une ville du trajet).
         $mapped = $this->placeTable->find($date, $plain);
         if ($mapped !== null) {
-            $places = [['name' => $mapped['name'], 'department' => $mapped['department'], 'rank' => 0, 'at' => 0]];
-            $station = null;
+            $places = $listed = [['name' => $mapped['name'], 'department' => $mapped['department'], 'rank' => 0, 'at' => 0]];
+            $station = $listedStation = null;
         }
+
+        // Le premier lieu est approximatif quand le texte ne dit pas que l'accident est à ce lieu même (gare citée mais
+        // « à l'approche de », « entre X et Y », « venant de » ; lieu précédé de « près de », « entre », « vers »).
+        $approximate = $station === null && $places !== [] && ($places[0]['rank'] >= 3 || ($places[0]['weak'] ?? false));
 
         $deaths = $this->count($plain, 'morts?|tués?|décès|victimes? mortelles?|personnes? (?:tuées?|décédées?)');
         $injuries = $this->count($plain, 'blessés?|personnes? blessées?');
@@ -212,13 +298,32 @@ final class WikipediaListReader
             'precision' => AccidentDatePrecision::Day,
             'places' => array_map(fn ($p) => [$p['name'], $p['department']], $this->unique($places)),
             'station' => $station,
+            'listed' => ['places' => array_map(fn ($p) => [$p['name'], $p['department']], $this->unique($listed)), 'station' => $listedStation],
+            'approximate' => $approximate,
             'place_basis' => $mapped['basis'] ?? null,
             'line_articles' => array_values(array_unique($lines)),
             'deaths' => $deaths,
             'injuries' => $injuries,
             'kind' => $this->kind($plain, $normalized),
-            'urban' => (bool) preg_match('/\b(?:metro|tramways?)\b/', $normalized) && ! str_contains($normalized, 'tram train'),
+            'urban' => $this->isUrbanTransit($normalized),
         ];
+    }
+
+    /** Train de chemin de fer (grande ligne, marchandises, machine haut-le-pied) cité, par opposition à un tramway ou un métro. */
+    private const RAIL_PARTNER = '/\b(?:express|rapide|trains? de (?:marchandises|bestiaux|minerai)|convois? de marchandises|wagons? de (?:marchandises|minerai)|rames? de wagons|haut le pied|fourgons?)\b/';
+
+    /**
+     * Métro ou tramway urbain, hors des lignes de VFF. Un accident où un train de chemin de fer est
+     * impliqué (express contre un tramway à un passage à niveau, train de marchandises, machine
+     * haut-le-pied) reste dans le périmètre ; un accident de tramway ou de métro seul est écarté.
+     */
+    private function isUrbanTransit(string $normalized): bool
+    {
+        if (! preg_match('/\b(?:metro|tramways?)\b/', $normalized) || str_contains($normalized, 'tram train')) {
+            return false;
+        }
+
+        return ! preg_match(self::RAIL_PARTNER, $normalized);
     }
 
     /**
@@ -258,7 +363,7 @@ final class WikipediaListReader
     /**
      * Texte sans liens (le libellé reste) et liste des liens : cible, position, parenthèse qui suit.
      *
-     * @return array{0: string, 1: list<array{target: string, at: int, parenthesis: ?string, before: string}>}
+     * @return array{0: string, 1: list<array{target: string, at: int, parenthesis: ?string, before: string, after: string}>}
      */
     private function links(string $text): array
     {
@@ -274,13 +379,54 @@ final class WikipediaListReader
                 'target' => trim(str_replace('_', ' ', $m[1][0])),
                 'at' => $at,
                 'parenthesis' => preg_match('/^\s*\(\s*(?:\[\[(?:[^\]|]*\|)?([^\]]*)\]\]|([^()\[\]]+))\s*\)/u', $after, $p) ? trim($p[1] !== '' ? $p[1] : $p[2]) : null,
-                'before' => mb_substr($plain, max(0, $at - 24)),
+                'before' => mb_substr($plain, max(0, $at - 60)),
+                'after' => $after,
             ];
             $plain .= $label;
             $pos = $m[0][1] + strlen($m[0][0]);
         }
 
         return [$plain.substr($text, $pos), $links];
+    }
+
+    /**
+     * Le lien fait-il partie de la désignation d'un train (origine, destination, « train Sète-Bordeaux ») ? Ce n'est alors
+     * pas le lieu de l'accident ; il reste dans les lieux « listés » (identifiant de la puce).
+     *
+     * @param  array{target: string, at: int, parenthesis: ?string, before: string, after: string}  $link
+     */
+    private function inTrainDesignation(array $link): bool
+    {
+        $before = mb_strtolower($link['before']);
+        if (preg_match(self::TRAIN_NAME, $before)) {
+            return true;
+        }
+
+        // Premier bout d'une paire « [[Sète]]-Bordeaux » ou « [[Paris]] - [[Marseille]] » qui suit un mot de train.
+        return preg_match('/^\s*[-–—]\s*(?:\[\[|\p{Lu})/u', $link['after']) === 1
+            && preg_match('/\b'.self::TRAIN_WORD.self::TRAIN_KIND.'\s*$/u', $before) === 1;
+    }
+
+    /** Le lien (une gare) est-il le lieu même de l'accident (« en gare de », « à la gare de », tête de puce) ? */
+    private function inStation(array $link): bool
+    {
+        if ($link['at'] <= 2) {
+            return true;
+        }
+        $before = $link['before'];
+        if (preg_match(self::TERMINAL, $before) || preg_match(self::NEAR, $before)) {
+            return false;
+        }
+
+        return (bool) preg_match(self::IN_STATION, $before);
+    }
+
+    /** Le titre d'un lien désigne-t-il un lieu (et non un objet, une fonction, une personne, un organisme) ? */
+    private function isPlaceName(string $target): bool
+    {
+        $name = PlaceNames::normalize(preg_replace('/\s*\([^)]*\)\s*$/u', '', $target) ?? $target);
+
+        return ! in_array($name, self::NOT_PLACE_NAMES, true) && ! preg_match(self::NOT_PLACE_START, $name);
     }
 
     /** Rang d'un lieu cité : 0 en tête ou après « à », 2 après « près de », « entre », « vers ». */
@@ -301,7 +447,7 @@ final class WikipediaListReader
     }
 
     /**
-     * @return array{name: string, department: ?string, rank: int, at: int}|null
+     * @return array{name: string, department: ?string, rank: int, at: int, weak?: bool}|null
      */
     private function leadingPlace(string $plain): ?array
     {
@@ -319,8 +465,8 @@ final class WikipediaListReader
     }
 
     /**
-     * @param  list<array{name: string, department: ?string, rank: int, at: int}>  $places
-     * @return list<array{name: string, department: ?string, rank: int, at: int}>
+     * @param  list<array{name: string, department: ?string, rank: int, at: int, weak?: bool}>  $places
+     * @return list<array{name: string, department: ?string, rank: int, at: int, weak?: bool}>
      */
     private function unique(array $places): array
     {

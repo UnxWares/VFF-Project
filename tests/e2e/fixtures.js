@@ -1,6 +1,10 @@
-// Fixtures communes : espion de console et de réseau, langue, thème, axe-core.
+// Fixtures communes : espion de console et de réseau, langue, thème, axe-core, relais externes simulés.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test as base } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+
+// Vue aérienne de remplacement (JPEG gris 16 x 10), servie à la place du relais de l'IGN.
+const VUE_AERIENNE = fileURLToPath(new URL('./vue-aerienne.jpg', import.meta.url));
 
 // Ce qui n'est pas une erreur du site : navigation annulée par la page suivante.
 const IGNORE_ECHEC = /ERR_ABORTED/;
@@ -10,6 +14,24 @@ const IGNORE_ECHEC = /ERR_ABORTED/;
 export const DEFAUTS_CONNUS = [];
 
 export const test = base.extend({
+    // Le relais /media/aerial/{gare}/{période}.jpg lit le WMS de l'IGN à la première demande : depuis un
+    // runner de CI, l'IGN répond lentement ou pas du tout (503), et une période sans couverture au point de
+    // la gare du jeu minimal répond 404 (série 45148007135). La fumée vérifie nos pages, pas la Géoplateforme :
+    // le relais est simulé pour chaque page (le relais lui-même est couvert par les tests PHPUnit).
+    relaisSimules: [
+        async ({ page }, use) => {
+            await page.route('**/media/aerial/**', (route) =>
+                route.fulfill({
+                    status: 200,
+                    contentType: 'image/jpeg',
+                    headers: { 'Cache-Control': 'no-store' },
+                    path: VUE_AERIENNE,
+                }),
+            );
+            await use();
+        },
+        { auto: true },
+    ],
     // Surveille la page : console en erreur, requêtes échouées, réponses HTTP >= 400.
     espion: async ({ page }, use) => {
         const erreurs = { console: [], reseau: [], http: [] };

@@ -32,7 +32,8 @@ final class LineSignallingHistory
      * Faits de la ligne, du plus ancien au plus récent.
      *
      * `section` (portion nommée seulement) : lieux tels qu'écrits (`from`, `to`), `location` (`stations` :
-     * placée par les gares d'extrémité trouvées sur la ligne ; `article_pk` : PK donnés par l'article ;
+     * placée par les gares d'extrémité trouvées sur la ligne ; `landmarks` : une extrémité au moins est un
+     * point remarquable de la ligne (bifurcation, raccordement, origine, fin, frontière) ; `article_pk` : PK donnés par l'article ;
      * `unlocated` : lieux introuvables ou ambigus), PK de la portion placée (`pk_start_m`, `pk_end_m`, null
      * sinon) et gares retenues (`from_station`, `to_station`, avec leur PK sur la ligne).
      *

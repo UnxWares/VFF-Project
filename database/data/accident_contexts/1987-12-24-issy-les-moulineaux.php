@@ -6,11 +6,11 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'nrc-issy' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Veel gewonden bij treinongeluk in voorstad Parijs',
-            'publisher' => 'NRC Handelsblad',
+            'publisher' => 'NRC Handelsblad (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1987-12-24',
             'locator' => null,

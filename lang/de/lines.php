@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalisierung nach Streckenkilometer (PK)',
         'heritage' => 'Vereinsbetrieb',
         'route_through_time' => 'Der Streckenverlauf im Wandel der Zeit',
+        'spacetime' => 'Wo und wann',
         'history' => 'Geschichte der Strecke',
         'chronicle' => 'Ausführliche Chronik nach Abschnitten',
         'notes' => 'Anmerkungen und Quellen',
@@ -120,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Blocksystem (Zugfolge: BAL, BAPR, BM…) und Zugbeeinflussung (KVB, TVM, ETCS) entlang der Strecke, heutiger Zustand. Quelle: SNCF Réseau Open Data (Blocksysteme, mit KVB ausgerüstete Strecken). Auf einer Schnellfahrstrecke wird im Führerstand signalisiert.',
         'protection' => 'Zugbeeinflussung:',
+        'remote_control' => 'Zentrale Fernsteuerung:',
         'cabin' => 'Führerstandssignalisierung:',
         'block' => 'Blocksystem:',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -127,6 +129,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, selbsttätiger Lichtblock',
             'BAL-VB' => 'BAL, Gleiswechselbetrieb',
+            'NONE' => 'Ohne Blocksystem',
             'BAL-Tram' => 'Selbsttätiger Straßenbahnblock',
             'BAPR' => 'BAPR, selbsttätiger Block mit eingeschränkter Zulässigkeit',
             'BAPR-DV' => 'BAPR, zweigleisig',
@@ -137,6 +140,7 @@ return [
             'CAPI' => 'CAPI, rechnergestützter Block',
             'CT' => 'Fernsprechblock, zweigleisig',
             'CT-VU' => 'Fernsprechblock, eingleisig',
+            'CC' => 'CC, zentrale Fernsteuerung (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (bis 300 km/h)',
             'TVM-430' => 'TVM 430 (bis 320 km/h)',
             'ETCS_L1' => 'ETCS Level 1',
@@ -198,7 +202,9 @@ return [
         'all_states' => 'In Betrieb und stillgelegt',
         'heritage' => 'Nur Museumsbahnstrecken',
         'sort_label' => 'Sortieren nach',
+        'sort_relevance' => 'Relevanz',
         'sort_name' => 'Name, A bis Z',
+        'approximate' => 'Keine Strecke entspricht genau „:query“. Hier sind die ähnlichsten Namen.',
         'sort_name_desc' => 'Name, Z bis A',
         'sort_code' => 'Streckennummer',
         'reset' => 'Filter zurücksetzen',
@@ -231,6 +237,22 @@ return [
     ],
 
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
+    // Diagramm „Wo und wann“ der Streckenseite (LineSpaceTime.svelte): die abgerollte Strecke, ein Band je Phase.
+    'spacetime' => [
+        'intro' => 'Jedes Band zeigt die ganze Strecke von einem Ende zum anderen an einem Datum, an dem sie sich ändert: So sehen Sie, wo sie eröffnet wurde, wo der Personenverkehr endete und wo sie stillgelegt, abgebaut oder wiedereröffnet wurde. Ein Strich unter dem Band markiert, was sich an diesem Datum ändert. Wählen Sie ein Datum, um seine Ereignisse und Quellen zu lesen.',
+        'label' => 'Die Strecke Datum für Datum',
+        'label_ends' => 'Die Strecke Datum für Datum, von :from bis :to',
+        'legend' => 'Legende des Diagramms',
+        'changed' => 'Ändert sich an diesem Datum',
+        'state' => 'Zustand: :list.',
+        'state_part' => ':state von km :from bis km :to',
+        'range' => 'Von km :from bis km :to',
+        'since' => 'Seit: :date',
+        'loading' => 'Streckenverlauf wird gelesen…',
+        'failed' => 'Der Streckenverlauf konnte nicht gelesen werden, das Diagramm ist nicht verfügbar.',
+        'order_note' => 'Kilometer entlang des bekannten Verlaufs, in der Reihenfolge der Streckenkilometer gezählt; eine Abzweigung steht hinter der Hauptstrecke.',
+    ],
+
     'phases' => [
         'title' => 'Phasen der Strecke',
         'intro' => 'Die ganze Strecke zu jedem Datum, an dem sich Gleis oder Verkehr ändern, nach den Daten der Quellen. Die Karte zeigt zuerst die Strecke in ihrer größten Länge; wählen Sie eine Phase, um ihren vollständigen Zustand an diesem Datum zu sehen.',
@@ -306,6 +328,8 @@ return [
         'col_fact' => 'Tatsache und Quelle',
         'col_status' => 'Verwendung auf der Seite',
         'differs_from' => 'Anderes Datum für dieselbe Tatsache:',
+        'correct' => 'Korrigieren',
+        'correct_label' => 'Korrektur vorschlagen: :event, :date',
         'conflict_title' => 'Die Quellen weichen ab',
         'status' => [
             'retained' => 'Verwendet',
@@ -545,6 +569,7 @@ return [
     'toc' => [
         'label' => 'Inhaltsverzeichnis der Seite',
         'trace' => 'Verlauf',
+        'spacetime' => 'Wo und wann',
         'about' => 'Überblick',
         'history' => 'Geschichte',
         'decades' => 'Jahrzehnte',
@@ -552,14 +577,24 @@ return [
         'sections' => 'Abschnitte',
         'heritage' => 'Museumsbahn',
         'tech' => 'Technik',
+        'schematic' => 'Streckenband',
         'profile' => 'Höhenprofil',
+        'speeds' => 'Geschwindigkeiten',
+        'electrification' => 'Elektrifizierung',
         'level-crossings' => 'Bahnübergänge',
         'greenways' => 'Bahntrassenradweg',
+        'structures' => 'Kunstbauten',
         'chronicle' => 'Chronik',
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',
         'gallery' => 'Fotos',
+        'further-reading' => 'Zum Weiterlesen',
         'archives' => 'Archive',
         'notes' => 'Quellen',
+    ],
+
+    // Données structurées (JSON-LD) de la fiche ligne.
+    'json_ld' => [
+        'length' => 'Offizielle Länge (km)',
     ],
 ];

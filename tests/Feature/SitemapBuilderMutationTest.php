@@ -52,12 +52,15 @@ class SitemapBuilderMutationTest extends TestCase
                 'https://vff-project.org/sitemap-pages-1.xml',
                 'https://vff-project.org/sitemap-lines-1.xml',
                 'https://vff-project.org/sitemap-stations-1.xml',
+                'https://vff-project.org/sitemap-communes-1.xml',
+                'https://vff-project.org/sitemap-departments-1.xml',
+                'https://vff-project.org/sitemap-companies-1.xml',
                 'https://vff-project.org/sitemap-materials-1.xml',
                 'https://vff-project.org/sitemap-accidents-1.xml',
             ],
             $this->locs($xml),
         );
-        $this->assertSame(6, substr_count($xml, '<sitemap>'));
+        $this->assertSame(9, substr_count($xml, '<sitemap>'));
         $this->assertStringContainsString("<sitemap>\n", $xml);
     }
 
@@ -85,16 +88,16 @@ class SitemapBuilderMutationTest extends TestCase
     {
         Accident::factory()->create(['slug' => '2000-01-01-pas-dans-les-pages', 'kind' => 'collision']);
         $all = $this->locs((new SitemapBuilder)->family('https://h.org', 'pages', 1) ?? '');
-        $this->assertCount(19, $all);
+        $this->assertCount(32, $all);
         $this->assertSame('https://h.org/', $all[0]);
         $this->assertSame('https://h.org/whoarewe', $all[1]);
-        $this->assertSame('https://h.org/credits/media', $all[18]);
+        $this->assertSame('https://h.org/credits/media', $all[31]);
         $this->assertStringNotContainsString('lastmod', (string) (new SitemapBuilder)->family('https://h.org', 'pages', 1));
 
         $small = new SitemapBuilder(5);
-        $this->assertNotNull($small->family('https://h.org', 'pages', 4));
-        $this->assertNull($small->family('https://h.org', 'pages', 5));
-        $this->assertCount(4, array_filter($this->locs($small->index('https://h.org')), fn (string $l): bool => str_contains($l, 'sitemap-pages-')));
+        $this->assertNotNull($small->family('https://h.org', 'pages', 7));
+        $this->assertNull($small->family('https://h.org', 'pages', 8));
+        $this->assertCount(7, array_filter($this->locs($small->index('https://h.org')), fn (string $l): bool => str_contains($l, 'sitemap-pages-')));
     }
 
     public function test_rows_follow_the_order_of_ids_and_the_offset_of_the_page(): void

@@ -6,6 +6,7 @@ use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use App\Services\Api\MediaQuery;
 use App\Support\EventText;
+use App\Support\SourceRights;
 use Illuminate\Http\Request;
 
 /**
@@ -25,12 +26,13 @@ final class PageMetadata
     /** Nombre d'images de la fiche ligne citées dans les données structurées (comme le navigateur). */
     private const LINE_IMAGES = 4;
 
-    /** Image de partage de l'accueil : 1 200 x 630 px, logo sur la carte de 1865 (domaine public) de l'accueil. */
-    public const HOME_SHARE_IMAGE = '/share/accueil-1200x630.jpg';
+    /** Image de partage de l'accueil : 1 200 x 630 px, réseau en service en orange, générée par scripts/share/build-share-image.mjs. */
+    public const HOME_SHARE_IMAGE = '/share/accueil-reseau-1200x630.jpg';
 
     public function __construct(
         private readonly Request $request,
         private readonly MediaQuery $media,
+        private readonly SourceRights $rights,
     ) {}
 
     /**
@@ -44,8 +46,10 @@ final class PageMetadata
 
         return match ($page['component'] ?? null) {
             'Home' => $this->home($origin),
-            'Lines/Show' => isset($props['line']['slug']) ? $this->line($origin, $props['line']) : null,
+            'Lines/Show' => isset($props['line']['slug']) ? $this->line($origin, $props['line'], (array) ($props['stations'] ?? [])) : null,
             'Stations/Show' => isset($props['station']['slug']) ? $this->station($origin, $props['station']) : null,
+            'Communes/Show' => isset($props['commune']['slug']) ? $this->commune($origin, $props['commune'], (array) ($props['stations'] ?? [])) : null,
+            'OpenData' => isset($props['datasets']) ? $this->openData($origin, (array) $props['datasets'], (array) ($props['licence'] ?? [])) : null,
             'Materials/Show' => isset($props['material']['slug']) ? $this->material($origin, $props['material']) : null,
             'Accidents/Show' => isset($props['accident']['slug']) ? $this->accident($origin, $props['accident']) : null,
             'Lines/Story' => isset($props['story']['line']['slug'], $props['story']['event']['id']) ? $this->story($origin, $props['story']) : null,
@@ -107,8 +111,11 @@ final class PageMetadata
         ], [StructuredData::website($origin, __('common.app_full'), 'VFF', $description, $this->lang())]);
     }
 
-    /** @param  array<string, mixed>  $line */
-    private function line(string $origin, array $line): ShareMetadata
+    /**
+     * @param  array<string, mixed>  $line
+     * @param  list<array<string, mixed>>  $stations
+     */
+    private function line(string $origin, array $line, array $stations): ShareMetadata
     {
         $description = ($line['description'] ?? null)
             ? mb_substr((string) $line['description'], 0, 300)
@@ -119,7 +126,7 @@ final class PageMetadata
         foreach ($images as $media) {
             $url = StructuredData::imageUrl($media);
             if ($url !== null) {
-                $first = ['url' => $url, 'alt' => $media['caption'] ?? null];
+                $first = ['url' => $url, 'alt' => StructuredData::caption($media, $this->lang())];
                 break;
             }
         }
@@ -127,7 +134,7 @@ final class PageMetadata
         return $this->build($origin, '/lines/'.$line['slug'], $line['name'].' - VFF', $line['name'], $description, 'article',
             $first,
             [
-                StructuredData::line($origin, $line, $line['description'] ?? null, $images),
+                StructuredData::line($origin, $line, $this->lineDescription($line), $images, $stations),
                 StructuredData::breadcrumb($origin, [
                     ['name' => __('common.app_full'), 'path' => '/'],
                     ['name' => __('nav.lines'), 'path' => '/lines'],
@@ -135,6 +142,18 @@ final class PageMetadata
                 ]),
             ],
         );
+    }
+
+    /**
+     * Extrait de la ligne servi dans les données structurées : seulement celui de Wikipédia (CC BY-SA, source
+     * déclarée par la fiche). Un texte rédigé d'après d'autres sources n'y entre pas : leurs droits ne sont
+     * pas ceux d'une donnée ouverte.
+     *
+     * @param  array<string, mixed>  $line
+     */
+    private function lineDescription(array $line): ?string
+    {
+        return ($line['description_source']['type'] ?? null) === 'wikipedia' ? ($line['description'] ?? null) : null;
     }
 
     /**
@@ -158,7 +177,7 @@ final class PageMetadata
 
         return $this->build($origin, $path, $title.', '.$date.' - '.$line['name'].' - VFF', $title.', '.$date,
             __('stories.meta_description', ['event' => $title, 'date' => $date, 'line' => $line['name']]), 'article',
-            $url === null ? null : ['url' => $url, 'alt' => $first['caption'] ?? null],
+            $url === null ? null : ['url' => $url, 'alt' => StructuredData::caption($first, $this->lang())],
             [StructuredData::breadcrumb($origin, [
                 ['name' => __('common.app_full'), 'path' => '/'],
                 ['name' => __('nav.lines'), 'path' => '/lines'],
@@ -175,11 +194,81 @@ final class PageMetadata
         $path = '/stations/'.$station['slug'];
 
         return $this->build($origin, $path, $station['name'].' - VFF', $station['name'], $description, 'article', null, [
-            StructuredData::station($origin, $station, $station['description'] ?? null),
+            // Pas d'extrait : la fiche gare ne dit pas de quelle source il vient, donc pas de droit prouvé.
+            StructuredData::station($origin, $station, null, $this->stationDates($station)),
             StructuredData::breadcrumb($origin, [
                 ['name' => __('common.app_full'), 'path' => '/'],
                 ['name' => __('nav.stations'), 'path' => '/stations'],
                 ['name' => $station['name'], 'path' => $path],
+            ]),
+        ]);
+    }
+
+    /**
+     * Dates d'ouverture et de fermeture publiables d'une gare : relevées dans une source (ni déduites par VFF,
+     * ni en intervalle) dont la licence permet la redistribution (registre des droits, `stations.fields`).
+     *
+     * @param  array<string, mixed>  $station
+     * @return array{opened: ?string, closed: ?string}
+     */
+    private function stationDates(array $station): array
+    {
+        $provenance = (array) ($station['provenance'] ?? []);
+        $date = function (string $key) use ($station, $provenance): ?string {
+            $value = $station[$key.'_at'] ?? null;
+            $precision = $station[$key.'_precision'] ?? null;
+            $source = $provenance[$key.'_at'] ?? null;
+            if (! is_string($value) || $value === '' || $precision === 'range' || ! is_string($source) || $source === ''
+                || $source === 'vff:eras' || str_starts_with($source, 'inferred:')
+                || ! $this->rights->allowsRedistribution($this->rights->providerFor('stations.fields', $source))) {
+                return null;
+            }
+
+            return match ($precision) {
+                'year' => substr($value, 0, 4),
+                'month' => substr($value, 0, 7),
+                default => substr($value, 0, 10),
+            };
+        };
+
+        return ['opened' => $date('opened'), 'closed' => $date('closed')];
+    }
+
+    /**
+     * @param  array<string, mixed>  $commune
+     * @param  list<array<string, mixed>>  $stations
+     */
+    private function commune(string $origin, array $commune, array $stations): ShareMetadata
+    {
+        $title = __('communes.title', ['name' => $commune['name']]);
+        $department = ($commune['department_name'] ?? null) ? "{$commune['department_name']} ({$commune['department_code']})" : (string) ($commune['department_code'] ?? '');
+        $path = '/communes/'.$commune['slug'];
+
+        return $this->build($origin, $path, $title.' - VFF', $title, __('communes.meta', ['name' => $commune['name'], 'department' => $department]), 'article', null, [
+            StructuredData::commune($origin, $commune, $stations),
+            StructuredData::breadcrumb($origin, [
+                ['name' => __('common.app_full'), 'path' => '/'],
+                ['name' => $commune['name'], 'path' => $path],
+            ]),
+        ]);
+    }
+
+    /**
+     * Jeux de données ouverts (Pages/OpenData.svelte) : titre et description de la page, jeu de données ODbL.
+     *
+     * @param  list<array<string, mixed>>  $datasets
+     * @param  array<string, mixed>  $licence
+     */
+    private function openData(string $origin, array $datasets, array $licence): ShareMetadata
+    {
+        $title = __('open_data.meta_title');
+        $description = __('open_data.meta_description');
+
+        return $this->build($origin, '/open-data', $title.' - VFF', $title, $description, 'website', null, [
+            StructuredData::dataset($origin, $datasets, $licence, $title, $description, $this->lang()),
+            StructuredData::breadcrumb($origin, [
+                ['name' => __('common.app_full'), 'path' => '/'],
+                ['name' => $title, 'path' => '/open-data'],
             ]),
         ]);
     }

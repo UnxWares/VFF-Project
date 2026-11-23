@@ -16,13 +16,18 @@ use App\Support\SourceRights;
  *   - clés connues seulement, slug identique au nom du fichier, dates au format ISO ;
  *   - chaque document : fournisseur déclaré dans le registre des droits (table accident_references), nature,
  *     fiabilité et accès connus, titre, lien http(s), date du document AAAA, AAAA-MM ou AAAA-MM-JJ ;
+ *   - faits d'un article de presse (`facts`, relus par vff:verify-accidents) : seulement sur un article lu (`press`,
+ *     `open`) ; date de l'accident AAAA-MM-JJ (`date`) ou jour relatif à la date de l'article (`date_relative` :
+ *     `same_day` pour « aujourd'hui », `previous_day` pour « hier », l'article daté au jour), commune par code INSEE,
+ *     bilan en morts (`deaths`) et `deaths_provisional => true` quand l'article ne donne qu'un bilan provisoire ;
  *   - chaque énoncé : texte en fr, en et de, sans tiret long ni tiret moyen, au moins un document cité, et
  *     chaque document cité lu (`open`) : un document payant ou seulement repéré n'appuie rien ;
  *   - une seule citation par fichier, de 200 caractères au plus, tirée d'une source ouverte dont la licence
  *     permet la citation : rapport du BEA-TT ou texte du Journal officiel (Licence Ouverte 2.0 ; les pages du site de
  *     l'Assemblée nationale et du Sénat restreignent la réutilisation commerciale ou payante : faits seulement) ;
  *   - corrections : champ permis (date, heure, morts, blessés, nature publiée, commune par code INSEE), valeur du
- *     bon type, raison en trois langues, documents lus ;
+ *     bon type, raison en trois langues, documents lus ; `single_source => true` marque une valeur qui ne repose que
+ *     sur une source (la liste de Wikipédia) et reste à confirmer ;
  *   - doublons (`aliases`) : slug d'une autre fiche, raison en trois langues, documents lus ;
  *   - images : 3 au plus, fichier de Commons (`File:…`), légende en trois langues.
  */
@@ -42,7 +47,12 @@ final class AccidentContextValidator
 
     private const TOP_KEYS = ['slug', 'checked_on', 'sources', 'sections', 'corrections', 'aliases', 'images'];
 
-    private const SOURCE_KEYS = ['provider', 'kind', 'reliability', 'title', 'publisher', 'author', 'published', 'locator', 'url', 'access', 'consulted_on', 'note'];
+    private const SOURCE_KEYS = ['provider', 'kind', 'reliability', 'title', 'publisher', 'author', 'published', 'locator', 'url', 'access', 'consulted_on', 'note', 'facts'];
+
+    private const FACT_KEYS = ['date', 'date_relative', 'commune_insee', 'deaths', 'deaths_provisional'];
+
+    /** Jour de l'accident relatif à la date de l'article : le jour même ou la veille. */
+    public const RELATIVE_DAYS = ['same_day' => 0, 'previous_day' => 1];
 
     public function __construct(private readonly SourceRights $rights = new SourceRights) {}
 
@@ -212,6 +222,51 @@ final class AccidentContextValidator
                 $errors[] = "{$where}.{$field} : tiret long ou moyen interdit";
             }
         }
+        if (array_key_exists('facts', $s)) {
+            $errors = [...$errors, ...$this->factErrors($s, "{$where}.facts")];
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Faits d'un article de presse lu : au moins un, chacun au bon format.
+     *
+     * @param  array<mixed>  $s
+     * @return list<string>
+     */
+    private function factErrors(array $s, string $where): array
+    {
+        $facts = $s['facts'];
+        if (($s['kind'] ?? null) !== AccidentReferenceKind::Press->value || ($s['access'] ?? null) !== AccidentReferenceAccess::Open->value) {
+            return ["{$where} : seulement sur un article de presse lu (kind press, access open)"];
+        }
+        if (! is_array($facts) || $facts === []) {
+            return ["{$where} : tableau non vide attendu"];
+        }
+        $errors = [];
+        foreach (array_diff(array_keys($facts), self::FACT_KEYS) as $unknown) {
+            $errors[] = "{$where} : clé inconnue « {$unknown} »";
+        }
+        if (array_key_exists('date', $facts) && array_key_exists('date_relative', $facts)) {
+            $errors[] = "{$where} : date ou date_relative, pas les deux";
+        }
+        if (array_key_exists('date', $facts) && ! $this->isDay($facts['date'])) {
+            $errors[] = "{$where} : date AAAA-MM-JJ attendue";
+        }
+        if (array_key_exists('date_relative', $facts)
+            && (! is_string($facts['date_relative']) || ! array_key_exists($facts['date_relative'], self::RELATIVE_DAYS) || ! $this->isDay($s['published'] ?? null))) {
+            $errors[] = "{$where} : date_relative same_day ou previous_day, avec un article daté au jour (published AAAA-MM-JJ)";
+        }
+        if (array_key_exists('commune_insee', $facts) && (! is_string($facts['commune_insee']) || preg_match('/^(\d{5}|2[AB]\d{3})$/', $facts['commune_insee']) !== 1)) {
+            $errors[] = "{$where} : commune_insee à 5 caractères attendue";
+        }
+        if (array_key_exists('deaths', $facts) && (! is_int($facts['deaths']) || $facts['deaths'] < 0 || $facts['deaths'] >= 10000)) {
+            $errors[] = "{$where} : deaths entier de 0 à 9999 attendu";
+        }
+        if (array_key_exists('deaths_provisional', $facts) && ($facts['deaths_provisional'] !== true || ! array_key_exists('deaths', $facts))) {
+            $errors[] = "{$where} : deaths_provisional vaut true, avec deaths";
+        }
 
         return $errors;
     }
@@ -303,11 +358,14 @@ final class AccidentContextValidator
         $ok = match ($field) {
             'occurred_on' => $this->isDay($value),
             'occurred_at_time' => is_string($value) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value) === 1,
-            'kind' => is_string($value) && AccidentKind::tryFrom($value) !== null && ! in_array($value, AccidentKind::HIDDEN, true),
+            'kind' => is_string($value) && AccidentKind::tryFrom($value) !== null,
             'commune_insee' => is_string($value) && preg_match('/^(\d{5}|2[AB]\d{3})$/', $value) === 1,
             default => is_int($value) && $value >= 0 && $value < 10000,
         };
         $errors = $ok ? [] : ["{$where} : valeur invalide pour {$field}"];
+        if (array_key_exists('single_source', $c) && ! is_bool($c['single_source'])) {
+            $errors[] = "{$where} : single_source doit être un booléen";
+        }
         $errors = [...$errors, ...$this->textErrors($c, $where)];
 
         return [...$errors, ...$this->citedErrors($c['sources'] ?? null, $open, $all, $where)];

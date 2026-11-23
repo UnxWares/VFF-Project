@@ -1,0 +1,72 @@
+<?php
+
+// Preserved rolling stock: section of a series sheet (Components/Materials/PreservedUnits.svelte) and the
+// /materials/preserved page (Pages/Materials/Preserved.svelte). Data: App\Services\Materials\PreservedRollingStock.
+return [
+    'meta_title' => 'Preserved rolling stock',
+    'meta_description' => 'Where to see preserved railway rolling stock in France: museums, associations, heritage railways and sites, with each unit’s number, condition, listed-monument protection and source.',
+    'title' => 'Preserved rolling stock',
+    'subtitle' => ':units units of :series series are kept at :venues places according to our sources; :protected are protected as historic monuments. Every fact names its source; a list is not an inventory.',
+    'all_materials' => 'All rolling stock',
+    'see_all' => 'See preserved rolling stock',
+
+    'section_title' => 'Preserved units',
+    'section_intro' => 'The units of this series that our sources say are preserved, with the place where you can see them. The condition is what the source reports, and it may have changed.',
+    'section_link' => 'All places with preserved rolling stock',
+    'place' => 'Where to see it',
+    'state_label' => 'Condition',
+    'protection_label' => 'Protection',
+    'sources_label' => 'Sources',
+    'place_unknown' => 'Place not given by the source',
+
+    'state' => [
+        'running' => 'In working order',
+        'exposed' => 'On display',
+        'restoration' => 'Under restoration',
+        'stored' => 'Stabled or in storage',
+    ],
+    'type' => [
+        'museum' => 'Museums',
+        'association' => 'Associations',
+        'tourist_railway' => 'Heritage railways',
+        'site' => 'Other places',
+    ],
+    'type_one' => [
+        'museum' => 'Museum',
+        'association' => 'Association',
+        'tourist_railway' => 'Heritage railway',
+        'site' => 'Place',
+    ],
+    'protection' => [
+        'classified_date' => 'Classified historic monument (object) on :date',
+        'classified_year' => 'Classified historic monument (object) in :year',
+        'classified' => 'Classified historic monument (object)',
+        'listed_date' => 'Listed historic monument (object) on :date',
+        'listed_year' => 'Listed historic monument (object) in :year',
+        'listed' => 'Listed historic monument (object)',
+        'declassified_date' => 'Declassified on :date',
+        'declassified' => 'Protection lifted',
+        'notice' => 'Palissy record :ref',
+    ],
+    'see_tourist' => 'See the heritage railway',
+
+    'filters_title' => 'Find a place',
+    'search_label' => 'Place, town, number or series',
+    'search_hint' => 'Cité du train, Mulhouse, 241 P 17…',
+    'type_filter' => 'Type of place',
+    'all_types' => 'All',
+    'protected_only' => 'Protected pieces only',
+    'reset' => 'Reset filters',
+    'results' => ':count places, :pieces pieces',
+    'results_one' => ':count place, :pieces pieces',
+    'empty_title' => 'No place matches',
+    'empty_text' => 'Try another word, or remove a filter.',
+    'pieces' => ':count pieces',
+    'pieces_one' => ':count piece',
+    'show_pieces' => 'Show the pieces',
+    'more_venues' => 'Show more places',
+    'coverage_title' => 'What this list covers',
+    'coverage_text' => 'Units come from the preserved-stock lists on Wikipedia, the Palissy database (movable objects protected as historic monuments) and Wikidata. A series that is missing has no preserved unit known to VFF; a unit that is missing has not necessarily been destroyed. Protected narrow-gauge stock, wagons and coaches are listed at their place, without a series.',
+    'series_label' => 'Series',
+    'source_list' => 'Sources and licences',
+];

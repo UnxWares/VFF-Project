@@ -75,14 +75,18 @@ final class WikipediaListCollector
      * identifiant. Quand un contributeur corrige le lieu ou le bilan, l'identifiant change, et l'import
      * retrouve la fiche par sa date et sa commune ou son bilan (AccidentImporter::existing).
      *
-     * @param  array{date: string, places: list<array{0: string, 1: ?string}>, station: ?string, deaths: ?int, injuries: ?int}  $entry
+     * @param  array{date: string, listed: array{places: list<array{0: string, 1: ?string}>, station: ?string}, deaths: ?int, injuries: ?int}  $entry
      */
     public static function externalId(array $entry): string
     {
-        $place = $entry['places'][0][0] ?? $entry['station'];
+        // Les faits lus par la liste, tels quels : la lecture des lieux a gagné en finesse (gare « à l'approche de »,
+        // faux lieux écartés), l'identifiant d'une fiche déjà importée ne doit pas changer pour autant.
+        $places = $entry['listed']['places'];
+        $station = $entry['listed']['station'];
+        $place = $places[0][0] ?? $station;
         $facts = [
-            array_map(fn (array $p): array => [Str::slug($p[0]), $p[1]], $entry['places']),
-            $entry['station'] !== null ? Str::slug($entry['station']) : null,
+            array_map(fn (array $p): array => [Str::slug($p[0]), $p[1]], $places),
+            $station !== null ? Str::slug($station) : null,
             $entry['deaths'], $entry['injuries'],
         ];
 
@@ -90,7 +94,7 @@ final class WikipediaListCollector
     }
 
     /**
-     * @param  array{date: string, precision: AccidentDatePrecision, anchor: ?string, places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}  $entry
+     * @param  array{date: string, precision: AccidentDatePrecision, anchor: ?string, places: list<array{0: string, 1: ?string}>, station: ?string, listed: array{places: list<array{0: string, 1: ?string}>, station: ?string}, approximate: bool, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}  $entry
      * @param  array{title: string, revid: int, content: string}  $page
      * @param  array<string, true>  $used  identifiants déjà pris (deux puces du même jour au même endroit)
      */
@@ -126,6 +130,7 @@ final class WikipediaListCollector
             $c->placeHints = array_slice($entry['places'], 1);
         }
         $c->stationHint = $entry['station'];
+        $c->approximatePlace = $entry['approximate'];
         $c->lineArticles = $entry['line_articles'];
 
         $permalink = 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode(str_replace(' ', '_', $page['title'])).'&oldid='.$page['revid'];

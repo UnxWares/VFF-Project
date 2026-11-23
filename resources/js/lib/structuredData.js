@@ -5,6 +5,7 @@
 // Règle : rien d'inventé. Une propriété n'est écrite que si la donnée existe dans la base (pas de
 // licence devinée, pas de coordonnées approchées, pas de logo d'emprunt) ; une valeur vide est
 // retirée de l'objet plutôt qu'écrite à null.
+import { mediaCaption } from './mediaCredits.js';
 
 /** Éditeur et hébergeur de VFF (mentions légales). */
 export const PUBLISHER = Object.freeze({
@@ -13,6 +14,13 @@ export const PUBLISHER = Object.freeze({
     legalName: 'UnxWares SAS',
     url: 'https://www.unxwares.com',
 });
+
+/** Logo de l'éditeur : l'icône du site (public/icons), carrée, 512 px. */
+const LOGO_PATH = '/icons/icon-512.png';
+const LOGO_SIZE = 512;
+
+/** Gares d'une commune citées dans ses données structurées. */
+const COMMUNE_STATIONS = 20;
 
 /** Élément Wikidata « ligne de chemin de fer », type précis d'une fiche ligne (schema.org n'en a pas). */
 const WIKIDATA_RAILWAY_LINE = 'https://www.wikidata.org/wiki/Q728937';
@@ -89,7 +97,24 @@ export function shorten(text, max = 300) {
 }
 
 /**
- * Accueil : le site (avec sa recherche, qui mène à l'annuaire des lignes) et son éditeur.
+ * Éditeur de VFF, avec son logo (adresse absolue).
+ * @param {string} origin
+ */
+export function publisher(origin) {
+    return {
+        ...PUBLISHER,
+        '@id': absoluteUrl(origin, '/#publisher'),
+        logo: {
+            '@type': 'ImageObject',
+            url: absoluteUrl(origin, LOGO_PATH),
+            width: LOGO_SIZE,
+            height: LOGO_SIZE,
+        },
+    };
+}
+
+/**
+ * Accueil : le site (avec sa recherche, qui mène à la page de résultats) et son éditeur.
  * @param {{ origin: string, name: string, alternateName?: string, description?: string, lang: string }} o
  */
 export function websiteSchema({ origin, name, alternateName, description, lang }) {
@@ -109,12 +134,12 @@ export function websiteSchema({ origin, name, alternateName, description, lang }
                     '@type': 'SearchAction',
                     target: {
                         '@type': 'EntryPoint',
-                        urlTemplate: `${absoluteUrl(origin, '/lines')}?q={search_term_string}`,
+                        urlTemplate: `${absoluteUrl(origin, '/search')}?q={search_term_string}`,
                     },
                     'query-input': 'required name=search_term_string',
                 },
             },
-            { ...PUBLISHER, '@id': absoluteUrl(origin, '/#publisher') },
+            publisher(origin),
         ],
     };
 }
@@ -141,8 +166,9 @@ export function breadcrumbSchema(origin, items) {
  * Média de la base (ressource MediaResource de l'API) en ImageObject, avec auteur et licence tels
  * que la base les donne. Null sans image affichable.
  * @param {Record<string, any>} m
+ * @param {string|null} [lang] langue de la page : la légende de cette langue quand elle existe (`captions`)
  */
-export function imageObject(m) {
+export function imageObject(m, lang = null) {
     const url = m?.display_url ?? m?.thumb_url;
     if (!url) return null;
     return {
@@ -150,7 +176,7 @@ export function imageObject(m) {
         contentUrl: url,
         thumbnailUrl: m.thumb_url !== url ? m.thumb_url : undefined,
         name: m.title,
-        caption: shorten(m.caption),
+        caption: shorten(mediaCaption(m, lang)),
         width: m.width || undefined,
         height: m.height || undefined,
         creator: m.author ? { '@type': 'Person', name: m.author } : undefined,
@@ -163,14 +189,27 @@ export function imageObject(m) {
 }
 
 /**
- * Fiche ligne : un lieu (Place) précisé par l'élément Wikidata « ligne de chemin de fer ».
- * @param {{ origin: string, line: Record<string, any>, description?: string|null, images?: Array<any> }} o
+ * Fiche ligne : un lieu (Place, ou TouristAttraction pour une ligne au trafic touristique) précisé par
+ * l'élément Wikidata « ligne de chemin de fer », avec ses gares terminus (`containsPlace`) et sa
+ * longueur officielle quand elle décrit la ligne entière (`additionalProperty`, en km).
+ * @param {{ origin: string, line: Record<string, any>, description?: string|null, images?: Array<any>, stations?: Array<any>, lengthLabel?: string, lang?: string|null }} o
  */
-export function lineSchema({ origin, line, description = null, images = [] }) {
+export function lineSchema({
+    origin,
+    line,
+    description = null,
+    images = [],
+    stations = [],
+    lengthLabel = 'Longueur officielle (km)',
+    lang = null,
+}) {
     const url = absoluteUrl(origin, `/lines/${line.slug}`);
+    const length = (line.facts ?? []).find(
+        (f) => f.key === 'length' && f.scope === 'line' && Number.isFinite(f.km),
+    )?.km;
     return {
         '@context': 'https://schema.org',
-        '@type': 'Place',
+        '@type': line.current_traffic === 'heritage' ? 'TouristAttraction' : 'Place',
         '@id': `${url}#line`,
         additionalType: WIKIDATA_RAILWAY_LINE,
         url,
@@ -185,7 +224,24 @@ export function lineSchema({ origin, line, description = null, images = [] }) {
             '@type': 'AdministrativeArea',
             name: typeof r === 'string' ? r : r?.name,
         })),
-        image: images.map(imageObject).filter(Boolean),
+        containsPlace: stations
+            .filter((s) => s?.is_terminal && s.slug && s.name)
+            .map((s) => ({
+                '@type': 'TrainStation',
+                name: s.name,
+                url: absoluteUrl(origin, `/stations/${s.slug}`),
+            })),
+        additionalProperty:
+            length === undefined
+                ? undefined
+                : {
+                      '@type': 'PropertyValue',
+                      name: lengthLabel,
+                      value: length,
+                      unitCode: 'KMT',
+                      unitText: 'km',
+                  },
+        image: images.map((m) => imageObject(m, lang)).filter(Boolean),
     };
 }
 
@@ -222,6 +278,99 @@ export function stationSchema({ origin, station, description = null }) {
               }
             : undefined,
         sameAs: [wikidataUrl(station.wikidata_id)].filter(Boolean),
+    };
+}
+
+/**
+ * Fiche de commune : la ville (City), son département, son code INSEE et ses gares.
+ * @param {{ origin: string, commune: Record<string, any>, stations?: Array<any> }} o
+ */
+export function communeSchema({ origin, commune, stations = [] }) {
+    const url = absoluteUrl(origin, `/communes/${commune.slug}`);
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'City',
+        '@id': `${url}#commune`,
+        url,
+        name: commune.name,
+        identifier: commune.insee
+            ? { '@type': 'PropertyValue', propertyID: 'INSEE', value: String(commune.insee) }
+            : undefined,
+        containedInPlace: commune.department_name
+            ? { '@type': 'AdministrativeArea', name: commune.department_name }
+            : undefined,
+        address: { '@type': 'PostalAddress', addressLocality: commune.name, addressCountry: 'FR' },
+        containsPlace: stations
+            .filter((s) => s?.slug && s.name)
+            .slice(0, COMMUNE_STATIONS)
+            .map((s) => ({
+                '@type': 'TrainStation',
+                name: s.name,
+                url: absoluteUrl(origin, `/stations/${s.slug}`),
+            })),
+    };
+}
+
+/**
+ * Jeu de données ouvert (/open-data) : le catalogue sous licence ODbL, un jeu par entrée (`hasPart`)
+ * et ses fichiers à télécharger (`distribution`). Aucune source n'est nommée.
+ * @param {{ origin: string, datasets: Array<any>, licence?: { url?: string }, name: string, description: string, lang: string, keywords?: string, siteName: string, partName: (d: any) => string, partDescription: (d: any) => string }} o
+ */
+export function datasetSchema({
+    origin,
+    datasets,
+    licence = {},
+    name,
+    description,
+    lang,
+    keywords,
+    siteName,
+    partName,
+    partDescription,
+}) {
+    const url = absoluteUrl(origin, '/open-data');
+    const licenceUrl = licence.url;
+    const download = (path, bytes, format) => ({
+        '@type': 'DataDownload',
+        contentUrl: absoluteUrl(origin, path),
+        encodingFormat: format,
+        contentSize: bytes ? `${bytes} B` : undefined,
+    });
+    const pub = publisher(origin);
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'Dataset',
+        '@id': `${url}#dataset`,
+        url,
+        name,
+        description,
+        license: licenceUrl,
+        isAccessibleForFree: true,
+        inLanguage: lang,
+        creator: pub,
+        publisher: pub,
+        isPartOf: { '@type': 'WebSite', name: siteName, url: absoluteUrl(origin, '/') },
+        keywords,
+        hasPart: datasets.map((d) => ({
+            '@type': 'Dataset',
+            name: partName(d),
+            description: partDescription(d),
+            url,
+            license: licenceUrl,
+            isAccessibleForFree: true,
+            inLanguage: lang,
+            dateModified: d.generated_on || undefined,
+            distribution: [
+                download(d.archive?.url ?? '', d.archive?.bytes, 'application/zip'),
+                ...(d.files ?? []).map((f) =>
+                    download(
+                        f.url,
+                        f.bytes,
+                        f.name.endsWith('.geojson') ? 'application/geo+json' : 'text/csv',
+                    ),
+                ),
+            ],
+        })),
     };
 }
 

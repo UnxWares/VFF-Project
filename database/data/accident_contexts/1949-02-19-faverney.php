@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Port-d'Atelier (Faverney) de février 1949 (recherche du 21/11/2026).
 return [
     'slug' => '1949-02-19-faverney',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'gare-port-atelier' => [
             'provider' => 'wikipedia',
@@ -117,6 +117,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Livre de témoignages locaux, non lu ; cité dans la bibliographie du dossier d\'inventaire (Bibliothèque municipale de Besançon, BR.A.184.15).',
         ],
+        'kb-1949-02-19-de-waarheid' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp eist 25 doden',
+            'publisher' => 'De Waarheid (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1949-02-19',
+            'locator' => 'article « Treinramp eist 25 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010851443:mpeg21:a0008:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 19 février : l\'express Nancy-Dijon entre en collision à Port-d\'Atelier (Haute-Saône) avec une locomotive ; 25 morts et 85 blessés, davantage sous les débris.',
+        ],
+        'kb-1949-02-21-het-vrije-volk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp in Frankrijk: 40 doden, 150 gewonden Losse locomotief met razende vaart op expresse-trein Door al...',
+            'publisher' => 'Het Vrije Volk (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1949-02-21',
+            'locator' => 'article « Treinramp in Frankrijk: 40 doden, 150 gewonden Losse locomotief met razende vaart op expresse-trein Door al... », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010949974:mpeg21:a0015:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Reportage du 21 février : l\'express Metz-Dijon, de nuit de vendredi à samedi, à plus de 100 km/h, après Vesoul, près de Port-d\'Atelier ; 40 morts et 150 blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -176,6 +204,12 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 19 et 21 février 1949 situent l\'accident à Port-d\'Atelier (Haute-Saône), dans la nuit du vendredi 18 au samedi 19 février, avec 25 morts et 85 blessés dans la première dépêche, puis 40 morts et 150 blessés, et un autre journal du 22 parle de cinquante morts ; la fiche donne 43 morts. Les bilans varient fortement selon les articles ; la date du 19 est celle de la fiche, la nuit du 18 au 19 selon la presse.',
+                'en' => 'Two Dutch newspapers of 19 and 21 February 1949 place the accident at Port-d\'Atelier (Haute-Saône), in the night from Friday 18 to Saturday 19 February, with 25 dead and 85 injured in the first dispatch, then 40 dead and 150 injured, and another newspaper of the 22nd speaks of fifty dead; the record gives 43 dead. The tolls vary widely between articles; the 19th is the date in the record, the night of 18 to 19 according to the press.',
+                'de' => 'Zwei niederländische Zeitungen vom 19. und 21. Februar 1949 verlegen das Unglück nach Port-d\'Atelier (Haute-Saône) in die Nacht von Freitag, dem 18., auf Samstag, den 19. Februar, mit 25 Toten und 85 Verletzten in der ersten Meldung, dann 40 Toten und 150 Verletzten, und eine weitere Zeitung vom 22. spricht von fünfzig Toten; die Datenbank nennt 43 Tote. Die Bilanzen schwanken stark von Artikel zu Artikel; der 19. ist das Datum der Datenbank, die Nacht vom 18. auf den 19. nach der Presse.',
+                'sources' => ['kb-1949-02-19-de-waarheid', 'kb-1949-02-21-het-vrije-volk'],
+            ],
             [
                 'fr' => 'L\'Inventaire du patrimoine (source officielle régionale) date l\'accident de la nuit du 18 février 1949 et compte 42 morts, là où Wikipédia retient 43 morts et une source donne le 19 février. Il situe en outre l\'accident sur la ligne Nancy-Gray, alors que les autres pages le rattachent à la ligne de Paris-Est à Mulhouse-Ville près de la gare de Port-d\'Atelier-Amance ; cette différence de ligne reste à vérifier. L\'Inventaire mentionne une plaque dans l\'église, alors que les pages de Wikipédia évoquent une stèle inaugurée en 2014 ; il peut s\'agir de deux monuments, ce que les sources lues ne permettent pas de trancher.',
                 'en' => 'The heritage inventory (the regional official source) dates the accident to the night of 18 February 1949 and counts 42 dead, whereas Wikipedia gives 43 dead and one source gives 19 February. It also places the accident on the Nancy-Gray line, while the other pages tie it to the Paris-Est to Mulhouse-Ville line near Port-d\'Atelier-Amance station; this difference in line remains to be checked. The inventory mentions a plaque in the church, whereas the Wikipedia pages mention a stele unveiled in 2014; these may be two monuments, which the sources read do not settle.',

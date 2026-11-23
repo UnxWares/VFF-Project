@@ -40,6 +40,7 @@
         'structure_failure',
         'attack',
         'war_action',
+        'person_struck',
         'runaway',
         'incident',
         'other',
@@ -105,6 +106,11 @@
             subtitle={$i18n.t('accidents.index.subtitle')}
         >
             <p class="intro">{$i18n.t('accidents.index.intro')}</p>
+            <p class="intro">
+                <Link href="/accidents/statistics" class="vff-link"
+                    >{$i18n.t('accidents.index.stats_link')}</Link
+                >
+            </p>
         </PageHero>
 
         <div class="vff-container directory">
@@ -395,7 +401,7 @@
         text-decoration: underline;
     }
     .line-name {
-        max-width: 32ch;
+        max-width: 20.2em;
     }
     .toll {
         font-variant-numeric: tabular-nums;

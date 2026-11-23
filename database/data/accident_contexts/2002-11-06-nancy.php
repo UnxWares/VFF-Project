@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Résumé en anglais du rapport final, repéré mais non lu (accès refusé au moment de la recherche) ; à consulter directement.',
         ],
+        'kb-2002-11-07-algemeen-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Drama in Duitse slaaptrein',
+            'publisher' => 'Stichting Algemeen Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '2002-11-07',
+            'locator' => 'article « Drama in Duitse slaaptrein », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBPERS01:003201006:mpeg21:a00062:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 7 novembre : « hier », incendie d\'un train couchette allemand Paris-Vienne près de Nancy vers 2 h 30 du matin ; 12 passagers morts.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '54395', 'deaths' => 12],
+        ],
     ],
     'sections' => [
         'circumstances' => [

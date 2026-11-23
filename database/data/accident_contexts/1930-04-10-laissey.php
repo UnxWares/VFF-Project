@@ -19,6 +19,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche, d\'après la presse de l\'époque (Gallica).',
         ],
+        'kb-1930-04-11-werkliedenverbond' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp in Frankrijk',
+            'publisher' => 'RK Werkliedenverbond (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1930-04-11',
+            'locator' => 'article « Treinramp in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000198015:mpeg21:a00035:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 11 avril : « hier après-midi », déraillement d\'un train militaire à Laissey, près de Besançon ; huit morts jusque-là, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '25323', 'deaths' => 8, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Tournay du 24 novembre 1897 (recherche du 21/11/2026).
 return [
     'slug' => '1897-11-24-tournay',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
         ],
+        'ddb-1897-11-25-wittener' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Wittener Zeitung du 25 novembre 1897',
+            'publisher' => 'Wittener Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1897-11-25',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/QXTL47V4EHHY4UZ7NKF27W7MMJAHYE3T?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Tarbes du 24 novembre : en gare de Tournay, un train de marchandises heurte un train mixte ; plusieurs wagons brisés, dix morts et de nombreux blessés.',
+        ],
+        'kb-1897-11-27-de-noord-brabanter' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK.',
+            'publisher' => 'De Noord-Brabanter (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1897-11-27',
+            'locator' => 'article « FRANKRIJK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUBTB04:210821127:mpeg21:a00006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 27 novembre : grave accident à Tournay, ligne de Toulouse à Tarbes ; un train de marchandises, frein défaillant, glisse sur une pente et heurte un train de voyageurs à l\'arrêt ; treize morts, huit blessés graves.',
+        ],
+        'kb-1897-11-25-maastrichtsche-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN. en LAATSTE BERICHTEN',
+            'publisher' => 'Maastrichtsche Dagblad-Drukkerij (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1897-11-25',
+            'locator' => 'article « TELEGRAMMEN. en LAATSTE BERICHTEN », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMCC01:048305013:mpeg21:a00019:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 24 novembre : « ce matin » à 6 h 30, un train de marchandises heurte le train mixte en gare de Tournay (ligne de Toulouse à Tarbes), dans le brouillard ; dix morts, bilan provisoire.',
+            'facts' => ['date' => '1897-11-24', 'commune_insee' => '65447', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -72,6 +115,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Wittener Zeitung du 25 novembre 1897 rapporte, dans une dépêche de Tarbes datée du 24, qu\'en gare de Tournay un train de marchandises a heurté un train mixte, avec dix morts et de nombreux blessés dans le premier bilan, contre 14 morts dans la fiche. Date, lieu et nature sont confirmés.',
+                'en' => 'The Wittener Zeitung of 25 November 1897 reports, in a Tarbes dispatch dated the 24th, that at Tournay station a goods train ran into a mixed train, with ten dead and many injured in the first toll, against 14 dead in the record. Date, place and nature are confirmed.',
+                'de' => 'Die Wittener Zeitung vom 25. November 1897 berichtet in einer Meldung aus Tarbes vom 24., dass im Bahnhof von Tournay ein Güterzug mit einem gemischten Zug zusammenstieß, mit zehn Toten und vielen Verwundeten in der ersten Bilanz, gegenüber 14 Toten in der Datenbank. Datum, Ort und Art sind bestätigt.',
+                'sources' => ['ddb-1897-11-25-wittener'],
+            ],
+            [
+                'fr' => 'De Noord-Brabanter du 27 novembre 1897 situe l\'accident à Tournay, sur la ligne de Toulouse à Tarbes : un train de marchandises à frein défaillant a glissé dans une pente et heurté un train de voyageurs à l\'arrêt, avec treize morts et huit blessés graves. Ce bilan est proche de celui de la fiche (14 morts, 8 blessés).',
+                'en' => 'De Noord-Brabanter of 27 November 1897 places the accident at Tournay, on the Toulouse to Tarbes line: a goods train with a failed brake slid down a gradient and hit a stationary passenger train, with thirteen dead and eight seriously injured. This toll is close to the record\'s (14 dead, 8 injured).',
+                'de' => 'De Noord-Brabanter vom 27. November 1897 verlegt das Unglück nach Tournay auf der Strecke von Toulouse nach Tarbes: Ein Güterzug mit versagender Bremse rutschte eine Steigung hinab und fuhr auf einen haltenden Reisezug auf, mit dreizehn Toten und acht Schwerverletzten. Diese Bilanz liegt nahe an der der Datenbank (14 Tote, 8 Verletzte).',
+                'sources' => ['kb-1897-11-27-de-noord-brabanter'],
+            ],
             [
                 'fr' => 'Le bilan retenu par la liste est de quatorze morts et huit blessés très graves, surtout parmi les ouvriers du train de travaux.',
                 'en' => 'The toll given in the list is fourteen dead and eight very seriously injured, mostly among the workers on the works train.',

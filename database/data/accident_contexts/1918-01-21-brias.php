@@ -72,6 +72,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'runaway',
+            'single_source' => true,
             'sources' => ['wp-liste-1918'],
             'fr' => 'La liste de Wikipédia, source de la fiche, décrit une rupture d\'attelage dans la rampe, puis une rame partie en dérive qui percute deux trains. La première circonstance est la dérive ; aucun ouvrage n\'a cédé.',
             'en' => 'The Wikipedia list, the source of the entry, describes a coupling failure on the gradient and then a runaway rake striking two trains. The first circumstance is the runaway; no structure gave way.',

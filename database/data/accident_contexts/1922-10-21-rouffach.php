@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Rouffach du 21 octobre 1922 (recherche du 21/11/2026).
 return [
     'slug' => '1922-10-21-rouffach',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1922' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article détaillé repéré (témoignages, enquête, poste d\'aiguillage) ; accès refusé (403), non lu. Un résumé de moteur de recherche évoque minuit cinq, à vérifier.',
         ],
+        'kb-1922-10-21-utrechtsch-provinciaal-en-stedelijk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK.',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-10-21',
+            'locator' => 'article « FRANKRIJK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253209193:mpeg21:a00008:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Mulhouse du 21 octobre : l\'express Strasbourg-Bordeaux, attendu à 0 h 20 à Mulhouse, a heurté en gare de Rouffach un train de marchandises ; 7 morts et 10 blessés.',
+        ],
+        'kb-1922-10-26-het-centrum' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Allerlei',
+            'publisher' => 'Het Centrum (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-10-26',
+            'locator' => 'article « Allerlei », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010000870:mpeg21:a0094:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 26 octobre : l\'express parti de Strasbourg à 22 h 30 a heurté, à 600 mètres au nord de la gare de Rouffach, l\'arrière d\'un train de marchandises, d\'après la presse française.',
+        ],
+        'kb-1922-10-21-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Latere Berichten.',
+            'publisher' => 'NV De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-10-21',
+            'locator' => 'article « Latere Berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000132242:mpeg21:a00055:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 21 octobre : « cette nuit », l\'express Strasbourg-Bordeaux, attendu à Mulhouse à 0 h 20, heurte un train de marchandises en gare de Rouffach ; sept morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '68287', 'deaths' => 7, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -58,6 +101,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 21 et 26 octobre 1922 confirment la collision dans la nuit du 20 au 21 octobre (express Strasbourg-Bordeaux attendu à Mulhouse à 0 h 20) à Rouffach, à 600 mètres au nord de la gare, contre l\'arrière d\'un train de marchandises, avec 7 morts et 10 blessés dans le premier bilan, contre 13 morts et 12 blessés dans la fiche. Date, lieu et nature sont confirmés ; le bilan de la fiche n\'est pas établi par ces articles.',
+                'en' => 'Two Dutch newspapers of 21 and 26 October 1922 confirm the collision in the night of 20 to 21 October (Strasbourg-Bordeaux express due at Mulhouse at 12.20 am) at Rouffach, 600 metres north of the station, into the rear of a goods train, with 7 dead and 10 injured in the first toll, against 13 dead and 12 injured in the record. Date, place and nature are confirmed; the record\'s toll is not established by these articles.',
+                'de' => 'Zwei niederländische Zeitungen vom 21. und 26. Oktober 1922 bestätigen den Zusammenstoß in der Nacht vom 20. auf den 21. Oktober (Express Straßburg-Bordeaux, um 0.20 Uhr in Mülhausen erwartet) bei Rouffach, 600 Meter nördlich des Bahnhofs, auf das Ende eines Güterzugs, mit 7 Toten und 10 Verletzten in der ersten Bilanz, gegenüber 13 Toten und 12 Verletzten in der Datenbank. Datum, Ort und Art sind bestätigt; die Bilanz der Datenbank wird durch diese Artikel nicht belegt.',
+                'sources' => ['kb-1922-10-21-utrechtsch-provinciaal-en-stedelijk', 'kb-1922-10-26-het-centrum'],
+            ],
             [
                 'fr' => 'La liste de Wikipédia compte treize morts et douze blessés, parmi lesquels de nombreux militaires en permission.',
                 'en' => 'The Wikipedia list gives thirteen dead and twelve injured, among them many soldiers on leave.',

@@ -3,10 +3,11 @@
 // Railway quiz (/quiz): page text and links from /lines and /materials.
 return [
     'meta_title' => 'Railway quiz',
-    'meta_description' => 'Recognise a French railway line from its route, or a rolling stock series from its photo: ten questions drawn from the VFF database.',
+    'meta_description' => 'Recognise a French railway line from its route, a rolling stock series from its photo, or answer sourced questions on dates, companies, structures and stations: ten questions drawn from the VFF database.',
     'title' => 'Railway quiz',
-    'subtitle' => 'Recognise a line from its route or a series from its photo. Ten questions drawn from the VFF database, with no time limit.',
+    'subtitle' => 'Recognise a line from its route or a series from its photo, or test your knowledge of dates, companies, structures and stations. Ten questions drawn from the VFF database, with no time limit.',
     'links' => [
+        'home' => 'Railway quiz: recognise a line or a series in ten questions',
         'lines' => 'Quiz: recognise a line from its route',
         'materials' => 'Quiz: recognise a series from its photo',
     ],
@@ -22,6 +23,8 @@ return [
         'lines_text' => 'The route on its own, with no name and no map around it. The four lines offered are neighbours.',
         'materials' => 'Recognise the rolling stock',
         'materials_text' => 'A photo from Wikimedia Commons and four series of the same type.',
+        'facts' => 'Railway knowledge',
+        'facts_text' => 'Text questions on sourced facts: when a line opened, its company, the longest tunnel, a station\'s architect, the busiest station, the first series in service. At the easy level the wrong answers are far from the right one and the most specialised questions are left out.',
         'unavailable' => 'Not enough verified data for this game yet.',
     ],
     'levels' => [
@@ -91,6 +94,8 @@ return [
         'source' => 'From :source',
         'sheet_lines' => 'Open the line page',
         'sheet_materials' => 'Open the series page',
+        'source_page' => 'source page',
+        'sheet_facts' => 'Open the page',
     ],
     'result' => [
         'title' => 'Result',
@@ -103,5 +108,44 @@ return [
         'copy' => 'Copy the address',
         'copied' => 'Address copied.',
         'again' => 'New quiz',
+    ],
+    'facts' => [
+        'difficulty' => 'Question difficulty: :level',
+        'levels' => ['easy' => 'easy', 'medium' => 'medium', 'hard' => 'hard'],
+        'prompt' => [
+            'opening_year' => 'In which year did this line open?',
+            'electrification_year' => 'In which year was this line electrified?',
+            'company' => 'Which company held the concession of this line in :year?',
+            'milestone' => 'In which year did this milestone happen?',
+            'longest_tunnel' => 'Which of these tunnels is the longest?',
+            'longest_viaduct' => 'Which of these viaducts is the longest?',
+            'architect' => 'Which architect designed this station?',
+            'heritage_year' => 'In which year was this station, or part of its buildings, protected as a historic monument?',
+            'attendance' => 'Which of these stations had the most passengers in :year?',
+            'first_series' => 'Which of these series (:type) entered service first?',
+        ],
+        'reveal' => [
+            'opening_year' => '“:line” opened in :year.',
+            'electrification_year' => '“:line” was electrified in :year.',
+            'milestone' => '“:title”: :year.',
+            'heritage_year' => 'The :station station, or part of its buildings, was protected as a historic monument in :year (:protection).',
+            'architect' => 'The architect of :station station is :architect.',
+            'company' => ':company held the concession of “:line” in :year, from :from to :to.',
+            'company_open' => ':company held the concession of “:line” in :year, since :from.',
+            'longest_tunnel' => ':name is the longest of these tunnels, at :length m. The others: :others.',
+            'longest_viaduct' => ':name is the longest of these viaducts, at :length m. The others: :others.',
+            'attendance' => ':name is the busiest of these stations in :year, with :count passengers. The others: :others.',
+            'first_series' => 'The :name series entered service first, in :year. The others: :others.',
+        ],
+        'protection' => [
+            'registered' => 'listing',
+            'classified' => 'classification',
+        ],
+        'hint' => ['city' => 'Municipality', 'built' => 'Building construction'],
+        'sources' => [
+            'ign' => 'IGN, BD TOPO',
+            'pop' => 'Mérimée database (POP, French Ministry of Culture)',
+            'sncf' => 'SNCF Gares & Connexions',
+        ],
     ],
 ];

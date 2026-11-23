@@ -62,6 +62,7 @@ class EnrichAccidentsCommandTest extends TestCase
             ->expectsOutputToContain('document « payant » non lu')
             ->expectsOutputToContain('citation permise seulement')
             ->expectsOutputToContain('champ « commune_name » non corrigeable')
+            ->expectsOutputToContain('single_source doit être un booléen')
             ->assertFailed();
 
         $this->assertSame(0, AccidentReference::query()->count());
@@ -75,6 +76,9 @@ class EnrichAccidentsCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(['rapport', 'journal', 'retronews'], AccidentReference::query()->where('accident_id', $this->mande->id)->orderBy('position')->pluck('key')->all());
+        // Faits de l'article de presse, relus par vff:verify-accidents ; un document sans faits n'en garde aucun.
+        $facts = AccidentReference::query()->where('accident_id', $this->mande->id)->orderBy('position')->pluck('facts', 'key')->all();
+        $this->assertSame(['rapport' => null, 'journal' => ['date' => '1891-07-26', 'deaths' => 43, 'commune_insee' => '94080', 'deaths_provisional' => true], 'retronews' => null], $facts);
         $entries = AccidentContextEntry::query()->where('accident_id', $this->mande->id)->orderBy('position')->get();
         $this->assertSame(['circumstances', 'causes', 'disagreements'], $entries->map(fn ($e) => $e->section->value)->all());
         // Typographie : apostrophe courbe, espaces insécables dans les nombres et les heures.
@@ -94,6 +98,8 @@ class EnrichAccidentsCommandTest extends TestCase
         $this->assertSame('context', $mande->provenance['deaths']);
         $this->assertSame('2026-11-21', $mande->context_checked_on?->toDateString());
         $this->assertSame(43, $mande->context_corrections[0]['before']);
+        // Marque « source unique » : gardée pour la nature, fausse pour les autres corrections.
+        $this->assertSame([false, false, true, false], array_column($mande->context_corrections, 'single_source'));
         $this->assertStringContainsString('49', $mande->summary['fr']);
         // Nature et commune corrigées : fiche placée au centre de la commune, provenance « context », nom refait.
         $this->assertSame('derailment', $mande->kind->value);
@@ -109,6 +115,28 @@ class EnrichAccidentsCommandTest extends TestCase
 
         // Politesse : User-Agent générique de VFF.
         Http::assertSent(fn (Request $r) => $r->hasHeader('User-Agent', 'VFF-Bot/1.0 (+https://vff-project.org)'));
+    }
+
+    public function test_a_correction_to_person_struck_is_accepted_and_the_context_makes_the_fiche_public(): void
+    {
+        /** @var array<string, mixed> $data */
+        $data = require self::FIXTURES.'/reduced/1891-07-26-saint-mande.php';
+        $data['corrections'] = [['field' => 'kind', 'value' => 'person_struck', 'sources' => [array_key_first($data['sources'])],
+            'fr' => 'Personnes heurtées.', 'en' => 'People struck.', 'de' => 'Personen erfasst.']];
+        $dir = sys_get_temp_dir().'/vff-person-struck-'.bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents($dir.'/1891-07-26-saint-mande.php', '<?php return '.var_export($data, true).';');
+
+        try {
+            $this->assertNull($this->mande->fresh()->context_checked_on);
+            $this->artisan('vff:enrich-accidents', ['--dir' => $dir, '--offline' => true])->assertSuccessful();
+        } finally {
+            unlink($dir.'/1891-07-26-saint-mande.php');
+            rmdir($dir);
+        }
+
+        $this->assertSame('person_struck', $this->mande->fresh()->kind->value);
+        $this->assertNotNull(Accident::query()->where('slug', '1891-07-26-saint-mande')->first(), 'un contexte sourcé suffit à publier un heurt de personne');
     }
 
     public function test_second_run_offline_changes_nothing(): void

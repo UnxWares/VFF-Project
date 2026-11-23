@@ -1,0 +1,12 @@
+query LineStations {
+  line(slug: "rfn-420000") {
+    name
+    stops(era: 1950) {
+      position
+      pk_label
+      effective_status
+      is_terminal
+      station { slug name city }
+    }
+  }
+}

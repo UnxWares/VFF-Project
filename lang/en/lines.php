@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalling by kilometre point (PK)',
         'heritage' => 'Run by an association',
         'route_through_time' => 'The route through time',
+        'spacetime' => 'Where and when',
         'history' => 'History of the line',
         'chronicle' => 'Detailed chronology, section by section',
         'notes' => 'Notes and sources',
@@ -120,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Block system (train spacing: BAL, BAPR, BM…) and train protection (KVB, TVM, ETCS) along the route, current state. Source: SNCF Réseau Open Data (block systems, lines fitted with KVB). On a high-speed line, signalling is in the cab.',
         'protection' => 'Train protection:',
+        'remote_control' => 'Centralised control:',
         'cabin' => 'Cab signalling:',
         'block' => 'Block system:',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -127,6 +129,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, automatic light block',
             'BAL-VB' => 'BAL, bidirectional track',
+            'NONE' => 'No block system',
             'BAL-Tram' => 'Tram automatic block',
             'BAPR' => 'BAPR, restricted permissive automatic block',
             'BAPR-DV' => 'BAPR, double track',
@@ -137,6 +140,7 @@ return [
             'CAPI' => 'CAPI, computer-assisted block',
             'CT' => 'Telephone block, double track',
             'CT-VU' => 'Telephone block, single track',
+            'CC' => 'CC, centralised control (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (up to 300 km/h)',
             'TVM-430' => 'TVM 430 (up to 320 km/h)',
             'ETCS_L1' => 'ETCS level 1',
@@ -198,7 +202,9 @@ return [
         'all_states' => 'In service and closed',
         'heritage' => 'Heritage railways only',
         'sort_label' => 'Sort by',
+        'sort_relevance' => 'Relevance',
         'sort_name' => 'Name, A to Z',
+        'approximate' => 'No line matches “:query” exactly. These are the closest names.',
         'sort_name_desc' => 'Name, Z to A',
         'sort_code' => 'Line code',
         'reset' => 'Reset filters',
@@ -231,6 +237,22 @@ return [
     ],
 
     // Phases of the line (App\Services\LinePhases): selector next to the map.
+    // "Where and when" diagram of the sheet (LineSpaceTime.svelte): the line laid out, one band per phase.
+    'spacetime' => [
+        'intro' => 'Each band shows the whole line, end to end, on a date when it changes: you can see where it opened, lost its passenger trains, closed, was lifted or reopened. A mark under a band shows what changes on that date. Choose a date to read its events and their sources.',
+        'label' => 'The line date by date',
+        'label_ends' => 'The line date by date, from :from to :to',
+        'legend' => 'Diagram legend',
+        'changed' => 'Changes on this date',
+        'state' => 'State: :list.',
+        'state_part' => ':state from km :from to km :to',
+        'range' => 'From km :from to km :to',
+        'since' => 'Since: :date',
+        'loading' => 'Reading the route…',
+        'failed' => 'The route of the line could not be read, so the diagram is not available.',
+        'order_note' => 'Kilometres are counted along the known route, in kilometre post order; a branch is placed after the main line.',
+    ],
+
     'phases' => [
         'title' => 'Phases of the line',
         'intro' => 'The whole line at each date when its track or traffic changed, according to the dates given by the sources. The map opens on the line at its greatest length; pick a phase to see its full state at that date.',
@@ -306,6 +328,8 @@ return [
         'col_fact' => 'Fact and source',
         'col_status' => 'Use on this page',
         'differs_from' => 'Other date for the same fact:',
+        'correct' => 'Correct',
+        'correct_label' => 'Propose a correction: :event, :date',
         'conflict_title' => 'Sources disagree',
         'status' => [
             'retained' => 'Used',
@@ -545,6 +569,7 @@ return [
     'toc' => [
         'label' => 'Contents of this page',
         'trace' => 'Route',
+        'spacetime' => 'Where and when',
         'about' => 'About',
         'history' => 'History',
         'decades' => 'Decades',
@@ -552,14 +577,24 @@ return [
         'sections' => 'Named sections',
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
+        'schematic' => 'Diagram',
         'profile' => 'Gradient profile',
+        'speeds' => 'Speeds',
+        'electrification' => 'Electrification',
         'level-crossings' => 'Level crossings',
         'greenways' => 'Greenway',
+        'structures' => 'Structures',
         'chronicle' => 'Chronology',
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',
         'gallery' => 'Photos',
+        'further-reading' => 'Further reading',
         'archives' => 'Archives',
         'notes' => 'Sources',
+    ],
+
+    // Données structurées (JSON-LD) de la fiche ligne.
+    'json_ld' => [
+        'length' => 'Official length (km)',
     ],
 ];

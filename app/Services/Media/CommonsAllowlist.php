@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Media;
 
+use App\Models\Media;
 use App\Support\Media\CommonsImagePath;
 use Illuminate\Cache\RedisStore;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -27,7 +29,7 @@ use Illuminate\Support\Str;
  * liste qui ne contient pas le fichier (isBuilt) : le relais répond alors 503 et non 404.
  *
  * Sources : colonnes `media` (thumb_url, display_url), `accident_images` (image_url, thumb_url),
- * `materials.image` (thumb_url, display_url), articles du journal (toute adresse de Commons des fichiers
+ * `materials.image` (thumb_url, display_url), `station_heritage.image_url`, articles du journal (toute adresse de Commons des fichiers
  * Markdown), propositions de contribution en attente. Un fichier que la lecture d'une proposition
  * (CommonsFileResolver::lookup) vient d'aider à retrouver est ajouté aussitôt (add), pour l'aperçu.
  */
@@ -165,7 +167,10 @@ final class CommonsAllowlist
     {
         $like = 'https://%.wikimedia.org/wikipedia/commons/%';
         $columns = fn (string $table, string ...$cols): array => array_merge(...array_map(
-            fn (string $c): array => DB::table($table)->where($c, 'like', $like)->distinct()->pluck($c)->all(),
+            fn (string $c): array => DB::table($table)->where($c, 'like', $like)
+                // Médias masqués par le réglage vff.media.show_non_commercial : jamais relayés.
+                ->when($table === 'media', fn ($q) => $q->whereRaw(Media::displayableSql('media')))
+                ->distinct()->pluck($c)->all(),
             $cols,
         ));
         $materials = [];
@@ -181,6 +186,8 @@ final class CommonsAllowlist
             'media' => $columns('media', 'thumb_url', 'display_url'),
             'accident_images' => $columns('accident_images', 'image_url', 'thumb_url'),
             'materials' => array_merge(...$materials),
+            // Images libres des bâtiments de gare protégés (vff:import-station-heritage) ; table absente tant que la migration n'est pas appliquée.
+            'station_heritage' => Schema::hasTable('station_heritage') ? $columns('station_heritage', 'image_url') : [],
             'journal' => $this->urlsInFiles(glob(resource_path('content/journal/*.md')) ?: []),
             'contributions' => $this->contributionUrls(),
         ];

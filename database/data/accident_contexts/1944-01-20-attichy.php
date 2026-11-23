@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Attichy du 20 janvier 1944 (recherche du 21/11/2026).
 return [
     'slug' => '1944-01-20-attichy',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1940' => [
             'provider' => 'wikipedia',
@@ -47,9 +47,29 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Organisation des groupes FFI (dont le groupe d\'Attichy) ; le seul fait ferroviaire cité est l\'incendie de 27 wagons près de la gare de Vieux-Moulin le 18 août 1944 ; rien sur Attichy en janvier 1944.',
         ],
+        'ddb-1944-01-22-hakenkreuzbanner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hakenkreuzbanner du 22 janvier 1944',
+            'publisher' => 'Hakenkreuzbanner (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1944-01-22',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/ZERSPRHLVPZFJJM35SSXF2SKABKAV4LL?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 22 janvier : un train de voyageurs de Compiègne vers Soissons déraille parce que les rails avaient été arrachés ; un nouvel acte de sabotage.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Le Hakenkreuzbanner du 22 janvier 1944 rapporte qu\'un train de voyageurs de Compiègne vers Soissons a déraillé parce que les rails avaient été arrachés, qu\'il présente comme un nouvel acte de sabotage ; l\'extrait ne donne pas de bilan (12 morts dans la fiche). Lieu (ligne de Compiègne à Soissons) et nature (sabotage) sont confirmés, sous réserve de la propagande de la presse sous l\'Occupation.',
+                'en' => 'The Hakenkreuzbanner of 22 January 1944 reports that a passenger train from Compiègne to Soissons derailed because the rails had been torn up, which it presents as a new act of sabotage; the extract gives no toll (12 dead in the record). Place (Compiègne to Soissons line) and nature (sabotage) are confirmed, subject to the propaganda of the press under the Occupation.',
+                'de' => 'Das Hakenkreuzbanner vom 22. Januar 1944 berichtet, ein Personenzug von Compiègne nach Soissons sei entgleist, weil die Schienen aufgerissen worden waren, was es als neuen Sabotageakt darstellt; der Auszug nennt keine Bilanz (12 Tote in der Datenbank). Ort (Strecke Compiègne-Soissons) und Art (Sabotage) sind bestätigt, vorbehaltlich der Propaganda der Presse unter der Besatzung.',
+                'sources' => ['ddb-1944-01-22-hakenkreuzbanner'],
+            ],
             [
                 'fr' => 'Le 20 janvier 1944, vers 10 h 30, un train à destination de Soissons a déraillé au lieu-dit Le Buissonnet, sur la commune d\'Attichy (Oise), sur la ligne de Compiègne à Soissons.',
                 'en' => 'On 20 January 1944, at about 10.30 am, a train bound for Soissons derailed at the place called Le Buissonnet, in the commune of Attichy (Oise), on the Compiègne to Soissons line.',

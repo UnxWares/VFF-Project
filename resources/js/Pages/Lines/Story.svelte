@@ -10,6 +10,7 @@
     import { firstOfMonth, formatLocale, tieUnits } from '$lib/typo.js';
     import { cleanUrl, linkLabel } from '$lib/linkLabel.js';
     import { breadcrumbSchema } from '$lib/structuredData.js';
+    import { mediaCaption } from '$lib/mediaCredits.js';
     import {
         documentDate,
         documentMeta,
@@ -79,7 +80,9 @@
     description={t('stories.meta_description', { event: title, date: dateText, line: line.name })}
     {path}
     type="article"
-    image={first ? { url: first.display_url ?? first.thumb_url, alt: first.caption } : null}
+    image={first
+        ? { url: first.display_url ?? first.thumb_url, alt: mediaCaption(first, lang) }
+        : null}
     jsonLd={(origin) => [
         breadcrumbSchema(origin, [
             { name: t('common.app_full'), path: '/' },

@@ -6,7 +6,10 @@ use App\Models\Line;
 use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
 use App\Models\Material;
+use App\Services\Materials\ElectrificationBound;
+use App\Services\Materials\LineMaterialDoubt;
 use App\Services\Materials\LineMaterialEnd;
+use App\Services\Materials\MaterialFamilyMembers;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -47,6 +50,21 @@ final class LineSheet
      */
     public const PAGE_ADDED = ['portions_count', 'portions_version'];
 
+    /**
+     * Clés de la fiche que la page web reçoit après coup (props différées de LineController::show, lues par
+     * pageDeferred()) : ce qui est montré plus bas que le haut de la page (signalisation par PK, sections
+     * nommées, train touristique, matériel, sources). L'API REST et GraphQL les donnent dans la fiche.
+     */
+    public const PAGE_DEFERRED = ['signalling', 'sections', 'heritage', 'materials', 'sources'];
+
+    /**
+     * Clés de la fiche de la page web au premier affichage (build($line, forPage: true)), dans l'ordre : ce que
+     * montrent l'en-tête, le tracé, « Où et quand », « À propos », l'histoire, les décennies, les gares et la
+     * chronologie (dont les événements servent au texte des phases).
+     */
+    public const PAGE_KEYS = ['line', 'stats', 'phases', 'best_phase', 'phases_unexplained', 'decades', 'chronicle',
+        'stations', 'portions_count', 'portions_version'];
+
     /** Gestionnaires d'infrastructure (Wikidata) : jamais « exploitants » des trains, avec leurs années d'existence. */
     public const INFRASTRUCTURE_MANAGERS = [
         'Q1071978' => ['name' => 'Réseau ferré de France', 'from' => 1997, 'to' => 2014],
@@ -76,22 +94,6 @@ final class LineSheet
      */
     public function build(Line $line, bool $forPage = false): array
     {
-        // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (SheetGallery).
-        $line->load('materials');
-        // Liens de la ligne et leurs périodes sûres, lus une fois : périodes de chaque série (toutes sources
-        // réunies, de la plus ancienne à la plus récente) et relations assurées (LineMaterial::relations), datées
-        // ou non : une relation sans date (« Argentan - Granville ») se montre aussi.
-        $materialLinks = LineMaterial::query()->where('line_id', $line->id)->with('shownPeriods')->get()->groupBy('material_id');
-        $materialPeriods = $materialLinks
-            ->map(fn ($links): array => $links->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
-                ->sortBy(fn (LineMaterialPeriod $p): array => [($p->start_date ?? $p->end_date)?->toDateString() ?? '9999', $p->end_date?->toDateString() ?? '9999'])
-                ->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
-            ->filter()
-            ->all();
-        $materialRelations = $materialLinks
-            ->map(fn ($links): array => array_values($links->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()))
-            ->all();
-
         // Trafic dominant d'une ère : un trafic connu passe avant « non renseigné », même plus court
         // (Nice - Digne : « Trafic non renseigné » en tête d'une ligne desservie par des trains régionaux).
         $eraRows = DB::select(
@@ -137,7 +139,7 @@ final class LineSheet
         // gare) pour l'en-tête, la liste, la carte et les décennies : aucun repli divergent.
         // Calculées une fois (requête des terminus comprise : environ 130 à 210 ms sur la LGV Sud-Est),
         // puis reprises par la vue « décennie par décennie » (LineStations::byEraOf).
-        $lineStationData = app(LineStations::class)->forLine($line->id);
+        $lineStationData = app(LineStations::class)->forLine($line->id, $line->name);
         $stations = $this->lineStations($lineStationData);
 
         // Événements : lecture brute (pas de cast enum → un type ajouté en base
@@ -227,35 +229,6 @@ final class LineSheet
             ];
         }
 
-        // Sans la signalisation en cabine déjà nommée (« TVM 300 » une fois, pas deux).
-        $signallingRanges = $latestEraId
-            ? app(SignallingRanges::class)->forLine($line->id, $latestEraId, withoutBlockSystems: true)
-            : [];
-
-        // Sections nommées (LGV Sud-Est / Rhône-Alpes / Méditerranée…)
-        $sections = DB::table('line_sections')
-            ->where('line_id', $line->id)
-            ->orderBy('pk_start_m')
-            ->get(['name', 'alt_names', 'pk_start_m', 'pk_end_m',
-                'opening_year_from', 'opening_year_to', 'description', 'source_url'])
-            ->map(fn ($s) => [
-                'name' => $s->name,
-                'alt_names' => $s->alt_names ? json_decode($s->alt_names, true) : [],
-                'pk_start_m' => (int) $s->pk_start_m,
-                'pk_end_m' => (int) $s->pk_end_m,
-                'pk_start_label' => sprintf('%d+%03d', intdiv($s->pk_start_m, 1000), $s->pk_start_m % 1000),
-                'pk_end_label' => sprintf('%d+%03d', intdiv($s->pk_end_m, 1000), $s->pk_end_m % 1000),
-                'length_km' => round(($s->pk_end_m - $s->pk_start_m) / 1000, 1),
-                'opening_year_from' => $s->opening_year_from,
-                'opening_year_to' => $s->opening_year_to,
-                'description' => $s->description,
-                // Description tirée de Wikipédia, en français : lang="fr" sur une page EN ou DE.
-                'description_lang' => $s->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
-                'source_url' => $s->source_url,
-            ])->values()->all();
-        // Étapes de mise en service de chaque section : les phases datées de ses années d'ouverture.
-        $sections = self::sectionStages($sections, $phases['phases']);
-
         // Charge les métadonnées encyclopédiques + sources
         $encyclopedia = DB::table('lines')
             ->where('id', $line->id)
@@ -265,8 +238,6 @@ final class LineSheet
                 'archeo_url', 'regions', 'departements', 'historical_operators',
                 'encyclopedia_updated_at', 'network',
             ]);
-        $sources = DB::table('line_sources')->where('line_id', $line->id)
-            ->get(['source_type', 'source_url', 'fetched_at', 'fields_provided']);
 
         $currentSummary = $eraSummary->firstWhere('year', (int) ($displayEra->year ?? 0));
 
@@ -320,9 +291,6 @@ final class LineSheet
                 'facts' => LineFacts::build($line, $encyclopedia, $stats, $displayEra ? (int) $displayEra->year : null,
                     (bool) ($displayEra->is_current ?? false)),
             ],
-            // Données de la fiche : sources de la ligne (line_sources, lien réparé) et sources des
-            // tronçons affichés (tracé, vitesses, électrification, signalisation), cf. dataSources().
-            'sources' => $this->dataSources($line, $sources, $latestEraId),
             'stats' => $stats,
             'segments' => $segmentsGeoJson,
             'era_summary' => $eraSummary,
@@ -336,16 +304,163 @@ final class LineSheet
             'decades' => $decades,
             'chronicle' => $chronicle,
             'stations' => $forPage ? $stations->map(fn (array $s): array => array_diff_key($s, array_flip(self::PAGE_STATION_OMITTED)))->values() : $stations,
-            'signalling' => $signallingRanges,
+        ];
+
+        if (! $forPage) {
+            // Fiche complète (API) : mêmes clés, dans le même ordre qu'avant le chargement différé de la page.
+            $later = $this->deferredParts($line, $latestEraId, $phases['phases']);
+
+            return [
+                'line' => $sheet['line'],
+                'sources' => $later['sources'],
+                ...array_diff_key($sheet, ['line' => true]),
+                'signalling' => $later['signalling'],
+                'sections' => $later['sections'],
+                'events' => $events,
+                'heritage' => $later['heritage'],
+                'materials' => $later['materials'],
+            ];
+        }
+
+        return [
+            ...array_diff_key($sheet, array_flip(self::PAGE_OMITTED)),
+            'portions_count' => count($phases['portions']),
+            'portions_version' => $phases['version'],
+        ];
+    }
+
+    /**
+     * Ce que la page web reçoit après son premier affichage (PAGE_DEFERRED, props différées de
+     * LineController::show) : les mêmes valeurs que la fiche complète de build(). L'ère affichée est relue
+     * par une seule requête indexée (ère courante si la ligne y a des tronçons, sinon la plus récente), les
+     * phases ne sont relues (cache de LinePhases) que si la ligne a des sections nommées.
+     *
+     * @return array{signalling: list<array<string, mixed>>, sections: list<array<string, mixed>>, heritage: list<array<string, mixed>>, materials: list<array<string, mixed>>, sources: list<array<string, mixed>>}
+     */
+    public function pageDeferred(Line $line): array
+    {
+        $eraId = DB::selectOne(
+            'SELECT e.id FROM eras e
+             WHERE EXISTS (SELECT 1 FROM line_segments ls WHERE ls.line_id = ? AND ls.era_id = e.id)
+             ORDER BY e.is_current DESC, e.year DESC LIMIT 1',
+            [$line->id],
+        )?->id;
+
+        return $this->deferredParts($line, $eraId === null ? null : (int) $eraId, null);
+    }
+
+    /**
+     * Parties de la fiche montrées plus bas dans la page (PAGE_DEFERRED). `$phases` : phases datées déjà
+     * calculées (build), sinon relues au besoin.
+     *
+     * @param  ?list<array<string, mixed>>  $phases
+     * @return array{signalling: list<array<string, mixed>>, sections: list<array<string, mixed>>, heritage: list<array<string, mixed>>, materials: list<array<string, mixed>>, sources: list<array<string, mixed>>}
+     */
+    private function deferredParts(Line $line, ?int $latestEraId, ?array $phases): array
+    {
+        // Sections nommées (LGV Sud-Est / Rhône-Alpes / Méditerranée…)
+        $sections = DB::table('line_sections')
+            ->where('line_id', $line->id)
+            ->orderBy('pk_start_m')
+            ->get(['name', 'alt_names', 'pk_start_m', 'pk_end_m',
+                'opening_year_from', 'opening_year_to', 'description', 'source_url'])
+            ->map(fn ($s) => [
+                'name' => $s->name,
+                'alt_names' => $s->alt_names ? json_decode($s->alt_names, true) : [],
+                'pk_start_m' => (int) $s->pk_start_m,
+                'pk_end_m' => (int) $s->pk_end_m,
+                'pk_start_label' => sprintf('%d+%03d', intdiv($s->pk_start_m, 1000), $s->pk_start_m % 1000),
+                'pk_end_label' => sprintf('%d+%03d', intdiv($s->pk_end_m, 1000), $s->pk_end_m % 1000),
+                'length_km' => round(($s->pk_end_m - $s->pk_start_m) / 1000, 1),
+                'opening_year_from' => $s->opening_year_from,
+                'opening_year_to' => $s->opening_year_to,
+                'description' => $s->description,
+                // Description tirée de Wikipédia, en français : lang="fr" sur une page EN ou DE.
+                'description_lang' => $s->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
+                'source_url' => $s->source_url,
+            ])->values()->all();
+        // Étapes de mise en service de chaque section : les phases datées de ses années d'ouverture (phases
+        // relues seulement si la ligne a des sections).
+        if ($sections !== []) {
+            $sections = self::sectionStages($sections, $phases ?? LinePhases::forLine($line)['phases']);
+        }
+
+        $sources = DB::table('line_sources')->where('line_id', $line->id)
+            ->get(['source_type', 'source_url', 'fetched_at', 'fields_provided']);
+
+        return [
+            // Sans la signalisation en cabine déjà nommée (« TVM 300 » une fois, pas deux).
+            'signalling' => $latestEraId
+                ? app(SignallingRanges::class)->forLine($line->id, $latestEraId, withoutBlockSystems: true)
+                : [],
             'sections' => $sections,
-            'events' => $events,
             // Exploitations associatives (trains touristiques, vélorails), cf. vff:import-heritage-lines.
             'heritage' => $this->heritageOperations($line->id),
-            // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
-            // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
-            // les plus anciennes d'abord.
-            // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-            'materials' => LineMaterialEnd::sort($line->materials->unique('id')->values()->map(fn ($m) => [
+            'materials' => $this->materials($line),
+            // Données de la fiche : sources de la ligne (line_sources, lien réparé) et sources des
+            // tronçons affichés (tracé, vitesses, électrification, signalisation), cf. dataSources().
+            'sources' => $this->dataSources($line, $sources, $latestEraId),
+        ];
+    }
+
+    /**
+     * Matériel roulant de la ligne, avec ses périodes et relations sur la ligne.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function materials(Line $line): array
+    {
+        // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (SheetGallery).
+        $line->load('materials');
+        // Liens de la ligne et leurs périodes sûres, lus une fois : périodes de chaque série (toutes sources
+        // réunies, de la plus ancienne à la plus récente) et relations assurées (LineMaterial::relations), datées
+        // ou non : une relation sans date (« Argentan - Granville ») se montre aussi.
+        $materialLinks = LineMaterial::query()->where('line_id', $line->id)->with('shownPeriods')->get()->groupBy('material_id');
+        $materialPeriods = $materialLinks
+            ->map(fn ($links): array => $links->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
+                ->sortBy(fn (LineMaterialPeriod $p): array => [($p->start_date ?? $p->end_date)?->toDateString() ?? '9999', $p->end_date?->toDateString() ?? '9999'])
+                ->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
+            ->filter()
+            ->all();
+        $materialRelations = $materialLinks
+            ->map(fn ($links): array => array_values($links->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()))
+            ->all();
+
+        // Électricité sans caténaire : une série électrique n'a pas circulé sur la ligne avant son électrification
+        // (ElectrificationBound) ; la borne est servie avec son motif, jamais comme une date de service.
+        $bound = $line->materials->contains(fn ($m): bool => ElectrificationBound::isElectric($m)) ? ElectrificationBound::lineDate($line) : null;
+
+        // Séries et leurs versions liées à la même ligne : la famille n'est pas montrée à côté de ses versions.
+        $slugs = $line->materials->pluck('slug')->all();
+        $hidden = [];
+        $familyOf = [];
+        foreach ($line->materials as $m) {
+            $family = MaterialFamilyMembers::familyOf($m->slug);
+            if ($family !== null && in_array($family, $slugs, true)) {
+                $familyOf[$m->slug] = $family;
+            }
+        }
+        $familyNames = $line->materials->whereIn('slug', array_unique(array_values($familyOf)))->pluck('name', 'slug')->all();
+        foreach ($line->materials->whereIn('slug', array_unique(array_values($familyOf))) as $family) {
+            // Une famille qui porte des périodes sûres que ses versions n'ont pas garde sa tuile.
+            if (empty($materialPeriods[$family->id])) {
+                $hidden[$family->slug] = true;
+            }
+        }
+
+        // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
+        // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
+        // les plus anciennes d'abord.
+        // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
+        return LineMaterialEnd::sort($line->materials->unique('id')->reject(fn ($m) => isset($hidden[$m->slug]))->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks, $bound, $familyOf, $familyNames): array {
+            $periods = $materialPeriods[$m->id] ?? [];
+            $earliest = null;
+            if ($bound !== null && ElectrificationBound::appliesTo($m, $bound['date'])) {
+                $periods = ElectrificationBound::clampPeriods($periods, $bound);
+                $earliest = ['reason' => ElectrificationBound::REASON] + $bound;
+            }
+
+            return [
                 'slug' => $m->slug,
                 'name' => $m->name,
                 'type' => $m->type,
@@ -358,26 +473,23 @@ final class LineSheet
                 // Retrait de la série contredit par une période datée sur cette ligne (CC 80000 : retrait 1964 d'après
                 // Wikidata, « jusqu'en 1977 » sur Paris - Argentan - Granville d'après son article) : il n'est pas
                 // montré comme un fait, et reste lisible dans `in_service_to_contradicted`.
-                'in_service_to' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? null : $m->in_service_to,
-                'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? $m->in_service_to : null,
-                'periods' => $materialPeriods[$m->id] ?? [],
+                'in_service_to' => self::contradictedRetirement($m->in_service_to, $periods) ? null : $m->in_service_to,
+                'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $periods) ? $m->in_service_to : null,
+                'periods' => $periods,
                 'relations' => $materialRelations[$m->id] ?? [],
+                // Date la plus ancienne possible sur la ligne et son motif (`reason` : `electrification`), null sans borne.
+                'earliest_on_line' => $earliest,
+                // Lien que toutes les sources mettent en doute (essai, présentation, commande, acheminement à vide…) :
+                // `LineMaterialDoubt::REASONS`, null pour une série qui a circulé. La fiche le range à part.
+                'link_doubt' => empty($periods) ? LineMaterialDoubt::reason($materialLinks[$m->id] ?? []) : null,
+                // Famille dont la série est une version, quand la famille est aussi liée à la ligne.
+                'family' => isset($familyOf[$m->slug]) ? ['slug' => $familyOf[$m->slug], 'name' => $familyNames[$familyOf[$m->slug]] ?? $familyOf[$m->slug]] : null,
                 // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
                 'image' => Material::thumbnail($m->image),
                 // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.
-                'end' => LineMaterialEnd::of($m, $materialPeriods[$m->id] ?? []),
-            ])->all()),
-        ];
-
-        if (! $forPage) {
-            return $sheet;
-        }
-
-        return [
-            ...array_diff_key($sheet, array_flip(self::PAGE_OMITTED)),
-            'portions_count' => count($phases['portions']),
-            'portions_version' => $phases['version'],
-        ];
+                'end' => LineMaterialEnd::of($m, $periods),
+            ];
+        })->all());
     }
 
     /**

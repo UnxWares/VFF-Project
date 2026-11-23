@@ -59,6 +59,8 @@ class MediaContributionController extends Controller
                 'value' => $l->value,
                 'name' => $l->label(),
                 'url' => $l->url(),
+                'family' => $l->family(),
+                'version' => $l->version(),
             ], ContentLicense::forMedia()),
             'precisions' => TraceContributionService::PRECISIONS,
             'limits' => [

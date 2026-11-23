@@ -5,7 +5,7 @@ namespace App\Services\Accidents;
 use App\Enums\AccidentDatePrecision;
 
 /**
- * Ce qu'UNE source dit d'un accident : sa date, et son lieu quand il a pu être ramené à une commune
+ * Ce qu'UNE source dit d'un accident : sa date, son bilan quand c'est un article de presse, et son lieu quand il a pu être ramené à une commune
  * (par ses coordonnées, par le nom de commune qu'elle cite, ou par le code INSEE de Wikidata).
  * Une valeur que la source ne donne pas, ou qu'on n'a pas su lire avec certitude, reste nulle : elle
  * ne confirme ni ne contredit rien.
@@ -31,6 +31,13 @@ final readonly class AccidentClaim
      */
     public const WIKIPEDIA_EDITION = 'wikipedia-edition';
 
+    /**
+     * Presse numérisée (Delpher, Deutsches Zeitungsportal, Europeana, Gallica, Le Temps...) : un article lu, dont le
+     * fichier de contexte écrit les faits (accident_references.facts). Tous les articles forment UNE famille, et un
+     * article ne la compte que s'il confirme à la fois la date, la commune et le bilan (AccidentVerifier).
+     */
+    public const PRESS = 'press';
+
     public function __construct(
         public int $sourceId,
         public string $provider,
@@ -46,6 +53,8 @@ final readonly class AccidentClaim
         public ?string $communeName,
         public ?float $lat,
         public ?float $lng,
+        public ?int $deaths = null,
+        public bool $deathsProvisional = false,
     ) {}
 
     /**
@@ -64,6 +73,8 @@ final readonly class AccidentClaim
             'commune' => $this->communeName,
             'lat' => $this->lat !== null ? round($this->lat, 5) : null,
             'lng' => $this->lng !== null ? round($this->lng, 5) : null,
+            'deaths' => $this->deaths,
+            'deaths_provisional' => $this->deathsProvisional ? true : null,
             'retrieved_at' => $this->retrievedAt,
         ], fn ($v) => $v !== null);
     }

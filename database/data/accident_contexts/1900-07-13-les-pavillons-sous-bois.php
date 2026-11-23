@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne de Bondy à Aulnay-sous-Bois, entrée en gare de Gargan, vers 18 h 30, les trois dernières voitures déraillent après le déclenchement inopiné d\'un aiguillage, un mort et sept blessés ; l\'aiguilleur invoque un violent orage.',
         ],
         'delpher-noordbrabant-1900-07-16' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Orage violent avec grêle, ligne coupée, train déraillé à Gargan, voyageurs sautant des voitures, un vieillard de 75 ans mort.',
         ],
         'delpher-noordbrabanter-1900-07-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',
@@ -48,7 +48,7 @@ return [
             'note' => 'Train déraillé près de Gargan sur le réseau de l\'Est : un voyageur tué, cinq blessés graves.',
         ],
         'delpher-vaderland-1900-07-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten',

@@ -1,0 +1,45 @@
+<?php
+
+// "Speeds" section of the line page: nominal maximum speed by chainage (SNCF Réseau, dataset
+// "vitesse-maximale-nominale-sur-ligne") and dated changes read in Wikipedia.
+return [
+    'title' => 'Maximum speeds',
+    'intro' => 'Nominal maximum line speed today, section by section, according to SNCF Réseau: from :min to :max km/h.',
+    'intro_single' => 'Nominal maximum line speed today, according to SNCF Réseau: :max km/h over the whole part described.',
+    'intro_history_only' => 'SNCF Réseau publishes no speed for this line. The dated changes below come from its Wikipedia article.',
+    'stat_max' => 'Highest speed',
+    'stat_min' => 'Lowest speed',
+    'stat_top_share' => 'At the highest speed',
+    'stat_covered' => 'Length described',
+    'chart_label' => 'Maximum speed by kilometre point',
+    'axis_pk' => 'Kilometre point (km)',
+    'range_label' => 'Kilometre points :from to :to: :speed km/h over :km km',
+    'hint' => 'Hover over the chart or move through the sections with the keyboard to read their speed.',
+    'gap_legend' => 'No published speed',
+    'show_table_one' => 'Show the section',
+    'show_table_other' => 'Show the :count sections',
+    'table_caption' => 'Maximum speed by section, in kilometre point order',
+    'col_from' => 'From km',
+    'col_to' => 'To km',
+    'col_length' => 'Length',
+    'col_speed' => 'Speed',
+    'history_title' => 'Dated speed changes',
+    'history_intro' => 'Read in the line’s Wikipedia article. A missing change does not mean the speed never changed.',
+    'kind' => [
+        'raise' => 'Speed raised to :speed km/h',
+        'raise_from' => 'Speed raised from :from to :speed km/h',
+        'lower' => 'Speed lowered to :speed km/h',
+        'lower_from' => 'Speed lowered from :from to :speed km/h',
+        'opening' => 'Opened at :speed km/h',
+        'state' => 'Permitted speed: :speed km/h',
+    ],
+    'scope' => [
+        'whole_line' => 'Whole line',
+        'section' => 'From :from to :to',
+        'section_pk' => 'Kilometre points :from to :to',
+    ],
+    'source_link' => 'Wikipedia',
+    'source_hint' => 'article “:title”, revision read',
+    'source' => 'Source: SNCF Réseau, nominal maximum speed on line (ODbL). Nominal line speed, without temporary restrictions or speeds specific to some trains. Kilometre points follow SNCF Réseau numbering.',
+    'history_source' => 'Dated changes: Wikipedia articles (CC BY-SA 4.0), facts recorded with a link to the revision read.',
+];

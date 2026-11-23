@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement entre Theillay et Salbris du 16 juillet 1918 (recherche du 21/11/2026).
 return [
     'slug' => '1918-07-16-salbris',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1918' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia, non lu (Gallica inaccessible depuis la machine).',
         ],
+        'ddb-1918-07-19-leipziger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Leipziger Tageblatt und Handelszeitung du 19 juillet 1918',
+            'publisher' => 'Leipziger Tageblatt und Handelszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1918-07-19',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/NC7H5BATLVWMYNJWEC7767EB6TGMWNJZ?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 19 juillet : près de Vierzon, un train de voyageurs déraille ; 18 voyageurs tués, 53 blessés dont 20 grièvement.',
+        ],
+        'kb-1918-07-18-nieuwe-tilburgsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'Nieuwe Tilburgsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1918-07-18',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010224891:mpeg21:a0006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Paris du 17 juillet : près de Vierzon, sur la ligne de Tours à Bourges, un train de voyageurs déraille ; 18 morts et 53 blessés dont 20 graves.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -82,6 +110,18 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Le Leipziger Tageblatt du 19 juillet 1918 annonce, dans une brève de Paris du 17, un déraillement près de Vierzon avec 18 voyageurs tués et 53 blessés dont 20 grièvement, contre 15 morts à Salbris dans la fiche. Vierzon et Salbris sont voisines sur la même ligne ; le lieu précis et le bilan restent à départager.',
+                'en' => 'The Leipziger Tageblatt of 19 July 1918 reports, in a brief from Paris dated the 17th, a derailment near Vierzon with 18 passengers killed and 53 injured, 20 of them seriously, against 15 dead at Salbris in the record. Vierzon and Salbris are neighbours on the same line; the exact place and the toll remain to be settled.',
+                'de' => 'Das Leipziger Tageblatt vom 19. Juli 1918 meldet in einer Kurzmeldung aus Paris vom 17. eine Entgleisung bei Vierzon mit 18 getöteten Fahrgästen und 53 Verwundeten, davon 20 schwer, gegenüber 15 Toten in Salbris in der Datenbank. Vierzon und Salbris sind Nachbarn an derselben Strecke; der genaue Ort und die Bilanz bleiben abzuklären.',
+                'sources' => ['ddb-1918-07-19-leipziger'],
+            ],
+            [
+                'fr' => 'La Nieuwe Tilburgsche Courant du 18 juillet 1918 confirme, dans une dépêche Reuter de Paris du 17, le déraillement d\'un train de voyageurs près de Vierzon, sur la ligne de Tours à Bourges, avec 18 morts et 53 blessés dont 20 graves, ce qui diffère du bilan de 15 morts de la fiche et place l\'accident à Vierzon, à une trentaine de kilomètres de Salbris selon la même ligne.',
+                'en' => 'The Nieuwe Tilburgsche Courant of 18 July 1918 confirms, in a Reuter dispatch from Paris of the 17th, the derailment of a passenger train near Vierzon, on the Tours to Bourges line, with 18 dead and 53 injured, 20 of them seriously, which differs from the toll of 15 dead in the record and places the accident at Vierzon, some thirty kilometres from Salbris on the same line.',
+                'de' => 'Die Nieuwe Tilburgsche Courant vom 18. Juli 1918 bestätigt in einer Reuter-Meldung aus Paris vom 17. die Entgleisung eines Reisezugs bei Vierzon auf der Strecke von Tours nach Bourges, mit 18 Toten und 53 Verletzten, davon 20 schwer, was von der Bilanz von 15 Toten der Datenbank abweicht und das Unglück nach Vierzon verlegt, etwa dreißig Kilometer von Salbris an derselben Strecke.',
+                'sources' => ['kb-1918-07-18-nieuwe-tilburgsche-courant'],
+            ],
             [
                 'fr' => 'La date varie : la liste de Wikipédia place l\'accident au soir du 16 juillet 1918, alors que la brève du Temps, datée du 18 juillet, le situe « hier ». Le nombre de blessés diffère aussi selon qu\'on compte tous les blessés (environ 30) ou seulement les blessés graves (20).',
                 'en' => 'The date varies: the Wikipedia list places the accident on the evening of 16 July 1918, whereas the Le Temps item, dated 18 July, places it "yesterday". The number of injured also differs depending on whether all injured (about 30) or only the seriously injured (20) are counted.',

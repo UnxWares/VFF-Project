@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 14 février 1903, d\'après Le Matin du 15 février : vers 22 h 45, sur la ligne Nancy - Épinal, dans la forêt entre les gares de Bayon et de Charmes, un train de voyageurs déraille ; le mécanicien est tué, le chauffeur blessé, les trente voyageurs indemnes.',
         ],
         'nieuws-van-den-dag-1903-02-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Vierde blad. Buitenlandsch nieuws',
-            'publisher' => 'Het nieuws van den dag',
+            'publisher' => 'Het nieuws van den dag (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1903-02-17',
             'locator' => null,

@@ -20,7 +20,7 @@ return [
             'note' => 'Trois entrées du 23 décembre 1910 : Cadaujac (deux trains de marchandises, un mécanicien tué), Arbanats (cette fiche : express de Toulouse percuté par un omnibus de soldats permissionnaires, 3 morts, 21 blessés) et Montereau (1 mort, 32 blessés) ; renvoie à Le Matin des 24 et 25 décembre 1910 (non lu).',
         ],
         'delpher-courant-1910-12-27-matin' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De spoorweg-ongelukken in Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Résumé en néerlandais de Le Matin : bilan rectifié à trois morts, déclarations du mécanicien, vitesse jugée trop grande par l\'enquête, 21 blessés ; distingue Arbanats, Marmande, Montereau et un quatrième accident.',
         ],
         'delpher-courant-1910-12-27-reuter' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongelukken (dépêches Reuter du 24 décembre)',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêches de Bordeaux du 24 décembre : cinq morts, puis bilan définitif de trois morts et dix-huit blessés.',
         ],
         'delpher-tilburgsche-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk : Spoorwegongelukken',
@@ -62,7 +62,7 @@ return [
             'note' => 'Collision en gare d\'Arbanats, ligne Bordeaux-Sète, le vendredi ; une quarantaine de voyageurs, presque tous des soldats en permission, gravement blessés ; collision de Cadaujac peu avant, dans le brouillard.',
         ],
         'delpher-nieuwecourant-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -76,7 +76,7 @@ return [
             'note' => 'L\'enquête établit que le mécanicien du train de voyageurs roulait à 60 km/h et n\'a pas vu les signaux.',
         ],
         'delpher-nieuwecourant-1910-12-25' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen du 24 décembre',
@@ -90,7 +90,7 @@ return [
             'note' => 'Dépêche de Bordeaux : bilan définitif de 3 morts et 18 blessés.',
         ],
         'delpher-vaderland-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -104,7 +104,7 @@ return [
             'note' => 'Premier bilan : 6 morts à Arbanats.',
         ],
         'delpher-maasbode-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dépêches du 24 décembre',
@@ -118,7 +118,7 @@ return [
             'note' => 'Premier bilan : 5 morts à Arbanats.',
         ],
         'delpher-nederlander-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd nieuws',
@@ -171,6 +171,12 @@ return [
                 'en' => 'The sources differ on the roles of the trains: a stopping train of soldiers striking an express from Toulouse (Wikipedia list), an express running into a stopping train (De Nederlander), a passenger train colliding with an express from Toulon (Nieuwe Tilburgsche Courant). This accident must not be confused with those of the same evening at Cadaujac (two goods trains, a driver killed) and at Montereau (one dead, eleven to thirty-two injured depending on the source), which the Wikipedia list treats as separate entries.',
                 'de' => 'Die Quellen weichen in der Rolle der Züge voneinander ab: ein Personenzug mit Soldaten, der einen Schnellzug aus Toulouse rammt (Wikipedia-Liste), ein Schnellzug, der auf einen Personenzug auffährt (De Nederlander), ein Personenzug, der mit einem Schnellzug aus Toulon kollidiert (Nieuwe Tilburgsche Courant). Dieser Unfall darf nicht mit denen desselben Abends in Cadaujac (zwei Güterzüge, ein Lokführer getötet) und in Montereau (ein Toter, elf bis zweiunddreißig Verletzte je nach Quelle) verwechselt werden, die die Wikipedia-Liste als getrennte Einträge führt.',
                 'sources' => ['wp-liste-1910', 'delpher-nederlander-1910-12-27', 'delpher-tilburgsche-1910-12-27', 'delpher-courant-1910-12-27-matin'],
+            ],
+            [
+                'fr' => 'Bilan tranché : les premières dépêches du 24 décembre 1910 parlaient de six, puis de cinq morts ; les dépêches de Bordeaux des 25 et 27 décembre, reprises par trois journaux néerlandais, donnent le bilan définitif de 3 morts et 18 blessés, et Le Matin, résumé le 27 décembre, 3 morts et 21 blessés. La fiche (3 morts) est confirmée ; les cinq morts de la presse du premier jour sont un bilan provisoire.',
+                'en' => 'Toll settled: the first dispatches of 24 December 1910 spoke of six, then five dead; the dispatches from Bordeaux of 25 and 27 December, taken up by three Dutch newspapers, give the final toll of 3 dead and 18 injured, and Le Matin, summarised on 27 December, 3 dead and 21 injured. The record (3 dead) is confirmed; the five dead of the first day\'s press are a provisional toll.',
+                'de' => 'Bilanz geklärt: Die ersten Meldungen vom 24. Dezember 1910 sprachen von sechs, dann fünf Toten; die Meldungen aus Bordeaux vom 25. und 27. Dezember, von drei niederländischen Zeitungen übernommen, nennen die endgültige Bilanz von 3 Toten und 18 Verletzten, und Le Matin, am 27. Dezember zusammengefasst, 3 Tote und 21 Verletzte. Der Datensatz (3 Tote) ist bestätigt; die fünf Toten der Presse des ersten Tages sind eine vorläufige Bilanz.',
+                'sources' => ['delpher-vaderland-1910-12-24', 'delpher-maasbode-1910-12-24', 'delpher-nieuwecourant-1910-12-25', 'delpher-courant-1910-12-27-reuter', 'delpher-nederlander-1910-12-27', 'delpher-courant-1910-12-27-matin'],
             ],
         ],
     ],

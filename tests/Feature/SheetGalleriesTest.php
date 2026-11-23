@@ -102,7 +102,7 @@ class SheetGalleriesTest extends TestCase
 
     public function test_a_station_without_images_has_no_gallery(): void
     {
-        $this->get("/stations/{$this->origin->slug}")
+        $this->getWithDeferredProps("/stations/{$this->origin->slug}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Stations/Show')->where('media_count', 0));
         $this->getJson("/api/v1/stations/{$this->origin->slug}/media")
@@ -124,7 +124,7 @@ class SheetGalleriesTest extends TestCase
                 $this->actingAs($validator)->post("/validate/{$contribution->id}/approve")->assertSessionHas('success');
             }
             auth()->logout();
-            $this->get("/stations/{$this->origin->slug}")->assertInertia(fn (Assert $page) => $page->where('media_count', 0));
+            $this->getWithDeferredProps("/stations/{$this->origin->slug}")->assertInertia(fn (Assert $page) => $page->where('media_count', 0));
             $gallery = $this->getJson("/api/v1/stations/{$this->origin->slug}/media")->assertOk()->assertJsonPath('meta.total', 0);
             $list = $this->getJson("/api/v1/media?station={$this->origin->slug}")->assertOk()->assertJsonCount(0, 'data');
             $this->assertStringNotContainsString(basename($private), $gallery->getContent().$list->getContent());
@@ -138,7 +138,7 @@ class SheetGalleriesTest extends TestCase
         $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
         auth()->logout();
 
-        $this->get("/stations/{$this->origin->slug}")->assertInertia(fn (Assert $page) => $page->where('media_count', 1));
+        $this->getWithDeferredProps("/stations/{$this->origin->slug}")->assertInertia(fn (Assert $page) => $page->where('media_count', 1));
         $item = $this->getJson("/api/v1/stations/{$this->origin->slug}/media")
             ->assertOk()
             ->assertHeader('Cache-Control', 'max-age=300, public')
@@ -209,7 +209,7 @@ class SheetGalleriesTest extends TestCase
         $pending = $this->propose($this->member(), ['target_type' => 'event', 'event_id' => $event->id]);
         $media = $this->commonsMedia(LineEvent::class, $event->id);
 
-        $this->get("/lines/{$this->line->slug}")
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")
             ->assertOk()
             ->assertInertia(function (Assert $page) use ($event, $media): void {
                 /** @var list<array<string, mixed>> $list */
@@ -245,7 +245,7 @@ class SheetGalleriesTest extends TestCase
 
         DB::flushQueryLog();
         DB::enableQueryLog();
-        $this->get("/lines/{$this->line->slug}")->assertOk();
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")->assertOk();
         // Requêtes sur les images d'événements (celle de l'aperçu de partage porte sur les images de la ligne).
         $mediaQueries = array_filter(DB::getQueryLog(), fn (array $q): bool => str_contains($q['query'], 'from "media"') && in_array(LineEvent::class, $q['bindings'], true));
         DB::disableQueryLog();

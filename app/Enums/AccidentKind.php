@@ -12,11 +12,14 @@ namespace App\Enums;
 enum AccidentKind: string
 {
     /**
-     * Natures gardées en base mais jamais publiées (voir App\Models\Scopes\PublicAccidents).
+     * Natures dont une fiche n'est publiée que si elle repose sur une enquête officielle (source `bea-tt`) ou sur un
+     * contexte sourcé relu (`context_checked_on`, documents lus) : un heurt de personne ne se publie pas sur la
+     * seule mention d'une liste (décision du 22/11/2026, qui remplace celle du 19/11 : natures jamais publiées).
+     * Voir publishableSql() et App\Models\Scopes\PublicAccidents.
      *
      * @var list<string>
      */
-    public const HIDDEN = ['person_struck'];
+    public const SOURCED_ONLY = ['person_struck'];
 
     /** Collision entre trains, ou d'un train avec un obstacle sur la voie (heurtoir, engin). */
     case Collision = 'collision';
@@ -48,6 +51,20 @@ enum AccidentKind: string
     case Incident = 'incident';
 
     case Other = 'other';
+
+    /**
+     * Condition SQL « fiche publiable au regard de sa nature » : toute nature, sauf SOURCED_ONLY qui demande une source
+     * `bea-tt` ou un contexte sourcé. À combiner par ET avec `alias_of_id IS NULL`.
+     *
+     * @param  string  $table  nom ou alias de la table accidents dans la requête
+     */
+    public static function publishableSql(string $table = 'accidents'): string
+    {
+        $kinds = implode(', ', array_map(fn (string $k) => "'{$k}'", self::SOURCED_ONLY));
+
+        return "({$table}.kind NOT IN ({$kinds}) OR {$table}.context_checked_on IS NOT NULL OR EXISTS ("
+            ."SELECT 1 FROM accident_sources s WHERE s.accident_id = {$table}.id AND s.provider = 'bea-tt'))";
+    }
 
     /** @return list<string> */
     public static function values(): array

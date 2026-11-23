@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Schema;
  * est à part et ne touche ni la carte par ère ni `line_signalling`. Un fait par ligne, système,
  * date et portion (empreinte unique), jamais deviné : une date inconnue ou un système ambigu n'est pas gardé.
  *
- *   system          : BAL, BAPR, BM, CT, TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS, KVB
+ *   system          : BAL, BAPR, BM, CT, CC, TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS, KVB
  *   role            : block (cantonnement), cab (signalisation en cabine, TVM et ETCS, cantonnement ET contrôle),
- *                     speed_control (contrôle de vitesse : KVB, jamais un cantonnement)
+ *                     speed_control (contrôle de vitesse : KVB, jamais un cantonnement),
+ *                     remote_control (commande centralisée CC : CCVU, CCR, PCD ; commande à distance des postes, jamais un cantonnement)
  *   event_date      : date de la mise en service, lue dans l'article ; `date_precision` : day, month, year
  *   scope           : whole_line (l'article le dit), section (portion nommée), unspecified (l'article ne dit pas)
  *   section_from/to : lieux tels qu'écrits ; pk_start_m / pk_end_m : PK en mètres si l'article les donne

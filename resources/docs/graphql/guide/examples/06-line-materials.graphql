@@ -1,0 +1,13 @@
+query LineMaterials {
+  line(slug: "rfn-420000") {
+    name
+    material_links {
+      material { slug name type_label in_service_from in_service_to }
+      confidence
+      from_date
+      to_date
+      source_url
+      provenance { name license }
+    }
+  }
+}

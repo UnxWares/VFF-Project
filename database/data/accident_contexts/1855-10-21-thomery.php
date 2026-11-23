@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de Thomery du 21 octobre 1855 (recherche du 21/11/2026).
 return [
     'slug' => '1855-10-21-thomery',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1850' => [
             'provider' => 'wikipedia',
@@ -61,9 +61,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia, non lu.',
         ],
+        'kb-1855-10-24-le-courrier-de-la-meuse' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRAECE.',
+            'publisher' => 'Le Courrier de la Meuse (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1855-10-24',
+            'locator' => 'article « FRAECE. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMCC01:048210249:mpeg21:a00007:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 22 octobre : accident la veille à 4 h du matin sur le chemin de fer de Paris à Lyon, entre Thomery et Moret ; l\'express parti de Lyon à 19 h est arrivé sur un train de bestiaux qui le précédait.',
+        ],
+        'kb-1855-10-25-provinciale-noordbrabantsche-en-boss' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenlandsche Berigten.',
+            'publisher' => 'Provinciale Noordbrabantsche en Bossche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1855-10-25',
+            'locator' => 'article « Buitenlandsche Berigten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSADB01:000000895:mpeg21:a0004:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Même accident : l\'express parti de Lyon la veille à 19 h est entré sur un train de bétail entre Thomery et Moret.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Deux journaux néerlandais et belges des 24 et 25 octobre 1855 situent l\'accident la veille de la dépêche de Paris du 22, soit le 21 octobre vers 4 h du matin, sur la ligne de Paris à Lyon entre Thomery et Moret : l\'express parti de Lyon à 19 h a heurté un train de bestiaux qui le précédait. Date, lieu et nature sont confirmés ; les extraits lus ne donnent pas le bilan.',
+                'en' => 'Two Dutch-language and Belgian newspapers of 24 and 25 October 1855 place the accident on the day before the Paris dispatch of the 22nd, that is 21 October at about 4 am, on the Paris to Lyon line between Thomery and Moret: the express that had left Lyon at 7 pm ran into a cattle train ahead of it. Date, place and nature are confirmed; the extracts read do not give the toll.',
+                'de' => 'Zwei niederländischsprachige und belgische Zeitungen vom 24. und 25. Oktober 1855 verlegen das Unglück auf den Tag vor der Pariser Meldung vom 22., also den 21. Oktober gegen 4 Uhr morgens, auf der Strecke von Paris nach Lyon zwischen Thomery und Moret: Der um 19 Uhr aus Lyon abgefahrene Schnellzug fuhr auf einen vorausfahrenden Viehzug auf. Datum, Ort und Art sind bestätigt; die gelesenen Auszüge nennen die Bilanz nicht.',
+                'sources' => ['kb-1855-10-24-le-courrier-de-la-meuse', 'kb-1855-10-25-provinciale-noordbrabantsche-en-boss'],
+            ],
             [
                 'fr' => 'Le 21 octobre 1855, vers 4 h du matin, sur la ligne de Paris à Lyon, un train de bestiaux venant de la Nièvre et de Bourgogne (moutons et bœufs destinés à la consommation parisienne) peine sur la rampe de 5 pour mille qui sépare les gares de Moret et de Thomery. Le brouillard rend les rails glissants et le train avance à l\'allure d\'un homme au pas.',
                 'en' => 'On 21 October 1855, at about 4 a.m., on the Paris to Lyon line, a cattle train coming from the Nièvre and Burgundy (sheep and oxen intended for Parisian consumption) was struggling up the 5 per mille gradient between Moret and Thomery stations. Fog had made the rails slippery and the train was moving at walking pace.',

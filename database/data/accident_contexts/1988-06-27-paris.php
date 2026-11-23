@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de la gare de Lyon (Paris) du 27 juin 1988 (recherche du 21/11/2026).
 return [
     'slug' => '1988-06-27-paris',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => null,
         ],
+        'kb-1988-06-28-het-vrije-volk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp in Parijs: 41 doden, 40 gewonden Machinist bemerkt 600 meter voor aankomst op Gare de Lyon dat de...',
+            'publisher' => 'Het Vrije Volk (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1988-06-28',
+            'locator' => 'article « Treinramp in Parijs: 41 doden, 40 gewonden Machinist bemerkt 600 meter voor aankomst op Gare de Lyon dat de... », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010962855:mpeg21:a0137:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Reportage du 28 juin : collision la veille vers 19 h à la gare de Lyon ; dernier bilan de la SNCF : 41 morts et 40 blessés ; le mécanicien a vu les freins défaillir 600 mètres avant l\'arrivée.',
+        ],
+        'kb-1988-06-29-de-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'SPOORWEGEN PROBEREN OORZAAK MANKEMENT AAN REMMEN TE ACHTERHALEN Dodental treinramp Parijs loopt op tot 59',
+            'publisher' => 'De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1988-06-29',
+            'locator' => 'article « SPOORWEGEN PROBEREN OORZAAK MANKEMENT AAN REMMEN TE ACHTERHALEN Dodental treinramp Parijs loopt op tot 59 », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ABCDDD:010856610:mpeg21:a0103:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Le bilan de la catastrophe de Paris monte à 59, d\'après le correspondant du journal ; train de huit voitures contre un train prêt à partir, dans la partie souterraine de la gare de Lyon.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -114,6 +142,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 28 et 29 juin 1988 situent la collision la veille vers 19 h à la gare de Lyon, avec 41 morts et 40 blessés dans le dernier bilan de la SNCF du 28, puis un bilan monté à 59 le 29, contre 56 morts et 57 blessés dans la fiche, chiffres officiels de l\'enquête. Date, lieu et nature sont confirmés.',
+                'en' => 'Two Dutch newspapers of 28 and 29 June 1988 place the collision the previous evening at about 7 pm at the Gare de Lyon, with 41 dead and 40 injured in the latest SNCF toll of the 28th, then a toll risen to 59 on the 29th, against 56 dead and 57 injured in the record, the official inquiry figures. Date, place and nature are confirmed.',
+                'de' => 'Zwei niederländische Zeitungen vom 28. und 29. Juni 1988 verlegen den Zusammenstoß auf den Vorabend gegen 19 Uhr im Gare de Lyon, mit 41 Toten und 40 Verletzten in der letzten SNCF-Bilanz vom 28., dann einer auf 59 gestiegenen Bilanz am 29., gegenüber 56 Toten und 57 Verletzten in der Datenbank, den amtlichen Zahlen der Untersuchung. Datum, Ort und Art sind bestätigt.',
+                'sources' => ['kb-1988-06-28-het-vrije-volk', 'kb-1988-06-29-de-volkskrant'],
+            ],
             [
                 'fr' => 'La collision fait 56 morts et 57 blessés. Selon Wikipédia, c\'est le plus grave accident du réseau d\'Île-de-France depuis la création de la SNCF en 1938.',
                 'en' => 'The collision killed 56 people and injured 57. According to Wikipedia, it is the worst accident on the Île-de-France network since SNCF was created in 1938.',

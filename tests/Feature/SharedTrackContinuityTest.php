@@ -199,6 +199,62 @@ class SharedTrackContinuityTest extends TestCase
         $this->assertGreaterThan(350, $this->drawn(LineSegment::findOrFail($long)));
     }
 
+    // ─── Règle 2 : suite masquée sous une chaîne (BuildSharedTrack::continuity) ───
+
+    /** Portion en service d'un trafic donné (les autres aides la créent en trafic mixte). */
+    private function serviceSegment(Line $line, array $pts, string $traffic): LineSegment
+    {
+        $s = $this->segment($line, $pts, 'in_service');
+        DB::table('line_segments')->where('id', $s->id)->update(['traffic_type' => $traffic]);
+
+        return $s->refresh();
+    }
+
+    public function test_end_masked_under_a_masked_junction_curve_is_drawn_up_to_the_line_that_draws_the_track(): void
+    {
+        // La Voulte (800000, 800316, 913000) : A fret ; R raccordement mixte dont la courbe finit sur A ; C ligne mixte
+        // qui arrive sur la voie de A 27 m plus loin. A est masquée sous R, R tout entière sous C (reste de 27 m, moins
+        // que MIN_REMAINDER_M). Avant : rien ne dessinait les 27 m de A, et son bout restait à 27 m de C.
+        $a = Line::factory()->create(['slug' => 'a', 'name' => 'Ligne A', 'network' => 'principal']);
+        $r = Line::factory()->create(['slug' => 'r', 'name' => 'Raccordement R', 'network' => 'principal']);
+        $c = Line::factory()->create(['slug' => 'c', 'name' => 'Ligne C', 'network' => 'principal']);
+        $as = $this->serviceSegment($a, [[0, 0], [2000, 0]], 'freight');
+        $rs = $this->serviceSegment($r, [[1088, 0], [1115, 3], [1250, 3]], 'mixed');
+        $this->serviceSegment($c, [[1115, 0], [1250, 0], [1250, 500]], 'mixed');
+
+        $this->build();
+
+        $this->assertLessThan(1, $this->drawn($rs));
+        // Plus de bout de A à côté de la jonction : il est SUR le dessin de C, à 0 m, sans retour en arrière.
+        $end = $this->endNear($a, 1110, 0, 30);
+        $this->assertLessThan(0.01, $this->distanceToDrawn($c, (float) $end->x, (float) $end->y));
+        $this->assertGreaterThan(1112, (float) $end->x);
+        $this->assertLessThan(1125, (float) $end->x);
+        // Les 27 m que rien ne dessinait le sont par A (avant : 1 088 + 740 m dessinés), le tronc commun reste masqué sous C.
+        $this->assertGreaterThan(1850, $this->drawn($as));
+        $this->assertLessThan(1880, $this->drawn($as));
+    }
+
+    public function test_end_masked_under_a_line_that_nothing_draws_keeps_its_whole_continuation_drawn(): void
+    {
+        // Rochy-Condé - Soissons (317000) en 1980 : A1 déposée, masquée sous la portion fermée de B, elle-même masquée
+        // sous la portion en service A2 de la même ligne A, à 8 m. Aucune autre ligne ne dessine la voie de A1.
+        [$a, $b] = $this->lines();
+        $a1 = $this->segment($a, [[0, 0], [1000, 0]], 'dismantled');
+        $this->segment($a, [[300, 8], [800, 8]], 'in_service');
+        $bs = $this->segment($b, [[400, 1], [700, 1]], 'abandoned');
+
+        $this->build();
+
+        $this->assertLessThan(1, $this->drawn($bs));
+        // Avant : 300 m de A1 masqués sous B, que rien ne dessinait (deux bouts à 1 m de B, sans ligne dessinée).
+        $this->assertEqualsWithDelta(1000, $this->drawn($a1), 0.5);
+        $this->assertSame([], array_values(array_filter($this->drawnFreeEnds($a), fn ($e) => (float) $e->x > 350 && (float) $e->x < 750 && abs((float) $e->y) < 2)));
+        // Second passage : même résultat (idempotent).
+        $this->build();
+        $this->assertEqualsWithDelta(1000, $this->drawn($a1), 0.5);
+    }
+
     // ─── Règle 3 : contact à 0 m (BuildSharedTrack::contact) ───────────────
 
     /** Bout libre dessiné de la ligne près de (x, y), à moins de $r m. */

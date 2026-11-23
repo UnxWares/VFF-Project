@@ -45,6 +45,7 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 | Audit des tronçons d'une ligne (4 notes, preuves) | `GET /lines/{line}/audit?era&grade&limit&offset` | `Line.audit(era)` : `segments(grade, limit, offset)`, `segments_total(grade)` | `line_audit` (`era`, `grade`, `limit`, `offset`) |
 | Audit d'une gare (placement, dates, services) | `GET /stations/{station}/audit` | `Station.audit` | clé `audit` de `get_station` |
 | Nombre de voies et radio sol-train (GSM-R) d'une ligne par portion de PK, aujourd'hui (SNCF Réseau, ODbL) | `GET /lines/{line}/infrastructure` | `Line.infrastructure` | `line_infrastructure` |
+| Ouvrages d'art d'une ligne (tunnels, viaducs, grands ponts) par PK, lignes déposées comprises (IGN BD TOPO, Wikidata) | `GET /lines/{line}/structures` | `Line.structures` | `line_structures` |
 | Quais d'une gare (nombre, longueurs, PK ; SNCF Réseau, ODbL) | clé `platforms` de `GET /stations/{station}` | `Station.platforms` | clé `platforms` de `get_station` |
 | Audit des tronçons de tout le réseau (liste, filtres, tri, total) | `GET /audits/segments?era&grade&check&reason&status&department&region&line&q&sort&limit&offset` | `segmentAudits(...)` : `total`, `items` | `segment_audits` (mêmes paramètres) |
 | Audit des gares de tout le réseau (liste, filtres, tri, total) | `GET /audits/stations?grade&check&opening&closure&department&region&line&q&sort&limit&offset` | `stationAudits(...)` : `total`, `items` | `station_audits` (mêmes paramètres) |
@@ -53,6 +54,8 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 | Altitude à un PK | `GET /lines/{line}/altitude?pk_m` | `LineProfile.altitude_at(pk_m)` | `line_profile` (`pk_m`, résultat `altitude_at_pk`) |
 | Crémaillère (`rack`) et déclivité publiée | `profile.rack` | `LineProfile.rack` | `profile.rack` de `line_profile` |
 | Déclivité d'une source écrite (Wikipédia, SNCF Réseau), fournisseur, licence, attribution, part couverte | `profile.sourced_grade` | `LineProfile.sourced_grade` | `profile.sourced_grade` de `line_profile` |
+| Déclivité d'une source écrite à côté de la mesure publiée, avec l'écart | `profile.sourced_grade_compared` | `LineProfile.sourced_grade_compared` | `profile.sourced_grade_compared` de `line_profile` |
+| Trous du tracé de référence sous le profil (nombre, longueur, part, bornes) | `profile.trace_holes` | `LineProfile.trace_holes` | `profile.trace_holes` de `line_profile` |
 | Contexte sourcé, documents, images et corrections d'un accident | `GET /accidents/{accident}` (`context`) | `Accident.context` | `get_accident` (sans citation) |
 | Provenance des champs d'un accident | `provenance` | `Accident.provenance` | `provenance` de `get_accident` |
 | Matériel d'une ligne, photo, fin de circulation, relations | `GET /lines/{line}/materials` (`image`, `end`, `relations`) | `Line.material_links` (`end`, `relations`), `LineSheet.materials` | `line_materials` |

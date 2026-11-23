@@ -52,6 +52,15 @@ final class AccidentImporter
     /** … ou même commune et dates à une semaine près (divergence signalée). */
     private const SAME_COMMUNE_MAX_DAYS = 7;
 
+    /**
+     * Puce de liste qui nomme une gare ou une ville du parcours du train (terminus de la relation, gare voisine)
+     * au lieu du lieu de l'accident : à plus de 20 km, elle décrit encore une fiche sourcée du même jour et de la même
+     * nature jusqu'à 150 km. Mesures du 22/11/2026 : doublons à 20, 32, 105 (Caen pour Cléon, relation Rouen - Caen)
+     * et 119 km (Marseille pour Saint-Raphaël, relation Marseille - Nice) ; le plus proche vrai accident distinct
+     * d'une fiche sourcée, de même jour et de même nature, est à 281 km (Fromental et Brétigny-sur-Orge, 12/07/2013).
+     */
+    public const ROUTE_MAX_M = 150000;
+
     /** @var array<string, true> identifiants des puces de liste lues par cet import */
     private array $listIds = [];
 
@@ -141,7 +150,8 @@ final class AccidentImporter
             }
         }
         if (! $dryRun) {
-            $unseen = Accident::query()->withoutGlobalScopes()->whereNotIn('id', $seen)->where('imported_at', '<', $startedAt);
+            // Les alias (doublons déclarés) ne sont jamais retirés : leur ancienne adresse redirige vers la fiche retenue.
+            $unseen = Accident::query()->withoutGlobalScopes()->whereNotIn('id', $seen)->whereNull('alias_of_id')->where('imported_at', '<', $startedAt);
             $result->unseen = (clone $unseen)->pluck('slug')->all();
             // Retrait sur demande seulement, et jamais après un import partiel (une seule source lue).
             if ($prune && array_diff(self::SOURCES, $sources) === [] && $client->missing === []) {
@@ -342,6 +352,13 @@ final class AccidentImporter
 
                 continue;
             }
+            $target = $this->routeTarget($targets, $l);
+            if ($target !== null) {
+                $this->absorbListed($target, $l);
+                $result->count('list', 'route');
+
+                continue;
+            }
             $accidentId = $partial ? $this->knownAccidentId($l) : null;
             if ($accidentId !== null) {
                 $known[] = [$l, $accidentId];
@@ -370,7 +387,7 @@ final class AccidentImporter
         }
         // Une puce seule ne masque jamais une fiche d'une autre source : la nature de la cible est
         // gardée et la fiche signalée pour relecture.
-        if ($listed->kind !== null && in_array($listed->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($listed->kind !== null && in_array($listed->kind->value, AccidentKind::SOURCED_ONLY, true)) {
             $target->note('list_kind_hidden', $listed->kind->value);
 
             return;
@@ -379,6 +396,76 @@ final class AccidentImporter
             $target->kind = $listed->kind ?? $target->kind;
             $target->kindSource = $listed->kind !== null ? $listed->kindSource : $target->kindSource;
         }
+    }
+
+    /**
+     * Fiche sourcée (Wikidata, article, BEA-TT) que décrit une puce de liste dont le lieu est une gare ou une ville du
+     * parcours du train (onRoute) : une seule doit répondre, sinon la puce garde sa propre fiche (deux accidents
+     * mélangés seraient pires qu'un doublon, que l'invariant accidents.same_day_nearby signale).
+     *
+     * @param  list<AccidentCandidate>  $targets
+     */
+    private function routeTarget(array $targets, AccidentCandidate $listed): ?AccidentCandidate
+    {
+        $found = array_values(array_filter($targets, fn (AccidentCandidate $t) => $this->onRoute(
+            $listed, $t->date, $t->precision, $t->kind, [$t->communeName, ...array_values($t->labels)], $t->lat, $t->lng, $t->lineArticles,
+        )));
+
+        return count($found) === 1 ? $found[0] : null;
+    }
+
+    /**
+     * La puce de liste décrit-elle cet accident, nommé par une gare ou une ville du parcours ? Même jour (dates au
+     * jour des deux côtés), même nature lue des deux côtés, et l'un de ces liens : la commune de la fiche (ou un mot
+     * de son nom) est citée par la puce (« reliant Rouen à Caen [...] au niveau de Cléon »), la puce et la fiche citent
+     * la même ligne, ou les deux lieux sont à moins de ROUTE_MAX_M.
+     *
+     * @param  list<?string>  $names  commune et noms de la fiche
+     * @param  list<string>  $lineArticles  articles de ligne cités par les sources de la fiche
+     */
+    public function onRoute(AccidentCandidate $listed, ?string $date, ?AccidentDatePrecision $precision, ?AccidentKind $kind,
+        array $names, ?float $lat, ?float $lng, array $lineArticles = []): bool
+    {
+        if ($listed->date === null || $listed->date !== $date || $listed->precision !== AccidentDatePrecision::Day
+            || $precision !== AccidentDatePrecision::Day || $listed->kind === null || $listed->kind !== $kind) {
+            return false;
+        }
+        if ($this->citesPlace($listed, $names)) {
+            return true;
+        }
+        if (array_intersect($listed->lineArticles, $lineArticles) !== []) {
+            return true;
+        }
+
+        return $listed->lat !== null && $listed->lng !== null && $lat !== null && $lng !== null
+            && self::distanceM($listed->lat, $listed->lng, $lat, $lng) <= self::ROUTE_MAX_M;
+    }
+
+    /**
+     * Un lieu cité par la puce (lieu retenu, autres lieux, gare) nomme la commune de la fiche : même nom, ou premier
+     * mot d'un nom composé (« Nurieux » pour Nurieux-Volognat), ou mot du nom de la fiche (« Lagny-Pomponne »).
+     *
+     * @param  list<?string>  $names
+     */
+    private function citesPlace(AccidentCandidate $listed, array $names): bool
+    {
+        $cited = array_filter(array_map(
+            fn (?string $n): string => Str::slug((string) $n),
+            [$listed->communeName, $listed->stationHint, ...array_column($listed->placeHints, 0)],
+        ), fn (string $s): bool => mb_strlen($s) >= 4);
+        foreach ($names as $name) {
+            $slug = Str::slug((string) $name);
+            if ($slug === '') {
+                continue;
+            }
+            foreach ($cited as $c) {
+                if ($slug === $c || str_starts_with($slug, $c.'-') || (str_contains((string) $name, ' ') && str_contains('-'.$slug.'-', '-'.$c.'-'))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -412,8 +499,24 @@ final class AccidentImporter
                 $q->orWhereRaw('ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)', [$c->lng, $c->lat, self::SAME_EVENT_MAX_M]);
             }
         });
+        $id = $query->orderBy('id')->value('id');
+        if ($id !== null) {
+            return (int) $id;
+        }
+        // Gare ou ville du parcours (onRoute) : fiche sourcée publiable du même jour et de la même nature, une seule.
+        if ($c->kind === null || $c->precision !== AccidentDatePrecision::Day) {
+            return null;
+        }
+        $found = Accident::query()->withoutGlobalScopes()->withCoordinates()
+            ->whereNull('alias_of_id')->whereDate('occurred_on', $c->date)->where('date_precision', AccidentDatePrecision::Day->value)
+            ->where('kind', $c->kind->value)->whereHas('sources', $notFromList)->with('sources')->get()
+            ->filter(fn (Accident $a): bool => $this->onRoute(
+                $c, $a->occurred_on->toDateString(), $a->date_precision, $a->kind, [$a->commune_name, ...array_values($a->name)],
+                $a->lat !== null ? (float) $a->lat : null, $a->lng !== null ? (float) $a->lng : null,
+                $a->sources->flatMap(fn (AccidentSource $s): array => (array) ($s->facts['line_articles'] ?? []))->values()->all(),
+            ))->values();
 
-        return $query->orderBy('id')->value('id');
+        return $found->count() === 1 ? $found->first()->id : null;
     }
 
     /** Ajoute la source de liste à une fiche déjà en base et complète son bilan s'il manque ; rien d'autre ne change. */
@@ -742,7 +845,9 @@ final class AccidentImporter
             return;
         }
         $others = AccidentSource::query()->where('accident_id', $oldId)->count();
-        if ($others <= 1) {
+        // Une fiche alias (doublon déclaré) reste en base, même sans source : son adresse redirige vers la fiche retenue.
+        $alias = Accident::query()->withoutGlobalScopes()->whereKey($oldId)->whereNotNull('alias_of_id')->exists();
+        if ($others <= 1 && ! $alias) {
             $slug = Accident::query()->withoutGlobalScopes()->whereKey($oldId)->value('slug');
             Accident::query()->withoutGlobalScopes()->whereKey($oldId)->delete();
             $result->retired[] = "{$slug} → {$into->slug}";

@@ -20,11 +20,11 @@ return [
             'note' => 'Place la collision vers 1 h du matin, dans le brouillard, entre Lérouville et Ernecourt-Loxéville ; un mort et neuf blessés ; cite Le Petit Journal du 22 mars 1920.',
         ],
         'grondwet-1920-03-23' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De grondwet du 23 mars 1920',
-            'publisher' => 'De grondwet',
+            'publisher' => 'De grondwet (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1920-03-23',
             'locator' => null,

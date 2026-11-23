@@ -20,11 +20,11 @@ return [
             'note' => 'Entrée du 9 juin 1908, d\'après Le Petit Parisien du 10 juin : à Outreau, sur la ligne Amiens - Boulogne, vers 6 h, l\'arrière d\'un convoi en manœuvre à la sortie de l\'embranchement des aciéries est heurté par un train de marchandises venant de Longueau, dont le mécanicien et le chauffeur sont tués ; un serre-frein est grièvement blessé.',
         ],
         'harlinger-1908-06-14' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenlandsche berichten',
-            'publisher' => 'Nieuwe Harlinger Courant',
+            'publisher' => 'Nieuwe Harlinger Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1908-06-14',
             'locator' => null,

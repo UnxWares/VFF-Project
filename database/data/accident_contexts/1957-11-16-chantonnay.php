@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Chantonnay du 16 novembre 1957 (recherche du 21/11/2026).
 return [
     'slug' => '1957-11-16-chantonnay',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'chouette-vendee' => [
             'provider' => 'sites-web',
@@ -103,6 +103,51 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article cité par Wikipédia ; l\'adresse n\'est plus consultable, à rechercher sur une archive du web.',
         ],
+        'ddb-1957-11-18-neckar-bote' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zugunglück in Frankreich - 29 Tote',
+            'publisher' => 'Neckar-Bote (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1957-11-18',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/5XN62CZUJWTREGADOW7QRQDWCETLSJ6V?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 18 novembre 1957 : accident de train en France, 29 morts, une locomotive ayant éventré une voiture de voyageurs.',
+            'facts' => ['deaths' => 29],
+        ],
+        'kb-1957-11-18-twentsch-dagblad-tubantia' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Frankrijk eist 29 levens',
+            'publisher' => 'Twentsch Dagblad Tubantia (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-11-18',
+            'locator' => 'article « Spoorwegongeluk in Frankrijk eist 29 levens », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMHCO02:163764042:mpeg21:a00009:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 18 novembre : samedi, collision entre un autorail diesel et un train de marchandises près de Chantonnay, au sud-est de Nantes, sur voie unique ; 29 morts et 21 blessés.',
+            'facts' => ['date' => '1957-11-16', 'commune_insee' => '85051', 'deaths' => 29],
+        ],
+        'kb-1957-11-18-de-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Goederentrein scheurt personentrein open TREINRAMP IN FRANKRIJK EIST 29 LEVENS Machinist en perronchef gear...',
+            'publisher' => 'De Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-11-18',
+            'locator' => 'article « Goederentrein scheurt personentrein open TREINRAMP IN FRANKRIJK EIST 29 LEVENS Machinist en perronchef gear... », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110587089:mpeg21:a0016:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Reportage du 18 novembre : 29 morts et 21 blessés, dont quelques-uns très graves, à Chantonnay en Vendée ; machiniste et chef de gare arrêtés ; automotrice à 80 km/h.',
+            'facts' => ['date' => '1957-11-16', 'commune_insee' => '85051', 'deaths' => 29],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -146,6 +191,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Neckar-Bote du 18 novembre 1957 titre sur 29 morts dans un accident de train en France où la locomotive a éventré une voiture de voyageurs, ce qui concorde avec le bilan de la fiche (29 morts) ; la brève lue ne nomme pas Chantonnay.',
+                'en' => 'The Neckar-Bote of 18 November 1957 headlines 29 dead in a train accident in France in which the locomotive tore open a passenger carriage, which matches the record (29 dead); the brief read does not name Chantonnay.',
+                'de' => 'Der Neckar-Bote vom 18. November 1957 meldet 29 Tote bei einem Zugunglück in Frankreich, bei dem die Lokomotive einen Personenwagen aufschlitzte, was mit der Datenbank (29 Tote) übereinstimmt; die gelesene Meldung nennt Chantonnay nicht.',
+                'sources' => ['ddb-1957-11-18-neckar-bote'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais du 18 novembre 1957 confirment la collision de samedi (16 novembre) à Chantonnay, en Vendée, entre un autorail et un train de marchandises sur voie unique, avec 29 morts et 21 blessés, dont quelques-uns très graves, ce qui concorde avec les 29 morts de la fiche. La fiche donne 22 blessés, un de plus que ces articles.',
+                'en' => 'Two Dutch newspapers of 18 November 1957 confirm the collision of Saturday (16 November) at Chantonnay, in the Vendée, between a railcar and a goods train on a single track, with 29 dead and 21 injured, some very seriously, which matches the 29 dead in the record. The record gives 22 injured, one more than these articles.',
+                'de' => 'Zwei niederländische Zeitungen vom 18. November 1957 bestätigen den Zusammenstoß vom Samstag (16. November) in Chantonnay in der Vendée zwischen einem Triebwagen und einem Güterzug auf eingleisiger Strecke, mit 29 Toten und 21 Verletzten, einige davon sehr schwer, was mit den 29 Toten der Datenbank übereinstimmt. Die Datenbank nennt 22 Verletzte, einen mehr als diese Artikel.',
+                'sources' => ['kb-1957-11-18-twentsch-dagblad-tubantia', 'kb-1957-11-18-de-telegraaf'],
+            ],
             [
                 'fr' => 'L\'accident a fait 29 morts et 22 blessés. Parmi les victimes figuraient des élèves d\'une école d\'agriculture qui rentraient chez eux pour le week-end.',
                 'en' => 'The accident killed 29 people and injured 22. Among the victims were pupils of an agricultural school going home for the weekend.',

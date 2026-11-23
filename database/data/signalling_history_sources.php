@@ -120,6 +120,13 @@ return [
             ['publisher' => 'EPSF', 'title' => 'Extrait de décision : Autorisation de mise en exploitation commerciale de la ligne à grande vitesse Sud Europe Atlantique Tours-Bordeaux', 'url' => 'https://www.securite-ferroviaire.fr/sites/default/files/bulletins/pdf/2023-03/extrait_de_decision_751.pdf', 'published' => '2017-06-16', 'official' => true],
         ],
     ],
+    // 834000 « Ligne des Angles à Lattes » (code SNCF unique) : PK 0 à 27,890 = branche de la LGV Méditerranée vers Nîmes (TVM 430,
+    // 2001 ; la gare de Nîmes-Pont du Gard est au PK 26,964, jeu « liste-des-quais »), PK 27,890 à 86,388 = contournement
+    // de Nîmes et Montpellier (CNM, 2017), que visent les trois faits ci-dessous. Le jeu SNCF « mode-de-cantonnement-des-lignes »
+    // (TVM 430 puis ETCS 1) et l'EPSF (décision n° 787 : BAL et KVB ; rapport d'activité 2018 et décision sur le raccordement de Redessan : ETCS 1 en superposition) ne se
+    // contredisent donc pas : ils décrivent deux sections de la même ligne. Reste une lacune du jeu SNCF, qui ne donne qu'un
+    // libellé par tranche : sur le CNM il n'écrit que l'ETCS 1, sans le BAL ni le KVB sous-jacents (documentés ici, non remontés
+    // dans `line_signalling`).
     [
         'line' => '834000', 'system' => 'BAL', 'date' => '2017-12', 'scope' => 'section',
         'from' => 'Nîmes-Pont du Gard', 'to' => 'Montpellier Sud-de-France',
@@ -203,6 +210,15 @@ return [
             ['publisher' => 'Wikipédia', 'title' => 'LGV Sud-Est', 'url' => 'https://fr.wikipedia.org/wiki/LGV_Sud-Est'],
             ['publisher' => 'SNCF', 'title' => 'Bilan LOTI de la LGV d\'interconnexion en Île-de-France', 'url' => 'https://www.igedd.developpement-durable.gouv.fr/IMG/pdf/Lgv_InterConnex_IDF_cle0fa1af.pdf', 'published' => '2005-12', 'official' => true],
             ['publisher' => 'EPSF', 'title' => 'Rapport annuel 2020', 'url' => 'https://www.era.europa.eu/sites/default/files/reports/NSA%20Annual%20Report%202020%20France%20FR.pdf', 'published' => '2021', 'official' => true],
+        ],
+    ],
+    [
+        'line' => '752330', 'system' => 'TVM', 'date' => '1981-09-27', 'scope' => 'section',
+        'from' => 'Montanay', 'to' => 'Sathonay',
+        'summary' => 'Fin de la première mise en service de la LGV Sud-Est : de la bifurcation de Montanay à Sathonay-Camp (Lyon-Saint-Clair), dernier tronçon de la section de Saint-Florentin à Sathonay, en TVM.',
+        'sources' => [
+            ['publisher' => 'Wikipédia', 'title' => 'LGV Sud-Est', 'url' => 'https://fr.wikipedia.org/wiki/LGV_Sud-Est'],
+            ['publisher' => 'SNCF', 'title' => 'Bilan LOTI de la LGV d\'interconnexion en Île-de-France', 'url' => 'https://www.igedd.developpement-durable.gouv.fr/IMG/pdf/Lgv_InterConnex_IDF_cle0fa1af.pdf', 'published' => '2005-12', 'official' => true],
         ],
     ],
     [

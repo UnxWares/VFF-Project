@@ -17,6 +17,7 @@
     import LinePhaseMap from '$components/Lines/LinePhaseMap.svelte';
     import LinePhaseSelector from '$components/Lines/LinePhaseSelector.svelte';
     import LinePhaseText from '$components/Lines/LinePhaseText.svelte';
+    import LineSpaceTime from '$components/Lines/LineSpaceTime.svelte';
     import LineChronicle from '$components/Lines/LineChronicle.svelte';
     import LineDecades from '$components/Lines/LineDecades.svelte';
     import LineStations from '$components/Lines/LineStations.svelte';
@@ -25,10 +26,15 @@
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
+    import LineStructures from '$components/Lines/LineStructures.svelte';
     import LineArchives from '$components/Lines/LineArchives.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
+    import LineElectrification from '$components/Lines/LineElectrification.svelte';
+    import FurtherReading from '$components/Sheet/FurtherReading.svelte';
+    import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
+    import LineSchematic from '$components/Lines/LineSchematic.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { Link } from '@inertiajs/svelte';
@@ -36,8 +42,11 @@
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SheetPending from '$components/Sheet/SheetPending.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
+    import { mediaCaption } from '$lib/mediaCredits.js';
+    import GlossaryText from '$components/GlossaryText.svelte';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
@@ -52,10 +61,12 @@
         stageNotes,
     } from '$lib/linePhases.js';
 
-    /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API).
+    /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API). Les props
+     * du bas de la page (LineSheet::PAGE_DEFERRED et sections de LineController::show) arrivent juste après
+     * le premier affichage (Inertia::defer) : absentes jusque-là.
      * @type {{
      *   line: Record<string, any>, stats: Record<string, any>, segments: Array<any>, stations: Array<any>,
-     *   events: Array<any>, materials: Array<any>, signalling?: Array<any>, sections?: Array<any>,
+     *   events: Array<any>, materials?: Array<any>, signalling?: Array<any>, sections?: Array<any>,
      *   era_summary?: Array<any>, heritage?: Array<any>, sources?: Array<any>,
      *   portions_count?: number, portions_url?: string|null, phases?: Array<any>, best_phase?: number|null,
      *   phases_unexplained?: Array<{ from: string, to: string, portions: Array<number>, length_m: number }>,
@@ -64,21 +75,18 @@
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>,
-     *   profile?: any, trace_export_eras?: Array<number>,
+     *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
+     *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
      *   journal?: Array<{ slug: string, title: string, lang: string }>,
+     *   companies?: Array<{ slug: string, name: string, from_year: number, to_year: number|null, to_basis: string }>,
      * }} */
     let {
         line,
         stats,
         stations = [],
-        materials = [],
-        signalling = [],
-        sections = [],
-        heritage = [],
-        sources = [],
         // Portions de la carte : leur nombre ici, leur géométrie lue à part quand la carte s'affiche
         // (App\Http\Controllers\LinePortionsController, lib/linePortions.js).
         portions_count = 0,
@@ -88,27 +96,83 @@
         best_phase = null,
         decades = [],
         chronicle = { events: [], groups: [], notes: [], conflicts: [] },
-        // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
-        accidents = [],
-        // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
-        level_crossings = { total: 0, summary: [], items: [] },
-        // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
-        greenways = { total_length_m: 0, osm_date: null, items: [] },
-        // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
-        signalling_history = [],
-        // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
-        profile = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
         trace_export_eras = [],
-        // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
-        archives = { total: 0, fetched_on: null, items: [] },
-        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
-        archive_records = { total: 0, fetched_on: null, items: [] },
-        // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
-        story_events = [],
         // Articles du journal de bord qui parlent de la ligne (App\Services\Journal\JournalRepository::aboutLine).
         journal = [],
+        // Compagnies rattachées à la ligne par un événement de concession daté (App\Services\Companies\CompanyFigures::forLine).
+        companies = [],
+        // Plus bas dans la page : props différées (LineController::show, groupe « sheet »), absentes (undefined)
+        // au premier affichage, reçues juste après ; `pending` tant qu'elles manquent, valeurs vides par défaut.
+        materials: materialsProp,
+        signalling: signallingProp,
+        sections: sectionsProp,
+        heritage: heritageProp,
+        sources: sourcesProp,
+        // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
+        accidents: accidentsProp,
+        // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
+        level_crossings: levelCrossingsProp,
+        // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
+        greenways: greenwaysProp,
+        // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
+        signalling_history: signallingHistoryProp,
+        // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
+        profile: profileProp,
+        // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
+        structures: structuresProp,
+        // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
+        speeds: speedsProp,
+        // Électrification par PK (SNCF Réseau) et mises sous tension datées (App\Services\Traction\LineElectrificationHistory).
+        electrification_history: electrificationProp,
+        // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
+        archives: archivesProp,
+        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
+        archive_records: archiveRecordsProp,
+        // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
+        story_events: storyEventsProp,
     } = $props();
+
+    const deferredProps = $derived([
+        materialsProp,
+        signallingProp,
+        sectionsProp,
+        heritageProp,
+        sourcesProp,
+        accidentsProp,
+        levelCrossingsProp,
+        greenwaysProp,
+        signallingHistoryProp,
+        profileProp,
+        structuresProp,
+        speedsProp,
+        electrificationProp,
+        archivesProp,
+        archiveRecordsProp,
+        storyEventsProp,
+    ]);
+    // Sections du bas de la page pas encore reçues (une valeur nulle est une réponse : section absente).
+    const pending = $derived(deferredProps.some((v) => v === undefined));
+    const materials = $derived(materialsProp ?? []);
+    const signalling = $derived(signallingProp ?? []);
+    const sections = $derived(sectionsProp ?? []);
+    const heritage = $derived(heritageProp ?? []);
+    const sources = $derived(sourcesProp ?? []);
+    const accidents = $derived(accidentsProp ?? []);
+    const level_crossings = $derived(levelCrossingsProp ?? { total: 0, summary: [], items: [] });
+    const greenways = $derived(greenwaysProp ?? { total_length_m: 0, osm_date: null, items: [] });
+    const signalling_history = $derived(signallingHistoryProp ?? []);
+    const profile = $derived(profileProp ?? null);
+    const structures = $derived(
+        structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
+    );
+    const speeds = $derived(speedsProp ?? null);
+    const electrification_history = $derived(electrificationProp ?? null);
+    const archives = $derived(archivesProp ?? { total: 0, fetched_on: null, items: [] });
+    const archive_records = $derived(
+        archiveRecordsProp ?? { total: 0, fetched_on: null, items: [] },
+    );
+    const story_events = $derived(storyEventsProp ?? []);
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -117,6 +181,7 @@
     // que celles qui sont présentes.
     const TOC = [
         'trace',
+        'spacetime',
         'about',
         'history',
         'decades',
@@ -124,7 +189,11 @@
         'sections',
         'heritage',
         'tech',
+        'schematic',
         'profile',
+        'speeds',
+        'electrification',
+        'structures',
         'level-crossings',
         'greenways',
         'chronicle',
@@ -132,6 +201,7 @@
         'accidents',
         'archives',
         'gallery',
+        'further-reading',
         'notes',
     ];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`lines.toc.${id}`) })));
@@ -448,6 +518,11 @@
                 // Libellé et précision rédigés côté serveur (LineFacts) ; repli sur l'ancien calcul.
                 label: f.label ?? t(FACT_LABELS[f.key]),
                 value: factValue(f),
+                // Départements traversés : un lien vers la fiche « Le rail du département » quand tous ont un code.
+                links:
+                    f.key === 'departements' && f.list?.length && f.list.every((d) => d.code)
+                        ? f.list
+                        : null,
                 note: (f.note ?? factNote(f)).replaceAll("'", '’'),
                 // Noms de régions et de départements : français sur toutes les pages.
                 lang: ['regions', 'departements'].includes(f.key) ? srcLang : undefined,
@@ -498,10 +573,22 @@
     path={`/lines/${line.slug}`}
     type="article"
     image={seoImages[0]
-        ? { url: seoImages[0].display_url ?? seoImages[0].thumb_url, alt: seoImages[0].caption }
+        ? {
+              url: seoImages[0].display_url ?? seoImages[0].thumb_url,
+              alt: mediaCaption(seoImages[0], lang),
+          }
         : null}
     jsonLd={(origin) => [
-        lineSchema({ origin, line, description: line.description, images: seoImages }),
+        lineSchema({
+            origin,
+            line,
+            // Seul l'extrait de Wikipédia (CC BY-SA) est repris, comme côté serveur.
+            description: line.description_source?.type === 'wikipedia' ? line.description : null,
+            images: seoImages,
+            stations,
+            lengthLabel: t('lines.json_ld.length'),
+            lang,
+        }),
         breadcrumbSchema(origin, [
             { name: t('common.app_full'), path: '/' },
             { name: t('nav.lines'), path: '/lines' },
@@ -552,6 +639,32 @@
                 <p class="operator">
                     <i class="bi bi-building" aria-hidden="true"></i>
                     <span lang={srcLang}>{line.historical_operator}</span>
+                </p>
+            {/if}
+            {#if companies.length}
+                <p class="operator companies" title={t('companies.line.basis_hint')}>
+                    <i class="bi bi-buildings" aria-hidden="true"></i>
+                    <span>
+                        <span class="vff-sr-only">{t('companies.line.title')} : </span>
+                        {#each companies as c, i (c.slug + c.from_year)}{#if i > 0},
+                            {/if}<a href="/companies/{c.slug}"
+                                >{c.to_basis === 'unknown'
+                                    ? t('companies.line.from_only', {
+                                          name: c.name,
+                                          from: c.from_year,
+                                      })
+                                    : c.to_year
+                                      ? t('companies.line.from_to', {
+                                            name: c.name,
+                                            from: c.from_year,
+                                            to: c.to_year,
+                                        })
+                                      : t('companies.line.since', {
+                                            name: c.name,
+                                            from: c.from_year,
+                                        })}</a
+                            >{/each}
+                    </span>
                 </p>
             {/if}
         </SheetHero>
@@ -634,6 +747,24 @@
                 known={portions_count > 0}
             />
         </SheetSection>
+
+        <!-- Où et quand : la ligne déroulée de bout en bout, une bande par phase, liée à la carte. -->
+        {#if phases.length > 1 && portions_count && portions_url}
+            <SheetSection
+                id="spacetime"
+                title={t('lines.section.spacetime')}
+                intro={t('lines.spacetime.intro')}
+            >
+                <LineSpaceTime
+                    portionsUrl={portions_url}
+                    {phases}
+                    {stations}
+                    {eventsById}
+                    bind:selected
+                    onshow={showPhase}
+                />
+            </SheetSection>
+        {/if}
 
         <SheetSection id="about" label={t('lines.section.about')}>
             <div class="about-grid">
@@ -775,8 +906,23 @@
                             <div class="row">
                                 <dt>{f.label}</dt>
                                 <dd>
-                                    <span lang={f.lang}>{f.value}</span>{#if f.note}<span
-                                            class="meta fact-note">{f.note}</span
+                                    {#if f.links}
+                                        {#each f.links as d, j (d.code)}<a
+                                                class="vff-link"
+                                                href="/departments/{d.code}"
+                                                ><span lang={f.lang}>{d.name}</span><span
+                                                    class="vff-sr-only"
+                                                >
+                                                    : {t('departments.commune_link', {
+                                                        name: d.name,
+                                                    })}</span
+                                                ></a
+                                            >&nbsp;({d.code}){j < f.links.length - 1
+                                                ? ', '
+                                                : ''}{/each}
+                                    {:else}
+                                        <span lang={f.lang}>{f.value}</span>
+                                    {/if}{#if f.note}<span class="meta fact-note">{f.note}</span
                                         >{/if}
                                 </dd>
                             </div>
@@ -905,11 +1051,15 @@
                             <a
                                 class="vff-btn secondary small advocacy-cta"
                                 href={line.advocacy.cta_url}
-                                target="_blank"
                                 rel="noopener noreferrer"
                                 lang={line.advocacy.lang?.cta_label}
                             >
-                                {line.advocacy.cta_label || t('lines.act')}{@render ext()}
+                                {line.advocacy.cta_label || t('lines.act')}<i
+                                    class="bi bi-box-arrow-up-right vff-ext"
+                                    aria-hidden="true"
+                                ></i><span class="vff-sr-only">
+                                    ({t('common.external_same_tab')})</span
+                                >
                             </a>
                         {/if}
                     </section>
@@ -958,6 +1108,23 @@
                 <LineStations {stations} {eraYears} />
             {/if}
         </SheetSection>
+
+        {#if pending}
+            <!-- Sections du bas de la page : reçues juste après le premier affichage (props différées). -->
+            <SheetPending
+                ids={[
+                    'sections',
+                    'heritage',
+                    'tech',
+                    'profile',
+                    'speeds',
+                    'electrification',
+                    'structures',
+                    'level-crossings',
+                    'greenways',
+                ]}
+            />
+        {/if}
 
         {#if sections.length}
             <SheetSection
@@ -1104,7 +1271,7 @@
             </SheetSection>
         {/if}
 
-        {#if stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length}
+        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length)}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1158,7 +1325,7 @@
 
                 {#if signalling.length}
                     <h3 class="sub">{t('lines.section.signalling')}</h3>
-                    <p class="section-intro">{signallingIntro}</p>
+                    <p class="section-intro"><GlossaryText text={signallingIntro} /></p>
                     <p class="sig-more">
                         <a class="vff-link" href="/maps?layer=signalling"
                             >{t('lines.sheet.tech.signalling_map')}</a
@@ -1197,9 +1364,13 @@
                                             ></i>
                                             <span
                                                 ><span class="sig-kind"
-                                                    >{isCabin(r.signalling)
-                                                        ? t('lines.signalling.cabin')
-                                                        : t('lines.signalling.block')}</span
+                                                    >{#if r.signalling !== 'NONE'}{isCabin(
+                                                            r.signalling,
+                                                        )
+                                                            ? t('lines.signalling.cabin')
+                                                            : t(
+                                                                  'lines.signalling.block',
+                                                              )}{/if}</span
                                                 >
                                                 {systemsLabel(r, t)}</span
                                             >
@@ -1230,8 +1401,25 @@
             </SheetSection>
         {/if}
 
+        <!-- Schéma de ligne par PK : chargé à la demande (API dédiée, en cache), aucune requête de plus pour la page. -->
+        {#if stations.length >= 2}
+            <LineSchematic slug={line.slug} />
+        {/if}
+
         {#if profile}
-            <LineProfile {profile} />
+            <LineProfile {profile} structures={structures.items} />
+        {/if}
+
+        {#if speeds && (speeds.ranges.length || speeds.history.length)}
+            <LineSpeeds {speeds} />
+        {/if}
+
+        {#if electrification_history && (electrification_history.ranges.length || electrification_history.history.length)}
+            <LineElectrification electrification={electrification_history} />
+        {/if}
+
+        {#if structures.items.length}
+            <LineStructures {structures} />
         {/if}
 
         {#if level_crossings.total}
@@ -1246,6 +1434,17 @@
             <SheetSection title={t('lines.section.chronicle')} id="chronicle">
                 <LineChronicle {chronicle} stories={story_events} lineSlug={line.slug} />
             </SheetSection>
+        {/if}
+
+        {#if pending}
+            <SheetPending
+                ids={[
+                    'materials',
+                    'accidents',
+                    'archives',
+                    ...(chronicle?.notes?.length ? [] : ['notes']),
+                ]}
+            />
         {/if}
 
         {#if materials.length}
@@ -1266,6 +1465,9 @@
             intro={t('media.subtitle')}
             onitems={(list) => (seoImages = list.slice(0, 4))}
         />
+
+        <!-- Pour aller plus loin : chargée à la demande (API de la bibliographie), aucune requête de plus pour la page. -->
+        <FurtherReading slug={line.slug} />
 
         {#if chronicle?.notes?.length || sources.length}
             <SheetSection title={t('lines.section.notes')} id="notes">
@@ -1324,11 +1526,14 @@
     }
     /* Sections sous la carte (gares, profil, chronique…) : mises en page seulement quand elles approchent
        de l'écran. Le rendu ne change pas ; la première mise en page de la fiche, qui couvrait ses 3 000
-       éléments, ne porte plus que le haut de la page. `auto` garde la hauteur réelle une fois vue. La marge
+       éléments, ne porte plus que le haut de la page. La marge
        de découpe laisse passer les anneaux de focus au bord ; les notes, en bas, dépassent de 3 px. */
     main :global(.sheet-section:not(#trace, #about, #notes)) {
         content-visibility: auto;
-        contain-intrinsic-size: auto 900px;
+        /* Hauteur estimée d'après le contenu (--vff-section-h, posée par SheetSection) moins le haut de
+           marge intérieure, que `contain-intrinsic-block-size` ne compte pas ; `auto` retient la vraie. */
+        contain-intrinsic-block-size: auto
+            max(0px, calc(var(--vff-section-h, 900px) - var(--vff-section-space)));
         overflow-clip-margin: 16px;
     }
     .meta {
@@ -1359,7 +1564,7 @@
 
     /* En-tête (SheetHero) : noms, exploitant, rail de la ligne aujourd'hui */
     .alt-names {
-        max-width: 80ch;
+        max-width: 46.4em;
         margin: 4px 0 0;
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);
@@ -1502,7 +1707,7 @@
     /* À propos + fiche */
     /* Texte à gauche, fiche à droite ; la campagne remplit le bas de la colonne de texte
        (sur téléphone : texte, fiche, puis campagne). */
-    /* Colonne de texte à sa largeur de lecture (60ch, comme .description) : tout le reste va à la
+    /* Colonne de texte à sa largeur de lecture (34,8em, comme .description) : tout le reste va à la
        fiche, plus large, donc moins haute (moins de vide sous le texte quand la fiche est longue). */
     .about-grid {
         display: grid;

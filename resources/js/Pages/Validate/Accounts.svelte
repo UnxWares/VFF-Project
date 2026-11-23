@@ -402,7 +402,7 @@
         color: var(--vff-text-muted);
     }
     .blocked {
-        max-width: 68ch;
+        max-width: 39.4em;
         margin: 0;
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
@@ -425,7 +425,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--vff-space-4);
-        max-width: 68ch;
+        max-width: 39.4em;
         margin-top: var(--vff-space-3);
         padding: var(--vff-space-4) var(--vff-space-5);
         background-color: var(--vff-bg-subtle);
@@ -446,7 +446,7 @@
         gap: var(--vff-space-3);
     }
     .note {
-        max-width: 68ch;
+        max-width: 39.4em;
         padding: var(--vff-space-3) var(--vff-space-4);
         background-color: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);

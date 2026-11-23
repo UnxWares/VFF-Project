@@ -204,7 +204,7 @@
     }
     /* Citation : même corps que le texte courant, un cran de plus, sans ornement. */
     .quote blockquote {
-        max-width: 62ch;
+        max-width: 36em;
         font-size: var(--vff-fs-lead);
         line-height: 1.6;
         text-wrap: pretty;

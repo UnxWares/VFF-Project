@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Requests\Api\AccidentMapRequest;
+use App\Http\Requests\Api\AccidentStatisticsRequest;
 use App\Http\Requests\Api\EraTileRequest;
 use App\Http\Requests\Api\ListAccidentsRequest;
 use App\Http\Requests\Api\ListLevelCrossingsRequest;
@@ -13,6 +14,7 @@ use App\Http\Requests\Api\ListMaterialsRequest;
 use App\Http\Requests\Api\ListMediaRequest;
 use App\Http\Requests\Api\ListStationEventsRequest;
 use App\Http\Requests\Api\ListStationsRequest;
+use App\Http\Requests\Api\MaterialTimelineRequest;
 use App\Models\User;
 use App\Services\Api\AccidentQuery;
 use App\Services\Api\LineDirectoryQuery;
@@ -87,9 +89,9 @@ class AppServiceProvider extends ServiceProvider
         FormRequestParametersExtractor::ignoreInstanceOf([
             ListLineEventsRequest::class, ListStationEventsRequest::class, ListMediaRequest::class,
             LineEventQuery::class, StationEventQuery::class, MediaQuery::class,
-            ListMaterialsRequest::class, ListLineMaterialsRequest::class, MaterialQuery::class,
+            ListMaterialsRequest::class, ListLineMaterialsRequest::class, MaterialQuery::class, MaterialTimelineRequest::class,
             ListLinesRequest::class, ListStationsRequest::class, LineDirectoryQuery::class, StationDirectoryQuery::class,
-            ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class,
+            ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class, AccidentStatisticsRequest::class,
             ListLevelCrossingsRequest::class, EraTileRequest::class,
         ]);
 

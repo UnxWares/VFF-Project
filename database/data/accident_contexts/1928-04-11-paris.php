@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Paris (gare du Nord) du 11 avril 1928 (recherche du 21/11/2026).
 return [
     'slug' => '1928-04-11-paris',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1928' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Photographie de l\'agence Rol, domaine public ; confirme la date et le lieu.',
         ],
+        'ddb-1928-04-12-hallische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hallische Nachrichten du 12 avril 1928',
+            'publisher' => 'Hallische Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1928-04-12',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/V6O6U2PW2TVBW4DS767Q5LLF4UFAEPGD?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 12 avril : sous les décombres, 10 morts et 30 blessés, six blessés graves morts peu après, soit 16 morts au total.',
+        ],
+        'kb-1928-04-12-de-locomotief' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hevige Treinbotsing. Nabij het Gare du Nord in Parijs. - Vela dooden en gewonden.',
+            'publisher' => 'De Locomotief (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1928-04-12',
+            'locator' => 'article « Hevige Treinbotsing. Nabij het Gare du Nord in Parijs. - Vela dooden en gewonden. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001711097:mpeg21:a00039:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Aneta-Reuter de Paris du 11 avril : à proximité de la gare du Nord, forte collision entre deux trains ; 15 morts et 30 blessés graves.',
+        ],
+        'kb-1928-04-12-rotterdamsch-nieuwsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het spoorwegongeluk te Parijs.',
+            'publisher' => 'Rotterdamsch Nieuwsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1928-04-12',
+            'locator' => 'article « Het spoorwegongeluk te Parijs. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010514267:mpeg21:a0265:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Légende du 12 avril : vue des ruines près de la gare du Nord après la collision de la veille entre deux trains ; 16 morts et 30 blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -67,6 +109,18 @@ return [
         ],
         'victims' => [
             [
+                'fr' => 'Les Hallische Nachrichten du 12 avril 1928 annoncent 10 morts et 30 blessés sous les décombres, puis six blessés graves morts peu après leur arrivée à l\'hôpital, soit 16 morts, contre 15 morts et 34 blessés dans la fiche.',
+                'en' => 'The Hallische Nachrichten of 12 April 1928 report 10 dead and 30 injured under the wreckage, then six seriously injured who died shortly after reaching hospital, making 16 dead, against 15 dead and 34 injured in the record.',
+                'de' => 'Die Hallischen Nachrichten vom 12. April 1928 melden 10 Tote und 30 Verletzte unter den Trümmern, dann sechs Schwerverletzte, die kurz nach der Einlieferung ins Krankenhaus starben, insgesamt 16 Tote, gegenüber 15 Toten und 34 Verletzten in der Datenbank.',
+                'sources' => ['ddb-1928-04-12-hallische'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais des 12 avril 1928 confirment la collision du 11 avril près de la gare du Nord, entre deux trains, avec 15 morts et 30 blessés graves dans la dépêche Aneta-Reuter, puis 16 morts et 30 blessés, contre 15 morts et 34 blessés dans la fiche. Date, lieu et nature sont confirmés.',
+                'en' => 'Two Dutch newspapers of 12 April 1928 confirm the collision of 11 April near the Gare du Nord, between two trains, with 15 dead and 30 seriously injured in the Aneta-Reuter dispatch, then 16 dead and 30 injured, against 15 dead and 34 injured in the record. Date, place and nature are confirmed.',
+                'de' => 'Zwei niederländische Zeitungen vom 12. April 1928 bestätigen den Zusammenstoß vom 11. April nahe dem Gare du Nord zwischen zwei Zügen, mit 15 Toten und 30 Schwerverletzten in der Aneta-Reuter-Meldung, dann 16 Toten und 30 Verletzten, gegenüber 15 Toten und 34 Verletzten in der Datenbank. Datum, Ort und Art sind bestätigt.',
+                'sources' => ['kb-1928-04-12-de-locomotief', 'kb-1928-04-12-rotterdamsch-nieuwsblad'],
+            ],
+            [
                 'fr' => 'L\'accident fait quinze morts et trente-quatre blessés.',
                 'en' => 'The accident killed fifteen people and injured thirty-four.',
                 'de' => 'Bei dem Unfall starben fünfzehn Menschen, vierunddreißig wurden verletzt.',
@@ -78,6 +132,14 @@ return [
                 'fr' => 'Selon la liste consultée, le mécanicien de l\'express, récemment promu et peu familier des lieux, a franchi un signal d\'arrêt fermé.',
                 'en' => 'According to the list consulted, the driver of the express, recently promoted and unfamiliar with the site, ran past a closed stop signal.',
                 'de' => 'Nach der eingesehenen Liste überfuhr der erst kürzlich beförderte und mit der Örtlichkeit wenig vertraute Lokführer des Schnellzugs ein geschlossenes Haltsignal.',
+                'sources' => ['wp-liste-1928'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La carte place l\'accident à la gare de Paris-Nord, position de la gare citée par la liste de Wikipédia. D\'après cette liste, le choc a eu lieu à environ 800 mètres de la gare, sous le pont de la rue Doudeauville : la gare du Nord est la gare de rattachement, pas le lieu du choc.',
+                'en' => 'The map places the accident at Paris-Nord station, the position of the station named by the Wikipedia list. According to that list the collision took place about 800 metres from the station, under the rue Doudeauville bridge: Paris-Nord is the station it is linked to, not the place of the impact.',
+                'de' => 'Die Karte setzt den Unfall an den Bahnhof Paris-Nord, die Position des in der Wikipedia-Liste genannten Bahnhofs. Laut dieser Liste ereignete sich der Zusammenstoß etwa 800 Meter vom Bahnhof entfernt, unter der Brücke der Rue Doudeauville: Paris-Nord ist der zugeordnete Bahnhof, nicht der Ort des Zusammenstoßes.',
                 'sources' => ['wp-liste-1928'],
             ],
         ],

@@ -1,5 +1,6 @@
 <script>
-    import { onMount, untrack } from 'svelte';
+    import { onDestroy, onMount, tick, untrack } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
@@ -14,13 +15,42 @@
     import RouteCompareKey from '$components/Map/RouteCompareKey.svelte';
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
+    import EraCurtain from '$components/Map/EraCurtain.svelte';
+    import EraPlayer from '$components/Map/EraPlayer.svelte';
+    import MapListing from '$components/Map/MapListing.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
+    import PlacePanel from '$components/Map/PlacePanel.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, mapViews, readViewParams, writeViewParams } from '$lib/epochViews.js';
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
     import { readTint, writeTint } from '$lib/eraTint.js';
+    import { readMapView, writeMapView } from '$lib/mapView.js';
+    import { MAP_COLORINGS } from '$lib/railStyle.js';
+    import {
+        coloringNotice,
+        drawnColoring,
+        formatColoringYears,
+        readColoring,
+        writeColoring,
+    } from '$lib/lineColoring.js';
+    import { bboxFromBounds } from '$lib/mapListing.js';
+    import { pastEraFor, validPoint } from '$lib/placeHistory.js';
+    import {
+        CURTAIN_DEFAULT,
+        DEFAULT_COMPARE_MODE,
+        readCompareParams,
+        writeCompareParams,
+    } from '$lib/eraCurtain.js';
+    import {
+        DEFAULT_SPEED,
+        createPlayback,
+        isPlaybackGesture,
+        openKmByYear,
+        playbackYears,
+        stepYear,
+    } from '$lib/eraPlayback.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -56,7 +86,9 @@
     // Catégories masquées via la légende interactive (tout visible par défaut :
     // réseau vivant ET disparu - fermées en tirets, déposées en pointillés).
     let hidden = $state([]);
-    // Couleur des tracés : trafic, électrification ou écartement (sélecteur de la légende).
+    // Couleur des tracés : trafic, vitesse, électrification, signalisation ou écartement (sélecteur de la
+    // légende, `?color=` de l'adresse, lib/lineColoring.js). Une coloration sans donnée datée aux époques
+    // affichées reste choisie mais grisée : la carte garde alors le trafic (`coloring`).
     let colorMode = $state('traffic');
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
@@ -90,8 +122,48 @@
     // Décennies comparées (compareFrom < compareTo), choisies au passage à la comparaison.
     let compareFrom = $state(null);
     let compareTo = $state(null);
+    // Présentation de la comparaison : rideau (une décennie de chaque côté) ou différences colorées.
+    let compareMode = $state(DEFAULT_COMPARE_MODE);
+    // Position du rideau (pour cent de la largeur) ; l'adresse la suit après le geste (`curtainShared`),
+    // pas à chaque pixel (les navigateurs limitent les réécritures de l'adresse).
+    let curtainPos = $state(CURTAIN_DEFAULT);
+    let curtainShared = $state(CURTAIN_DEFAULT);
+    // Vue dessinée par la carte et décrite par la légende : le rideau est une présentation de « Comparer ».
+    const drawnView = $derived(view === 'compare' && compareMode === 'curtain' ? 'curtain' : view);
+    // Époques dont la légende propose la coloration : une décennie, ou les deux côtés du rideau.
+    const coloringEras = $derived(
+        drawnView === 'era'
+            ? [selectedEra]
+            : drawnView === 'curtain'
+              ? [compareFrom, compareTo].filter((y) => y !== null)
+              : [],
+    );
+    const coloring = $derived(drawnColoring(colorMode, coloringEras, erasProp));
+    // Colorations impossibles aux époques affichées et leur explication (choix grisés de la légende).
+    const coloringNotices = $derived.by(() => {
+        /** @type {Record<string, string>} */
+        const notes = {};
+        const formatYears = (years) => formatColoringYears(years, currentEraYear, $i18n.t);
+        for (const m of MAP_COLORINGS) {
+            const notice = coloringNotice(m, coloringEras, erasProp, formatYears);
+            if (notice) notes[m] = $i18n.t(notice.key, notice.params);
+        }
+        return notes;
+    });
+    const curtainLabel = (year) =>
+        year === currentEraYear ? $i18n.t('maps.curtain.today') : String(year);
+    const curtainInline = (year) =>
+        year === currentEraYear ? $i18n.t('maps.compare.today_inline') : String(year);
+
+    function setCompareMode(next) {
+        // La fiche latérale (ouverte d'un clic sur le rideau) décrit une ligne à une décennie.
+        if (next !== 'curtain') drawerLine = null;
+        compareMode = next;
+    }
 
     function setView(next) {
+        // Un autre choix de vue quitte la lecture des époques (sans revenir à la vue d'avant).
+        if (playbackOpen) closePlayback(false);
         if (next === 'compare' && compareFrom === null) {
             [compareFrom, compareTo] = defaultPair(selectedEra, eras, currentEraYear) ?? [];
         }
@@ -166,7 +238,115 @@
     // d'aujourd'hui, un message le dit et propose d'y revenir. Signalisation : état de SNCF Réseau
     // aujourd'hui, mises en service datées (Wikipédia) aux époques passées.
     const showLevelCrossings = $derived(drawn.levelCrossings);
-    const showSignalling = $derived(drawn.signalling);
+    const showSignalling = $derived(drawn.signalling || coloring === 'signalling');
+    // Vue (centre et zoom) demandée par l'adresse, lue avant la création de la carte : elle remplace
+    // alors le cadrage de la France entière. `currentView` suit la carte (lien « Intégrer »).
+    const urlView = typeof window === 'undefined' ? null : readMapView(window.location.search);
+    const hasUrlView = Boolean(urlView?.center) || urlView?.zoom != null;
+    let mapCenter = $state(urlView?.center ?? [2.5, 47.0]);
+    let mapStartZoom = $state(urlView?.zoom ?? 5.5);
+    let currentView = $state.raw(null);
+
+    // L'adresse suit la vue à la fin de chaque déplacement : replaceState, donc sans entrée dans
+    // l'historique du navigateur ni rechargement de la page.
+    function writeViewToUrl(next) {
+        currentView = next;
+        const url = writeMapView(window.location.href, next);
+        if (url !== window.location.href)
+            window.history.replaceState(window.history.state, '', url);
+    }
+
+    // « Liste de ce qui est affiché » : alternative textuelle à la carte (lignes et gares de la zone
+    // visible). Proposée pour la carte d'une époque et la comparaison ; `mapBbox` suit la carte à la fin
+    // de chaque déplacement.
+    let listingOpen = $state(false);
+    let listingHeading = $state();
+    let mapBbox = $state.raw(null);
+    const listingAvailable = $derived(view === 'era' || view === 'compare');
+    const listingTitle = (year) =>
+        year === currentEraYear
+            ? $i18n.t('maps.legend.title_current')
+            : $i18n.t('maps.legend.title', { year });
+    const listingEras = $derived(
+        view === 'compare' && compareFrom !== null && compareTo !== null
+            ? [compareFrom, compareTo].map((year) => ({ year, title: listingTitle(year) }))
+            : [{ year: selectedEra, title: listingTitle(selectedEra) }],
+    );
+
+    async function toggleListing() {
+        listingOpen = !listingOpen;
+        if (!listingOpen) return;
+        await tick();
+        listingHeading?.scrollIntoView({ block: 'start' });
+        listingHeading?.focus({ preventScroll: true });
+    }
+
+    // Fermée par son bouton : le focus revient au bouton qui l'a ouverte (celui de la barre d'outils ou
+    // celui sous la carte, selon la largeur : le seul visible).
+    async function closeListing() {
+        listingOpen = false;
+        await tick();
+        /** @type {HTMLElement[]} */
+        const toggles = [...document.querySelectorAll('[data-listing-toggle]')].map(
+            (el) => /** @type {HTMLElement} */ (el),
+        );
+        toggles.find((el) => el.offsetParent !== null)?.focus();
+    }
+
+    // « Qu'y avait-il ici ? » : lieu interrogé (clic droit, appui long ou centre de la carte) et panneau.
+    // `era` n'est fixée que pour la comparaison (côté du rideau touché) ; sur une seule époque, le panneau
+    // suit la frise.
+    let railMap = $state();
+    let place = $state.raw(null);
+    let lastPastEra = $state(null);
+    const placeAvailable = $derived(view === 'era' || view === 'compare');
+    const placeEra = $derived(view === 'era' ? selectedEra : (place?.era ?? compareTo));
+    const pastEra = $derived(
+        lastPastEra !== null && eras.includes(lastPastEra)
+            ? lastPastEra
+            : pastEraFor(eras, currentEraYear),
+    );
+    $effect(() => {
+        if (view === 'era' && selectedEra !== currentEraYear) lastPastEra = selectedEra;
+    });
+    $effect(() => {
+        if (!placeAvailable) place = null;
+    });
+
+    function openPlace(raw) {
+        const point = validPoint(raw);
+        if (!point) return;
+        placeOpener = null;
+        let era;
+        if (view === 'compare') {
+            // Rideau : l'époque du côté touché ; sinon (différences, clavier) la plus récente.
+            era =
+                drawnView === 'curtain' && raw.width > 0 && (raw.x / raw.width) * 100 < curtainPos
+                    ? compareFrom
+                    : compareTo;
+        }
+        drawerLine = null;
+        place = { ...point, era };
+    }
+    // Ouvert par un bouton : le focus lui revient à la fermeture (sinon il revient à la carte).
+    let placeOpener = null;
+    function openPlaceAtCenter(event) {
+        openPlace(railMap?.getCenter());
+        placeOpener = event?.currentTarget ?? null;
+    }
+    async function closePlace() {
+        const opener = placeOpener;
+        placeOpener = null;
+        place = null;
+        await tick();
+        if (opener?.isConnected && opener.offsetParent !== null) opener.focus();
+    }
+
+    function switchPlaceEra(target) {
+        if (view !== 'era') setView('era');
+        selectedEra = target;
+    }
+
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -242,7 +422,121 @@
               }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
     );
 
-    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, ?view=schema&era=1930
+    // ── Lecture des époques (lib/eraPlayback.js, EraPlayer.svelte) ──
+    // La carte passe d'une décennie à la suivante, de la première ère reconstituée à aujourd'hui, sans se
+    // recharger ; l'adresse suit (effet plus bas). Ouverte par le bouton lecture de la frise ; le rideau et
+    // les autres vues laissent la place à la carte d'une décennie, puis reviennent en quittant la lecture.
+    // Animations réduites demandées par le système : pas de lecture automatique, pas à pas seulement.
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
+    const playbackYearList = $derived(playbackYears(erasProp?.length ? erasProp : eras));
+    const openKm = $derived(openKmByYear(erasProp));
+    let playbackOpen = $state(false);
+    let playbackPlaying = $state(false);
+    let playbackEnded = $state(false);
+    let playbackSpeed = $state(DEFAULT_SPEED);
+    let playbackStatus = $state('');
+    let playbackButton = $state();
+    let viewBeforePlayback = null;
+    // Seule l'ère suivante est préchargée, pendant la lecture.
+    const preloadEra = $derived(
+        playbackPlaying ? stepYear(playbackYearList, selectedEra, 1) : null,
+    );
+    const playbackYearText = (year) =>
+        year === currentEraYear ? $i18n.t('maps.timeline.value_today') : String(year);
+
+    const playback = createPlayback({
+        years: () => playbackYearList,
+        getYear: () => selectedEra,
+        onStep: (year) => (selectedEra = year),
+        onChange: ({ playing, ended }) => {
+            playbackPlaying = playing;
+            playbackEnded = ended;
+            playbackStatus = playing
+                ? $i18n.t('maps.playback.status_playing')
+                : ended
+                  ? $i18n.t('maps.playback.status_ended')
+                  : $i18n.t('maps.playback.status_paused', { year: playbackYearText(selectedEra) });
+        },
+    });
+    onDestroy(() => playback.destroy());
+
+    async function openPlayback() {
+        if (playbackOpen) {
+            if (!reducedMotion.current) playback.toggle();
+            return;
+        }
+        if (view !== 'era') {
+            viewBeforePlayback = view;
+            drawerLine = null;
+            flyTarget = null;
+            view = 'era';
+        }
+        playbackOpen = true;
+        if (!reducedMotion.current) playback.play();
+        await tick();
+        (
+            playbackButton ??
+            /** @type {HTMLElement|null} */ (
+                mapFrameEl?.querySelector('.era-player button:not(:disabled)')
+            )
+        )?.focus();
+    }
+
+    // Quitter : la vue d'avant revient (rideau compris) ; le focus revient au bouton de la frise s'il est là.
+    async function closePlayback(restore = true) {
+        playback.pause();
+        playbackOpen = false;
+        playbackStatus = '';
+        const previous = viewBeforePlayback;
+        viewBeforePlayback = null;
+        if (!restore) return;
+        if (previous) setView(previous);
+        await tick();
+        /** @type {HTMLElement|null} */
+        const back =
+            mapFrameEl?.querySelector('.timeline .play-btn') ??
+            mapFrameEl?.querySelector('.toolbar-view button');
+        back?.focus();
+    }
+
+    function stepPlayback(delta) {
+        const moved = delta > 0 ? playback.next() : playback.prev();
+        if (moved) playbackStatus = playbackYearText(selectedEra);
+    }
+
+    function setPlaybackSpeed(next) {
+        playback.setSpeed(next);
+        playbackSpeed = playback.speed;
+    }
+
+    // Au moindre geste hors des commandes de la lecture (appui, molette, touche), la lecture s'arrête.
+    $effect(() => {
+        if (!playbackPlaying) return;
+        const stop = (/** @type {Event} */ e) => {
+            if (isPlaybackGesture(e)) playback.pause();
+        };
+        const types = ['pointerdown', 'wheel', 'keydown'];
+        for (const type of types)
+            window.addEventListener(type, stop, { capture: true, passive: true });
+        return () => {
+            for (const type of types) window.removeEventListener(type, stop, { capture: true });
+        };
+    });
+
+    // Système passé en animations réduites pendant la lecture : arrêt, pas à pas seulement.
+    $effect(() => {
+        if (reducedMotion.current) untrack(() => playback.pause());
+    });
+
+    // Le rideau entre dans l'adresse un court instant après le dernier mouvement.
+    $effect(() => {
+        const pos = curtainPos;
+        const timer = setTimeout(() => (curtainShared = pos), 300);
+        return () => clearTimeout(timer);
+    });
+
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980 (rideau, &curtain=30 pour sa position,
+    // &show=changes pour les différences), ?view=stack, ?view=schema&era=1930
     // (vue ferroviaire), et ?layer=… pour chaque calque (lue au montage).
     onMount(() => {
         const fromUrl = readViewParams(window.location.search, eras, views);
@@ -250,6 +544,11 @@
         if (fromUrl.view === 'compare') {
             compareFrom = fromUrl.era;
             compareTo = fromUrl.compare;
+            // ?show=changes : différences colorées ; sinon le rideau, à ?curtain= (pour cent) ou au milieu.
+            const shown = readCompareParams(window.location.search);
+            compareMode = shown.mode;
+            curtainPos = shown.curtain;
+            curtainShared = shown.curtain;
         }
         view = fromUrl.view;
         // Calques demandés par un lien (fiche ligne : « Voir la signalisation sur la carte »).
@@ -257,6 +556,15 @@
         ormLayer = layers.orm;
         setDataLayers(layers.data);
         tintOn = readTint(window.location.search);
+        colorMode = readColoring(window.location.search);
+    });
+
+    // L'adresse suit la coloration choisie (`?color=speed`), même grisée à l'époque affichée.
+    $effect(() => {
+        const next = writeColoring(window.location.href, colorMode);
+        if (next !== window.location.href) {
+            window.history.replaceState(window.history.state, '', next);
+        }
     });
 
     $effect(() => {
@@ -264,7 +572,13 @@
             view === 'compare'
                 ? { view, era: compareFrom, compare: compareTo }
                 : { view, era: selectedEra };
-        const next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        let next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        next = writeCompareParams(
+            next,
+            view === 'compare' ? { mode: compareMode, curtain: curtainShared } : null,
+        );
+        // La vue ferroviaire a son propre cadrage : ni centre ni zoom dans son adresse.
+        if (view === 'schema') next = writeMapView(next, null);
         if (next !== window.location.href) {
             window.history.replaceState(window.history.state, '', next);
         }
@@ -320,6 +634,33 @@
                                     bind:tint={() => tintOn, setTint}
                                 />
                             {/if}
+                            {#if placeAvailable}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary embed-btn"
+                                    title={$i18n.t('maps.here.button_title')}
+                                    aria-expanded={place !== null}
+                                    onclick={openPlaceAtCenter}
+                                >
+                                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                                    <span class="embed-label">{$i18n.t('maps.here.button')}</span>
+                                </button>
+                            {/if}
+                            {#if listingAvailable}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary embed-btn"
+                                    title={$i18n.t('maps.listing.button')}
+                                    data-listing-toggle
+                                    aria-expanded={listingOpen}
+                                    aria-controls={listingOpen ? 'liste-carte' : undefined}
+                                    onclick={toggleListing}
+                                >
+                                    <i class="bi bi-list-ul" aria-hidden="true"></i>
+                                    <span class="embed-label">{$i18n.t('maps.listing.button')}</span
+                                    >
+                                </button>
+                            {/if}
                             <button
                                 type="button"
                                 class="vff-btn secondary embed-btn"
@@ -335,14 +676,26 @@
 
                     <!-- Légende, messages, fiche latérale : posés sur la carte comme sur le plan. -->
                     {#snippet mapOverlays()}
+                        {#if drawnView === 'curtain'}
+                            <EraCurtain
+                                bind:value={curtainPos}
+                                left={curtainLabel(compareFrom)}
+                                right={curtainLabel(compareTo)}
+                                leftText={curtainInline(compareFrom)}
+                                rightText={curtainInline(compareTo)}
+                            />
+                        {/if}
                         <div class="legend-slot">
                             <MapLegend
                                 era={view === 'compare' ? compareFrom : selectedEra}
-                                {view}
+                                view={drawnView}
                                 compareEra={compareTo}
                                 currentEra={currentEraYear}
                                 bind:hidden
                                 bind:mode={colorMode}
+                                modes={MAP_COLORINGS}
+                                drawnMode={coloring}
+                                unavailable={coloringNotices}
                                 accidents={accidentLegend}
                                 overlays={drawn.legendOverlays}
                             />
@@ -403,6 +756,17 @@
                             </div>
                         {/if}
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
+                        {#if place && placeAvailable}
+                            <PlacePanel
+                                point={place}
+                                era={placeEra}
+                                currentEra={currentEraYear}
+                                {pastEra}
+                                version={dataVersion}
+                                onClose={closePlace}
+                                onSwitchEra={switchPlaceEra}
+                            />
+                        {/if}
                     {/snippet}
 
                     {#if view === 'schema'}
@@ -421,13 +785,15 @@
                         </SchematicMap>
                     {:else}
                         <RailMap
+                            bind:this={railMap}
                             era={view === 'compare' ? compareFrom : selectedEra}
-                            {view}
+                            view={drawnView}
                             compareEra={compareTo}
+                            curtain={curtainPos}
                             geolocate
                             currentEra={currentEraYear}
                             {hidden}
-                            mode={colorMode}
+                            mode={coloring}
                             overlay={ormLayer}
                             tint={tintOn}
                             accidents={showAccidents ? accidentData : null}
@@ -435,16 +801,27 @@
                             signalling={showSignalling}
                             greenways={drawn.greenways}
                             onZoomChange={(z) => (mapZoom = z)}
+                            onViewChange={writeViewToUrl}
+                            onBoundsChange={(bounds) => (mapBbox = bboxFromBounds(bounds))}
+                            onEraShown={(year) => playback.shown(year)}
+                            {preloadEra}
+                            center={mapCenter}
+                            zoom={mapStartZoom}
                             {dataVersion}
                             {flyTarget}
                             {route}
                             {earlierRoute}
                             height="100%"
-                            fitBounds={FRANCE_BOUNDS}
+                            fitBounds={hasUrlView ? null : FRANCE_BOUNDS}
                             {fitPadding}
                             selectedLine={drawerLine?.slug ?? null}
                             fullscreenContainer={mapFrameEl}
-                            onLineClick={(props) => (drawerLine = props)}
+                            onLineClick={(props) => {
+                                drawerLine = props;
+                                place = null;
+                            }}
+                            onPlacePick={openPlace}
+                            placeMarker={place}
                         >
                             {@render mapOverlays()}
                         </RailMap>
@@ -456,6 +833,26 @@
                             currentEra={currentEraYear}
                             bind:from={compareFrom}
                             bind:to={compareTo}
+                            bind:mode={() => compareMode, setCompareMode}
+                        />
+                    {:else if playbackOpen && view === 'era'}
+                        <!-- Lecture des époques : la barre de lecture remplace la frise, la carte reste entière. -->
+                        <EraPlayer
+                            year={selectedEra}
+                            years={playbackYearList}
+                            todayEra={currentEraYear}
+                            openKm={openKm[selectedEra] ?? null}
+                            playing={playbackPlaying}
+                            ended={playbackEnded}
+                            speed={playbackSpeed}
+                            stepOnly={reducedMotion.current}
+                            status={playbackStatus}
+                            bind:playButton={playbackButton}
+                            onToggle={() => playback.toggle()}
+                            onPrev={() => stepPlayback(-1)}
+                            onNext={() => stepPlayback(1)}
+                            onSpeed={setPlaybackSpeed}
+                            onClose={() => closePlayback()}
                         />
                     {:else if view === 'era' || view === 'schema'}
                         <TimelineSlider
@@ -464,6 +861,8 @@
                             currentEra={currentEraYear}
                             labels={eraLabels}
                             bind:value={selectedEra}
+                            onPlay={openPlayback}
+                            playing={playbackPlaying}
                         />
                     {/if}
                 </div>
@@ -472,6 +871,30 @@
 
         <div class="vff-container map-after">
             <p class="map-lead">{$i18n.t('maps.hero.subtitle')}</p>
+            {#if placeAvailable}
+                <button
+                    type="button"
+                    class="vff-btn secondary small embed-btn"
+                    aria-expanded={place !== null}
+                    onclick={openPlaceAtCenter}
+                >
+                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                    {$i18n.t('maps.here.button')}
+                </button>
+            {/if}
+            {#if listingAvailable}
+                <button
+                    type="button"
+                    class="vff-btn secondary small embed-btn"
+                    data-listing-toggle
+                    aria-expanded={listingOpen}
+                    aria-controls={listingOpen ? 'liste-carte' : undefined}
+                    onclick={toggleListing}
+                >
+                    <i class="bi bi-list-ul" aria-hidden="true"></i>
+                    {$i18n.t('maps.listing.button')}
+                </button>
+            {/if}
             <button
                 type="button"
                 class="vff-btn secondary small embed-btn"
@@ -482,6 +905,20 @@
                 {$i18n.t('maps.embed.button')}
             </button>
         </div>
+
+        {#if listingOpen && listingAvailable}
+            <div class="vff-container">
+                <MapListing
+                    eras={listingEras}
+                    bbox={mapBbox}
+                    {hidden}
+                    {coloring}
+                    version={dataVersion}
+                    bind:headingEl={listingHeading}
+                    onClose={closeListing}
+                />
+            </div>
+        {/if}
 
         <div class="vff-container route-section" id="itineraire">
             <RoutePlanner
@@ -500,6 +937,8 @@
             <EmbedCodeModal
                 bind:open={embedModalOpen}
                 defaultEra={selectedEra}
+                mapView={currentView ??
+                    (hasUrlView ? { center: mapCenter, zoom: mapStartZoom } : null)}
                 {eras}
                 currentEra={currentEraYear}
             />

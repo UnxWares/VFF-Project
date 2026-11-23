@@ -3,7 +3,7 @@
 // Contexte sourcé de l'attentat de Juillan-Ossun du 19 janvier 1944 (recherche du 21/11/2026).
 return [
     'slug' => '1944-01-19-ossun',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'loucrup-ossun' => [
             'provider' => 'sites-web',
@@ -75,6 +75,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Livre non lu ; cité par la page d\'histoire locale à propos de la cible réelle de l\'attentat. L\'adresse est celle de la page qui le mentionne.',
         ],
+        'ddb-1944-01-21-der' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der Führer du 21 janvier 1944',
+            'publisher' => 'Der Führer (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1944-01-21',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/FXW5467FKK3KQ7ENWMFQMIX37SDNHTBN?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 20 janvier : l\'express de Pau à Toulouse a déraillé le 19 janvier dans la région de Tarbes, un rail s\'étant rompu ; trois voitures encastrées ; 25 morts et environ 50 blessés, tous Français. Presse sous l\'Occupation.',
+        ],
+        'kb-1944-01-20-de-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp in Frankrijk.',
+            'publisher' => 'De Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1944-01-20',
+            'locator' => 'article « Treinramp in Frankrijk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110584312:mpeg21:a0016:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 20 janvier : l\'express Pau-Toulouse a eu un accident mercredi matin près de « Barbes » (Tarbes) ; 20 morts dégagés, environ 100 blessés ; cause non communiquée.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -106,6 +134,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le journal allemand Der Führer du 21 janvier 1944 rapporte, dans une dépêche de Paris du 20, que l\'express de Pau à Toulouse a déraillé le 19 janvier dans la région de Tarbes, un rail s\'étant rompu et trois voitures s\'étant encastrées, avec 25 morts et une cinquantaine de blessés, contre 27 morts et 47 blessés dans la fiche. Date et lieu sont confirmés ; la presse sous l\'Occupation ne parle pas d\'attentat dans cet extrait.',
+                'en' => 'The German newspaper Der Führer of 21 January 1944 reports, in a Paris dispatch of the 20th, that the Pau to Toulouse express derailed on 19 January in the Tarbes area, a rail having broken and three carriages having telescoped, with 25 dead and about 50 injured, against 27 dead and 47 injured in the record. Date and place are confirmed; the press under the Occupation does not speak of an attack in this extract.',
+                'de' => 'Die deutsche Zeitung Der Führer vom 21. Januar 1944 berichtet in einer Pariser Meldung vom 20., der Schnellzug von Pau nach Toulouse sei am 19. Januar in der Gegend von Tarbes entgleist, wobei eine Schiene losgebrochen war und drei Personenwagen ineinanderfuhren, mit 25 Toten und etwa 50 Verletzten, gegenüber 27 Toten und 47 Verletzten in der Datenbank. Datum und Ort sind bestätigt; die Presse unter der Besatzung spricht in diesem Auszug nicht von einem Anschlag.',
+                'sources' => ['ddb-1944-01-21-der'],
+            ],
+            [
+                'fr' => 'De Telegraaf du 20 janvier 1944 rapporte que l\'express Pau-Toulouse a eu un accident le mercredi matin (le 19 janvier) près de Tarbes, avec 20 morts dégagés et environ 100 blessés dans ce premier bilan, contre 27 morts et 47 blessés dans la fiche ; la cause n\'est pas communiquée. Date et lieu sont confirmés.',
+                'en' => 'De Telegraaf of 20 January 1944 reports that the Pau-Toulouse express had an accident on Wednesday morning (19 January) near Tarbes, with 20 dead recovered and about 100 injured in this first toll, against 27 dead and 47 injured in the record; the cause is not disclosed. Date and place are confirmed.',
+                'de' => 'De Telegraaf vom 20. Januar 1944 berichtet, der Schnellzug Pau-Toulouse sei am Mittwochmorgen (19. Januar) in der Nähe von Tarbes verunglückt, mit 20 geborgenen Toten und etwa 100 Verletzten in dieser ersten Bilanz, gegenüber 27 Toten und 47 Verletzten in der Datenbank; die Ursache wird nicht mitgeteilt. Datum und Ort sind bestätigt.',
+                'sources' => ['kb-1944-01-20-de-telegraaf'],
+            ],
             [
                 'fr' => 'Le bilan retenu est de 27 morts et de 47 blessés (page d\'histoire locale) ou d\'environ cinquante blessés (liste de Wikipédia). Les victimes étaient des civils. Un article de presse de l\'époque, repris sur la page locale, faisait d\'abord état de 25 morts.',
                 'en' => 'The accepted toll is 27 dead and 47 injured (local history page) or about fifty injured (Wikipedia list). The victims were civilians. A contemporary press article, reproduced on the local page, first reported 25 dead.',

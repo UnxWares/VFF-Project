@@ -62,11 +62,11 @@ return [
             'note' => 'Lettre de Dannemarie du 20 juillet, d\'après le Niederrheinischer Kurier : l\'express de Paris parti de Mulhouse à 10 h 20 a déraillé « aujourd\'hui » entre la gare de Dannemarie et le grand viaduc ; un témoin décrit la locomotive couchée sur le dos au pied du remblai, juste avant le viaduc, le tender et deux fourgons brisés, les voitures de voyageurs séparées du reste du train, et le trafic interrompu.',
         ],
         'delpher-1872-07-23-courrier-meuse' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Faits divers',
-            'publisher' => 'Le Courrier de la Meuse, Maastricht (presse numérisée, Delpher)',
+            'publisher' => 'Le Courrier de la Meuse, Maastricht  (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1872-07-23',
             'locator' => 'p. 3',

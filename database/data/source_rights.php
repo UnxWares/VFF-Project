@@ -99,7 +99,9 @@ return [
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour caracteristique-des-voies-et-declivite, lu le 2026-11-22 (database/data/sourced_grades_sncf.php, vff:import-sncf-grades, qui revérifie la licence à chaque téléchargement) ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-quais (modifié le 2020-05-26), lu le 2026-11-22 (vff:import-sncf-platforms, table station_platforms, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour regime-dexploitation-des-lignes (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-track-regime, tables line_track_portions et lines.nb_voies_default, trace line_sources « sncf-regime ») ; '
-                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour lignes-equipees-de-liaison-radio-sol-train (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-radio, table line_radio_portions) ; les deux commandes revérifient la licence et l\'éditeur à chaque téléchargement',
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour lignes-equipees-de-liaison-radio-sol-train (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-radio, table line_radio_portions) ; les deux commandes revérifient la licence et l\'éditeur à chaque téléchargement ; '
+                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (modifié le 2026-11-13) et frequentation-gares-archive (modifié le 2025-07-03), relus le 2026-11-23 (vff:import-sncf-attendance, table station_attendances, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; SNCF y écrit que 2025 vient d\'autres sources et d\'une autre méthode de calcul que 2015-2024 ; '
+                .'"license": "Open Data Commons Open Database License (ODbL)" ou "Open Database License (ODbL)", "publisher": "Gares & Connexions" pour accessibilite_gares (NeTEx, modifié le 2026-05-21), equipements-accessibilite-en-gare, assistance-psh-pmr, etat-fonctionnement-elevatique-gare, gares-de-voyageurs et stationnement-securise-velo-en-gare-au-30-06-24, et "publisher": "SNCF Voyageurs" pour points-vente, lus le 2026-11-23 (vff:import-station-accessibility, table station_accessibility, qui revérifie la licence et l\'éditeur à chaque téléchargement)',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -158,6 +160,37 @@ return [
             'obligations' => 'Aucune obligation légale. API : User-Agent identifiant (politique de la Wikimedia Foundation).',
             'domaines' => ['wikidata.org'],
             'lu_le' => '2026-10-20',
+        ],
+        'pop' => [
+            'nom' => 'POP, Plateforme ouverte du patrimoine (base Mérimée, ministère de la Culture)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 2.0 (Etalab)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/immeubles-proteges-au-titre-des-monuments-historiques-2',
+                'https://www.pop.culture.gouv.fr/',
+            ],
+            'citation' => 'Jeu « Immeubles protégés au titre des Monuments Historiques » publié par le ministère de la Culture sur data.gouv.fr, licence « lov2 » (Licence Ouverte v2.0), dernière mise à jour le 2026-11-19.',
+            'obligations' => 'Mention de la paternité (« Ministère de la Culture, base Mérimée, POP ») et de la date de mise à jour. '
+                .'Seul le fichier officiel du ministère est lu (ministere-culture.s3.sbg.io.cloud.ovh.net/POP/merimee.csv), pas les copies de tiers (Toulouse métropole, départements). '
+                .'La licence est revérifiée à chaque téléchargement (vff:import-station-heritage, table station_heritage).',
+            'remarques' => 'Seule la base Mérimée des monuments historiques est lue (références PA) ; l\'Inventaire général et le label Architecture contemporaine remarquable viennent de Wikidata (P1435, P380).',
+            'domaines' => ['pop.culture.gouv.fr'],
+            'lu_le' => '2026-11-23',
+        ],
+        'palissy' => [
+            'nom' => 'POP, Plateforme ouverte du patrimoine (base Palissy, ministère de la Culture)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 1.0 (Etalab, « fr-lo » sur data.gouv.fr)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/liste-des-objets-mobiliers-propriete-publique-classes-au-titre-des-monuments-historiques-1',
+            ],
+            'citation' => 'Jeu « Liste des objets protégés au titre des Monuments historiques » publié par le ministère de la Culture sur data.gouv.fr, licence « fr-lo » (Licence Ouverte), ressource palissy.csv, dernière mise à jour le 2026-11-13 (lu le 2026-11-23 par l\'API data.gouv.fr ; le portail data.culture.gouv.fr n\'expose plus de page lisible sans JavaScript).',
+            'obligations' => 'Mention de la paternité (« Ministère de la Culture, base Palissy, POP ») et de la date de mise à jour. Seul le fichier officiel du ministère est lu (ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv).',
+            'remarques' => 'Seuls les objets ferroviaires protégés sont gardés (database/data/preserved_rolling_stock.php, clé `palissy`) : numéro, lieu au moment de la protection, date et nature de la protection.',
+            'domaines' => ['pop.culture.gouv.fr'],
+            'lu_le' => '2026-11-23',
         ],
         'commons' => [
             'nom' => 'Wikimedia Commons',
@@ -427,6 +460,7 @@ return [
                 .'Documents : « Ces utilisations commerciales sont soumises à autorisation et au paiement d\'une redevance [...] L\'utilisation non commerciale des documents ou dans une publication académique ou scientifique est libre et gratuite sous réserve de la mention de source : BnF ou Bibliothèque nationale de France. »',
             'obligations' => 'Mention « Source : gallica.bnf.fr / BnF » (Bibliothèque nationale de France) et date de récupération des notices. '
                 .'Seules les métadonnées des notices produites par la BnF sont reprises (titre, date, type, auteurs, cote, identifiants ark) avec un lien vers le document dans Gallica (vff:import-gallica, table line_archive_documents). '
+                .'Bibliographie des lignes et des gares (vff:import-bibliography, table bibliography_entries) : seules les notices de livres du catalogue général (auteurs, titre, éditeur, lieu, année, ISBN) avec le lien vers la notice sur catalogue.bnf.fr, la source et la date de récupération ; une requête toutes les 5 secondes au plus, User-Agent du projet (API SRU documentée sur api.bnf.fr). '
                 .'Aucune image, vignette ni texte numérisé n\'est stocké ni affiché : sur un site édité par une société, leur affichage pourrait relever de la réutilisation commerciale (tarif « Web et applications mobiles » : 75 € HT par image).',
             'remarques' => 'Lu le 2026-11-20. gallica.bnf.fr (SRU, OAI-PMH, IIIF et page des conditions d\'utilisation) refuse les requêtes de la machine de développement (blocage Cloudflare « Sorry, you have been blocked »), et aussi celles de l\'outil de lecture de pages : '
                 .'les notices sont donc lues dans l\'API SRU du catalogue général (catalogue.bnf.fr/api/SRU, critère bib.digitized = freeAccess : document numérisé en accès libre dans Gallica), qui décrit les mêmes documents. '
@@ -575,16 +609,28 @@ return [
         // faits validées par Baptiste le 22/11/2026. Énoncés rédigés par VFF, lien vers la page du journal, aucun texte
         // recopié, aucune image, aucun nom de victime privée.
         'delpher' => [
-            'nom' => 'Delpher (presse néerlandaise numérisée, Koninklijke Bibliotheek)',
+            'nom' => 'Delpher, Koninklijke Bibliotheek',
             'statut' => 'incertain',
-            'licence' => 'Aucune licence ouverte trouvée : la KB demande une autorisation pour copier ou réutiliser ses contenus, et permet le lien seul ; matériel de plus de 140 ans copiable sans autorisation',
+            'licence' => 'Selon les conditions d\'utilisation de Delpher : le matériel peut être utilisé librement pour sa propre recherche, le matériel publié pour la première fois il y a plus de 140 ans est dans le domaine public, les droits des notices et des images de presse plus récentes restent ceux de chaque objet ; aucune licence ouverte générale',
             'accord' => null,
-            'preuve' => ['https://www.kb.nl/contact/auteursrecht', 'https://www.kb.nl/legal/gebruiksvoorwaarden-en-klachtregeling'],
-            'citation' => 'Als je iets van deze website wilt kopiëren en/of hergebruiken, dan moet je toestemming vragen via onze contactpagina.',
-            'obligations' => 'Faits seulement, avec le titre du journal, la date et un lien (resolver.kb.nl) vers l\'article. Aucun texte OCR recopié, aucune image, aucune extraction en masse.',
-            'remarques' => 'Les pages propres à Delpher (delpher.nl) refusent la machine de développement (403) : conditions lues sur kb.nl le 22/11/2026. Lu par l\'API SRU publique jsru.kb.nl (une requête à la fois).',
+            'preuve' => ['https://www.delpher.nl/over-delpher/gebruiksvoorwaarden', 'https://www.kb.nl/over-ons/diensten/delpher', 'https://www.kb.nl/contact/auteursrecht', 'https://www.kb.nl/legal/gebruiksvoorwaarden-en-klachtregeling'],
+            'citation' => 'Al het materiaal in Delpher mag je voor eigen onderzoek vrij gebruiken, maar het is niet toegestaan om grote aantallen objecten waar (mogelijk) auteursrecht op rust te downloaden.',
+            'obligations' => 'Crédit « Delpher, Koninklijke Bibliotheek » (mention de la source appréciée, usage courant) avec lien vers l\'article (resolver.kb.nl). Faits seulement, rédigés par VFF : aucun texte OCR recopié, aucune image, aucune extraction en masse d\'objets possiblement sous droit.',
+            'remarques' => 'Conditions relues le 22/11/2026 sur delpher.nl/over-delpher/gebruiksvoorwaarden (page lisible par l\'outil de lecture, 403 pour curl) et sur kb.nl. Lu par l\'API SRU publique jsru.kb.nl (une requête à la fois).',
             'domaines' => ['delpher.nl', 'resolver.kb.nl', 'kb.nl'],
             'lu_le' => '2026-11-22',
+        ],
+        'letempsarchives' => [
+            'nom' => 'Le Temps Archives (Journal de Genève, Gazette de Lausanne, Le Nouveau Quotidien)',
+            'statut' => 'incertain',
+            'licence' => 'Pas de licence ouverte : archives numérisées de Le Temps SA, sans page de conditions propre ; les conditions générales de letemps.ch interdisent la reproduction, la mise en lien et l\'utilisation à des fins publiques ou commerciales sans autorisation écrite de Le Temps ; les journaux du XIXe et du début du XXe siècle sont sans doute dans le domaine public (auteurs morts depuis plus de 70 ans), mais la numérisation et la base appartiennent au Temps',
+            'accord' => null,
+            'preuve' => ['https://www.letempsarchives.ch/robots.txt', 'https://www.letemps.ch/conditions-generales', 'https://www.letempsarchives.ch/'],
+            'citation' => 'La reproduction (entière ou partielle), la transmission (électronique ou par d\'autres voies), la modification, la mise en lien ou l\'utilisation de ces marques, noms, logos, photos, éléments visuels, textes et autres matériaux à des fins publiques ou commerciales sont interdites sans autorisation écrite préalable de Le Temps.',
+            'obligations' => 'Faits seulement (date, lieu, bilan), rédigés par VFF, avec le journal, la date, la page et le lien vers la page du numéro (letempsarchives.ch/page/<numéro>/<page>) ; une citation de quelques mots au plus ; aucune image, aucune reproduction de page ni d\'extrait de texte ; pas d\'extraction en masse.',
+            'remarques' => 'robots.txt du 06/11/2026 : « Disallow: /* », « Allow: /$ » (seule la page d\'accueil est ouverte aux programmes) ; la recherche demande un jeton de session. Le 22/11/2026 (21 h 50) puis le 23/11/2026 vers 1 h, Baptiste, responsable du projet, a donné l\'ordre exprès d\'accéder au site malgré le robots.txt, parce qu\'il estime avoir lui-même cette autorisation, un humain étant derrière les requêtes : l\'accès est donc fait pour lui et sur son autorisation, pas sur un accord de Le Temps SA (aucun accord écrit reçu ; en demander un reste conseillé). Conditions d\'accès tenues : une requête toutes les 5 secondes au moins, User-Agent « VFF-Bot/1.0 (+https://vff-project.org) », seulement la recherche et les pages des accidents sans article déjà connu, aucune barrière technique contournée. Les pages sont des images (IIIF) sans texte lisible par programme ; la recherche est floue et renvoie surtout des faux positifs (Nyon pour Saint-Sornin, Siedlice pour Vrizy).',
+            'domaines' => ['letempsarchives.ch'],
+            'lu_le' => '2026-11-23',
         ],
         'ddb-zeitungsportal' => [
             'nom' => 'Deutsches Zeitungsportal (Deutsche Digitale Bibliothek)',
@@ -637,6 +683,170 @@ return [
             'obligations' => 'Titre du journal, date, page, mention « numérisé par la Bibliothèque nationale du Luxembourg, www.eluxemburgensia.lu » et lien direct (persist.lu). Faits seulement, aucun texte ni image repris pour les contenus protégés.',
             'remarques' => 'Lu le 22/11/2026 (page Droits, servie par l\'API du site). Pas de robots.txt. Recherche par l\'API publique du visualiseur (viewer.eluxemburgensia.lu/api/viewer2/search), une requête à la fois ; seuls les extraits de la recherche sont lus.',
             'domaines' => ['eluxemburgensia.lu', 'persist.lu'],
+            'lu_le' => '2026-11-22',
+        ],
+        // Images ouvertes (autochromes, cartes postales d'archives) rattachées aux gares et aux lignes : vff:import-open-data-media
+        // (agent medias-2, 22/11/2026). Lecture par l'API tabulaire de data.gouv.fr ou le WFS du Grand Lyon, jamais par l'API des
+        // portails Opendatasoft (leur robots.txt l'interdit aux robots) ; images en lien direct, jamais copiées.
+        'albert-kahn' => [
+            'nom' => 'Musée départemental Albert-Kahn, Archives de la Planète (Département des Hauts-de-Seine)',
+            'statut' => 'sur',
+            'licence' => 'Par image : CC0 1.0 (domaine public) ou CC BY 4.0, lue dans le champ « Licence » de chaque ligne ; index documentaire sous Licence Ouverte ; les images « non-diffusables » ou « non-librement réutilisables (droits réservés) » ne sont pas dans le jeu',
+            'accord' => null,
+            'preuve' => ['https://collections.albert-kahn.hauts-de-seine.fr/cgu_media', 'https://www.data.gouv.fr/datasets/archives-de-la-planete'],
+            'citation' => '« La licence Creative Commons (CC-BY 4.0) permet également de copier, modifier, distribuer et représenter l\'œuvre, y compris à des fins commerciales, sans avoir besoin de demander l\'autorisation. La seule obligation est de créditer les créateurs des œuvres originales, d\'en indiquer les sources et d\'indiquer si des modifications ont été effectuées aux œuvres. »',
+            'obligations' => 'Titre de l\'œuvre et nom de l\'auteur (l\'opérateur) à chaque affichage ; aucun traitement qui dénature l\'image ou en détourne le sens (droit moral, y compris pour le domaine public) ; revente des fichiers proscrite. '
+                .'Mention invitée par le musée : légende, numéro d\'inventaire, « Musée départemental Albert-Kahn » et son appartenance au Département des Hauts-de-Seine, lien vers albert-kahn.hauts-de-seine.fr pour toute publication en ligne ; informer le musée des réutilisations (collection-musee-albert-kahn@hauts-de-seine.fr).',
+            'remarques' => 'Réserve « soumis à CGU pour les images » levée le 22/11/2026 : les CGU (collections.albert-kahn.hauts-de-seine.fr/cgu_media) ne restreignent pas plus que CC0 et CC BY 4.0 (usage commercial permis). '
+                .'Le téléchargement HD sur le site du musée exige un compte ; VFF ne télécharge rien et affiche l\'image du portail open data en lien direct. Les coordonnées du jeu sont celles de la commune, pas de la prise de vue.',
+            'domaines' => ['albert-kahn.hauts-de-seine.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'ad92' => [
+            'nom' => 'Archives départementales des Hauts-de-Seine (cartes postales 9 Fi, 1900-1944)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-2', 'https://opendata.hauts-de-seine.fr/explore/dataset/fr-229200506-cartes-postales/information/'],
+            'citation' => '« licence » : « fr-lo » (API data.gouv.fr du jeu « Cartes postales » du Département des Hauts-de-Seine, lue le 22/11/2026)',
+            'obligations' => 'Mention « Archives départementales des Hauts-de-Seine », cote (9FI/…) et licence ; lien vers la notice du portail.',
+            'remarques' => 'Le crédit de l\'auteur de la carte (photographe ou éditeur) n\'est pas dans le jeu. Les jeux de Vanves et de Meudon reprennent cette sous-série : non importés à part.',
+            'domaines' => ['opendata.hauts-de-seine.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'suresnes' => [
+            'nom' => 'Ville de Suresnes (cartes postales anciennes des archives communales)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu ; seules les cartes les plus anciennes y figurent « en raison des droits d\'auteurs sur les images » (colonne « Open data »)',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes'],
+            'citation' => '« Seules les cartes les plus anciennes figurent dans l\'Open data, en raison des droits d\'auteurs sur les images. »',
+            'obligations' => 'Mention « Archives communales de Suresnes », cote (6 FI …) et licence ; seules les lignes dont la colonne « Open data » est vraie sont reprises.',
+            'domaines' => [],
+            'lu_le' => '2026-11-22',
+        ],
+        'evry-courcouronnes' => [
+            'nom' => 'Ville d\'Évry-Courcouronnes (cartes postales anciennes)',
+            'statut' => 'incertain',
+            'licence' => 'Licence Ouverte 2.0 (Etalab), déclarée pour le jeu ; mais le jeu précise que les cartes sont « soit libres de droits, certaines proviennent de dons de particuliers »',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes-1', 'https://data.evrycourcouronnes.fr/explore/dataset/cartes-postales/information/'],
+            'citation' => 'Ces cartes sont soit libres de droits, certaines proviennent de dons de particuliers.',
+            'obligations' => 'Mention « Ville d\'Évry-Courcouronnes », identifiant et licence ; lien vers la notice du portail.',
+            'remarques' => 'Statut incertain : la part des cartes données par des particuliers (sans cession écrite visible) n\'est pas distinguée dans le jeu. À confirmer par un courriel à la ville avant la mise en ligne.',
+            'domaines' => ['data.evrycourcouronnes.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'sevres' => [
+            'nom' => 'Ville de Sèvres (cartes postales anciennes des archives municipales)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-anciennes-des-archives-municipales'],
+            'citation' => '« licence » : « fr-lo » (API data.gouv.fr du jeu « Cartes postales anciennes des Archives municipales », lue le 22/11/2026)',
+            'obligations' => 'Mention « Archives municipales de Sèvres », cote (18 Fi …) et licence.',
+            'domaines' => ['sevres-seineouest.opendatasoft.com', 'data.sevres.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'gadagne' => [
+            'nom' => 'Ville de Lyon, musée Gadagne (cartes postales)',
+            'statut' => 'incertain',
+            'licence' => 'Licence Ouverte 2.0 (Etalab) déclarée sur data.gouv.fr ; le texte de la licence sur le portail du Grand Lyon (rendu par JavaScript) n\'a pas pu être lu : portée sur les images à confirmer',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/cartes-postales-du-musee-gadagne-de-la-ville-de-lyon'],
+            'citation' => '« licence » : « lov2 » (API data.gouv.fr du jeu « Cartes postales du musée Gadagne de la ville de Lyon », lue le 22/11/2026)',
+            'obligations' => 'Mention « Ville de Lyon, musée Gadagne », numéro d\'inventaire (004.12.…) et licence ; lien vers la fiche du jeu.',
+            'remarques' => 'Les cartes sont des œuvres d\'éditeurs du début du XXe siècle : la licence de la Ville couvre sa numérisation et sa base, la portée sur les images reste à confirmer.',
+            'domaines' => ['data.grandlyon.com'],
+            'lu_le' => '2026-11-22',
+        ],
+        // Fonds ajoutés par l'agent medias-3 (22/11/2026), même importateur : vff:import-open-data-media (database/data/open_data_media.php).
+        'saone-et-loire' => [
+            'nom' => 'Archives départementales de Saône-et-Loire (cartes postales 6 FI)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab), déclarée pour le jeu « Données mises à disposition par les Archives départementales de Saône-et-Loire » (ressource « Cartes postales »)',
+            'accord' => null,
+            'preuve' => ['https://www.data.gouv.fr/datasets/donnees-mises-a-disposition-par-les-archives-departementales-de-saone-et-loire/'],
+            'citation' => '« licence » : « fr-lo » (API data.gouv.fr du jeu, mise à jour du 03/04/2019, lue le 22/11/2026) ; description du jeu : « cartes postales : paysages, personnages, sites, monuments de Saône-et-Loire, plus de 10000 images et leur description sont disponibles via ce jeu de données ».',
+            'obligations' => 'Mention « Archives départementales de Saône-et-Loire », cote (6 FI n) et licence ; lien vers la notice du site des archives (archives71.fr).',
+            'remarques' => 'Lecture par l\'API tabulaire de data.gouv.fr (tabular-api.data.gouv.fr, pas de robots.txt) : le robots.txt de static.data.gouv.fr interdit /resources, donc le CSV n\'est pas téléchargé. Les dates sont vagues (« Après 1903 ») ; les cartes « Après 1950 » (droits d\'éditeurs en cours) ne sont pas reprises (max_year 1944). L\'éditeur de la carte n\'est pas crédité (colonne éditeur non reprise).',
+            'domaines' => ['saone-et-loire71.fr', 'archives71.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'getty' => [
+            'nom' => 'J. Paul Getty Museum, Open Content (photographies de chemins de fer français : Baldus, Collard)',
+            'statut' => 'sur',
+            'licence' => 'CC0 1.0 (domaine public), lue sur chaque objet : droit « License for Collection Metadata » classé CC0 et affiché « Public Domain » (« No Copyright »)',
+            'accord' => null,
+            'preuve' => ['https://www.getty.edu/projects/open-content-program/', 'https://data.getty.edu/museum/collection/sparql'],
+            'citation' => '« Digital images of Getty-owned artworks in the public domain marked with the CC0-public domain icon are available for download under CC0. Such images are not protected by copyright and may be used without restriction or fees for commercial and noncommercial purposes. »',
+            'obligations' => 'Aucune obligation légale ; VFF mentionne « The J. Paul Getty Museum, Los Angeles (Open Content) », l\'auteur, la date et le numéro d\'inventaire, avec un lien vers la notice.',
+            'remarques' => 'Lu le 22/11/2026. data.getty.edu : pas de robots.txt (404) ; www.getty.edu : robots.txt sans interdiction des pages lues ; media.getty.edu répondait 503 pour son robots.txt : aucune requête n\'y est faite (les adresses IIIF sont seulement composées, l\'image est affichée par le navigateur du visiteur). Les descriptions des notices sont sous CC BY 4.0 : non reprises. Une planche reliée dans deux albums (84.XO.401 et 84.XO.734.1) n\'est gardée qu\'une fois.',
+            'domaines' => ['data.getty.edu', 'media.getty.edu', 'www.getty.edu'],
+            'lu_le' => '2026-11-22',
+        ],
+        'enpc' => [
+            'nom' => 'École nationale des ponts et chaussées, Héritage des ponts et chaussées (photographies de chantiers et de lignes, 1855-1905)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte Etalab pour les contenus « Source : École nationale des ponts et chaussées » (dépôt et cote de l\'École dans le manifeste IIIF) ; les documents « Source : Bibliothèque nationale de France » ou d\'autres institutions, hors Licence Ouverte, sont refusés',
+            'accord' => null,
+            'preuve' => ['https://heritage.ecoledesponts.fr/enpc/content/reutiliser-nos-collections'],
+            'citation' => '« La réutilisation des contenus identifiés : « Source : École nationale des ponts et chaussées » sont téléchargeables et réutilisables avec la mention « École nationale des ponts et chaussées », selon les termes de la licence ouverte Etalab » ; « La réutilisation des métadonnées des documents disponibles dans Héritage des ponts et chaussées est soumise à la licence ouverte Etalab. »',
+            'obligations' => 'Mention « École nationale des ponts et chaussées » avec la cote et l\'auteur ; la haute définition est payante pour un usage commercial (VFF n\'affiche que la moyenne définition du service IIIF, 1 600 px) ; documents d\'un tiers ou de la BnF exclus.',
+            'remarques' => 'Lu le 22/11/2026. robots.txt : toute adresse à paramètres et la recherche SRU interdites ; seuls le plan du site (sitemap.txt) et les manifestes IIIF (/iiif/ark:/12148/<id>/manifest.json) sont lus, une requête toutes les 2 s. Le serveur n\'envoie pas son certificat intermédiaire (HARICA GEANT TLS R1) : il est joint par database/data/certs. Le champ license des manifestes renvoie vers une page de conditions de Gallica qui répond 404 : la page de l\'École fait foi. Vérifié le 22/11/2026 sur 8 notices HTML (pages ark) : métadonnée DC.rights « domaine public / public domain » et mention « Source heritage.ecoledesponts.fr / Ecole nationale des ponts et chaussées, <cote> », identiques au dépôt et à la cote du manifeste. Courriel de confirmation préparé (sources-images-2 E6), non envoyé.',
+            'domaines' => ['heritage.ecoledesponts.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        'numistral' => [
+            'nom' => 'Numistral (Bibliothèque nationale et universitaire de Strasbourg, Université de Strasbourg)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte (Etalab) pour les reproductions « Source : Bibliothèque nationale et universitaire de Strasbourg » et « Source : Bibliothèque numérique patrimoniale de l\'Université de Strasbourg » ; métadonnées sous Licence Ouverte 2.0',
+            'accord' => null,
+            'preuve' => ['https://www.numistral.fr/fr/content/conditions-dutilisation'],
+            'citation' => '« Les reproductions numériques provenant des collections de la Bibliothèque nationale et universitaire de Strasbourg (Bnu) sont signalées par la mention « Source : Bibliothèque nationale et universitaire de Strasbourg ». Ces documents sont diffusés sous la Licence Ouverte / Open Licence, et, à ce titre, librement réutilisables sous réserve de mention de source. »',
+            'obligations' => 'Mention « Source : Bibliothèque nationale et universitaire de Strasbourg » (ou de l\'Université de Strasbourg), cote et licence. Les documents de la BnF (non commercial libre, commercial payant), de l\'Université de Haute-Alsace (non commercial) et de Mulhouse (en partie sous restriction) sont refusés.',
+            'remarques' => 'Lu le 22/11/2026. Pas de robots.txt sur numistral.bnf.fr (404). Le site invite à moissonner par OAI-PMH (oai.bnf.fr, injoignable le jour de la lecture) : les identifiants viennent de la recherche (images, 50 résultats par page) et le dépôt de chaque image du manifeste IIIF.',
+            'domaines' => ['numistral.bnf.fr', 'www.numistral.fr'],
+            'lu_le' => '2026-11-22',
+        ],
+        // Rosalis et Pireneas (agent medias-4, 23/11/2026) : vff:import-open-data-media, notices Dublin Core par ark (DublinCoreReader).
+        'rosalis' => [
+            'nom' => 'Rosalis, bibliothèque numérique de Toulouse (images du domaine public, notices ODbL)',
+            'statut' => 'sur',
+            'licence' => 'Domaine public pour les images dont la notice porte « domaine public » (dc:rights), sans « Conditions spécifiques d\'utilisation » ni « Source : Bibliothèque nationale de France » ; notices sous ODbL',
+            'accord' => null,
+            'preuve' => ['https://rosalis.bibliotheque.toulouse.fr/rosalis/fr/content/conditions-dutilisation'],
+            'citation' => '« Vous pouvez télécharger copier, distribuer et partager les documents ; Remixer, transformer et créer à partir des œuvres par tous moyens et sous tous formats, pour toute utilisation, y compris commerciale ; De façon libre et gratuite ! Mais, il faut citer le ou les auteurs (en respectant le droit moral), et mentionner la source » ; « Les œuvres entrées dans le domaine public sont librement réutilisables sous réserve de mentionner l\'auteur et la provenance ».',
+            'obligations' => 'Mention de l\'auteur et de la provenance : « Auteur - Mairie de Toulouse, établissement de conservation - Rosalis, cote » (VFF écrit : auteur, date, établissement, Mairie de Toulouse, Rosalis, cote). Les documents à « Conditions spécifiques d\'utilisation » (droits de tiers) et ceux de la BnF (non commercial libre, commercial payant) sont refusés. Les notices (métadonnées) sont publiées sous ODbL : la base de VFF reprend le titre, l\'auteur, la date et les sujets, avec lien vers la notice.',
+            'remarques' => 'Lu le 22/11/2026 (sources-images-3) et le 23/11/2026 (medias-4). robots.txt : adresses à paramètres, /node/* et /services/engine/search/sru interdits ; levé pour ces lectures par décision de Baptiste, User-Agent honnête, une requête toutes les 5 s. Recherche (HTML) pour les identifiants, puis une notice /services/OAIRecord?ark= par image : la licence est lue notice par notice, toute autre valeur refuse l\'image. Vues de Monaco et d\'Espagne refusées. Images en lien direct (service IIIF 1.1 du site), aucune copie.',
+            'domaines' => ['rosalis.bibliotheque.toulouse.fr'],
+            'lu_le' => '2026-11-23',
+        ],
+        'pireneas' => [
+            'nom' => 'Pireneas, bibliothèque numérique Pau Béarn Pyrénées (BNRP)',
+            'statut' => 'incertain',
+            'licence' => 'Réutilisation non commerciale libre et gratuite, avec mention de la source ; commerciale payante (licence). Droit d\'auteur échu (« domaine public » dans la notice), mais la reproduction suit la règle de l\'éditeur',
+            'accord' => null,
+            'preuve' => ['https://www.pireneas.fr/pireneas/fr/content/droits-dutilisation'],
+            'citation' => '« La réutilisation non commerciale de ces contenus est libre et gratuite dans le respect de la législation en vigueur et notamment du maintien de la mention de source » ; « La réutilisation commerciale de ces contenus est payante et fait l\'objet d\'une licence. Est entendue par réutilisation commerciale la revente de contenus sous forme de produits élaborés ou de fourniture de service ou toute autre réutilisation des contenus générant directement des revenus. »',
+            'obligations' => 'Mention « Source : pireneas.fr / Archives et bibliothèques Pau Béarn Pyrénées » ou de l\'établissement concerné, avec la cote. Usage non commercial seulement : media.commercial_ok = false, masquable par le réglage vff.media.show_non_commercial. Images de la BnF refusées ; les autres partenaires de la BNRP affichent « domaine public » dans la notice.',
+            'remarques' => 'Statut incertain : un site gratuit sans publicité ne tire pas de revenu direct, mais le texte ne tranche pas pour un éditeur société (UnxWares SAS) ; à confirmer par courriel à pireneas@agglo-pau.fr (brouillon dans medias-4.md), puis à revoir au passage à l\'association UWOSC. Même moteur et mêmes lectures que Rosalis. Les vues de tramway ne sont pas rattachées (VFF ne décrit pas les tramways urbains).',
+            'domaines' => ['pireneas.fr'],
+            'lu_le' => '2026-11-23',
+        ],
+        'panoramax' => [
+            'nom' => 'Panoramax (photos de rue, instances IGN et OpenStreetMap France)',
+            'statut' => 'sur',
+            'licence' => 'Par photo, lue sur l\'élément (`properties.license`) : instance IGN, Licence Ouverte 2.0 (etalab-2.0) ; instance OpenStreetMap France, CC BY-SA 4.0',
+            'accord' => null,
+            'preuve' => [
+                'https://panoramax.openstreetmap.fr/api/pages/terms-of-service/fr',
+                'https://api.panoramax.xyz/api/instances',
+            ],
+            'citation' => 'IGN : « La licence de publication des photos ainsi que des métadonnées et tags sémantiques est la Licence Ouverte 2.0. » ; « Ces données personnelles sont automatiquement floutées lors de l\'envoi et préalablement à leur diffusion. » OpenStreetMap France : « sous licence Creative Commons CC-BY-SA 4.0 pour toute diffusion des photos originales ou de photos dérivées ».',
+            'obligations' => 'Crédit « Photo : <contributeur>, Panoramax (IGN ou OpenStreetMap France), <licence> » et lien vers la photo sur son instance ; partage à l\'identique pour les photos CC BY-SA. Les fichiers restent chez Panoramax (lien direct vers thumb.jpg et sd.jpg).',
+            'remarques' => 'Conditions de l\'instance IGN : panoramax.ign.fr/api/pages/terms-of-service/fr (domaine de l\'IGN, citée ci-dessus). Catalogue fédéré api.panoramax.xyz (API STAC sans clé ; robots.txt : deux robots nommés refusés). Seules les instances IGN et OpenStreetMap France sont retenues (floutage des visages et des plaques à l\'envoi). Conditions de l\'instance OpenStreetMap France lues par l\'agent sources-images le 22/11 (son robots.txt refuse une longue liste de robots nommés : pas de relecture automatique). Tri des photos (règle des abords) : bâtiments BD TOPO (WFS de l\'IGN, Licence Ouverte 2.0), bâtiments voyageurs et quais OpenStreetMap (une requête Overpass, ODbL) et quais SNCF (ODbL), lus pour décider seulement : rien n\'en est publié ni gardé en base.',
+            'domaines' => ['panoramax.ign.fr', 'panoramax.openstreetmap.fr', 'api.panoramax.xyz'],
             'lu_le' => '2026-11-22',
         ],
     ],
@@ -730,6 +940,21 @@ return [
             'upload' => 'vff',
             // Photos de la galerie d'Argentan Web Ferroviaire (œuvres de l'auteur, CC BY-SA 4.0), import préparé, non lancé.
             'argentanwebferro' => 'argentanwebferro',
+            // Images ouvertes de vff:import-open-data-media (database/data/open_data_media.php), une valeur par jeu.
+            'albert-kahn' => 'albert-kahn',
+            'ad92-9fi' => 'ad92',
+            'suresnes-cp' => 'suresnes',
+            'evry-cp' => 'evry-courcouronnes',
+            'sevres-cp' => 'sevres',
+            'gadagne-cp' => 'gadagne',
+            'sl71-cp' => 'saone-et-loire',
+            'getty' => 'getty',
+            'enpc-ph' => 'enpc',
+            'numistral' => 'numistral',
+            'rosalis' => 'rosalis',
+            'pireneas' => 'pireneas',
+            // Photos de rue des gares (vff:import-panoramax-media), lien direct vers l'instance d'origine.
+            'panoramax' => 'panoramax',
         ],
         // Passages à niveau (vff:import-sncf-level-crossings) et signalisation par PK (vff:import-sncf-signalling) :
         // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.
@@ -742,6 +967,15 @@ return [
         // Voies par portion de PK (vff:import-sncf-track-regime) et radio sol-train (vff:import-sncf-radio) : SNCF Réseau, ODbL.
         'line_track_portions' => ['sncf' => 'sncf'],
         'line_radio_portions' => ['sncf' => 'sncf'],
+        // Fréquentation annuelle des gares (vff:import-sncf-attendance) : SNCF Gares & Connexions, ODbL, colonne source = sncf.
+        'station_attendances' => ['sncf' => 'sncf'],
+        // Accessibilité et services des gares (vff:import-station-accessibility) : SNCF Gares & Connexions et SNCF Voyageurs, ODbL, colonne source = sncf.
+        'station_accessibility' => ['sncf' => 'sncf'],
+        // Desserte d'un jour type des gares et des lignes (vff:import-station-timetables) : horaires GTFS SNCF et Transilien (ODbL), colonne source = sncf.
+        'station_timetables' => ['sncf' => 'sncf'],
+        'line_timetables' => ['sncf' => 'sncf'],
+        // Gares et ouvrages protégés (vff:import-station-heritage) : base Mérimée du ministère de la Culture (Licence Ouverte 2.0) et Wikidata (CC0).
+        'station_heritage' => ['merimee' => 'pop', 'wikidata' => 'wikidata'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
         // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
         // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
@@ -750,11 +984,21 @@ return [
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
-        // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO) ou du terrain (RGE ALTI).
-        'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign'],
+        // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO), du terrain (RGE ALTI) ou de la voie
+        // estimée d'après le terrain (RGE ALTI, option --estimate-track).
+        'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign', 'rge_track' => 'ign'],
+        // Ouvrages d'art (vff:import-structures) : tracé et longueur de la BD TOPO (voies en tunnel ou sur pont, constructions),
+        // nom, dates, protection et image de Wikidata (CC0, image Commons sous sa propre licence) ; structures.sources[].source.
+        // `merimee` : la référence Mérimée vient de Wikidata (P380), la notice de la POP n'est qu'un lien.
+        'structures' => ['bdtopo' => 'ign', 'bdtopo-construction' => 'ign', 'wikidata' => 'wikidata', 'wikipedia' => 'wikipedia', 'merimee' => 'wikidata'],
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],
+        // Bibliographie des lignes et des gares (vff:import-bibliography) : notices du catalogue général de la BnF (provider `gallica` :
+        // métadonnées sous Licence Ouverte, lien vers la notice), références des articles de Wikipédia (CC BY-SA 4.0, lien vers la
+        // révision lue) et éléments de Wikidata (CC0). Jamais le contenu ni une page d'un ouvrage.
+        'bibliography_entries' => ['bnf' => 'gallica', 'wikipedia' => 'wikipedia', 'wikidata' => 'wikidata'],
+        'bibliography_links' => ['bnf' => 'gallica', 'wikipedia' => 'wikipedia', 'wikidata' => 'wikidata'],
         // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives) : métadonnées du jeu « archives-sncf-sardo » (ODbL) et lien.
         'line_archive_records' => ['sncf-archives' => 'sncf-archives'],
         // Contexte sourcé des accidents (vff:enrich-accidents, database/data/accident_contexts/*.php) :
@@ -769,6 +1013,7 @@ return [
             'retronews' => 'retronews', 'assemblee-nationale' => 'assemblee-nationale', 'senat' => 'senat',
             'archives-nationales' => 'archives-nationales', 'francearchives' => 'francearchives',
             'archives-departementales' => 'archives-departementales', 'persee' => 'persee', 'europeana' => 'europeana', 'ina' => 'ina',
+            'letempsarchives' => 'letempsarchives',
         ],
         // Images d'archives des accidents : fichiers de Wikimedia Commons, licence relue sur chaque fichier.
         'accident_images' => ['commons' => 'commons'],
@@ -790,6 +1035,33 @@ return [
             'curated' => 'wikipedia',
             // Noms construits par VFF (communes et gares extrémités).
             'derived' => 'vff', 'derived_nearest' => 'vff', 'derived_stations' => 'vff',
+        ],
+        // Jeux de données ouverts (vff:export-open-data) : provenance de chaque champ d'une gare (stations.provenance,
+        // clés name, geom, opened_at, closed_at, et stations.position_source). `vff:eras` : fermeture déduite par VFF
+        // de l'état des lignes de chaque ère ; `correction` : correction sourcée de VFF (fournisseur par défaut).
+        'stations.fields' => [
+            'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'osm:note' => 'osm', 'ohm' => 'ohm',
+            'wikidata' => 'wikidata', 'wikidata:qualifiers' => 'wikidata', 'communes' => 'communes',
+            'wikipedia' => 'wikipedia', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro', 'correction' => 'vff', 'inferred:line_event' => 'vff',
+            'inferred:trace' => 'vff', 'vff:eras' => 'vff',
+            // Position recalée sur la voie d'une source (StationPositioning) : la source de la voie.
+            'recalage:osm' => 'osm', 'recalage:ohm' => 'ohm', 'recalage:sncf' => 'sncf', 'recalage:wikidata' => 'wikidata',
+        ],
+        // Provenance des champs d'un accident (accidents.provenance, location_source, toll_source) : `context` et `manual`
+        // sont les fiches et contextes rédigés par VFF (faits seulement), `commune` le centre de la commune (API
+        // Découpage administratif), `station` la position de la gare la plus proche (sa propre provenance est relue
+        // par l'export), `sncf-pn` un passage à niveau de SNCF Réseau.
+        'accidents.fields' => [
+            'wikipedia' => 'wikipedia', 'wikipedia-en' => 'wikipedia-en', 'wikipedia-de' => 'wikipedia-de',
+            'bea-tt' => 'bea-tt', 'wikidata' => 'wikidata', 'vff' => 'vff', 'context' => 'vff', 'manual' => 'vff',
+            'commune' => 'communes', 'station' => 'vff', 'sncf-pn' => 'sncf',
+        ],
+        // Provenance de l'écartement d'une portion (line_segments.gauge_source, vff:enrich-era-segments) : `archeo` est
+        // l'écartement lu dans le calque du tracé d'origine ; event, curated, line et network sont déduits par VFF.
+        'line_segments.gauge_source' => [
+            'wikidata' => 'wikidata', 'osm' => 'osm', 'osm_hist' => 'osm', 'sncf' => 'sncf', 'bdtopo' => 'ign', 'ohm' => 'ohm',
+            'archeo' => 'archeoferroviaire', 'event' => 'vff', 'curated' => 'vff', 'line' => 'vff', 'network' => 'vff',
         ],
     ],
 
@@ -818,6 +1090,8 @@ return [
             // Zeitungsportal, Victimes du rail, Gallica…) ; sites tiers cités ponctuellement à défaut.
             'presse' => 'tiers-cites',
             'sites-web' => 'tiers-cites',
+            // Presse numérisée de Delpher (Koninklijke Bibliotheek) : crédit « Delpher, Koninklijke Bibliotheek ».
+            'delpher' => 'delpher',
         ],
     ],
 ];

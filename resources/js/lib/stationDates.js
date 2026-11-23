@@ -115,3 +115,26 @@ export function directoryOpening(row, t = (key) => key, lang = 'fr') {
     }
     return String(year);
 }
+
+/**
+ * Fermeture d'une ligne de l'annuaire des gares : l'année seule (`closed_year`), sauf pour une fermeture
+ * encadrée (`closed_precision` = range) : « entre 1971 et 1990 », « au plus tard en 1990 », ou « date
+ * inconnue » quand la borne n'est que l'année du calcul (fermeture non datée). Une borne n'est jamais
+ * écrite comme une année de fermeture.
+ *
+ * @param {{closed_year?: number|null, closed_precision?: string|null, closed_after?: number|null}} row
+ * @param {(key: string, opts?: object) => string} [t]
+ * @param {string} [lang]
+ * @returns {string}
+ */
+export function directoryClosing(row, t = (key) => key, lang = 'fr') {
+    const year = row.closed_year;
+    if (!year) return '';
+    if (row.closed_precision === 'range') {
+        return (
+            formatStationDate(`${year}-12-31`, 'range', row.closed_after ?? null, t, lang) ??
+            String(year)
+        );
+    }
+    return String(year);
+}

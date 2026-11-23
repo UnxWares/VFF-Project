@@ -28,6 +28,9 @@ class Station extends Model
 
     protected $guarded = ['id'];
 
+    /** Clés de recherche calculées par PostgreSQL (App\Support\Search\SearchFields) : jamais exposées. */
+    protected $hidden = ['search_name', 'search_all'];
+
     protected $casts = [
         'geom' => Point::class,
         'type' => StationType::class,

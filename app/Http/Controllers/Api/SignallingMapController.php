@@ -29,7 +29,8 @@ class SignallingMapController extends Controller
      * `pk_start_m` et `pk_end_m` (PK de la tranche entière, en mètres), `line_slug`, `line_name`,
      * `line_code`.
      *
-     * Le KVB est un contrôle de vitesse, jamais un mode de cantonnement : il n'a pas de `family`.
+     * Le KVB est un contrôle de vitesse, jamais un mode de cantonnement : il n'a pas de `family`. Une tranche
+     * `NONE` (« Sans cantonnement » pour SNCF Réseau) n'en a pas non plus : elle n'est pas dessinée.
      *
      * **Placement** : le PK n'est pas la distance mesurée sur le tracé ; il est interpolé entre les
      * passages à niveau dont SNCF Réseau donne à la fois le PK et la position. Mesure du 19/11/2026 :

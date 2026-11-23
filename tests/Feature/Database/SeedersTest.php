@@ -176,7 +176,7 @@ class SeedersTest extends TestCase
         $this->assertSame('Soutenir AngouLim', $a->advocacy['cta_label']);
         $this->assertSame('https://www.helloasso.com/associations/angoulim/adhesions/bulletin-d-adhesion-a-angoulim', $a->advocacy['cta_url']);
         $this->assertStringContainsString('13 mars 2018', $a->advocacy['message']);
-        // Durée annoncée sourcée (QE AN n° 8999) et lien d'intérêts rendu public (choix de l'utilisateur, 2026-10-20).
+        // Durée annoncée sourcée (QE AN n° 8999) et engagement rendu public (choix de l'utilisateur, 2026-10-20).
         $this->assertStringContainsString('annoncée de trois semaines', $a->advocacy['message']);
         $this->assertStringContainsString('Nous adhérons à AngouLim car nous soutenons cette initiative.', $a->advocacy['message']);
 

@@ -6,11 +6,11 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'presse-auber' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Botsing in metro Parijs eist dode',
-            'publisher' => 'Presse néerlandaise (Delpher)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1981-01-20',
             'locator' => null,

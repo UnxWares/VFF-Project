@@ -85,6 +85,41 @@ final class SourcedGrades
             return null;
         }
 
+        return self::shape($entry);
+    }
+
+    /**
+     * Déclivité de la source servie À CÔTÉ de la déclivité mesurée publiée (`sourced_grade_compared`),
+     * avec l'écart `difference_permil` = mesure moins source, en ‰ arrondi au dixième (positif : la
+     * mesure est plus forte). Null quand la mesure n'est pas publiée (`$withheld` non nul : la source
+     * est alors dans `sourced_grade`, ou la ligne est à crémaillère) ou que la ligne n'est dans
+     * aucun fichier. La mesure porte sur une rampe d'1 km, la source souvent sur un point : un écart
+     * de quelques ‰ est ordinaire.
+     *
+     * @return array{max_grade_permil: float, covered_share: float|null, difference_permil: float, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null
+     */
+    public static function compare(string $slug, ?float $measured, ?string $withheld): ?array
+    {
+        $entry = self::all()[$slug] ?? null;
+        if ($entry === null || $measured === null || $withheld !== null) {
+            return null;
+        }
+        $shaped = self::shape($entry);
+
+        return [
+            'max_grade_permil' => $shaped['max_grade_permil'],
+            'covered_share' => $shaped['covered_share'],
+            'difference_permil' => round($measured - $shaped['max_grade_permil'], 1),
+            'source' => $shaped['source'],
+        ];
+    }
+
+    /**
+     * @param  array{max_grade_permil: int|float, provider: string, license: string, source_url: string, source_title: string, quote: string, attribution?: string, covered_share?: float}  $entry
+     * @return array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}
+     */
+    private static function shape(array $entry): array
+    {
         return [
             'max_grade_permil' => (float) $entry['max_grade_permil'],
             'covered_share' => isset($entry['covered_share']) ? (float) $entry['covered_share'] : null,

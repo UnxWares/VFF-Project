@@ -19,7 +19,7 @@ class E2eSeederTest extends TestCase
     {
         $this->seed(E2eSeeder::class);
 
-        foreach (['/', '/lines', '/lines/'.E2eSeeder::LINE, '/stations', '/stations/'.E2eSeeder::STATION, '/accidents', '/accidents/'.E2eSeeder::ACCIDENT, '/maps'] as $path) {
+        foreach (['/', '/lines', '/lines/'.E2eSeeder::LINE, '/stations', '/stations/'.E2eSeeder::STATION, '/accidents', '/accidents/'.E2eSeeder::ACCIDENT, '/maps', '/communes/39009-andelot-en-montagne', '/departments/39-jura', '/companies/sncf-reseau'] as $path) {
             $this->get($path)->assertOk();
         }
     }

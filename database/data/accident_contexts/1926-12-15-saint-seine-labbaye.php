@@ -6,7 +6,7 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'delpher-1926-12-16-hco' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland : trein ontspoord (journal néerlandais du 16 décembre 1926)',
@@ -20,7 +20,7 @@ return [
             'note' => 'Brève : la veille au soir, un train de voyageurs déraille à Saint-Seine-l\'Abbaye près de Dijon ; le mécanicien est tué, deux voyageurs blessés.',
         ],
         'delpher-1926-12-16-kb' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd nieuws : treinontsporing (journal néerlandais du 16 décembre 1926)',
@@ -34,7 +34,7 @@ return [
             'note' => 'Même dépêche, avec en plus le déraillement d\'un train de marchandises quelque temps après, presque au même endroit, dont les freins ont refusé.',
         ],
         'delpher-1926-12-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Ernstige voorvallen (journal néerlandais du 17 décembre 1926)',

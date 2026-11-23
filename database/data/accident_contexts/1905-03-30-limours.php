@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne de Sceaux, train du Luxembourg pour Limours, tranchée en courbe entre Arcueil-Cachan et Bourg-la-Reine, incendie, trois morts et neuf blessés ; renvoie à Le Matin du 31 mars 1905 (non lu).',
         ],
         'delpher-tijd-1905-03-31' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorwegongeval',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche du 30 mars : déraillement vers 7 h sur la ligne de Sceaux entre Arcueil-Cachan et Bourg-la-Reine, trois morts, six blessés graves (le nom de la destination est déformé en « Limoges »).',
         ],
         'delpher-tilburgsche-1905-03-31' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Spoorweg-ongeluk',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même dépêche, avec l\'incendie causé par les lampes, l\'évacuation vers un hôpital et une courbe très serrée ; cause inconnue.',
         ],
         'delpher-courant-1905-03-31' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Korte Berichten',

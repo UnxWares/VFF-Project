@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * Document consulté pour le contexte d'un accident (vff:enrich-accidents) : fournisseur (clé du registre des
  * droits), nature, fiabilité, titre, éditeur, date du document, page ou numéro, lien, accès et date de
- * consultation.
+ * consultation ; pour un article de presse, les faits qu'il dit de l'accident (relus par vff:verify-accidents).
  *
  * @property int $id
  * @property int $accident_id
@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property AccidentReferenceAccess $access
  * @property Carbon $consulted_on
  * @property string|null $note
+ * @property array<string, mixed>|null $facts faits lus dans un article de presse (date ou date_relative, commune_insee, deaths, deaths_provisional)
  */
 class AccidentReference extends Model
 {
@@ -43,6 +44,7 @@ class AccidentReference extends Model
             'access' => AccidentReferenceAccess::class,
             'consulted_on' => 'date',
             'position' => 'integer',
+            'facts' => 'array',
         ];
     }
 

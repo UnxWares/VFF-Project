@@ -20,7 +20,7 @@
 return [
     'articles' => [
         // Pages (articles de fond).
-        'de-montsecret-vassy-aux-maures' => ['lines' => ['archeo-ligne-de-montsecret-aux-maures']],
+        'de-montsecret-vassy-aux-maures' => ['lines' => ['ligne-de-montsecret-aux-maures']],
         '39-2' => ['lines' => ['434000', '433000'], 'note' => 'Briouze - Couterne : 434000 (Briouze - La Ferté-Macé) et 433000 (Couterne - La Ferté-Macé)'],
         'de-caen-a-laval-par-flers-de-lorne' => ['lines' => ['412000', '436000', '405000', '420000'],
             'note' => 'Caen - Laval : 412000 (Caen - Cerisy-Belle-Étoile), 436000 (La Chapelle-Anthenaise - Flers), tronc commun Cerisy - La Selle-la-Forge sur 405000, La Chapelle-Anthenaise - Laval sur 420000'],
@@ -37,13 +37,13 @@ return [
             'note' => 'Paris - Granville en Basse-Normandie : 395000 (St-Cyr - Surdon), Surdon - Argentan sur 430000, 405000 (Argentan - Granville)'],
         'de-la-normandie-vers-la-bretagne' => ['lines' => ['415000'], 'note' => 'Lison - Dol (ligne Lison - Lamballe, 415000)'],
         'autres-lignes-manchoises' => ['lines' => ['417000', '416000', '418000']],
-        'de-trun-a-carrouges-par-argentan' => ['lines' => ['archeo-ligne-de-carrouges-a-trun-par-argentan'], 'note' => 'voie métrique des VFEO'],
-        'lembranchement-de-la-carriere-de-vignats' => ['lines' => ['430000', 'archeo-voie-industrielle-de-la-carriere-de-vignats'],
+        'de-trun-a-carrouges-par-argentan' => ['lines' => ['ligne-de-carrouges-a-trun-par-argentan'], 'note' => 'voie métrique des VFEO'],
+        'lembranchement-de-la-carriere-de-vignats' => ['lines' => ['430000', 'voie-industrielle-de-la-carriere-de-vignats'],
             'note' => 'dates d\'ouverture du Mans - Mézidon (430000) et embranchement de la carrière'],
-        'les-carrieres-de-chailloue' => ['lines' => ['archeo-voie-industrielle-de-mace-a-chailloue']],
-        'les-mines-de-st-clair-de-halouze' => ['lines' => ['archeo-voie-industrielle-de-halouze', 'archeo-puits-de-halouze']],
+        'les-carrieres-de-chailloue' => ['lines' => ['voie-industrielle-de-mace-a-chailloue']],
+        'les-mines-de-st-clair-de-halouze' => ['lines' => ['voie-industrielle-de-halouze', 'puits-de-halouze']],
         // Articles de blogue (annonces des pages, parfois avec des faits propres).
-        '__trashed' => ['lines' => ['archeo-ligne-de-montsecret-aux-maures']],
+        '__trashed' => ['lines' => ['ligne-de-montsecret-aux-maures']],
         '143-2' => ['lines' => ['434000', '433000']],
         'de-caen-a-laval-a-travers-le-bocage-ornais' => ['lines' => ['412000', '436000']],
         '309-2' => ['lines' => ['430000']],
@@ -52,12 +52,12 @@ return [
         'ste-gauburge-aussi' => ['lines' => ['395000', '402000', '400000', '425000']],
         'vite-tombee-dans-loubli' => ['lines' => ['432000']],
         'deux-branches-de-plus-a-letoile' => ['lines' => ['423000', '425000', '424000', '426000']],
-        'un-secondaire-dans-lorne' => ['lines' => ['archeo-ligne-de-carrouges-a-trun-par-argentan', 'archeo-ligne-de-montsecret-aux-maures', '423000']],
+        'un-secondaire-dans-lorne' => ['lines' => ['ligne-de-carrouges-a-trun-par-argentan', 'ligne-de-montsecret-aux-maures', '423000']],
         'de-caen-a-rennes' => ['lines' => ['415000']],
         'autres-lignes-de-la-manche' => ['lines' => ['417000', '416000', '418000']],
-        'le-chemin-de-fer-de-caen-a-la-mer' => ['lines' => ['archeo-ligne-de-caen-a-courseulles'], 'note' => 'Chemin de fer de Caen à la Mer (Caen-Saint-Martin - Courseulles)'],
-        'vignats-complements' => ['lines' => ['archeo-voie-industrielle-de-la-carriere-de-vignats']],
-        'chailloue-sa-carriere' => ['lines' => ['archeo-voie-industrielle-de-mace-a-chailloue']],
+        'le-chemin-de-fer-de-caen-a-la-mer' => ['lines' => ['ligne-de-caen-a-courseulles'], 'note' => 'Chemin de fer de Caen à la Mer (Caen-Saint-Martin - Courseulles)'],
+        'vignats-complements' => ['lines' => ['voie-industrielle-de-la-carriere-de-vignats']],
+        'chailloue-sa-carriere' => ['lines' => ['voie-industrielle-de-mace-a-chailloue']],
     ],
 
     'facts' => [
@@ -91,7 +91,7 @@ return [
         '6a8f0b448990da6245dfd22365fcacd0d6f8cc4c' => ['year' => 1938, 'precision' => 'year', 'from' => 'Juvigny sous Andaines', 'to' => 'Domfront', 'note' => '« elle aussi » : même année que la phrase précédente (1938)'],
         '9f3f4e8bfecd801ff4c89059c38cb9e94e004c51' => ['from' => 'Couterne', 'to' => 'Juvigny sous Andaines'],
         '0e9ba5a624198c7839d79783730e1c026676aa7e' => ['year' => 2008, 'month' => 10, 'precision' => 'month', 'note' => 'suspension devenue définitive après les derniers trains d\'engrais d\'octobre 2008 (phrase précédente)'],
-        '4093d8c8d09caa9cb4e232eeccf8bb6055da36bb' => ['line' => 'archeo-voie-industrielle-de-halouze', 'note' => 'voie de 630 mm électrifiée en 500 V (puits - la Bocagerie - gare du Chatellier)'],
+        '4093d8c8d09caa9cb4e232eeccf8bb6055da36bb' => ['line' => 'voie-industrielle-de-halouze', 'note' => 'voie de 630 mm électrifiée en 500 V (puits - la Bocagerie - gare du Chatellier)'],
         '74eb65ad2ff066d11649da77133d8892aa9d586d' => ['reject' => 'statistiques de main-d\'œuvre de la mine, pas des exploitants'],
         '10ea73a0acbef664bbae4b8b8472a283ba10ffff' => ['reject' => 'statistiques de main-d\'œuvre de la mine, pas des exploitants'],
         '942ff7a38afd2c1ff37e07325581fc59ef1955ab' => ['reject' => 'statistiques de main-d\'œuvre de la mine, pas des exploitants'],
@@ -164,7 +164,7 @@ return [
                 'quote' => 'L\'année suivante, l\'Etat ouvre la section qui mène à Domfront.', 'note' => '« l\'année suivante » : 1881 (phrase précédente : 1880)'],
         ],
         'les-mines-de-st-clair-de-halouze' => [
-            ['kind' => 'event', 'type' => 'closure', 'year' => 1978, 'month' => 12, 'day' => 14, 'precision' => 'day', 'line' => 'archeo-voie-industrielle-de-halouze',
+            ['kind' => 'event', 'type' => 'closure', 'year' => 1978, 'month' => 12, 'day' => 14, 'precision' => 'day', 'line' => 'voie-industrielle-de-halouze',
                 'quote' => 'La mine ferme ses portes le 14 décembre 1978.', 'note' => 'fermeture de la mine, seule cliente de la voie industrielle'],
         ],
         'de-caen-a-laval-par-flers-de-lorne' => [
@@ -185,7 +185,7 @@ return [
                 'quote' => 'En 1900, les deux terminus sont enfin reliés.', 'note' => 'raccordement des deux gares de La Ferté-Macé (rebroussement des trains de Couterne)'],
         ],
         'lembranchement-de-la-carriere-de-vignats' => [
-            ['kind' => 'event', 'type' => 'opening', 'year' => 2015, 'month' => 1, 'precision' => 'month', 'line' => 'archeo-voie-industrielle-de-la-carriere-de-vignats',
+            ['kind' => 'event', 'type' => 'opening', 'year' => 2015, 'month' => 1, 'precision' => 'month', 'line' => 'voie-industrielle-de-la-carriere-de-vignats',
                 'quote' => 'En Janvier 2015, les premières rames quittent ce nouvel embranchement, dont ce train à destination de la base travaux de Sablé, pour le chantier de la LGV Bretagne-Pays de Loire …',
                 'note' => 'nouvel embranchement (ITE) de la carrière, raccordé en décembre 2014'],
         ],
@@ -233,7 +233,7 @@ return [
         'Ste Gauburge-Mesnil-Mauger' => ['402000'],
         'Mortagne au Perche - Ste Gauburge' => ['425000'],
         'Briouze-Couterne' => ['434000', '433000'],
-        'Montsecret-Les Maures' => ['archeo-ligne-de-montsecret-aux-maures'],
+        'Montsecret-Les Maures' => ['ligne-de-montsecret-aux-maures'],
     ],
 
     'photos' => [

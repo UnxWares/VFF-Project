@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident du tunnel de Pacy (fiche Lézinnes) du 19 septembre 1918 (recherche du 21/11/2026).
 return [
     'slug' => '1918-09-19-lezinnes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr-liste-1918' => [
             'provider' => 'wikipedia',
@@ -61,9 +61,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Base de données d\'ouvrages d\'art : tunnel ferroviaire en service, situé entre Lézinnes et Pacy-sur-Armançon (Yonne), sur la ligne Paris-Dijon, vers le PK 210,998, long d\'environ 1 001 m. Ne mentionne aucun accident.',
         ],
+        'delpher-nieuwsvandendag-1918-09-21' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Een spoorwegongeluk',
+            'publisher' => 'Het nieuws van den dag (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1918-09-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000642117:mpeg21:a00057',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Accident du tunnel de Pacy : trois wagons détachés ont été heurtés par le train suivant, plus de trente morts annoncés.',
+        ],
+        'delpher-vaderland-1918-09-21' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk. Minister Roberts over Elzas-Lotharingen',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1918-09-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001521142:mpeg21:a00028',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche Wolff : un train est rentré dans trois wagons pleins d\'enfants restés sur les rails le 19 septembre.',
+        ],
+        'ddb-1918-09-21-berliner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schwere Eisenbahnkatastrophe in Frankreich',
+            'publisher' => 'Berliner Morgen-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1918-09-21',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/DV72WKHKMW74CRBXRCPPTGQB4GI65PPI?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Genève du 20 septembre : selon les journaux de Lyon, grave catastrophe sur la ligne Paris-Lyon, un rapide pour Paris dans le tunnel de « Pac... » (texte tronqué).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'La Berliner Morgen-Zeitung du 21 septembre 1918 rapporte, dans une dépêche de Genève du 20, d\'après les journaux de Lyon, une grave catastrophe sur la ligne Paris-Lyon : un rapide en direction de Paris dans le tunnel de « Pac... » (texte tronqué, sans doute Pacy). Cela confirme la date (19 septembre, veille de la dépêche) et un lieu compatible avec le tunnel de Pacy.',
+                'en' => 'The Berliner Morgen-Zeitung of 21 September 1918 reports, in a Geneva dispatch of the 20th based on Lyon newspapers, a serious disaster on the Paris-Lyon line: an express bound for Paris in the "Pac..." tunnel (truncated text, probably Pacy). This confirms the date (19 September, the day before the dispatch) and a place compatible with the Pacy tunnel.',
+                'de' => 'Die Berliner Morgen-Zeitung vom 21. September 1918 berichtet in einer Genfer Meldung vom 20. nach Lyoner Blättern von einer schweren Katastrophe auf der Strecke Paris-Lyon: ein Schnellzug in Richtung Paris im Tunnel von „Pac...“ (abgeschnittener Text, wohl Pacy). Das bestätigt das Datum (19. September, der Tag vor der Meldung) und einen mit dem Tunnel von Pacy vereinbaren Ort.',
+                'sources' => ['ddb-1918-09-21-berliner'],
+            ],
             [
                 'fr' => 'Le 19 septembre 1918 à 4 h 30, un express Marseille-Paris circulait sur la ligne de Paris à Lyon entre les gares de Lézinnes et d\'Ancy-le-Franc, dans le département de l\'Yonne. Il s\'est immobilisé dans le tunnel de Pacy après la rupture d\'une conduite de frein.',
                 'en' => 'On 19 September 1918 at 4.30 am, a Marseille to Paris express was running on the Paris to Lyon line between the stations of Lézinnes and Ancy-le-Franc, in the Yonne département. It came to a stop in the Pacy tunnel after a brake pipe broke.',
@@ -126,7 +174,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'collision',
-            'sources' => ['wp-fr-liste-1918', 'wp-en-liste-1910'],
+            'sources' => ['wp-fr-liste-1918', 'wp-en-liste-1910', 'delpher-nieuwsvandendag-1918-09-21', 'delpher-vaderland-1918-09-21'],
             'fr' => 'Les deux listes décrivent une collision entre deux trains dans le tunnel de Pacy, et non la rupture d\'un ouvrage.',
             'en' => 'Both lists describe a collision between two trains in the Pacy tunnel, not a structural failure.',
             'de' => 'Beide Listen beschreiben einen Zusammenstoß zweier Züge im Tunnel von Pacy und kein Versagen eines Bauwerks.',

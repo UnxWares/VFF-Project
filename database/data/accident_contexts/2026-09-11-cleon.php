@@ -75,6 +75,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Fiche de présentation de l\'enquête (adresse issue de l\'import) : le serveur renvoie « page non trouvée » au moment de la recherche, rien n\'a pu être lu ; à vérifier.',
         ],
+        'wp-liste-2020' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 2020',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '11 septembre 2026',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_2020&oldid=241585500',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée du 11 septembre 2026 : TER Rouen - Caen déraillé au niveau de Cléon ; cite ici.fr et Ville, Rail et Transports.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -151,4 +165,13 @@ return [
         ],
     ],
     'corrections' => [],
+    'aliases' => [
+        [
+            'slug' => '2026-09-11-caen',
+            'sources' => ['wp-liste-2020'],
+            'fr' => 'La fiche « déraillement à Caen » du 11 septembre 2026 venait de la liste de Wikipédia, lue comme si Caen était le lieu de l\'accident : l\'entrée décrit le TER reliant Rouen à Caen qui a déraillé au niveau de Cléon. Caen est le terminus du train, pas le lieu de l\'accident.',
+            'en' => 'The "derailment at Caen" record of 11 September 2026 came from the Wikipedia list, read as if Caen were the place of the accident: the entry describes the TER from Rouen to Caen that derailed near Cléon. Caen is the train\'s terminus, not the accident site.',
+            'de' => 'Der Datensatz „Entgleisung in Caen“ vom 11. September 2026 stammte aus der Wikipedia-Liste, die so gelesen wurde, als sei Caen der Unfallort: Der Eintrag beschreibt den TER von Rouen nach Caen, der bei Cléon entgleiste. Caen ist der Zielbahnhof des Zuges, nicht der Unfallort.',
+        ],
+    ],
 ];

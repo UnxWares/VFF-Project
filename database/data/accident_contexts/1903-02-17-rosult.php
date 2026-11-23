@@ -20,7 +20,7 @@ return [
             'note' => 'Gare de Rosult, ligne de Fives à Hirson, vers 9 h 30, changement d\'aiguillage sous la troisième voiture d\'un train de Valenciennes à Lille, queue du convoi heurtée par un train de marchandises, un mort et dix-huit blessés.',
         ],
         'delpher-noordbrabanter-1903-02-19' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk',
@@ -34,7 +34,7 @@ return [
             'note' => 'Train de Valenciennes à Lille déraillé entre Saint-Amand et Rosult, trois morts et treize blessés.',
         ],
         'delpher-noordbrabantsche-1903-02-19' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Buitenland',
@@ -48,7 +48,7 @@ return [
             'note' => 'Dépêche de Valenciennes : un mort et trente blessés, puis, selon des informations ultérieures, trois morts.',
         ],
         'delpher-utrecht-1903-02-19' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten',

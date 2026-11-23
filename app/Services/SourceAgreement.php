@@ -31,20 +31,33 @@ class SourceAgreement
     public const STEP_M = 25.0;
 
     /** Familles, de la plus précise à la moins précise. */
-    public const FAMILIES = ['contrib', 'bdtopo', 'osm', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'];
+    public const FAMILIES = ['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'];
 
     public const PRECISE = ['contrib', 'bdtopo', 'osm'];
 
     /** Rayon de recherche sur l'axe (m). */
-    private const RADIUS = ['contrib' => 60, 'bdtopo' => 60, 'osm' => 60, 'ign-historique' => 60, 'archeoferroviaire' => 100, 'ohm' => 100, 'sncf' => 250];
+    private const RADIUS = ['contrib' => 60, 'bdtopo' => 60, 'osm' => 60, 'fusion' => 60, 'ign-historique' => 60, 'archeoferroviaire' => 100, 'ohm' => 100, 'sncf' => 250];
 
     /** Concordance (m). */
-    private const AGREE = ['contrib' => 5, 'bdtopo' => 5, 'osm' => 5, 'ign-historique' => 6, 'archeoferroviaire' => 10, 'ohm' => 10, 'sncf' => 50];
+    private const AGREE = ['contrib' => 5, 'bdtopo' => 5, 'osm' => 5, 'fusion' => 5, 'ign-historique' => 6, 'archeoferroviaire' => 10, 'ohm' => 10, 'sncf' => 50];
 
     /** Divergence d'une source rattachée à la ligne (m), recherchée jusqu'à 500 m. */
-    private const DIVERGE = ['contrib' => 8, 'bdtopo' => 8, 'osm' => 8, 'ign-historique' => 12, 'archeoferroviaire' => 25, 'ohm' => 25, 'sncf' => 150];
+    private const DIVERGE = ['contrib' => 8, 'bdtopo' => 8, 'osm' => 8, 'fusion' => 8, 'ign-historique' => 12, 'archeoferroviaire' => 25, 'ohm' => 25, 'sncf' => 150];
 
     private const MIN_RUN_SAMPLES = 4;
+
+    /**
+     * Voies OSM abandonnées, déposées ou inutilisées : souvent dessinées d'après des cartes ou photos anciennes (à
+     * Courseulles, 10 à 20 m à côté de la plateforme visible). Un morceau qui n'a qu'elles pour géométrie précise
+     * n'est « précis » que si une source indépendante la confirme à LIFECYCLE_CONFIRM_M près : BD TOPO, LiDAR HD
+     * (famille « lidar », quand elle existera) ou axe affiné sur photo recalée (ign-historique, classe ortho-precis).
+     * archeo et OHM ne comptent pas : ils sont souvent tirés des mêmes documents. Sinon : « estimé » (low).
+     * Mêmes états que JunctionRepair::DEAD_OSM_LAYERS (dismantled, was:railway… compris). Décision de Baptiste du
+     * 22/11/2026.
+     */
+    public const OSM_LIFECYCLE_LAYERS = JunctionRepair::DEAD_OSM_LAYERS;
+
+    private const LIFECYCLE_CONFIRM_M = 3.0;
 
     private bool $ready = false;
 
@@ -58,7 +71,12 @@ class SourceAgreement
     {
         $this->prepare($lineId);
         $parts = [];
-        foreach (DB::select('SELECT id, line_id, source, matched_source, source_trace_ids::text AS sids, matched_trace_ids::text AS mids FROM line_reference_parts WHERE line_id = ?', [$lineId]) as $p) {
+        $lifecycle = self::osmLifecycleSql();
+        foreach (DB::select(<<<SQL
+            SELECT p.id, p.line_id, p.source, p.matched_source, p.source_trace_ids::text AS sids, p.matched_trace_ids::text AS mids,
+                   {$lifecycle} AS osm_lifecycle
+            FROM line_reference_parts p WHERE p.line_id = ?
+            SQL, [$lineId]) as $p) {
             $parts[$p->id] = $p;
         }
         if (! $parts) {
@@ -113,7 +131,7 @@ class SourceAgreement
         foreach ($seqs as $seq) {
             $part = $parts[$seq[0]->part_id];
             $own = $this->ownFamily($part);
-            $evals = array_map(fn ($s) => $this->evaluate($s, $own, $lineId), $seq);
+            $evals = array_map(fn ($s) => $this->evaluate($s, $own, $lineId, (bool) ($part->osm_lifecycle ?? false)), $seq);
 
             // Portions homogènes de confiance (lissées à MIN_RUN_SAMPLES).
             $classes = $this->smooth(array_column($evals, 'class'));
@@ -190,7 +208,7 @@ class SourceAgreement
     }
 
     /** Écarts par famille, classe de confiance et écart à la source indépendante la plus proche. */
-    private function evaluate(object $s, string $own, int $lineId): array
+    private function evaluate(object $s, string $own, int $lineId, bool $osmLifecycle = false): array
     {
         $d = [];
         $agree = [];
@@ -211,7 +229,10 @@ class SourceAgreement
             }
         }
         // Voie extraite des photos IGN (~2-5 m) : au mieux « medium » ; « high » seulement si BD TOPO / OSM concordent.
-        $ownPrecise = in_array($own, self::PRECISE, true) || $own === 'ign-historique';
+        $ownPrecise = in_array($own, self::PRECISE, true) || in_array($own, ['fusion', 'ign-historique'], true);
+        if ($ownPrecise && $own === 'osm' && $osmLifecycle && ! $this->independentlyConfirmed($d)) {
+            $ownPrecise = false;
+        }
         $precAgree = array_intersect($agree, self::PRECISE);
         $class = $ownPrecise ? ($precAgree ? 'high' : 'medium') : 'low';
 
@@ -229,6 +250,40 @@ class SourceAgreement
 
         return ['class' => $class, 'd' => $d, 'agree' => $agree, 'mine' => $mine, 'gap' => $gap,
             'lon' => (float) $s->lon, 'lat' => (float) $s->lat];
+    }
+
+    /**
+     * Expression SQL (booléen) sur un morceau `p` de line_reference_parts : son dessin vient d'OSM, recalé sur des voies
+     * OSM (matched_trace_ids) ou gardé tel quel depuis la trace source de la ligne (source_trace_ids), et toutes ces
+     * voies sont abandonnées, déposées ou inutilisées (OSM_LIFECYCLE_LAYERS).
+     */
+    public static function osmLifecycleSql(): string
+    {
+        $layers = "'".implode("', '", self::OSM_LIFECYCLE_LAYERS)."'";
+        $ids = 'CASE WHEN p.matched_source IS NULL THEN p.source_trace_ids ELSE p.matched_trace_ids END';
+
+        return <<<SQL
+            (COALESCE(p.matched_source, p.source) = 'osm'
+             AND jsonb_array_length(COALESCE({$ids}, '[]'::jsonb)) > 0
+             AND NOT EXISTS (
+                SELECT 1 FROM source_traces s
+                WHERE s.id IN (SELECT jsonb_array_elements_text({$ids})::bigint)
+                  AND s.layer NOT IN ({$layers})))
+            SQL;
+    }
+
+    /**
+     * Confirmation indépendante d'une voie OSM abandonnée, à LIFECYCLE_CONFIRM_M près : BD TOPO, LiDAR HD, ou axe
+     * affiné sur photo recalée (l'extraction au pixel, classe « ortho », ne suffit pas : 2 à 9 m).
+     *
+     * @param  array<string, array{d: float, id: int, line: mixed, cls: mixed}>  $d
+     */
+    private function independentlyConfirmed(array $d): bool
+    {
+        $near = fn (string $f): bool => isset($d[$f]) && $d[$f]['d'] <= self::LIFECYCLE_CONFIRM_M;
+
+        return $near('bdtopo') || $near('lidar')
+            || ($near('ign-historique') && $d['ign-historique']['cls'] === 'ortho-precis');
     }
 
     /** Portions de moins de MIN_RUN_SAMPLES échantillons absorbées par la voisine la plus longue. */

@@ -137,7 +137,7 @@ return [
     // fermeture de 1943 manquantes ; 03/06/1953 (OHM) contredit par 4 sources (01/07/1953).
     // =================================================================================
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'opening',
         'date' => '1888-02-01',
@@ -149,7 +149,7 @@ return [
         'reason' => 'première section ouverte avec Bastia - Corte : article de ligne (Bejui), article CFC, gare de Ghisonaccia, train-corse.com, Ferrovia della Costa orientale (it) ; OHM date aussi du 1er février 1888 la partie nord du tracé',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'opening',
         'date' => '1888-06-17',
@@ -161,7 +161,7 @@ return [
         'reason' => 'prolongement jusqu\'à Ghisonaccia, terminus jusqu\'en 1930 : article CFC, article de ligne (« Le 17 juin, la ligne est ouverte jusqu\'à Ghisonaccia »), gare de Ghisonaccia, train-corse.com, K. Favreu (ADECEC 2004) p. 6',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'opening',
         'date' => '1930-09-15',
@@ -173,7 +173,7 @@ return [
         'reason' => 'article de ligne (Bejui p. 35-37), article CFC, K. Favreu (ADECEC 2004) p. 6, train-corse.com, Bahnstrecke Casamozza-Porto-Vecchio (de)',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'opening',
         'date' => '1935-09-21',
@@ -185,7 +185,7 @@ return [
         'reason' => 'article de ligne (Bejui), article CFC, K. Favreu (ADECEC 2004) p. 6, train-corse.com, Bahnstrecke Casamozza-Porto-Vecchio (de)',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'closure',
         'date' => '1943-09-08',
@@ -197,7 +197,7 @@ return [
         'reason' => 'fin du trafic après la destruction de 18 ponts par les troupes allemandes en retraite (septembre 1943) ; jamais remise en état : article CFC (Davies p. 211), article de ligne, K. Favreu p. 6, Bahnstrecke Casamozza-Porto-Vecchio (de) ; date du jour = arrêt du trafic, destructions étalées sur septembre 1943',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'closure',
         'date' => '1953-07-01',
@@ -209,7 +209,7 @@ return [
         'reason' => 'fermeture du dernier tronçon (10,9 km) : article de ligne (Davies p. 211 ; Bejui p. 53-55), article CFC, K. Favreu (ADECEC 2004) p. 18, Bahnstrecke Casamozza-Porto-Vecchio (de) ; Ferrovia della Costa orientale (it) : dernier jour le 30 juin 1953 ; la date OHM du 3 juin 1953 est isolée',
     ],
     [
-        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug archeo-ligne-de-casamozza-a-porto-vecchio)
+        'line' => '3550', // Ligne de Casamozza à Porto-Vecchio (slug ligne-de-casamozza-a-porto-vecchio)
         'action' => 'add',
         'type' => 'declassification',
         'date' => '1958-02-14',

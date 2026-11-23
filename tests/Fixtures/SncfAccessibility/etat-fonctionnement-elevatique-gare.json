@@ -1,0 +1,29 @@
+{
+ "dataset": "etat-fonctionnement-elevatique-gare",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "gareid": "aaaaaaaa-0000-4000-8000-000000000001",
+   "id": "e1",
+   "libelle": "Ascenseur - Voie 2",
+   "localisationdescriptive": "Passerelle / Voie 2",
+   "etat_de_fonctionnement": "OK"
+  },
+  {
+   "gareid": "aaaaaaaa-0000-4000-8000-000000000001",
+   "id": "e3",
+   "libelle": "Esc mec - Hall",
+   "localisationdescriptive": "Hall",
+   "etat_de_fonctionnement": "KO"
+  },
+  {
+   "gareid": "aaaaaaaa-0000-4000-8000-000000000001",
+   "id": "e2",
+   "libelle": "Ascenseur - Voie 1",
+   "localisationdescriptive": "Passerelle / Voie 1",
+   "etat_de_fonctionnement": "KO"
+  }
+ ]
+}

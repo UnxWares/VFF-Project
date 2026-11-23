@@ -29,6 +29,20 @@ class MediaResource extends JsonResource
         'wikidata' => 'Wikidata',
         'gallica' => 'Gallica (BnF)',
         'argentanwebferro' => 'Argentan Web Ferroviaire',
+        'panoramax' => 'Panoramax',
+        // Fonds ouverts de vff:import-open-data-media (database/data/open_data_media.php).
+        'albert-kahn' => 'Musée Albert-Kahn',
+        'ad92-9fi' => 'Archives des Hauts-de-Seine',
+        'suresnes-cp' => 'Archives de Suresnes',
+        'evry-cp' => 'Ville d\'Évry-Courcouronnes',
+        'sevres-cp' => 'Archives de Sèvres',
+        'gadagne-cp' => 'Musée Gadagne',
+        'sl71-cp' => 'Archives de Saône-et-Loire',
+        'getty' => 'Getty Open Content',
+        'enpc-ph' => 'Héritage des ponts et chaussées',
+        'numistral' => 'Numistral',
+        'rosalis' => 'Rosalis',
+        'pireneas' => 'Pireneas',
         'upload' => 'VFF',
     ];
 
@@ -59,6 +73,8 @@ class MediaResource extends JsonResource
             'type' => $this->resource->getRawOriginal('type'),
             'title' => $this->title,
             'caption' => $this->caption,
+            // Légende par langue (`fr`, `en`, `de`) quand l'image proposée en a reçu plusieurs, sinon nulle.
+            'captions' => $this->resource->captions(),
             'thumb_url' => $thumb,
             'display_url' => $display ?? $thumb,
             'source_url' => $this->source_url,
@@ -66,7 +82,7 @@ class MediaResource extends JsonResource
             'height' => $this->height,
             'depicted_year' => $this->depicted_year,
             'depicted_year_to' => $meta['year_to'] ?? null,
-            'date_precision' => $meta['date_precision'] ?? ($this->depicted_year ? 'year' : null),
+            'date_precision' => $this->date_precision ?? $meta['date_precision'] ?? ($this->depicted_year ? 'year' : null),
             'captured_at' => $this->captured_at?->toDateString(),
             'author' => $this->author,
             'attribution' => $this->attribution,
@@ -75,6 +91,9 @@ class MediaResource extends JsonResource
             'rights_status' => $this->rights_status,
             'commercial_ok' => $this->commercial_ok,
             'share_alike' => $this->share_alike,
+            'derivatives_ok' => $this->derivatives_ok,
+            // Vrai si le fonds du média est déclaré à licence « incertaine » (statut `incertain` du registre des droits) : à afficher.
+            'rights_uncertain' => $this->resource->isRightsUncertain(),
             'attribution_required' => $meta['attribution_required'] ?? null,
             'featured' => $this->is_featured,
             // Contribution validée qui a publié le média (Commons ou fichier déposé), nulle pour un import.

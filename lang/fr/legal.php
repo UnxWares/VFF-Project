@@ -76,8 +76,8 @@ return [
     ],
 
     'interests' => [
-        'title' => 'Liens d’intérêts',
-        'paragraph' => 'Par transparence : le président d’UnxWares, qui édite VFF, est adhérent de l’association AngouLim, qui milite pour la réouverture de la ligne Angoulême - Limoges. VFF soutient cette campagne sur la fiche de la ligne.',
+        'title' => 'Engagement',
+        'paragraph' => 'Le créateur de VFF adhère à l’association AngouLim, qui milite pour la réouverture de la ligne Angoulême - Limoges, parce qu’il juge important de défendre les lignes oubliées. VFF soutient cette campagne sur la fiche de la ligne.',
     ],
 
     'liability' => [

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident du 8 novembre 1908 rattaché à Sète : il a eu lieu à Grisolles (recherche du 21/11/2026).
 return [
     'slug' => '1908-11-08-grisolles',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-grisolles' => [
             'provider' => 'wikipedia',
@@ -45,7 +45,7 @@ return [
             'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1908&oldid=233618338#Novembre',
             'access' => 'open',
             'consulted_on' => '2026-11-21',
-            'note' => 'Source de l\'import. Entrée sourcée par Le Petit Journal du 9 novembre 1908 ; elle décrit un accident près de Grisolles, pas à Sète.',
+            'note' => 'Source de l\'import. Entrée sourcée par Le Petit Journal du 9 novembre 1908 ; elle décrit un accident près de Grisolles, pas à Sète. Texte de la révision 233618338 relu le 23/11/2026 : « entre Toulouse et Montauban, près de la gare de Grisolles, un rail se rompt au passage du train Sète-Bordeaux ». Sète n\'y est que l\'origine du train ; la lecture automatique de la liste (lieu « Sète ») est une erreur d\'analyse de l\'import, non un désaccord de la source.',
         ],
         'gallica-petit-journal-1908-11-09' => [
             'provider' => 'gallica',
@@ -61,9 +61,45 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence donnée par la liste de Wikipédia pour cette entrée ; non lue (Gallica).',
         ],
+        'ddb-1908-11-10-rheinische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Rheinische Volksstimme du 10 novembre 1908',
+            'publisher' => 'Rheinische Volksstimme (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1908-11-10',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/72IJFXNNTCPFYBEMXSES5UE4GNM7PCBT?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Toulouse du 8 novembre : un train de Bordeaux vers Cette déraille près de Grisolles (Tarn-et-Garonne) ; une voiture écrasée ; 10 morts dont 8 soldats.',
+            'facts' => ['date' => '1908-11-08', 'commune_insee' => '82075', 'deaths' => 10],
+        ],
+        'kb-1908-11-10-de-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het spoorwegongeluk bij Tonlouse.',
+            'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1908-11-10',
+            'locator' => 'article « Het spoorwegongeluk bij Tonlouse. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003505103:mpeg21:a00008:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 10 novembre : accident à 5 h du matin près du village de Grisolles, sur la ligne de Cette à Bordeaux, le train en pleine vitesse déraille juste avant le viaduc ; cinq wagons sortent des rails.',
+            'facts' => ['commune_insee' => '82075', 'deaths' => 10],
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'De Courant du 10 novembre 1908 situe l\'accident à 5 h du matin près du village de Grisolles, sur la ligne de Cette à Bordeaux : le train, lancé à pleine vitesse, a déraillé juste avant le viaduc, cinq wagons sortant des rails. Avec la presse allemande du 10 novembre (dépêche de Toulouse du 8, dix morts dont huit soldats), cela confirme la date, le lieu (Grisolles) et le bilan de 10 morts de la fiche.',
+                'en' => 'De Courant of 10 November 1908 places the accident at 5 am near the village of Grisolles, on the Cette to Bordeaux line: the train, at full speed, derailed just before the viaduct, five wagons leaving the rails. With the German press of 10 November (Toulouse dispatch of the 8th, ten dead including eight soldiers), this confirms the date, the place (Grisolles) and the toll of 10 dead in the record.',
+                'de' => 'De Courant vom 10. November 1908 verlegt das Unglück auf 5 Uhr morgens in die Nähe des Dorfes Grisolles auf der Strecke von Cette nach Bordeaux: Der Zug entgleiste mit voller Fahrt kurz vor dem Viadukt, fünf Wagen sprangen aus den Schienen. Zusammen mit der deutschen Presse vom 10. November (Meldung aus Toulouse vom 8., zehn Tote, darunter acht Soldaten) bestätigt das Datum, Ort (Grisolles) und die Bilanz von 10 Toten der Datenbank.',
+                'sources' => ['kb-1908-11-10-de-courant'],
+            ],
             [
                 'fr' => 'Le 8 novembre 1908, à Grisolles (Tarn-et-Garonne), sur la ligne de Bordeaux à Sète, un rail a cédé sous le rapide 122 de la Compagnie du Midi. Le fourgon postal s\'est encastré dans une pile du pont qui enjambe la voie et le canal, et les voitures de troisième classe qui le suivaient l\'ont percuté. La liste de Wikipédia place l\'accident vers 4 h 30, entre Toulouse et Montauban.',
                 'en' => 'On 8 November 1908, at Grisolles (Tarn-et-Garonne), on the Bordeaux - Sète line, a rail gave way under express 122 of the Compagnie du Midi. The mail van ran into a pier of the bridge crossing the track and the canal, and the third-class coaches behind it piled into it. The Wikipedia list puts the accident at about 4.30 am, between Toulouse and Montauban.',
@@ -72,6 +108,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Rheinische Volksstimme du 10 novembre 1908 rapporte, dans une dépêche de Toulouse du 8 novembre, qu\'un train de Bordeaux vers Cette a déraillé près de Grisolles (Tarn-et-Garonne), une voiture étant écrasée, avec dix morts dont huit soldats. Date, lieu (Grisolles, et non Sète, ville de destination) et bilan de 10 morts confirment la fiche et sa correction de commune.',
+                'en' => 'The Rheinische Volksstimme of 10 November 1908 reports, in a Toulouse dispatch of 8 November, that a train from Bordeaux to Cette derailed near Grisolles (Tarn-et-Garonne), one carriage being crushed, with ten dead including eight soldiers. Date, place (Grisolles, not Sète, the destination) and the toll of 10 dead confirm the record and its commune correction.',
+                'de' => 'Die Rheinische Volksstimme vom 10. November 1908 berichtet in einer Meldung aus Toulouse vom 8. November, ein Zug von Bordeaux nach Cette sei bei Grisolles (Tarn-et-Garonne) entgleist, ein Wagen wurde zusammengedrückt, mit zehn Toten, darunter acht Soldaten. Datum, Ort (Grisolles, nicht Sète, das Ziel) und die Bilanz von 10 Toten bestätigen die Datenbank und ihre Korrektur der Gemeinde.',
+                'sources' => ['ddb-1908-11-10-rheinische'],
+            ],
             [
                 'fr' => 'Les dix morts étaient tous des réservistes, pour la plupart du 7e régiment du génie, qui rentraient d\'une période militaire. Wikipédia (article de la commune) et le site Rails et Drailles comptent 22 blessés ; la liste des accidents de 1908 parle d\'une soixantaine de blessés, dont neuf postiers ambulants.',
                 'en' => 'The ten dead were all reservists, mostly of the 7th Engineer Regiment, returning from military training. Wikipedia (the commune article) and the Rails et Drailles site count 22 injured; the 1908 accident list speaks of about sixty injured, including nine travelling postal clerks.',

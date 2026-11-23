@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Villeneuve-Saint-Georges du 30 juillet 1937 (recherche du 21/11/2026).
 return [
     'slug' => '1937-07-30-villeneuve-saint-georges',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Reportage de 1981 sur un autre accident au même endroit : sans rapport avec 1937, listé pour éviter la confusion.',
         ],
+        'ddb-1937-07-30-koelnische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Kölnische Zeitung du 30 juillet 1937',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1937-07-30',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/EM2XM6KTXZX5GKTJUSZHKCWQZUFKN42O?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche : le nombre de morts du déraillement de Villeneuve-Saint-Georges est monté à 27 ; les morts et la plupart des blessés se trouvaient dans deux voitures de 2e classe en bois.',
+        ],
+        'kb-1937-07-30-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenlandsche Berichten. Spoorwegongeluk nabij Parijs. VERKEERDE WISSELSTAND DE OORZAAK Zeven en twintig d...',
+            'publisher' => 'Leeuwarder Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1937-07-30',
+            'locator' => 'article « Buitenlandsche Berichten. Spoorwegongeluk nabij Parijs. VERKEERDE WISSELSTAND DE OORZAAK Zeven en twintig d... », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010607112:mpeg21:a0130:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Rubrique du 30 juillet : accident la veille au soir à Villeneuve-Saint-Georges ; selon la compagnie PLM environ 25 morts et 50 blessés ; titre : 27 morts, aiguillage mal placé.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -126,6 +154,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Kölnische Zeitung du 30 juillet 1937 annonce que le nombre de morts du déraillement de Villeneuve-Saint-Georges est monté à 27, la plupart des victimes se trouvant dans deux voitures de 2e classe en bois ; la fiche donne 29 morts, bilan final.',
+                'en' => 'The Kölnische Zeitung of 30 July 1937 reports that the death toll of the Villeneuve-Saint-Georges derailment had risen to 27, most victims being in two wooden second-class carriages; the record gives 29 dead, the final toll.',
+                'de' => 'Die Kölnische Zeitung vom 30. Juli 1937 meldet, die Zahl der Toten der Entgleisung bei Villeneuve-Saint-Georges sei auf 27 gestiegen, die meisten Opfer hätten sich in zwei hölzernen Wagen zweiter Klasse befunden; die Datenbank nennt 29 Tote, die endgültige Zahl.',
+                'sources' => ['ddb-1937-07-30-koelnische'],
+            ],
+            [
+                'fr' => 'La Leeuwarder Courant du 30 juillet 1937 situe l\'accident de la veille au soir à Villeneuve-Saint-Georges, avec 27 morts dans le titre et, selon la compagnie PLM, environ 25 morts et 50 blessés, un aiguillage mal placé étant la cause avancée ; la fiche donne 29 morts. Date et lieu sont confirmés.',
+                'en' => 'The Leeuwarder Courant of 30 July 1937 places the accident of the previous evening at Villeneuve-Saint-Georges, with 27 dead in the headline and, according to the PLM company, about 25 dead and 50 injured, wrongly set points being the cause put forward; the record gives 29 dead. Date and place are confirmed.',
+                'de' => 'Die Leeuwarder Courant vom 30. Juli 1937 verlegt das Unglück vom Vorabend nach Villeneuve-Saint-Georges, mit 27 Toten in der Überschrift und nach der Gesellschaft PLM etwa 25 Toten und 50 Verletzten, wobei falsch gestellte Weichen als Ursache genannt werden; die Datenbank nennt 29 Tote. Datum und Ort sind bestätigt.',
+                'sources' => ['kb-1937-07-30-leeuwarder-courant'],
+            ],
             [
                 'fr' => 'L\'accident a fait 29 morts et 111 blessés selon l\'article de Wikipédia en français, qui retient le bilan confirmé au procès de mars 1938. Dix-sept des morts, dont deux prêtres, appartenaient à un groupe d\'environ 130 Stéphanois qui revenaient d\'un pèlerinage à Lisieux et d\'une visite de l\'Exposition universelle de 1937. Les morts ont été déposés dans un abri de l\'école maternelle de la rue de Paris et les blessés conduits dans des hôpitaux de Villeneuve-Saint-Georges, de Juvisy et de Paris.',
                 'en' => 'The accident killed 29 people and injured 111, according to the French Wikipedia article, which uses the toll confirmed at the March 1938 trial. Seventeen of the dead, including two priests, belonged to a group of about 130 people from Saint-Étienne returning from a pilgrimage to Lisieux and a visit to the 1937 World Fair. The dead were laid out in a shelter of the nursery school in rue de Paris and the injured were taken to hospitals in Villeneuve-Saint-Georges, Juvisy and Paris.',

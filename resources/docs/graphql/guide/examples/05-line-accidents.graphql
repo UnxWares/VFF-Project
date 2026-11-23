@@ -1,0 +1,16 @@
+query LineAccidents {
+  line(slug: "rfn-420000") {
+    name
+    accidents {
+      slug
+      name
+      kind
+      date
+      date_precision
+      deaths
+      injuries
+      review_status
+      sources { title url license }
+    }
+  }
+}

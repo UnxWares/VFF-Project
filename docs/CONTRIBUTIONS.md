@@ -35,13 +35,44 @@ Saisie : ligne existante, type (tous ceux de `LineEventType` sauf `accident`, qu
 vérifiée), date à la précision de la source (`day`, `month`, `year` ; une année seule reste une
 année), portion (toute la ligne, entre deux lieux, entre deux PK), précision publiée (obligatoire
 pour `other`), source obligatoire : nature (`web`, `document`, `print`), titre ou référence,
-adresse (sauf pour un ouvrage papier), licence pour un document numérisé.
+adresse (sauf pour un ouvrage papier), licence pour un document numérisé, et citation courte
+facultative (`source_excerpt`, 300 caractères au plus, la phrase qui date le fait) ; note pour les
+validateurs, non publiée.
+
+### Correction d'un événement existant
+
+Chaque fait de la chronologie de la fiche de ligne porte un lien « Corriger »
+(`/contribute/event?line=<slug>&event=<id>`), sauf un accident (fiche vérifiée à part) et un fait
+déjà neutralisé par une correction sourcée. Le formulaire est prérempli avec les valeurs actuelles
+(type, date à sa précision, portion) et la ligne est fixée ; la raison de la correction
+(`correction_reason`, de 10 à 300 caractères, publiée) est obligatoire. Même champ dans la
+mutation (`corrects_event_id`, `correction_reason`).
+
+- Envoi (`EventContributions::normalize`) : l'événement doit appartenir à la ligne et être
+  corrigeable (`EventContributions::correctable`) ; la charge utile garde l'événement tel qu'il
+  était (`corrects` : identifiant, source, type, date, précision, portion) ; la contribution a
+  l'action `update`. Rien n'est écrit dans `line_events` avant les deux approbations.
+- Relecture : les validateurs voient l'événement remplacé, la raison, et l'événement tel qu'il est
+  maintenant (`corrected_event`, nul s'il a disparu ou a déjà été neutralisé).
+- Publication (`EventContributions::apply`, dans la transaction de l'approbation) : l'événement
+  corrigé entre comme un nouvel événement `contrib` (règles ci-dessous) et l'événement visé est
+  neutralisé comme une neutralisation des fichiers `database/data/line_event_corrections*.php` :
+  type `other`, description « <fait>, fait corrigé par la contribution n° <id> (correction sourcée :
+  <raison>) » (`applied.corrected_event_ids`).
+- Rejeu : les imports réécrivent leurs événements (nouvel identifiant, type d'origine).
+  `vff:apply-event-corrections`, lancé par `vff:rebuild-history` avant la résolution des portions,
+  rejoue après les fichiers les neutralisations des corrections publiées
+  (`EventContributions::replayCorrections`) : l'événement est retrouvé par son identifiant, sinon par
+  sa ligne, sa source, son type, sa date et son départ. Une correction dont l'événement a disparu est
+  signalée (« événement corrigé introuvable »).
 
 À la publication (`EventContributions::apply`), dans la transaction de l'approbation :
 
 - `line_events.source` = `contrib` (contributions validées), `fingerprint` = `contribution:<id>`
   (provenance ; rejouer la publication met à jour la même ligne), `source_url`, `source_quote`
-  (titre de la source et sa licence), description en français terminée par « (contribution n° <id>) » ;
+  (la citation courte si elle est donnée, sinon le titre de la source et sa licence), description en
+  français terminée par « (contribution n° <id>) » (« (contribution n° <id>, source : <titre>) »
+  quand la citation prend la place du titre) ;
 - la confiance suit la source citée (décision du 20/11/2026), comme pour les corrections `manual` :
     - registre des droits : `contrib` est une source composite, le fournisseur est celui du lien cité
       (Wikipédia, lignes-oubliees, Gallica…), `vff` pour un ouvrage ou une archive papier ;
@@ -79,11 +110,26 @@ L'image publiée entre dans `media` rattachée à la série ; l'API la donne ave
   titre, l'auteur, la licence et la miniature par l'API publique de Commons (une requête, User-Agent
   générique de `CommonsClient`, sans reprise longue ; résultat gardé une heure en cache). Refus : format
   autre qu'une image ou un document numérisé, licence inconnue, non libre ou non commerciale. Rien
-  n'est téléchargé : l'image reste hébergée par Wikimedia.
+  n'est téléchargé : l'image reste hébergée par Wikimedia. Le contributeur peut y ajouter une légende en
+  anglais (`caption_en`) et en allemand (`caption_de`) : rangées dans `provider_meta.captions` (jamais de
+  `fr`), servies par `captions` avec la légende de Commons dans `caption` ; chaque visiteur lit celle de
+  sa langue, sinon celle de Commons.
 - **Fichier déposé** (`source` = `upload`) : JPEG, PNG ou WebP, 10 Mo au plus, chaque côté de 400 à
   12 000 pixels, auteur, licence de la liste fermée `ContentLicense::forMedia()` (domaine public,
-  CC0, CC BY 4.0, CC BY-SA 4.0, Licence Ouverte 2.0), attestation du droit de partager, date de
-  prise de vue à sa précision, lieu et coordonnées facultatifs.
+  CC0 1.0, CC BY et CC BY-SA en versions 4.0, 3.0, 2.5 et 2.0, Licence Ouverte 2.0 : toutes
+  permettent l'usage commercial et la modification, d'où `commercial_ok` et `derivatives_ok` vrais
+  à la publication), choisie en deux temps dans le formulaire (famille, puis version), attestation
+  du droit de partager, date de prise de vue à sa précision (rangée aussi dans `media.date_precision`),
+  lieu et coordonnées facultatifs, légende facultative en français (`caption`), anglais
+  (`caption_en`) et allemand (`caption_de`). La légende principale (`media.caption`) est la
+  française, sinon la première donnée ; les trois sont gardées dans `provider_meta.captions` et
+  servies par l'API (`captions`, REST et GraphQL) ; la galerie des fiches montre celle de la langue
+  de la page.
+- **Position GPS d'une photo** : le navigateur lit la position de l'EXIF d'un JPEG (segment APP1),
+  d'un PNG (bloc `eXIf`) ou d'un WebP (bloc `EXIF`) choisi (`resources/js/lib/exifPosition.js` ; un
+  PNG ou un WebP est lu en entier, car ce bloc peut suivre les pixels) et propose de la recopier dans
+  les coordonnées ; rien n'est envoyé sans ce geste. Le fichier, lui, est toujours enregistré sans sa
+  position (`ImageSanitizer` retire `eXIf` et `EXIF`, tests `ImageSanitizerTest`).
 
 Contrôles d'un fichier déposé (`ImageSanitizer`, sans GD ni Imagick : lecture de la structure du
 fichier) : type lu dans les premiers octets et confirmé par `getimagesizefromstring()`, jamais
@@ -102,12 +148,12 @@ effacé au refus, au retrait par un administrateur et à la suppression du compt
 À la publication (`MediaContributions::apply`) : une ligne de `media` avec `provider_meta.source` =
 `contribution:<id>` (et `external_id` = `contribution:<id>` pour un fichier déposé, `file_path` dans
 `media/contributions/` du disque public, adresses calculées par l'API). Le fichier est copié vers le
-disque public une fois la transaction validée, puis effacé de la réserve privée. Les images de
-lignes apparaissent dans la galerie de leur fiche ; celles des gares et des événements sont dans
-l'API (`/api/v1/media`), les fiches ne les montrent pas encore.
+disque public une fois la transaction validée, puis effacé de la réserve privée. L'image apparaît
+dans la galerie de sa fiche (ligne, gare, série de matériel), celle d'un événement dans la chronologie
+de la ligne, et dans l'API (`/api/v1/media`).
 
-Pas de miniature générée : l'image PHP du projet n'a pas d'extension graphique. Les galeries
-reçoivent le fichier entier (10 Mo au plus).
+Miniatures : `ThumbnailGenerator` crée après la publication des vignettes WebP de 320 et 1 280 pixels
+(`provider_meta.thumbs`) ; sans elles, l'original est servi et `vff:media-thumbnails` les refait.
 
 ## Matériel sur une ligne (`line_material`)
 

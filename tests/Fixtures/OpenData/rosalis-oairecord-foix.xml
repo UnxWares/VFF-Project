@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<results ResultsGenerationSearchTime="0:00:00.031" countResults="1" resultType="CVOAIRecordSearchService" searchTime="">
+<visibility_rights>all</visibility_rights>
+<notice>
+<record>
+<header>
+<identifier>oai:bnf.fr:gallica/ark:/12148/btv1b105741306</identifier>
+<datestamp>2022-02-22</datestamp>
+<setSpec>gallica:corpus:RsAlis000</setSpec>
+<setSpec>gallica:corpus:RsAlis007</setSpec>
+<setSpec>gallica:corpus:RsAlis014</setSpec>
+<setSpec>gallica:typedoc:images</setSpec>
+</header>
+<metadata>
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+<dc:identifier>https://rosalis.bibliotheque.toulouse.fr/ark:/12148/btv1b105741306</dc:identifier>
+<dc:title>A la gare, Foix, septembre 1882</dc:title>
+<dc:creator>Trutat, Eugène (1840-1910). Photographe</dc:creator>
+<dc:date>1882</dc:date>
+<dc:subject xml:lang="fre">Bois</dc:subject>
+<dc:subject xml:lang="fre">Manutention</dc:subject>
+<dc:subject xml:lang="fre">Foix (Ariège, France)</dc:subject>
+<dc:subject xml:lang="fre">Pyrénées (France)</dc:subject>
+<dc:subject xml:lang="fre">Ville</dc:subject>
+<dc:subject xml:lang="fre">Gare</dc:subject>
+<dc:subject xml:lang="fre">Bâtiment</dc:subject>
+<dc:subject xml:lang="fre">Machine</dc:subject>
+<dc:subject xml:lang="fre">Levage</dc:subject>
+<dc:subject xml:lang="fre">Poulie</dc:subject>
+<dc:subject xml:lang="fre">Château de Foix</dc:subject>
+<dc:subject xml:lang="fre">Gare (Foix)</dc:subject>
+<dc:subject xml:lang="fre">Ariège (France ; vallée)</dc:subject>
+<dc:format>13 x 18 cm</dc:format>
+<dc:relation>Notice du catalogue : http://catalogue.bnf.fr/ark:/12148/cb449232902</dc:relation>
+<dc:relation>Notice dans un autre catalogue : http://catalogues.toulouse.fr/web2/tramp2.exe/do_keyword_search/log_in?setting_key=BMT1&amp;servers=1home&amp;query=y000311</dc:relation>
+<dc:type xml:lang="fre">image fixe</dc:type>
+<dc:type xml:lang="eng">image</dc:type>
+<dc:type xml:lang="eng">still image</dc:type>
+<dc:source>Association des Toulousains de Toulouse, Musée du Vieux-Toulouse</dc:source>
+<dc:rights xml:lang="fre">domaine public</dc:rights>
+<dc:rights xml:lang="eng">public domain</dc:rights>
+<dc:description>Appartient à l’ensemble documentaire : RsAlis000</dc:description>
+<dc:description>Appartient à l’ensemble documentaire : RsAlis014</dc:description>
+<dc:description>Appartient à l’ensemble documentaire : RsAlis007</dc:description>
+<dc:format>image/jpeg</dc:format>
+<dc:format>Nombre total de vues :  1</dc:format>
+</oai_dc:dc>
+</metadata>
+</record>
+</notice>
+<provenance>bnf.fr</provenance>
+<source>Association des Toulousains de Toulouse, Musée du Vieux-Toulouse</source>
+<typedoc>image</typedoc>
+<nqamoyen>0.0</nqamoyen>
+<title>A la gare, Foix, septembre 1882</title>
+<date nbIssue="1">1882</date>
+<first_indexation_date>09/01/2020</first_indexation_date>
+<streamable>false</streamable>
+<listBibVirt>
+<label>gallica</label>
+<label>rosalis</label>
+</listBibVirt>
+</results>

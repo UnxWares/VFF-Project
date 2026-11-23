@@ -6,7 +6,7 @@ return [
     'checked_on' => '2026-11-21',
     'sources' => [
         'delpher-elzas-1926-11-20' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Frankrijk. Spoorwegongeluk in den Elzas (dépêche de Strasbourg du 19 novembre 1926)',
@@ -20,7 +20,7 @@ return [
             'note' => 'Dépêche d\'agence : accident dans la gare « Oberbergheim », un voyageur tué, deux grièvement blessés.',
         ],
         'delpher-elzas-1926-11-20-bis' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Verspreide berichten (journal néerlandais du 20 novembre 1926)',

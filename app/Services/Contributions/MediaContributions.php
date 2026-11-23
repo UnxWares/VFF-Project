@@ -14,6 +14,7 @@ use App\Models\Station;
 use App\Services\Media\CommonsFileResolver;
 use App\Services\Media\ImageSanitizer;
 use App\Services\Media\SanitizedImage;
+use App\Services\Media\Sources\MediaRecord;
 use App\Services\Media\ThumbnailGenerator;
 use App\Services\Media\UnsupportedImage;
 use App\Services\TraceContributionService;
@@ -114,7 +115,12 @@ final readonly class MediaContributions
                 Rule::dimensions()->minWidth(self::MIN_SIDE)->minHeight(self::MIN_SIDE)->maxWidth(self::MAX_SIDE)->maxHeight(self::MAX_SIDE)],
             'media_type' => ['exclude_unless:source,upload', 'required', 'string', Rule::in(self::mediaTypes())],
             'title' => ['exclude_unless:source,upload', 'required', 'string', 'min:3', 'max:250'],
+            // Légende facultative en français (`caption`), en anglais et en allemand.
             'caption' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
+            // Fichier Commons : légendes en anglais et en allemand en plus de celle de Commons (jamais la française,
+            // que Commons donne déjà dans sa langue).
+            'caption_en' => ['exclude_unless:source,upload,commons', 'nullable', 'string', 'max:800'],
+            'caption_de' => ['exclude_unless:source,upload,commons', 'nullable', 'string', 'max:800'],
             'author' => ['exclude_unless:source,upload', 'required', 'string', 'min:2', 'max:200'],
             'license' => ['exclude_unless:source,upload', 'required', 'string', Rule::in(ContentLicense::mediaValues())],
             'captured_precision' => ['exclude_unless:source,upload', 'nullable', 'required_with:captured_date', 'string', Rule::in(TraceContributionService::PRECISIONS)],
@@ -186,7 +192,13 @@ final readonly class MediaContributions
             $meta = $this->commonsFile((string) $data['commons_url']);
             $this->ensureNewCommons((int) $meta['page_id'], $mediableType, $mediableId);
 
-            return ['payload' => [...$common, 'commons' => self::commonsSummary($meta)], 'target' => $target, 'image' => null];
+            $captions = array_diff_key(self::captions($data), ['fr' => true]);
+
+            return [
+                'payload' => [...$common, 'commons' => self::commonsSummary($meta), 'captions' => $captions === [] ? null : $captions],
+                'target' => $target,
+                'image' => null,
+            ];
         }
 
         $file = $data['file'];
@@ -209,13 +221,16 @@ final readonly class MediaContributions
             $captured = ['date' => $date, 'precision' => $data['captured_precision']];
         }
         $location = isset($data['lat'], $data['lng']) ? ['lat' => round((float) $data['lat'], 6), 'lng' => round((float) $data['lng'], 6)] : null;
+        $captions = self::captions($data);
 
         return [
             'payload' => [
                 ...$common,
                 'media_type' => $data['media_type'],
                 'title' => self::clean($data['title']),
-                'caption' => self::trimmed($data['caption'] ?? null),
+                // Légende principale (colonne `media.caption`) : le français, sinon l'anglais, sinon l'allemand.
+                'caption' => $captions === [] ? null : reset($captions),
+                'captions' => $captions === [] ? null : $captions,
                 'author' => self::clean($data['author']),
                 'license' => $license->value,
                 'license_name' => $license->label(),
@@ -283,7 +298,7 @@ final readonly class MediaContributions
             if ($this->commonsAttached((int) $meta['page_id'], $mediableType, $mediableId)) {
                 throw new ContributionNotPublishable(PublicationFailure::AlreadyPresent, "Fichier Commons {$meta['page_id']} déjà rattaché (contribution {$contribution->id})");
             }
-            $id = DB::table('media')->insertGetId($this->commonsRow($contribution, $meta, $mediableType, $mediableId));
+            $id = DB::table('media')->insertGetId($this->commonsRow($contribution, $meta, $mediableType, $mediableId, is_array($p['captions'] ?? null) ? $p['captions'] : []));
 
             return ['media_id' => (int) $id, 'file_path' => null];
         }
@@ -561,12 +576,17 @@ final readonly class MediaContributions
     /**
      * @param  array<string, mixed>  $meta
      * @param  class-string  $mediableType
+     * @param  array<string, mixed>  $captions  légendes du contributeur par langue (en, de)
      * @return array<string, mixed>
      */
-    private function commonsRow(Contribution $contribution, array $meta, string $mediableType, int $mediableId): array
+    private function commonsRow(Contribution $contribution, array $meta, string $mediableType, int $mediableId, array $captions = []): array
     {
         $lat = $meta['lat'] ?? null;
         $lon = $meta['lon'] ?? null;
+        $captions = array_filter(
+            array_intersect_key($captions, ['en' => true, 'de' => true]),
+            fn (mixed $text): bool => is_string($text) && trim($text) !== '',
+        );
 
         return [
             'mediable_type' => $mediableType,
@@ -583,6 +603,9 @@ final readonly class MediaContributions
             'rights_status' => $meta['rights_status'],
             'commercial_ok' => $meta['commercial_ok'] ?? null,
             'share_alike' => $meta['share_alike'] ?? null,
+            // Commons n'accepte que des licences qui permettent la modification (comme la reprise de 2026_12_11).
+            'derivatives_ok' => in_array($meta['rights_status'], [Media::RIGHTS_PUBLIC_DOMAIN, Media::RIGHTS_OPEN_LICENSE], true) ? true : null,
+            'date_precision' => in_array($meta['date_precision'] ?? null, MediaRecord::PRECISIONS, true) ? $meta['date_precision'] : null,
             'mime_type' => $meta['mime'] ?? null,
             'width' => $meta['width'] ?? null,
             'height' => $meta['height'] ?? null,
@@ -601,6 +624,8 @@ final readonly class MediaContributions
                 'date_precision' => $meta['date_precision'] ?? null,
                 'credit' => $meta['credit'] ?? null,
                 'attribution_required' => $meta['attribution_required'] ?? null,
+                // Légendes anglaise et allemande du contributeur ; `caption` reste celle de Commons.
+                'captions' => $captions === [] ? null : $captions,
             ], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'created_at' => now(),
             'updated_at' => now(),
@@ -641,8 +666,11 @@ final readonly class MediaContributions
             'rights_status' => $license->rightsStatus(),
             'commercial_ok' => true,
             'share_alike' => $license->shareAlike(),
+            // Toutes les licences acceptées (ContentLicense::forMedia) permettent la modification.
+            'derivatives_ok' => true,
             'captured_at' => $captured['date'] ?? null,
             'depicted_year' => $captured !== null ? (int) substr((string) $captured['date'], 0, 4) : null,
+            'date_precision' => $captured['precision'] ?? null,
             'location' => isset($p['location']['lat'], $p['location']['lng']) ? self::point((float) $p['location']['lat'], (float) $p['location']['lng']) : null,
             'is_featured' => false,
             'provider_meta' => json_encode(array_filter([
@@ -650,6 +678,7 @@ final readonly class MediaContributions
                 'contribution_id' => $contribution->id,
                 'date_precision' => $captured['precision'] ?? null,
                 'place' => $p['place'] ?? null,
+                'captions' => is_array($p['captions'] ?? null) && $p['captions'] !== [] ? $p['captions'] : null,
                 'sha256' => $file['sha256'],
                 'metadata_removed' => $file['removed'] ?: null,
                 'attribution_required' => $license->attributionRequired(),
@@ -681,6 +710,21 @@ final readonly class MediaContributions
         if ($media !== null) {
             $this->thumbnails->forMedia($media);
         }
+    }
+
+    /**
+     * Légendes saisies, par langue (`fr`, `en`, `de`), vides écartées.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, string>
+     */
+    private static function captions(array $data): array
+    {
+        return array_filter([
+            'fr' => self::trimmed($data['caption'] ?? null),
+            'en' => self::trimmed($data['caption_en'] ?? null),
+            'de' => self::trimmed($data['caption_de'] ?? null),
+        ], fn (?string $text): bool => $text !== null);
     }
 
     private static function point(float $lat, float $lng): Expression

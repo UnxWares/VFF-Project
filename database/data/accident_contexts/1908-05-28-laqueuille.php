@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne Clermont-Tulle, près de la gare de Laqueuille, wagon d\'un train de travaux chargé de rails et de vingt-deux ouvriers, trois morts et onze blessés ; renvoie à Le Temps du 28 mai 1908 (non lu).',
         ],
         'delpher-maasbode-1908-05-30' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Maasbode du 30 mai 1908',

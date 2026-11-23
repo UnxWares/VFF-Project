@@ -28,6 +28,11 @@ use Illuminate\Support\Facades\DB;
  *     quand ce sont seulement Wikidata sans référence et Wikipédia, que l'on distingue parce que l'une peut
  *     être copiée de l'autre ; `wikipedia_editions` quand l'une des deux est une liste en anglais ou en allemand
  *     qui cite sa propre référence et l'autre Wikipédia en français).
+ *   La presse numérisée (Delpher, Deutsches Zeitungsportal, Europeana, Gallica, Le Temps...) forme UNE famille
+ *   (AccidentClaim::PRESS), quel que soit le nombre d'articles : un article la compte seulement s'il donne la date de la
+ *   fiche (au jour, ou « hier » dans la presse du lendemain), sa commune et son bilan (le même nombre de morts, ou un
+ *   bilan provisoire, marqué comme tel dans le fichier de contexte, inférieur ou égal) ; un article qui donne un autre
+ *   jour ou une autre commune contredit la fiche, un autre bilan la laisse sans confirmation (`verification.deaths`).
  * et qu'aucune note de doute sur la date, le lieu ou le bilan ne reste (BLOCKING). La précision du lieu
  * reste celle que la source donne (commune, gare, point) ; le rattachement à une ligne porte sa propre
  * confiance. Une fiche déjà « ok » n'est jamais rendue « à vérifier » pour un défaut de confirmation : seulement
@@ -61,6 +66,8 @@ final class AccidentVerifier
     private const PROVIDER_LABELS = [
         'bea-tt' => 'BEA-TT', 'wikidata' => 'Wikidata', 'wikipedia' => 'Wikipédia',
         'wikipedia-en' => 'Wikipédia en anglais', 'wikipedia-de' => 'Wikipédia en allemand',
+        'presse' => 'presse numérisée', 'delpher' => 'Delpher', 'gallica' => 'Gallica', 'europeana' => 'Europeana',
+        'letempsarchives' => 'archives du Temps', 'retronews' => 'RetroNews',
     ];
 
     public function __construct(
@@ -88,7 +95,7 @@ final class AccidentVerifier
             $this->citedLines->prepare($client, $accidents->all(), $result);
             foreach ($accidents as $accident) {
                 $this->citedLines->apply($accident, $result);
-                $accident->refresh()->load('sources', 'aliases.sources');
+                $accident->refresh()->load('sources', 'references', 'aliases.sources');
                 $firstVerification = $accident->verified_at === null;
                 $this->verify($accident, $possible[$accident->id] ?? [], $demote, $result);
                 if ($firstVerification) {
@@ -113,7 +120,7 @@ final class AccidentVerifier
      */
     private function announce(Accident $accident, AccidentVerificationResult $result): void
     {
-        if ($accident->verified_at === null || $accident->alias_of_id !== null || in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($accident->verified_at === null || $accident->alias_of_id !== null || ! Accident::query()->whereKey($accident->id)->exists()) {
             return;
         }
         $result->announced[] = $accident->slug;
@@ -138,8 +145,7 @@ final class AccidentVerifier
                     COUNT(*) FILTER (WHERE review_status = \'ok\') AS ok,
                     COUNT(*) FILTER (WHERE review_status = \'to_review\') AS to_review,
                     COUNT(*) FILTER (WHERE kind = \'other\') AS other
-             FROM accidents WHERE alias_of_id IS NULL AND kind NOT IN ('.implode(', ', array_fill(0, count(AccidentKind::HIDDEN), '?')).')',
-            AccidentKind::HIDDEN,
+             FROM accidents WHERE alias_of_id IS NULL AND '.AccidentKind::publishableSql(),
         );
 
         return ['total' => (int) $row->total, 'ok' => (int) $row->ok, 'to_review' => (int) $row->to_review, 'other' => (int) $row->other];
@@ -228,6 +234,7 @@ final class AccidentVerifier
         $claims = $this->claims->read($accident);
         $date = $this->compare($claims, $accident, 'date');
         $place = $this->compare($claims, $accident, 'place');
+        $deaths = $this->pressDeaths($claims, $accident);
 
         $rule = null;
         if (in_array(AccidentClaim::OFFICIAL, $date['families'], true) && in_array(AccidentClaim::OFFICIAL, $place['families'], true)
@@ -277,6 +284,7 @@ final class AccidentVerifier
                 'precision' => $accident->location_precision?->value, 'provenance' => $accident->provenance['location'] ?? null])
                 + ['confirmed_by' => $place['confirm'], 'disagreeing' => $place['disagree']]
                 + ($place['nearby'] !== [] ? ['nearby' => $place['nearby']] : []),
+            'deaths' => $deaths,
             'families' => ['date' => $date['families'], 'place' => $place['families']],
             'kind' => $accident->verification['kind'] ?? null,
             'aliases' => $accident->aliases->map(fn (Accident $a): array => [
@@ -305,8 +313,11 @@ final class AccidentVerifier
         } elseif ($status === AccidentReviewStatus::Ok && $rule === null) {
             $result->unconfirmedOk[] = $accident->slug;
         }
-        if ($status === AccidentReviewStatus::Ok && ! in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
+        if ($status === AccidentReviewStatus::Ok) {
             $result->count('rules', $rule ?? 'none');
+            if (in_array(AccidentClaim::PRESS, $date['families'], true)) {
+                $result->pressConfirmed[] = $accident->slug;
+            }
         }
     }
 
@@ -344,6 +355,10 @@ final class AccidentVerifier
                 $agrees = $claim->communeInsee === $accident->commune_insee;
                 $family = $claim->placeFamily;
             }
+            // Un article de presse qui ne confirme pas les trois faits à la fois ne confirme rien.
+            if ($agrees && $family === AccidentClaim::PRESS && ! $this->pressConfirms($claim, $accident)) {
+                continue;
+            }
             if ($agrees) {
                 $confirm[] = $claim->reference() + ['family' => $family];
                 $families[$family] = true;
@@ -355,6 +370,51 @@ final class AccidentVerifier
         }
 
         return ['confirm' => $confirm, 'disagree' => $disagree, 'nearby' => $nearby, 'families' => array_keys($families)];
+    }
+
+    /**
+     * Un article de presse confirme la fiche s'il en donne la date, la commune et le bilan : le même nombre de morts,
+     * ou un bilan provisoire inférieur ou égal (les morts à l'hôpital viennent ensuite).
+     */
+    private function pressConfirms(AccidentClaim $claim, Accident $accident): bool
+    {
+        return $claim->date !== null
+            && $this->sameDate($accident->occurred_on->toDateString(), $accident->date_precision, $claim->date, AccidentDatePrecision::Day)
+            && $claim->communeInsee !== null && $claim->communeInsee === $accident->commune_insee
+            && $this->tollAgrees($claim, $accident);
+    }
+
+    private function tollAgrees(AccidentClaim $claim, Accident $accident): bool
+    {
+        if ($claim->deaths === null || $accident->deaths === null) {
+            return false;
+        }
+
+        return $claim->deathsProvisional ? $claim->deaths <= $accident->deaths : $claim->deaths === $accident->deaths;
+    }
+
+    /**
+     * Bilan de la fiche comparé à celui des articles de presse qui en donnent un, nul quand aucun n'en donne.
+     *
+     * @param  list<AccidentClaim>  $claims
+     * @return array{value: ?int, confirmed_by: list<array<string, mixed>>, disagreeing: list<array<string, mixed>>}|null
+     */
+    private function pressDeaths(array $claims, Accident $accident): ?array
+    {
+        $confirm = [];
+        $disagree = [];
+        foreach ($claims as $claim) {
+            if ($claim->dateFamily !== AccidentClaim::PRESS || $claim->deaths === null) {
+                continue;
+            }
+            if ($this->tollAgrees($claim, $accident)) {
+                $confirm[] = $claim->reference() + ['family' => AccidentClaim::PRESS];
+            } else {
+                $disagree[] = $claim->reference() + ['family' => AccidentClaim::PRESS];
+            }
+        }
+
+        return $confirm === [] && $disagree === [] ? null : ['value' => $accident->deaths, 'confirmed_by' => $confirm, 'disagreeing' => $disagree];
     }
 
     /** Le point de référence de la commune citée est-il à moins de NEARBY_COMMUNE_M du point de la fiche ? */

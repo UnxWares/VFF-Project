@@ -4,6 +4,7 @@ namespace App\Mcp\Tools;
 
 use App\Enums\ServiceEnd;
 use App\Mcp\Support\Lookup;
+use App\Mcp\Support\ServedEventDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Api\MediaGallery;
 use App\Services\Sncf\StationPlatforms;
@@ -86,6 +87,15 @@ class StationSheetTool extends VffTool
                 'when' => EventText::isoDate($openedAt, StationTimeline::RANGE, $lang, $openedAfter)]
             : $date($openedAt, $station->opened_precision);
 
+        $lineRows = $sheet->lines($sid);
+        $requests = [];
+        foreach ($lineRows as $i => $l) {
+            $bounds = StationServiceDates::bounds($l, $currentYear);
+            $requests["{$i}:start"] = ['bound' => $bounds['start'], 'role' => 'start', 'station_id' => $sid];
+            $requests["{$i}:end"] = ['bound' => $bounds['end'], 'role' => 'end', 'station_id' => $sid];
+        }
+        $servedBounds = app(ServedEventDates::class)->bounds($requests);
+
         $providers = [];
         $events = $sheet->events($sid)->map(function ($e) use ($lang, $date, &$providers) {
             $providers[] = $this->attribution->providerFor('station_events', $e->source, $e->source_url);
@@ -139,7 +149,7 @@ class StationSheetTool extends VffTool
             'eras' => array_values(array_map(fn ($e) => ['year' => (int) $e->year, 'status' => $e->status],
                 array_filter($sheet->eras($sid), fn ($e) => $e->status !== null))),
             'events' => $events,
-            'lines' => array_map(fn ($l) => [
+            'lines' => array_map(fn ($l, $i) => [
                 'slug' => $l->slug, 'code' => $l->code, 'name' => $l->name,
                 'first_year' => $l->first_year !== null ? (int) $l->first_year : null,
                 'last_year' => $l->last_year !== null ? (int) $l->last_year : null,
@@ -147,11 +157,12 @@ class StationSheetTool extends VffTool
                     $closedAt, $station->closed_precision, $currentYear)?->value,
                 'years_source' => $l->years_source,
                 // Date sûre du début et de la fin de desserte, et l'événement de ligne qui la donne.
-                'service_start' => StationServiceDates::written(($bounds = StationServiceDates::bounds($l, $currentYear))['start'], $lang),
-                'service_end' => StationServiceDates::written($bounds['end'], $lang),
+                // Borne dont l'événement vient d'une source non commerciale : remplacée ou nulle (ServedEventDates).
+                'service_start' => StationServiceDates::written($servedBounds["{$i}:start"], $lang),
+                'service_end' => StationServiceDates::written($servedBounds["{$i}:end"], $lang),
                 'pk_km' => $l->pk_m !== null ? round($l->pk_m / 1000, 3) : null,
                 'served_today' => (bool) $l->active_current,
-            ], $sheet->lines($sid)),
+            ], $lineRows, array_keys($lineRows)),
             'sources' => $sources,
             'platforms' => $platforms,
             'media_count' => app(MediaGallery::class)->count($station),

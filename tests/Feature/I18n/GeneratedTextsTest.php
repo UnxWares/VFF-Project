@@ -45,7 +45,7 @@ class GeneratedTextsTest extends TestCase
         $this->assertSame('Rouvrons la ligne Angoulême - Limoges', $a['title'], 'le français reste la référence');
         $en = Advocacy::localized($a, 'en');
         $de = Advocacy::localized($a, 'de');
-        // Mêmes faits que le français : date, durée annoncée, lien d'intérêts.
+        // Mêmes faits que le français : date, durée annoncée, engagement.
         $this->assertStringContainsString('13 March 2018', $en['message']);
         $this->assertStringContainsString('three weeks', $en['message']);
         $this->assertStringContainsString('We are members of AngouLim because we support this initiative.', $en['message']);

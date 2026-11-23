@@ -3,7 +3,7 @@
 // Contexte sourcé de la catastrophe ferroviaire de Melun du 17 octobre 1991 (recherche du 21/11/2026).
 return [
     'slug' => '1991-10-17-melun',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Fil de forum sans source officielle ; signale seulement que le rapport de la commission d\'enquête serait aux Archives nationales. Aucune phrase ne s\'y appuie.',
         ],
+        'kb-1991-10-18-trouw' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Reddingsactie na treinongeluk Franse treinramp: 16 doden',
+            'publisher' => 'Trouw (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1991-10-18',
+            'locator' => 'article « Reddingsactie na treinongeluk Franse treinramp: 16 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ABCDDD:010823930:mpeg21:a0003:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche AFP, AP et ANP du 18 octobre : 16 morts, au moins 90 blessés ; hier matin, l\'auto-train Nice-Paris heurte un train de marchandises à Melun.',
+        ],
+        'kb-1991-10-18-nieuwsblad-van-het-noorden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp: 18 doden',
+            'publisher' => 'Nieuwsblad van het Noorden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1991-10-18',
+            'locator' => 'article « Treinramp: 18 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011019778:mpeg21:a0208:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 18 octobre : collision hier entre un train de marchandises et l\'auto-train Nice-Paris à Melun, 18 morts et 57 blessés selon les chemins de fer français.',
+        ],
+        'kb-1991-10-17-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Minstens veertien doden bij treinbotsing in Frankrijk',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1991-10-17',
+            'locator' => 'article « Minstens veertien doden bij treinbotsing in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010567701:mpeg21:a0263:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 17 octobre : « ce matin de bonne heure », collision à Melun entre un train de marchandises et le rapide Paris-Nice ; au moins 14 morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '77288', 'deaths' => 14, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -114,6 +157,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais du 18 octobre 1991 confirment la collision de la veille au matin entre l\'auto-train Nice-Paris et un train de marchandises à Melun, avec 16 morts et au moins 90 blessés selon l\'un (dépêche AFP, AP et ANP), 18 morts et 57 blessés selon l\'autre ; la fiche donne 16 morts et 55 blessés. Date, lieu et nature sont confirmés ; le bilan final retenu par la fiche coïncide avec l\'un des deux.',
+                'en' => 'Two Dutch newspapers of 18 October 1991 confirm the collision of the previous morning between the Nice-Paris car-carrying train and a goods train at Melun, with 16 dead and at least 90 injured according to one (AFP, AP and ANP dispatch), 18 dead and 57 injured according to the other; the record gives 16 dead and 55 injured. Date, place and nature are confirmed; the final toll in the record matches one of the two.',
+                'de' => 'Zwei niederländische Zeitungen vom 18. Oktober 1991 bestätigen den Zusammenstoß vom Vortag am Morgen zwischen dem Autoreisezug Nizza-Paris und einem Güterzug in Melun, mit 16 Toten und mindestens 90 Verletzten laut der einen (Meldung von AFP, AP und ANP), 18 Toten und 57 Verletzten laut der anderen; die Datenbank nennt 16 Tote und 55 Verletzte. Datum, Ort und Art sind bestätigt; die endgültige Bilanz der Datenbank deckt sich mit einer der beiden.',
+                'sources' => ['kb-1991-10-18-trouw', 'kb-1991-10-18-nieuwsblad-van-het-noorden'],
+            ],
             [
                 'fr' => 'La catastrophe fait 16 morts, dont l\'agent de conduite du train de marchandises, et au moins 55 blessés. Plus de 100 voyageurs sont indemnes.',
                 'en' => 'The disaster caused 16 deaths, including the driver of the goods train, and at least 55 injured. More than 100 passengers were unhurt.',

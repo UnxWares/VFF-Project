@@ -3,17 +3,25 @@
 use App\Enums\ApiAccessProfile;
 use App\Enums\LegalDocument;
 use App\Http\Controllers\AccidentController;
+use App\Http\Controllers\AccidentStatisticsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountModerationController;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChronologyController;
+use App\Http\Controllers\CommuneController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
+use App\Http\Controllers\CoverageController;
 use App\Http\Controllers\CreditsController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
+use App\Http\Controllers\GlossaryController;
+use App\Http\Controllers\HeritageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
@@ -23,14 +31,23 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialContributionController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MaterialTimelineController;
 use App\Http\Controllers\MediaContributionController;
+use App\Http\Controllers\NearbyController;
+use App\Http\Controllers\NetworkFiguresController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnThisDayController;
+use App\Http\Controllers\OpenDataController;
+use App\Http\Controllers\PreservedMaterialController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\RailProjectController;
+use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\TouristRailwayController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
@@ -71,10 +88,50 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
         }
         abort(404);
     });
+// Le rail d'une commune (gares, lignes, chronologie, carte) : seulement celles qui ont une gare ou une ligne.
+Route::get('/communes/{slug}', [CommuneController::class, 'show'])
+    ->where('slug', '(?:[0-9]{5}|2[AB][0-9]{3})(?:-[a-z0-9-]*)?')->name('communes.show');
+// Le rail d'un département (longueurs et gares par décennie, grandes dates, lignes, communes, accidents) : agrégats en cache.
+Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
+Route::get('/departments/{slug}', [DepartmentController::class, 'show'])
+    ->where('slug', '(?:[0-9]{2,3}|2[ABab])(?:-[a-z0-9-]*)?')->name('departments.show');
+// Les compagnies de chemins de fer historiques (Nord, Est, Ouest, PO, PLM, Midi, État, Alsace-Lorraine, SNCF, réseaux secondaires) : agrégats en cache.
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+// Carte et lignes d'une compagnie, lues par la page à la demande : débit limité comme /materials/{slug}/map.json
+// (le premier calcul de la carte lit les tracés de toutes les lignes rattachées).
+Route::get('/companies/{slug}/map.json', [CompanyController::class, 'map'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('throttle:public-api')->name('companies.map');
+Route::get('/companies/{slug}/lines.json', [CompanyController::class, 'lines'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('throttle:public-api')->name('companies.lines');
+Route::get('/companies/{slug}', [CompanyController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('companies.show');
+// Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
+Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
+// Ce que sait l'encyclopédie : couverture des données (dates, tracés, photos, fréquentation...), agrégats en cache.
+Route::get('/network/coverage', [CoverageController::class, 'index'])->name('network.coverage');
+// Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.
+Route::get('/tourist-railways', [TouristRailwayController::class, 'index'])->name('tourist-railways');
+// Patrimoine ferroviaire protégé : bâtiments voyageurs et ouvrages d'art classés, inscrits ou labellisés (Mérimée, Wikidata).
+Route::get('/heritage', [HeritageController::class, 'index'])->name('heritage');
+// Projets : réouvertures, lignes nouvelles, LGV, RER métropolitains et électrifications, avec l'état et la source de chaque étape.
+Route::get('/projects', [RailProjectController::class, 'index'])->name('projects');
+// Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).
+Route::get('/chronology', [ChronologyController::class, 'index'])->name('network.chronology');
+// Ce jour-là : ce qui s'est passé un jour du calendrier les années précédentes (aujourd'hui par défaut).
+Route::get('/on-this-day/{monthDay?}', [OnThisDayController::class, 'index'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('network.on-this-day');
+// Autour de moi : lignes et gares autour de la position (arrondie dans le navigateur) ou d'une commune, sans carte lourde.
+Route::get('/nearby', [NearbyController::class, 'index'])->name('nearby');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
+// Frise du matériel roulant : avant la fiche, dont l'adresse accepterait « timeline » comme identifiant.
+Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');
+// Matériel préservé : lieux et pièces, avant la fiche (même raison).
+Route::get('/materials/preserved', [PreservedMaterialController::class, 'index'])->name('materials.preserved');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
+// Les accidents en chiffres : avant la fiche, dont l'adresse accepterait « statistics » comme identifiant.
+Route::get('/accidents/statistics', [AccidentStatisticsController::class, 'index'])->name('accidents.statistics');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
+// Page de résultats de la recherche (Entrée dans la recherche de l'en-tête et de l'accueil) : non indexée.
+Route::get('/search', [SearchPageController::class, 'index'])->middleware('throttle:public-api')->name('search');
 // Quiz du rail : dix questions tirées d'une graine (adresse partageable), réponse vérifiée par le serveur
 // après le choix, photo du matériel par une redirection ; rien n'est enregistré.
 Route::get('/quiz', [QuizController::class, 'index'])->middleware('throttle:30,1')->name('quiz');
@@ -98,6 +155,8 @@ Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
 Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDocument::Privacy->currentVersion()]))->name('privacy');
 Route::get('/use-conditions', fn () => Inertia::render('UseConditions', ['updated' => LegalDocument::UseConditions->currentVersion()]))->name('use-conditions');
 Route::get('/accessibility', fn () => Inertia::render('Accessibility'))->name('accessibility');
+// Glossaire du vocabulaire ferroviaire (resources/content/glossary, lang/*/glossary_terms.php).
+Route::get('/glossary', [GlossaryController::class, 'index'])->name('glossary');
 
 // Limites de débit par profil (config/api.php), affichées dans « Authentification et quotas » ;
 // règles de livraison des webhooks (config/webhooks.php), affichées dans « Webhooks ».
@@ -129,6 +188,10 @@ Route::get('/docs/graphql/{page?}', function (?string $page = null) {
 
     return response()->file($file, ['Content-Type' => 'text/html; charset=UTF-8']);
 })->where('page', '[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*')->name('docs.graphql');
+
+// Jeux de données ouverts (vff:export-open-data, lancée à la main) : catalogue lu dans public/downloads/open-data,
+// fichiers servis en statique sous /downloads/open-data/.
+Route::get('/open-data', OpenDataController::class)->name('open-data');
 
 Route::prefix('credits')->name('credits.')->group(function (): void {
     Route::get('/tech', [CreditsController::class, 'tech'])->name('tech');

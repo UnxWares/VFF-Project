@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\LinePk;
+use App\Services\Lines\LinePkPosition;
+use App\Support\Search\PkQuery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -98,5 +100,78 @@ class LinePkController extends Controller
         }
 
         return response()->json(['line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name]] + $result);
+    }
+
+    /**
+     * Position d'un point kilométrique sur une ligne.
+     *
+     * L'inverse de `GET /lines/{line}/pk` : à partir d'un PK, donne les deux gares entre lesquelles il tombe
+     * (`between`, ou `at_station` quand le PK est celui d'une gare), la commune (`commune`, celle de la gare la
+     * plus proche en PK), les bornes de la ligne (`bounds`, PK de sa première et de sa dernière gare) et un point
+     * à placer sur la carte (`lat`, `lng`). Les PK sont ceux des gares de la ligne (SNCF Réseau pour la plupart),
+     * à l'ère courante, sinon à la dernière ère où la ligne a des gares. Même lecture que la recherche
+     * (`GET /search` renvoie ces positions dans `pk_positions` pour « 570000 PK 120 »).
+     *
+     * `pk` : en kilomètres, `120`, `120,5` ou `120+500` (kilomètres et mètres) ; ou `pk_m` en mètres. Le point
+     * (`position_method`) est lu sur le tracé du profil en long (`profile`) ; sans profil, ou quand le tracé sous
+     * ce point n'est pas redistribuable (`position_withheld`, voir « Droits des tracés »), il est placé en ligne
+     * droite entre les deux gares (`stations`, approximatif) ; `station` : celui de la gare elle-même.
+     *
+     * @response array{
+     *     line: array{slug: string, code: ?string, name: string},
+     *     pk_m: int,
+     *     pk_label: string,
+     *     in_range: bool,
+     *     bounds: array{from_m: int, to_m: int, from_label: string, to_label: string},
+     *     at_station: ?array{slug: string, name: string, city: ?string, pk_m: int, pk_label: string},
+     *     between: ?array{from: array{slug: string, name: string, city: ?string, pk_m: int, pk_label: string}, to: array{slug: string, name: string, city: ?string, pk_m: int, pk_label: string}},
+     *     commune: ?string,
+     *     lat: ?float,
+     *     lng: ?float,
+     *     position_method: 'profile'|'stations'|'station'|null,
+     *     position_withheld: ?string
+     * }
+     */
+    #[PathParameter('line', 'Identifiant (slug) de la ligne.', example: 'rfn-570000')]
+    #[QueryParameter('pk', 'PK en kilomètres : `120`, `120,5` ou `120+500`.', type: 'string', example: '120+500')]
+    #[QueryParameter('pk_m', 'PK en mètres (au lieu de `pk`).', type: 'int', example: 120500)]
+    #[ApiResponse(200, 'Position du PK (Paris-Austerlitz - Bordeaux-St-Jean, PK 120+500).', examples: [[
+        'line' => ['slug' => 'rfn-570000', 'code' => '570000', 'name' => 'Ligne de Paris-Austerlitz à Bordeaux-St-Jean'],
+        'pk_m' => 120500,
+        'pk_label' => '120+500',
+        'in_range' => true,
+        'bounds' => ['from_m' => 0, 'to_m' => 583844, 'from_label' => '0+000', 'to_label' => '583+844'],
+        'at_station' => null,
+        'between' => [
+            'from' => ['slug' => 'exemple-a', 'name' => 'Gare A', 'city' => 'Ville A', 'pk_m' => 118000, 'pk_label' => '118+000'],
+            'to' => ['slug' => 'exemple-b', 'name' => 'Gare B', 'city' => 'Ville B', 'pk_m' => 123000, 'pk_label' => '123+000'],
+        ],
+        'commune' => 'Ville A',
+        'lat' => 48.0,
+        'lng' => 2.0,
+        'position_method' => 'profile',
+        'position_withheld' => null,
+    ]])]
+    #[ApiResponse(404, 'Ligne inconnue ou sans gare (`no_stops`), ou PK hors de la ligne (`pk_out_of_range`, avec `bounds`).')]
+    #[ApiResponse(422, 'Ni `pk` ni `pk_m` valide.')]
+    public function atPk(Line $line, Request $request, LinePkPosition $position): JsonResponse
+    {
+        $request->validate([
+            'pk' => 'nullable|string|max:20|required_without:pk_m',
+            'pk_m' => 'nullable|integer|between:0,5000000|required_without:pk',
+        ]);
+        $pk = $request->filled('pk_m') ? $request->integer('pk_m') : PkQuery::parseValue((string) $request->input('pk'));
+        if ($pk === null) {
+            return response()->json(['message' => 'The pk field must be kilometres: 120, 120,5 or 120+500.', 'errors' => ['pk' => ['Invalid pk.']]], 422);
+        }
+        $at = $position->at($line, $pk);
+        if ($at === null) {
+            return response()->json(['error' => 'no_stops'], 404);
+        }
+        if (! $at['in_range']) {
+            return response()->json(['error' => 'pk_out_of_range', 'message' => "PK {$at['pk_label']} hors de la ligne ({$at['bounds']['from_label']} à {$at['bounds']['to_label']})."] + $at, 404);
+        }
+
+        return response()->json($at)->header('Cache-Control', 'public, max-age=300');
     }
 }

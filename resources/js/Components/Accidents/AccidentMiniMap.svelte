@@ -4,6 +4,7 @@
     import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { MAP_MAX_ZOOM } from '$lib/basemap.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
 
@@ -81,6 +82,7 @@
             style: buildStyle(offline),
             center: [lng, lat],
             zoom: vague ? 11 : 13.5,
+            maxZoom: MAP_MAX_ZOOM,
             attributionControl: { compact: true },
             cooperativeGestures: true,
             locale: {

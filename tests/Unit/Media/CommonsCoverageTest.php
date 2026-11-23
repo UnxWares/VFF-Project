@@ -1,0 +1,137 @@
+<?php
+
+namespace Tests\Unit\Media;
+
+use App\Models\Media;
+use App\Models\Station;
+use App\Services\Media\CommonsCoverage;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Règles de couverture Commons : droits (CC BY, CC BY-SA, CC0, domaine public, auteur obligatoire),
+ * distance à la gare, catégories propres ou communales, noms de catégories de gares.
+ */
+class CommonsCoverageTest extends TestCase
+{
+    /** @param  array<string, mixed>  $over
+     * @return array<string, mixed> */
+    private static function meta(array $over = []): array
+    {
+        return $over + [
+            'file_title' => 'File:Gare de Chagny 01.jpg', 'mime' => 'image/jpeg', 'width' => 2000,
+            'rights_status' => Media::RIGHTS_OPEN_LICENSE, 'commercial_ok' => true, 'license' => 'CC BY-SA 4.0',
+            'author' => 'Jean Dupont', 'credit' => null, 'categories' => ['Gare de Chagny'], 'lat' => null, 'lon' => null,
+        ];
+    }
+
+    /** @return array<string, array{0: array<string, mixed>, 1: ?string}> */
+    public static function rightsProvider(): array
+    {
+        return [
+            'CC BY-SA 4.0' => [[], null],
+            'CC BY 2.0' => [['license' => 'CC BY 2.0'], null],
+            'CC0' => [['license' => 'CC0', 'rights_status' => Media::RIGHTS_PUBLIC_DOMAIN], null],
+            'domaine public avec crédit seul' => [['license' => 'Public domain', 'rights_status' => Media::RIGHTS_PUBLIC_DOMAIN, 'author' => null, 'credit' => 'Collection personnelle'], null],
+            'GFDL seule' => [['license' => 'GFDL'], 'licence'],
+            'licence ouverte' => [['license' => 'Licence Ouverte'], 'licence'],
+            'NC' => [['license' => 'CC BY-NC 2.0', 'commercial_ok' => false], 'licence'],
+            'ND' => [['license' => 'CC BY-ND 2.0'], 'licence'],
+            'inconnue' => [['rights_status' => Media::RIGHTS_UNKNOWN, 'license' => null, 'commercial_ok' => null], 'licence'],
+            'sans auteur ni crédit' => [['author' => null], 'auteur'],
+            'auteur vide' => [['author' => '  '], 'auteur'],
+            'numérisation Gallica' => [['credit' => 'Gallica - Bibliothèque nationale de France', 'license' => 'Public domain', 'rights_status' => Media::RIGHTS_PUBLIC_DOMAIN], 'gallica'],
+            'auteur qui est une adresse' => [['author' => 'https://exemple.org/page'], 'auteur'],
+            'vignette' => [['width' => 120], 'petite'],
+            'PDF' => [['mime' => 'application/pdf'], 'mime'],
+            'logo' => [['file_title' => 'File:Logo gare de Chagny.png'], 'logo'],
+        ];
+    }
+
+    /** @param  array<string, mixed>  $over */
+    #[DataProvider('rightsProvider')]
+    public function test_licence_and_author_rules(array $over, ?string $expected): void
+    {
+        $this->assertSame($expected, CommonsCoverage::rejectReason(self::meta($over)));
+    }
+
+    public function test_file_far_from_the_station_is_refused_but_p18_is_tolerant(): void
+    {
+        $near = self::meta(['lat' => 46.9072, 'lon' => 4.7488]);
+        $far = self::meta(['lat' => 46.9172, 'lon' => 4.7488]); // environ 1,1 km
+        $this->assertNull(CommonsCoverage::stationReject($near, 'category', 46.9071977, 4.7487728));
+        $this->assertSame('loin', CommonsCoverage::stationReject($far, 'category', 46.9071977, 4.7487728));
+        $this->assertNull(CommonsCoverage::stationReject($far, 'p18', 46.9071977, 4.7487728));
+        $this->assertNull(CommonsCoverage::stationReject(self::meta(), 'category', 46.9, 4.7), 'sans position : accepté');
+    }
+
+    public function test_commune_category_keeps_only_railway_files(): void
+    {
+        $church = self::meta(['file_title' => 'File:Eglise Saint-Pierre.jpg', 'categories' => ['Chagny']]);
+        $platform = self::meta(['file_title' => 'File:Quai 2.jpg', 'categories' => ['Chagny']]);
+        $this->assertSame('hors_sujet', CommonsCoverage::stationReject($church, 'weak_category', null, null));
+        $this->assertNull(CommonsCoverage::stationReject($platform, 'weak_category', null, null));
+        $this->assertSame('hors_sujet', CommonsCoverage::railReject($church, 'weak_category'));
+        $this->assertNull(CommonsCoverage::railReject($church, 'p18'));
+    }
+
+    public function test_urban_station_of_the_same_name_is_refused(): void
+    {
+        $tram = self::meta(['file_title' => 'File:Camp des Loges T13 Express 2022 07.jpg', 'categories' => ["Camp des Loges (tramway d'Île-de-France)"]]);
+        $metro = self::meta(['file_title' => 'File:Subway-Saint-Martin-08.jpg', 'categories' => ['Saint-Martin (Paris Metro)']]);
+        $tramGare = self::meta(['file_title' => 'File:Station Gare Épinay Villetaneuse Ligne 11 Express Tramway.jpg', 'categories' => []]);
+        $this->assertSame('urbain', CommonsCoverage::stationReject($tramGare, 'geosearch', null, null));
+        $rer = self::meta(['file_title' => 'File:Gare RER.jpg', 'categories' => ['Gare de Saint-Martin', 'Transilien']]);
+        $this->assertSame('urbain', CommonsCoverage::stationReject($tram, 'p18', null, null));
+        $this->assertSame('urbain', CommonsCoverage::stationReject($metro, 'p18', null, null));
+        $this->assertNull(CommonsCoverage::stationReject($rer, 'p18', null, null));
+    }
+
+    public function test_geosearch_needs_a_railway_title_that_names_the_place(): void
+    {
+        $this->assertTrue(CommonsCoverage::titleIsRailway('File:Gare de Vendeuvre 02.jpg'));
+        $this->assertFalse(CommonsCoverage::titleIsRailway('File:Mairie de Vendeuvre.jpg'));
+        $this->assertFalse(CommonsCoverage::titleIsRailway('File:Avolsheim - Rue de la Gare - boîte à livres.jpg'));
+        $this->assertFalse(CommonsCoverage::titleIsRailway('File:Station Épuration Crottet 4.jpg'));
+        $this->assertFalse(CommonsCoverage::titleIsRailway('File:Près de la gare de Guise.jpg'));
+        $this->assertFalse(CommonsCoverage::titleIsRailway('File:Les Lumières de Laval, Quai Gambetta 1.jpg'));
+        $this->assertTrue(CommonsCoverage::titleIsRailway('File:Train en gare d\'Aspach.jpg'));
+        $this->assertTrue(CommonsCoverage::offTopicTitle('File:Rue Pierre Semard, panneaux Gare de Lyon-Guillotière.jpg'));
+        $meta = self::meta(['file_title' => 'File:Ancienne gare d\'Étel 1.jpg', 'categories' => ['Étel']]);
+        $this->assertTrue(CommonsCoverage::mentionsPlace($meta, 'Étel', 'Étel'));
+        $this->assertTrue(CommonsCoverage::mentionsPlace(self::meta(['file_title' => 'File:Gare Saint-Georges-Motel.jpg']), 'St-Georges-Motel', 'Saint-Georges-Motel'));
+        $this->assertFalse(CommonsCoverage::mentionsPlace(self::meta(['file_title' => 'File:Gare de Dreux.jpg', 'categories' => []]), 'Vernouillet', 'Vernouillet'));
+        $this->assertFalse(CommonsCoverage::mentionsPlace(self::meta(['file_title' => 'File:Gare de Paris-Montparnasse 3.jpg', 'categories' => []]), 'Paris-Vaugirard', 'Paris'), 'la grande commune voisine ne suffit pas');
+        $this->assertFalse(CommonsCoverage::mentionsPlace(self::meta(['file_title' => 'File:Gare du Nord.jpg', 'categories' => []]), 'Ancienne gare'), 'mots génériques seuls : refusé');
+    }
+
+    public function test_category_kinds(): void
+    {
+        $this->assertTrue(CommonsCoverage::isStationCategory('Category:Gare de Chagny'));
+        $this->assertTrue(CommonsCoverage::isStationCategory('Category:Chagny railway station'));
+        $this->assertFalse(CommonsCoverage::isStationCategory('Category:Chagny'));
+        $this->assertTrue(CommonsCoverage::isStationSubcategory('Category:Gare de Chagny - exterior'));
+        $this->assertFalse(CommonsCoverage::isStationSubcategory('Category:Mairie de Chagny'));
+    }
+
+    public function test_distance_is_in_meters(): void
+    {
+        $this->assertEqualsWithDelta(111_195, CommonsCoverage::distanceM(46.0, 4.0, 47.0, 4.0), 200);
+        $this->assertSame(0.0, CommonsCoverage::distanceM(46.0, 4.0, 46.0, 4.0));
+    }
+
+    public function test_category_names_from_a_station_name(): void
+    {
+        $this->assertSame(['Category:Gare de Chagny', 'Category:Ancienne gare de Chagny'], CommonsCoverage::stationCategoryNames('Chagny', 'gare'));
+        $this->assertSame(['Category:Halte d\'Estressin', 'Category:Gare d\'Estressin', 'Category:Ancienne gare d\'Estressin'], CommonsCoverage::stationCategoryNames('Estressin', 'halte'));
+        $this->assertSame('Category:Gare de Saint-Victor', CommonsCoverage::stationCategoryNames('St-Victor', 'gare')[0]);
+        $this->assertSame('Category:Gare de Vendeuvre', CommonsCoverage::stationCategoryNames('Vendeuvre (Aube)', 'gare')[0]);
+        $this->assertSame([], CommonsCoverage::stationCategoryNames('Ancienne gare', 'gare'), 'nom générique : aucune catégorie devinée');
+    }
+
+    public function test_subject_classes(): void
+    {
+        $this->assertSame(Station::class, CommonsCoverage::modelClass('station'));
+        $this->assertNull(CommonsCoverage::modelClass('accident'));
+    }
+}

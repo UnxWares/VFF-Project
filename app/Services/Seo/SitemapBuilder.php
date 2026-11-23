@@ -6,6 +6,9 @@ use App\Models\Accident;
 use App\Models\Line;
 use App\Models\Material;
 use App\Models\Station;
+use App\Services\Communes\CommuneRail;
+use App\Services\Companies\CompanyFigures;
+use App\Services\Departments\DepartmentFigures;
 use App\Support\Seo\StructuredData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
@@ -20,7 +23,8 @@ use XMLWriter;
  * Les pages n'ont qu'une adresse par fiche : la langue vient du cookie, du profil ou de Accept-Language, pas
  * de l'adresse, donc pas de `hreflang`. Seules les fiches publiées y figurent : accidents sans alias ni nature
  * masquée (portée PublicAccidents), jamais les pages de compte, de contribution ou de validation. `lastmod` est
- * la date de mise à jour de la fiche (jamais inventée : absente pour les pages éditoriales). Chaque plan est
+ * la date de mise à jour de la fiche (jamais inventée : absente pour les pages éditoriales et les communes, dont la
+ * fiche est calculée à la volée). Chaque plan est
  * gardé une heure dans le cache.
  */
 final class SitemapBuilder
@@ -34,11 +38,11 @@ final class SitemapBuilder
     public const TTL = 3600;
 
     /** Familles de fiches, dans l'ordre de l'index. */
-    public const FAMILIES = ['pages', 'lines', 'stations', 'materials', 'accidents'];
+    public const FAMILIES = ['pages', 'lines', 'stations', 'communes', 'departments', 'companies', 'materials', 'accidents'];
 
     /** Pages éditoriales et annuaires : noms de routes. */
     private const PAGES = [
-        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'accidents.index', 'quiz',
+        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'materials.preserved', 'accidents.index', 'accidents.statistics', 'network.figures', 'network.coverage', 'departments.index', 'companies.index', 'network.chronology', 'network.on-this-day', 'nearby', 'tourist-railways', 'heritage', 'projects', 'glossary', 'quiz',
         'contribute', 'contribute.reputation', 'donate', 'legal', 'privacy', 'use-conditions', 'accessibility',
         'api.docs', 'docs.swagger', 'credits.tech', 'credits.media',
     ];
@@ -100,9 +104,38 @@ final class SitemapBuilder
     private function rows(string $family, int $page): iterable
     {
         if ($family === 'pages') {
-            // Découpées comme les autres familles : sans cela, chaque page du plan redonnait les 19 pages éditoriales.
+            // Découpées comme les autres familles : sans cela, chaque page du plan redonnait les pages éditoriales.
             foreach (array_slice(self::PAGES, ($page - 1) * $this->pageSize, $this->pageSize) as $name) {
                 yield [route($name, [], false), null];
+            }
+
+            return;
+        }
+
+        if ($family === 'communes') {
+            $rows = DB::table('communes')->where('type', 'commune-actuelle')
+                ->whereRaw('code_insee = ANY(?::text[])', [self::codeArray()])
+                ->orderBy('code_insee')->offset(($page - 1) * $this->pageSize)->limit($this->pageSize)->get(['code_insee', 'nom']);
+            foreach ($rows as $row) {
+                yield ['/communes/'.CommuneRail::slug((string) $row->code_insee, (string) $row->nom), null];
+            }
+
+            return;
+        }
+
+        if ($family === 'departments') {
+            // Départements dont les chiffres sont calculés (cache) : jamais une fiche qui répondrait 404.
+            foreach (array_slice($this->departmentSlugs(), ($page - 1) * $this->pageSize, $this->pageSize) as $slug) {
+                yield ['/departments/'.$slug, null];
+            }
+
+            return;
+        }
+
+        if ($family === 'companies') {
+            // Compagnies dont les chiffres sont calculés (cache de vff:compute-company-figures), comme les départements.
+            foreach (array_slice($this->companySlugs(), ($page - 1) * $this->pageSize, $this->pageSize) as $slug) {
+                yield ['/companies/'.$slug, null];
             }
 
             return;
@@ -139,8 +172,29 @@ final class SitemapBuilder
             'lines' => $this->table(Line::class)->count(),
             'stations' => $this->table(Station::class)->count(),
             'materials' => $this->table(Material::class)->count(),
+            'communes' => DB::table('communes')->where('type', 'commune-actuelle')->whereRaw('code_insee = ANY(?::text[])', [self::codeArray()])->count(),
+            'departments' => count($this->departmentSlugs()),
+            'companies' => count($this->companySlugs()),
             default => Accident::query()->count(),
         };
+    }
+
+    /** @return list<string> adresses des fiches de département calculées (DepartmentFigures) */
+    private function departmentSlugs(): array
+    {
+        return array_column((new DepartmentFigures)->index()['departments'] ?? [], 'slug');
+    }
+
+    /** @return list<string> adresses des fiches de compagnie calculées (CompanyFigures) */
+    private function companySlugs(): array
+    {
+        return array_column((new CompanyFigures)->index()['companies'] ?? [], 'slug');
+    }
+
+    /** Communes qui ont du rail (CommuneRail::codes), en tableau PostgreSQL. */
+    private static function codeArray(): string
+    {
+        return '{'.implode(',', (new CommuneRail)->codes()).'}';
     }
 
     private function sitemapEntry(XMLWriter $x, string $loc): void

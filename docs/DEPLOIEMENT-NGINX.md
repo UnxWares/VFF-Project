@@ -29,8 +29,11 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
    de redirection `www` est gardé), et le dossier du défi ACME (`/var/www/acme`).
 4. **Archive PMTiles** : l'`alias` doit être le dossier `VFF_BASEMAP_DIRECTORY` (par défaut
    `storage/app/data/pmtiles/`), avec la barre finale.
-5. **`.env` de production** : `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/` (sinon les 6 Go passent par PHP) et
-   `VFF_BASEMAP_ONLINE=true` si le fond libre doit servir la carte en ligne.
+5. **`.env` de production** : `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/` (sinon les 6 Go passent par PHP),
+   `VFF_BASEMAP_ONLINE=true` si le fond libre doit servir la carte en ligne, et **`CSP_ENFORCE=true`** (politique
+   de sécurité du contenu bloquante dès la mise en ligne, décision du 22/11/2026 ; `docs/SECURITE-CSP.md`), puis
+   `php artisan config:cache`. Vérifier : `curl -sI https://vff-project.org/ | grep -i content-security` doit
+   montrer `Content-Security-Policy:` et non `Content-Security-Policy-Report-Only:`.
 6. **php.ini** : `upload_max_filesize = 11M` et `post_max_size = 12M` (dépôts d'image de 10 Mo au plus).
 7. **Résolveur DNS** de `vff-tls.conf` (agrafage OCSP) : mettre celui du serveur.
 8. **Derrière un répartiteur ou un CDN** : `$remote_addr` serait celle du relais. Ajouter `set_real_ip_from`
@@ -52,7 +55,7 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
   date, navigateur, 12 mois au plus » : ce journal garde moins, ce qui est cohérent. La conservation reste
   à régler : par exemple `logrotate` mensuel avec `rotate 12` sur `/var/log/nginx/vff-*.log`. La
   limitation de débit utilise l'adresse réelle, en mémoire seulement.
-- **`$vff_journaliser`** : aucun journal d'accès pour `/up` et `/up/details` (Uptime Kuma les appelle chaque
+- **`$vff_journaliser`** : aucun journal d'accès pour `/up` et `/up/details` (Kener les appelle chaque
   minute). La condition `if=` est portée par `access_log`, donc elle vaut aussi après la redirection
   interne vers `index.php`. Les erreurs de nginx restent dans `vff-error.log`.
 - **`limit_req_zone vff_basemap`** : 10 requêtes par seconde et par adresse pour l'archive, filet de sécurité
@@ -83,8 +86,8 @@ pas activé (UDP 443 à ouvrir et `listen 443 quic` à ajouter si souhaité).
 - **Fichiers cachés, `.php`, `build/manifest.json`** : 404. Seul `index.php` est atteint, par redirection
   interne (`internal`). `/.well-known/` reste permis.
 - **`/up` et `/up/details`** : passent par Laravel. `/up/details` demande le jeton `HEALTH_TOKEN` (en-tête
-  `Authorization: Bearer`) et son limiteur `health` ; voir `docs/SUIVI-ERREURS.md`. Le moniteur Uptime Kuma
-  de `/up/details` doit envoyer cet en-tête.
+  `Authorization: Bearer`) et son limiteur `health` ; voir `docs/SUIVI-ERREURS.md`. La sonde de Kener
+  sur `/up/details` doit envoyer cet en-tête.
 - **`/build/assets/`** : fichiers hachés par Vite, donc `public, max-age=31536000, immutable`.
 - **`/sw.js`, `/build/sw.js`, `/manifest.webmanifest`** : `no-cache` (revalidation à chaque chargement). Un
   service worker gardé trop longtemps empêcherait les mises à jour de la PWA. L'ETag de nginx rend la
@@ -104,11 +107,20 @@ pas activé (UDP 443 à ouvrir et `listen 443 quic` à ajouter si souhaité).
 - **`/storage/`** : fichiers déposés par des membres. En plus des en-têtes communs, `Content-Security-Policy:
   default-src 'none'; sandbox` : ouverts directement, ils ne peuvent rien exécuter.
 - **`/docs/graphql`** : pages statiques de Magidoc, envoyées sans Laravel. nginx y pose donc la politique
-  de sécurité du contenu, en observation (`Report-Only`), recopiée de celle de Laravel pour cette page
-  (aucun `'unsafe-inline'` : scripts en fichiers, attributs `style` par empreinte). **Si `CSP_ENFORCE=true` ou `config/csp.php` change**, mettre à jour
-  cette ligne (`docs/SECURITE-CSP.md`) : l'en-tête devient `Content-Security-Policy` en mode bloquant.
+  de sécurité du contenu, bloquante (`Content-Security-Policy`, comme `CSP_ENFORCE=true`), recopiée de celle de Laravel pour cette page
+  (aucun `'unsafe-inline'` : scripts en fichiers, attributs `style` par empreinte). **Si `config/csp.php` ou `/docs/graphql`
+  change** (`make docs-graphql`), mettre à jour cette ligne (`docs/SECURITE-CSP.md`) ; un test la compare à Laravel.
 - **`/icons/`** : 30 jours. **`/`** (autres fichiers de `public/`, comme `robots.txt`, `favicon.ico`,
   `share/`) : un jour ; sinon la requête passe à Laravel.
+- **`/api/v1/what-was-here`** (page « Autour de moi ») : la requête porte la position arrondie de l'internaute
+  (`?lat=…&lng=…`). Le journal d'accès ne l'écrit pas (`$uri`), mais une erreur de nginx (PHP-FPM injoignable,
+  délai dépassé) écrit la ligne de requête entière avec l'adresse IP complète, quel que soit `log_format`
+  (vérifié avec nginx 1.30 : `connect() … failed …, client: 127.0.0.1, request: "GET /…?lat=48.111&lng=2.222"`).
+  Cette location n'a donc pas de journal d'erreurs (`error_log /dev/null`) et appelle PHP-FPM directement :
+  après une redirection interne vers `/index.php`, c'est le journal de cette dernière location qui servirait.
+  **La politique de confidentialité compte sur cette règle** (« ni dans ses journaux techniques ») : ne pas la
+  retirer sans changer le texte. Côté PHP-FPM, ne pas activer `access.log` avec la chaîne de requête (`%q`, ou
+  `%{REQUEST_URI}e`) ; le journal d'accès de PHP-FPM est désactivé par défaut.
 - **PHP-FPM** : `location = /index.php` n'ajoute aucun `add_header`. Laravel pose HSTS, `nosniff`,
   `X-Frame-Options` (sauf `/embed/*`, intégrable ailleurs), `Referrer-Policy`, `Permissions-Policy` et la
   CSP des pages : les ajouter ici créerait des doublons. nginx ne met jamais en cache une réponse PHP.
@@ -195,8 +207,8 @@ Le suivi des contributions en direct (`docs/API.md`, section « Temps réel ») 
 production n'a pas de serveur temps réel. Pour l'activer :
 
 1. **Processus Reverb** : `php artisan reverb:start` (il écoute `REVERB_SERVER_HOST:REVERB_SERVER_PORT`,
-   par défaut `127.0.0.1:8080`), lancé et relancé par le superviseur du serveur (unité systemd ou
-   Supervisor), comme le travailleur de file d'attente `php artisan queue:work`, qui envoie les
+   par défaut `127.0.0.1:8080`), lancé et relancé par le superviseur du serveur (unité systemd prête dans
+   `deploy/systemd/production/vff-reverb.service`, `docs/DEPLOIEMENT-SERVICES.md`), comme le travailleur de file d'attente `php artisan queue:work`, qui envoie les
    événements. Après un déploiement : `php artisan reverb:restart`.
 2. **`.env` de production** (modèle dans `.env.example`) :
    - `REALTIME_ENABLED=true` et `BROADCAST_CONNECTION=reverb` ;
@@ -265,5 +277,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/j
   --data-binary @gros-fichier.json https://vff-project.org/graphql   # 413 au-delà de 2 Mio
 ```
 
-Planificateur : poser `schedule:run` chaque minute (cron ou minuteur systemd, `docs/PLANIFICATION.md`), puis
+Planificateur : poser `schedule:run` chaque minute (minuteur systemd `deploy/systemd/production/`, `docs/DEPLOIEMENT-SERVICES.md`), puis
 vérifier que `checks.scheduler.status` de `/up/details` (avec le jeton) passe à `ok`.
+
+Tout le reste (Reverb, file, planificateur, `deploy/bin/verify-production.sh`) : `docs/DEPLOIEMENT-SERVICES.md`.

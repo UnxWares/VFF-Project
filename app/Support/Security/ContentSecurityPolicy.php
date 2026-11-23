@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Vite;
  *   - aucune intégration d'objet, formulaires et <base> limités au site, pages intégrables
  *     seulement par le site (sauf /embed/*, intégrable partout) ;
  *   - en développement (environnement `local`, Vite lancé : fichier public/hot), le serveur Vite et
- *     sa connexion WebSocket sont admis pour les scripts, les styles et les connexions.
+ *     sa connexion WebSocket sont admis pour les scripts, les styles, les images, les polices et les connexions.
  */
 final class ContentSecurityPolicy
 {
@@ -54,8 +54,8 @@ final class ContentSecurityPolicy
             'script-src' => ["'self'", ...($magidoc ? [] : ["'nonce-{$nonce}'"]), ...$dev],
             'style-src' => ["'self'", ...($magidoc ? [] : ["'unsafe-inline'"]), ...$dev],
             ...($magidoc ? ['style-src-attr' => ["'unsafe-hashes'", ...self::magidocStyleHashes()]] : []),
-            'img-src' => ["'self'", 'data:', 'blob:', ...self::imageSources((array) ($sources['img-src'] ?? []))],
-            'font-src' => ["'self'", 'data:'],
+            'img-src' => ["'self'", 'data:', 'blob:', ...self::imageSources((array) ($sources['img-src'] ?? [])), ...$dev],
+            'font-src' => ["'self'", 'data:', ...$dev],
             'connect-src' => ["'self'", ...($sources['connect-src'] ?? []), ...$dev, ...self::websockets($dev), ...array_filter([Realtime::websocketOrigin()])],
             'worker-src' => ["'self'", 'blob:'],
             'manifest-src' => ["'self'"],

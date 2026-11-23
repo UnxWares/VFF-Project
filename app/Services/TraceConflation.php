@@ -64,6 +64,10 @@ class TraceConflation
         ['osm', 'service', 1.2, "source = 'osm' AND layer NOT IN ('subway', 'tram', 'monorail', 'funicular', 'miniature', 'light_rail', 'proposed') AND (properties->>'service') IS NOT NULL"],
         // Voie extraite des orthophotos IGN 1950-1965 (ml/rail-extraction) : ~2-5 m, entre OSM et les voies de service.
         ['ign-historique', 'ortho', 0.8, "source = 'ign-historique' AND layer LIKE 'ortho-%' AND match_score >= 0.7"],
+        // Morceau fusionné (ml/fusion-sources, vff:import-fused-traces) : erreur estimée sous 3 m, validée sur
+        // les voies en service ; après la BD TOPO et OSM, avant les voies extraites des photos, sauf devant une voie
+        // que la BD TOPO ne confirme pas (FUSED_LEAD_PRIO, cf. emissionPrio).
+        ['fusion', 'fused', 0.5, "source = 'fusion' AND layer = 'precis' AND (properties->>'erreur_p90_m')::float < 3"],
     ];
 
     /** Sources témoins (croisement, jamais candidates au dessin). */
@@ -99,6 +103,16 @@ class TraceConflation
         'ohm' => ['w0' => 60.0, 'sigma0' => 10.0, 'r_min' => 250.0, 'sag_cap' => 80.0, 'c_none' => 2.0, 'other_line_median' => 12.0, 'chord_test' => true, 'jump_max' => 40.0, 'junction_m' => 30.0],
         'sncf' => ['w0' => 250.0, 'sigma0' => 80.0, 'r_min' => 0.0, 'sag_cap' => 0.0, 'c_none' => 3.0, 'other_line_median' => null, 'chord_test' => false, 'jump_max' => 100.0, 'junction_m' => null],
     ];
+
+    /**
+     * Priorité d'un morceau fusionné précis là où la BD TOPO (ni une contribution) ne passe pas à FUSED_CONFIRM_M de lui :
+     * devant OSM (voie abandonnée, déposée ou inutilisée que rien ne confirme : décision de Baptiste du 23/11/2026, 13 h),
+     * les voies de service et les photos. Sinon, et au-delà des bouts du morceau, CANDIDATES (après la BD TOPO et OSM).
+     * Mesure du pilote Calvados (fusion-calvados.md) : à 0,5 partout, 19 km dessinés sur 515 km de morceaux précis.
+     */
+    public const FUSED_LEAD_PRIO = -1.0;
+
+    public const FUSED_CONFIRM_M = 3.0;
 
     /** Coût d'entrée / sortie de l'état « pas de géométrie précise ». */
     private const K_NONE = 1.5;
@@ -144,7 +158,7 @@ class TraceConflation
      * service (faisceau de gare), et voies extraites des orthophotos IGN (ign-historique, classe
      * « ortho ») : l'extraction part du tracé archeo et y trouve toujours une voie du faisceau.
      */
-    private const JUNCTION_WEAK_CLASSES = ['service', 'ortho'];
+    private const JUNCTION_WEAK_CLASSES = ['service', 'ortho', 'fused'];
 
     /**
      * Réseaux qui ne partagent pas la voie d'une ligne « principal » quand l'écartement n'est pas
@@ -242,7 +256,7 @@ class TraceConflation
                 SQL, array_filter(['family' => $family, 'cls' => $cls, 'prio' => $prio, 'cand' => $cand ? 't' : 'f', 'env' => $envelopeWkt], fn ($v) => $v !== null));
         }
         DB::statement('CREATE INDEX ON cf_pool USING gist (g)');
-        foreach (['contrib', 'bdtopo', 'osm', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'] as $f) {
+        foreach (['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique', 'archeoferroviaire', 'ohm', 'sncf'] as $f) {
             DB::statement("CREATE INDEX ON cf_pool USING gist (g) WHERE family = '{$f}'");
         }
         DB::statement('ANALYZE cf_pool');
@@ -636,7 +650,7 @@ class TraceConflation
             $sigma = $line['sigma'][$i];
             $emit = [0 => $line['c_none']];
             foreach ($chunks[$i]['cands'] as $eid => $c) {
-                $emit[$eid] = 0.5 * ($c['d'] / $sigma) ** 2 + $edges[$eid]['prio'] + ($c['theta'] / 25) ** 2;
+                $emit[$eid] = 0.5 * ($c['d'] / $sigma) ** 2 + $this->emissionPrio($eid, $c, $chunks[$i]['cands'], $edges) + ($c['theta'] / 25) ** 2;
             }
             $cur = [];
             foreach ($emit as $s => $e) {
@@ -669,6 +683,31 @@ class TraceConflation
         }
 
         return $states;
+    }
+
+    /**
+     * Priorité de l'arête $eid pour une observation (candidat $c parmi $cands) : celle de CANDIDATES, sauf pour un morceau
+     * fusionné le long duquel passe l'observation (projection à l'intérieur du morceau, pas au-delà de ses bouts) sans
+     * voie BD TOPO ni contribution à FUSED_CONFIRM_M de sa projection : FUSED_LEAD_PRIO.
+     *
+     * @param  array<string, float>  $c
+     * @param  array<int, array<string, float>>  $cands
+     * @param  array<int, array{family: string, cls: string, prio: float, len: float}>  $edges
+     */
+    public static function emissionPrio(int $eid, array $c, array $cands, array $edges): float
+    {
+        $prio = $edges[$eid]['prio'];
+        if ($edges[$eid]['cls'] !== 'fused' || $c['fm'] <= 0.0 || $c['fm'] >= 1.0) {
+            return $prio;
+        }
+        foreach ($cands as $o => $oc) {
+            if (in_array($edges[$o]['family'], ['bdtopo', 'contrib'], true) && $edges[$o]['cls'] === 'main'
+                && hypot($oc['px'] - $c['px'], $oc['py'] - $c['py']) <= self::FUSED_CONFIRM_M) {
+                return $prio;
+            }
+        }
+
+        return self::FUSED_LEAD_PRIO;
     }
 
     private function transition(int $q, int $s, ?array $cq, ?array $cs, array $edges, array $conn, float $clen): float
@@ -1535,7 +1574,7 @@ class TraceConflation
             ),
             grpb AS (SELECT * FROM grp)
             SELECT family, encode(ST_AsEWKB(geom), 'hex') AS ewkb, ST_Length(geom) AS len,
-                   CASE WHEN family IN ('bdtopo', 'osm', 'contrib', 'ign-historique') THEN (
+                   CASE WHEN family IN ('bdtopo', 'osm', 'contrib', 'fusion', 'ign-historique') THEN (
                        SELECT jsonb_agg(DISTINCT p.id ORDER BY p.id) FROM cf_pool p JOIN cf_sel USING (pid)
                        WHERE p.family = grpb.family AND ST_DWithin(p.g, grpb.geom, 1)
                          -- Trace réellement empruntée : au moins 2 de ses 3 quartiles sur le dessin.

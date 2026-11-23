@@ -786,3 +786,17 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
         height: 100svh;
     }
 }
+/* Très petits écrans (sous 300 px de large CSS, soit 320 px à 110 % de zoom ou plus) : la barre
+   ne tient plus (logo, nom, recherche, « Menu » : 296 px au minimum). Le bouton « Menu » est déjà
+   réduit à son icône (texte lu par les lecteurs d'écran) avec une cible de 44 px ; le nom du site,
+   seul élément élastique, peut alors se replier sur davantage de lignes. */
+@media (max-width: 299.98px) {
+    header:where(.site-header) nav .nav-title {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+    header:where(.site-header) nav .nav-title-text {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}

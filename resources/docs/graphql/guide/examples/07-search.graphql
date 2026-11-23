@@ -1,0 +1,8 @@
+query Search($text: String!) {
+  search(query: $text, limit: 5) {
+    lines { slug name code }
+    stations { slug name city department_code }
+    materials { slug name }
+    accidents { slug name date kind }
+  }
+}

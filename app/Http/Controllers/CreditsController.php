@@ -17,7 +17,7 @@ class CreditsController extends Controller
 
     public function media(): Response
     {
-        $byLicense = Media::query()
+        $byLicense = Media::query()->displayable()
             ->select('license', DB::raw('COUNT(*) as count'))
             ->groupBy('license')
             ->orderByDesc('count')
@@ -25,7 +25,7 @@ class CreditsController extends Controller
             ->map(fn (Media $r): array => ['license' => $r->license, 'count' => $r->getAttribute('count')])
             ->all();
 
-        $byAuthor = Media::query()
+        $byAuthor = Media::query()->displayable()
             ->select('author', DB::raw('COUNT(*) as count'))
             ->whereNotNull('author')
             ->groupBy('author')
@@ -37,10 +37,10 @@ class CreditsController extends Controller
 
         return Inertia::render('Credits/Media', [
             'stats' => [
-                'total' => Media::count(),
-                'photo_count' => Media::where('type', MediaType::Photo->value)->count(),
-                'plan_count' => Media::where('type', MediaType::Plan->value)->count(),
-                'document_count' => Media::where('type', MediaType::Document->value)->count(),
+                'total' => Media::query()->displayable()->count(),
+                'photo_count' => Media::query()->displayable()->where('type', MediaType::Photo->value)->count(),
+                'plan_count' => Media::query()->displayable()->where('type', MediaType::Plan->value)->count(),
+                'document_count' => Media::query()->displayable()->where('type', MediaType::Document->value)->count(),
             ],
             'byLicense' => $byLicense,
             'byAuthor' => $byAuthor,

@@ -118,7 +118,7 @@ final class LineMaterialExclusions
      * @param  list<array{line: string, material: string, quote?: string, source: string, reason: string}>  $entries
      * @return array{0: array<string, int>, 1: array<string, int>}
      */
-    private static function lookup(array $entries): array
+    public static function lookup(array $entries): array
     {
         $refs = array_column($entries, 'line');
         $lines = [];

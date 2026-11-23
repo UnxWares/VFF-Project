@@ -54,7 +54,7 @@ class LineAccidentsPropsTest extends TestCase
 
     public function test_line_sheet_lists_its_accidents_in_date_order(): void
     {
-        $this->get('/lines/rfn-570000')
+        $this->getWithDeferredProps('/lines/rfn-570000')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
@@ -73,7 +73,7 @@ class LineAccidentsPropsTest extends TestCase
     public function test_accident_names_follow_the_page_language_with_a_french_fallback(): void
     {
         $this->withCookie('locale', 'en')
-            ->get('/lines/rfn-570000')
+            ->getWithDeferredProps('/lines/rfn-570000')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('accidents.0.name', 'Collision à Étampes')
@@ -84,7 +84,7 @@ class LineAccidentsPropsTest extends TestCase
     {
         Line::factory()->create(['slug' => 'rfn-999000']);
 
-        $this->get('/lines/rfn-999000')
+        $this->getWithDeferredProps('/lines/rfn-999000')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('accidents', []));
     }

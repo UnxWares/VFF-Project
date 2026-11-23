@@ -44,6 +44,7 @@ final class QuizSeries
     public function __construct(
         private readonly LineQuiz $lines,
         private readonly MaterialQuiz $materials,
+        private readonly FactQuiz $facts,
     ) {}
 
     /** Nouvelle graine (8 caractères hexadécimaux). */
@@ -75,6 +76,7 @@ final class QuizSeries
         return match ($game) {
             QuizGame::Lines => $this->lines,
             QuizGame::Materials => $this->materials,
+            QuizGame::Facts => $this->facts,
         };
     }
 
@@ -100,9 +102,13 @@ final class QuizSeries
         // Rang de chaque sujet : il ne dépend que de la graine et de la clé du sujet, pas du reste du vivier.
         $ranked = array_map(fn (array $s): array => [hash('xxh128', $prefix.$s['key']), $s], $pool);
         usort($ranked, fn (array $a, array $b): int => [$a[0], $a[1]['id']] <=> [$b[0], $b[1]['id']]);
+        $subjects = array_column($ranked, 1);
+        if ($source instanceof GroupedQuizSource) {
+            $subjects = $this->roundRobin($source, $subjects, $prefix);
+        }
 
         $picks = [];
-        foreach (array_column($ranked, 1) as $subject) {
+        foreach ($subjects as $subject) {
             if (count($picks) === self::LENGTH) {
                 break;
             }
@@ -164,8 +170,36 @@ final class QuizSeries
             return null;
         }
 
+        $source = $this->source($game);
+
         return ['correct' => $choice === (string) $pick->subject['key'], 'choice' => $choice]
-            + $this->source($game)->reveal($pick->subject);
+            + ($source instanceof PickAwareQuizSource ? $source->revealPick($pick) : $source->reveal($pick->subject));
+    }
+
+    /**
+     * Sujets rangés pour qu'une série prenne un sujet de chaque groupe à tour de rôle (les groupes dans l'ordre d'un
+     * hachage de la graine, les sujets de chaque groupe dans leur ordre de tirage) : pas dix questions du même genre.
+     *
+     * @param  list<array<string, mixed>>  $subjects  sujets dans l'ordre de tirage
+     * @return list<array<string, mixed>>
+     */
+    private function roundRobin(GroupedQuizSource $source, array $subjects, string $prefix): array
+    {
+        $groups = [];
+        foreach ($subjects as $subject) {
+            $groups[$source->group($subject)][] = $subject;
+        }
+        uksort($groups, fn (string $a, string $b): int => strcmp(hash('xxh128', $prefix.'group|'.$a), hash('xxh128', $prefix.'group|'.$b)));
+        $out = [];
+        for ($round = 0; count($out) < count($subjects); $round++) {
+            foreach ($groups as $members) {
+                if (isset($members[$round])) {
+                    $out[] = $members[$round];
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**

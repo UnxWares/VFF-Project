@@ -75,7 +75,10 @@ class WikipediaListReaderTest extends TestCase
         $this->assertSame(AccidentDatePrecision::Day, $first['precision']);
         $this->assertSame('1905', $first['anchor']);
         $this->assertSame(['Ligne de Sceaux'], $first['line_articles']);
-        $this->assertSame('Bagneux', $first['station']);
+        // « entre Arcueil et Bagneux » : la gare est citée par la liste, mais l'accident n'a pas lieu « en gare ».
+        $this->assertNull($first['station']);
+        $this->assertSame('Bagneux', $first['listed']['station']);
+        $this->assertTrue($first['approximate']);
         $this->assertSame(AccidentKind::Derailment, $first['kind']);
         $this->assertSame(3, $first['deaths']);
         $this->assertSame(9, $first['injuries']);
@@ -199,6 +202,80 @@ class WikipediaListReaderTest extends TestCase
         $this->assertSame(32, $this->reader->number('trente-deux'));
         $this->assertSame(142, $this->reader->number('cent quarante-deux'));
         $this->assertNull($this->reader->number('beaucoup'));
+    }
+
+    /**
+     * Puces à la forme de celles de la liste (extraits courts) : où la gare citée est-elle le lieu de l'accident ?
+     *
+     * @return iterable<string, array{string, ?string, bool}> puce, gare retenue comme lieu, lieu approximatif
+     */
+    public static function stationContexts(): iterable
+    {
+        yield 'en gare de' => ['* {{date|21|février|1917}} - Sur la ligne Paris-Toulouse, en [[Gare de Sens|gare de Sens]], deux trains se heurtent.', 'Sens', false];
+        yield 'à la gare de' => ['* {{date|17|février|1846}} - Sur le chemin de fer de Saint-Étienne à Lyon, à la [[Gare de Rive-de-Gier|Gare de Rive-de-Gier]], un enfant est tué.', 'Rive-de-Gier', false];
+        yield 'gare en tête de puce' => ['* {{date|21|avril|2015}} - [[Gare de Nangis]] (Seine-et-Marne) : un train déraille.', 'Nangis', false];
+        yield 'à l\'entrée de la gare' => ["* {{date|9|août|1934}} - À l'entrée de la [[Gare de Bar-le-Duc|gare de Bar-le-Duc]], vers 22 heures, un train déraille.", null, true];
+        yield 'à la sortie de la gare' => ['* {{date|3|octobre|1930}} - Vers 19 heures, à la sortie de la [[Gare de Paris-Saint-Lazare|gare Saint-Lazare]], une rame heurte un butoir.', null, true];
+        yield 'à l\'approche de la gare' => ["* {{date|4|août|1974}} - Sur la ligne de Lison à Lamballe, à l'approche de la [[Gare de Dol-de-Bretagne|gare de Dol-de-Bretagne]] : le train déraille.", null, true];
+        yield 'à l\'entrée en gare' => ["* {{date|3|juillet|1922}} - Dans la courbe, à l'entrée en [[Gare de Sarrebourg|gare de Sarrebourg]], le train déraille.", null, true];
+        yield 'entre les gares' => ['* {{date|13|août|1882}} - Entre les [[Gare du Buisson|gares du Buisson]] et de [[Gare de Siorac-en-Périgord|Siorac]], deux trains se heurtent.', null, true];
+        yield 'près de la gare' => ['* {{date|2|avril|1938}} - Sur la ligne Bordeaux-Bayonne, près de la [[Gare de Saint-Vincent-de-Tyrosse|gare de Saint-Vincent-de-Tyrosse]], un omnibus déraille.', null, true];
+        yield 'peu avant la gare' => ['* {{date|8|août|1890}} - Un train venant de Morlaix déraille peu avant la [[Gare de Guingamp|gare de Guingamp]].', null, true];
+        yield 'gare d\'origine du train' => ['* {{date|9|septembre|1855}} - Un train de voyageurs venant de [[Gare de Versailles-Rive-Gauche|Versailles-Rive-Gauche]] heurte un convoi.', null, true];
+        yield 'train reliant deux gares' => ['* {{date|7|avril|2026}} - Un TGV reliant Dunkerque à [[Gare de Paris-Nord|Paris-Nord]] percute un véhicule.', null, true];
+        yield 'sur la ligne de X à Y' => ['* {{date|15|septembre|1905}} - Sur la ligne de Laqueuille à [[Gare de Clermont-Ferrand|Clermont-Ferrand]], un train déraille.', null, true];
+    }
+
+    #[DataProvider('stationContexts')]
+    public function test_a_station_is_the_place_only_when_the_text_says_in_station(string $line, ?string $station, bool $approximate): void
+    {
+        $entry = $this->reader->read($line)[0];
+
+        $this->assertSame($station, $entry['station']);
+        $this->assertSame($approximate, $entry['approximate']);
+        // Le lieu nommé reste cité (commune de repli), seule sa précision change.
+        $this->assertNotSame([], $entry['places']);
+    }
+
+    public function test_the_listed_facts_keep_the_station_the_list_names(): void
+    {
+        $entry = $this->reader->read("* {{date|9|août|1934}} - À l'entrée de la [[Gare de Bar-le-Duc|gare de Bar-le-Duc]], vers 22 heures, un train déraille.")[0];
+
+        $this->assertNull($entry['station']);
+        $this->assertSame('Bar-le-Duc', $entry['listed']['station']);
+        $this->assertSame([['Bar-le-Duc', null]], $entry['listed']['places']);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function fakePlaces(): iterable
+    {
+        yield 'Cellule' => ['Cellule'];
+        yield 'Carré' => ['Carré'];
+        yield 'Ambulant postal' => ['Ambulant postal'];
+        yield 'Avertissement' => ['Avertissement'];
+        yield 'Garde-barrière' => ['Garde-barrière'];
+        yield 'administration' => ["Administration des chemins de fer de l'État"];
+        yield 'matériel' => ['Serre-frein'];
+        yield 'personne' => ['Jean Jaurès'];
+        yield 'fleuve' => ['Clain'];
+        yield 'route' => ['Route nationale 5'];
+        yield 'ville étrangère' => ['Vintimille'];
+        yield 'constructeur' => ['Renault ADP'];
+    }
+
+    #[DataProvider('fakePlaces')]
+    public function test_words_that_are_not_places_are_dropped(string $word): void
+    {
+        $entry = $this->reader->read("* {{date|2|juillet|1871}} - Un [[{$word}]] est en cause à [[Pontmort]], le train déraille.")[0];
+
+        $this->assertSame([['Pontmort', null]], $entry['places']);
+    }
+
+    public function test_a_real_place_close_to_a_fake_one_is_kept(): void
+    {
+        $entry = $this->reader->read('* {{date|4|août|1907}} - Un train de [[Les Ponts-de-Cé]] passe au [[Dramont]] puis déraille près du [[Teil]].')[0];
+
+        $this->assertEqualsCanonicalizing(['Les Ponts-de-Cé', 'Dramont', 'Teil'], array_column($entry['places'], 0));
     }
 
     public function test_finds_a_department_by_its_name(): void

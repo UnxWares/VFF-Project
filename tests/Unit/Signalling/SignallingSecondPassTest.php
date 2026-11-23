@@ -253,6 +253,21 @@ WIKI);
         $this->assertSame(['BAL', 'KVB'], array_column(SignallingHistoryState::inForce($facts, '2000-12-31'), 'system'), 'toute la ligne remplace tout le cantonnement ; le KVB est à part');
     }
 
+    public function test_remote_control_is_its_own_group_and_never_replaces_nor_is_replaced_by_a_block_system(): void
+    {
+        $facts = [
+            self::fact('BAPR', 'block', '1980-01-01', 'whole_line'),
+            self::fact('CC', 'remote_control', '1982-01-01', 'section', 0, 10_000),
+            self::fact('BAL', 'block', '1990-01-01', 'whole_line'),
+            self::fact('CC', 'remote_control', '2010-01-01', 'section', 0, 12_000),
+        ];
+
+        $this->assertSame(['BAPR', 'CC'], array_column(SignallingHistoryState::inForce($facts, '1985-12-31'), 'system'), 'la commande centralisée s’ajoute au cantonnement');
+        $this->assertSame(['CC', 'BAL'], array_column(SignallingHistoryState::inForce($facts, '2000-12-31'), 'system'), 'le BAL de toute la ligne remplace le BAPR, pas la commande centralisée');
+        $this->assertSame(['BAL', 'CC'], array_column(SignallingHistoryState::inForce($facts, '2020-12-31'), 'system'), 'une commande centralisée plus récente remplace la plus ancienne');
+        $this->assertSame('CC', SignallingHistoryState::group(['system' => 'CC', 'role' => 'remote_control']));
+    }
+
     public function test_a_fact_without_a_known_section_replaces_nothing_and_cab_systems_add_up(): void
     {
         $facts = [

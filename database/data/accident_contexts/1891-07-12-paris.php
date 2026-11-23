@@ -102,6 +102,12 @@ return [
                 'de' => 'Le Petit Courrier de Bar-sur-Seine spricht fünf Tage nach dem Unfall nur von Verletzten; Wikipedia zählt einen Toten und setzt den Aufprall auf 23.10 Uhr an.',
                 'sources' => ['vdr-la-chapelle', 'wp-liste-1890'],
             ],
+            [
+                'fr' => 'La carte place l\'accident à la gare de Paris-Nord, position de la gare citée par la liste de Wikipédia. Le récit de la presse transcrit par le site de généalogie le situe à 800 mètres du quai d\'arrivée, à la hauteur des rues Marcadet et Doudeauville (La Chapelle) : la gare du Nord est la gare de rattachement, pas le lieu du choc.',
+                'en' => 'The map places the accident at Paris-Nord station, the position of the station named by the Wikipedia list. The press account transcribed by the genealogy site puts it 800 metres from the arrival platform, level with rue Marcadet and rue Doudeauville (La Chapelle): Paris-Nord is the station it is linked to, not the place of the impact.',
+                'de' => 'Die Karte setzt den Unfall an den Bahnhof Paris-Nord, die Position des in der Wikipedia-Liste genannten Bahnhofs. Der vom Genealogie-Portal wiedergegebene Pressebericht verortet ihn 800 Meter vom Ankunftsbahnsteig entfernt, auf Höhe der Rue Marcadet und der Rue Doudeauville (La Chapelle): Paris-Nord ist der zugeordnete Bahnhof, nicht der Ort des Zusammenstoßes.',
+                'sources' => ['vdr-la-chapelle', 'wp-liste-1890'],
+            ],
         ],
     ],
     'corrections' => [],

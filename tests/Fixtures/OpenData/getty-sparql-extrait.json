@@ -1,0 +1,62 @@
+{
+ "head": {
+  "vars": [
+   "o",
+   "l"
+  ]
+ },
+ "results": {
+  "bindings": [
+   {
+    "o": {
+     "type": "uri",
+     "value": "https://data.getty.edu/museum/collection/object/87bbd4d6-c2ab-436f-9b76-0d88b23a628d"
+    },
+    "l": {
+     "type": "literal",
+     "value": "Entree du Chemin de fer a St. Cloud. (84.XC.873.963)"
+    }
+   },
+   {
+    "o": {
+     "type": "uri",
+     "value": "https://data.getty.edu/museum/collection/object/ec6fcff6-a2ee-4cc6-b849-b389f57f1a8f"
+    },
+    "l": {
+     "type": "literal",
+     "value": "Gare de Montargis, Façade sur la Cour (84.XO.393.8)"
+    }
+   },
+   {
+    "o": {
+     "type": "uri",
+     "value": "https://data.getty.edu/museum/collection/object/20d29d5f-3e40-453d-b115-13e14f496d37"
+    },
+    "l": {
+     "type": "literal",
+     "value": "Lyon. Gare de Perrache (84.XO.401.3)"
+    }
+   },
+   {
+    "o": {
+     "type": "uri",
+     "value": "https://data.getty.edu/museum/collection/object/a830ae74-1381-4d48-a9a1-87a2f0d126ea"
+    },
+    "l": {
+     "type": "literal",
+     "value": "Tarascon. Viaduc (84.XO.401.34)"
+    }
+   },
+   {
+    "o": {
+     "type": "uri",
+     "value": "https://data.getty.edu/museum/collection/object/013e3c25-caf1-43e5-93d1-b41cfbeac405"
+    },
+    "l": {
+     "type": "literal",
+     "value": "Vue d'Ensemble de la Gare de Tarare (84.XM.407.38)"
+    }
+   }
+  ]
+ }
+}

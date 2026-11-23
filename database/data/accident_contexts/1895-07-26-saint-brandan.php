@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Saint-Brandan du 26 juillet 1895 (recherche du 21/11/2026).
 return [
     'slug' => '1895-07-26-saint-brandan',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -103,6 +103,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Récit contemporain cité par la liste de Wikipédia ; Gallica non lu.',
         ],
+        'ddb-1895-07-27-hannoverscher' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hannoverscher Kurier du 27 juillet 1895',
+            'publisher' => 'Hannoverscher Kurier (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1895-07-27',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AB4GOQ33PTI2JDGMOX7ULOJKQ5UJ3WWV?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Saint-Brieuc du 26 juillet : un train de pèlerins revenant de Sainte-Anne-d\'Auray déraille près de Saint-Brieuc, 12 morts et 25 blessés ; le lendemain, détails : train no 148, 24 voitures, deux locomotives, à 3 km de la gare de Plaintel après Quintin.',
+        ],
+        'kb-1895-07-29-dagblad-van-zuidholland-en-s-gravenh' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen.',
+            'publisher' => 'Dagblad van Zuidholland en \'s Gravenhaagsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1895-07-29',
+            'locator' => 'article « Telegrammen. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003611160:mpeg21:a00017:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Saint-Brieuc du 26 juillet : un train de pèlerins revenant de Sainte-Anne-d\'Auray a déraillé ; douze morts et vingt-cinq blessés.',
+        ],
+        'kb-1895-07-31-arnhemsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Gemengde berichten.',
+            'publisher' => 'Arnhemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1895-07-31',
+            'locator' => 'article « Gemengde berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB08:000093383:mpeg21:a0006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 31 juillet : le grand accident de Saint-Brieuc serait dû à la très grande vitesse du train dans une courbe serrée près de la halte de Plaintel ; les deux machines sortent des rails.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -134,6 +176,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Hannoverscher Kurier du 27 juillet 1895 rapporte, dans des dépêches de Saint-Brieuc, le déraillement d\'un train de pèlerins revenant de Sainte-Anne-d\'Auray (train no 148, 24 voitures, deux locomotives), à 3 km de la gare de Plaintel après Quintin, avec 12 morts et 25 blessés, contre 11 morts et 45 blessés dans la fiche. Date (26 juillet) et lieu sont confirmés ; le bilan diffère d\'un mort.',
+                'en' => 'The Hannoverscher Kurier of 27 July 1895 reports, in dispatches from Saint-Brieuc, the derailment of a pilgrim train returning from Sainte-Anne-d\'Auray (train no. 148, 24 carriages, two locomotives), 3 km from Plaintel station after Quintin, with 12 dead and 25 injured, against 11 dead and 45 injured in the record. Date (26 July) and place are confirmed; the toll differs by one death.',
+                'de' => 'Der Hannoversche Kurier vom 27. Juli 1895 berichtet in Meldungen aus Saint-Brieuc über die Entgleisung eines Pilgerzugs auf der Rückkehr von Sainte-Anne-d\'Auray (Zug Nr. 148, 24 Wagen, zwei Lokomotiven), 3 km vor dem Bahnhof Plaintel hinter Quintin, mit 12 Toten und 25 Verletzten, gegenüber 11 Toten und 45 Verletzten in der Datenbank. Datum (26. Juli) und Ort sind bestätigt; die Bilanz weicht um einen Toten ab.',
+                'sources' => ['ddb-1895-07-27-hannoverscher'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais des 29 et 31 juillet 1895 confirment, dans une dépêche Reuter de Saint-Brieuc du 26 juillet, le déraillement d\'un train de pèlerins revenant de Sainte-Anne-d\'Auray, avec douze morts et vingt-cinq blessés, et une vitesse excessive dans une courbe serrée près de Plaintel comme cause, contre 11 morts et 45 blessés dans la fiche.',
+                'en' => 'Two Dutch newspapers of 29 and 31 July 1895 confirm, in a Reuter dispatch from Saint-Brieuc dated 26 July, the derailment of a pilgrim train returning from Sainte-Anne-d\'Auray, with twelve dead and twenty-five injured, and excessive speed in a sharp curve near Plaintel as the cause, against 11 dead and 45 injured in the record.',
+                'de' => 'Zwei niederländische Zeitungen vom 29. und 31. Juli 1895 bestätigen in einer Reuter-Meldung aus Saint-Brieuc vom 26. Juli die Entgleisung eines Pilgerzugs auf der Rückkehr von Sainte-Anne-d\'Auray, mit zwölf Toten und fünfundzwanzig Verletzten, und überhöhte Geschwindigkeit in einer scharfen Kurve bei Plaintel als Ursache, gegenüber 11 Toten und 45 Verletzten in der Datenbank.',
+                'sources' => ['kb-1895-07-29-dagblad-van-zuidholland-en-s-gravenh', 'kb-1895-07-31-arnhemsche-courant'],
+            ],
             [
                 'fr' => 'La liste de Wikipédia compte 11 morts, dont les deux mécaniciens et leurs deux chauffeurs, et 45 blessés. Les pages locales parlent de 22 corps retirés des débris, sans donner de blessés.',
                 'en' => 'The Wikipedia list counts 11 dead, including the two drivers and their two firemen, and 45 injured. The local pages speak of 22 bodies recovered from the wreckage, without giving a number of injured.',

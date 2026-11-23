@@ -354,7 +354,7 @@
         color: var(--vff-text-muted);
     }
     .description {
-        max-width: 68ch;
+        max-width: 39.4em;
         margin: 0;
         font-size: var(--vff-fs-body);
         line-height: 1.6;
@@ -392,7 +392,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--vff-space-3);
-        max-width: 68ch;
+        max-width: 39.4em;
         padding: var(--vff-space-4) var(--vff-space-5);
         background-color: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);
@@ -409,7 +409,7 @@
         gap: var(--vff-space-3);
     }
     .note {
-        max-width: 68ch;
+        max-width: 39.4em;
         padding: var(--vff-space-3) var(--vff-space-4);
         background-color: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);

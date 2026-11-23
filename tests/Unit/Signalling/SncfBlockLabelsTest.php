@@ -24,7 +24,7 @@ class SncfBlockLabelsTest extends TestCase
         yield 'ETCS 2 et TVM 430' => ['European train control system 2/Transmission voie-machine 430', ['ETCS_L2', 'TVM-430']];
         yield 'espaces autour de la barre' => ['European train control system 2 / Transmission voie-machine 300', ['ETCS_L2', 'TVM-300']];
         yield 'deux block manuels de même code' => ['Block manuel de double voie de type SNCF/Block manuel à circuit de voie', ['BM']];
-        yield 'sans cantonnement' => ['Sans cantonnement', []];
+        yield 'sans cantonnement' => ['Sans cantonnement', ['NONE']];
         yield 'autre' => ['_Autre', []];
         yield 'inconnu' => ['Block électronique', null];
         yield 'une partie inconnue' => ['European train control system 2/Système inconnu', null];
@@ -46,6 +46,9 @@ class SncfBlockLabelsTest extends TestCase
         $this->assertTrue(SncfBlockLabels::isCab('ETCS_L2'));
         $this->assertTrue(SncfBlockLabels::isCab('TVM-430'));
         $this->assertFalse(SncfBlockLabels::isCab('BAL'));
+        // « Sans cantonnement » : ni cabine ni contrôle de vitesse.
+        $this->assertFalse(SncfBlockLabels::isCab(SncfBlockLabels::NONE));
+        $this->assertSame([], SncfBlockLabels::protection([SncfBlockLabels::NONE]));
     }
 
     public function test_ranges_without_the_list_fall_back_on_their_main_code(): void

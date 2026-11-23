@@ -214,3 +214,59 @@ function endBase(end, t) {
             return String(t('materials.end.unknown'));
     }
 }
+
+/** Raisons de doute connues (`link_doubt`, App\Services\Materials\LineMaterialDoubt::REASONS), plus `other`. */
+const DOUBT_REASONS = [
+    'trial',
+    'one_off',
+    'order',
+    'positioning',
+    'preserved',
+    'possible',
+    'diverted',
+    'restricted',
+    'component',
+    'section',
+    'other',
+];
+
+/**
+ * Séries de la ligne qui ont assuré le service et séries citées sans service attesté (essai, présentation,
+ * commande, acheminement à vide… : `link_doubt`), dans l'ordre reçu.
+ *
+ * @template {{ link_doubt?: ?string }} M
+ * @param {M[]} materials
+ * @returns {{ served: M[], doubtful: M[] }}
+ */
+export function splitDoubtful(materials) {
+    const served = [];
+    const doubtful = [];
+    for (const m of materials ?? []) (m.link_doubt ? doubtful : served).push(m);
+    return { served, doubtful };
+}
+
+/** Raison du doute en mots (« essais »), `other` pour une raison que cette version ne connaît pas. */
+export function doubtText(reason, t) {
+    const key = DOUBT_REASONS.includes(reason) ? reason : 'other';
+    return String(t(`materials.doubt.reasons.${key}`));
+}
+
+/**
+ * Borne de date d'une série sur la ligne (`earliest_on_line`) : « Sur la ligne au plus tôt à
+ * l'électrification : juin 1996 » ; quand la première électrification est celle d'une section, elle est
+ * nommée (« … à la première électrification d'une portion : 1989 (Bernay - Lisieux) »). Null sans borne ou
+ * pour un motif inconnu.
+ *
+ * @param {?{ reason: string, date: string, precision?: ?string, section?: ?string }} earliest
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface (fr, en, de)
+ */
+export function earliestText(earliest, t, lang = 'fr') {
+    if (!earliest?.date || earliest.reason !== 'electrification') return null;
+    const date = formatEventDate(earliest.date, earliest.precision ?? 'year', lang);
+    return String(
+        earliest.section
+            ? t('materials.earliest.section', { date, section: earliest.section })
+            : t('materials.earliest.electrification', { date }),
+    );
+}

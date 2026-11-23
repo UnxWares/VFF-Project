@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\BuildsRailNetwork;
@@ -38,6 +39,8 @@ class PublicPagesTest extends TestCase
             'confidentialité' => ['/privacy', 'Privacy'],
             'CGU' => ['/use-conditions', 'UseConditions'],
             'accessibilité' => ['/accessibility', 'Accessibility'],
+            'glossaire' => ['/glossary', 'Glossary'],
+            'patrimoine protégé' => ['/heritage', 'Heritage/Index'],
             'doc API' => ['/api', 'ApiDocs'],
             'crédits tech' => ['/credits/tech', 'Credits/Tech'],
             'crédits médias' => ['/credits/media', 'Credits/Media'],
@@ -123,7 +126,7 @@ class PublicPagesTest extends TestCase
 
     public function test_station_page_lists_serving_lines_and_neighbors(): void
     {
-        $this->get('/stations/'.$this->origin->slug)
+        $this->getWithDeferredProps('/stations/'.$this->origin->slug)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Stations/Show')
@@ -140,7 +143,7 @@ class PublicPagesTest extends TestCase
 
     public function test_unknown_station_is_404(): void
     {
-        $this->get('/stations/gare-inexistante')->assertNotFound();
+        $this->getWithDeferredProps('/stations/gare-inexistante')->assertNotFound();
     }
 
     public function test_locale_switch_sets_cookie_and_translates_shared_props(): void
@@ -181,7 +184,16 @@ class PublicPagesTest extends TestCase
 
     public function test_health_endpoint_answers_503_in_maintenance(): void
     {
+        // `down` écrit storage/framework/down et maintenance.php : dans un stockage à part, sinon les autres
+        // processus de la suite parallèle (RailProjectsTest en 503 sur la CI du 23/11/2026) et le site de dev qui
+        // partage storage/ passent en maintenance le temps du test.
+        $storage = sys_get_temp_dir().'/vff-maintenance-test-'.bin2hex(random_bytes(6));
+        File::ensureDirectoryExists($storage.'/framework');
+        $this->app->useStoragePath($storage);
+        $this->beforeApplicationDestroyed(fn () => File::deleteDirectory($storage));
+
         $this->artisan('down')->assertSuccessful();
+        $this->assertFileExists($storage.'/framework/down');
 
         try {
             $this->get('/up')->assertStatus(503);

@@ -39,7 +39,7 @@ final class ManualStations
                 $errors[] = "{$k} manquant";
             }
         }
-        if (is_string($e['ref'] ?? null) && preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $e['ref']) !== 1) {
+        if (is_string($e['ref'] ?? null) && preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/D', $e['ref']) !== 1) {
             $errors[] = 'ref : slug minuscule';
         }
         if (is_string($e['source_url'] ?? null) && ! str_starts_with($e['source_url'], 'https://')) {
@@ -56,7 +56,7 @@ final class ManualStations
             if ($date === null) {
                 continue;
             }
-            if (! is_string($date) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1 || ! checkdate((int) substr($date, 5, 2), (int) substr($date, 8, 2), (int) substr($date, 0, 4))) {
+            if (! is_string($date) || preg_match('/^\d{4}-\d{2}-\d{2}$/D', $date) !== 1 || ! checkdate((int) substr($date, 5, 2), (int) substr($date, 8, 2), (int) substr($date, 0, 4))) {
                 $errors[] = "{$k}_on : date AAAA-MM-JJ";
             }
             if (! in_array($e["{$k}_precision"] ?? null, self::PRECISIONS, true)) {

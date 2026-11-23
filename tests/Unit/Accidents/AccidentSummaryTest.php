@@ -84,7 +84,7 @@ class AccidentSummaryTest extends TestCase
     {
         $this->assertSame('war_action', AccidentKind::WarAction->value);
         $this->assertContains('war_action', AccidentKind::values());
-        $this->assertNotContains('war_action', AccidentKind::HIDDEN);
+        $this->assertNotContains('war_action', AccidentKind::SOURCED_ONLY);
 
         $s = $this->write(['kind' => AccidentKind::WarAction, 'commune' => 'Rouen', 'department' => '76', 'trains' => [], 'deaths' => null, 'injuries' => null]);
 

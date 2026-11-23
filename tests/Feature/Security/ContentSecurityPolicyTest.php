@@ -64,6 +64,32 @@ class ContentSecurityPolicyTest extends TestCase
         $this->assertFalse($response->headers->has('Content-Security-Policy-Report-Only'));
     }
 
+    /**
+     * Décision du 22/11/2026 : politique bloquante dès la mise en ligne. Chaque page principale reçoit
+     * l'en-tête bloquant, jamais les deux, avec ce que ses ressources exigent (fond de carte PMTiles lu
+     * sur le site, workers de MapLibre en blob:, aucun script ni style en ligne non déclaré).
+     */
+    public function test_main_pages_are_all_covered_by_the_blocking_policy(): void
+    {
+        config(['csp.enforce' => true]);
+
+        foreach (['/', '/maps', '/lines', '/stations', '/accidents', '/materials', '/journal', '/api', '/docs/api', '/docs/swagger', '/docs/graphql', '/graphiql', '/contribute', '/embed/maps'] as $url) {
+            $response = $this->get($url);
+            $this->assertTrue($response->isSuccessful() || $response->isRedirection(), $url);
+            if ($response->isRedirection()) {
+                continue;
+            }
+            $this->assertFalse($response->headers->has('Content-Security-Policy-Report-Only'), $url);
+            $csp = self::directives((string) $response->headers->get('Content-Security-Policy'));
+            $this->assertArrayHasKey('connect-src', $csp, $url);
+            $this->assertStringContainsString("'self'", $csp['connect-src'], $url.' : l\'archive PMTiles est lue sur le site');
+            $this->assertStringContainsString('blob:', $csp['worker-src'], $url);
+            $this->assertStringContainsString('blob:', $csp['img-src'], $url);
+            $this->assertStringNotContainsString("'unsafe-eval'", $csp['script-src'], $url);
+            $this->assertStringNotContainsString('*', $csp['script-src'], $url);
+        }
+    }
+
     public function test_api_documentation_pages_are_covered(): void
     {
         foreach (['/docs/api', '/docs/swagger'] as $url) {
@@ -105,7 +131,7 @@ class ContentSecurityPolicyTest extends TestCase
     public function test_nginx_policy_for_graphql_matches_laravel(): void
     {
         $conf = (string) file_get_contents(base_path('deploy/nginx/vff-project.org.conf'));
-        $this->assertSame(1, preg_match('#location \^~ /docs/graphql \{.*?Content-Security-Policy-Report-Only "([^"]*)"#s', $conf, $m));
+        $this->assertSame(1, preg_match('#location \^~ /docs/graphql \{.*?Content-Security-Policy(?:-Report-Only)? "([^"]*)"#s', $conf, $m));
 
         $laravel = array_filter(
             self::directives(ContentSecurityPolicy::build(Request::create('/docs/graphql'), 'x')),
@@ -125,6 +151,18 @@ class ContentSecurityPolicyTest extends TestCase
         $response = $this->get('/embed/maps');
 
         $this->assertSame('*', self::directives((string) $response->headers->get('Content-Security-Policy-Report-Only'))['frame-ancestors']);
+    }
+
+    public function test_embeddable_pages_get_the_full_blocking_policy_with_frame_ancestors_open(): void
+    {
+        config(['csp.enforce' => true]);
+
+        $header = (string) $this->get('/embed/maps')->assertOk()->headers->get('Content-Security-Policy');
+        $csp = self::directives($header);
+
+        $this->assertSame('*', $csp['frame-ancestors']);
+        $this->assertStringContainsString("'nonce-", $csp['script-src'], 'pas la seule directive frame-ancestors');
+        $this->assertSame(1, substr_count($header, 'frame-ancestors'));
     }
 
     public function test_json_responses_carry_no_policy(): void

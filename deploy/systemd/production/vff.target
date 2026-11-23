@@ -1,0 +1,7 @@
+# Regroupe les processus de production : "systemctl restart vff.target" après un déploiement.
+[Unit]
+Description=VFF - processus de production
+Wants=vff-reverb.service vff-queue.service vff-schedule.timer
+
+[Install]
+WantedBy=multi-user.target

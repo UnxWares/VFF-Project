@@ -24,7 +24,7 @@
  *     source_url: string, source_title: string, quote: string}>
  */
 return [
-    'archeo-ligne-de-saint-gervais-a-bionnassay' => [
+    'ligne-de-saint-gervais-a-bionnassay' => [
         'system' => 'strub',
         'extent' => 'partial',
         'max_grade_permil' => 240,
@@ -33,7 +33,7 @@ return [
         'source_title' => 'Tramway du Mont-Blanc',
         'quote' => 'La crémaillère est de type Strub ; elle est disposée sur 85 % de la longueur du parcours.',
     ],
-    'archeo-ligne-de-chamonix-a-montenvers' => [
+    'ligne-de-chamonix-a-montenvers' => [
         'system' => 'strub',
         'extent' => 'full',
         'max_grade_permil' => 220,
@@ -42,7 +42,7 @@ return [
         'source_title' => 'Chemin de fer du Montenvers',
         'quote' => 'La crémaillère est de type Strub ; elle est disposée sur la totalité du parcours.',
     ],
-    'archeo-ligne-de-saint-ignace-a-la-rhune' => [
+    'ligne-de-saint-ignace-a-la-rhune' => [
         'system' => 'strub',
         'extent' => 'full',
         'max_grade_permil' => 250,
@@ -60,7 +60,7 @@ return [
         'source_title' => 'Panoramique des Dômes',
         'quote' => 'crémaillère est de type Strub ; Pente maximale 155 ‰',
     ],
-    'archeo-ligne-de-luchon-a-superbagneres' => [
+    'ligne-de-luchon-a-superbagneres' => [
         'system' => 'strub',
         'extent' => 'full',
         'max_grade_permil' => 250,
@@ -69,7 +69,7 @@ return [
         'source_title' => 'Chemin de fer de Luchon à Superbagnères',
         'quote' => 'un chemin de fer à voie métrique et à crémaillère ; la crémaillère de type Strub équipait tout le parcours',
     ],
-    'archeo-ligne-daix-les-bains-au-revard' => [
+    'ligne-daix-les-bains-au-revard' => [
         'system' => 'abt',
         'extent' => 'full',
         'max_grade_permil' => 210,
@@ -78,7 +78,7 @@ return [
         'source_title' => 'Chemin de fer du Mont-Revard',
         'quote' => 'La crémaillère est installée sur l\'ensemble du parcours. La rampe la plus élevée a une pente de 21 %.',
     ],
-    'archeo-ligne-de-monte-carlo-a-la-turbie' => [
+    'ligne-de-monte-carlo-a-la-turbie' => [
         'system' => 'riggenbach',
         'extent' => null,
         'max_grade_permil' => 250,
@@ -87,7 +87,7 @@ return [
         'source_title' => 'Chemin de fer à crémaillère de La Turbie à Monte-Carlo',
         'quote' => 'De type Riggenbach ; Pente maximale 250 ‰',
     ],
-    'archeo-ligne-de-veyrier-a-monnetier' => [
+    'ligne-de-veyrier-a-monnetier' => [
         'system' => 'abt',
         'extent' => null,
         'max_grade_permil' => 250,
@@ -96,7 +96,7 @@ return [
         'source_title' => 'Chemin de fer du Salève',
         'quote' => 'Les lignes à voie métrique électrifiées étaient équipées de crémaillères. Les rampes atteignaient 250 ‰.',
     ],
-    'archeo-ligne-detrembieres-a-treize-arbres' => [
+    'ligne-detrembieres-a-treize-arbres' => [
         'system' => 'abt',
         'extent' => null,
         'max_grade_permil' => 250,
@@ -105,7 +105,7 @@ return [
         'source_title' => 'Chemin de fer du Salève',
         'quote' => 'Les lignes à voie métrique électrifiées étaient équipées de crémaillères. Les rampes atteignaient 250 ‰.',
     ],
-    'archeo-ligne-de-laon-gare-a-hotel-de-ville' => [
+    'ligne-de-laon-gare-a-hotel-de-ville' => [
         'system' => 'abt',
         'extent' => 'partial',
         'max_grade_permil' => 130,
@@ -114,7 +114,7 @@ return [
         'source_title' => 'Tramway de Laon',
         'quote' => 'la crémaillère ne fut utilisée que pour assurer le freinage des rames ; une rampe variant de 9 % à 13 %',
     ],
-    'archeo-ligne-de-munster-a-col-de-la-schlucht' => [
+    'ligne-de-munster-a-col-de-la-schlucht' => [
         'system' => 'strub',
         'extent' => 'partial',
         'max_grade_permil' => 220,

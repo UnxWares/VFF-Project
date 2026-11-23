@@ -1,5 +1,6 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import GlossaryText from '$components/GlossaryText.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
         HERITAGE_STYLES,
@@ -14,10 +15,15 @@
         MAP_MODES,
         swatchStyle,
     } from '$lib/railStyle.js';
+    import { coloringStyles } from '$lib/lineColoring.js';
     import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
     import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_GROUPS } from '$lib/levelCrossingMap.js';
-    import { SIGNALLING_FAMILIES, SIGNALLING_UNKNOWN_OPACITY } from '$lib/signallingMap.js';
+    import {
+        SIGNALLING_CONTROL,
+        SIGNALLING_FAMILIES,
+        SIGNALLING_UNKNOWN_OPACITY,
+    } from '$lib/signallingMap.js';
     import { GREENWAY_COLOR } from '$lib/greenwayMap.js';
     import { OVERLAY_HALO } from '$lib/overlayPalette.js';
     import { SCHEMA_CATEGORIES, categoryColors, paletteFor } from '$lib/schematicMap.js';
@@ -37,8 +43,15 @@
      *   interactive : entrées cliquables (défaut true)
      *   currentEra  : décennie actuelle ; les halos de campagne (menacée,
      *                 réouverture) n'existent qu'à cette décennie (cf. RailMap)
-     *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge'
+     *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge', et sur
+     *                 /maps 'speed' | 'signalling'
+     *   modes       : colorations proposées (défaut MAP_MODES ; /maps : MAP_COLORINGS)
+     *   drawnMode   : coloration dessinée par la carte (défaut `mode`) : le trafic quand la coloration
+     *                 choisie n'existe pas aux époques affichées
+     *   unavailable : { coloration: phrase } des colorations impossibles aux époques affichées (choix
+     *                 grisés, la phrase dit pour quelles époques elles existent)
      *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`),
+     *                 'curtain' (rideau : `era` à gauche, `compareEra` à droite, symboles d'une époque),
      *                 'stack' (toutes les époques) ou 'schema' (vue ferroviaire : catégories masquables
      *                 et symboles des gares du plan) ; hors 'era', la légende décrit le calque de la vue
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
@@ -54,6 +67,9 @@
         interactive = true,
         currentEra = 2030,
         mode = $bindable('traffic'),
+        modes = MAP_MODES,
+        drawnMode = undefined,
+        unavailable = {},
         view = 'era',
         compareEra = null,
         accidents = null,
@@ -76,6 +92,10 @@
     const title = $derived.by(() => {
         if (view === 'compare' && compareEra !== null)
             return $i18n.t('maps.compare.legend_title', { from: era, to: inline(compareEra) });
+        // « 1930 à gauche, aujourd'hui à droite » (la gauche est toujours la plus ancienne).
+        if (view === 'curtain' && compareEra !== null) {
+            return $i18n.t('maps.curtain.legend_title', { left: era, right: inline(compareEra) });
+        }
         if (view === 'stack') return $i18n.t('maps.stack.legend_title');
         if (view === 'schema') {
             return era === currentEra
@@ -98,6 +118,8 @@
     // un trait fin et pâle couvre une ligne entière dont la portion n'est pas connue.
     const signallingPast = $derived(view === 'era' && era !== null && era !== currentEra);
     const unknownSwatch = swatchStyle(SIGNALLING_FAMILIES[0].color, null, false);
+    // Commande centralisée (époques passées) : trait fin sombre en pointillés, posé sur le cantonnement.
+    const controlSwatch = swatchStyle(SIGNALLING_CONTROL.color, SIGNALLING_CONTROL.dash, false);
     const compareRows = COMPARE_CHANGES.map((c) => ({
         key: c.key,
         swatch: swatchStyle(c.color, c.dash, c.key !== 'kept'),
@@ -105,22 +127,37 @@
     // Classes de la vue empilée, du plus récent (foncé) au plus ancien (clair).
     const stackRows = $derived([...stackLabels(currentEra)].reverse());
 
-    // Lignes de légende du mode électrification / écartement (couleur seule, non masquables).
+    // Coloration dessinée : celle choisie, sauf si elle n'existe pas aux époques affichées (trafic).
+    const shownMode = $derived(drawnMode ?? mode);
+    const unavailableNotes = $derived(modes.filter((m) => unavailable[m]));
+    // Lignes de légende de la coloration (vitesse, électrification, écartement : non masquables). La
+    // signalisation a son propre bloc (familles et notes du calque « Signalisation »).
     const modeRows = $derived(
-        (mode === 'electrification'
+        (shownMode === 'electrification'
             ? ELECTRIFICATION_STYLES
-            : mode === 'gauge'
+            : shownMode === 'gauge'
               ? GAUGE_STYLES
-              : []
+              : shownMode === 'speed'
+                ? coloringStyles('speed')
+                : []
         ).map((s) => ({
             key: s.key,
             labelKey: s.labelKey,
             swatch: swatchStyle(s.color),
         })),
     );
+    const modeTitleKey = $derived(
+        shownMode === 'gauge'
+            ? 'maps.gauge.title'
+            : shownMode === 'speed'
+              ? 'maps.coloring.speed_title'
+              : 'maps.electrification.title',
+    );
 
     // Halos de campagne : légende affichée seulement quand la carte peut les montrer.
-    const showAdvocacy = $derived(era === null || era === currentEra);
+    const showAdvocacy = $derived(
+        era === null || era === currentEra || (view === 'curtain' && compareEra === currentEra),
+    );
 
     const style = (key) => STATUS_STYLES.find((s) => s.key === key);
 
@@ -168,7 +205,10 @@
     const statusRowsView = $derived(
         statusRows.map((r) => ({
             ...r,
-            swatch: swatchStyle(mode === 'traffic' ? r.color : STATION_UNCERTAIN_COLOR, r.dash),
+            swatch: swatchStyle(
+                shownMode === 'traffic' ? r.color : STATION_UNCERTAIN_COLOR,
+                r.dash,
+            ),
         })),
     );
 
@@ -257,7 +297,8 @@
         {#if overlays.includes('level-crossings')}
             <div class="overlay-block">{@render levelCrossingsBody()}</div>
         {/if}
-        {#if overlays.includes('signalling')}
+        <!-- Coloration « Signalisation » : le même bloc est décrit plus bas, avec les couleurs des tracés. -->
+        {#if overlays.includes('signalling') && !(shownMode === 'signalling' && (view === 'era' || view === 'curtain'))}
             <div class="overlay-block">{@render signallingBody()}</div>
         {/if}
         {#if overlays.includes('greenways')}
@@ -414,6 +455,12 @@
         {#if signallingPast}
             <li>
                 <span class="legend-row">
+                    <i class="swatch" style={controlSwatch} aria-hidden="true"></i>
+                    <span>{$i18n.t(`maps.signalling.families.${SIGNALLING_CONTROL.key}`)}</span>
+                </span>
+            </li>
+            <li>
+                <span class="legend-row">
                     <i
                         class="swatch"
                         style={unknownSwatch}
@@ -425,7 +472,7 @@
             </li>
         {/if}
     </ul>
-    <p class="legend-hint">{$i18n.t('maps.signalling.kvb_note')}</p>
+    <p class="legend-hint"><GlossaryText text={String($i18n.t('maps.signalling.kvb_note'))} /></p>
     {#if signallingPast}
         <p class="legend-hint">{$i18n.t('maps.signalling.history.source_note')}</p>
     {:else}
@@ -459,22 +506,39 @@
     <fieldset class="legend-modes">
         <legend class="legend-group">{$i18n.t('maps.mode.label')}</legend>
         <div class="mode-chips">
-            {#each MAP_MODES as m (m)}
+            {#each modes as m (m)}
                 <label class="mode-chip">
-                    <input type="radio" name={`${uid}-mode`} value={m} bind:group={mode} />
+                    <input
+                        type="radio"
+                        name={`${uid}-mode`}
+                        value={m}
+                        disabled={Boolean(unavailable[m])}
+                        aria-describedby={unavailable[m] ? `${uid}-mode-${m}` : undefined}
+                        bind:group={mode}
+                    />
                     <span>{$i18n.t(`maps.mode.${m}`)}</span>
                 </label>
             {/each}
         </div>
+        <!-- Colorations grisées : pour quelles époques elles existent (et, si l'une d'elles est
+             choisie, la carte garde le trafic). -->
+        {#each unavailableNotes as m (m)}
+            <p class="legend-hint mode-note" id={`${uid}-mode-${m}`}>
+                {unavailable[m]}
+                {#if m === mode}{$i18n.t('maps.coloring.fallback')}{/if}
+            </p>
+        {/each}
     </fieldset>
 
     {#if interactive}
         <p class="legend-hint">{$i18n.t('maps.legend.hint')}</p>
     {/if}
 
-    {#if mode !== 'traffic'}
+    {#if shownMode === 'signalling'}
+        <div class="mode-block">{@render signallingBody()}</div>
+    {:else if shownMode !== 'traffic'}
         <p class="legend-group" id={`${uid}-colours`}>
-            {$i18n.t(mode === 'gauge' ? 'maps.gauge.title' : 'maps.electrification.title')}
+            {$i18n.t(modeTitleKey)}
         </p>
         <ul aria-labelledby={`${uid}-colours`}>
             {#each modeRows as r (r.key)}
@@ -486,6 +550,12 @@
                 </li>
             {/each}
         </ul>
+        {#if shownMode === 'speed'}
+            <p class="legend-hint">{$i18n.t('maps.coloring.speed_note')}</p>
+        {/if}
+        {#if shownMode === 'speed' || shownMode === 'electrification'}
+            <p class="legend-hint">{$i18n.t('maps.coloring.labels_note')}</p>
+        {/if}
     {:else}
         <p class="legend-group" id={`${uid}-traffic`}>{$i18n.t('maps.traffic.title')}</p>
         <ul aria-labelledby={`${uid}-traffic`}>
@@ -670,6 +740,26 @@
     .mode-chip input:focus-visible + span {
         outline: var(--vff-focus-width) solid var(--vff-focus);
         outline-offset: var(--vff-focus-offset);
+    }
+    /* Coloration sans donnée aux époques affichées : grisée, bord en tirets (pas seulement une teinte),
+       la phrase sous les pastilles dit pourquoi. */
+    .mode-chip input:disabled {
+        cursor: not-allowed;
+    }
+    .mode-chip input:disabled + span {
+        border-style: dashed;
+        color: var(--vff-text-muted);
+        background-color: transparent;
+    }
+    .mode-chip input:disabled:checked + span {
+        border-color: var(--vff-border-control);
+        font-weight: 400;
+    }
+    .mode-note {
+        margin-top: 8px;
+    }
+    .mode-block {
+        margin-top: 4px;
     }
 
     .legend-hint {

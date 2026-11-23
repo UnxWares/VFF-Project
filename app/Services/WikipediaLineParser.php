@@ -921,9 +921,16 @@ class WikipediaLineParser
                 ? array_map(fn ($c, $i) => ['text' => $c, 'added' => $i > 0], $clauses, array_keys($clauses))
                 : $this->splitStagedClauses($clauses, $ends);
             $clauses = array_column($staged, 'text');
+            $refusedFrom = $respective === null ? $this->refusedRespectiveFrom($sentence, $clauses) : null;
             foreach ($clauses as $ci => $clause) {
                 // Événement lu grâce aux étapes, à la date commune ou au verbe au présent (cf. ADDED_READING).
                 $added = $staged[$ci]['added'];
+                if ($refusedFrom !== null && $ci >= $refusedFrom) {
+                    // « respectivement » dont l'appariement est refusé : la date de chaque portion est incertaine.
+                    $prevTypes = [];
+
+                    continue;
+                }
                 $dates = $this->findDates($clause);
                 $section = $this->findSection($clause, $ends);
                 $lc = mb_strtolower($clause);
@@ -946,8 +953,17 @@ class WikipediaLineParser
                     $section = $paraSection; // « Elle est ouverte le … » après « La section de X à Y … »
                 }
                 $types = $this->detectTypes($clause, $mode);
+                if ($mode === 'prose') {
+                    // « Troyes - Bar le 1 mars 1862 (déclarée d'utilité publique) » : le complément entre parenthèses
+                    // n'est pas un événement de l'étape, il ne lui retire ni son verbe ni sa date.
+                    $types = $this->withoutParenthesizedDeclaration($clause, $types);
+                }
                 $inherited = false;
-                if (! $types && $prevTypes && $dates && ($section || $this->trafficQualifier($lc) !== null || preg_match('/\b(celle|celui|ceux|celles)\b/u', $lc))) {
+                // Portion énumérée sans date propre dont la date commune vient de la dernière (« entre A et B, entre B et C
+                // et entre C et D le … ») : elle hérite aussi du verbe de la première.
+                $sharedDate = ! $types && $prevTypes && $added && ! $dates && $section && ! $section['whole_line'] && ! $section['only_to']
+                    && $this->sharedStageDate($clauses, $ci, $ends, $mode) !== null;
+                if (! $types && $prevTypes && ($dates || $sharedDate) && ($section || $this->trafficQualifier($lc) !== null || preg_match('/\b(celle|celui|ceux|celles)\b/u', $lc))) {
                     // Structure parallèle : « …, celle de X à Y le DATE », « … et des marchandises en 1969 ».
                     foreach ($prevTypes as $t) {
                         $types[] = ['type' => $this->requalify($t['type'], $lc), 'pos' => 0];
@@ -1217,7 +1233,7 @@ class WikipediaLineParser
      */
     private function stagedItems(string $clause, array $ends): ?array
     {
-        $all = $this->findDates($clause);
+        $all = $this->datesOutsideComplements($clause);
         if (count($all) < 2 || array_filter($all, fn ($d) => $d['precision'] === 'decade')) {
             return null;
         }
@@ -1294,6 +1310,95 @@ class WikipediaLineParser
         }
 
         return $found;
+    }
+
+    /**
+     * « respectivement » dont l'appariement a été refusé (respectiveStages() rend null) : rang de la première
+     * proposition qui le porte, quand au moins deux dates le suivent. À partir de là, aucune proposition ne
+     * date une portion : la première date n'est pas celle de la dernière portion citée, aucune date vaut
+     * mieux qu'une fausse. Null sans « respectivement » ou avec moins de deux dates après.
+     *
+     * @param  list<string>  $clauses
+     */
+    private function refusedRespectiveFrom(string $sentence, array $clauses): ?int
+    {
+        if (! preg_match('/\brespectivement\b(.*)$/su', $sentence, $m) || count($this->findDates($m[1])) < 2) {
+            return null;
+        }
+        foreach ($clauses as $i => $clause) {
+            if (preg_match('/\brespectivement\b/u', $clause)) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Retire la mention « déclarée d'utilité publique » quand elle est entre parenthèses : un complément, pas
+     * l'objet de la proposition.
+     *
+     * @param  list<array{type: string, pos: int, label?: string}>  $types
+     * @return list<array{type: string, pos: int, label?: string}>
+     */
+    private function withoutParenthesizedDeclaration(string $clause, array $types): array
+    {
+        $spans = [];
+        if (preg_match_all('/\([^()]*\)/u', $clause, $mm, PREG_OFFSET_CAPTURE)) {
+            foreach ($mm[0] as [$text, $byteAt]) {
+                $at = mb_strlen(substr($clause, 0, $byteAt));
+                $spans[] = [$at, $at + mb_strlen($text)];
+            }
+        }
+
+        return array_values(array_filter($types, function (array $t) use ($spans): bool {
+            if (($t['label'] ?? '') !== "Déclaration d'utilité publique") {
+                return true;
+            }
+            foreach ($spans as [$from, $to]) {
+                if ($t['pos'] >= $from && $t['pos'] < $to) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+    }
+
+    /**
+     * Dates de la proposition hors des compléments entre parenthèses qui ne portent aucun événement
+     * (« (loi du 5 mai 1860) », « (déclarée d'utilité publique le 5 mai 1860) ») : ces dates n'appartiennent
+     * pas à l'énumération d'étapes. Une parenthèse qui porte un mot-clé d'ouverture, de fermeture, etc. garde
+     * ses dates.
+     *
+     * @return list<array{pos: int, date: string, year: int, precision: string}>
+     */
+    private function datesOutsideComplements(string $clause): array
+    {
+        $dates = $this->findDates($clause);
+        if (! str_contains($clause, '(') || count($dates) < 2) {
+            return $dates;
+        }
+        $spans = [];
+        if (preg_match_all('/\([^()]*\)/u', $clause, $mm, PREG_OFFSET_CAPTURE)) {
+            foreach ($mm[0] as [$text, $byteAt]) {
+                $types = array_column($this->detectTypes($text, 'prose'), 'type');
+                if (! array_diff($types, ['other', 'concession', 'concession_end'])) {
+                    $at = mb_strlen(substr($clause, 0, $byteAt));
+                    $spans[] = [$at, $at + mb_strlen($text)];
+                }
+            }
+        }
+
+        return array_values(array_filter($dates, function (array $d) use ($spans): bool {
+            foreach ($spans as [$from, $to]) {
+                if ($d['pos'] >= $from && $d['pos'] < $to) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
     }
 
     /**
@@ -1378,20 +1483,22 @@ class WikipediaLineParser
 
     /**
      * « … cesse entre Villars et Poinson et entre Mirebeau-sur-Bèze et Champagne-sur-Vingeanne le 30 mai
-     * 1975 » : deux portions « entre X et Y » coordonnées, coupées en deux propositions.
+     * 1975 » : deux portions « entre X et Y » coordonnées, coupées en deux propositions. Trois portions ou
+     * plus (« entre A et B, entre B et C et entre C et D le … ») sont coupées en autant de propositions.
      *
      * @param  list<string>  $ends
+     * @param  bool  $first  faux pour les portions qui suivent la première : le verbe n'est plus à chercher
      * @return list<string>
      */
-    private function splitBetweenPairs(string $clause, array $ends): array
+    private function splitBetweenPairs(string $clause, array $ends, bool $first = true): array
     {
-        if (! preg_match('/^(.*?\bentre\s+[^,;]+?\s+et\s+[^,;]+?)(?:,\s+|\s+)et\s+(entre\s+\p{Lu}.*)$/u', $clause, $m)) {
+        if (! preg_match('/^(.*?\bentre\s+[^,;]+?\s+et\s+[^,;]+?)(?:,\s+(?:et\s+)?|\s+et\s+)(entre\s+\p{Lu}.*)$/u', $clause, $m)) {
             return [$clause];
         }
         if (substr_count($m[1], '(') !== substr_count($m[1], ')')) {
             return [$clause]; // « (notamment entre X et Y et entre Z et T) » : un exemple entre parenthèses, pas l'objet du verbe
         }
-        if ($this->findDates($m[1]) || ! $this->detectTypes($m[1], 'prose')) {
+        if ($this->findDates($m[1]) || ($first && ! $this->detectTypes($m[1], 'prose'))) {
             // Date avant les portions (« le 22 avril 1959 entre A et B et entre C et D ») : elle n'est pas
             // commune à coup sûr (sharedStageDate() ne lit que la date finale), la proposition reste entière.
             // « Le service voyageurs entre A et B … et entre E et F cesse » : le verbe suit, il vaut pour toutes.
@@ -1403,7 +1510,7 @@ class WikipediaLineParser
             return [$clause];
         }
 
-        return [$m[1], ...$this->splitBetweenPairs($m[2], $ends)];
+        return [$m[1], ...$this->splitBetweenPairs($m[2], $ends, false)];
     }
 
     /**

@@ -1,0 +1,22 @@
+query MediaWithRights {
+  media(first: 5, filter: { station: "brest", rights_status: "public_domain" }) {
+    pageInfo { hasNextPage endCursor total }
+    edges {
+      node {
+        title
+        thumb_url
+        author
+        attribution
+        license
+        license_url
+        rights_status
+        commercial_ok
+        derivatives_ok
+        attribution_required
+        source_url
+        depicted_year
+        date_precision
+      }
+    }
+  }
+}

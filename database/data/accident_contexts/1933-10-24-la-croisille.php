@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Saint-Élier (La Croisille) du 24 octobre 1933 (recherche du 21/11/2026).
 return [
     'slug' => '1933-10-24-la-croisille',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Notice doublon de Q22247907 (36 morts) ; non rouverte, déjà présente dans la base.',
         ],
+        'ddb-1933-10-26-schwaebischer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schwäbischer Merkur du 26 octobre 1933',
+            'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1933-10-26',
+            'locator' => 'p. 9',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/3AZAGTM5HC2URWNTCKRCDQDC23SJSL7Z?issuepage=9',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 25 octobre : l\'administration des chemins de fer de l\'État annonce, pour l\'accident de Saint-Élier du mardi matin, 30 morts et 82 blessés ; la cause supposée est un déplacement de la voie.',
+        ],
+        'kb-1933-10-26-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TREINRAMP BIJ EVREUX. Vijf gewonden overleden. - Nog meer dooden onder het puin.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1933-10-26',
+            'locator' => 'article « TREINRAMP BIJ EVREUX. Vijf gewonden overleden. - Nog meer dooden onder het puin. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010663705:mpeg21:a0004:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Havas d\'Évreux du 25 octobre : cinq blessés hospitalisés sont morts, le nombre de morts atteint quarante ; quatre corps restent sous les décombres.',
+        ],
+        'kb-1933-10-26-de-gooi-en-eemlander' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK De treinramp bij Evreux.',
+            'publisher' => 'De Gooi- en Eemlander (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1933-10-26',
+            'locator' => 'article « FRANKRIJK De treinramp bij Evreux. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011171312:mpeg21:a0123:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 25 octobre : 38 morts de l\'accident de « Bonneville » près d\'Évreux, dont six blessés morts dans la journée.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -98,6 +140,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Une dépêche de Paris du 25 octobre 1933 reprend le communiqué de l\'administration des chemins de fer de l\'État : 30 morts et 82 blessés pour l\'accident de Saint-Élier du mardi matin (24 octobre), bilan provisoire inférieur aux 37 morts de la fiche, avec un déplacement de la voie comme cause supposée.',
+                'en' => 'A Paris dispatch of 25 October 1933 relays the statement of the state railway administration: 30 dead and 82 injured in the Saint-Élier accident of Tuesday morning (24 October), a provisional toll below the 37 dead in the record, with a displaced track as the supposed cause.',
+                'de' => 'Eine Pariser Meldung vom 25. Oktober 1933 gibt die Mitteilung der Staatlichen Eisenbahnverwaltung wieder: 30 Tote und 82 Verletzte beim Unglück von Saint-Élier am Dienstagvormittag (24. Oktober), eine vorläufige Zahl unter den 37 Toten der Datenbank, mit einer Gleisverlagerung als vermuteter Ursache.',
+                'sources' => ['ddb-1933-10-26-schwaebischer'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais du 26 octobre 1933 parlent de la catastrophe près d\'Évreux (Saint-Élier, appelé aussi « Bonneville ») avec 38 morts le 25 octobre selon l\'un, 40 selon l\'autre dont cinq blessés morts à l\'hôpital, quatre corps restant sous les débris, contre 37 dans la fiche. Le lieu est confirmé, le bilan évolue d\'un jour à l\'autre.',
+                'en' => 'Two Dutch newspapers of 26 October 1933 report the disaster near Évreux (Saint-Élier, also called "Bonneville") with 38 dead on 25 October according to one and 40 according to the other, including five injured who died in hospital, four bodies remaining under the wreckage, against 37 in the record. The place is confirmed, and the toll changed from one day to the next.',
+                'de' => 'Zwei niederländische Zeitungen vom 26. Oktober 1933 berichten über das Unglück bei Évreux (Saint-Élier, auch „Bonneville“ genannt) mit 38 Toten am 25. Oktober nach der einen, 40 nach der anderen, darunter fünf im Krankenhaus gestorbene Verletzte, vier Leichen noch unter den Trümmern, gegenüber 37 in der Datenbank. Der Ort ist bestätigt, die Bilanz änderte sich von Tag zu Tag.',
+                'sources' => ['kb-1933-10-26-algemeen-handelsblad', 'kb-1933-10-26-de-gooi-en-eemlander'],
+            ],
             [
                 'fr' => 'Le bilan retenu est de 37 morts et environ 100 blessés, dont une soixantaine hospitalisés. Le mécanicien et le chauffeur sont tués sur le coup.',
                 'en' => 'The accepted toll is 37 dead and about 100 injured, some sixty of them hospitalised. The driver and the fireman were killed instantly.',

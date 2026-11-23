@@ -65,16 +65,31 @@ class SourceRightsReport extends Command
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
         'line_profile_points' => 'SELECT DISTINCT source AS v FROM line_profile_points WHERE source IS NOT NULL',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
+        // Ouvrages d'art : la source de chaque champ est dans le tableau JSON `sources` (vff:import-structures).
+        'structures' => "SELECT DISTINCT src->>'source' AS v FROM structures, jsonb_array_elements(sources) AS src",
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
         'station_platforms' => 'SELECT DISTINCT source AS v FROM station_platforms',
         'line_track_portions' => 'SELECT DISTINCT source AS v FROM line_track_portions',
         'line_radio_portions' => 'SELECT DISTINCT source AS v FROM line_radio_portions',
+        'station_attendances' => 'SELECT DISTINCT source AS v FROM station_attendances',
+        'station_accessibility' => 'SELECT DISTINCT source AS v FROM station_accessibility',
+        'station_timetables' => 'SELECT DISTINCT source AS v FROM station_timetables',
+        'line_timetables' => 'SELECT DISTINCT source AS v FROM line_timetables',
+        'station_heritage' => 'SELECT DISTINCT source AS v FROM station_heritage',
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
         'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',
+        'bibliography_entries' => 'SELECT DISTINCT provider AS v FROM bibliography_entries',
+        'bibliography_links' => 'SELECT DISTINCT provider AS v FROM bibliography_links',
         'station_audits' => "SELECT DISTINCT p->>'source' AS v FROM station_audits, jsonb_array_elements(positions) AS p",
         'station_date_candidates' => 'SELECT DISTINCT source AS v FROM station_date_candidates',
+        'stations.fields' => "SELECT DISTINCT p.value AS v FROM stations, jsonb_each_text(COALESCE(provenance, '{}'::jsonb)) AS p
+            WHERE p.key IN ('name', 'geom', 'opened_at', 'closed_at') UNION SELECT DISTINCT position_source FROM stations WHERE position_source IS NOT NULL",
+        'accidents.fields' => "SELECT DISTINCT p.value AS v FROM accidents, jsonb_each_text(COALESCE(provenance, '{}'::jsonb)) AS p
+            UNION SELECT DISTINCT location_source FROM accidents WHERE location_source IS NOT NULL
+            UNION SELECT DISTINCT toll_source FROM accidents WHERE toll_source IS NOT NULL",
+        'line_segments.gauge_source' => 'SELECT DISTINCT gauge_source AS v FROM line_segments WHERE gauge_source IS NOT NULL',
     ];
 
     public function handle(): int

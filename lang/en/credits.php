@@ -124,7 +124,7 @@ return [
             'home_map_title' => 'Home page background',
             'home_map_text' => 'Cropped, sepia-toned detail of the “Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs” (special railway map of France and Germany for travellers), drawn by Alexandre Vuillemin and published by A. Logerot (Paris, 1865). Copy held by the Library of Congress (Washington), public domain.',
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Digitised documents about a line: project reports, plans, photographs. VFF only reuses their catalogue record (title, date, shelfmark; Open Licence) and links to Gallica to view them. The documents themselves can be reused under the BnF’s conditions.',
+            'gallica_text' => 'Digitised documents about a line: project reports, plans, photographs. VFF only reuses their catalogue record (title, date, shelfmark; Open Licence) and links to Gallica to view them. The documents themselves can be reused under the BnF’s conditions. Records of the BnF general catalogue (authors, title, publisher, year, ISBN; Open Licence) also feed the “Further reading” section of the sheets, with a link to the record.',
             'sncf_archives_title' => 'SNCF archives',
             'sncf_archives_text' => 'Files, photographs and films from the SNCF group archives whose title refers to a line. VFF reuses their record (title, date, file number; dataset under the ODbL) and links to archives.sncf.com to view them.',
             'commons_title' => 'Wikipedia and Wikimedia Commons',

@@ -50,6 +50,7 @@ return [
         [
             'field' => 'kind',
             'value' => 'attack',
+            'single_source' => true,
             'sources' => ['wp-liste-1940s'],
             'fr' => 'La liste de Wikipédia, source de la fiche, attribue le déraillement à un sabotage : un rail avait été détirefonné et déséclissé. La première circonstance est l\'attentat.',
             'en' => 'The Wikipedia list, the source of the entry, attributes the derailment to sabotage: a rail had had its sleeper screws and fishplates removed. The first circumstance is the attack.',

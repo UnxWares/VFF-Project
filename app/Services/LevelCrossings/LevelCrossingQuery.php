@@ -5,6 +5,8 @@ namespace App\Services\LevelCrossings;
 use App\Enums\LevelCrossingGroup;
 use App\Models\LevelCrossing;
 use App\Models\Line;
+use App\Support\Search\SearchQuery;
+use App\Support\Search\SearchText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -19,7 +21,7 @@ final class LevelCrossingQuery
     public const CURSOR_COLUMNS = ['code_ligne', 'pk_sort', 'id'];
 
     /** Emprise « ouest,sud,est,nord » en degrés WGS 84 (nombres décimaux, point comme séparateur). */
-    private const BBOX_PATTERN = '/^-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?,-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?$/';
+    public const BBOX_PATTERN = '/^-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?,-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?$/';
 
     /** @return array<string, list<mixed>> */
     public static function rules(): array
@@ -90,8 +92,9 @@ final class LevelCrossingQuery
             $query->where('mnemo', self::mnemo((int) $filters['class']));
         }
         if (filled($filters['commune'] ?? null)) {
-            $like = '%'.addcslashes(trim((string) $filters['commune']), '\\%_').'%';
-            $query->whereRaw('unaccent(commune) ILIKE unaccent(?)', [$like]);
+            // Recherche commune (App\Support\Search) : « st germain laye » trouve Saint-Germain-en-Laye.
+            [$match, $bindings] = SearchQuery::parse((string) $filters['commune'])->matchSql(SearchText::sqlKeyFormula('sncf_level_crossings.commune', 'unaccent'), anywhere: true);
+            $query->whereRaw("({$match})", $bindings);
         }
         if (filled($filters['bbox'] ?? null)) {
             [$west, $south, $east, $north] = array_map('floatval', explode(',', (string) $filters['bbox']));

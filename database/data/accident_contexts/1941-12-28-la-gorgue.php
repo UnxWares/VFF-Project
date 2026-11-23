@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de La Gorgue du 28 décembre 1941 (recherche du 21/11/2026).
 return [
     'slug' => '1941-12-28-la-gorgue',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1940' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article cité par Wikipédia, adresse exacte non retrouvée ; à consulter.',
         ],
+        'ddb-1942-01-02-schwerter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => '48 Tote Zugunglück in Westflandern',
+            'publisher' => 'Schwerter Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1942-01-02',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/MGRB4GECBP6UFDSF74VH55Z4FTTGVRKL?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche DRB de Bruxelles du 1er janvier 1942 : aux premières heures du 28 décembre 1941, sur la ligne à voie unique Armentières-Merville, entre Laventie et La Gorgue-Estaires, deux trains de voyageurs se heurtent ; 48 morts. Presse sous l\'Occupation.',
+        ],
+        'kb-1941-12-31-bataviaasch-nieuwsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk',
+            'publisher' => 'Bataviaasch Nieuwsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1941-12-31',
+            'locator' => 'article « Spoorwegongeluk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110612816:mpeg21:a0031:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Londres du 30 décembre, d\'après Vichy : 50 morts près de Hazebrouck, à 40 km de Lille.',
+        ],
+        'kb-1941-12-30-amigoe-di-curacao' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'ALLERLAATSTE NIEUWS.',
+            'publisher' => 'Amigoe di Curaçao (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1941-12-30',
+            'locator' => 'article « ALLERLAATSTE NIEUWS. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010401040:mpeg21:a0063:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dernières nouvelles du 30 décembre : 50 personnes tuées près de Hazebrouck, à 25 miles de Lille ; on pense à une collision.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -72,6 +114,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Une dépêche allemande publiée le 2 janvier 1942 place l\'accident aux premières heures du 28 décembre 1941 sur la ligne à voie unique Armentières-Merville, entre Laventie et La Gorgue-Estaires, et annonce 48 morts, contre 53 dans la fiche.',
+                'en' => 'A German agency report published on 2 January 1942 places the accident in the early hours of 28 December 1941 on the single-track Armentières-Merville line, between Laventie and La Gorgue-Estaires, and announces 48 dead, against 53 in the record.',
+                'de' => 'Eine am 2. Januar 1942 veröffentlichte deutsche Agenturmeldung verlegt das Unglück in die frühen Morgenstunden des 28. Dezember 1941 auf die eingleisige Strecke Armentières-Merville zwischen Laventie und La Gorgue-Estaires und nennt 48 Tote, gegenüber 53 in der Datenbank.',
+                'sources' => ['ddb-1942-01-02-schwerter'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais d\'outre-mer des 30 et 31 décembre 1941 relaient une dépêche de Londres d\'après Vichy : une cinquantaine de morts dans un accident près de Hazebrouck, à 25 miles de Lille, attribué à une collision. La localisation n\'est donnée qu\'à la ville voisine ; la fiche donne 53 morts.',
+                'en' => 'Two Dutch overseas newspapers of 30 and 31 December 1941 relay a London dispatch based on Vichy: about fifty dead in an accident near Hazebrouck, 25 miles from Lille, attributed to a collision. The place is given only by the neighbouring town; the record gives 53 dead.',
+                'de' => 'Zwei niederländische Überseezeitungen vom 30. und 31. Dezember 1941 geben eine Londoner Meldung nach Vichy wieder: etwa fünfzig Tote bei einem Unglück bei Hazebrouck, 25 Meilen von Lille, auf einen Zusammenstoß zurückgeführt. Der Ort wird nur über die Nachbarstadt angegeben; die Datenbank nennt 53 Tote.',
+                'sources' => ['kb-1941-12-31-bataviaasch-nieuwsblad', 'kb-1941-12-30-amigoe-di-curacao'],
+            ],
             [
                 'fr' => 'Wikipédia retient 53 morts et 41 blessés. Le blog local évoque 47 morts et 63 blessés dégagés dans un premier temps.',
                 'en' => 'Wikipedia gives 53 dead and 41 injured. The local blog mentions 47 dead and 63 injured recovered at first.',

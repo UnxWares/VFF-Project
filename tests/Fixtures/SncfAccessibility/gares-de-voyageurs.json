@@ -1,0 +1,40 @@
+{
+ "dataset": "gares-de-voyageurs",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "nom": "Alpha-Centre",
+   "libellecourt": "ALC",
+   "segment_drg": "A",
+   "codeinsee": "75056",
+   "codes_uic": "87000001",
+   "id": "aaaaaaaa-0000-4000-8000-000000000001"
+  },
+  {
+   "nom": "Bravo",
+   "libellecourt": "BRV",
+   "segment_drg": "C",
+   "codeinsee": "06088",
+   "codes_uic": "87000002",
+   "id": "aaaaaaaa-0000-4000-8000-000000000002"
+  },
+  {
+   "nom": "Gare absente",
+   "libellecourt": "ABS",
+   "segment_drg": "C",
+   "codeinsee": "29019",
+   "codes_uic": "87999000",
+   "id": "aaaaaaaa-0000-4000-8000-000000000003"
+  },
+  {
+   "nom": "Deux codes",
+   "libellecourt": "DCD",
+   "segment_drg": "B",
+   "codeinsee": "33063",
+   "codes_uic": "87000004;87000005",
+   "id": "aaaaaaaa-0000-4000-8000-000000000004"
+  }
+ ]
+}

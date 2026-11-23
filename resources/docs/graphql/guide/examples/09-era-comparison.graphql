@@ -1,0 +1,11 @@
+query WhatChanged {
+  eraComparison(from: 1930, to: 1980) {
+    changes {
+      opened { km lines }
+      closed { km lines }
+      removed { km lines }
+      kept { km lines }
+    }
+    open_km { from to }
+  }
+}

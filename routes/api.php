@@ -1,16 +1,25 @@
 <?php
 
 use App\Http\Controllers\Api\AccidentController;
+use App\Http\Controllers\Api\AccidentStatisticsController;
+use App\Http\Controllers\Api\BibliographyController;
+use App\Http\Controllers\Api\ChronologyController;
+use App\Http\Controllers\Api\CommuneController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\CoverageController;
+use App\Http\Controllers\Api\DepartmentHistoryController;
 use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
+use App\Http\Controllers\Api\HeritageController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineArchiveController;
 use App\Http\Controllers\Api\LineArchiveRecordController;
 use App\Http\Controllers\Api\LineAuditController;
 use App\Http\Controllers\Api\LineController;
+use App\Http\Controllers\Api\LineElectrificationHistoryController;
 use App\Http\Controllers\Api\LineEventController;
 use App\Http\Controllers\Api\LineGreenwayController;
 use App\Http\Controllers\Api\LineHistoryController;
@@ -19,23 +28,37 @@ use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
+use App\Http\Controllers\Api\LineSchematicController;
 use App\Http\Controllers\Api\LineSignallingController;
+use App\Http\Controllers\Api\LineSpeedController;
 use App\Http\Controllers\Api\LineStopsController;
 use App\Http\Controllers\Api\LineStoryController;
+use App\Http\Controllers\Api\LineStructureController;
 use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\MaterialTimelineController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NetworkAuditController;
+use App\Http\Controllers\Api\NetworkFiguresController;
+use App\Http\Controllers\Api\OnThisDayController;
+use App\Http\Controllers\Api\PreservedMaterialController;
+use App\Http\Controllers\Api\RailProjectController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
+use App\Http\Controllers\Api\StationAccessibilityController;
+use App\Http\Controllers\Api\StationAttendanceController;
 use App\Http\Controllers\Api\StationAuditController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
+use App\Http\Controllers\Api\StationHeritageController;
+use App\Http\Controllers\Api\StationTimetableController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
+use App\Http\Controllers\Api\TouristRailwayController;
+use App\Http\Controllers\Api\WhatWasHereController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CspReportController;
 use Illuminate\Http\Request;
@@ -55,6 +78,8 @@ Route::middleware(['api.token', 'auth:sanctum', 'throttle:public-api'])->get('/u
 // (api.token) : il relève la limite de débit du compte (limiteur public-api, config/api.php).
 // Limite généreuse (navigation carte = nombreuses tuiles) mais anti-abus.
 Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void {
+    // « Qu'y avait-il ici ? » : lignes, gares et faits datés autour d'un point (panneau de la carte /maps).
+    Route::get('v1/what-was-here', [WhatWasHereController::class, 'show'])->name('api.what-was-here');
     // Longueurs bornées : un entier géant (« 99999999999999999999 ») ne rentre pas
     // dans le paramètre int du contrôleur (TypeError, HTTP 500) → 404 de routage.
     Route::prefix('v1/eras/{year}')
@@ -62,6 +87,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->group(function (): void {
             Route::get('/lines.geojson', [GeoController::class, 'lines'])->name('api.eras.lines');
             Route::get('/stations.geojson', [GeoController::class, 'stations'])->name('api.eras.stations');
+            // Lignes et gares d'une emprise (alternative textuelle à la carte /maps).
+            Route::get('/in-view', [GeoController::class, 'inView'])->name('api.eras.in-view');
             // Plan schématique (vue ferroviaire de /maps), calculé une fois par graphe de l'ère.
             Route::get('/schematic.geojson', [SchematicMapController::class, 'show'])->name('api.eras.schematic');
             Route::get('/tiles/{z}/{x}/{y}.mvt', [GeoController::class, 'tile'])
@@ -89,8 +116,20 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
 
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
     Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
+    Route::get('/v1/stats/network', [NetworkFiguresController::class, 'show'])->name('api.stats.network');
+    // Couverture des données : ce que l'encyclopédie sait, en nombre et en part (en cache : vff:compute-coverage-figures).
+    Route::get('/v1/stats/coverage', [CoverageController::class, 'show'])->name('api.stats.coverage');
+    // Chronologie du rail en France (faits par année, en cache : vff:compute-network-chronology).
+    Route::get('/v1/chronology', [ChronologyController::class, 'index'])->name('api.chronology');
+    Route::get('/v1/chronology/{decade}', [ChronologyController::class, 'show'])->where('decade', '[0-9]{4}')->name('api.chronology.decade');
+    // Ce jour-là : faits datés au jour d'une date du calendrier (aujourd'hui par défaut ; en cache par jour).
+    Route::get('/v1/on-this-day/{monthDay?}', [OnThisDayController::class, 'show'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('api.on-this-day');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
+    Route::get('/v1/tourist-railways', [TouristRailwayController::class, 'index'])->name('api.tourist-railways');
+    // Patrimoine ferroviaire protégé (monuments historiques, label ACR) : App\Services\Heritage\HeritageIndex.
+    Route::get('/v1/heritage', [HeritageController::class, 'index'])->name('api.heritage');
+    Route::get('/v1/projects', [RailProjectController::class, 'index'])->name('api.projects');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');
@@ -101,6 +140,15 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/stations/{station:slug}/media', [StationController::class, 'media'])->name('api.stations.media');
+    Route::get('/v1/stations/{station:slug}/aerial', [StationController::class, 'aerial'])->name('api.stations.aerial');
+    // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : App\Services\Sncf\StationAttendance.
+    Route::get('/v1/stations/{station:slug}/attendance', [StationAttendanceController::class, 'index'])->name('api.stations.attendance');
+    // Accessibilité et services de la gare (SNCF Gares & Connexions, ODbL) : App\Services\Accessibility\StationAccessibility.
+    Route::get('/v1/stations/{station:slug}/accessibility', [StationAccessibilityController::class, 'index'])->name('api.stations.accessibility');
+    // Desserte d'un jour ouvrable type (horaires GTFS SNCF et Transilien, ODbL) : App\Services\Timetable\Timetables.
+    Route::get('/v1/stations/{station:slug}/timetable', [StationTimetableController::class, 'index'])->name('api.stations.timetable');
+    // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Licence Ouverte 2.0 ; Wikidata, CC0) : App\Services\Heritage\StationHeritage.
+    Route::get('/v1/stations/{station:slug}/heritage', [StationHeritageController::class, 'index'])->name('api.stations.heritage');
     // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.
     Route::get('/v1/stations/{station:slug}/audit', [StationAuditController::class, 'show'])->name('api.stations.audit');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
@@ -108,19 +156,37 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).
     Route::get('/v1/departments', [TerritoryController::class, 'departments'])->name('api.departments.index');
     Route::get('/v1/departments/{department}', [TerritoryController::class, 'department'])->where('department', '[0-9]{2,3}|2[ABab]')->name('api.departments.show');
+    // Le rail d'un département décennie par décennie et le tableau des départements (en cache : vff:compute-department-figures).
+    Route::get('/v1/departments/{department}/history', [DepartmentHistoryController::class, 'show'])->where('department', '[0-9]{2,3}|2[ABab]')->name('api.departments.history');
+    Route::get('/v1/stats/departments', [DepartmentHistoryController::class, 'index'])->name('api.stats.departments');
+    // Les compagnies de chemins de fer historiques (lignes rattachées par événement daté, réseau par décennie ; en cache : vff:compute-company-figures).
+    Route::get('/v1/companies', [CompanyController::class, 'index'])->name('api.companies.index');
+    Route::get('/v1/companies/{company}', [CompanyController::class, 'show'])->where('company', '[a-z0-9-]{2,40}')->name('api.companies.show');
+    Route::get('/v1/communes/{insee}', [CommuneController::class, 'show'])->where('insee', '[0-9]{5}|2[ABab][0-9]{3}')->name('api.communes.show');
     Route::get('/v1/regions', [TerritoryController::class, 'regions'])->name('api.regions.index');
     Route::get('/v1/regions/{region}', [TerritoryController::class, 'region'])->where('region', '[0-9]{2}')->name('api.regions.show');
     Route::get('/v1/lines/{line:slug}/history', [LineHistoryController::class, 'show'])->name('api.lines.history');
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
+    // Position d'un PK sur la ligne : gares qui l'encadrent, commune, point de carte (App\Services\Lines\LinePkPosition).
+    Route::get('/v1/lines/{line:slug}/at-pk', [LinePkController::class, 'atPk'])->name('api.lines.at-pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
+    Route::get('/v1/lines/{line:slug}/electrification-history', [LineElectrificationHistoryController::class, 'index'])->name('api.lines.electrification-history');
+    Route::get('/v1/lines/{line:slug}/speeds', [LineSpeedController::class, 'index'])->name('api.lines.speeds');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
+    // Ouvrages d'art (tunnels, viaducs, grands ponts ; BD TOPO et Wikidata) : App\Services\Structures\LineStructures.
+    Route::get('/v1/lines/{line:slug}/structures', [LineStructureController::class, 'index'])->name('api.lines.structures');
     // Voies (régime d'exploitation) et radio sol-train (GSM-R) de SNCF Réseau, ODbL : App\Services\Sncf\LineInfrastructure.
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
+    // Schéma de ligne par PK (gares, bifurcations, PN, ouvrages, voies, courant, signalisation, vitesse) : App\Services\Lines\LineSchematic.
+    Route::get('/v1/lines/{line:slug}/schematic', [LineSchematicController::class, 'show'])->name('api.lines.schematic');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
     // Notices des fonds d'archives (Archives SNCF, ODbL) : App\Services\Archives\LineArchives::records.
     Route::get('/v1/lines/{line:slug}/archive-records', [LineArchiveRecordController::class, 'index'])->name('api.lines.archive-records');
+    // Ouvrages et articles qui traitent de la ligne ou de la gare (notices de la BnF, références de Wikipédia, Wikidata) : App\Services\Bibliography\SheetBibliography.
+    Route::get('/v1/lines/{line:slug}/bibliography', [BibliographyController::class, 'line'])->name('api.lines.bibliography');
+    Route::get('/v1/stations/{station:slug}/bibliography', [BibliographyController::class, 'station'])->name('api.stations.bibliography');
     // Histoires d'événements : images de l'époque et documents de Gallica (App\Services\Stories\EventStories).
     Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
     Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');
@@ -146,8 +212,12 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
 
     // Matériel roulant (fiches Wikidata, liens avec les lignes attestés par une source).
     Route::get('/v1/materials', [MaterialController::class, 'index'])->name('api.materials.index');
+    Route::get('/v1/materials/timeline', [MaterialTimelineController::class, 'index'])->name('api.materials.timeline');
+    Route::get('/v1/materials/preserved', [PreservedMaterialController::class, 'index'])->name('api.materials.preserved');
     Route::get('/v1/materials/{material:slug}', [MaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.show');
+    Route::get('/v1/materials/{material:slug}/map', [MaterialController::class, 'map'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.map');
     Route::get('/v1/materials/{material:slug}/media', [MaterialController::class, 'media'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.media');
+    Route::get('/v1/materials/{material:slug}/preserved', [PreservedMaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.preserved.show');
     Route::get('/v1/lines/{line:slug}/materials', [LineMaterialController::class, 'index'])->name('api.lines.materials');
 
     // Accidents et événements graves (Wikidata, Wikipédia, BEA-TT ; slug = date puis commune).
@@ -164,6 +234,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
         ->name('api.level-crossings.tiles');
     Route::get('/v1/lines/{line:slug}/level-crossings', [LevelCrossingController::class, 'forLine'])->name('api.lines.level-crossings');
+    // Les accidents en chiffres (décennies, natures, passages à niveau, bilans les plus lourds) : avant la fiche.
+    Route::get('/v1/accidents/statistics', [AccidentStatisticsController::class, 'show'])->name('api.accidents.statistics');
     Route::get('/v1/accidents/{accident}', [AccidentController::class, 'show'])->where('accident', '[a-z0-9-]{1,160}')->name('api.accidents.show');
 
     // Journal de bord : articles Markdown versionnés (resources/content/journal), rendus comme sur le site.

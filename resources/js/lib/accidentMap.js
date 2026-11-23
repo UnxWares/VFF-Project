@@ -40,16 +40,17 @@ const APPROXIMATE = ['==', ['get', 'precision'], 'commune'];
  * Années montrées selon la vue de la carte, bornes incluses (null = pas de borne) :
  *   - une époque : tous les accidents jusqu'à l'année de l'ère (la carte de 1950 montre le
  *     réseau au 31/12/1950, donc les accidents survenus jusque-là) ;
- *   - comparaison : ceux survenus entre les deux ères (après la première, jusqu'à la seconde) ;
+ *   - comparaison (différences ou rideau) : ceux survenus entre les deux ères (après la première,
+ *     jusqu'à la seconde) ;
  *   - toutes les époques : tous.
- * @param {string} view 'era', 'compare' ou 'stack'
+ * @param {string} view 'era', 'compare', 'curtain' ou 'stack'
  * @param {number|null} era
  * @param {number|null} compareEra
  * @returns {{ from: number|null, to: number|null }}
  */
 export function accidentYears(view, era, compareEra) {
     if (view === 'stack' || era == null) return { from: null, to: null };
-    if (view === 'compare' && compareEra != null) {
+    if ((view === 'compare' || view === 'curtain') && compareEra != null) {
         const [a, b] = era < compareEra ? [era, compareEra] : [compareEra, era];
         return { from: a + 1, to: b };
     }

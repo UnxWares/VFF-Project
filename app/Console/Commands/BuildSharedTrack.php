@@ -47,6 +47,13 @@ use Illuminate\Support\Facades\DB;
  *      dessin jusqu'à la voie de la ligne qui masque, vers le point situé JOIN_AHEAD_M plus loin (angle doux, pas de
  *      marche d'escalier), dans visible_geom de la partie masquée. Pas de
  *      bout qui flotte à côté de la voie qu'il rejoint.
+ *      La voie qui masque se mesure sur son DESSIN : les parties dessinées des
+ *      portions qui masquent la suite, ou de celles qui les masquent à leur tour
+ *      (chaîne, autres lignes que celle du bout), pas leurs parties masquées.
+ *      Suite masquée sous une chaîne qu'aucune ligne ne dessine à moins de
+ *      CORRIDOR_M : elle reste dessinée en entier (sinon la voie disparaît de la
+ *      carte : La Voulte, 800000 sous le raccordement 800316, lui-même masqué
+ *      sous le tracé grossier de 913000 à 36 m).
  *   3. Contact à 0 m (contact) : sur la géométrie dessinée de TOUTES les lignes
  *      de l'ère, le bout d'une branche qui rejoint une autre ligne (suite
  *      masquée sous elle, ou arrivée à moins de JOIN_MAX_M, cap vers elle) finit
@@ -160,8 +167,8 @@ class BuildSharedTrack extends Command
             $total['rows'] += $stats->rows;
             $total['hidden'] += $stats->hidden;
             $total['km'] += $stats->km;
-            $this->line(sprintf('  %d : %d portions recouvertes (%d entièrement), %.1f km masqués ; continuité : %d morceaux masqués (%.1f km), %d approches dessinées jusqu\'au contact, %d raccords de dessin ; contact à 0 m : %d raccords, %d bouts coupés ; lissage : %d arrivées lissées, %d laissées (%.0f s)',
-                $era->year, $stats->rows, $stats->hidden, $stats->km, $stats->fragments, $stats->fragments_km, $stats->approaches, $stats->joins, $stats->contacts, $stats->trims, $stats->smoothed, $stats->unsmoothed, microtime(true) - $started));
+            $this->line(sprintf('  %d : %d portions recouvertes (%d entièrement), %.1f km masqués ; continuité : %d morceaux masqués (%.1f km), %d approches dessinées jusqu\'au contact (dont %d suites masquées que rien ne dessine), %d raccords de dessin ; contact à 0 m : %d raccords, %d bouts coupés ; lissage : %d arrivées lissées, %d laissées (%.0f s)',
+                $era->year, $stats->rows, $stats->hidden, $stats->km, $stats->fragments, $stats->fragments_km, $stats->approaches, $stats->orphans, $stats->joins, $stats->contacts, $stats->trims, $stats->smoothed, $stats->unsmoothed, microtime(true) - $started));
         }
         $this->info(sprintf('Voies partagées : %d portions recouvertes, %d entièrement, %.0f km masqués sur %d ère(s).',
             $total['rows'], $total['hidden'], $total['km'], $eras->count()));
@@ -264,11 +271,11 @@ class BuildSharedTrack extends Command
      * Continuité du dessin (cf. docblock) : morceaux dessinés coincés entre des parties masquées
      * (règle 1, deux passes), puis raccords de dessin des bouts qui s'arrêtent à côté de la voie (règle 2).
      *
-     * @return array{fragments: int, fragments_km: float, approaches: int, joins: int, contacts: int, trims: int, smoothed: int, unsmoothed: int}
+     * @return array{fragments: int, fragments_km: float, approaches: int, orphans: int, joins: int, contacts: int, trims: int, smoothed: int, unsmoothed: int}
      */
     private function continuity(int $eraId): array
     {
-        $out = ['fragments' => 0, 'fragments_km' => 0.0, 'approaches' => 0, 'joins' => 0];
+        $out = ['fragments' => 0, 'fragments_km' => 0.0, 'approaches' => 0, 'orphans' => 0, 'joins' => 0];
         DB::statement('DROP TABLE IF EXISTS pg_temp.tp_cv');
         DB::statement(<<<'SQL'
             CREATE TEMP TABLE tp_cv AS
@@ -343,7 +350,7 @@ class BuildSharedTrack extends Command
                 SELECT d.pid, d.line_id, x.p FROM tp_dp d, LATERAL (VALUES (ST_StartPoint(d.g)), (ST_EndPoint(d.g))) x(p)
             ),
             m AS (
-                SELECT e.pid, e.p, c.sid AS csid, c.g AS cg
+                SELECT e.pid, e.line_id, e.p, c.sid AS csid, c.g AS cg
                 FROM e JOIN LATERAL (
                     SELECT c.sid, c.g FROM tp_cp c WHERE c.line_id = e.line_id AND ST_DWithin(c.g, e.p, 0.5)
                     ORDER BY ST_Length(c.g) DESC, c.sid LIMIT 1
@@ -351,13 +358,23 @@ class BuildSharedTrack extends Command
                 WHERE NOT EXISTS (SELECT 1 FROM tp_dp o WHERE o.line_id = e.line_id AND o.pid <> e.pid AND ST_DWithin(o.g, e.p, 0.5))
             ),
             u AS (
-                -- C orientée depuis le bout dessiné.
+                -- C orientée depuis le bout dessiné ; ug : DESSIN de la voie qui masque C (parties dessinées des portions
+                -- qui la masquent, ou de celles qui les masquent à leur tour, hors de la ligne du bout).
                 SELECT m.pid, m.p, m.csid,
                        CASE WHEN ST_LineLocatePoint(m.cg, m.p) < 0.5 THEN m.cg ELSE ST_Reverse(m.cg) END AS cg,
-                       (SELECT ST_Collect(b.g) FROM tp_shared_seg b, tp_cv v WHERE v.sid = m.csid AND b.id = ANY (v.covering_ids)) AS ug
+                       (WITH RECURSIVE k(id, n) AS (
+                            SELECT x.id, 1 FROM tp_cv v CROSS JOIN LATERAL unnest(v.covering_ids) x(id) WHERE v.sid = m.csid
+                            UNION
+                            SELECT x.id, k.n + 1 FROM k JOIN tp_cv w ON w.sid = k.id CROSS JOIN LATERAL unnest(w.covering_ids) x(id) WHERE k.n < 4
+                        )
+                        SELECT ST_Collect(CASE WHEN w.sid IS NULL THEN b.g ELSE w.vis END)
+                        FROM tp_shared_seg b LEFT JOIN tp_cv w ON w.sid = b.id
+                        WHERE b.id IN (SELECT k.id FROM k) AND b.line_id <> m.line_id) AS ug
                 FROM m
             )
             SELECT u.pid, u.csid, ST_Distance(u.p, u.ug) AS d, ST_Length(u.cg) AS clen,
+                   -- Aucune ligne ne dessine C à moins de CORRIDOR_M : la suite reste dessinée en entier.
+                   (u.ug IS NULL OR NOT ST_DWithin(u.cg, u.ug, :corr)) AS orphan,
                    -- Premier point de C (pas de 2 m, dans les JOIN_SEARCH_M premiers mètres) au contact de la voie qui masque.
                    (SELECT MIN(k * 2.0) FROM generate_series(0, CAST(LEAST(:search, ST_Length(u.cg)) / 2 AS int)) k
                      WHERE ST_Distance(ST_LineInterpolatePoint(u.cg, LEAST(1, k * 2.0 / ST_Length(u.cg))), u.ug) <= :min) AS contact,
@@ -366,18 +383,28 @@ class BuildSharedTrack extends Command
                      WHERE ST_Distance(ST_LineInterpolatePoint(u.cg, LEAST(1, k * 2.0 / ST_Length(u.cg))), u.ug) <= :max) AS near,
                    ST_MakeLine(u.p, ST_ClosestPoint(u.ug, ST_LineInterpolatePoint(u.cg, LEAST(1, :ahead / ST_Length(u.cg))))) AS conn,
                    u.cg
-            FROM u WHERE u.ug IS NOT NULL AND ST_Length(u.cg) > 0
+            FROM u WHERE ST_Length(u.cg) > 0
             ORDER BY u.csid, u.pid
             SQL, ['search' => self::JOIN_SEARCH_M, 'min' => self::JOIN_MIN_M, 'ahead' => self::JOIN_AHEAD_M,
-            'search2' => self::JOIN_SEARCH_M, 'max' => self::JOIN_MAX_M]);
+            'search2' => self::JOIN_SEARCH_M, 'max' => self::JOIN_MAX_M, 'corr' => self::CORRIDOR_M]);
+        $orphans = [];
         foreach ($ends as $j) {
-            if ((float) $j->d <= self::JOIN_MIN_M) {
+            if (! $j->orphan && (float) $j->d <= self::JOIN_MIN_M) {
                 continue;
+            }
+            // Partie masquée orpheline entre deux bouts dessinés de la ligne : rendue une seule fois.
+            if ($j->orphan && isset($orphans[$j->csid.':'.round((float) $j->clen, 1)])) {
+                continue;
+            }
+            if ($j->orphan) {
+                $orphans[$j->csid.':'.round((float) $j->clen, 1)] = true;
             }
             // Bout à plus de JOIN_MAX_M de la voie qui masque la suite : approche dessinée jusqu'à JOIN_MAX_M d'elle.
             $far = (float) $j->d > self::JOIN_MAX_M && $j->near !== null && (float) $j->near > 0;
-            if (($j->contact !== null && (float) $j->contact > 0) || $far) {
-                $j->contact = ($j->contact !== null && (float) $j->contact > 0) ? $j->contact : $j->near;
+            if ($j->orphan || ($j->contact !== null && (float) $j->contact > 0) || $far) {
+                // Suite que rien ne dessine : dessinée jusqu'au bout de la partie masquée.
+                $j->contact = $j->orphan ? $j->clen : (($j->contact !== null && (float) $j->contact > 0) ? $j->contact : $j->near);
+                $out['orphans'] += $j->orphan ? 1 : 0;
                 // La ligne rejoint la voie un peu plus loin : son approche reste dessinée jusqu'au contact.
                 DB::update(<<<'SQL'
                     UPDATE tp_cv SET

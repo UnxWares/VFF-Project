@@ -61,7 +61,7 @@ class StationPagesTest extends TestCase
                 ->where('counts', ['active' => 2, 'gone' => 1])
                 ->where('eras', [1960, 2030])
                 ->where('departments', ['75', '78'])
-                ->where('filters', ['q' => '', 'status' => '', 'dept' => '', 'era' => null, 'flagged' => false, 'sort' => 'name']));
+                ->where('filters', ['q' => '', 'status' => '', 'dept' => '', 'era' => null, 'flagged' => false, 'heritage' => false, 'accessible' => false, 'sort' => 'name']));
 
         $this->get('/stations?status=gone')->assertInertia(fn (Assert $page) => $page
             ->where('stations.total', 1)->where('stations.data.0.slug', $gone->slug)
@@ -141,7 +141,7 @@ class StationPagesTest extends TestCase
             ]);
         }
 
-        $this->get('/stations/paris-saint-lazare')
+        $this->getWithDeferredProps('/stations/paris-saint-lazare')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Stations/Show')
@@ -185,7 +185,7 @@ class StationPagesTest extends TestCase
 
     public function test_show_falls_back_to_nearby_segments_when_not_attached(): void
     {
-        $this->get('/stations/versailles-rive-droite')->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/versailles-rive-droite')->assertInertia(fn (Assert $page) => $page
             ->where('lines.0.slug', $this->line->slug)
             ->where('lines.0.method', 'segment')
             ->where('lines.0.era_years', [])
@@ -202,7 +202,7 @@ class StationPagesTest extends TestCase
         $this->stationEra($this->origin, $this->pastEra->id, 'active', true, 'Fermeture non datée (après 1950)');
         $this->stationEra($this->origin, $this->currentEra->id, 'closed', false, 'Fermeture non datée (après 1950)');
 
-        $this->get('/stations/paris-saint-lazare')->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/paris-saint-lazare')->assertInertia(fn (Assert $page) => $page
             ->where('eras.0.status', 'uncertain')
             ->where('eras.0.undated', true)
             ->where('eras.1.status', 'closed')
@@ -213,7 +213,7 @@ class StationPagesTest extends TestCase
     {
         $this->destination->update(['source_status' => 'gone']);
 
-        $this->get('/stations/versailles-rive-droite')->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/versailles-rive-droite')->assertInertia(fn (Assert $page) => $page
             ->where('station.status', 'gone')->where('station.source_status', 'gone'));
     }
 
@@ -223,7 +223,7 @@ class StationPagesTest extends TestCase
         $far = Station::factory()->create(['slug' => 'plus-loin', 'name' => 'Plus loin', 'geom' => Point::makeGeodetic(48.9000, 2.3500)]);
         Station::factory()->create(['slug' => 'hors-rayon', 'name' => 'Hors rayon', 'geom' => Point::makeGeodetic(49.5, 2.3)]);
 
-        $this->get('/stations/paris-saint-lazare')->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/paris-saint-lazare')->assertInertia(fn (Assert $page) => $page
             ->has('neighbors', 2)
             ->where('neighbors.0.slug', $near->slug)
             ->where('neighbors.1.slug', $far->slug)
@@ -237,11 +237,11 @@ class StationPagesTest extends TestCase
             'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        $this->get('/stations/osm-12345-paris-saint-lazare')
+        $this->getWithDeferredProps('/stations/osm-12345-paris-saint-lazare')
             ->assertStatus(301)
             ->assertRedirect('/stations/paris-saint-lazare');
 
-        $this->get('/stations/osm-99999-inconnue')->assertNotFound();
-        $this->get('/stations/'.rawurlencode("x' OR '1'='1"))->assertNotFound();
+        $this->getWithDeferredProps('/stations/osm-99999-inconnue')->assertNotFound();
+        $this->getWithDeferredProps('/stations/'.rawurlencode("x' OR '1'='1"))->assertNotFound();
     }
 }

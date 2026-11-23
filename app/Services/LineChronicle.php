@@ -396,6 +396,7 @@ final class LineChronicle
         $rows = Media::query()
             ->where('mediable_type', LineEvent::class)
             ->whereIn('mediable_id', LineEvent::query()->select('id')->where('line_id', $lineId))
+            ->displayable()
             ->orderBy('id')
             ->get();
         foreach ($rows as $m) {

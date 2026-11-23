@@ -2,15 +2,16 @@
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { fitWords } from '$lib/fitWords.js';
-    import { searchGroups, stepIndex } from '$lib/siteSearch.js';
+    import { searchGroups, searchPageHref, stepIndex } from '$lib/siteSearch.js';
 
     /**
      * Recherche de tout le site : rubriques (Carte, Lignes, Gares…), lignes, gares et matériel
-     * roulant et accidents (GET /api/v1/search), puis « Toutes les lignes / gares / accidents contenant… » vers les annuaires.
+     * roulant, accidents et communes qui ont du rail (GET /api/v1/search), puis « Toutes les lignes / gares / accidents contenant… » vers les annuaires.
      * Choisir un résultat ouvre directement sa page.
      *
      * Combobox ARIA 1.2 : le focus reste dans le champ, les flèches parcourent les résultats
-     * (aria-activedescendant), Entrée ouvre le résultat actif (le premier sinon). Le nombre de
+     * (aria-activedescendant), Entrée ouvre le résultat actif, sinon la page de tous les résultats
+     * (/search?q=…, deux caractères au moins ; la première rubrique pour un texte plus court). Le nombre de
      * résultats, l'absence de résultat et les erreurs sont annoncés par une zone d'état présente
      * dès le départ.
      *
@@ -38,7 +39,14 @@
     const listId = `${uid}-list`;
 
     let q = $state('');
-    let results = $state.raw({ lines: [], stations: [], materials: [], accidents: [] });
+    let results = $state.raw({
+        lines: [],
+        stations: [],
+        materials: [],
+        accidents: [],
+        communes: [],
+        pk_positions: [],
+    });
     // idle | loading | done | error
     let phase = $state('idle');
     let searched = $state('');
@@ -96,16 +104,29 @@
         results.lines.length +
             results.stations.length +
             results.materials.length +
-            results.accidents.length,
+            results.accidents.length +
+            results.communes.length +
+            results.pk_positions.length,
     );
 
+    // Rien ne correspond mot pour mot : tous les résultats sont des noms approchés (fautes de frappe).
+    const approximateOnly = $derived(
+        resultCount > 0 &&
+            [
+                ...results.lines,
+                ...results.stations,
+                ...results.materials,
+                ...results.accidents,
+                ...results.communes,
+            ].every((r) => r.approximate),
+    );
     const listShown = $derived(options.length > 0 && (!floating || isOpen));
     // Message visible : aucun résultat ou erreur (sinon lu seulement).
     const messageShown = $derived(
         (!floating || isOpen) &&
             query.length >= 2 &&
             query === searched &&
-            (phase === 'error' || (phase === 'done' && resultCount === 0)),
+            (phase === 'error' || (phase === 'done' && (resultCount === 0 || approximateOnly))),
     );
     const statusText = $derived(
         phase === 'loading'
@@ -113,9 +134,11 @@
             : phase === 'error'
               ? t('nav.search.error')
               : phase === 'done'
-                ? resultCount
-                    ? t('nav.search.results', { count: resultCount })
-                    : t('nav.search.no_results', { query: searched })
+                ? approximateOnly
+                    ? t('nav.search.approximate', { query: searched })
+                    : resultCount
+                      ? t('nav.search.results', { count: resultCount })
+                      : t('nav.search.no_results', { query: searched })
                 : '',
     );
 
@@ -135,11 +158,20 @@
                 stations: data.stations ?? [],
                 materials: data.materials ?? [],
                 accidents: data.accidents ?? [],
+                communes: data.communes ?? [],
+                pk_positions: data.pk_positions ?? [],
             };
             phase = 'done';
         } catch (e) {
             if (e.name === 'AbortError') return;
-            results = { lines: [], stations: [], materials: [], accidents: [] };
+            results = {
+                lines: [],
+                stations: [],
+                materials: [],
+                accidents: [],
+                communes: [],
+                pk_positions: [],
+            };
             phase = 'error';
         }
         searched = text;
@@ -150,7 +182,14 @@
     function reset() {
         clearTimeout(debounceTimer);
         abortCtrl?.abort();
-        results = { lines: [], stations: [], materials: [], accidents: [] };
+        results = {
+            lines: [],
+            stations: [],
+            materials: [],
+            accidents: [],
+            communes: [],
+            pk_positions: [],
+        };
         phase = 'idle';
         searched = '';
         activeIndex = -1;
@@ -195,9 +234,16 @@
             e.preventDefault();
             move(-1);
         } else if (e.key === 'Enter') {
-            if (!listShown) return;
-            e.preventDefault();
-            pick(options[activeIndex >= 0 ? activeIndex : 0], e);
+            if (listShown && activeIndex >= 0) {
+                e.preventDefault();
+                pick(options[activeIndex], e);
+            } else if (query.length >= 2) {
+                e.preventDefault();
+                pick({ href: searchPageHref(query) }, e);
+            } else if (listShown) {
+                e.preventDefault();
+                pick(options[0], e);
+            }
         } else if (e.key === 'Escape' && floating) {
             if (isOpen && (listShown || messageShown)) {
                 e.preventDefault();

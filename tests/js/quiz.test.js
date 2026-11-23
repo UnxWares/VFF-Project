@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
     answerHref,
     bestKey,
+    difficultyKey,
+    factHints,
+    GAMES,
     lineHints,
     materialHints,
     quizHref,
@@ -173,5 +176,31 @@ describe('score', () => {
         const s = memoryStorage();
         s.setItem(bestKey('lines', 'easy'), 'abc');
         expect(readBest(s, 'lines', 'easy')).toBeNull();
+    });
+});
+
+describe('jeu « Culture du rail »', () => {
+    it('est un des jeux proposés', () => {
+        expect(GAMES).toContain('facts');
+    });
+
+    it('garde les indices déjà rédigés par le serveur, avec un identifiant', () => {
+        expect(factHints([{ label: 'Commune', value: 'Amiens' }])).toEqual([
+            { id: 'Commune', label: 'Commune', value: 'Amiens' },
+        ]);
+        expect(factHints(undefined)).toEqual([]);
+    });
+
+    it('traduit le degré de difficulté en clé, et borne les valeurs étranges', () => {
+        expect([1, 2, 3].map(difficultyKey)).toEqual(['easy', 'medium', 'hard']);
+        expect(difficultyKey(0)).toBe('medium');
+        expect(difficultyKey(9)).toBe('hard');
+        expect(difficultyKey(undefined)).toBe('medium');
+    });
+
+    it('construit une adresse de série pour ce jeu', () => {
+        expect(quizHref('facts', 'hard', 'abcd1234', 'deadbeef')).toBe(
+            '/quiz?game=facts&level=hard&seed=abcd1234&v=deadbeef',
+        );
     });
 });

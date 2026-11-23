@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision de Clichy-Levallois du 3 février 1880 (recherche du 21/11/2026).
 return [
     'slug' => '1880-02-03-levallois-perret',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -75,9 +75,30 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Entrée du 3 février 1880 : 16 morts et 94 blessés, d\'après Le Figaro des 4 au 7 février 1880 ; jugement d\'après Le Figaro des 10 et 11 juillet et Le Petit Parisien du 15 juillet 1880.',
         ],
+        'kb-1880-02-05-utrechtsch-provinciaal-en-stedelijk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Verscheidenheid.',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1880-02-05',
+            'locator' => 'article « Verscheidenheid. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253125036:mpeg21:a00032:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 5 février : mardi dernier, par le brouillard, collision de deux trains à la gare de Clichy-Levallois ; locomotive et plusieurs voitures brisées ; sept morts d\'après le relevé officiel, bilan provisoire (gare de Clichy-Levallois, aujourd\'hui Levallois-Perret).',
+            'facts' => ['date' => '1880-02-03', 'commune_insee' => '92044', 'deaths' => 7, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'L\'Utrechtsch Provinciaal en Stedelijk Dagblad du 5 février 1880 rapporte qu\'à cause du brouillard deux trains sont entrés en collision mardi soir (le 3 février) à la gare de Clichy-Levallois, la locomotive et plusieurs voitures étant brisées. Date, lieu et nature sont confirmés ; l\'extrait lu ne donne pas le bilan de 16 morts de la fiche.',
+                'en' => 'The Utrechtsch Provinciaal en Stedelijk Dagblad of 5 February 1880 reports that because of fog two trains collided on Tuesday evening (3 February) at Clichy-Levallois station, the locomotive and several carriages being smashed. Date, place and nature are confirmed; the extract read does not give the toll of 16 dead in the record.',
+                'de' => 'Das Utrechtsch Provinciaal en Stedelijk Dagblad vom 5. Februar 1880 berichtet, wegen des Nebels seien am Dienstagabend (3. Februar) im Bahnhof Clichy-Levallois zwei Züge zusammengestoßen, wobei die Lokomotive und mehrere Wagen zertrümmert wurden. Datum, Ort und Art sind bestätigt; der gelesene Auszug nennt die Bilanz von 16 Toten der Datenbank nicht.',
+                'sources' => ['kb-1880-02-05-utrechtsch-provinciaal-en-stedelijk'],
+            ],
             [
                 'fr' => 'Entre Paris et Asnières, les trains de la Compagnie des chemins de fer de l\'Ouest partagent le groupe de voies de Saint-Germain, très chargé, avec des trains du Nord. Un brouillard présent depuis plusieurs jours provoque des retards généralisés le 3 février 1880.',
                 'en' => 'Between Paris and Asnières, trains of the Compagnie des chemins de fer de l\'Ouest shared the heavily used Saint-Germain group of tracks with Nord trains. A fog that had lasted several days caused widespread delays on 3 February 1880.',

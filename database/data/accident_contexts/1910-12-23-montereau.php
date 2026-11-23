@@ -20,7 +20,7 @@ return [
             'note' => 'Entrée de 23 h 45 : à Montereau, train de messageries pris en écharpe à la bifurcation vers Melun par le rapide Paris-Modane, un mort et trente-deux blessés ; suites judiciaires (chauffeur interné, mécanicien acquitté).',
         ],
         'delpher-vaderland-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Telegrammen',
@@ -34,7 +34,7 @@ return [
             'note' => 'Dépêche de Paris du 24 décembre : le train 603 est entré dans le flanc du train 3830 près de Montereau, un mort et une vingtaine de blessés.',
         ],
         'delpher-maasbode-1910-12-24' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Dépêches du 24 décembre',
@@ -48,7 +48,7 @@ return [
             'note' => 'Même dépêche : collision à un embranchement près de Montereau, un mort et vingt blessés.',
         ],
         'delpher-courant-1910-12-27-matin' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De spoorweg-ongelukken in Frankrijk',
@@ -62,7 +62,7 @@ return [
             'note' => 'Résumé de Le Matin : accident de Montereau sur la voie de Nemours, un voyageur tué, onze blessés, dégâts matériels estimés à 300 000 francs.',
         ],
         'delpher-nederlander-1910-12-27' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengd nieuws',
@@ -118,5 +118,14 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '77305',
+            'sources' => ['wp-liste-1910'],
+            'fr' => 'La liste de Wikipédia place l\'accident en gare de Montereau, sur la ligne de Paris à Dijon, à la bifurcation de la ligne de Melun par Héricy : c\'est Montereau-Fault-Yonne (Seine-et-Marne), pas Montereau (Loiret), où l\'import avait placé la fiche.',
+            'en' => 'The Wikipedia list places the accident at Montereau station, on the Paris to Dijon line, at the junction with the line to Melun via Héricy: this is Montereau-Fault-Yonne (Seine-et-Marne), not Montereau (Loiret), where the import had placed the record.',
+            'de' => 'Die Wikipedia-Liste verortet den Unfall im Bahnhof Montereau an der Strecke Paris - Dijon, an der Abzweigung der Strecke nach Melun über Héricy: Das ist Montereau-Fault-Yonne (Seine-et-Marne), nicht Montereau (Loiret), wohin der Import den Datensatz gesetzt hatte.',
+        ],
+    ],
 ];

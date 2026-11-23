@@ -100,6 +100,27 @@ use Illuminate\Support\Facades\DB;
  *    les toponymes du titre (« Quimper » ≠ « Quimperlé »). Wikidata : un
  *    événement dont l'item est rattaché à une autre ligne y est déplacé.
  *
+ * 6. COULOIR (couloir) : une ligne créée par vff:link-traces (sans code)
+ *    dessinée dans le couloir d'une ligne à code est cette ligne (ou une de
+ *    ses sections) dessinée une seconde fois (« Gravigny à Amfreville » dans
+ *    « Évreux-Embranchement à Acquigny », 2026-11-22). Fusionnée si TOUT est
+ *    vrai (tracés de référence) :
+ *      - au moins 60 % de son tracé à ≤ 40 m du tracé de la ligne à code, et
+ *        au moins 80 % à ≤ 40 m de lignes à code (le reste longe souvent une
+ *        autre ligne dans la gare d'origine) ;
+ *      - même catégorie (réseau) ;
+ *      - ses deux toponymes sont des lieux de la ligne à code (nom, gares,
+ *        portions des événements tirés d'un texte), ou l'un l'est et l'autre
+ *        est une commune ou une gare à ≤ 3 km du tracé de la ligne, son nom
+ *        complet pouvant le prolonger (« Amfreville » : Amfreville-sur-Iton,
+ *        gare absente des sources de la ligne) ;
+ *      - une seule ligne à code remplit tout (sinon « à relire »).
+ *    Ce qu'elle refuse : une ligne secondaire, militaire ou industrielle qui
+ *    longe une ligne du réseau principal (catégorie), une autre ligne qui part
+ *    de la même gare (toponyme étranger), une ligne qui ne fait que croiser ou
+ *    approcher la ligne à code (part dans le couloir). Jamais une ligne à code
+ *    dans une autre ligne, ni dans une ligne sans code.
+ *
  * Fusion (App\Services\LineMerger) : tracés, rattachements multiples,
  * événements (sans doublon), items Wikidata, médias passent sur la ligne
  * cible ; nom et slug de la ligne fusionnée gardés dans alt_names
@@ -113,14 +134,25 @@ class MergeSplitLines extends Command
 {
     protected $signature = 'vff:merge-split-lines
         {--dry-run : calcule et affiche sans rien écrire}
-        {--only= : passes séparées par des virgules (sections, article, couverture, orphelines, homonymes)}';
+        {--only= : passes séparées par des virgules (sections, article, couverture, orphelines, homonymes, couloir)}';
 
-    protected $description = 'Fusionne les lignes en double (sections, même article, couverture) et recolle les événements Wikipédia/Wikidata homonymes.';
+    protected $description = 'Fusionne les lignes en double (sections, même article, couverture, couloir) et recolle les événements Wikipédia/Wikidata homonymes.';
 
-    private const PHASES = ['sections', 'article', 'couverture', 'orphelines', 'homonymes'];
+    private const PHASES = ['sections', 'article', 'couverture', 'orphelines', 'homonymes', 'couloir'];
 
     /** Sources de tracés qui définissent une ligne (BD TOPO / OSM : réseau actuel, rattachement à part). */
     private const TRACE_SOURCES = "('archeoferroviaire', 'ohm', 'sncf')";
+
+    /** Demi-largeur (m) du couloir d'une ligne à code (passe « couloir »). */
+    private const CORRIDOR_M = 40;
+
+    /** Part minimale du tracé d'une ligne créée dans le couloir de SA ligne à code, puis de toutes (passe « couloir »). */
+    private const CORRIDOR_SHARE = 0.6;
+
+    private const CORRIDOR_SHARE_ALL = 0.8;
+
+    /** Distance (m) au tracé de la ligne à code d'un toponyme que ses sources ne citent pas (passe « couloir »). */
+    private const CORRIDOR_PLACE_M = 3000;
 
     /** Distance (m) à laquelle un bout de section « touche » le tracé connu d'une ligne (sections sans extrémité partagée). */
     private const SECTION_TOUCH_M = 1000;
@@ -200,6 +232,9 @@ class MergeSplitLines extends Command
         if (in_array('homonymes', $only, true)) {
             $this->homonyms();
         }
+        if (in_array('couloir', $only, true)) {
+            $this->corridor();
+        }
 
         $this->writeCsv();
         if ($this->dry) {
@@ -232,13 +267,13 @@ class MergeSplitLines extends Command
                        lower(unaccent(split_part({$named}, ' à ', 2))) AS dest,
                        lower(unaccent(regexp_replace(split_part({$named}, ' à ', 1), '^Ligne (de la |de l''|du |des |de |d'')', ''))) AS orig
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND {$named} LIKE '% à %'
+                WHERE l.alt_names->>'source' = 'archeoferroviaire' AND l.code IS NULL AND {$named} LIKE '% à %'
             ),
             existing AS (
                 SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m,
                        lower(unaccent({$named})) AS uname
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug NOT LIKE 'archeo-%' AND l.length_official_m > 0
+                WHERE l.alt_names->>'source' IS DISTINCT FROM 'archeoferroviaire' AND l.length_official_m > 0
                   AND r.length_m < 0.85 * l.length_official_m
             )
             SELECT DISTINCT ON (c.id) c.id AS created_id, c.name AS created_name, ROUND(c.length_m / 1000.0, 1) AS created_km,
@@ -320,7 +355,7 @@ class MergeSplitLines extends Command
             WITH created AS (
                 SELECT l.id, l.name, r.geom, r.length_m
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND r.length_m > 0
+                WHERE l.alt_names->>'source' = 'archeoferroviaire' AND l.code IS NULL AND r.length_m > 0
             ),
             pts AS (SELECT c.id, (ST_Dump(ST_Boundary(c.geom))).geom AS g FROM created c),
             -- bouts de la section : les deux extrémités de ses morceaux les plus éloignées l'une de l'autre
@@ -332,7 +367,7 @@ class MergeSplitLines extends Command
             existing AS (
                 SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.code IS NOT NULL AND l.slug NOT LIKE 'archeo-%'
+                WHERE l.code IS NOT NULL AND l.alt_names->>'source' IS DISTINCT FROM 'archeoferroviaire'
                   AND (l.length_official_m IS NULL OR r.length_m < 0.85 * l.length_official_m)
             )
             SELECT c.id AS created_id, c.name AS created_name, c.length_m AS created_m,
@@ -553,6 +588,25 @@ class MergeSplitLines extends Command
             'SELECT EXISTS (SELECT 1 FROM lm_gaz z, line_reference_geometries r WHERE r.line_id = ? AND z.norm = ?
                 AND ST_DWithin(z.g, ST_Transform(r.geom, 2154), ?)) AS ok',
             [$lineId, PlaceNames::normalize($place), $meters],
+        )->ok;
+    }
+
+    /**
+     * Une commune ou une gare SNCF de ce nom, ou dont le nom complet le prolonge (« Amfreville » :
+     * « Amfreville-sur-Iton »), est-elle à moins de $meters du tracé de la ligne ?
+     */
+    private function placeAlongLine(string $place, int $lineId, int $meters): bool
+    {
+        $this->ensureGazetteer();
+        $norm = PlaceNames::normalize($place);
+        if ($norm === '') {
+            return false;
+        }
+
+        return (bool) DB::selectOne(
+            "SELECT EXISTS (SELECT 1 FROM lm_gaz z, line_reference_geometries r WHERE r.line_id = ?
+                AND (z.norm = ? OR z.norm LIKE ? || ' %') AND ST_DWithin(z.g, ST_Transform(r.geom, 2154), ?)) AS ok",
+            [$lineId, $norm, $norm, $meters],
         )->ok;
     }
 
@@ -1183,6 +1237,100 @@ class MergeSplitLines extends Command
     }
 
     // ───────────────────────────── outils ─────────────────────────────
+
+    // ───────────────────────────── 6. couloir ─────────────────────────────
+
+    /**
+     * Ligne créée dessinée dans le couloir d'une ligne à code (règles dans le docblock de la classe). Tracés de
+     * référence en Lambert-93, couloir de chaque ligne à code calculé une seule fois (lm_cb).
+     */
+    private function corridor(): void
+    {
+        $m = self::CORRIDOR_M;
+        DB::statement('DROP TABLE IF EXISTS lm_cb');
+        DB::statement("CREATE TEMP TABLE lm_cb AS
+            SELECT l.id, ST_Buffer(ST_Transform(r.geom, 2154), {$m}) AS b
+            FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
+            WHERE l.code IS NOT NULL AND r.length_m > 0");
+        DB::statement('CREATE INDEX ON lm_cb USING gist (b)');
+        DB::statement('ANALYZE lm_cb');
+        $pairs = DB::select(<<<'SQL'
+            WITH c AS (
+                SELECT l.id, l.name, l.network, ST_Transform(r.geom, 2154) AS g
+                FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
+                WHERE l.code IS NULL AND l.alt_names->>'created_by' = 'vff:link-traces' AND r.length_m > 0
+            ),
+            p AS (
+                SELECT c.id AS cid, c.name AS cname, c.network AS cnet, c.g, ST_Length(c.g) AS clen, e.id AS lid,
+                       ST_Length(ST_Intersection(c.g, e.b)) / NULLIF(ST_Length(c.g), 0) AS share
+                FROM c JOIN lm_cb e ON e.b && c.g AND ST_Intersects(e.b, c.g)
+            )
+            SELECT p.cid, p.cname, p.cnet, p.clen, p.lid, l.name AS lname, l.code, l.network AS lnet, p.share,
+                   ST_Length(ST_Intersection(p.g, (SELECT ST_Union(e.b) FROM lm_cb e WHERE e.b && p.g))) / NULLIF(p.clen, 0) AS share_all
+            FROM p JOIN lines l ON l.id = p.lid
+            WHERE p.share >= ?
+            ORDER BY p.cid, p.share DESC
+            SQL, [self::CORRIDOR_SHARE]);
+        $cands = [];
+        foreach ($pairs as $p) {
+            if (! isset($this->gone[(int) $p->cid]) && ! isset($this->gone[(int) $p->lid])) {
+                $cands[(int) $p->cid][] = $p;
+            }
+        }
+        $this->info('→ 6. Lignes créées dessinées dans le couloir d\'une ligne à code : '.count($cands));
+        foreach ($cands as $cid => $list) {
+            $ok = [];
+            foreach ($list as $p) {
+                $why = $this->corridorProof($p);
+                if (is_string($why)) {
+                    $ok[] = [$p, $why];
+                } else {
+                    $this->row('couloir', 'rejeté', $p, $why[0]);
+                }
+            }
+            if (count($ok) === 1) {
+                [$p, $why] = $ok[0];
+                $this->merge('couloir', $cid, (int) $p->lid, $why, 'merged_duplicate', $p);
+            } elseif (count($ok) > 1) {
+                foreach ($ok as [$p, $why]) {
+                    $this->row('couloir', 'à relire', $p, 'plusieurs lignes à code dans le couloir : '.$why);
+                }
+            }
+        }
+    }
+
+    /**
+     * Preuve qu'une ligne créée dessinée dans le couloir d'une ligne à code est cette ligne.
+     *
+     * @return string|array{0: string} raison (acceptée) ou [raison du rejet]
+     */
+    private function corridorProof(object $p): string|array
+    {
+        $share = sprintf('%d %% de son tracé (%.1f km) à %d m au plus de la ligne, %d %% de lignes à code',
+            (int) floor(100 * (float) $p->share), (float) $p->clen / 1000, self::CORRIDOR_M, (int) floor(100 * (float) $p->share_all));
+        if ((float) $p->share_all < self::CORRIDOR_SHARE_ALL) {
+            return ["couloir partiel : {$share}"];
+        }
+        if ($p->cnet !== $p->lnet) {
+            return ["catégorie {$p->cnet} ≠ {$p->lnet} : autre ligne le long de la ligne à code ; {$share}"];
+        }
+        $places = array_slice(PlaceNames::parseLineName($p->cname)['places'] ?? [], 0, 2);
+        if (count($places) < 2) {
+            return ["nom sans deux toponymes ; {$share}"];
+        }
+        $on = array_map(fn (string $place) => $this->placeOnLine($place, (int) $p->lid), $places);
+        if (! in_array(true, $on, true)) {
+            return ["aucun toponyme n'est un lieu de la ligne ; {$share}"];
+        }
+        $other = $on[0] ? $places[1] : $places[0];
+        if (in_array(false, $on, true) && ! $this->placeAlongLine($other, (int) $p->lid, self::CORRIDOR_PLACE_M)) {
+            return ["« {$other} » n'est pas un lieu de la ligne ni à ".(self::CORRIDOR_PLACE_M / 1000)." km de son tracé ; {$share}"];
+        }
+
+        return "même voie dessinée deux fois : {$share}, ".(in_array(false, $on, true)
+            ? "« {$other} » à ".(self::CORRIDOR_PLACE_M / 1000).' km au plus de son tracé'
+            : 'toponymes de la ligne');
+    }
 
     private function merge(string $phase, int $from, int $into, string $why, ?string $traceMethod, ?object $p = null): void
     {

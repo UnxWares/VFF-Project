@@ -105,6 +105,133 @@ final class WikipediaMaterialInfobox
         return $asOf !== null ? ['count' => $count, 'as_of' => $asOf, 'precision' => $precision] : null;
     }
 
+    /** Nom des champs de l'infobox qui donnent la date de mise en service, par ordre de préférence, et ce qu'ils disent. */
+    private const FROM_FIELDS = [
+        'mise en service' => 'mise en service',
+        'livraison' => 'livraison de la première unité',
+        'service commercial' => 'début du service commercial',
+        'période de service' => 'début de la période de service',
+    ];
+
+    /** Mots qui disent qu'un nombre est un nombre d'engins construits. */
+    private const UNIT_NOUNS = 'locomotives?|automotrices?|autorails?|rames?|exemplaires?|locotracteurs?|unités|éléments|engins|prototypes?|fourgons automoteurs|rames automotrices|véhicules';
+
+    /**
+     * Années de service écrites par l'article : mise en service (`mise en service`, à défaut `livraison`, `service commercial`
+     * ou `période de service`) et retrait (`retrait`, ou fin d'une période de service écrite comme une plage d'années).
+     * Seules les années écrites sont reprises (la plus ancienne pour la mise en service, la plus récente pour le retrait) ;
+     * rien n'est déduit : un texte « depuis », « en cours », « à partir de », une année à venir, un retrait détaillé par
+     * sous-série ou un effectif encore positif ne donnent pas de retrait.
+     *
+     * @param  array<string, string>  $parameters
+     * @return array{from?: array{year: int, field: string, basis: string, quote: string}, to?: array{year: int, field: string, basis: string, quote: string}}
+     */
+    public static function serviceYears(array $parameters): array
+    {
+        $out = [];
+        foreach (self::FROM_FIELDS as $field => $basis) {
+            $text = $parameters[$field] ?? null;
+            if ($text === null || trim($text) === '') {
+                continue;
+            }
+            // Le premier champ renseigné fait foi : un texte qu'on ne sait pas lire (série détaillée par engin, date à venir)
+            // ne laisse pas la place à un champ moins précis.
+            $years = self::years($text);
+            if ($years !== null) {
+                $out['from'] = ['year' => min($years), 'field' => $field, 'basis' => $basis, 'quote' => self::quote($text)];
+            }
+            break;
+        }
+
+        // Un effectif encore positif : la série roule, le « retrait » ne vaut que pour une partie des engins.
+        $fleet = preg_match('/^\s*(\d+)/u', $parameters['effectif'] ?? '', $f) === 1 ? (int) $f[1] : 0;
+        $retrait = $parameters['retrait'] ?? null;
+        $text = $retrait;
+        $field = 'retrait';
+        $basis = 'retrait';
+        if ($text === null && isset($parameters['période de service']) && preg_match('/^\s*(?:19|18|20)\d{2}\s*[-\x{2013}\/]\s*(?:19|20)\d{2}\s*$/u', $parameters['période de service']) === 1) {
+            [$text, $field, $basis] = [$parameters['période de service'], 'période de service', 'fin de la période de service'];
+        }
+        if ($text !== null && $fleet === 0 && preg_match('/depuis|en cours|à partir|remise|restaur|mises? au type|reconstruit|modernis|[\p{L}\d)]\s*:/iu', $text) !== 1) {
+            $years = self::years($text);
+            if ($years !== null) {
+                $out['to'] = ['year' => max($years), 'field' => $field, 'basis' => $basis, 'quote' => self::quote($text)];
+            }
+        }
+        if (isset($out['from'], $out['to']) && $out['to']['year'] < $out['from']['year']) {
+            unset($out['to']);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Nombre d'engins construits, seulement quand l'infobox l'écrit seul (`nombre`, `production totale`, `construction`),
+     * éventuellement suivi du nom de l'engin : « 80 locomotives », « 232 exemplaires ». Rien pour « commandées », une année (champ `construction`), une somme,
+     * une décomposition ou un article de famille (effectif détaillé par sous-série).
+     *
+     * @param  array<string, string>  $parameters
+     * @return array{value: int, field: string, quote: string}|null
+     */
+    public static function unitsBuilt(array $parameters): ?array
+    {
+        if (preg_match('/\b[A-Z]{1,3}\s?\d{3,5}\s*:/u', $parameters['effectif'] ?? '') === 1) {
+            return null;
+        }
+        foreach (['nombre', 'production totale', 'construction'] as $field) {
+            $text = trim((string) preg_replace('/-->/', '', $parameters[$field] ?? ''));
+            if (preg_match('/^(\d{1,5})(?:\s+(?:'.self::UNIT_NOUNS.'))?$/iu', $text, $m) === 1 && (int) $m[1] > 0 && ! ($field === 'construction' && (int) $m[1] >= 1800 && (int) $m[1] <= 2100)) {
+                return ['value' => (int) $m[1], 'field' => $field, 'quote' => self::quote($text)];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Constructeur écrit par l'infobox quand c'est un simple nom (ou une liste de noms) : sans chiffre, parenthèse, deux-points,
+     * point-virgule ni formule d'attente (« à définir », « choisi ultérieurement »).
+     *
+     * @param  array<string, string>  $parameters
+     */
+    public static function builder(array $parameters): ?string
+    {
+        $text = trim($parameters['constructeur'] ?? '');
+        if ($text === '' || mb_strlen($text) > 120 || preg_match('/[\d():;?+]|définir|ultérieurement|inconnu|divers|voir /iu', $text) === 1) {
+            return null;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Années (1800 à l'année en cours) écrites dans un texte de date, après retrait de « dans les chemins de fer ». Nul si le texte
+     * ne contient aucune année ou une année à venir (livraison annoncée).
+     *
+     * @return list<int>|null
+     */
+    private static function years(string $text): ?array
+    {
+        // Hors parenthèses (« 2006 (construit en 1995) »), avant une transformation, et pas pour une autre série (« BB 8051 : juin 1951 »).
+        $text = (string) preg_replace('/dans les chemins de fer|-->|\([^)]*\)?/u', '', $text);
+        $text = (string) preg_split('/transformation|modification|reconstruction/iu', $text)[0];
+        if (preg_match('/\b[A-Z]{1,3}\s?\d{3,5}\s*:/u', $text) === 1) {
+            return null;
+        }
+        preg_match_all('/(?<!\d)(1[89]\d{2}|20\d{2})(?!\d)/u', $text, $m);
+        $years = array_map('intval', $m[1]);
+        if ($years === [] || max($years) > (int) date('Y')) {
+            return null;
+        }
+
+        return $years;
+    }
+
+    private static function quote(string $text): string
+    {
+        return mb_strimwidth(trim($text), 0, 160, '…');
+    }
+
     /** Position de la fin (`}}`) du modèle ouvert en `$start`, accolades imbriquées comprises. */
     private static function closing(string $text, int $start): int
     {

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ReadsListFilters;
+use App\Models\Era;
 use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
 use App\Services\Archives\LineArchives;
+use App\Services\Companies\CompanyFigures;
 use App\Services\Greenways\LineGreenways;
 use App\Services\Journal\JournalRepository;
 use App\Services\LevelCrossings\LineLevelCrossings;
@@ -14,8 +16,11 @@ use App\Services\LineSheet;
 use App\Services\LineStats;
 use App\Services\Profiles\LineProfiles;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Speed\LineSpeeds;
 use App\Services\Stories\EventStories;
+use App\Services\Structures\LineStructures;
 use App\Services\TraceExport\LineTraceExport;
+use App\Services\Traction\LineElectrificationHistory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,6 +38,9 @@ class LineController extends Controller
 
     /** Part électrifiée (%) sous laquelle une ligne n'est électrifiée qu'à la marge (voies d'une gare, raccordement). */
     public const MARGINAL_ELECTRIFIED_PCT = LineStats::MARGINAL_ELECTRIFIED_PCT;
+
+    /** Groupe des props différées de la fiche (Inertia::defer) : une seule requête après le premier affichage. */
+    public const DEFERRED_GROUP = 'sheet';
 
     /**
      * Liste paginée et filtrée des lignes.
@@ -69,12 +77,16 @@ class LineController extends Controller
         $filters = ['q' => $q, 'network' => $network, 'traffic' => $traffic, 'status' => $status, 'heritage' => $heritage];
 
         $sort = $this->filterString($request, 'sort');
-        $sort = in_array($sort, ['name', 'name-desc', 'code'], true) ? $sort : 'name';
+        // Sans tri choisi : pertinence avec une recherche, sinon le nom.
+        $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'code'], true) ? $sort : '';
+        $order = $sort !== '' ? $sort : ($q !== '' ? 'relevance' : 'name');
 
         $lines = $this->applyIndexOrder(
             $directory->apply(Line::query()->select('id', 'slug', 'code', 'name', 'network', 'historical_operator'), $filters, $eraId),
-            $sort,
+            $order,
             $q,
+            $directory,
+            $eraId,
         )->paginate(40)->appends($request->query());
 
         // Trafic dominant (au km) et état actuel des seules lignes de la page.
@@ -105,38 +117,34 @@ class LineController extends Controller
                 'traffic' => $traffic,
                 'status' => $status,
                 'heritage' => $heritage,
-                'sort' => $sort,
+                'sort' => $order,
             ],
+            // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
+            'sort_chosen' => $sort !== '',
+            // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.
+            'approximate' => $directory->approximate($q),
             // Compteurs : chaque facette est calculée sans son propre filtre (cf. LineDirectory::facets).
             'stats' => $directory->facets($filters, $eraId),
         ]);
     }
 
     /**
-     * Ordre de l'annuaire : alphabétique FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU),
-     * et, pour le tri par nom avec une recherche, le nom exact puis les noms qui commencent par le terme.
+     * Ordre de l'annuaire : pertinence de la recherche (LineDirectory::orderByRelevance), code, ou alphabétique
+     * FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU).
      *
      * @param  Builder<Line>  $builder
      * @return Builder<Line>
      */
-    private function applyIndexOrder($builder, string $sort, string $q)
+    private function applyIndexOrder($builder, string $sort, string $q, LineDirectory $directory, ?int $eraId)
     {
         $name = 'name COLLATE "fr-x-icu"';
 
-        if ($sort === 'code') {
-            return $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id");
-        }
-        if ($sort === 'name-desc') {
-            return $builder->orderByRaw("{$name} DESC, id");
-        }
-        if ($q !== '') {
-            $builder->orderByRaw(
-                'CASE WHEN lower(name) = lower(?) THEN 0 WHEN name ILIKE ? THEN 1 ELSE 2 END',
-                [$q, $this->prefixPattern($q)],
-            );
-        }
-
-        return $builder->orderByRaw("{$name}, id");
+        return match ($sort) {
+            'relevance' => $directory->orderByRelevance($builder, $q, $eraId)->orderByRaw("{$name}, id"),
+            'code' => $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id"),
+            'name-desc' => $builder->orderByRaw("{$name} DESC, id"),
+            default => $builder->orderByRaw("{$name}, id"),
+        };
     }
 
     /**
@@ -145,7 +153,10 @@ class LineController extends Controller
      * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`),
      * ses voies vertes sur l'ancienne emprise (section « Voie verte » ; API : `/api/v1/lines/{slug}/greenways`),
      * la frise des mises en service de signalisation lues dans Wikipédia (section « Signalisation » ; API :
-     * `/api/v1/lines/{slug}/signalling-history`)
+     * `/api/v1/lines/{slug}/signalling-history`), les vitesses maximales par PK et leurs changements datés (section
+     * « Vitesses » ; API : `/api/v1/lines/{slug}/speeds`), l'histoire de l'électrification (section « Électrification » ; API :
+     * `/api/v1/lines/{slug}/electrification-history`)
+     * et ses ouvrages d'art par PK (section « Ouvrages d'art » ; API : `/api/v1/lines/{slug}/structures`)
      * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
@@ -153,30 +164,65 @@ class LineController extends Controller
      * les archives » ; API : `/api/v1/lines/{slug}/archives`) avec les notices des Archives SNCF
      * (`/api/v1/lines/{slug}/archive-records`), et les événements qui ont une histoire (lien
      * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
+     *
+     * Le premier affichage ne porte que le haut de la fiche ; les sections plus bas sont des props différées
+     * (Inertia::defer, groupe DEFERRED_GROUP), que la page demande en une requête juste après s'être affichée.
+     * Les réponses REST et GraphQL de la fiche ne changent pas (LineSheet::build sans `forPage`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
-        $page = $sheet->build($line, forPage: true);
+        // Premier affichage : le haut de la fiche (LineSheet::PAGE_KEYS : en-tête, tracé, « Où et quand », « À propos »,
+        // histoire, décennies, gares, chronologie). Fiche construite une fois, et seulement quand la réponse la demande :
+        // le chargement des props différées (requête partielle) ne la refait pas.
+        $built = null;
+        $core = function () use (&$built, $sheet, $line): array {
+            return $built ??= $sheet->build($line, forPage: true);
+        };
+        $props = [];
+        foreach (LineSheet::PAGE_KEYS as $key) {
+            $props[$key] = fn () => $core()[$key];
+        }
+
+        // Plus bas dans la page : props différées, demandées par la page juste après son premier affichage, en un seul
+        // groupe (une requête) ; la page pose à leur place un état de chargement (chantier « budget des fiches », 23/11/2026).
+        $later = null;
+        $deferred = function () use (&$later, $sheet, $line): array {
+            return $later ??= $sheet->pageDeferred($line);
+        };
+        foreach (LineSheet::PAGE_DEFERRED as $key) {
+            $props[$key] = Inertia::defer(fn () => $deferred()[$key], self::DEFERRED_GROUP);
+        }
+        $defer = fn (callable $callback) => Inertia::defer($callback, self::DEFERRED_GROUP);
 
         return Inertia::render('Lines/Show', [
             // Sans ce que la page n'affiche pas ou lit à part (LineSheet::PAGE_OMITTED, données complètes dans l'API).
-            ...$page,
+            ...$props,
             // Géométrie de la carte, lue par la page quand la carte s'affiche (LinePortionsController).
-            'portions_url' => LinePortionsController::url($line->slug, $page['portions_version']),
-            'accidents' => $accidents->forLine($line, app()->getLocale()),
-            'level_crossings' => $crossings->forSheet($line),
-            'greenways' => $greenways->forSheet($line),
-            'signalling_history' => $signallingHistory->forSheet($line),
-            'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
-            'trace_export_eras' => $traceExport->exportableEraYears($line),
-            'archives' => $archives->forSheet($line),
+            'portions_url' => fn () => LinePortionsController::url($line->slug, $core()['portions_version']),
+            // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures) : en-tête.
+            'companies' => fn () => CompanyFigures::forLine($line->id),
+            'accidents' => $defer(fn () => $accidents->forLine($line, app()->getLocale())),
+            'level_crossings' => $defer(fn () => $crossings->forSheet($line)),
+            'greenways' => $defer(fn () => $greenways->forSheet($line)),
+            'signalling_history' => $defer(fn () => $signallingHistory->forSheet($line)),
+            'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
+            // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
+            'structures' => $defer(fn () => $structures->forSheet($line)),
+            // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).
+            'speeds' => $defer(fn () => ($era = Era::where('is_current', true)->first()) === null ? null
+                : $speeds->forLine($line->id, $era->id, (int) $era->year)),
+            // Histoire de l'électrification : tranches SNCF et mises sous tension datées (API : /api/v1/lines/{slug}/electrification-history).
+            'electrification_history' => $defer(fn () => $electrification->forLine($line)),
+            // Téléchargement du tracé, sous la carte : au premier affichage.
+            'trace_export_eras' => fn () => $traceExport->exportableEraYears($line),
+            'archives' => $defer(fn () => $archives->forSheet($line)),
             // Notices des fonds d'archives (Archives SNCF), sous les documents de Gallica dans la même section.
-            'archive_records' => $archives->recordsForSheet($line),
+            'archive_records' => $defer(fn () => $archives->recordsForSheet($line)),
             // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
             // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
-            'story_events' => array_column($stories->available($line), 'event_ids'),
+            'story_events' => $defer(fn () => array_column($stories->available($line), 'event_ids')),
             // Articles du journal de bord qui parlent de la ligne (lien sous la description).
-            'journal' => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
+            'journal' => fn () => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
         ]);
     }
 }

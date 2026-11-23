@@ -98,6 +98,53 @@ class ProfileChainTest extends TestCase
         $this->assertEqualsWithDelta($ranges[0][1], $path->length(), 0.01);
     }
 
+    public function test_turns_at_a_tee_on_the_inside_of_a_piece(): void
+    {
+        // Moret - Lyon (23/11/2026) : la suite de la ligne part du MILIEU d'un long morceau qui continue tout droit
+        // (raccord en T, ST_LineMerge ne coupe pas). Sans coupe au raccord, le parcours sautait à vol d'oiseau.
+        $trunk = [[2.0, 45.0], [2.0, 45.1], [2.0, 45.2], [2.0, 45.3]];
+        $onward = [[2.0001, 45.2], [2.1, 45.2], [2.3, 45.2]];
+
+        $chain = ProfileChain::assemble([$trunk, $onward]);
+
+        $this->assertNotNull($chain);
+        $this->assertSame([], $chain['path']->gaps);
+        // Parcours : 22,2 km vers le nord puis 23,6 km vers l'est ; le bout nord de 11,1 km reste en embranchement.
+        $this->assertEqualsWithDelta(22_239 + 23_580, $chain['path']->length(), 120);
+        $this->assertCount(1, $chain['branches']);
+    }
+
+    public function test_a_tee_left_a_little_short_is_crossed_by_a_short_gap(): void
+    {
+        // Bout arrêté à 39 m de l'intérieur du morceau (757000, Les Laumes) : une lacune de 39 m, pas de 11 km.
+        $trunk = [[2.0, 45.0], [2.0, 45.2], [2.0, 45.3]];
+        $onward = [[2.0005, 45.2], [2.3, 45.2]];
+
+        $path = ProfileChain::build([$trunk, $onward]);
+
+        $this->assertNotNull($path);
+        $this->assertCount(1, $path->gaps);
+        [$from, $to] = $path->gaps[0];
+        $this->assertEqualsWithDelta(39, $to - $from, 2);
+    }
+
+    public function test_split_at_tees_cuts_only_inside_and_keeps_every_vertex(): void
+    {
+        $trunk = [[2.0, 45.0], [2.0, 45.1], [2.0, 45.2]];
+        $spur = [[2.0001, 45.05], [2.05, 45.05]];
+        // Bout déjà sur l'extrémité du tronc (moins de 30 m) : pas de coupe.
+        $end = [[2.0, 45.2001], [2.0, 45.25]];
+
+        $parts = ProfileChain::splitAtTees([$trunk, $spur, $end]);
+
+        $this->assertCount(4, $parts);
+        $this->assertSame([2.0, 45.0], $parts[0][0]);
+        $this->assertEqualsWithDelta(45.05, $parts[0][1][1], 1e-9);
+        $this->assertSame($parts[0][1], $parts[1][0]);
+        $this->assertSame([2.0, 45.2], $parts[1][2]);
+        $this->assertSame([$spur, $end], [$parts[2], $parts[3]]);
+    }
+
     public function test_tiny_leftovers_are_counted_off_path(): void
     {
         // Bout de 39 m accroché au nœud qui sépare les deux morceaux de la ligne.

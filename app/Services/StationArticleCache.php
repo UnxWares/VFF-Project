@@ -17,7 +17,8 @@ use Illuminate\Support\Sleep;
  */
 final class StationArticleCache
 {
-    public function __construct(private WikimediaClient $wiki) {}
+    /** @param  int  $pauseMicroseconds  pause entre deux requêtes (une demi-seconde par défaut) */
+    public function __construct(private WikimediaClient $wiki, private int $pauseMicroseconds = 500_000) {}
 
     public static function directory(): string
     {
@@ -62,7 +63,7 @@ final class StationArticleCache
         }
         foreach (array_chunk($missing, 50) as $i => $chunk) {
             if ($i > 0) {
-                Sleep::usleep(500_000);
+                Sleep::usleep($this->pauseMicroseconds);
             }
             $fetched = $this->wiki->fetchPages($chunk);
             foreach ($chunk as $t) {

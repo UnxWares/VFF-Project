@@ -3,10 +3,11 @@
 // Quiz du rail (/quiz) : textes de la page et liens depuis /lines et /materials.
 return [
     'meta_title' => 'Quiz du rail',
-    'meta_description' => 'Reconnaître une ligne française à son tracé, ou une série de matériel roulant à sa photo : dix questions tirées de la base de VFF.',
+    'meta_description' => 'Reconnaître une ligne française à son tracé, une série de matériel roulant à sa photo, ou répondre à des questions sourcées sur les dates, les compagnies, les ouvrages et les gares : dix questions tirées de la base de VFF.',
     'title' => 'Quiz du rail',
-    'subtitle' => 'Reconnaissez une ligne à son tracé ou une série à sa photo. Dix questions tirées de la base de VFF, sans limite de temps.',
+    'subtitle' => 'Reconnaissez une ligne à son tracé ou une série à sa photo, ou testez vos connaissances sur les dates, les compagnies, les ouvrages et les gares. Dix questions tirées de la base de VFF, sans limite de temps.',
     'links' => [
+        'home' => 'Quiz du rail : reconnaître une ligne ou une série en dix questions',
         'lines' => 'Quiz : reconnaître une ligne à son tracé',
         'materials' => 'Quiz : reconnaître une série à sa photo',
     ],
@@ -22,6 +23,8 @@ return [
         'lines_text' => 'Le tracé seul, sans nom ni carte autour. Les quatre lignes proposées sont voisines.',
         'materials' => 'Reconnaître le matériel',
         'materials_text' => 'Une photo de Wikimedia Commons et quatre séries du même type.',
+        'facts' => 'Culture du rail',
+        'facts_text' => 'Des questions de texte sur des faits sourcés : ouverture d\'une ligne, compagnie, plus long tunnel, architecte d\'une gare, gare la plus fréquentée, première série en service. Au niveau facile, les mauvaises réponses sont éloignées et les questions les plus pointues sont écartées.',
         'unavailable' => 'Pas encore assez de données vérifiées pour ce jeu.',
     ],
     'levels' => [
@@ -91,6 +94,8 @@ return [
         'source' => 'D\'après :source',
         'sheet_lines' => 'Voir la fiche de la ligne',
         'sheet_materials' => 'Voir la fiche de la série',
+        'source_page' => 'page source',
+        'sheet_facts' => 'Voir la fiche',
     ],
     'result' => [
         'title' => 'Résultat',
@@ -103,5 +108,44 @@ return [
         'copy' => 'Copier l\'adresse',
         'copied' => 'Adresse copiée.',
         'again' => 'Nouvelle série',
+    ],
+    'facts' => [
+        'difficulty' => 'Difficulté de la question : :level',
+        'levels' => ['easy' => 'facile', 'medium' => 'moyenne', 'hard' => 'difficile'],
+        'prompt' => [
+            'opening_year' => 'En quelle année cette ligne a-t-elle ouvert ?',
+            'electrification_year' => 'En quelle année cette ligne a-t-elle été électrifiée ?',
+            'company' => 'Quelle compagnie était concessionnaire de cette ligne en :year ?',
+            'milestone' => 'En quelle année ce jalon a-t-il eu lieu ?',
+            'longest_tunnel' => 'Lequel de ces tunnels est le plus long ?',
+            'longest_viaduct' => 'Lequel de ces viaducs est le plus long ?',
+            'architect' => 'Quel architecte a conçu cette gare ?',
+            'heritage_year' => 'En quelle année cette gare, ou une partie de ses bâtiments, a-t-elle été protégée au titre des monuments historiques ?',
+            'attendance' => 'Laquelle de ces gares a compté le plus de voyageurs en :year ?',
+            'first_series' => 'Laquelle de ces séries (:type) est entrée en service la première ?',
+        ],
+        'reveal' => [
+            'opening_year' => '« :line » a ouvert en :year.',
+            'electrification_year' => '« :line » a été électrifiée en :year.',
+            'milestone' => '« :title » : :year.',
+            'heritage_year' => 'La gare de :station, ou une partie de ses bâtiments, a été protégée au titre des monuments historiques en :year (:protection).',
+            'architect' => 'L\'architecte de la gare de :station est :architect.',
+            'company' => ':company était concessionnaire de « :line » en :year, de :from à :to.',
+            'company_open' => ':company était concessionnaire de « :line » en :year, depuis :from.',
+            'longest_tunnel' => ':name est le plus long de ces tunnels, avec :length m. Les autres : :others.',
+            'longest_viaduct' => ':name est le plus long de ces viaducs, avec :length m. Les autres : :others.',
+            'attendance' => ':name est la plus fréquentée de ces gares en :year, avec :count voyageurs. Les autres : :others.',
+            'first_series' => 'La série :name est la première entrée en service, en :year. Les autres : :others.',
+        ],
+        'protection' => [
+            'registered' => 'inscription',
+            'classified' => 'classement',
+        ],
+        'hint' => ['city' => 'Commune', 'built' => 'Construction du bâtiment'],
+        'sources' => [
+            'ign' => 'IGN, BD TOPO',
+            'pop' => 'Base Mérimée (POP, ministère de la Culture)',
+            'sncf' => 'SNCF Gares & Connexions',
+        ],
     ],
 ];

@@ -110,6 +110,10 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
+    // Sur une base de test (DB_DATABASE=vff_xxx_test : E2eSeeder et serveur de la suite E2E en local), les clés
+    // sont rangées à part : le Valkey est partagé avec le site de dev, dont les fiches des départements et des
+    // compagnies seraient sinon remplacées par celles du jeu minimal (23/11/2026).
+    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'
+        .(preg_match('/^[A-Za-z0-9_]+_test$/D', (string) env('DB_DATABASE', '')) === 1 ? env('DB_DATABASE').'_' : '')),
 
 ];

@@ -4,6 +4,8 @@
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
     import {
+        mediaCaption,
+        mediaCaptionLang,
         mediaHeading,
         mediaLicenseHref,
         mediaLicenseLabel,
@@ -164,7 +166,9 @@
     }
 
     // Titre, licence et lien de la licence : règles communes (lib/mediaCredits.js).
-    const heading = mediaHeading;
+    // Photo de rue sans titre (Panoramax) : intitulé générique traduit, pour le texte de remplacement.
+    const heading = (m) =>
+        mediaHeading(m, lang) || t('media.street_view', { provider: m?.provider_label ?? '' });
     const licenseLabel = (m) => mediaLicenseLabel(m, t);
     const licenseHref = mediaLicenseHref;
     const rightsLabel = (m) => t(`media.rights.${m.rights_status ?? 'unknown'}`);
@@ -321,6 +325,7 @@
                             <img
                                 src={commonsSrc(m.thumb_url)}
                                 alt=""
+                                class:whole={m.derivatives_ok === false}
                                 loading="lazy"
                                 decoding="async"
                                 width={m.width && m.width < 500 ? m.width : 500}
@@ -461,8 +466,11 @@
                     {dateLabel(active) ?? t('media.date.unknown')}{#if active.type !== 'photo'},
                         {t(`media.types.${active.type}`)}{/if}
                 </p>
-                {#if active.caption && heading(active) !== active.caption}<p class="lb-desc">
-                        {active.caption}
+                {#if mediaCaption(active, lang) && heading(active) !== mediaCaption(active, lang)}<p
+                        class="lb-desc"
+                        lang={mediaCaptionLang(active, lang)}
+                    >
+                        {mediaCaption(active, lang)}
                     </p>{/if}
                 <p class="lb-credit">
                     <strong>{active.author ?? t('media.author_unknown')}</strong>
@@ -475,6 +483,9 @@
                         >{/if}
                     {#if active.commercial_ok === false}<span class="vff-badge warning"
                             >{t('media.no_commercial')}</span
+                        >{/if}
+                    {#if active.rights_uncertain}<span class="vff-badge warning"
+                            >{t('media.rights_uncertain')}</span
                         >{/if}
                     {#if active.contribution_id}<span class="vff-badge muted"
                             >{t('media.contributed_badge')}</span
@@ -598,6 +609,10 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+    /* Licence sans modification (ND) : l'image entière, réduite, jamais recadrée. */
+    .thumb img.whole {
+        object-fit: contain;
     }
     .thumb:hover img {
         filter: brightness(0.92);
@@ -769,7 +784,7 @@
         background: var(--vff-bg-subtle);
     }
     .lb-caption {
-        max-width: 80ch;
+        max-width: 46.4em;
         padding: 16px 24px 24px;
     }
     .lb-caption h3 {

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Colmar du 11 février 1946 (recherche du 21/11/2026).
 return [
     'slug' => '1946-02-11-colmar',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1940' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Volume cité par Wikipédia pour cet accident ; non consulté.',
         ],
+        'kb-1946-02-12-het-parool' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'B.B.C.-omroener komt in Groningen',
+            'publisher' => 'Het Parool (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1946-02-12',
+            'locator' => 'article « B.B.C.-omroener komt in Groningen », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMVEEN01:000085529:mpeg21:a0027:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 12 février : à un passage à niveau non gardé à Colmar, un train de Strasbourg est entré dans un autobus de travailleurs ; dix morts et douze blessés.',
+        ],
+        'kb-1946-02-12-de-maasbode' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De voedselpositie in Europa',
+            'publisher' => 'De Maasbode (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1946-02-12',
+            'locator' => 'article « De voedselpositie in Europa », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000542036:mpeg21:a00024:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 12 février : l\'express Calais-Bâle est entré en collision avec un autobus à Colmar ; selon les chemins de fer suisses, 27 à 29 morts.',
+        ],
+        'kb-1946-02-12-nieuwsblad-van-het-noorden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nieuwsblad van het Noorden du 12 février 1946',
+            'publisher' => 'Nieuwsblad van het Noorden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1946-02-12',
+            'locator' => 'rubrique de nouvelles, texte OCR, texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010884796:mpeg21:a0010:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 12 février : à un passage à niveau non gardé de Colmar, un train de Strasbourg est entré dans un autobus de travailleurs ; dix morts, 12 blessés et de nombreux voyageurs du train blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -63,6 +105,20 @@ return [
                 'en' => 'The accident killed fifteen people and seriously injured sixteen.',
                 'de' => 'Bei dem Unfall starben fünfzehn Menschen, sechzehn wurden schwer verletzt.',
                 'sources' => ['wp-liste-1940'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Deux journaux néerlandais du 12 février 1946 confirment la collision d\'un train avec un autobus de travailleurs à un passage à niveau non gardé de Colmar, avec dix morts et douze blessés selon une brève, mais 27 à 29 morts selon une autre qui cite les chemins de fer suisses ; la fiche donne 15 morts et 16 blessés. Les bilans divergent fortement et restent à départager.',
+                'en' => 'Two Dutch newspapers of 12 February 1946 confirm the collision of a train with a workers\' bus at an unguarded level crossing in Colmar, with ten dead and twelve injured according to one brief, but 27 to 29 dead according to another citing the Swiss railways; the record gives 15 dead and 16 injured. The tolls differ widely and remain to be settled.',
+                'de' => 'Zwei niederländische Zeitungen vom 12. Februar 1946 bestätigen den Zusammenstoß eines Zuges mit einem Arbeiterbus an einem unbewachten Bahnübergang in Colmar, mit zehn Toten und zwölf Verletzten nach einer Meldung, aber 27 bis 29 Toten nach einer anderen, die sich auf die Schweizer Bahnen beruft; die Datenbank nennt 15 Tote und 16 Verletzte. Die Bilanzen weichen stark ab und bleiben abzuklären.',
+                'sources' => ['kb-1946-02-12-het-parool', 'kb-1946-02-12-de-maasbode'],
+            ],
+            [
+                'fr' => 'Bilan non tranché : deux journaux néerlandais du 12 février 1946 donnent 10 morts et 12 blessés (le même fil d\'agence), une dépêche d\'agence citant les chemins de fer suisses 27 à 29 morts, la liste de Wikipédia et la fiche 15 morts et 16 blessés graves. Les trois valeurs viennent de familles différentes et aucune n\'est confirmée par une seconde : la fiche n\'est pas corrigée. La date, le lieu (passage à niveau de Colmar) et la nature (collision train contre autobus) sont confirmés.',
+                'en' => 'Toll not settled: two Dutch newspapers of 12 February 1946 give 10 dead and 12 injured (the same agency wire), an agency dispatch citing the Swiss railways 27 to 29 dead, the Wikipedia list and the record 15 dead and 16 seriously injured. The three values come from different families and none is confirmed by a second one: the record is not corrected. The date, the place (Colmar level crossing) and the nature (train against bus collision) are confirmed.',
+                'de' => 'Bilanz nicht geklärt: Zwei niederländische Zeitungen vom 12. Februar 1946 nennen 10 Tote und 12 Verletzte (derselbe Agenturdraht), eine Agenturmeldung unter Berufung auf die Schweizer Bahnen 27 bis 29 Tote, die Wikipedia-Liste und der Datensatz 15 Tote und 16 Schwerverletzte. Die drei Werte stammen aus verschiedenen Familien, und keiner wird durch einen zweiten bestätigt: Der Datensatz wird nicht korrigiert. Datum, Ort (Bahnübergang von Colmar) und Art (Zusammenstoß Zug gegen Bus) sind bestätigt.',
+                'sources' => ['kb-1946-02-12-het-parool', 'kb-1946-02-12-nieuwsblad-van-het-noorden', 'kb-1946-02-12-de-maasbode', 'wp-liste-1940'],
             ],
         ],
     ],

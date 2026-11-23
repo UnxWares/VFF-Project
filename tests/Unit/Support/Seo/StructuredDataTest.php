@@ -3,7 +3,7 @@
 namespace Tests\Unit\Support\Seo;
 
 use App\Support\Seo\StructuredData;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 /**
  * Données structurées côté serveur : mêmes règles que resources/js/lib/structuredData.js (tests/js/
@@ -65,9 +65,12 @@ class StructuredDataTest extends TestCase
         $graph = StructuredData::website(self::ORIGIN, 'Voies Ferrées de France', 'VFF', 'Encyclopédie.', 'fr')['@graph'];
 
         $this->assertSame('WebSite', $graph[0]['@type']);
-        $this->assertSame('https://vff-project.org/lines?q={search_term_string}', $graph[0]['potentialAction']['target']['urlTemplate']);
+        $this->assertSame('https://vff-project.org/search?q={search_term_string}', $graph[0]['potentialAction']['target']['urlTemplate']);
         $this->assertSame(['@id' => 'https://vff-project.org/#publisher'], $graph[0]['publisher']);
-        $this->assertEquals(['@id' => 'https://vff-project.org/#publisher', '@type' => 'Organization', 'name' => 'UnxWares', 'legalName' => 'UnxWares SAS', 'url' => 'https://www.unxwares.com'], $graph[1]);
+        $this->assertEquals([
+            '@id' => 'https://vff-project.org/#publisher', '@type' => 'Organization', 'name' => 'UnxWares', 'legalName' => 'UnxWares SAS', 'url' => 'https://www.unxwares.com',
+            'logo' => ['@type' => 'ImageObject', 'url' => 'https://vff-project.org/icons/icon-512.png', 'width' => 512, 'height' => 512],
+        ], $graph[1]);
     }
 
     public function test_breadcrumb_positions_and_absolute_items(): void
@@ -169,5 +172,101 @@ class StructuredDataTest extends TestCase
         $this->assertNull(StructuredData::imageUrl(['display_url' => null, 'thumb_url' => null]));
         $this->assertNull(StructuredData::imageUrl(null));
         $this->assertNull(StructuredData::imageObject(['display_url' => null, 'thumb_url' => null, 'title' => 'Document']));
+    }
+
+    public function test_line_gives_its_terminals_its_length_and_is_a_tourist_attraction_when_the_traffic_is_heritage(): void
+    {
+        $line = ['slug' => 'rfn-1', 'name' => 'Ligne touristique', 'current_traffic' => 'heritage', 'facts' => [
+            ['key' => 'length', 'scope' => 'item', 'km' => 409.0],
+            ['key' => 'length', 'scope' => 'line', 'km' => 12.5],
+        ]];
+        $stations = [
+            ['slug' => 'a', 'name' => 'Départ', 'is_terminal' => true],
+            ['slug' => 'm', 'name' => 'Milieu', 'is_terminal' => false],
+            ['slug' => 'z', 'name' => 'Arrivée', 'is_terminal' => true],
+        ];
+
+        $schema = StructuredData::line(self::ORIGIN, $line, null, [], $stations);
+
+        $this->assertSame('TouristAttraction', $schema['@type']);
+        $this->assertSame([
+            ['@type' => 'TrainStation', 'name' => 'Départ', 'url' => 'https://vff-project.org/stations/a'],
+            ['@type' => 'TrainStation', 'name' => 'Arrivée', 'url' => 'https://vff-project.org/stations/z'],
+        ], $schema['containsPlace']);
+        $this->assertSame(12.5, $schema['additionalProperty']['value'], 'la longueur d\'un élément qui ne décrit qu\'une partie n\'est pas celle de la ligne');
+        $this->assertSame('KMT', $schema['additionalProperty']['unitCode']);
+        $this->assertSame('Place', StructuredData::line(self::ORIGIN, ['current_traffic' => 'mixed'] + $line, null, [])['@type']);
+        $this->assertArrayNotHasKey('additionalProperty', StructuredData::compact(StructuredData::line(self::ORIGIN, ['facts' => []] + $line, null, [])));
+    }
+
+    public function test_station_dates_are_written_in_the_language_of_the_page_and_only_when_given(): void
+    {
+        $station = ['slug' => 'bondy', 'name' => 'Bondy'];
+
+        $none = StructuredData::compact(StructuredData::station(self::ORIGIN, $station, null));
+        $this->assertArrayNotHasKey('additionalProperty', $none);
+
+        app()->setLocale('en');
+        $en = StructuredData::station(self::ORIGIN, $station, null, ['opened' => '1849-09', 'closed' => null]);
+        $this->assertSame([['@type' => 'PropertyValue', 'name' => 'Opening date', 'value' => '1849-09']], $en['additionalProperty']);
+        app()->setLocale('de');
+        $de = StructuredData::station(self::ORIGIN, $station, null, ['opened' => '1849', 'closed' => '1939-09-01']);
+        $this->assertSame(['Eröffnungsdatum', 'Schließungsdatum'], array_column($de['additionalProperty'], 'name'));
+    }
+
+    public function test_commune_sheet(): void
+    {
+        $schema = StructuredData::commune(self::ORIGIN, ['slug' => '93010-bondy', 'name' => 'Bondy', 'insee' => '93010', 'department_name' => 'Seine-Saint-Denis'], [
+            ['slug' => 'bondy', 'name' => 'Bondy'],
+        ]);
+
+        $this->assertSame('City', $schema['@type']);
+        $this->assertSame('93010', $schema['identifier']['value']);
+        $this->assertSame('Seine-Saint-Denis', $schema['containedInPlace']['name']);
+        $this->assertSame('https://vff-project.org/stations/bondy', $schema['containsPlace'][0]['url']);
+        $this->assertCount(20, StructuredData::commune(self::ORIGIN, ['slug' => 'x', 'name' => 'X'], array_fill(0, 30, ['slug' => 's', 'name' => 'S']))['containsPlace']);
+    }
+
+    public function test_dataset_is_odbl_with_one_part_per_catalogue_entry_and_its_downloads(): void
+    {
+        $datasets = [
+            ['id' => 'events', 'kind' => 'events', 'era' => null, 'generated_on' => '2026-11-20', 'archive' => ['url' => '/downloads/open-data/events.zip', 'bytes' => 1000],
+                'files' => [['name' => 'events.csv', 'url' => '/downloads/open-data/events/events.csv', 'bytes' => 4000]]],
+            ['id' => 'network-2030', 'kind' => 'network', 'era' => 2030, 'generated_on' => '2026-11-20', 'archive' => ['url' => '/downloads/open-data/network-2030.zip', 'bytes' => 2000],
+                'files' => [['name' => 'lines.geojson', 'url' => '/downloads/open-data/network-2030/lines.geojson', 'bytes' => 9000]]],
+        ];
+        $licence = ['code' => 'ODbL-1.0', 'name' => 'Open Database License (ODbL) 1.0', 'url' => 'https://opendatacommons.org/licenses/odbl/1-0/'];
+
+        $schema = StructuredData::dataset(self::ORIGIN, $datasets, $licence, 'Données ouvertes', 'Description.', 'fr');
+
+        $this->assertSame('Dataset', $schema['@type']);
+        $this->assertSame('https://opendatacommons.org/licenses/odbl/1-0/', $schema['license']);
+        $this->assertTrue($schema['isAccessibleForFree']);
+        $this->assertSame('UnxWares SAS', $schema['creator']['legalName']);
+        $this->assertCount(2, $schema['hasPart']);
+        $this->assertSame('https://vff-project.org/downloads/open-data/events.zip', $schema['hasPart'][0]['distribution'][0]['contentUrl']);
+        $this->assertSame('text/csv', $schema['hasPart'][0]['distribution'][1]['encodingFormat']);
+        $this->assertSame('application/geo+json', $schema['hasPart'][1]['distribution'][1]['encodingFormat']);
+        $this->assertSame('1000 B', $schema['hasPart'][0]['distribution'][0]['contentSize']);
+        $this->assertSame('Réseau par décennie Aujourd’hui', $schema['hasPart'][1]['name']);
+    }
+
+    public function test_the_caption_follows_the_page_language_then_falls_back_to_the_main_one(): void
+    {
+        $media = [
+            'caption' => 'La gare en 1962', 'captions' => ['en' => 'The station in 1962', 'de' => '  '],
+            'display_url' => 'https://x/1.jpg',
+        ];
+
+        $this->assertSame('The station in 1962', StructuredData::caption($media, 'en'));
+        $this->assertSame('La gare en 1962', StructuredData::caption($media, 'de'), 'légende vide : la principale');
+        $this->assertSame('La gare en 1962', StructuredData::caption($media, 'fr'));
+        $this->assertNull(StructuredData::caption(['caption' => ''], 'en'));
+        $this->assertNull(StructuredData::caption(null, 'en'));
+
+        app()->setLocale('en');
+        $this->assertSame('The station in 1962', StructuredData::imageObject($media)['caption']);
+        app()->setLocale('fr');
+        $this->assertSame('La gare en 1962', StructuredData::imageObject($media)['caption']);
     }
 }

@@ -63,14 +63,19 @@ use Symfony\Component\Process\Process;
  *    « fermée » à la seule ère de sa fermeture, puis retirée des ères
  *    suivantes (debout, démolie ou réutilisée) jusqu'à une réouverture ; elle
  *    reste dans la section des gares et dans la liste des gares de sa ligne.
- * 7. Règles facultatives de l'audit des gares (--rules=g3,g6, ou clé
+ * 7. Règles facultatives de l'audit des gares (--rules=g3,g6,g7, ou clé
  *    stations.era_rules de config/stations.php ; désactivées par défaut) :
  *    G3 (boundOpeningsByMap) borne une ouverture DÉDUITE des lignes par la
  *    première ère où la carte montre la gare desservie, et retire les ères
  *    « fermée » qui la précèdent ; G6 (resolveClosures) date la fermeture
  *    d'une gare fermée sans date par la fin des voyageurs de ses lignes,
  *    seulement si chaque fin est rattachée à la section de la gare par PK
- *    (StationTimeline::openingBoundedByMap, closureFromLinePassengerEnds).
+ *    (StationTimeline::openingBoundedByMap, closureFromLinePassengerEnds) ;
+ *    G7 (closedByAttendance) ferme aux ères postérieures à 2014 une gare à code
+ *    UIC dont la fermeture n'est pas datée et qui est absente de la série
+ *    nationale de fréquentation SNCF 2015-2024 (aucun voyageur depuis 2015) :
+ *    elle n'est plus « active incertaine » à l'ère 2020, sa fermeture est
+ *    datée « avant 2015 » (intervalle).
  *
  * --parallel=N : les dates déduites sont calculées une fois, puis chaque ère
  * (station_eras + line_stops) est traitée par un processus enfant
@@ -84,7 +89,7 @@ class BuildStationEras extends Command
         {--parallel=1 : Processus parallèles, une ère par processus (4 au plus conseillé)}
         {--today= : Date du jour (AAAA-MM-JJ) de l\'ère courante, défaut : aujourd\'hui}
         {--skip-infer : (interne) dates déduites déjà recalculées par le processus parent}
-        {--rules= : Règles facultatives de l\'audit des gares, séparées par des virgules (g3, g6 ; none : aucune), défaut : stations.era_rules}';
+        {--rules= : Règles facultatives de l\'audit des gares, séparées par des virgules (g3, g6, g7 ; none : aucune), défaut : stations.era_rules}';
 
     protected $description = 'Gares par décennie (station_eras) + statut plafonné par l\'état des lignes de l\'ère + line_stops';
 
@@ -170,6 +175,9 @@ class BuildStationEras extends Command
                 ->whereIn('e.type', ['closure', 'closure_passenger', 'demolition']))
             ->pluck('s.id')->all()), true);
 
+        // Règle G7 : gares à code UIC absentes de la série de fréquentation SNCF (voir StationTimeline::closedByAttendance).
+        $unattended = in_array(StationTimeline::RULE_NO_ATTENDANCE, $this->requestedRules(), true) ? $this->unattendedStations() : [];
+
         $summary = [];
         // Desserte par les lignes : logique partagée avec vff:check-consistency (même plafond R2).
         $coverage = new StationLineCoverage;
@@ -249,6 +257,12 @@ class BuildStationEras extends Command
                     default => null,
                 };
                 $undatedNote = $era->is_current ? null : StationTimeline::unconfirmedNote($evs, $eraYears, (int) $era->year, $status, $todayHint);
+                // G7 : sans voyageur dans la série SNCF 2015-2024, la gare n'est plus « incertaine » après 2014 : fermée.
+                $byAttendance = $undatedNote !== null
+                    ? StationTimeline::closedByAttendance((int) $era->year, (bool) $era->is_current, $status, $todayHint, isset($unattended[$sid])) : null;
+                if ($byAttendance !== null) {
+                    [$status, $uncertain, $undatedNote, $note] = [$byAttendance, false, null, StationTimeline::NOTE_NO_ATTENDANCE];
+                }
                 if ($undatedNote !== null) {
                     $uncertain = true;
                 }
@@ -358,7 +372,8 @@ class BuildStationEras extends Command
         if ($rules !== []) {
             $this->line('Règles facultatives de l\'audit des gares : '.implode(', ', $rules));
         }
-        $this->resolveClosures(in_array(StationTimeline::RULE_CLOSURE_BY_LINE, $rules, true));
+        $this->resolveClosures(in_array(StationTimeline::RULE_CLOSURE_BY_LINE, $rules, true),
+            in_array(StationTimeline::RULE_NO_ATTENDANCE, $rules, true) ? $this->unattendedStations() : []);
         $this->alignErasWithClosure();
         if (in_array(StationTimeline::RULE_OPENING_BY_MAP, $rules, true)) {
             $this->boundOpeningsByMap();
@@ -472,7 +487,9 @@ class BuildStationEras extends Command
         while ($queue !== [] || $running !== []) {
             while ($queue !== [] && count($running) < $parallel) {
                 $year = array_shift($queue);
-                $cmd = [PHP_BINARY, base_path('artisan'), 'vff:build-station-eras', "--era={$year}", '--skip-infer', '--today='.$this->today()];
+                $rules = $this->requestedRules();
+                $cmd = [PHP_BINARY, base_path('artisan'), 'vff:build-station-eras', "--era={$year}", '--skip-infer', '--today='.$this->today(),
+                    '--rules='.($rules === [] ? 'none' : implode(',', $rules))];
                 if ($this->option('no-stops')) {
                     $cmd[] = '--no-stops';
                 }
@@ -790,6 +807,22 @@ class BuildStationEras extends Command
         //    pour une section précise (PK ou géométrie) passe avant un événement
         //    « toute la ligne », qui donne souvent la 1re ouverture d'une ligne
         //    ouverte par sections (ex. Paris - Brest : 1840 pour toutes les gares).
+        //    « Toute la ligne » : résolu en whole_line (vff:resolve-event-sections lui
+        //    donne le tracé de référence entier pour géométrie) ou sans portion du tout.
+        //    Sans le premier cas, l'ouverture Wikidata de la ligne entière passait pour
+        //    une section et datait toutes les gares de la première (Chaville - Vélizy :
+        //    1840 au lieu du tronçon de 1902 ; Moulot : 1855 au lieu de 1893).
+        $wholeLine = "(le.section_resolution = 'whole_line' OR (le.section_pk_start_m IS NULL AND le.section_geom IS NULL))";
+        //    Gardes (mesure du 23/11 sur 278 gares relues) : deux sortes d'événements ne valent pas
+        //    une section et restent au rang « toute la ligne » (la plus ancienne l'emporte, comme avant) :
+        //    - un tracé OHM ou archéoferroviaire sans deuxième extrémité nommée (« portion de 300,5 km
+        //      près de La Gorp » : le way de la LGV SEA, 2017 pour Gauriaguet, Aubie et Biard ; « (1921) d'après
+        //      le nom du tracé » : une exploitation de guerre). Un tracé « A - B » aux deux bouts nommés reste
+        //      une section : sur la mesure, il est le plus souvent juste (Thionville - Anzeling 1863) ;
+        //    - une ligne qui ne rattache la gare que par segment (proximité du dessin, sans PK de source)
+        //      alors que la gare a une autre ligne à PK sourcé : c'est la ligne voisine, pas la sienne.
+        $weakSection = "((le.source IN ('ohm', 'archeoferroviaire') AND COALESCE(le.section_to, '') = '') OR (sl.method = 'segment' AND EXISTS (SELECT 1 FROM station_lines sl3 WHERE sl3.station_id = s.id AND sl3.line_id <> sl.line_id AND sl3.method IN ('sncf_pk', 'source_pk'))))";
+        $notSection = "({$wholeLine} OR {$weakSection})";
         $a = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, source_url, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (s.id) s.id, 'opening', le.event_date, le.date_precision, 'inferred:line_event', 'line_event:'||le.id,
@@ -799,7 +832,7 @@ class BuildStationEras extends Command
             JOIN lines l ON l.id = sl.line_id
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND {$cover}
             WHERE {$explicit("'opening'")}
-            ORDER BY s.id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date, {$precisionRank}, le.id
+            ORDER BY s.id, {$notSection}, le.event_date, {$precisionRank}, le.id
         SQL);
         // b. À défaut, tracés datés passant à < 30 m (OHM : start_date).
         $b = DB::affectingStatement(<<<SQL
@@ -999,6 +1032,24 @@ class BuildStationEras extends Command
     }
 
     /**
+     * Règle G7 : gares à code UIC qui n'ont aucune ligne dans la série de fréquentation SNCF (station_attendances,
+     * jeu national des gares desservies par des voyageurs depuis 2015). Vide si la série n'est pas importée
+     * (vff:import-sncf-attendance) : « absente » ne veut alors rien dire.
+     *
+     * @return array<int, true>
+     */
+    private function unattendedStations(): array
+    {
+        if (! DB::table('station_attendances')->exists()) {
+            return [];
+        }
+
+        return array_fill_keys(array_map('intval', DB::table('stations as s')->whereNotNull('s.uic_code')
+            ->whereNotExists(fn ($q) => $q->from('station_attendances as a')->whereColumn('a.station_id', 's.id'))
+            ->pluck('s.id')->all()), true);
+    }
+
+    /**
      * Indices de desserte actuelle par gare (StationTimeline::currentStatus) :
      * jeu gares-de-voyageurs (et date du relevé), arrêt en service selon OSM /
      * Wikidata, drapeau fret de liste-des-gares, source du statut.
@@ -1038,11 +1089,14 @@ class BuildStationEras extends Command
      * (StationTimeline::resolveClosure) ; toutes les ères sont relues en base
      * (après un --era seul aussi, ex. vff:refresh-current-era).
      *
+     * Règle G7 ($unattended, StationTimeline::closedByAttendance) : l'intervalle d'une gare absente de la série de
+     * fréquentation SNCF se termine au 31/12/2014 (provenance closed_rule = g7).
+     *
      * Règle G6 ($closureByLine, StationTimeline::closureFromLinePassengerEnds) : une gare fermée sans date
      * (intervalle des ères, aucun candidat) prend la fin des voyageurs de ses lignes quand chacune est
      * rattachée à sa section par PK (provenance closed_rule = g6).
      */
-    private function resolveClosures(bool $closureByLine = false): void
+    private function resolveClosures(bool $closureByLine = false, array $unattended = []): void
     {
         $current = DB::table('eras')->where('is_current', true)->value('year');
         if ($current === null) {
@@ -1139,6 +1193,14 @@ class BuildStationEras extends Command
                         'conflict' => $r['conflict'], 'rule' => StationTimeline::RULE_CLOSURE_BY_LINE];
                     $stats['G6 (fin des voyageurs des lignes par PK)']++;
                 }
+            }
+            // G7 : sans voyageur dans la série SNCF 2015-2024, l'intervalle des ères (qui va jusqu'à l'ère 2020) se
+            // resserre : fermée avant 2015 (au plus tard le 31/12/2014), provenance closed_rule = g7.
+            $cap = StationTimeline::ATTENDANCE_FIRST_YEAR - 1;
+            if ($r !== null && isset($unattended[$sid]) && $r['precision'] === StationTimeline::RANGE && $r['source'] === 'vff:eras'
+                && (int) substr($r['date'], 0, 4) > $cap && ($r['after'] === null || $r['after'] < $cap)) {
+                $r['date'] = sprintf('%04d-12-31', $cap);
+                $r['rule'] = StationTimeline::RULE_NO_ATTENDANCE;
             }
             if ($r === null) {
                 // Ouverte aujourd'hui : pas de date de fermeture, sauf une fermeture à venir ou saisie à la main.

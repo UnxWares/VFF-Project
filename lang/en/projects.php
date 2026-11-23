@@ -1,0 +1,83 @@
+<?php
+
+// "Projects: reopenings and new lines" (/projects): page texts. The data come from App\Services\RailProjects
+// (catalogue database/data/projets_ferroviaires.php); the project summaries are in French.
+return [
+    'meta_title' => 'Projects: reopenings and new lines',
+    'meta_description' => 'French railway projects not yet in service: reopenings to passenger service, new lines and high-speed lines, metropolitan express rail networks, electrifications. For each one, its status, the date of every stage already passed, who is behind it and the source of every dated fact.',
+    'hero_title' => 'Projects: reopenings and new lines',
+    'hero_subtitle' => ':count railway projects in France, with their status, the date of every stage already passed and the source of every fact. A date announced for later is always shown as planned, with who announces it.',
+    'link_figures' => 'Projects: reopenings and new lines',
+
+    'filters_title' => 'Search for a project',
+    'search_label' => 'Name, line, sponsor or region',
+    'search_hint' => 'E.g. Limoges, LGV, Occitanie',
+    'filter_state' => 'Status',
+    'all_states' => 'All statuses',
+    'filter_kind' => 'Type of project',
+    'all_kinds' => 'All types',
+    'filter_region' => 'Region',
+    'all_regions' => 'All regions',
+    'results' => 'Projects: :count',
+    'reset' => 'Reset',
+    'empty_title' => 'No project found',
+    'empty_text' => 'Try another word, or remove a filter.',
+
+    'kinds' => [
+        'reopening' => 'Reopening to passenger service',
+        'new_line' => 'New line',
+        'lgv' => 'High-speed line',
+        'rer' => 'Metropolitan express rail network',
+        'electrification' => 'Electrification',
+    ],
+    'states' => [
+        'study' => 'Study',
+        'debate' => 'Public debate',
+        'dup' => 'Declared of public utility',
+        'funding' => 'Funding agreed',
+        'works' => 'Works',
+        'suspended' => 'Suspended or postponed',
+    ],
+    'state_help' => [
+        'study' => 'The last stage passed is a study.',
+        'debate' => 'The last stage passed is a public debate or consultation.',
+        'dup' => 'The project is declared of public utility.',
+        'funding' => 'Funding is agreed; works have not started.',
+        'works' => 'Works have started.',
+        'suspended' => 'The project is suspended, postponed without a date or abandoned.',
+    ],
+    'stages' => [
+        'study' => 'Study',
+        'debate' => 'Public debate or consultation',
+        'dup' => 'Declaration of public utility',
+        'funding' => 'Funding',
+        'works' => 'Works',
+        'service' => 'Passenger service',
+        'commissioning' => 'Entry into service',
+    ],
+    'stage_done' => 'Passed',
+    'stage_planned' => 'Planned',
+    'stage_source' => 'Source',
+    'source_published' => 'published :date',
+
+    'planned_line' => 'Entry into service planned: :date, according to :source.',
+    'planned_line_next' => 'Next stage planned: :stage, :date, according to :source.',
+    'no_planned' => 'No entry into service dated by a source.',
+    'porteurs' => 'Sponsors',
+    'regions' => 'Regions',
+    'lines' => 'Line page',
+    'stages_title' => 'Stages',
+    'no_stages' => 'No dated stage.',
+    'checked' => 'Sources checked on :date.',
+    'summary_lang_note' => 'Summary in French.',
+
+    'table_label' => 'List of railway projects',
+    'list_label' => 'Railway projects',
+
+    'method_title' => 'How to read this page',
+    'method_dates' => 'A "passed" stage has a past date and a source; a "planned" stage is a date announced by a project owner, a region or the State, which may change: it is never presented as certain. When a source gives only the year or the month, this page says no more.',
+    'method_state' => 'A project\'s status is that of its last stage passed, in this order: study, public debate, declaration of public utility, funding, works. A project that has entered service leaves the list and takes its place in the page of its line.',
+    'method_sources' => 'Sources are official documents first (SNCF Réseau, regions, prefectures, State-Region planning contracts, Légifrance for decrees, public debates of the Commission nationale du débat public), then regional press. Wikipedia is used only to cross-check.',
+    'method_scope' => 'The list does not claim to be exhaustive: it covers the projects whose status and dates could be checked in public sources.',
+    'api_link' => 'The same data as JSON: /api/v1/projects',
+];

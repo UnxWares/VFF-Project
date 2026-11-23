@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\EraTileRequest;
+use App\Http\Requests\Api\MapViewListingRequest;
 use App\Models\Era;
 use App\Services\GeoExporter;
+use App\Services\Map\ViewListing;
 use App\Services\MapDataCache;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\MapTiles;
@@ -66,8 +68,8 @@ class GeoController extends Controller
      *   millimètres : 1435 voie normale, 1000 voie métrique, 600 voie étroite) ;
      * - `source` : provenance du tracé (`sncf` SNCF Réseau Open Data, ODbL ;
      *   `bdtopo` IGN BD TOPO, Licence Ouverte 2.0 ; `osm` OpenStreetMap, ODbL ;
-     *   `ohm` OpenHistoricalMap, CC0 ; `archeoferroviaire` relevés du site
-     *   archeoferroviaire.free.fr, hors ODbL, non redistribués : voir ci-dessous) ;
+     *   `ohm` OpenHistoricalMap, CC0 ; d'autres fournisseurs hors ODbL, à usage
+     *   non commercial et non redistribués : voir ci-dessous et `/sources`) ;
      * - `geometry_withheld` : `true` quand la géométrie du tronçon n'est pas
      *   redistribuée ; `geometry_withheld_reason` en donne la raison
      *   (`licence_not_open` : source dont la licence n'autorise pas la
@@ -245,6 +247,69 @@ class GeoController extends Controller
     }
 
     /**
+     * Lignes et gares d'une emprise.
+     *
+     * Ce que la carte montre dans une emprise, sous une forme compacte et lisible sans la carte : les lignes
+     * (avec leur état à l'ère et leurs kilomètres dans l'emprise) et les gares. C'est la liste « Liste de ce
+     * qui est affiché » de la carte du site, pour les lecteurs d'écran, le clavier et les petits écrans.
+     *
+     * **Lignes** (`lines.items`) : une entrée par ligne et par état, `state` reprenant la légende de la carte :
+     * `lgv`, `mixed`, `freight`, `unknown` (en service, selon le trafic), `heritage` (train touristique),
+     * `velorail`, `service_track`, `construction`, `abandoned` (fermée, voie en place) et `dismantled`
+     * (déposée ou disparue). `km` est la longueur dans l'emprise (voies parallèles comprises, arrondie à
+     * 100 m : un ordre de grandeur). Les lignes sont les plus longues d'abord.
+     *
+     * **Coloration** (`color`, facultatif) : chaque ligne porte aussi `classes`, ses classes dans l'emprise avec
+     * leurs kilomètres (les plus longues d'abord ; liste vide si rien n'est connu ou si l'entrée n'est pas en
+     * service). `speed` : `v100` (jusqu'à 100 km/h), `v160` (101 à 160), `v220` (161 à 220), `v220_plus`
+     * (au-delà), `unknown`. `electrification` : `ac25`, `dc1500`, `dc3000`, `ac15`, `low` (1 000 V et moins,
+     * troisième rail), `other`, `unknown_voltage`, `unknown_date` (électrifiée aujourd'hui, date inconnue),
+     * `none`. `gauge` : `standard`, `metre`, `narrow`, `broad`, `unknown`. `signalling` : familles du calque
+     * « Signalisation » (`automatic_block`, `restricted_block`, `manual_block`, `telephone`, `cab`), d'après
+     * SNCF Réseau aujourd'hui et les mises en service datées aux ères passées.
+     *
+     * **Gares** (`stations.items`) : par nom, avec le statut de la carte (`active`, `tourist`,
+     * `no_commercial`, `uncertain`, `declassified`).
+     *
+     * **Bornes** : chaque liste est plafonnée à `limit` entrées (`total` donne le nombre complet). Une emprise
+     * de plus de 4 degrés de large ou de 3 de haut n'est pas calculée : `too_wide` vaut `true` et les listes
+     * sont vides (zoomez). Les coordonnées de l'emprise sont arrondies à 0,001 degré (environ 100 m), ce qui
+     * permet de partager le cache entre deux lecteurs qui regardent à peu près la même chose.
+     *
+     * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
+     */
+    #[PathParameter('year', "Année de l'ère : une décennie de 1830 à 2030 (2030 = réseau actuel).", example: 1930)]
+    #[ApiResponse(200, 'Lignes et gares de l\'emprise.', examples: [[
+        'era' => 1930,
+        'bbox' => [2.2, 48.8, 2.5, 48.95],
+        'too_wide' => false,
+        'limit' => 300,
+        'lines' => ['total' => 1, 'items' => [
+            ['slug' => 'rfn-001000', 'name' => 'Ligne de Paris-Saint-Lazare au Havre', 'code' => '001000', 'state' => 'mixed', 'km' => 12.4],
+        ]],
+        'stations' => ['total' => 1, 'items' => [
+            ['slug' => 'paris-saint-lazare', 'name' => 'Paris-Saint-Lazare', 'city' => 'Paris', 'state' => 'active'],
+        ]],
+    ]])]
+    #[ApiResponse(404, "Ère inconnue (année qui n'est pas une décennie entre 1830 et 2030).")]
+    #[ApiResponse(422, 'Emprise absente ou mal formée.', examples: [[
+        'message' => 'L’emprise doit être « ouest,sud,est,nord » en degrés, avec ouest < est et sud < nord.',
+        'errors' => ['bbox' => ['L’emprise doit être « ouest,sud,est,nord » en degrés, avec ouest < est et sud < nord.']],
+    ]])]
+    public function inView(MapViewListingRequest $request, int $year, ViewListing $listing): Response
+    {
+        abort_unless(Era::where('year', $year)->exists(), 404);
+        $bbox = $request->bbox();
+        $color = $request->color();
+
+        return $this->cache->json(
+            $request,
+            "in-view:{$year}:".implode(',', $bbox).($color === null ? '' : ":{$color}"),
+            fn (): array => $listing->list($year, $bbox, $color),
+        );
+    }
+
+    /**
      * Tuile vectorielle d'une ère (MVT).
      *
      * Tuile vectorielle au format Mapbox Vector Tile (protobuf), produite à la
@@ -285,11 +350,13 @@ class GeoController extends Controller
      * (`line_slug`, `line_name`, `line_code`, `is_lgv`, `is_threatened`, `network`,
      * `status`, `traffic_type`, `electrified`, `voltage_v`, `electrification_source`, `gauge_class`,
      * `is_heritage`, `heritage_kind`, `line_max_speed`, `line_electrified`, `line_voltage_v`,
-     * `draw_rank`, `covered`). Sans `id`, `line_id`, `max_speed_kmh`, `gauge_mm`, `electrified_year`,
+     * `speed_class`, `draw_rank`, `covered`). Sans `id`, `line_id`, `max_speed_kmh`, `gauge_mm`, `electrified_year`,
      * `operator`, `source`, `source_trace_id` ni `dismantled_at`. Une propriété sans valeur utile est
      * absente de l'entité : booléen faux (sauf `line_electrified`), `draw_rank` nul, `gauge_class`
      * `unknown`, `voltage_v` d'une portion non électrifiée, `heritage_kind` hors patrimoine ;
      * `electrification_source` ne vaut que `unknown` (électrifiée aujourd'hui, date inconnue) ou manque.
+     * `speed_class` : classe de la vitesse maximale d'une portion en service (1 jusqu'à 100 km/h, 2 de 101
+     * à 160, 3 de 161 à 220, 4 au-delà), absente sans vitesse connue.
      * Les tracés aux propriétés identiques (en général les
      * portions voisines d'une même ligne dans le même état) sont réunis en une entité `MultiLineString`.
      * Le dessin ne change pas ; la tuile du zoom 4 qui couvre l'est de la France passe de 291 à 120 Ko

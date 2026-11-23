@@ -97,7 +97,11 @@ class ArgentanGranvilleAdvocacyTest extends TestCase
 
         $this->assertTrue($line->is_threatened);
         $this->assertSame('threatened', $line->advocacy['kind']);
-        $this->assertNull($line->advocacy['cta_url']);
+        // Bouton vers le dossier de l'ADPCR sur la ligne (texte de l'encart inchangé).
+        $this->assertSame('https://www.adpcr.fr/menace-de-fermeture-de-paris-argentan-granville-propositions-pour-un-avenir-ambitieux-de-la-ligne/', $line->advocacy['cta_url']);
+        $this->assertSame('Voir le dossier de l\'ADPCR', $line->advocacy['cta_label']);
+        $this->assertSame('See the ADPCR file', $line->advocacy['translations']['en']['cta_label']);
+        $this->assertSame('ADPCR-Dossier ansehen', $line->advocacy['translations']['de']['cta_label']);
         $this->assertCount(4, $line->advocacy['sources']);
         $this->assertSame(['label' => 'France 3 Normandie', 'date' => '2026-07-23',
             'url' => 'https://france3-regions.franceinfo.fr/normandie/1-milliard-d-euros-de-travaux-trop-vetuste-la-ligne-sncf-paris-granville-pourrait-elle-vraiment-disparaitre-3390607.html'],

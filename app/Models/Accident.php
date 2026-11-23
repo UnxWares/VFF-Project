@@ -7,6 +7,7 @@ use App\Enums\AccidentKind;
 use App\Enums\AccidentLocationPrecision;
 use App\Enums\AccidentReviewStatus;
 use App\Models\Scopes\PublicAccidents;
+use App\Services\Accidents\AccidentSlugTable;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Database\Factories\AccidentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -69,7 +70,7 @@ class Accident extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['geom'];
+    protected $hidden = ['geom', 'search_name', 'search_all'];
 
     protected function casts(): array
     {
@@ -132,6 +133,34 @@ class Accident extends Model
     public function aliases(): HasMany
     {
         return $this->hasMany(self::class, 'alias_of_id')->withoutGlobalScopes();
+    }
+
+    /**
+     * Slug de la fiche publiée qui remplace un ancien slug : celui d'une fiche alias (doublon fusionné,
+     * voir `aliases` des fichiers de contexte) dont la fiche retenue est publiée. Nul si ce n'est pas un alias.
+     * Sert aux redirections 301 : l'adresse d'une fiche fusionnée ne renvoie jamais 404.
+     */
+    public static function redirectSlugFor(string $slug): ?string
+    {
+        // Fiche renommée (database/data/accident_slugs.php) : l'ancienne adresse mène à la nouvelle, puis aux alias éventuels.
+        $renamed = (new AccidentSlugTable)->renamedTo($slug);
+        if ($renamed !== null && ! self::withoutGlobalScopes()->where('slug', $slug)->exists()) {
+            return self::query()->where('slug', $renamed)->exists() ? $renamed : self::redirectSlugFor($renamed);
+        }
+        $kept = self::withoutGlobalScopes()->where('slug', $slug)->whereNotNull('alias_of_id')->value('alias_of_id');
+        // Un alias d'alias est suivi jusqu'à la fiche retenue (au plus 5 pas : pas de boucle possible).
+        for ($i = 0; $i < 5 && $kept !== null; $i++) {
+            $target = self::withoutGlobalScopes()->whereKey($kept)->first(['id', 'slug', 'alias_of_id']);
+            if ($target === null) {
+                return null;
+            }
+            if ($target->alias_of_id === null) {
+                return self::query()->whereKey($target->id)->exists() ? $target->slug : null;
+            }
+            $kept = $target->alias_of_id;
+        }
+
+        return null;
     }
 
     /** @return HasMany<AccidentSource, $this> */

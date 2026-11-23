@@ -59,8 +59,6 @@ final class AccidentContextImporter
                 $errors[] = "aucune fiche « {$slug} » dans la table accidents";
             } elseif ($accident->alias_of_id !== null) {
                 $errors[] = "la fiche « {$slug} » est un alias : écrire le contexte sur la fiche retenue";
-            } elseif (in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
-                $errors[] = "la fiche « {$slug} » n'est pas publiée (nature masquée)";
             }
             foreach (is_array($data) ? ($data['aliases'] ?? []) : [] as $alias) {
                 $target = is_array($alias) ? Accident::withoutGlobalScopes()->where('slug', $alias['slug'] ?? '')->first() : null;
@@ -183,6 +181,7 @@ final class AccidentContextImporter
                 'access' => $s['access'],
                 'consulted_on' => $s['consulted_on'],
                 'note' => $s['note'] ?? null,
+                'facts' => $s['facts'] ?? null,
             ]);
             $result->references++;
         }
@@ -264,6 +263,7 @@ final class AccidentContextImporter
                 'value' => $c['value'],
                 'references' => array_values($c['sources']),
                 'reason' => ['fr' => self::typography($c['fr']), 'en' => self::typography($c['en']), 'de' => self::typography($c['de'])],
+                'single_source' => ($c['single_source'] ?? false) === true,
             ];
             $result->corrections[] = "{$accident->slug} : {$field} ".json_encode($before).' -> '.json_encode($c['value']);
         }

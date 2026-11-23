@@ -51,7 +51,25 @@ Mesures du 21/11/2026 (construction 20261120, environ 45 Mo/s) :
 | France et abords | 0 à 14 | | 2,9 Go | (mesure seule) |
 | Normandie (essai) | 0 à 15 | 153 811 | 515 Mo | 11 s (mesure seule) |
 
-Au-delà du zoom 15, MapLibre agrandit les tuiles du zoom 15 (vecteurs : aucun flou).
+Le script construit jusqu'au zoom 15 par défaut (maximum accepté) ; la mise à jour de l'archive se fait à la main
+(voir plus haut), sans tâche planifiée.
+
+### Zoom de la carte : jusqu'au niveau 19
+
+Décision du 22/11/2026. Les cartes qui utilisent ce fond (`/maps`, cartes des fiches de gare, d'accident et de
+ligne) montent au niveau 19 (`MAP_MAX_ZOOM`, option `maxZoom` de la carte) : au-delà du niveau 15 construit, MapLibre
+agrandit les tuiles vectorielles du niveau 15 (la source déclare `maxzoom: 15`, `BASEMAP_MAX_ZOOM` dans
+`resources/js/lib/basemap.js`) : aucune requête de tuile plus fine, aucun flou, car les tracés sont des vecteurs
+(vérifié sur Limoges-Bénédictins, captures du 22/11/2026 dans `storage/app/reports/agents/aprem-2111/prod-carte/`).
+
+- Les couches de VFF restent nettes pour la même raison : tuiles de tracés, de comparaison, de superposition, de
+  signalisation, de passages à niveau et de voies vertes ont `maxzoom: 14` (aucune requête au-delà du niveau 14 :
+  maximum observé 14 en zoomant jusqu'à 19) ; gares et accidents sont du GeoJSON, sans tuile. Les fonds raster
+  (OpenStreetMap, OpenRailwayMap) déclarent `maxzoom: 19`, les cartes historiques de l'IGN leur propre niveau
+  (14 à 18, agrandies au-delà). La carte schématique (sans fond) garde son plafond à 13.
+- Les boutons de zoom suivent : le bouton « + » se désactive au niveau 19, l'échelle passe à 10 m.
+- Repli : fond en ligne (tuiles raster d'OpenStreetMap, jusqu'au niveau 19) ou fond libre injoignable (archive en
+  404) : la carte garde ses limites et ses couches, sans erreur de page.
 
 Les zones sont décrites par `database/data/basemap/france.geojson` (polygone tracé à la main, environ 25 km
 au-delà des frontières, Corse comprise) et `normandie.geojson`.
@@ -156,3 +174,19 @@ Le même service worker garde les images des fiches déjà affichées, dans le c
 
 Le cache des images et celui du fond de carte ne changent pas à chaque déploiement : leurs noms portent un numéro de
 format, pas la version du site.
+
+## Polices : pas de Bold
+
+Les polices du fond libre viennent de <https://github.com/protomaps/basemaps-assets> (dossier `fonts`, Noto Sans,
+SIL Open Font License 1.1, texte dans `public/basemap/fonts/OFL.txt`). Cette source ne publie que `Noto Sans Regular`,
+`Noto Sans Medium` et `Noto Sans Italic` : aucune plage `Noto Sans Bold` n'existe chez elle, donc aucune n'est
+ajoutee (pas de source de la meme licence a copier sans changer de provenance). Les etiquettes de VFF (noms de gares)
+demandent `Noto Sans Bold` ; `boldLabelFont` (`resources/js/lib/basemap.js`) la remplace par `Noto Sans Medium`
+quand les glyphes sont ceux de `/basemap/fonts`, et garde `Bold` avec les glyphes d'OpenFreeMap. Plus de 404 sur
+`Noto Sans Bold/0-255.pbf`.
+
+## Position et zoom dans l'adresse
+
+`/maps` lit et ecrit `?center=lon,lat&zoom=z` (format de `/embed/maps`, `resources/js/lib/mapView.js` : zoom borne de
+0 a 19, centre refuse hors de lon 180 et lat 85). L'adresse est mise a jour a la fin de chaque deplacement par
+`history.replaceState` (aucune entree d'historique). Le code d'integration peut reprendre la vue courante.

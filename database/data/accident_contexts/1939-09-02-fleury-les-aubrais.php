@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident des Aubrais (Fleury-les-Aubrais) du 2 septembre 1939 (recherche du 21/11/2026).
 return [
     'slug' => '1939-09-02-fleury-les-aubrais',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1939' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'ISBN 1-85260-323-2 ; cité par Wikipédia en anglais, non lu.',
         ],
+        'kb-1939-09-04-de-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp bij Orleans',
+            'publisher' => 'De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1939-09-04',
+            'locator' => 'article « Treinramp bij Orleans », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000179003:mpeg21:a00005:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 4 septembre : un train plein de gens fuyant Paris est entré en collision, près d\'Orléans, avec un autre train de fuyards ; 35 morts et 50 blessés.',
+        ],
+        'kb-1939-09-04-limburgsch-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TREINRAMP BIJ ORLEANS 35 Dooden, 50 gewonden',
+            'publisher' => 'Limburgsch Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1939-09-04',
+            'locator' => 'article « TREINRAMP BIJ ORLEANS 35 Dooden, 50 gewonden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010948436:mpeg21:a0172:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Même brève, avec « samedi » et la mention de l\'agence United Press.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -94,6 +122,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais du 4 septembre 1939 rapportent, d\'après United Press, la collision de samedi (2 septembre) près d\'Orléans entre deux trains de gens fuyant Paris : 35 morts et 50 blessés, ce qui concorde pour les morts avec la fiche (35) ; la fiche compte 77 blessés.',
+                'en' => 'Two Dutch newspapers of 4 September 1939 report, from United Press, the collision of Saturday (2 September) near Orléans between two trains of people fleeing Paris: 35 dead and 50 injured, which matches the record for the dead (35); the record counts 77 injured.',
+                'de' => 'Zwei niederländische Zeitungen vom 4. September 1939 berichten nach United Press über den Zusammenstoß vom Samstag (2. September) bei Orléans zwischen zwei Zügen mit Menschen, die aus Paris flohen: 35 Tote und 50 Verletzte, was bei den Toten mit der Datenbank (35) übereinstimmt; die Datenbank zählt 77 Verletzte.',
+                'sources' => ['kb-1939-09-04-de-volkskrant', 'kb-1939-09-04-limburgsch-dagblad'],
+            ],
             [
                 'fr' => 'Le fourgon de queue et la dernière voiture de chacune des deux rames, très chargées, sont écrasés. Le bilan est de 35 morts et 77 blessés ; l\'accident est vite relégué au second plan par le début de la guerre.',
                 'en' => 'The rear van and the last coach of each of the two heavily loaded trains were crushed. The toll is 35 dead and 77 injured; the accident was quickly overshadowed by the outbreak of the war.',

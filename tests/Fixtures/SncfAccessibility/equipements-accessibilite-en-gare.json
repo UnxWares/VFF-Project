@@ -1,0 +1,48 @@
+{
+ "dataset": "equipements-accessibilite-en-gare",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "uic": "87000001",
+   "nom_de_la_gare": "Alpha-Centre",
+   "adresse": "1 place",
+   "codepostal": "75001",
+   "ville": "Paris",
+   "accessibilite": "Boucle à induction magnétique"
+  },
+  {
+   "uic": "87000001",
+   "nom_de_la_gare": "Alpha-Centre",
+   "adresse": "1 place",
+   "codepostal": "75001",
+   "ville": "Paris",
+   "accessibilite": "Toilettes"
+  },
+  {
+   "uic": "87000001",
+   "nom_de_la_gare": "Alpha-Centre",
+   "adresse": "1 place",
+   "codepostal": "75001",
+   "ville": "Paris",
+   "accessibilite": "Bande d'éveil de vigilance sur les quais"
+  },
+  {
+   "uic": "87000001",
+   "nom_de_la_gare": "Alpha-Centre",
+   "adresse": "1 place",
+   "codepostal": "75001",
+   "ville": "Paris",
+   "accessibilite": "Équipement inventé"
+  },
+  {
+   "uic": "87000002",
+   "nom_de_la_gare": "Bravo",
+   "adresse": "2 rue",
+   "codepostal": "06000",
+   "ville": "Nice",
+   "accessibilite": "Présence du personnel"
+  }
+ ]
+}

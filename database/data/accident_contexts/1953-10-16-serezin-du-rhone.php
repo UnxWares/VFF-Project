@@ -4,7 +4,7 @@
 // La fiche actuelle le place à Saint-Rambert-d'Albon (Drôme) : la gare où il a eu lieu est celle de Sérézin-du-Rhône.
 return [
     'slug' => '1953-10-16-serezin-du-rhone',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1950' => [
             'provider' => 'wikipedia',
@@ -76,6 +76,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Compte rendu du lendemain, derrière un accès payant, non lu ; son titre annonce neuf morts et une cinquantaine de blessés (bilan provisoire).',
         ],
+        'ddb-1953-10-17-honnefer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück. Zehn Tote',
+            'publisher' => 'Honnefer Volkszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1953-10-17',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/3JCQ7KAGVRA4GESGMAHOWFKCZRRGCKN5?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 16 octobre : grave accident vendredi vers 6 h du matin près de Lyon, probablement dû à un aiguillage mal placé ; dix morts et environ 50 blessés.',
+        ],
+        'kb-1953-10-16-het-binnenhof' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp bij Lyon eist tien doden',
+            'publisher' => 'Het Binnenhof (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1953-10-16',
+            'locator' => 'article « Treinramp bij Lyon eist tien doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000385040:mpeg21:a00004:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 16 octobre : à la gare de Sérézin-du-Rhône, à environ dix kilomètres au sud de Lyon, une locomotive en manoeuvre heurte à grande vitesse un train omnibus d\'ouvriers allant à Lyon ; au moins dix morts.',
+        ],
+        'kb-1953-10-16-de-tijd' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Hevige treinbotsing bij Lyon Minstens 10 doden en 45 gewonden',
+            'publisher' => 'De Tijd (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1953-10-16',
+            'locator' => 'article « Hevige treinbotsing bij Lyon Minstens 10 doden en 45 gewonden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011202813:mpeg21:a0003:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 16 octobre : grave collision ce matin à Sérézin, près de Lyon ; au moins 10 morts et 45 blessés ; omnibus d\'ouvriers des usines de soie.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -95,6 +137,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Honnefer Volkszeitung du 17 octobre 1953 rapporte, dans une dépêche de Paris du 16, un grave accident survenu le vendredi 16 octobre vers 6 h du matin près de Lyon, probablement à cause d\'un aiguillage mal placé, avec dix morts et environ 50 blessés, contre 11 morts dans la fiche. Date et nature sont confirmées ; le lieu n\'est donné que par la grande ville voisine.',
+                'en' => 'The Honnefer Volkszeitung of 17 October 1953 reports, in a Paris dispatch of the 16th, a serious accident on Friday 16 October at about 6 am near Lyon, probably because of wrongly set points, with ten dead and about 50 injured, against 11 dead in the record. Date and nature are confirmed; the place is given only by the large neighbouring city.',
+                'de' => 'Die Honnefer Volkszeitung vom 17. Oktober 1953 berichtet in einer Pariser Meldung vom 16. über ein schweres Unglück am Freitag, dem 16. Oktober, gegen 6 Uhr morgens in der Nähe von Lyon, vermutlich wegen falsch gestellter Weichen, mit zehn Toten und etwa 50 Verletzten, gegenüber 11 Toten in der Datenbank. Datum und Art sind bestätigt; der Ort wird nur über die große Nachbarstadt angegeben.',
+                'sources' => ['ddb-1953-10-17-honnefer'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais du 16 octobre 1953 confirment la collision du matin à la gare de Sérézin-du-Rhône, à une dizaine de kilomètres au sud de Lyon, d\'une locomotive en manoeuvre contre un omnibus d\'ouvriers, avec au moins 10 morts et 45 blessés dans le premier bilan, contre 11 morts dans la fiche. Date, lieu (Sérézin-du-Rhône) et nature confirment la correction de commune de la fiche.',
+                'en' => 'Two Dutch newspapers of 16 October 1953 confirm the morning collision at Sérézin-du-Rhône station, about ten kilometres south of Lyon, of a shunting locomotive into a workers\' local train, with at least 10 dead and 45 injured in the first toll, against 11 dead in the record. Date, place (Sérézin-du-Rhône) and nature confirm the record\'s commune correction.',
+                'de' => 'Zwei niederländische Zeitungen vom 16. Oktober 1953 bestätigen den Zusammenstoß am Morgen im Bahnhof Sérézin-du-Rhône, etwa zehn Kilometer südlich von Lyon, einer rangierenden Lokomotive mit einem Arbeiter-Nahverkehrszug, mit mindestens 10 Toten und 45 Verletzten in der ersten Bilanz, gegenüber 11 Toten in der Datenbank. Datum, Ort (Sérézin-du-Rhône) und Art bestätigen die Korrektur der Gemeinde der Datenbank.',
+                'sources' => ['kb-1953-10-16-het-binnenhof', 'kb-1953-10-16-de-tijd'],
+            ],
             [
                 'fr' => 'L\'accident a fait onze morts et des dizaines de blessés, une cinquantaine selon le compte rendu du Monde du lendemain. Six des onze morts habitaient Sérézin-du-Rhône, où les obsèques ont rassemblé une foule nombreuse quelques jours plus tard.',
                 'en' => 'The accident killed eleven people and injured dozens, about fifty according to the next day\'s report in Le Monde. Six of the eleven dead lived in Sérézin-du-Rhône, where a large crowd attended the funerals a few days later.',

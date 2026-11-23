@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Argenton-sur-Creuse du 31 août 1985 (recherche du 21/11/2026).
 return [
     'slug' => '1985-08-31-argenton-sur-creuse',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Un député cite Argenton-sur-Creuse, Flaujac, Saint-Pierre-du-Vauvray et Issy-les-Moulineaux dans un bilan de 125 morts depuis le contrat de plan SNCF-État ; la réponse annonce un programme de sécurité présenté au conseil d\'administration de la SNCF le 26 octobre 1988. Ne décrit pas l\'accident lui-même.',
         ],
+        'kb-1985-08-31-nrc-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zeker 43 doden bij treinramp in Frankrijk',
+            'publisher' => 'NRC Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1985-08-31',
+            'locator' => 'article « Zeker 43 doden bij treinramp in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBNRC01:000029868:mpeg21:a0001:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 31 août : au moins 43 morts, un train postal entre peu après minuit dans un train de voyageurs déraillé près d\'Argenton-sur-Creuse ; bilan provisoire de 30 blessés graves et 55 blessés légers.',
+        ],
+        'kb-1985-09-02-het-vrije-volk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp Frankrijk 49 doden',
+            'publisher' => 'Het Vrije Volk (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1985-09-02',
+            'locator' => 'article « Treinramp Frankrijk 49 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010962102:mpeg21:a0177:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 2 septembre : 49 morts et 85 blessés ; le mécanicien a reconnu rouler trop vite sur un tronçon limité à 30 km/h pour des travaux.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -120,6 +148,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 31 août et 2 septembre 1985 confirment la collision peu après minuit à Argenton-sur-Creuse entre un train de voyageurs déraillé et un train postal : au moins 43 morts le 31 août (30 blessés graves, 55 légers), puis 49 morts et 85 blessés le 2 septembre, avec un mécanicien admettant un excès de vitesse sur un tronçon limité à 30 km/h pour travaux. Le 43 de la fiche est le premier bilan, pas le dernier.',
+                'en' => 'Two Dutch newspapers of 31 August and 2 September 1985 confirm the collision shortly after midnight at Argenton-sur-Creuse between a derailed passenger train and a mail train: at least 43 dead on 31 August (30 seriously and 55 lightly injured), then 49 dead and 85 injured on 2 September, with the driver admitting speeding on a section limited to 30 km/h for works. The 43 in the record is the first toll, not the last.',
+                'de' => 'Zwei niederländische Zeitungen vom 31. August und 2. September 1985 bestätigen den Zusammenstoß kurz nach Mitternacht bei Argenton-sur-Creuse zwischen einem entgleisten Reisezug und einem Postzug: mindestens 43 Tote am 31. August (30 Schwer-, 55 Leichtverletzte), dann 49 Tote und 85 Verletzte am 2. September, wobei der Lokführer überhöhte Geschwindigkeit auf einem wegen Bauarbeiten auf 30 km/h begrenzten Abschnitt einräumte. Die 43 der Datenbank sind die erste, nicht die letzte Bilanz.',
+                'sources' => ['kb-1985-08-31-nrc-handelsblad', 'kb-1985-09-02-het-vrije-volk'],
+            ],
             [
                 'fr' => 'L\'accident fait 43 morts. Le nombre de blessés est donné comme 40 par l\'article français de Wikipédia et comme 38 par l\'article allemand.',
                 'en' => 'The accident killed 43 people. The number of injured is given as 40 by the French Wikipedia article and as 38 by the German one.',

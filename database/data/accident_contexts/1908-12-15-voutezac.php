@@ -3,7 +3,7 @@
 // Contexte sourcé de la catastrophe du tunnel de Pouch (Voutezac) du 15 décembre 1908 (recherche du 21/11/2026).
 return [
     'slug' => '1908-12-15-voutezac',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -117,6 +117,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia, non lu.',
         ],
+        'kb-1908-12-17-nieuwe-tilburgsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk',
+            'publisher' => 'Nieuwe Tilburgsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1908-12-17',
+            'locator' => 'article « Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010167927:mpeg21:a0007:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 17 décembre : le train de Brive à Limoges heurte dans un tunnel près d\'Estivaux des wagons de marchandises ; 12 morts et 30 blessés, surtout des terrassiers de Brive.',
+        ],
+        'kb-1908-12-18-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk. Brand in een tunnel.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1908-12-18',
+            'locator' => 'article « Frankrijk. Brand in een tunnel. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010335801:mpeg21:a0084:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 18 décembre : le bilan est plus grave que les premières dépêches ; la collision a eu lieu dans un tunnel sur la ligne de Limoges à Brive, ce qui a aggravé l\'accident.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -148,6 +176,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 17 et 18 décembre 1908 situent la collision du train de Brive à Limoges contre des wagons de marchandises dans un tunnel près d\'Estivaux, avec 12 morts et 30 blessés dans la première dépêche, un bilan jugé plus grave le 18, contre 15 morts et 28 blessés dans la fiche. Le lieu (ligne de Limoges à Brive, Estivaux) est compatible avec Voutezac ; la date exacte n\'est pas donnée dans les extraits.',
+                'en' => 'Two Dutch newspapers of 17 and 18 December 1908 place the collision of the Brive to Limoges train with goods wagons in a tunnel near Estivaux, with 12 dead and 30 injured in the first dispatch and a toll judged worse on the 18th, against 15 dead and 28 injured in the record. The place (Limoges to Brive line, Estivaux) is compatible with Voutezac; the exact date is not given in the extracts.',
+                'de' => 'Zwei niederländische Zeitungen vom 17. und 18. Dezember 1908 verlegen den Zusammenstoß des Zuges von Brive nach Limoges mit Güterwagen in einen Tunnel bei Estivaux, mit 12 Toten und 30 Verletzten in der ersten Meldung und einer am 18. als schwerer beurteilten Bilanz, gegenüber 15 Toten und 28 Verletzten in der Datenbank. Der Ort (Strecke Limoges-Brive, Estivaux) ist mit Voutezac vereinbar; das genaue Datum nennen die Auszüge nicht.',
+                'sources' => ['kb-1908-12-17-nieuwe-tilburgsche-courant', 'kb-1908-12-18-algemeen-handelsblad'],
+            ],
             [
                 'fr' => 'Le bilan retenu est de 15 morts et 28 blessés, chiffre confirmé à la Chambre des députés selon Wikipédia. Les restes carbonisés ont rendu l\'identification difficile.',
                 'en' => 'The accepted toll is 15 dead and 28 injured, a figure confirmed in the Chamber of Deputies according to Wikipedia. The charred remains made identification difficult.',

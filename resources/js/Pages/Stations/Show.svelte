@@ -9,7 +9,15 @@
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SheetPending from '$components/Sheet/SheetPending.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
+    import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
+    import StationAccessibility from '$components/Stations/StationAccessibility.svelte';
+    import StationAttendance from '$components/Stations/StationAttendance.svelte';
+    import StationTimetable from '$components/Stations/StationTimetable.svelte';
+    import StationChronology from '$components/Stations/StationChronology.svelte';
+    import StationHeritage from '$components/Stations/StationHeritage.svelte';
+    import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -20,22 +28,54 @@
     } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
 
-    /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). */
+    /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). Gares
+     * voisines, nombre d'images et fréquentation arrivent juste après le premier affichage (props différées,
+     * groupe « sheet ») : absentes (undefined) jusque-là. */
     let {
         station,
         eras = [],
-        events = [],
         lines = [],
         sources = [],
-        neighbors = [],
-        media_count = 0,
+        aerial_views = [],
+        chronology = [],
+        heritage = null,
+        department_name = null,
+        commune = null,
+        neighbors: neighborsProp,
+        media_count: mediaCountProp,
+        attendance: attendanceProp,
     } = $props();
+
+    // Bas de la page pas encore reçu (une valeur nulle est une réponse : section absente).
+    const pending = $derived(
+        [neighborsProp, mediaCountProp, attendanceProp].some((v) => v === undefined),
+    );
+    const neighbors = $derived(neighborsProp ?? []);
+    const media_count = $derived(mediaCountProp ?? 0);
+    const attendance = $derived(attendanceProp ?? null);
+
+    /** Autres noms de la fiche ; le nom actuel daté (renamed) n'est que dans la chronologie. */
+    const altNames = $derived((station.alt_names ?? []).filter((a) => !a.renamed));
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
     // Sommaire collant : SheetToc n'affiche que les sections présentes.
-    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'gallery', 'sources'];
+    const TOC = [
+        'about',
+        'heritage',
+        'eras',
+        'history',
+        'lines',
+        'timetable',
+        'accessibility',
+        'attendance',
+        'location',
+        'gallery',
+        'aerial',
+        'further-reading',
+        'sources',
+    ];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
     /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
     const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
@@ -163,23 +203,6 @@
             ].includes(k),
         ),
     );
-    /**
-     * Ouverture déduite des lignes et bornée par la carte (précision range de la fiche) : l'événement
-     * « ouverture » déduit porte l'année de la ligne, qui n'est que la borne basse de l'intervalle.
-     */
-    const isBoundedOpening = (e) =>
-        e.type === 'opening' &&
-        e.inferred &&
-        station.opened_precision === 'range' &&
-        station.opened_after != null &&
-        Number(String(e.date ?? '').slice(0, 4)) === station.opened_after + 1;
-    const eventDate = (e) =>
-        isBoundedOpening(e)
-            ? formatOpening(station.opened_at, 'range', station.opened_after)
-            : formatDate(e.date, e.precision);
-
-    const hasInferredEvent = $derived(events.some((e) => e.inferred));
-
     /** Coordonnées lisibles (la mini-carte n'est pas lisible sans la vue) : « 45,8344° N », « 1,2630° E ». */
     const deg = (v, pos, neg) =>
         `${Math.abs(v).toLocaleString(lang, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}° ${v >= 0 ? pos : neg}`;
@@ -204,7 +227,8 @@
     path={`/stations/${station.slug}`}
     type="article"
     jsonLd={(origin) => [
-        stationSchema({ origin, station, description: station.description }),
+        // Pas d'extrait ni de dates dans les données structurées : leurs sources ne sont pas toutes ouvertes (le serveur en trie).
+        stationSchema({ origin, station }),
         breadcrumbSchema(origin, [
             { name: $i18n.t('common.app_full'), path: '/' },
             { name: $i18n.t('nav.stations'), path: '/stations' },
@@ -212,6 +236,33 @@
         ]),
     ]}
 />
+
+{#snippet lineNeighbour(n, side)}
+    <span class={['line-neighbour', side]}>
+        <span class="vff-sr-only">{$i18n.t(`stations.lines.neighbours.${side}`)} : </span>
+        {#if side === 'previous'}<span aria-hidden="true">←&nbsp;</span>{/if}<a
+            class="neighbour-name"
+            href="/stations/{n.slug}">{n.name}</a
+        >
+        <span class="neighbour-dist"
+            >&middot; {nb(
+                t('stations.neighbors_distance', { km: formatPk(n.distance_m, 1) }),
+            )}</span
+        >
+        {#if n.status !== 'active'}
+            <span class="neighbour-state"
+                >({$i18n.t(`stations.lines.neighbours.state.${n.status}`, {
+                    defaultValue: '',
+                })}{#if n.last_open_era}, <a
+                        class="neighbour-era"
+                        href="/maps?era={n.last_open_era}"
+                        >{$i18n.t('stations.lines.neighbours.see_era')}</a
+                    >{/if})</span
+            >
+        {/if}
+        {#if side === 'next'}<span aria-hidden="true">&nbsp;→</span>{/if}
+    </span>
+{/snippet}
 
 {#snippet statusMark(status)}
     <span
@@ -245,14 +296,27 @@
                 {@render statusMark(station.status)}
                 {$i18n.t(`stations.statuses.${station.status}`)}
             </p>
-            {#if station.alt_names?.length}
+            {#if commune || (station.department_code && department_name)}
+                <!-- Fiches du territoire (commune reçue après le premier affichage) : liens explicites, jamais le seul nom. -->
+                <p class="territory">
+                    {#if commune}<a class="vff-link" href="/communes/{commune.slug}"
+                            >{t('communes.title', { name: commune.name })}</a
+                        >{/if}
+                    {#if station.department_code && department_name}<a
+                            class="vff-link"
+                            href="/departments/{station.department_code}"
+                            >{t('departments.commune_link', { name: department_name })}</a
+                        >{/if}
+                </p>
+            {/if}
+            {#if altNames.length}
                 <p class="alt-names">
                     {$i18n.t('stations.also_known_as_label')}
-                    {#each station.alt_names as a, i (i)}
+                    {#each altNames as a, i (i)}
                         <span class="alt"
                             >{a.name}{#if a.from || a.to}&nbsp;({a.from ?? '…'}-{a.to ??
                                     '…'}){/if}</span
-                        >{i < station.alt_names.length - 1 ? ', ' : ''}
+                        >{i < altNames.length - 1 ? ', ' : ''}
                     {/each}
                 </p>
             {/if}
@@ -272,6 +336,8 @@
             </SheetSection>
         {/if}
 
+        <StationHeritage {heritage} name={station.name} />
+
         <SheetSection
             id="eras"
             title={$i18n.t('stations.sections.eras')}
@@ -280,53 +346,12 @@
             <StationEraStrip {eras} />
         </SheetSection>
 
-        <SheetSection id="history" title={$i18n.t('stations.sections.history')}>
-            {#if events.length}
-                <ol class="timeline">
-                    {#each events as e, i (i)}
-                        <li class={{ inferred: e.inferred }}>
-                            <p class="when">
-                                {#if e.date}
-                                    <time datetime={isBoundedOpening(e) ? undefined : e.date}
-                                        >{eventDate(e)}</time
-                                    >
-                                {/if}
-                            </p>
-                            <div class="what">
-                                <p class="ev-type">
-                                    {$i18n.t(`stations.events.${e.type}`)}
-                                    {#if e.inferred}<span class="vff-badge muted"
-                                            >{$i18n.t('stations.events.inferred')}</span
-                                        >{/if}
-                                </p>
-                                {#if e.note}<p class="ev-note" lang={e.note_lang}>{e.note}</p>{/if}
-                                <p class="ev-source">
-                                    {#if e.source_url}
-                                        <a
-                                            href={e.source_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            >{sourceName(e.source)}<i
-                                                class="bi bi-box-arrow-up-right vff-ext"
-                                                aria-hidden="true"
-                                            ></i><span class="vff-sr-only">
-                                                ({$i18n.t('common.new_tab')})</span
-                                            ></a
-                                        >
-                                    {:else}
-                                        {sourceName(e.source)}
-                                    {/if}
-                                </p>
-                            </div>
-                        </li>
-                    {/each}
-                </ol>
-                {#if hasInferredEvent}
-                    <p class="footnote">{$i18n.t('stations.events.inferred_hint')}</p>
-                {/if}
-            {:else}
-                <EmptyState icon="bi-calendar-x" title={$i18n.t('stations.events.none')} />
-            {/if}
+        <SheetSection
+            id="history"
+            title={$i18n.t('stations.sections.history')}
+            intro={$i18n.t('stations.chronology.intro')}
+        >
+            <StationChronology entries={chronology} views={aerial_views} name={station.name} />
         </SheetSection>
 
         <SheetSection title={$i18n.t('stations.sections.lines')} id="lines" count={lines.length}>
@@ -368,6 +393,16 @@
                                     })}
                                 </p>
                             {/if}
+                            {#if l.neighbours}
+                                <p class="line-neighbours">
+                                    {#if l.neighbours.previous}
+                                        {@render lineNeighbour(l.neighbours.previous, 'previous')}
+                                    {/if}
+                                    {#if l.neighbours.next}
+                                        {@render lineNeighbour(l.neighbours.next, 'next')}
+                                    {/if}
+                                </p>
+                            {/if}
                         </li>
                     {/each}
                 </ul>
@@ -376,63 +411,83 @@
             {/if}
         </SheetSection>
 
-        <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
-            <div class={['location', { solo: !neighbors.length }]}>
-                <div class="map-col">
-                    <div class="map-frame">
-                        <StationMiniMap {station} {neighbors} height="100%" />
-                    </div>
-                    <p class="map-note">
-                        <!-- « lon », jamais « lng » : i18next lit `lng` comme la langue voulue. -->
-                        {$i18n.t('stations.map.summary', { lat: latText, lon: lngText })}
-                        <a href={osmUrl} target="_blank" rel="noopener noreferrer"
-                            >{$i18n.t('stations.map.open_osm')}<i
-                                class="bi bi-box-arrow-up-right vff-ext"
-                                aria-hidden="true"
-                            ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
-                        >
-                    </p>
-                </div>
-                {#if neighbors.length}
-                    <div class="near">
-                        <h3 id="neighbors">{$i18n.t('stations.sections.neighbors')}</h3>
-                        <ul class="near-list" aria-labelledby="neighbors">
-                            {#each neighbors as n (n.slug)}
-                                <li>
-                                    <a class="near-link" href="/stations/{n.slug}">
-                                        {@render statusMark(n.status)}
-                                        <span class="near-name">
-                                            <span class="vff-sr-only"
-                                                >{$i18n.t(`stations.statuses.${n.status}`, {
-                                                    defaultValue: '',
-                                                })}.
-                                            </span>{n.name}{#if showCity(n)}<span class="near-city">
-                                                    {n.city}</span
-                                                >{/if}
-                                        </span>
-                                        <span class="near-dist"
-                                            >{nb(
-                                                t('stations.neighbors_distance', {
-                                                    km: formatPk(n.distance_m, 1),
-                                                }),
-                                            )}</span
-                                        >
-                                    </a>
-                                </li>
-                            {/each}
-                        </ul>
-                    </div>
-                {/if}
-            </div>
-        </SheetSection>
+        <StationTimetable slug={station.slug} name={station.name} />
 
-        {#if media_count > 0}
-            <SheetGallery
-                endpoint="/api/v1/stations/{encodeURIComponent(station.slug)}/media"
-                intro={t('media.subtitle_station')}
-                count={media_count}
-            />
+        <StationAccessibility slug={station.slug} name={station.name} />
+
+        {#if pending}
+            <!-- Fréquentation, situation et photos : reçues juste après le premier affichage (props différées). -->
+            <SheetPending ids={['attendance', 'location', 'gallery']} />
+        {:else}
+            <StationAttendance {attendance} name={station.name} />
+
+            <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
+                <div class={['location', { solo: !neighbors.length }]}>
+                    <div class="map-col">
+                        <div class="map-frame">
+                            <StationMiniMap {station} {neighbors} height="100%" />
+                        </div>
+                        <p class="map-note">
+                            <!-- « lon », jamais « lng » : i18next lit `lng` comme la langue voulue. -->
+                            {$i18n.t('stations.map.summary', { lat: latText, lon: lngText })}
+                            <a href={osmUrl} target="_blank" rel="noopener noreferrer"
+                                >{$i18n.t('stations.map.open_osm')}<i
+                                    class="bi bi-box-arrow-up-right vff-ext"
+                                    aria-hidden="true"
+                                ></i><span class="vff-sr-only">
+                                    ({$i18n.t('common.new_tab')})</span
+                                ></a
+                            >
+                        </p>
+                    </div>
+                    {#if neighbors.length}
+                        <div class="near">
+                            <h3 id="neighbors">{$i18n.t('stations.sections.neighbors')}</h3>
+                            <ul class="near-list" aria-labelledby="neighbors">
+                                {#each neighbors as n (n.slug)}
+                                    <li>
+                                        <a class="near-link" href="/stations/{n.slug}">
+                                            {@render statusMark(n.status)}
+                                            <span class="near-name">
+                                                <span class="vff-sr-only"
+                                                    >{$i18n.t(`stations.statuses.${n.status}`, {
+                                                        defaultValue: '',
+                                                    })}.
+                                                </span>{n.name}{#if showCity(n)}<span
+                                                        class="near-city"
+                                                    >
+                                                        {n.city}</span
+                                                    >{/if}
+                                            </span>
+                                            <span class="near-dist"
+                                                >{nb(
+                                                    t('stations.neighbors_distance', {
+                                                        km: formatPk(n.distance_m, 1),
+                                                    }),
+                                                )}</span
+                                            >
+                                        </a>
+                                    </li>
+                                {/each}
+                            </ul>
+                        </div>
+                    {/if}
+                </div>
+            </SheetSection>
+
+            {#if media_count > 0}
+                <SheetGallery
+                    endpoint="/api/v1/stations/{encodeURIComponent(station.slug)}/media"
+                    intro={t('media.subtitle_station')}
+                    count={media_count}
+                />
+            {/if}
         {/if}
+
+        <StationAerialViews views={aerial_views} name={station.name} />
+
+        <!-- Pour aller plus loin : chargée à la demande (API de la bibliographie), aucune requête de plus pour la page. -->
+        <FurtherReading slug={station.slug} subject="station" />
 
         <SheetSection
             title={$i18n.t('stations.sections.sources')}
@@ -611,6 +666,14 @@
         font-size: 12px;
         line-height: 1;
     }
+    .territory {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin: 10px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+    }
     .alt-names {
         max-width: var(--vff-measure);
         margin: 10px 0 0;
@@ -621,97 +684,6 @@
     }
     .alt {
         color: var(--vff-text);
-    }
-
-    /* Chronologie : date à gauche, fait à droite, filet vertical orange discret dans la gouttière. */
-    .timeline {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    .timeline li {
-        position: relative;
-        display: grid;
-        grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
-        gap: 4px 32px;
-        padding: 0 0 var(--vff-space-5) 28px;
-    }
-    .timeline li::before {
-        content: '';
-        position: absolute;
-        top: 7px;
-        left: 0;
-        width: 12px;
-        height: 12px;
-        box-sizing: border-box;
-        border: 2px solid var(--vff-accent);
-        border-radius: 50%;
-        background-color: var(--vff-accent);
-    }
-    /* Date déduite : point creux gris (un contour en tirets, à 12 px, se lisait comme un cercle
-       cassé). */
-    .timeline li.inferred::before {
-        border-color: var(--vff-text-muted);
-        background-color: var(--vff-bg);
-    }
-    /* Trait entre deux points, à 5 px de chacun (point de 12 px à 7 px du haut : il finit 2 px
-       sous le bas de l'élément, 5 px avant le point suivant). */
-    .timeline li:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        top: 24px;
-        bottom: -2px;
-        left: 5px;
-        width: 2px;
-        background-color: var(--vff-border-strong);
-    }
-    .timeline p {
-        margin: 0;
-    }
-    .when {
-        font-family: var(--vff-font-display);
-        font-size: var(--vff-fs-h3);
-        font-weight: 700;
-        line-height: 1.35;
-        font-variant-numeric: tabular-nums;
-        color: var(--vff-text);
-    }
-    .ev-type {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 4px 12px;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-md);
-        font-weight: 600;
-        line-height: 1.5;
-        color: var(--vff-text);
-    }
-    .ev-note {
-        margin-top: 4px;
-        font-size: var(--vff-fs-sm);
-        line-height: 1.55;
-        color: var(--vff-text);
-    }
-    .ev-source a,
-    .src-link a {
-        display: inline-flex;
-        align-items: center;
-        min-height: 24px;
-    }
-    .ev-source {
-        margin-top: 4px;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        color: var(--vff-text-muted);
-    }
-    .footnote {
-        max-width: var(--vff-measure);
-        margin: 0;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        line-height: 1.5;
-        color: var(--vff-text-muted);
     }
 
     /* Lignes desservies : lignes de tableau à filets (comme un livret), tout le bloc cliquable. */
@@ -761,6 +733,38 @@
     }
     .line-name:focus-visible {
         outline-offset: 0;
+    }
+    /* Gares voisines sur la ligne : une rangée, précédente à gauche, suivante à droite. Les liens passent
+       au-dessus du lien qui couvre toute la ligne. */
+    .line-neighbours {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 4px 24px;
+        padding-top: 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+    .line-neighbour.next {
+        margin-left: auto;
+        text-align: right;
+    }
+    .line-neighbour a {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        padding: 4px 0;
+        color: var(--vff-text);
+        text-underline-offset: 3px;
+    }
+    .line-neighbour a:hover {
+        color: var(--vff-accent-ink);
+    }
+    .neighbour-dist {
+        font-variant-numeric: tabular-nums;
     }
     .line-meta {
         display: flex;
@@ -894,6 +898,11 @@
     .src-name strong {
         font-size: var(--vff-fs-md);
     }
+    .src-link a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+    }
     .src-link {
         margin-top: 4px;
         overflow-wrap: anywhere;
@@ -977,9 +986,6 @@
     @media (max-width: 600px) {
         .map-frame {
             --map-h: 320px;
-        }
-        .timeline li {
-            grid-template-columns: minmax(0, 1fr);
         }
         .line-row,
         .source {

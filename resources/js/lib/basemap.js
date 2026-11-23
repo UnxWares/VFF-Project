@@ -11,8 +11,32 @@ import { DARK, LIGHT, layers } from '@protomaps/basemaps';
 /** Identifiant de la source vectorielle du fond libre. */
 export const BASEMAP_SOURCE_ID = 'vff-basemap';
 
+/**
+ * Dernier niveau de zoom construit dans l'archive PMTiles (scripts/basemap-pmtiles.sh, zooms 0 à 15). Au-delà,
+ * MapLibre agrandit les tuiles vectorielles du niveau 15 (aucune requête, aucun flou) : la source le déclare.
+ */
+export const BASEMAP_MAX_ZOOM = 15;
+
+/** Niveau de zoom maximal des cartes de VFF (fond libre sur-zoomé de 15 à 19, comme les tuiles OpenStreetMap). */
+export const MAP_MAX_ZOOM = 19;
+
 /** Polices du fond libre, servies par VFF (gardées par le service worker, « cache d'abord »). */
 export const BASEMAP_GLYPHS = '/basemap/fonts/{fontstack}/{range}.pbf';
+
+/**
+ * Police grasse des étiquettes de VFF (noms de gares). Le fond libre de VFF ne sert que Regular,
+ * Medium et Italic (protomaps/basemaps-assets n'a pas de Bold) : sur ce fond, Medium remplace Bold,
+ * sinon MapLibre demande un fichier absent (404). Les glyphes d'OpenFreeMap ont, eux, un Bold.
+ * @param {string | undefined} glyphs gabarit `glyphs` du style de la carte
+ * @returns {string[]} valeur de `text-font`
+ */
+export function boldLabelFont(glyphs) {
+    return [
+        typeof glyphs === 'string' && glyphs.includes('/basemap/fonts/')
+            ? 'Noto Sans Medium'
+            : 'Noto Sans Bold',
+    ];
+}
 
 /** Couches à pictogrammes, retirées : points d'intérêt, cartouches de routes, flèches de sens unique. */
 const ICON_LAYERS = new Set(['pois', 'roads_shields', 'roads_oneway']);
@@ -171,6 +195,7 @@ export function basemapStyle({ url, attribution, dark = false, lang = 'fr', orig
             [BASEMAP_SOURCE_ID]: {
                 type: 'vector',
                 url: pmtilesUrl(url, origin),
+                maxzoom: BASEMAP_MAX_ZOOM,
                 ...(attribution && { attribution }),
             },
         },

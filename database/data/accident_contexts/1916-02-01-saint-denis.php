@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Saint-Denis du 1er février 1916 (recherche du 21/11/2026).
 return [
     'slug' => '1916-02-01-saint-denis',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1916' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Notice d\'une photographie de l\'agence Rol, qui parle de l\'express de Calais.',
         ],
+        'ddb-1916-02-03-pforzheimer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Pforzheimer Anzeiger du 3 février 1916',
+            'publisher' => 'Pforzheimer Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1916-02-03',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/N3AA6Q4BVIQYH2MUBQZ25UDIVE6TAEK4?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Récit : voitures de 1re à 3e classe renversées, incendie des réservoirs de gaz, secours des pompiers de Saint-Denis, des troupes et d\'ouvriers d\'usine ; morts, « angeblich 10 » dans le texte.',
+        ],
+        'kb-1916-02-02-utrechtsch-provinciaal-en-stedelijk' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1916-02-02',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253196053:mpeg21:a00002:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Paris du 2 février : l\'express pour Calais déraille à Saint-Denis ; quatre morts et 15 blessés dans ce premier bilan.',
+        ],
+        'kb-1916-02-02-van-bergen' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen. Fransch bericht.',
+            'publisher' => 'W. van Bergen (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1916-02-02',
+            'locator' => 'article « Telegrammen. Fransch bericht. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSAB03:000060380:mpeg21:a0027:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 2 février : l\'express qui a passé « hier » à Saint-Denis déraille à grande vitesse et sept voitures prennent feu ; dix morts connus jusque-là, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '93066', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -94,6 +137,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Pforzheimer Anzeiger du 3 février 1916 décrit l\'accident de Saint-Denis : voitures renversées, incendie des réservoirs à gaz, secours des pompiers de Saint-Denis, de troupes et d\'ouvriers, et une dizaine de morts annoncés (« angeblich 10 »), contre 14 dans la fiche.',
+                'en' => 'The Pforzheimer Anzeiger of 3 February 1916 describes the Saint-Denis accident: overturned carriages, gas tanks catching fire, help from the Saint-Denis fire brigade, troops and factory workers, and about ten dead reported ("angeblich 10"), against 14 in the record.',
+                'de' => 'Der Pforzheimer Anzeiger vom 3. Februar 1916 beschreibt das Unglück von Saint-Denis: umgestürzte Wagen, in Brand geratene Gasbehälter, Hilfe der Feuerwehr von Saint-Denis, von Truppen und Fabrikarbeitern und angeblich 10 Tote, gegenüber 14 in der Datenbank.',
+                'sources' => ['ddb-1916-02-03-pforzheimer'],
+            ],
+            [
+                'fr' => 'L\'Utrechtsch Provinciaal en Stedelijk Dagblad du 2 février 1916 donne, dans une dépêche Reuter de Paris, le déraillement de l\'express pour Calais à Saint-Denis avec quatre morts et quinze blessés comme premier bilan, très inférieur à celui d\'une dizaine de morts de la presse allemande du 3 et aux 14 morts de la fiche. Lieu et nature sont confirmés ; le bilan évolue d\'un jour à l\'autre.',
+                'en' => 'The Utrechtsch Provinciaal en Stedelijk Dagblad of 2 February 1916 gives, in a Reuter dispatch from Paris, the derailment of the Calais express at Saint-Denis with four dead and fifteen injured as the first toll, far below the ten or so dead in the German press of the 3rd and the 14 dead in the record. Place and nature are confirmed; the toll changed from one day to the next.',
+                'de' => 'Das Utrechtsch Provinciaal en Stedelijk Dagblad vom 2. Februar 1916 meldet in einer Reuter-Meldung aus Paris die Entgleisung des Calais-Expresses bei Saint-Denis mit vier Toten und fünfzehn Verletzten als erster Bilanz, weit unter den etwa zehn Toten der deutschen Presse vom 3. und den 14 Toten der Datenbank. Ort und Art sind bestätigt; die Bilanz änderte sich von Tag zu Tag.',
+                'sources' => ['kb-1916-02-02-utrechtsch-provinciaal-en-stedelijk'],
+            ],
             [
                 'fr' => 'L\'accident fait quatorze morts et une vingtaine de blessés.',
                 'en' => 'The accident killed fourteen people and injured about twenty.',

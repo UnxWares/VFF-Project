@@ -62,11 +62,11 @@ return [
             'note' => 'Extrait d\'un bulletin d\'association tiré d\'articles de La Vie du Rail (1980). Date l\'accident de Perrigny du 5 février 1920 et rapporte deux circulaires ministérielles (10 avril et 19 août 1920) sur la répétition des signaux. Ne donne ni bilan ni cause.',
         ],
         'kb-1920-02-06-reuter' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Treinongeluk',
-            'publisher' => 'Journal néerlandais (Drents Archief), numérisé sur Delpher',
+            'publisher' => 'Journal néerlandais, Drents Archief (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1920-02-06',
             'locator' => 'article « Treinongeluk », texte OCR',
@@ -76,7 +76,7 @@ return [
             'note' => 'Dépêche Reuter datée de Dijon le 5 février : l\'express de Lyon a heurté un train de marchandises à Perrigny ; premier bilan 15 morts et 30 blessés.',
         ],
         'kb-1920-02-06-sneltrein' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De nieuwe courant du 6 février 1920',

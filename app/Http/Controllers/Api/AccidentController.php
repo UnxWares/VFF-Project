@@ -15,7 +15,9 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 #[Group('Accidents', "Les accidents et événements graves du rail français : date et précision, lieu, ligne et portion à l'époque, bilan humain et sa source, résumé, sources ouvertes avec leur licence.", weight: 7)]
 class AccidentController extends Controller
@@ -57,7 +59,7 @@ class AccidentController extends Controller
     #[QueryParameter('line', 'Slug d\'une ligne : accidents rattachés à cette ligne (rattachement principal ou secondaire). Ligne inconnue : HTTP 422.', type: 'string', example: 'rfn-570000')]
     #[QueryParameter('department', 'Code INSEE du département actuel du lieu (`01` à `95`, `2A`, `2B`, `971` à `976`).', type: 'string', example: '91')]
     #[QueryParameter('region', 'Code INSEE de la région du lieu (`11`, `24`, `27`, `28`, `32`, `44`, `52`, `53`, `75`, `76`, `84`, `93`, `94`, outre-mer `01` à `06`). Liste avec les noms : `/regions`.', type: 'string', example: '11')]
-    #[QueryParameter('station', 'Slug d\'une gare : accidents dont elle est la gare la plus proche du lieu (10 km au plus ; distance dans la fiche, `nearest_station.distance_m`). Gare inconnue : HTTP 422.', type: 'string', example: 'bretigny')]
+    #[QueryParameter('station', 'Slug d\'une gare : accidents dont elle est la gare la plus proche du lieu (10 km au plus ; distance dans la fiche, `nearest_station.distance_m` ; jamais pour un lieu connu à la commune près). Gare inconnue : HTTP 422.', type: 'string', example: 'bretigny')]
     #[QueryParameter('kind', 'Nature : `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `war_action`, `person_struck`, `runaway`, `incident`, `other`.', type: 'string', example: 'derailment')]
     #[QueryParameter('review', '`ok` : fiches dont la date et le lieu sont confirmés (enquête du BEA-TT ou deux sources indépendantes) ; `to_review` : fiches dont un point reste à vérifier.', type: 'string', example: 'ok')]
     #[QueryParameter('min_deaths', 'Bilan d\'au moins ce nombre de morts (0 ou plus) ; exclut les bilans inconnus.', type: 'int', example: 10)]
@@ -93,11 +95,20 @@ class AccidentController extends Controller
      */
     #[PathParameter('accident', 'Slug de l\'accident, tel que renvoyé par la liste (`slug`) : date puis commune.', example: '2013-07-12-bretigny-sur-orge')]
     #[ApiResponse(200, 'Fiche de l\'accident.', examples: [AccidentExamples::SHOW])]
+    #[ApiResponse(301, "Fiche fusionnée dans une autre (deux entrées pour un même accident) : l'en-tête `Location` donne l'adresse de la fiche retenue.")]
     #[ApiResponse(404, 'Accident inconnu (slug introuvable).', examples: [AccidentExamples::NOT_FOUND])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function show(string $accident): JsonResponse
+    public function show(string $accident): JsonResponse|RedirectResponse
     {
-        $model = Accident::query()->withCoordinates()->where('slug', $accident)->firstOrFail();
+        $model = Accident::query()->withCoordinates()->where('slug', $accident)->first();
+        if ($model === null) {
+            $kept = Accident::redirectSlugFor($accident);
+            if ($kept === null) {
+                throw (new ModelNotFoundException)->setModel(Accident::class);
+            }
+
+            return redirect()->route('api.accidents.show', ['accident' => $kept], 301);
+        }
         $model->load([
             'lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'sectionFrom:id,slug,name', 'sectionTo:id,slug,name']),
             'sources',

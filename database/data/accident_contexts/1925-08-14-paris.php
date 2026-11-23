@@ -20,11 +20,11 @@ return [
             'note' => 'Place la collision à 22 h 30 près de la gare de Saint-Denis, au lieudit Pont de la Révolte (express 318 de Lille et rapide 128) : 4 morts et 61 blessés ; cite Le Figaro du 16 août 1925.',
         ],
         'indische-courant-1925-08-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Indische courant du 17 août 1925',
-            'publisher' => 'De Indische courant',
+            'publisher' => 'De Indische courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1925-08-17',
             'locator' => null,
@@ -34,11 +34,11 @@ return [
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Deux dépêches Reuter du 15 août.',
         ],
         'tribune-1925-08-17' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'De Tribune du 17 août 1925',
-            'publisher' => 'De Tribune',
+            'publisher' => 'De Tribune (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1925-08-17',
             'locator' => null,
@@ -96,5 +96,14 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '93066',
+            'sources' => ['indische-courant-1925-08-17', 'tribune-1925-08-17'],
+            'fr' => 'Les deux dépêches Reuter lues placent la collision à Saint-Denis, près de Paris, sur la ligne du Nord ; la fiche la rattachait à Paris et à la gare du Nord, à 0 m, d\'après la gare de départ du train citée par la liste de Wikipédia.',
+            'en' => 'Both Reuter dispatches read place the collision at Saint-Denis, near Paris, on the Nord line; the record linked it to Paris and the Gare du Nord, at 0 m, from the departure station of the train named by the Wikipedia list.',
+            'de' => 'Beide gelesenen Reuter-Depeschen verorten den Zusammenstoß in Saint-Denis bei Paris an der Nordbahn; der Eintrag ordnete ihn Paris und der Gare du Nord in 0 m zu, nach dem Ausgangsbahnhof des in der Wikipedia-Liste genannten Zuges.',
+        ],
+    ],
 ];

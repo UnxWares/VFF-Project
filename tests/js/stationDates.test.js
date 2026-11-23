@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+    directoryClosing,
     directoryOpening,
     formatStationDate,
     formatStationOpening,
@@ -203,5 +204,34 @@ describe('directoryOpening (annuaire des gares)', () => {
 
     it('rend une chaîne vide sans année', () => {
         expect(directoryOpening({ opened_year: null })).toBe('');
+    });
+});
+
+describe('directoryClosing (annuaire des gares)', () => {
+    it('ne présente jamais une borne comme une année de fermeture', () => {
+        const t = translator('fr');
+        const year = new Date().getFullYear();
+        expect(
+            directoryClosing(
+                { closed_year: 1990, closed_precision: 'range', closed_after: 1970 },
+                t,
+            ),
+        ).toBe('entre 1971 et 1990');
+        expect(directoryClosing({ closed_year: 2014, closed_precision: 'range' }, t)).toBe(
+            'au plus tard en 2014',
+        );
+        // Borne = année du calcul (fermeture non datée) : ni « 2026 » ni un jour.
+        expect(
+            directoryClosing(
+                { closed_year: year, closed_precision: 'range', closed_after: 1970 },
+                t,
+            ),
+        ).not.toContain(String(year));
+    });
+
+    it('garde l année d une fermeture datée et rend une chaîne vide sans année', () => {
+        const t = translator('fr');
+        expect(directoryClosing({ closed_year: 1938, closed_precision: 'day' }, t)).toBe('1938');
+        expect(directoryClosing({ closed_year: null })).toBe('');
     });
 });

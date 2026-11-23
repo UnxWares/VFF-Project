@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Troyes (Saint-Julien-les-Villas) de janvier 1940 (recherche du 21/11/2026).
 return [
     'slug' => '1940-01-20-troyes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1940' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dossiers cités par Wikipédia pour l\'accident et l\'interpellation ; le serveur n\'a pas répondu, documents non lus.',
         ],
+        'ddb-1940-01-25-general-anzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'General-Anzeiger Dortmund du 25 janvier 1940',
+            'publisher' => 'General-Anzeiger Dortmund (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1940-01-25',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AY6QSEI5XWKG5QP77PMDY6PVP3SAGR3M?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève de Bruxelles : près de Troyes, un train de permissionnaires heurte un train de marchandises ; sept morts, dont les deux mécaniciens et un chauffeur, une quarantaine de blessés.',
+        ],
+        'ddb-1940-01-24-rhein-ruhr' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Rhein- und Ruhrzeitung du 24 janvier 1940',
+            'publisher' => 'Rhein- und Ruhrzeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1940-01-24',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/FA2YE7PTM4O2CYISOVJBSUGEGEYJUVFS?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Bruxelles du 23 janvier : dans la nuit du 20 au 21 janvier, près de Troyes, un train de permissionnaires heurte un train poste-marchandises ; dégâts importants, selon les autorités 7 morts et une quarantaine de blessés.',
+        ],
+        'ddb-1940-01-23-fuehrer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der Führer du 23 janvier 1940',
+            'publisher' => 'Der Führer (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1940-01-23',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/FWYNRJNMHJ6CPIKLGYSK2ECOIW563OPP?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève : près de Troyes, un grave accident le dimanche matin, un train de permissionnaires contre un train de marchandises, pour causes inconnues ; 7 morts et 40 blessés graves jusque-là.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -108,6 +150,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le General-Anzeiger du 25 janvier 1940 rapporte, dans une brève de Bruxelles, qu\'un train de permissionnaires a heurté un train de marchandises près de Troyes, avec sept morts, dont les deux mécaniciens et un chauffeur, et une quarantaine de blessés, contre 10 morts dans la fiche. Lieu et nature sont confirmés ; le bilan diffère, la brève ne donnant pas la date.',
+                'en' => 'The General-Anzeiger of 25 January 1940 reports, in a brief from Brussels, that a leave train hit a goods train near Troyes, with seven dead, including both drivers and a fireman, and about forty injured, against 10 dead in the record. Place and nature are confirmed; the toll differs, the brief not giving the date.',
+                'de' => 'Der General-Anzeiger vom 25. Januar 1940 berichtet in einer Kurzmeldung aus Brüssel, bei Troyes sei ein Urlauberzug mit einem Güterzug zusammengestoßen, mit sieben Toten, darunter beide Lokführer und ein Heizer, und etwa vierzig Verletzten, gegenüber 10 Toten in der Datenbank. Ort und Art sind bestätigt; die Bilanz weicht ab, die Kurzmeldung nennt das Datum nicht.',
+                'sources' => ['ddb-1940-01-25-general-anzeiger'],
+            ],
             [
                 'fr' => 'Le bilan est de dix morts, dont trois cheminots et sept militaires, et d\'une quarantaine de blessés.',
                 'en' => 'The toll was ten dead, three of them railwaymen and seven soldiers, and about forty injured.',
@@ -137,6 +185,12 @@ return [
                 'en' => 'Date: the Wikipedia list and the record give 20 January 1940, the Troyes La Champagne Tourisme page the night of 20 to 21 January; the Wikipedia entry places the accident "in the night". Cause: the Wikipedia list attributes the accident to a closed signal being passed; the parliamentary report of March 1940 also mentions a train running ahead of time and, according to the mayor, equipment failure; no investigation report was read.',
                 'de' => 'Datum: Die Wikipedia-Liste und der Datensatz nennen den 20. Januar 1940, die Seite von Troyes La Champagne Tourisme die Nacht vom 20. auf den 21. Januar; der Wikipedia-Eintrag verlegt den Unfall „in die Nacht“. Ursache: Die Wikipedia-Liste führt den Unfall auf das Überfahren eines geschlossenen Signals zurück; der Parlamentsbericht vom März 1940 erwähnt zudem einen Zug mit Vorsprung und, laut dem Bürgermeister, einen Materialfehler; ein Untersuchungsbericht wurde nicht gelesen.',
                 'sources' => ['wp-liste-1940', 'troyes-tourisme', 'rail4402-mars-1940'],
+            ],
+            [
+                'fr' => 'Jour et bilan : les journaux allemands des 23 au 25 janvier 1940 placent l\'accident dans la nuit du 20 au 21 janvier (« dimanche matin » pour l\'un), ce que disent aussi la page de Troyes La Champagne Tourisme et Wikipédia (« dans la nuit ») ; la fiche garde le 20, l\'heure n\'étant pas connue. Le bilan de 7 morts est un premier bilan donné par les autorités ; la fiche garde les 10 morts de la liste de Wikipédia et de la page de Troyes La Champagne Tourisme, de source plus tardive.',
+                'en' => 'Day and toll: the German newspapers of 23 to 25 January 1940 place the accident in the night of 20 to 21 January ("Sunday morning" for one), which the Troyes La Champagne Tourisme page and Wikipedia ("in the night") also say; the record keeps the 20th, the time being unknown. The toll of 7 dead is a first toll given by the authorities; the record keeps the 10 dead of the Wikipedia list and of the Troyes La Champagne Tourisme page, from a later source.',
+                'de' => 'Tag und Bilanz: Die deutschen Zeitungen vom 23. bis 25. Januar 1940 verlegen das Unglück in die Nacht vom 20. auf den 21. Januar (bei einer "Sonntagmorgen"), was auch die Seite von Troyes La Champagne Tourisme und Wikipedia ("in der Nacht") sagen; der Datensatz behält den 20., da die Uhrzeit unbekannt ist. Die Bilanz von 7 Toten ist eine erste Bilanz der Behörden; der Datensatz behält die 10 Toten der Wikipedia-Liste und der Seite von Troyes La Champagne Tourisme aus späterer Quelle.',
+                'sources' => ['ddb-1940-01-24-rhein-ruhr', 'ddb-1940-01-23-fuehrer', 'ddb-1940-01-25-general-anzeiger', 'wp-liste-1940', 'troyes-tourisme'],
             ],
         ],
     ],

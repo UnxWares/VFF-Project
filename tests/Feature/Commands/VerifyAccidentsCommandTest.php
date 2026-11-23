@@ -347,7 +347,8 @@ class VerifyAccidentsCommandTest extends TestCase
         $public = $this->accident('2017-12-14-millas', '2017-12-14', '66108', 'commune');
         $this->source($public, 'bea-tt', 'report', 'bea-1', ['date' => '2017-12-14', 'mode' => 'F'], 'Déraillement à Millas (66)');
         $hidden = $this->accident('2018-01-02-millas', '2018-01-02', '66108', 'commune', ['kind' => 'person_struck']);
-        $this->source($hidden, 'bea-tt', 'report', 'bea-2', ['date' => '2018-01-02', 'mode' => 'F'], 'Heurt d\'une personne à Millas (66)');
+        // Heurt de personne sans enquête officielle ni contexte : non publié (AccidentKind::SOURCED_ONLY), donc jamais annoncé.
+        $this->source($hidden, 'wikipedia', 'inventory', 'list-2', ['date' => '2018-01-02'], 'Heurt d\'une personne à Millas (66)');
         $this->accident('2017-12-14-millas-2', '2017-12-14', '66108', 'commune', ['alias_of_id' => $public->id]);
         $sent = fn (): array => WebhookDelivery::query()->where('webhook_subscription_id', $subscription->id)->get()
             ->map(fn (WebhookDelivery $d): string => $d->orderedPayload()['data']['id'])->all();
@@ -363,7 +364,220 @@ class VerifyAccidentsCommandTest extends TestCase
         $this->assertSame(['2017-12-14-millas'], $sent(), 'une fiche déjà vérifiée n\'est pas annoncée de nouveau');
     }
 
+    public function test_one_press_article_giving_date_commune_and_toll_counts_as_a_second_family(): void
+    {
+        $a = $this->listed('1956-06-14-millas', '1956-06-14', 11);
+        // Date écrite en clair dans un journal du lendemain : c'est elle qui compte, pas la date du journal.
+        $this->press($a, 'kb-1', ['date' => '1956-06-14', 'commune_insee' => '66108', 'deaths' => 11], provider: 'delpher', published: '1956-06-15');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])
+            ->expectsOutputToContain('confirmées entre autres par la presse numérisée : 1')
+            ->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('ok', $a->review_status->value);
+        $this->assertSame('two_sources', $a->verification['rule']);
+        $this->assertEqualsCanonicalizing(['wikipedia', 'press'], $a->verification['families']['date']);
+        $this->assertEqualsCanonicalizing(['wikipedia', 'press'], $a->verification['families']['place']);
+        $press = $this->first($a->verification['place']['confirmed_by'], 'family', 'press');
+        $this->assertSame(['delpher', 'press', 'https://example.org/kb-1', '66108', 11], [$press['provider'], $press['role'], $press['url'], $press['commune_insee'], $press['deaths']]);
+        $this->assertSame('2026-11-23', substr($press['retrieved_at'], 0, 10), 'la date de consultation de l\'article est gardée');
+        $list = $this->first($a->verification['place']['confirmed_by'], 'family', 'wikipedia');
+        $this->assertEqualsCanonicalizing(['provider', 'role', 'url', 'date', 'commune_insee', 'commune', 'retrieved_at', 'family'], array_keys($list), 'une source sans bilan ni coordonnées ne garde pas de champ vide');
+        $this->assertSame(11, $a->verification['deaths']['value']);
+        $this->assertCount(1, $a->verification['deaths']['confirmed_by']);
+        $this->assertSame('press', $a->verification['deaths']['confirmed_by'][0]['family']);
+        $this->assertSame([], $a->verification['deaths']['disagreeing']);
+    }
+
+    public function test_a_contradictory_toll_leaves_the_press_unconfirming_without_blocking(): void
+    {
+        $higher = $this->listed('1985-08-31-millas', '1985-08-31', 43);
+        $this->press($higher, 'kb-49', ['date' => '1985-08-31', 'commune_insee' => '66108', 'deaths' => 49]);
+        $lower = $this->listed('1986-08-31-millas', '1986-08-31', 43);
+        $this->press($lower, 'kb-40', ['date' => '1986-08-31', 'commune_insee' => '66108', 'deaths' => 40]);
+        // Un bilan provisoire plus haut que le bilan retenu contredit aussi.
+        $provisionalHigher = $this->listed('1987-08-31-millas', '1987-08-31', 43);
+        $this->press($provisionalHigher, 'kb-44', ['date' => '1987-08-31', 'commune_insee' => '66108', 'deaths' => 44, 'deaths_provisional' => true]);
+        $noToll = $this->listed('1988-08-31-millas', '1988-08-31', 43);
+        $this->press($noToll, 'kb-sans', ['date' => '1988-08-31', 'commune_insee' => '66108']);
+        $unknownToll = $this->listed('1989-08-31-millas', '1989-08-31', null);
+        $this->press($unknownToll, 'kb-12', ['date' => '1989-08-31', 'commune_insee' => '66108', 'deaths' => 12]);
+        $this->press($unknownToll, 'kb-0', ['date' => '1989-08-31', 'commune_insee' => '66108', 'deaths' => 0, 'deaths_provisional' => true]);
+        // Commune absente de la table des communes : l'article ne confirme pas le lieu.
+        $unknownCommune = $this->listed('1990-08-31-millas', '1990-08-31', 43);
+        $this->press($unknownCommune, 'kb-99999', ['date' => '1990-08-31', 'commune_insee' => '99999', 'deaths' => 43]);
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        foreach ([$higher, $lower, $provisionalHigher, $noToll, $unknownToll, $unknownCommune] as $a) {
+            $a->refresh();
+            $this->assertSame('to_review', $a->review_status->value, $a->slug);
+            $this->assertSame(['wikipedia'], $a->verification['families']['date'], $a->slug.' : la presse ne confirme pas la date sans le bilan');
+            $this->assertSame(['wikipedia'], $a->verification['families']['place'], $a->slug);
+            $this->assertSame([], $a->verification['date']['disagreeing'], $a->slug.' : un autre bilan ne contredit pas la date');
+            $this->assertNotContains('verification_conflict', array_column($a->review_notes ?? [], 'code'), $a->slug);
+        }
+        $this->assertSame(49, $higher->verification['deaths']['disagreeing'][0]['deaths']);
+        $this->assertSame('press', $higher->verification['deaths']['disagreeing'][0]['family']);
+        $this->assertCount(2, $unknownToll->verification['deaths']['disagreeing'], 'un bilan provisoire ne confirme pas une fiche sans bilan');
+        $this->assertSame([], $unknownCommune->verification['place']['disagreeing']);
+        $this->assertSame([], $higher->verification['deaths']['confirmed_by']);
+        $this->assertTrue($provisionalHigher->verification['deaths']['disagreeing'][0]['deaths_provisional']);
+        $this->assertArrayNotHasKey('deaths', $noToll->verification, 'aucun article ne donne de bilan');
+        $this->assertNull($unknownToll->verification['deaths']['value']);
+    }
+
+    public function test_a_provisional_toll_at_most_the_retained_one_confirms(): void
+    {
+        $lower = $this->listed('1933-12-23-millas', '1933-12-23', 214);
+        $this->press($lower, 'ddb-134', ['date' => '1933-12-23', 'commune_insee' => '66108', 'deaths' => 134, 'deaths_provisional' => true]);
+        $equal = $this->listed('1934-12-23-millas', '1934-12-23', 214);
+        // Un premier article au bilan contraire n'empêche pas le suivant de confirmer.
+        $this->press($equal, 'ddb-230', ['date' => '1934-12-23', 'commune_insee' => '66108', 'deaths' => 230]);
+        $this->press($equal, 'ddb-214', ['date' => '1934-12-23', 'commune_insee' => '66108', 'deaths' => 214, 'deaths_provisional' => true]);
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $this->assertSame('ok', $lower->refresh()->review_status->value);
+        $this->assertContains('press', $lower->verification['families']['date']);
+        $this->assertSame('ok', $equal->refresh()->review_status->value);
+        $this->assertSame(['ddb-214'], array_map(fn (array $c): string => basename($c['url']), $equal->verification['deaths']['confirmed_by']));
+    }
+
+    public function test_a_shifted_date_or_another_commune_in_the_press_contradicts_the_fiche(): void
+    {
+        $shifted = $this->listed('1918-12-06-millas', '1918-12-06', 74);
+        $this->press($shifted, 'ddb-7', ['date' => '1918-12-07', 'commune_insee' => '66108', 'deaths' => 74]);
+        // « Aujourd'hui » dans un journal du lendemain : un jour plus tard que la fiche.
+        $sameDayNextPaper = $this->listed('1919-12-06-millas', '1919-12-06', 74);
+        $this->press($sameDayNextPaper, 'kb-same', ['date_relative' => 'same_day', 'commune_insee' => '66108', 'deaths' => 74], published: '1919-12-07');
+        $elsewhere = $this->listed('1920-12-06-millas', '1920-12-06', 74);
+        $this->press($elsewhere, 'kb-marseille', ['date' => '1920-12-06', 'commune_insee' => '13055', 'deaths' => 74]);
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $shifted->refresh();
+        $this->assertSame('to_review', $shifted->review_status->value);
+        $this->assertSame('1918-12-07', $shifted->verification['date']['disagreeing'][0]['date']);
+        $conflict = $this->first($shifted->review_notes, 'code', 'verification_conflict');
+        $this->assertSame('date 1918-12-07 (presse numérisée) au lieu de 1918-12-06', $conflict['detail']);
+        $this->assertSame(['wikipedia'], $shifted->verification['families']['place'], 'un article au mauvais jour ne confirme pas la commune');
+        $this->assertSame('to_review', $sameDayNextPaper->refresh()->review_status->value);
+        $this->assertSame('1919-12-07', $sameDayNextPaper->verification['date']['disagreeing'][0]['date']);
+        $elsewhere->refresh();
+        $this->assertSame('to_review', $elsewhere->review_status->value);
+        $this->assertSame('13055', $elsewhere->verification['place']['disagreeing'][0]['commune_insee']);
+        $this->assertContains('verification_conflict', array_column($elsewhere->review_notes, 'code'));
+    }
+
+    public function test_yesterday_in_the_next_day_paper_confirms_the_date(): void
+    {
+        $a = $this->listed('1957-11-16-millas', '1957-11-16', 29);
+        $this->press($a, 'ddb-hier', ['date_relative' => 'previous_day', 'commune_insee' => '66108', 'deaths' => 29], published: '1957-11-17');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('ok', $a->review_status->value);
+        $this->assertSame('1957-11-16', $this->first($a->verification['date']['confirmed_by'], 'family', 'press')['date']);
+    }
+
+    public function test_several_press_articles_stay_one_family(): void
+    {
+        // Deux journaux, aucune autre source : une seule famille, jamais « ok ».
+        $a = $this->accident('1922-10-29-millas', '1922-10-29', '66108', 'commune', ['deaths' => 14]);
+        $this->press($a, 'ddb-1', ['date' => '1922-10-29', 'commune_insee' => '66108', 'deaths' => 14]);
+        $this->press($a, 'kb-2', ['date' => '1922-10-29', 'commune_insee' => '66108', 'deaths' => 14], provider: 'delpher');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('to_review', $a->review_status->value);
+        $this->assertNull($a->verification['rule'] ?? null);
+        $this->assertSame(['press'], $a->verification['families']['date']);
+        $this->assertCount(2, $a->verification['date']['confirmed_by'], 'les deux articles restent cités');
+    }
+
+    public function test_press_without_written_facts_or_not_read_or_blocked_by_a_note_confirms_nothing(): void
+    {
+        $bare = $this->listed('1908-11-08-millas', '1908-11-08', 10);
+        $this->press($bare, 'ddb-sans-faits', null);
+        $unread = $this->listed('1909-11-08-millas', '1909-11-08', 10);
+        $this->press($unread, 'retronews-1', ['date' => '1909-11-08', 'commune_insee' => '66108', 'deaths' => 10], access: 'paywall');
+        $notPress = $this->listed('1910-11-08-millas', '1910-11-08', 10);
+        $this->press($notPress, 'site-1', ['date' => '1910-11-08', 'commune_insee' => '66108', 'deaths' => 10], kind: 'web');
+        $blocked = $this->listed('1911-11-08-millas', '1911-11-08', 10);
+        $this->press($blocked, 'kb-1', ['date' => '1911-11-08', 'commune_insee' => '66108', 'deaths' => 10]);
+        $blocked->update(['review_notes' => [['code' => 'place_corrected', 'detail' => 'Vierzon']]]);
+        // Article sans date de l'accident : la date du journal ne lui en donne pas une.
+        $undated = $this->listed('1912-11-08-millas', '1912-11-08', 10);
+        $this->press($undated, 'kb-sans-date', ['commune_insee' => '66108', 'deaths' => 10], published: '1912-11-09');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        foreach ([$bare, $unread, $notPress, $undated] as $a) {
+            $this->assertSame(['wikipedia'], $a->refresh()->verification['families']['date'], $a->slug);
+            $this->assertSame('to_review', $a->review_status->value, $a->slug);
+            $this->assertSame([], $a->verification['date']['disagreeing'], $a->slug);
+        }
+        $this->assertSame('to_review', $blocked->refresh()->review_status->value);
+        $this->assertSame('two_sources', $blocked->verification['rule'], 'confirmée, mais la note bloquante reste');
+    }
+
+    public function test_press_confirmation_is_stable_on_a_second_run(): void
+    {
+        $a = $this->listed('1920-12-12-millas', '1920-12-12', 11);
+        $this->press($a, 'kb-1', ['date' => '1920-12-12', 'commune_insee' => '66108', 'deaths' => 11]);
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+        $verifiedAt = $a->refresh()->verified_at;
+
+        $this->travel(1)->hours();
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $this->assertEquals($verifiedAt, $a->refresh()->verified_at, 'un second passage ne change rien');
+        $this->assertSame('ok', $a->review_status->value);
+    }
+
     // ---- fabriques -----------------------------------------------------------
+
+    /**
+     * Première entrée d'une liste de la vérification dont le champ a cette valeur.
+     *
+     * @param  list<array<string, mixed>>|null  $list
+     * @return array<string, mixed>
+     */
+    private function first(?array $list, string $field, string $value): array
+    {
+        $found = array_values(array_filter($list ?? [], fn (array $e): bool => ($e[$field] ?? null) === $value));
+        $this->assertNotEmpty($found, "aucune entrée {$field} = {$value}");
+
+        return $found[0];
+    }
+
+    /** Fiche à Millas que seule la liste de Wikipédia donne (date et commune), avec son bilan. */
+    private function listed(string $slug, string $date, ?int $deaths): Accident
+    {
+        $a = $this->accident($slug, $date, '66108', 'commune', ['deaths' => $deaths]);
+        $this->source($a, 'wikipedia', 'list', 'fr:'.$slug, ['date' => $date, 'place' => 'Millas', 'department' => '66']);
+
+        return $a;
+    }
+
+    /**
+     * Article du contexte (accident_references) avec les faits que le fichier en écrit.
+     *
+     * @param  array<string, mixed>|null  $facts
+     */
+    private function press(Accident $a, string $key, ?array $facts, string $provider = 'presse', string $kind = 'press', string $access = 'open', ?string $published = null): void
+    {
+        DB::table('accident_references')->insert([
+            'accident_id' => $a->id, 'key' => $key, 'position' => DB::table('accident_references')->where('accident_id', $a->id)->count(),
+            'provider' => $provider, 'kind' => $kind, 'reliability' => 'press', 'title' => 'Article '.$key, 'publisher' => 'Journal',
+            'published' => $published, 'url' => 'https://example.org/'.$key, 'access' => $access, 'consulted_on' => '2026-11-23',
+            'facts' => $facts !== null ? json_encode($facts) : null, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
 
     private function commune(string $insee, string $name, string $norm, string $dept, float $w, float $s, float $e, float $n): void
     {

@@ -145,8 +145,8 @@ class ShareTagsTest extends TestCase
         $this->assertSame('website', $this->meta($doc, 'og:type'));
         $this->assertSame('en_GB', $this->meta($doc, 'og:locale'));
         $this->assertSame('French Railway Lines', $this->meta($doc, 'og:site_name'));
-        $this->assertSame(url('/share/accueil-1200x630.jpg'), $this->meta($doc, 'og:image'));
-        $this->assertSame(url('/share/accueil-1200x630.jpg'), $this->meta($doc, 'twitter:image'));
+        $this->assertSame(url('/share/accueil-reseau-1200x630.jpg'), $this->meta($doc, 'og:image'));
+        $this->assertSame(url('/share/accueil-reseau-1200x630.jpg'), $this->meta($doc, 'twitter:image'));
         $this->assertSame('summary_large_image', $this->meta($doc, 'twitter:card'));
         $this->assertSame(__('home.share_image_alt'), $this->meta($doc, 'og:image:alt'));
         $this->assertSame('VFF - French Railway Lines', $doc->querySelector('head title')->textContent);

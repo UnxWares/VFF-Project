@@ -7,10 +7,7 @@ use App\Services\SecondaryNetworkParser;
 use App\Services\SecondaryPlaceGeocoder;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 
 /**
@@ -114,7 +111,7 @@ class ImportSecondaryNetworkDates extends Command
         {--from-cache : N\'utilise que le cache local, aucune requête réseau}
         {--article=* : Limite aux articles donnés (tests) - ni nettoyage}
         {--dry-run : N\'écrit rien en base, produit les rapports}
-        {--parallel=4 : Requêtes Wikipédia simultanées}
+        {--parallel=1 : Obsolète et ignoré : Wikimedia impose une requête à la fois}
         {--discover-undated : Cherche aussi des articles pour chaque ligne secondaire encore sans ouverture (recherche Wikipédia par extrémités, en cache) et les ajoute au cache}
         {--no-estimate : N\'écrit pas les estimations par réseau (source estimation-reseau)}';
 
@@ -305,31 +302,10 @@ class ImportSecondaryNetworkDates extends Command
         $this->line('  Titres retenus : '.count($titles));
         $pages = [];
         $chunks = array_chunk($titles, 50);
-        $parallel = max(1, (int) $this->option('parallel'));
-        foreach (array_chunk($chunks, $parallel) as $group) {
-            $responses = Http::pool(fn (Pool $pool) => array_map(fn ($chunk) => $pool->withUserAgent(WikimediaClient::USER_AGENT)->timeout(90)
-                ->asForm()->post(WikimediaClient::FRWIKI_API, [
-                    'action' => 'query', 'prop' => 'revisions', 'rvprop' => 'content|ids', 'rvslots' => 'main',
-                    'redirects' => 1, 'titles' => implode('|', $chunk), 'format' => 'json', 'formatversion' => 2, 'maxlag' => 5,
-                ]), $group));
-            foreach ($group as $i => $chunk) {
-                $res = $responses[$i] ?? null;
-                $json = $res instanceof Response && $res->ok() ? $res->json() : null;
-                if (! is_array($json) || isset($json['error']) || isset($json['continue'])) {
-                    // Retard des serveurs ou réponse partielle : reprise séquentielle polie.
-                    foreach ($this->wiki->fetchPages($chunk) as $t => $p) {
-                        $pages[$p['title']] = $p;
-                    }
-
-                    continue;
-                }
-                foreach ($json['query']['pages'] ?? [] as $p) {
-                    $content = $p['revisions'][0]['slots']['main']['content'] ?? null;
-                    if (! empty($p['missing']) || ! $content) {
-                        continue;
-                    }
-                    $pages[$p['title']] = ['title' => $p['title'], 'revid' => (int) $p['revisions'][0]['revid'], 'content' => (string) $content];
-                }
+        // Une requête à la fois (politique des robots de Wikimedia : concurrence 1 sur l'API Action).
+        foreach ($chunks as $chunk) {
+            foreach ($this->wiki->fetchPages($chunk) as $p) {
+                $pages[$p['title']] = $p;
             }
         }
         ksort($pages);
@@ -343,31 +319,20 @@ class ImportSecondaryNetworkDates extends Command
     private function discover(): array
     {
         $found = [];
-        // Catégories, niveau par niveau, requêtes groupées en parallèle.
+        // Catégories, niveau par niveau, une requête à la fois.
         $seen = [];
         $level = self::CATEGORIES;
         for ($depth = 0; $depth <= 3 && $level; $depth++) {
             $next = [];
-            foreach (array_chunk($level, max(1, (int) $this->option('parallel'))) as $group) {
-                $results = [];
-                foreach ($group as $cat) {
-                    $seen[$cat] = true;
-                }
-                $responses = Http::pool(fn (Pool $pool) => array_map(fn ($cat) => $pool->withUserAgent(WikimediaClient::USER_AGENT)->timeout(60)
-                    ->get(WikimediaClient::FRWIKI_API, ['action' => 'query', 'list' => 'categorymembers', 'cmtitle' => $cat, 'cmlimit' => 500,
-                        'format' => 'json', 'formatversion' => 2, 'maxlag' => 5]), $group));
-                foreach ($group as $i => $cat) {
-                    $res = $responses[$i] ?? null;
-                    $json = $res instanceof Response && $res->ok() ? $res->json() : null;
-                    if (! is_array($json) || isset($json['error']) || isset($json['continue'])) {
-                        $json = ['query' => ['categorymembers' => $this->categoryMembers($cat)]];
-                    }
-                    foreach ($json['query']['categorymembers'] ?? [] as $m) {
-                        if ((int) $m['ns'] === 14 && ! isset($seen[$m['title']])) {
-                            $next[$m['title']] = true;
-                        } elseif ((int) $m['ns'] === 0) {
-                            $found[$m['title']] = true;
-                        }
+            foreach ($level as $cat) {
+                $seen[$cat] = true;
+            }
+            foreach ($level as $cat) {
+                foreach ($this->categoryMembers($cat) as $m) {
+                    if ((int) $m['ns'] === 14 && ! isset($seen[$m['title']])) {
+                        $next[$m['title']] = true;
+                    } elseif ((int) $m['ns'] === 0) {
+                        $found[$m['title']] = true;
                     }
                 }
             }

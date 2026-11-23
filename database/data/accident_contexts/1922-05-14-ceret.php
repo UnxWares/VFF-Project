@@ -20,11 +20,11 @@ return [
             'note' => 'Machine haut-le-pied percutant un train de voyageurs vers 13 h entre Céret et Amélie-les-Bains : un mort, trois blessés graves et une quinzaine de blessés légers ; cite Le Petit Parisien du 15 mai 1922 et Le Figaro du 27 novembre 1922 (condamnations).',
         ],
         'volk-1922-05-18' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Het Volk du 18 mai 1922',
-            'publisher' => 'Het Volk',
+            'publisher' => 'Het Volk (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1922-05-18',
             'locator' => null,

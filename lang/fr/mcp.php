@@ -29,6 +29,8 @@ return [
     ],
 
     'errors' => [
+        'invalid_day' => 'Jour invalide : donnez un mois (1 à 12) et un jour du mois qui existent, tous les deux ou aucun (par défaut : aujourd’hui).',
+        'invalid_period' => 'Période invalide : donnez soit `year`, soit `decade` (multiple de 10), dans l’étendue de la chronologie (1827 à aujourd’hui).',
         'unknown_arguments' => 'Arguments inconnus : :names.',
         'line_not_found' => 'Ligne introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'no_geometry' => 'Le tracé de « :line » n’existe pas pour l’ère :year : pas de point kilométrique.',
@@ -40,6 +42,9 @@ return [
         'journal_not_found' => 'Article du journal introuvable : « :query ». La liste des articles s’obtient avec l’outil journal sans argument.',
         'era_not_found' => 'Pas de carte du réseau pour :year (voir les ères disponibles).',
         'same_era' => 'Les deux années tombent dans la même ère de la carte (:year) : choisissez deux décennies différentes (voir les ères disponibles).',
+        'invalid_area' => 'Zone invalide : donnez soit un rectangle complet (south, west, north, east, avec north > south et east > west), soit un cercle complet (lat, lng, radius_km), pas les deux.',
+        'area_too_large' => 'Zone trop grande : un rectangle fait au plus :height° de haut et :width° de large, un cercle au plus :radius km de rayon. Découpez la zone ou utilisez network_at_era pour la France entière.',
+        'area_too_small' => 'Zone trop petite : un rectangle fait au moins :side° de côté, un cercle au moins :radius km de rayon (les tracés de certaines sources ne sont pas redistribuables).',
         'graph_not_built' => 'Le graphe ferroviaire de cette époque n’est pas encore calculé : itinéraire impossible pour le moment.',
         'ambiguous_station' => 'Plusieurs gares correspondent : précisez avec un slug parmi les candidates.',
         'same_station' => 'Départ et arrivée désignent la même gare.',

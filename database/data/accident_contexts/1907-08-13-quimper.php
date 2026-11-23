@@ -20,7 +20,7 @@ return [
             'note' => 'Ligne de Landerneau à Quimper, entrée du tunnel de Plogonnec à une dizaine de kilomètres de Quimper, rupture de l\'essieu avant de la locomotive, un mort et huit blessés.',
         ],
         'delpher-courant-1907-08-15' => [
-            'provider' => 'presse',
+            'provider' => 'delpher',
             'kind' => 'press',
             'reliability' => 'press',
             'title' => 'Gemengde Berichten',

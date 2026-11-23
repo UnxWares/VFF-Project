@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class Lookup
 {
-    /** Ligne par slug (« rfn-420000 »), code (« 420000 », « 420 000 ») ou slug du code. */
+    /**
+     * Ligne par slug (« rfn-420000 »), ancien slug d'une ligne renommée (la ligne revient sous son slug actuel),
+     * code (« 420000 », « 420 000 ») ou slug du code.
+     */
     public static function line(string $query): ?Line
     {
         $q = trim($query);
@@ -24,6 +27,10 @@ final class Lookup
         $line = Line::where('slug', $q)->first();
         if ($line !== null) {
             return $line;
+        }
+        $current = Line::redirectSlugFor($q);
+        if ($current !== null) {
+            return Line::where('slug', $current)->first();
         }
         $digits = str_replace(' ', '', $q);
         if (preg_match('/^\d{6}$/', $digits) === 1) {

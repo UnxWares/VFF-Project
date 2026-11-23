@@ -47,6 +47,8 @@ final class StationDirectoryQuery
             'region' => ['nullable', Rule::in(array_keys(FrenchDepartments::REGIONS))],
             'era' => ['nullable', 'integer', 'exists:eras,year'],
             'flagged' => ['nullable', 'boolean'],
+            'heritage' => ['nullable', 'boolean'],
+            'accessible' => ['nullable', 'boolean'],
             'sort' => ['nullable', Rule::in(self::SORTS)],
             'order' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
@@ -62,7 +64,7 @@ final class StationDirectoryQuery
             $filters['department'] = strtoupper(trim($filters['department']));
         }
 
-        return QueryBoolean::castKeys($filters, ['flagged']);
+        return QueryBoolean::castKeys($filters, ['flagged', 'heritage', 'accessible']);
     }
 
     /**

@@ -5,7 +5,9 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
+    import MaterialLinesMap from '$components/Materials/MaterialLinesMap.svelte';
     import NotableUnits from '$components/Sheet/NotableUnits.svelte';
+    import PreservedUnits from '$components/Materials/PreservedUnits.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -23,7 +25,15 @@
     import { formatLocale } from '$lib/typo.js';
 
     // Images : `media_count` seul, la galerie les charge par l'API.
-    let { material, lines = [], lines_total = 0, media_count = 0, notable_units = [] } = $props();
+    let {
+        material,
+        lines = [],
+        lines_total = 0,
+        map_url = null,
+        media_count = 0,
+        notable_units = [],
+        preserved = [],
+    } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
@@ -407,6 +417,12 @@
                             {/if}
                         </ul>
                     {/if}
+
+                    <p style="margin: var(--vff-space-4) 0 0">
+                        <Link href="/materials/timeline?serie={material.slug}" class="vff-link"
+                            >{t('materials_timeline.see_in_timeline')}</Link
+                        >
+                    </p>
                 </div>
 
                 <section class="infobox" aria-labelledby="fiche-title">
@@ -467,6 +483,20 @@
 
         {#if notable_units.length}
             <NotableUnits units={notable_units} series={material.slug} />
+        {/if}
+
+        {#if preserved.length}
+            <PreservedUnits units={preserved} />
+        {/if}
+
+        {#if map_url && lines.length}
+            <SheetSection
+                id="lines-map"
+                title={t('materials.map.section')}
+                intro={t('materials.map.intro')}
+            >
+                <MaterialLinesMap url={map_url} name={material.name} />
+            </SheetSection>
         {/if}
 
         <SheetSection

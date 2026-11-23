@@ -20,8 +20,9 @@ class HomeController extends Controller
 
         // Nombre d'images d'archives (sommaire de l'accueil). Prop à part : la forme de `stats` est
         // vérifiée clé par clé par d'autres tests. L'empreinte ne suit pas les médias : 10 min.
-        // (int) : un nombre seul revient du cache Valkey sous forme de chaîne.
-        $mediaCount = (int) Cache::remember('home_media_count', 600, fn () => Media::count());
+        // (int) : un nombre seul revient du cache Valkey sous forme de chaîne. Médias montrables seulement (réglage
+        // vff.media.show_non_commercial, dans la clé), comme le total de /credits/media.
+        $mediaCount = (int) Cache::remember('home_media_count:'.(int) Media::showsNonCommercial(), 600, fn () => Media::query()->displayable()->count());
 
         $profile = $siteStats->profile();
 
