@@ -22,7 +22,7 @@ return [
     'sort_label' => 'Trier par',
     'sort_relevance' => 'Pertinence',
     'sort_name' => 'Nom, de A à Z',
-    'approximate' => "Aucune gare ne correspond exactement à «\u{00A0}:query\u{00A0}» : voici les noms les plus proches.",
+    'approximate' => "Aucune gare ne correspond exactement à «\u{00A0}:query\u{00A0}»\u{00A0}: voici les noms les plus proches.",
     'sort_name_desc' => 'Nom, de Z à A',
     'sort_city' => 'Commune',
     'sort_opened' => 'Ouverture, les plus anciennes d’abord',

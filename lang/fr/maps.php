@@ -25,7 +25,7 @@ return [
         'results_one' => ':count résultat',
         'results_other' => ':count résultats',
         'no_results' => 'Aucune ligne ni gare ne correspond à « :query ».',
-        'approximate' => "Rien ne correspond exactement à «\u{00A0}:query\u{00A0}» : voici les noms les plus proches.",
+        'approximate' => "Rien ne correspond exactement à «\u{00A0}:query\u{00A0}»\u{00A0}: voici les noms les plus proches.",
         'error' => 'La recherche est indisponible pour le moment. Réessayez dans un instant.',
         'clear' => 'Effacer la recherche',
     ],

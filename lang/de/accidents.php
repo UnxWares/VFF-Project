@@ -294,7 +294,7 @@ return [
         'corrections_title' => 'Anhand dieser Dokumente berichtigter Eintrag',
         'correction' => ':field: :before wird zu :value.',
         'correction_new' => ':field: :value (bisher nicht im Eintrag).',
-        'single_source' => 'Nach der Wikipedia-Liste der Unfälle, noch zu bestätigen',
+        'single_source' => 'Nach der Wikipedia-Liste der Eisenbahnunfälle, noch zu bestätigen',
         'fields' => [
             'occurred_on' => 'Datum',
             'occurred_at_time' => 'Uhrzeit',
