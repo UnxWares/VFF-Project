@@ -79,7 +79,9 @@ class PageQueryBudgetTest extends TestCase
         // 58 : les notices des Archives SNCF le 22/11 (LineArchives::recordsForSheet, une seule lecture).
         // 60 : le nombre de voies du régime SNCF le 22/11 (LineInfrastructure::trackFact : une lecture, et le constat
         // que la table existe, gardé en cache ensuite).
-        $this->assertLessThanOrEqual(60, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 64 : les vitesses maximales le 23/11 (LineSpeeds : ère courante, constat des deux tables en une lecture gardée
+        // en cache ensuite, tranches de PK, changements datés). Le diagramme « Où et quand » n'ajoute aucune lecture.
+        $this->assertLessThanOrEqual(64, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));
@@ -103,7 +105,8 @@ class PageQueryBudgetTest extends TestCase
         $queries = $this->queriesOf('/stations/'.$this->origin->slug);
 
         // 8 depuis le 20/11 : un comptage indexé des images publiées (la galerie n'est posée que s'il y en a).
-        $this->assertLessThanOrEqual(8, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 9 avec la chronologie de la fiche (accidents proches, une lecture).
+        $this->assertLessThanOrEqual(9, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_the_last_segment_update_is_read_through_an_index(): void

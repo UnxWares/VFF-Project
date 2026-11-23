@@ -3,8 +3,8 @@
 namespace App\Services\Speed;
 
 use App\Services\LineStations;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Vitesses maximales d'une ligne : tranches de PK de l'ère (`line_speed_ranges`, SNCF Réseau) et
@@ -24,10 +24,30 @@ final class LineSpeeds
 
     public const DATASET_URL = 'https://ressources.data.sncf.com/explore/dataset/vitesse-maximale-nominale-sur-ligne/';
 
-    /** Tables créées (migration du 13/12/2026 appliquée) : sinon tout est vide, sans erreur. */
+    private const READY_CACHE = 'line-speeds:tables-ready';
+
+    private static ?bool $ready = null;
+
+    /**
+     * Tables créées (migration du 13/12/2026 appliquée) : sinon tout est vide, sans erreur. Une seule lecture pour
+     * les deux tables ; un constat positif est gardé (processus et cache), un constat négatif est refait à chaque
+     * appel, pour voir la migration dès qu'elle passe.
+     */
     public static function available(): bool
     {
-        return Schema::hasTable('line_speed_ranges') && Schema::hasTable('line_speed_events');
+        if (self::$ready !== null) {
+            return self::$ready;
+        }
+        if (Cache::get(self::READY_CACHE) === true) {
+            return self::$ready = true;
+        }
+        $ready = (bool) DB::scalar("SELECT to_regclass('line_speed_ranges') IS NOT NULL AND to_regclass('line_speed_events') IS NOT NULL");
+        if ($ready) {
+            Cache::put(self::READY_CACHE, true, now()->addDay());
+            self::$ready = true;
+        }
+
+        return $ready;
     }
 
     /**
