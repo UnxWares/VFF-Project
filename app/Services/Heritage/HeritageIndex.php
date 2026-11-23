@@ -138,8 +138,10 @@ final class HeritageIndex
             $rows = DB::select(
                 'SELECT st.id, st.kind, st.name, st.merimee_ref, st.image, st.built_on, st.lat, st.lon,
                         '.($detail ? 'COALESCE(NULLIF(st.heritage, \'protected\'), sh.protection) AS heritage, sh.protection_date, sh.scope, sh.architects, sh.built_from AS sh_from,
-                        sh.built_to AS sh_to, sh.built_period AS sh_period, sh.ref AS sh_ref, sh.ref_url AS sh_ref_url, sh.title AS sh_title,' : 'st.heritage, NULL AS protection_date, NULL AS scope, NULL AS architects, NULL AS sh_from,
-                        NULL AS sh_to, NULL AS sh_period, NULL AS sh_ref, NULL AS sh_ref_url, NULL AS sh_title,').'
+                        sh.built_to AS sh_to, sh.built_period AS sh_period, sh.ref AS sh_ref, sh.ref_url AS sh_ref_url, sh.title AS sh_title,
+                        sh.protection AS sh_protection, sh.designations AS sh_designations,' : 'st.heritage, NULL AS protection_date, NULL AS scope, NULL AS architects, NULL AS sh_from,
+                        NULL AS sh_to, NULL AS sh_period, NULL AS sh_ref, NULL AS sh_ref_url, NULL AS sh_title,
+                        NULL AS sh_protection, NULL AS sh_designations,').'
                         c.nom AS commune, c.departement,
                         l.slug AS line_slug, l.name AS line_name
                    FROM structures st
@@ -167,9 +169,22 @@ final class HeritageIndex
             }
             $from = $r->built_on !== null ? (int) substr((string) $r->built_on, 0, 4) : ($r->sh_from !== null ? (int) $r->sh_from : null);
             $reference = $r->merimee_ref ?? $r->sh_ref;
+            // La date et la portée de la notice sont celles de SA protection : quand la protection montrée est une
+            // autre (Wikidata dit « inscrit », la notice « classé »), sa date est celle de la même mention dans la
+            // notice, sinon aucune (jamais la date du classement sous « inscrit »).
+            [$date, $scope] = [$r->protection_date, $r->scope];
+            if ($r->sh_protection !== null && $r->sh_protection !== $r->heritage) {
+                $date = null;
+                $scope = null;
+                foreach ((array) json_decode((string) $r->sh_designations, true) as $d) {
+                    if (is_array($d) && ($d['kind'] ?? null) === $r->heritage && is_string($d['date'] ?? null)) {
+                        $date = $d['date'];
+                    }
+                }
+            }
             $items[] = $this->item(
                 id: 'ou'.$r->id, object: in_array($r->kind, ['viaduct', 'bridge', 'tunnel'], true) ? (string) $r->kind : 'bridge',
-                name: (string) ($r->name ?? ''), title: $r->sh_title, protection: (string) $r->heritage, date: $r->protection_date, scope: $r->scope,
+                name: (string) ($r->name ?? ''), title: $r->sh_title, protection: (string) $r->heritage, date: $date, scope: $scope,
                 architects: $architects, from: $from, to: $r->sh_to !== null ? (int) $r->sh_to : null, period: $from === null ? $r->sh_period : null,
                 style: null, commune: $r->commune, department: $r->departement,
                 reference: $reference, referenceUrl: $r->merimee_ref !== null ? self::MERIMEE_URL.$r->merimee_ref : $r->sh_ref_url,

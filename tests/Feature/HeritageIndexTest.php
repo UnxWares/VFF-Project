@@ -189,4 +189,19 @@ class HeritageIndexTest extends TestCase
         $this->assertSame(['registered', 'bridge', 1884], [$byName['pont ordinaire']['protection'], $byName['pont ordinaire']['object'], $byName['pont ordinaire']['built']['year']]);
         $this->assertSame('https://www.pop.culture.gouv.fr/notice/merimee/PA00000777', $byName['pont ordinaire']['reference']['url']);
     }
+
+    public function test_a_structure_shown_as_registered_never_carries_the_date_of_its_classification(): void
+    {
+        // Wikidata dit l'ouvrage inscrit, la notice Mérimée rapprochée le dit inscrit en 1965 puis classé en 2017.
+        $tunnel = (int) DB::table('structures')->where('name', 'tunnel inscrit')->value('id');
+        DB::table('structure_heritage')->insert(['structure_id' => $tunnel, 'protection' => 'classified', 'protection_date' => '2017-10-18', 'scope' => 'partial',
+            'designations' => json_encode([['kind' => 'registered', 'date' => '1965-03-02'], ['kind' => 'classified', 'date' => '2017-10-18']]),
+            'ref' => 'PA00000888', 'ref_url' => 'https://www.pop.culture.gouv.fr/notice/merimee/PA00000888', 'architects' => json_encode([]), 'match_score' => 100,
+            'source' => 'merimee', 'created_at' => now(), 'updated_at' => now()]);
+        Cache::flush();
+
+        $item = array_column($this->items(), null, 'name')['tunnel inscrit'];
+
+        $this->assertSame(['registered', '1965-03-02', null], [$item['protection'], $item['protection_date'], $item['scope']]);
+    }
 }
