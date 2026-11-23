@@ -4939,4 +4939,53 @@ return [
         'quote' => '11 septembre 1875 : mise en service de Nantes (au Pont-Rousseau) à Sainte-Pazanne',
         'reason' => 'article de la ligne « Ligne de Nantes-État à La Roche-sur-Yon par Sainte-Pazanne » (oldid 241345071) : Nantes - Sainte-Pazanne mis en service le 11 septembre 1875, Sainte-Pazanne - Machecoul seulement le 25 mars 1878 (date prise à tort pour la gare) ; l\'article de la gare (oldid 237406960) ne donne aucune date.',
     ],
+
+    // ── Doublons de fiches (relecture du 23/11/2026, rapport aprem-2111/gares-doublons.md) ────────────────
+
+    // Monteux-les-Escampades (id 18283) : enregistrement désaffecté de la liste SNCF (UIC 87025098, PK 8,900 de la ligne 927000, ni voyageurs
+    // ni fret), à 2,2 km de la gare de Monteux. Le schéma de la ligne ne compte que Althen-les-Paluds (PK 6,943) puis Monteux (PK 11,260), et
+    // l'article de la gare de Monteux ne cite aucun point d'arrêt des Escampades : les dates de Monteux (1863, 1938, 2015) lui venaient de la ligne.
+    [
+        'station' => ['name' => 'Monteux-les-Escampades', 'uic' => '87025098'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Ligne de Sorgues - Châteauneuf-du-Pape à Carpentras', 241491038),
+        'quote' => 'Monteux',
+        'reason' => 'enregistrement SNCF désaffecté (PK 8,900), absent du schéma de la ligne qui ne compte que Althen-les-Paluds puis Monteux, à 2,2 km de la gare de Monteux (oldid 241561892, aucune mention des Escampades) ; les dates de Monteux lui étaient prêtées par la ligne',
+    ],
+    // Aniche Gare (id 22933) : bâtiment extrait du cadastre (OSM w96473701 : building=yes, disused:railway=station, old_name=Aniche Gare,
+    // mise à jour 2010), à 1 093 m de la gare d'Aniche (infobox 50,3288 / 3,2527 ; objet OSM à 50,3367 / 3,2619, vérifié par l'API OSM le
+    // 23/11/2026). L'article ne connaît qu'une gare d'Aniche (bâtiment voyageurs démoli en octobre 2010), qui est la fiche 15952.
+    [
+        'station' => ['name' => 'Aniche Gare', 'osm' => 'w96473701'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Gare d\'Aniche', 235030291),
+        'quote' => 'Aniche',
+        'reason' => 'bâtiment cadastral nommé d\'après la gare d\'Aniche (OSM w96473701, building=yes, extraction du cadastre 2010), à 1 093 m de la gare réelle : doublon de la fiche Aniche, dont l\'article ne cite qu\'une gare',
+    ],
+    // Limours-État (id 21583, Q106409717) : second élément Wikidata de la même gare (ligne d'Ouest-Ceinture à Chartres, 111 m de l'autre, même
+    // PK de la ligne), sans article ; l'article « Gare de Limours-État » ne décrit qu'une gare, construite en 1922, ouverte en 1930, fermée en 1939.
+    // La fiche conservée est celle de Q107205111, qui porte l'article.
+    [
+        'station' => ['name' => 'Limours-État', 'wikidata' => 'Q106409717'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Gare de Limours-État', 204050069),
+        'quote' => 'La gare de Limours-État est une ancienne gare ferroviaire française de la ligne d\'Ouest-Ceinture à Chartres.',
+        'reason' => 'doublon Wikidata de la gare de Limours-État (Q107205111, qui porte l\'article) : même nom, même ligne, même PK, à 111 m ; l\'article ne décrit qu\'une gare',
+    ],
+
+    // Saint-Samson (id 23805) : arrêt de la ligne de Dinan à Dinard-Saint-Énogat (PK 4,207). Voyageurs fermés le 27/09/1986, marchandises le
+    // 01/02/1988 : la fermeture de 1988 déduite était celle du fret.
+    [
+        'station' => ['name' => 'Saint-Samson', 'near' => [-2.02880, 48.48995, 0.5]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1986-09-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Dinan à Dinard-Saint-Énogat', 238645019),
+        'quote' => 'Fermeture voyageurs le 27 septembre 1986.',
+        'reason' => 'le schéma de la ligne place Saint-Samson au PK 4,207 ; la ligne ferme aux voyageurs le 27/09/1986 et aux marchandises le 01/02/1988 (date déduite à tort comme fermeture de la gare)',
+    ],
 ];

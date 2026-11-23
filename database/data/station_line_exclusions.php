@@ -108,4 +108,9 @@ return [
     // la ligne de Saujon à La Grève (545000) reste.
     ['station' => 'le-train-des-mouettes-saujon', 'line' => 'rfn-544000', 'reason' => 'gare de départ du chemin de fer touristique du Train des Mouettes (ligne de Saujon à La Grève), à proximité de la gare de Saujon sur la ligne de Saintes à Royan, qui ne la dessert pas',
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Saujon&oldid=222377940', 'reviewed_at' => '2026-11-23'],
+
+    // Saint-Samson : arrêt de la ligne de Dinan à Dinard-Saint-Énogat (PK 4,207, schéma de la ligne), à 1,9 km du raccordement de La Hisse ; le
+    // lien « segment » avec la ligne de Lison à Lamballe (PK 161,969, projeté à 66 m) est faux. Décision du 23/11/2026.
+    ['station' => 'saint-samson', 'line' => 'rfn-415000', 'reason' => 'arrêt de la ligne de Dinan à Dinard-Saint-Énogat (PK 4,207) ; la ligne de Lison à Lamballe passe à 66 m sans l\'y desservir (La Hisse est une autre gare)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode('Ligne_de_Dinan_à_Dinard-Saint-Énogat').'&oldid=238645019', 'reviewed_at' => '2026-11-23'],
 ];
