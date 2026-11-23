@@ -256,6 +256,26 @@ que le régime d'exploitation.
 | `--cache-dir=` | Dossier du cache. |
 | `--csv=` | Rapport par ligne (km par système). |
 
+### `vff:import-station-timetables`
+
+Calcule la desserte d'un jour ouvrable type des gares et des lignes d'après les horaires ouverts : GTFS SNCF (TER, Intercités, TGV INOUI,
+OUIGO), Transilien (RER compris) et, pour les gares que ces deux flux ne desservent pas, les trains régionaux ZOU ! (flux déclarés dans
+`database/data/station_service_feeds.php`, lus par `StationService\GtfsFeedStore`, cache `storage/app/data/gtfs`, dossier `.nobackup`,
+User-Agent du robot VFF). Le jour type est un mardi de semaine sans jour férié, médian en nombre de trains parmi les mardis proches que
+couvrent tous les horaires de référence ; les cars sont écartés. Rattachement des arrêts aux gares par code UIC, puis nom, puis position
+(`StationStopMatcher`, comme `vff:import-station-service`). Écrit `station_timetables` (trains par type et par sens, premières et dernières
+heures, destinations directes, horaires utilisés) et `line_timetables` (trains par jour, chacun compté une fois par ligne dont il parcourt
+deux gares consécutives), remplacées entièrement. Points d'accès : `GET /api/v1/stations/{station}/timetable`, `timetable` des fiches REST,
+GraphQL `Station.timetable` et `LineSheet.timetable`, outils MCP `station_timetable` et `line_timetable`.
+
+| Option | Effet |
+|---|---|
+| `--no-store` | Mesure seule : résumé et rapports, rien n'est écrit en base. |
+| `--from-cache` | Réutilise les flux déjà téléchargés. |
+| `--date=AAAA-MM-JJ` | Jour à lire, au lieu du mardi type choisi dans les horaires. |
+| `--today=AAAA-MM-JJ` | Date du jour (défaut : aujourd'hui). |
+| `--report=dossier` | Écrit `couverture.csv`, `gares-sans-desserte.csv` et `flux.json`. |
+
 ### `vff:import-sncf-attendance`
 
 Importe la fréquentation annuelle des gares : jeux SNCF Open Data « Fréquentation en gares » (SNCF Gares & Connexions, ODbL),

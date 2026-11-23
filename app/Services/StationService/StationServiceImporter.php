@@ -160,7 +160,7 @@ final readonly class StationServiceImporter
      *
      * @return array<int, array{candidate: StationCandidate, department: ?string}>
      */
-    private function stations(): array
+    public function stations(): array
     {
         $out = [];
         foreach (DB::select(<<<'SQL'

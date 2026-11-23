@@ -1468,6 +1468,16 @@ type Station {
     attendance: StationAttendance @field(resolver: "App\\GraphQL\\Resolvers\\StationAttendanceField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
+    Desserte de la gare un jour ouvrable type (un mardi, semaine sans jour férié), d'après les horaires ouverts SNCF et
+    Transilien (ODbL, `vff:import-station-timetables`) : trains par type et par sens, premières et dernières heures,
+    destinations directes. Même bloc que `timetable` de `GET /api/v1/stations/{station}` et de
+    `GET /api/v1/stations/{station}/timetable`. Nul quand aucun train de voyageurs ne s'y arrête ce jour-là (fermée,
+    desservie par des cars, saisonnière, hors des horaires lus) : ce n'est pas une preuve de fermeture. Mention à reproduire :
+    `attribution`.
+    """
+    timetable: StationTimetable @field(resolver: "App\\GraphQL\\Resolvers\\StationTimetableField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
     Patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou inscrits, label
     Architecture contemporaine remarquable, Inventaire général), d'après la base Mérimée du ministère de la Culture
     (Licence Ouverte 2.0) et Wikidata (CC0), `vff:import-station-heritage`. Même bloc que `heritage` de
@@ -1676,6 +1686,132 @@ type StationAttendanceSource {
 
     "Date de dernière modification du jeu (`AAAA-MM-JJ`)."
     dataset_modified: String
+}
+
+"Desserte d'une gare un jour ouvrable type (horaires ouverts SNCF et Transilien, ODbL)."
+type StationTimetable {
+    "Le jour type lu dans les horaires (`AAAA-MM-JJ`), toujours un mardi d'une semaine sans jour férié."
+    service_date: String!
+
+    "Jour de la semaine du jour type : `tuesday`."
+    weekday: String!
+
+    "Trains de voyageurs qui s'arrêtent dans la gare ce jour-là, chacun compté une fois (arrivées et départs confondus)."
+    trains: Int!
+
+    "Trains par type : clés `ter`, `intercites`, `tgv`, `transilien`, `other`."
+    by_type: JSON!
+
+    "Première heure de la journée de service (`HH:MM`)."
+    first: String
+
+    "Dernière heure de la journée de service (`HH:MM`, après minuit comprise)."
+    last: String
+
+    "Les deux sens du trafic de la gare (demi-axes de l'axe principal), du plus chargé au moins chargé."
+    directions: [StationTimetableDirection!]!
+
+    "Principales destinations directes (terminus des trains qui repartent), tous sens confondus."
+    destinations: [StationTimetablePlace!]!
+
+    "Provenances des trains, quand aucun train ne repart de la gare (terminus)."
+    origins: [StationTimetablePlace!]!
+
+    "Horaires utilisés : flux, version, jour lu, fin de validité, licence et page."
+    feeds: [StationTimetableFeed!]!
+
+    "Mention de la source à reproduire avec les données (ODbL 1.0)."
+    attribution: String!
+
+    "Comment le jour type est choisi, et ce que les horaires théoriques ne disent pas (travaux, suppressions, retards)."
+    method: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
+}
+
+"Un sens de circulation dans une gare."
+type StationTimetableDirection {
+    "Cap de la marche des trains : `n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`. Nul sans position des arrêts."
+    heading: String
+
+    "Trains de voyageurs qui s'arrêtent dans la gare dans ce sens ce jour-là, chacun compté une fois."
+    trains: Int!
+
+    "Trains par type."
+    by_type: JSON!
+
+    "Première heure de passage dans ce sens (`HH:MM`)."
+    first: String
+
+    "Dernière heure de passage dans ce sens (`HH:MM`, après minuit comprise)."
+    last: String
+
+    "Principales destinations directes dans ce sens."
+    destinations: [StationTimetablePlace!]!
+
+    "Provenances des trains dans ce sens, quand aucun train ne repart de la gare (terminus)."
+    origins: [StationTimetablePlace!]!
+}
+
+"Une destination ou une provenance directe."
+type StationTimetablePlace {
+    "Nom de la gare (celui de VFF quand elle y est, sinon celui des horaires)."
+    name: String!
+
+    "Slug de la gare dans VFF, nul si elle n'y est pas rapprochée."
+    slug: String
+
+    "Trains de ce jour type."
+    trains: Int!
+}
+
+"Un jeu d'horaires utilisé pour la desserte."
+type StationTimetableFeed {
+    "Clé du flux : `sncf`, `transilien`, `zou-trains`, `zou-express`."
+    feed: String!
+
+    "Version publiée par l'éditeur du flux, nulle quand il n'en indique pas."
+    version: String
+
+    "Jour lu (`AAAA-MM-JJ`)."
+    date: String!
+
+    "Fin de validité des horaires (`AAAA-MM-JJ`)."
+    valid_to: String
+
+    "Nom du jeu d'horaires chez son éditeur."
+    name: String
+
+    "Licence du jeu d'horaires (ODbL)."
+    licence: String
+
+    "Page du jeu d'horaires sur transport.data.gouv.fr."
+    page: String
+}
+
+"Trains par jour sur une ligne un mardi type."
+type LineTimetable {
+    "Le jour type lu dans les horaires (`AAAA-MM-JJ`)."
+    service_date: String!
+
+    "Jour de la semaine du jour type : `tuesday`."
+    weekday: String!
+
+    "Trains de voyageurs qui parcourent au moins deux gares consécutives de la ligne, chacun compté une fois."
+    trains: Int!
+
+    "Trains par type : `ter`, `intercites`, `tgv`, `transilien`, `other`."
+    by_type: JSON!
+
+    "Mention de la source à reproduire avec les données (ODbL 1.0)."
+    attribution: String!
+
+    "Comment le jour type est choisi et comment les trains sont comptés sur la ligne."
+    method: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
 }
 
 "Quais d'une gare (SNCF Réseau, ODbL)."
@@ -5549,6 +5685,13 @@ type LineSheet {
 
     "Électrification à l'ère affichée, ou nul."
     electrification: LineElectrification
+
+    """
+    Trains de voyageurs par jour sur la ligne un mardi type (semaine sans jour férié), d'après les horaires ouverts SNCF et
+    Transilien (ODbL), chaque train compté une fois. Même bloc que `timetable` de `GET /api/v1/lines/{line}`. Nul quand
+    aucun train de voyageurs ne parcourt la ligne ce jour-là (ligne fermée, touristique, fret seul, hors des horaires lus).
+    """
+    timetable: LineTimetable
 
     "Signalisation à l'ère affichée."
     signalling: LineSheetSignalling!

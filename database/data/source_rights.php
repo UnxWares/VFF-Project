@@ -953,6 +953,9 @@ return [
         'line_radio_portions' => ['sncf' => 'sncf'],
         // Fréquentation annuelle des gares (vff:import-sncf-attendance) : SNCF Gares & Connexions, ODbL, colonne source = sncf.
         'station_attendances' => ['sncf' => 'sncf'],
+        // Desserte d'un jour type des gares et des lignes (vff:import-station-timetables) : horaires GTFS SNCF et Transilien (ODbL), colonne source = sncf.
+        'station_timetables' => ['sncf' => 'sncf'],
+        'line_timetables' => ['sncf' => 'sncf'],
         // Gares et ouvrages protégés (vff:import-station-heritage) : base Mérimée du ministère de la Culture (Licence Ouverte 2.0) et Wikidata (CC0).
         'station_heritage' => ['merimee' => 'pop', 'wikidata' => 'wikidata'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).

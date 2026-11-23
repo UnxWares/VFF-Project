@@ -212,6 +212,9 @@ class StationController extends Controller
      *   par année depuis 2015, `latest`, `series_break` (méthode de calcul différente à partir de 2025),
      *   `attribution` et `provenance` ; même bloc que `GET /api/v1/stations/{station}/attendance`. `null` quand
      *   les jeux n'en donnent aucune pour la gare ;
+     * - `timetable` : desserte d'un jour ouvrable type (un mardi, semaine sans jour férié) d'après les horaires ouverts SNCF
+     *   et Transilien : `trains`, `by_type`, `first`, `last`, `directions[]`, `destinations[]`, `feeds[]`, `attribution` ; même
+     *   bloc que `GET /api/v1/stations/{station}/timetable`. `null` quand aucun train de voyageurs ne s'y arrête ce jour-là ;
      * - `heritage` : patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou
      *   inscrits, label Architecture contemporaine remarquable, Inventaire général) : protection et date de l'arrêté,
      *   architectes, construction, style, référence Mérimée avec son lien, image libre ; même bloc que

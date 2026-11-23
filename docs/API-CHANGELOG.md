@@ -21,6 +21,13 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Desserte d'un jour ouvrable type (un mardi d'une semaine sans jour férié, d'après les horaires ouverts SNCF, Transilien et ZOU !,
+  ODbL) : REST `GET /api/v1/stations/{station}/timetable` et champ `timetable` de la fiche `GET /api/v1/stations/{station}` (avec
+  `links.timetable`) : trains par type et par sens, premières et dernières heures, destinations directes, jeu d'horaires utilisé ;
+  champ `timetable` de la fiche d'une ligne `GET /api/v1/lines/{line}` : trains par jour sur la ligne, chacun compté une fois.
+  GraphQL `Station.timetable` (types `StationTimetable`, `StationTimetableDirection`, `StationTimetablePlace`, `StationTimetableFeed`)
+  et `LineSheet.timetable` (type `LineTimetable`), MCP outils `station_timetable` et `line_timetable`. `null` quand aucun train de
+  voyageurs ne s'arrête dans la gare (ou sur la ligne) ce jour-là : ce n'est pas une preuve de fermeture. Ajout seul.
 - REST : `GET /accidents/statistics` (les accidents en chiffres : par décennie, par nature, part des passages à niveau, quinze bilans les plus lourds ; filtres `from`, `to`, `kind`, `review=ok` ; bilans inconnus jamais estimés, `deaths_known` et `injuries_known` donnent le nombre de bilans connus). Page : `/accidents/statistics`.
 - Départements : `GET /api/v1/departments/{code}/history` (le rail d'un département décennie par décennie : `open_km`, `closed_km`,
   `service_km`, `dismantled_km`, `razed_km`, gares, grandes dates, lignes, communes, accidents) et `GET /api/v1/stats/departments`

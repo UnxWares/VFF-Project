@@ -6,6 +6,7 @@ use App\Services\Api\Provenance;
 use App\Services\Heritage\StationHeritage;
 use App\Services\Sncf\StationAttendance;
 use App\Services\Sncf\StationPlatforms;
+use App\Services\Timetable\Timetables;
 use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -70,6 +71,8 @@ class StationSheetResource extends JsonResource
             'platforms' => app(StationPlatforms::class)->forStation((int) $station['id']),
             // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : null quand les jeux n'en donnent aucune.
             'attendance' => app(StationAttendance::class)->forStation((int) $station['id']),
+            // Desserte d'un jour ouvrable type (horaires GTFS SNCF et Transilien, ODbL) : null quand aucun train de voyageurs ne s'y arrête.
+            'timetable' => app(Timetables::class)->forStation((int) $station['id']),
             // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Wikidata) : null quand rien n'est connu.
             'heritage' => app(StationHeritage::class)->forStation((int) $station['id']),
             // Vie de la gare en une liste datée (App\Services\StationChronology), liens absolus.
@@ -80,6 +83,7 @@ class StationSheetResource extends JsonResource
                 // Vues aériennes historiques de l'IGN (1950-1965, 1965-1980, 1980-1995).
                 'aerial' => route('api.stations.aerial', $station['slug']),
                 'attendance' => route('api.stations.attendance', $station['slug']),
+                'timetable' => route('api.stations.timetable', $station['slug']),
                 'heritage' => route('api.stations.heritage', $station['slug']),
                 'media' => route('api.media.index', ['station' => $station['slug']]),
                 // Accidents dont cette gare est la gare la plus proche du lieu (accidents.nearest_station_id).

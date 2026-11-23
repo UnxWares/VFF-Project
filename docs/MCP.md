@@ -158,6 +158,8 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_stops` | Gares d'une ligne dans l'ordre des PK à une époque, avec leur état (modèle GTFS `stop_times`) et le lien de l'archive GTFS de l'ère. |
 | `station_aerial` | Vues aériennes historiques de l'IGN autour d'une gare (1950-1965, 1965-1980, 1980-1995), avec crédit et Licence Ouverte 2.0. |
 | `station_attendance` | Fréquentation annuelle d'une gare depuis 2015 (voyageurs, non-voyageurs) : SNCF Gares & Connexions, ODbL ; 2025 n'est pas comparable à 2015-2024. |
+| `station_timetable` | Desserte d'une gare un mardi type : trains par type et par sens, premières et dernières heures, destinations directes ; horaires théoriques SNCF et Transilien, ODbL. |
+| `line_timetable` | Trains de voyageurs par jour sur une ligne un mardi type, chacun compté une fois ; horaires théoriques SNCF et Transilien, ODbL. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
@@ -1362,6 +1364,46 @@ Renvoie `attendance` (nul quand les jeux n'en donnent aucune pour la gare : cela
 
 ```json
 {"station": "angouleme"}
+```
+
+### `station_timetable` : desserte d'une gare un jour ouvrable type
+
+Mêmes données que `GET /api/v1/stations/{station}/timetable` (service `Timetables`) : les trains de voyageurs qui s'arrêtent dans
+la gare un mardi type (semaine sans jour férié, mardi dont le nombre de trains est la médiane des mardis proches), d'après les
+horaires théoriques ouverts de SNCF Voyageurs (TER, Intercités, TGV INOUI, OUIGO), de Transilien et, pour quelques gares du Sud, de
+ZOU ! (SNCF Open Data et transport.data.gouv.fr, ODbL). Rattachement par le code UIC de l'arrêt, à défaut par son nom et sa position.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `timetable` (nul quand aucun train de voyageurs ne s'arrête dans la gare ce jour-là : gare fermée, desservie par des cars,
+saisonnière, hors des horaires lus comme la Corse ; ce n'est pas une preuve de fermeture) : `service_date`, `trains` (chacun compté
+une fois), `by_type` (`ter`, `intercites`, `tgv`, `transilien`, `other`), `first` et `last` (`HH:MM`), `directions[]` (les deux sens :
+`heading`, `trains`, `by_type`, `first`, `last`, `destinations[]` ou `origins[]` sur un terminus), `destinations[]`, `feeds[]`
+(version, jour lu, fin de validité, licence), `method`, `mention`. Horaires théoriques : travaux, suppressions et retards ne sont pas
+connus ; la desserte d'un week-end ou des vacances est différente. Toujours donner `service_date` avec le chiffre.
+
+```json
+{"station": "limoges-benedictins"}
+```
+
+### `line_timetable` : trains par jour sur une ligne
+
+Mêmes données que `timetable` de `GET /api/v1/lines/{line}` : le nombre de trains de voyageurs par jour sur la ligne, le même mardi
+type. Un train compte une fois par ligne dont il parcourt au moins deux gares consécutives ; un train qui emprunte plusieurs lignes
+compte sur chacune, les chiffres de deux lignes ne s'additionnent donc pas.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug | oui | Ligne (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `timetable` (nul quand aucun train de voyageurs ne parcourt la ligne ce jour-là) : `service_date`, `trains`, `by_type`, `mention`.
+
+```json
+{"line": "paris-austerlitz-a-bordeaux-saint-jean"}
 ```
 
 ### `station_heritage` : patrimoine d'une gare

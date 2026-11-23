@@ -46,6 +46,7 @@ use App\Http\Controllers\Api\StationAuditController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StationHeritageController;
+use App\Http\Controllers\Api\StationTimetableController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
 use App\Http\Controllers\Api\TouristRailwayController;
@@ -129,6 +130,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations/{station:slug}/aerial', [StationController::class, 'aerial'])->name('api.stations.aerial');
     // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : App\Services\Sncf\StationAttendance.
     Route::get('/v1/stations/{station:slug}/attendance', [StationAttendanceController::class, 'index'])->name('api.stations.attendance');
+    // Desserte d'un jour ouvrable type (horaires GTFS SNCF et Transilien, ODbL) : App\Services\Timetable\Timetables.
+    Route::get('/v1/stations/{station:slug}/timetable', [StationTimetableController::class, 'index'])->name('api.stations.timetable');
     // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Licence Ouverte 2.0 ; Wikidata, CC0) : App\Services\Heritage\StationHeritage.
     Route::get('/v1/stations/{station:slug}/heritage', [StationHeritageController::class, 'index'])->name('api.stations.heritage');
     // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.

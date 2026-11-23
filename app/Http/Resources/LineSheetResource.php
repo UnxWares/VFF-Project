@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\Timetable\Timetables;
 use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -69,6 +70,8 @@ class LineSheetResource extends JsonResource
                 'dismantled_to' => $stats['dismantled_at_max'] ?? null,
             ],
             'electrification' => $stats['electrification'] ?? null,
+            // Trains par jour sur la ligne (un mardi type, horaires GTFS SNCF et Transilien, ODbL), chacun compté une fois : null sans train de voyageurs.
+            'timetable' => app(Timetables::class)->forLineSlug((string) $line['slug']),
             'signalling' => [
                 'block_systems_km' => $stats['signalling_coverage'] ?? [],
                 'train_protection_km' => $stats['train_protection_coverage'] ?? [],

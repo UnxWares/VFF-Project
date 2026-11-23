@@ -12,6 +12,7 @@
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
     import StationAttendance from '$components/Stations/StationAttendance.svelte';
+    import StationTimetable from '$components/Stations/StationTimetable.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
     import StationHeritage from '$components/Stations/StationHeritage.svelte';
     import Notice from '$components/ui/Notice.svelte';
@@ -48,6 +49,7 @@
         'eras',
         'history',
         'lines',
+        'timetable',
         'attendance',
         'location',
         'gallery',
@@ -337,6 +339,8 @@
                 <EmptyState icon="bi-bezier2" title={$i18n.t('stations.lines.none')} />
             {/if}
         </SheetSection>
+
+        <StationTimetable slug={station.slug} name={station.name} />
 
         <StationAttendance {attendance} name={station.name} />
 
