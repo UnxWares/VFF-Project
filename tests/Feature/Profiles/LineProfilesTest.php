@@ -390,6 +390,52 @@ class LineProfilesTest extends TestCase
         $this->assertSame('profile_not_computed', json_decode($result['content'][0]['text'], true)['error']);
     }
 
+    public function test_a_line_without_profile_says_why_on_the_sheet_and_in_the_apis(): void
+    {
+        $this->fakeIgn();
+        $sheet = '/lines/'.$this->line->slug;
+        $api = "/api/v1/lines/{$this->line->slug}/profile";
+        $mcp = fn (): array => json_decode($this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+                'name' => 'line_profile', 'arguments' => ['line' => $this->line->slug],
+            ]])->assertOk()->json('result.content.0.text'), true);
+
+        // Tracé en France, profil pas encore calculé.
+        $this->getWithDeferredProps($sheet)->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('profile', null)->where('profile_unavailable.reason', 'not_computed'));
+        $this->getJson($api)->assertNotFound()->assertJsonPath('error', 'profile_not_computed')->assertJsonPath('reason', 'not_computed');
+
+        // Tracé entièrement hors de France (lignes belges, Wintersdorf - Rastatt, raccordement de Vintimille).
+        DB::table('commune_contours')->where('code_insee', '99999')->delete();
+        $this->getWithDeferredProps($sheet)->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('profile_unavailable.reason', 'outside_france'));
+        $this->getJson($api)->assertNotFound()->assertJsonPath('error', 'profile_not_computed')
+            ->assertJsonPath('reason', 'outside_france')
+            ->assertJsonPath('message', fn (string $m): bool => str_contains($m, 'hors de France'));
+        $this->getJson("{$api}/points")->assertNotFound()->assertJsonPath('reason', 'outside_france');
+        $this->assertSame('outside_france', $mcp()['reason']);
+
+        // Aucun tracé (lignes connues seulement par leur chronologie).
+        DB::table('line_reference_parts')->where('line_id', $this->line->id)->delete();
+        DB::table('line_segments')->where('line_id', $this->line->id)->delete();
+        $this->getWithDeferredProps($sheet)->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('profile_unavailable.reason', 'no_trace'));
+        $this->getJson("/api/v1/lines/{$this->line->slug}/altitude?pk_m=100")->assertNotFound()->assertJsonPath('reason', 'no_trace');
+        $answer = $mcp();
+        $this->assertSame(['profile_not_computed', 'no_trace'], [$answer['error'], $answer['reason']]);
+        $this->assertStringContainsString('aucun tracé', $answer['detail']);
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'altimetrie'));
+    }
+
+    public function test_the_sheet_has_no_unavailable_reason_once_the_profile_is_computed(): void
+    {
+        $this->fakeIgn();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('profile.summary.max_altitude_m', 120)->where('profile_unavailable', null));
+    }
+
     public function test_line_sheet_receives_the_profile_only_once_computed(): void
     {
         $this->fakeIgn();
