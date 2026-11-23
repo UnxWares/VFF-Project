@@ -16,6 +16,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Fréquentation annuelle des gares (SNCF Gares & Connexions, ODbL) : REST `GET /api/v1/stations/{station}/attendance` et champ
+  `attendance` de la fiche `GET /api/v1/stations/{station}` (avec `links.attendance`), GraphQL `Station.attendance` (types
+  `StationAttendance`, `StationAttendanceYear`, `StationAttendanceLatest`, `StationAttendanceSource`), MCP outil `station_attendance`.
+  Voyageurs (`passengers`) et voyageurs avec non-voyageurs (`footfall`) par année depuis 2015, `latest`, `series_break` : SNCF précise que
+  les chiffres de 2025 (autres sources, autre méthode) ne sont pas directement comparables à ceux de 2015 à 2024. `null` quand les jeux
+  n'en donnent aucune pour la gare. Ajout seul.
 - Fiche gare (REST `GET /api/v1/stations/{station}`, GraphQL `StationSheet`) : nouveau champ `chronology`, la vie de la gare en une
   liste datée (événements de la gare regroupés quand leurs dates se recouvrent, autres sources dans `also`, `retained: false` pour une
   date contredite par la fiche ; début et fin de desserte par chaque ligne ; noms portés et datés ; accidents dont la gare est la plus

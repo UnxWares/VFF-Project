@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
+use App\Http\Controllers\Api\StationAttendanceController;
 use App\Http\Controllers\Api\StationAuditController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
@@ -105,6 +106,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/stations/{station:slug}/media', [StationController::class, 'media'])->name('api.stations.media');
     Route::get('/v1/stations/{station:slug}/aerial', [StationController::class, 'aerial'])->name('api.stations.aerial');
+    // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : App\Services\Sncf\StationAttendance.
+    Route::get('/v1/stations/{station:slug}/attendance', [StationAttendanceController::class, 'index'])->name('api.stations.attendance');
     // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.
     Route::get('/v1/stations/{station:slug}/audit', [StationAuditController::class, 'show'])->name('api.stations.audit');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');

@@ -1,0 +1,48 @@
+{
+ "dataset": "frequentation-gares-archive",
+ "fetched_at": "2026-11-23 01:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2025-07-03",
+ "records": [
+  {
+   "nom_gare": "Alpha-Centre",
+   "code_uic_complet": "87000001",
+   "code_postal": "75001",
+   "non_voyageurs": 0.2,
+   "total_voyageurs_2024": 1000,
+   "total_voyageurs_non_voyageurs_2024": 1250,
+   "total_voyageurs_2023": 900,
+   "total_voyageurs_non_voyageurs_2023": 1125,
+   "totalvoyageurs2017": 800,
+   "total_voyageurs_non_voyageurs_2017": 1000
+  },
+  {
+   "nom_gare": "Doublon",
+   "code_uic_complet": "87000002",
+   "code_postal": "06130",
+   "total_voyageurs_2024": 500,
+   "total_voyageurs_non_voyageurs_2024": 500
+  },
+  {
+   "nom_gare": "Sans code connu",
+   "code_uic_complet": "87000999",
+   "code_postal": "6340",
+   "total_voyageurs_2024": 300,
+   "total_voyageurs_non_voyageurs_2024": 300
+  },
+  {
+   "nom_gare": "Gare absente de VFF",
+   "code_uic_complet": "87999000",
+   "code_postal": "29150",
+   "total_voyageurs_2024": 40,
+   "total_voyageurs_non_voyageurs_2024": 40
+  },
+  {
+   "nom_gare": "Bravo",
+   "code_uic_complet": "87099999",
+   "code_postal": "75010",
+   "total_voyageurs_2024": 70,
+   "total_voyageurs_non_voyageurs_2024": 70
+  }
+ ]
+}

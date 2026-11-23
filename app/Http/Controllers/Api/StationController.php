@@ -207,6 +207,10 @@ class StationController extends Controller
      *   et la licence ;
      * - `neighbors` : gares à moins de 10 km (12 au plus), de la plus proche
      *   à la plus lointaine ;
+     * - `attendance` : fréquentation annuelle (SNCF Gares & Connexions, ODbL) : voyageurs et non-voyageurs
+     *   par année depuis 2015, `latest`, `series_break` (méthode de calcul différente à partir de 2025),
+     *   `attribution` et `provenance` ; même bloc que `GET /api/v1/stations/{station}/attendance`. `null` quand
+     *   les jeux n'en donnent aucune pour la gare ;
      * - `platforms` : quais de la gare d'après le jeu « Liste des quais » de
      *   SNCF Réseau (ODbL, état actuel du réseau, jeu mis à jour le
      *   `dataset_modified`) : `count` (quais distincts ; un quai central qui

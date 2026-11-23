@@ -227,6 +227,7 @@
         'compare_line_eras',
         'line_stops',
         'station_aerial',
+        'station_attendance',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.

@@ -316,6 +316,7 @@ return [
             'compare_line_eras' => 'Eine Strecke zu zwei Epochen: km je Kategorie, dazwischen eröffnete oder geschlossene Bahnhöfe, geltende Signalisierung und die Ereignisse, die den Wandel erklären.',
             'line_stops' => 'Bahnhöfe einer Strecke in der Reihenfolge der Streckenkilometer zu einer Epoche, mit ihrem Zustand und dem Link zum GTFS-Archiv der Epoche.',
             'station_aerial' => 'Historische Luftbilder des IGN rund um einen Bahnhof (1950 bis 1995), mit Nachweis und Licence Ouverte 2.0.',
+            'station_attendance' => 'Jährliche Fahrgastzahlen eines Bahnhofs seit 2015 (Reisende und Nichtreisende), SNCF Gares & Connexions, ODbL; 2025 ist mit 2015-2024 nicht vergleichbar (andere Methode).',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'Der Server bietet auch Prompts an, die ein MCP-Client als fertige Befehle anzeigt. Jeder schickt dem Assistenten eine Nachricht, welche Werkzeuge er aufrufen und wie er die Quellen nennen soll. Die Argumente werden bei der Eingabe ergänzt.',

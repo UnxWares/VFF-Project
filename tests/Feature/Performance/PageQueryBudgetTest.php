@@ -105,8 +105,9 @@ class PageQueryBudgetTest extends TestCase
         $queries = $this->queriesOf('/stations/'.$this->origin->slug);
 
         // 8 depuis le 20/11 : un comptage indexé des images publiées (la galerie n'est posée que s'il y en a).
-        // 9 avec la chronologie de la fiche (accidents proches, une lecture).
-        $this->assertLessThanOrEqual(9, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 9 avec la chronologie de la fiche (accidents proches). 11 depuis le 23/11 : la fréquentation de la gare (existence
+        // de la table, un constat positif est ensuite en cache, puis une lecture indexée par gare).
+        $this->assertLessThanOrEqual(11, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_the_last_segment_update_is_read_through_an_index(): void

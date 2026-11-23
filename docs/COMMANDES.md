@@ -256,6 +256,26 @@ que le régime d'exploitation.
 | `--cache-dir=` | Dossier du cache. |
 | `--csv=` | Rapport par ligne (km par système). |
 
+### `vff:import-sncf-attendance`
+
+Importe la fréquentation annuelle des gares : jeux SNCF Open Data « Fréquentation en gares » (SNCF Gares & Connexions, ODbL),
+archive 2015-2024 (`frequentation-gares-archive`) et jeu courant 2025 et suivantes (`frequentation-gares`), dans
+`station_attendances` : une ligne par gare et par année, voyageurs (`passengers`) et voyageurs avec non-voyageurs (`footfall`).
+Rattachement à la gare de VFF par code UIC ; les doublons de fiches (« Grasse », « Virville-Manneville ») sont départagés par le
+département du code postal, quelques gares sans code connu par le nom et le département, un alias vérifié à la main
+(`StationAttendanceMatcher::ALIASES`). `series` sépare 2015-2024 de 2025 : SNCF écrit que les deux méthodes de calcul ne sont pas
+directement comparables. Une gare du jeu sans gare de VFF n'est pas écrite (rapport `non-rattachees.csv`). Toutes les lignes
+`sncf` sont remplacées d'un coup ; aucune autre table n'est écrite. Cache `storage/app/sources/sncf-attendance/` (dossier
+`.nobackup`), licence et éditeur vérifiés au téléchargement. Points d'accès : `GET /api/v1/stations/{station}/attendance`,
+`attendance` de la fiche REST, GraphQL `Station.attendance`, outil MCP `station_attendance`.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : rattachement par règle, gares non rattachées, couverture par statut, gares ouvertes sans fréquentation. |
+| `--refresh` | Télécharge de nouveau les jeux au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Dossier des rapports CSV (lignes prévues, non rattachées, doublons, gares ouvertes sans fréquentation). |
+
 ### `vff:import-sncf-platforms`
 
 Importe les quais des gares de voyageurs du jeu SNCF Open Data « Liste des quais » (SNCF Réseau, ODbL) dans

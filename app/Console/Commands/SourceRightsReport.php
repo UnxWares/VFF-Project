@@ -70,6 +70,7 @@ class SourceRightsReport extends Command
         'station_platforms' => 'SELECT DISTINCT source AS v FROM station_platforms',
         'line_track_portions' => 'SELECT DISTINCT source AS v FROM line_track_portions',
         'line_radio_portions' => 'SELECT DISTINCT source AS v FROM line_radio_portions',
+        'station_attendances' => 'SELECT DISTINCT source AS v FROM station_attendances',
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
         'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',

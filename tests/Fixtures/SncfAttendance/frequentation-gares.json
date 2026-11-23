@@ -1,0 +1,22 @@
+{
+ "dataset": "frequentation-gares",
+ "fetched_at": "2026-11-23 01:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-13",
+ "records": [
+  {
+   "nom_gare": "Alpha-Centre",
+   "code_uic_complet": "87000001",
+   "code_postal": "75001",
+   "total_voyageurs_2025": 1100.0,
+   "total_voyageurs_non_voyageurs_2025": 1100.0
+  },
+  {
+   "nom_gare": "Doublon",
+   "code_uic_complet": "87000002",
+   "code_postal": "06130",
+   "total_voyageurs_2025": 520.0,
+   "total_voyageurs_non_voyageurs_2025": 520.0
+  }
+ ]
+}

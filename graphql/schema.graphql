@@ -1272,6 +1272,90 @@ type Station {
     halte absente du jeu) : ce n'est pas « aucun quai ». Mention à reproduire : `attribution`.
     """
     platforms: StationPlatforms @field(resolver: "App\\GraphQL\\Resolvers\\StationPlatformField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
+    Fréquentation annuelle de la gare, toutes les années publiées (SNCF Gares & Connexions, ODbL,
+    `vff:import-sncf-attendance`) : voyageurs, et voyageurs avec non-voyageurs. Même bloc que `attendance` de
+    `GET /api/v1/stations/{station}` et `GET /api/v1/stations/{station}/attendance`. Nul quand les jeux n'en donnent
+    aucune pour la gare (fermée avant 2015, absente des jeux) : ce n'est pas « aucun voyageur ». Mention à
+    reproduire : `attribution`.
+    """
+    attendance: StationAttendance @field(resolver: "App\\GraphQL\\Resolvers\\StationAttendanceField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+}
+
+"Fréquentation annuelle d'une gare (SNCF Gares & Connexions, ODbL)."
+type StationAttendance {
+    "Code UIC (8 chiffres) de la gare dans les jeux SNCF, par lequel elle est rattachée à la fiche."
+    uic_code: String!
+
+    "Une entrée par année publiée, de la plus ancienne à la plus récente."
+    years: [StationAttendanceYear!]!
+
+    "La dernière année publiée pour la gare."
+    latest: StationAttendanceLatest!
+
+    """
+    Vrai quand la gare a des années des deux séries (2015 à 2024, puis 2025 et après) : SNCF précise que le
+    changement de sources et de méthode de calcul de 2025 rend les deux séries non directement comparables.
+    """
+    series_break: Boolean!
+
+    "Jeux d'où viennent les chiffres, avec leur date de dernière modification."
+    sources: [StationAttendanceSource!]!
+
+    "Mention de la source à reproduire avec les données (SNCF Gares & Connexions, ODbL 1.0)."
+    attribution: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
+}
+
+"La fréquentation d'une gare une année donnée."
+type StationAttendanceYear {
+    "Année civile."
+    year: Int!
+
+    "Voyageurs de l'année (montées et descentes, d'après la billetterie et les comptages de SNCF). Nul si le jeu ne le donne pas."
+    passengers: Int
+
+    "Voyageurs et non-voyageurs réunis. Les non-voyageurs sont estimés par enquête. Nul si le jeu ne le donne pas."
+    footfall: Int
+
+    "Non-voyageurs : `footfall` moins `passengers`, nul si l'un des deux manque."
+    non_passengers: Int
+
+    "Série de la méthode de calcul : `2015-2024` ou `2025`."
+    series: String!
+}
+
+"Dernière année de fréquentation d'une gare."
+type StationAttendanceLatest {
+    "Dernière année publiée."
+    year: Int!
+
+    "Voyageurs de cette année. Nul si le jeu ne le donne pas."
+    passengers: Int
+
+    "Voyageurs et non-voyageurs réunis cette année. Nul si le jeu ne le donne pas."
+    footfall: Int
+
+    "Série de l'année : `2015-2024` ou `2025` (méthodes de calcul différentes)."
+    series: String!
+
+    "Année de mise en ligne du jeu qui porte cette année (la fréquentation de 2025 est publiée en 2026)."
+    published_year: Int
+}
+
+"Un jeu SNCF d'où viennent des chiffres de fréquentation."
+type StationAttendanceSource {
+    "Série : `2015-2024` ou `2025`."
+    series: String!
+
+    "Identifiant du jeu sur data.sncf.com."
+    dataset: String!
+
+    "Date de dernière modification du jeu (`AAAA-MM-JJ`)."
+    dataset_modified: String
 }
 
 "Quais d'une gare (SNCF Réseau, ODbL)."

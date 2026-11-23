@@ -11,6 +11,7 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
+    import StationAttendance from '$components/Stations/StationAttendance.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
@@ -32,13 +33,24 @@
         media_count = 0,
         aerial_views = [],
         chronology = [],
+        attendance = null,
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
     // Sommaire collant : SheetToc n'affiche que les sections présentes.
-    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'gallery', 'aerial', 'sources'];
+    const TOC = [
+        'about',
+        'eras',
+        'history',
+        'lines',
+        'attendance',
+        'location',
+        'gallery',
+        'aerial',
+        'sources',
+    ];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
     /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
     const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
@@ -320,6 +332,8 @@
                 <EmptyState icon="bi-bezier2" title={$i18n.t('stations.lines.none')} />
             {/if}
         </SheetSection>
+
+        <StationAttendance {attendance} name={station.name} />
 
         <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
             <div class={['location', { solo: !neighbors.length }]}>

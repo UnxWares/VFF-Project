@@ -292,6 +292,20 @@ return [
     ],
 
     // Sommaire collant de la fiche (libellés courts des sections).
+    'attendance' => [
+        'title' => 'Fréquentation de la gare',
+        'latest' => 'voyageurs en :year',
+        'with_visitors' => 'Avec les non-voyageurs (personnes qui traversent la gare sans prendre le train, estimées par enquête) : :count',
+        'chart_alt' => 'Voyageurs par an à :name, de :from à :to : :first en :from, :last en :to.',
+        'series_break' => 'Rupture de série entre 2024 et 2025 : SNCF a changé de sources et de méthode de calcul, les chiffres de 2025 ne se comparent pas directement à ceux de 2015 à 2024.',
+        'table' => 'Chiffres année par année',
+        'table_caption' => 'Voyageurs par année à :name',
+        'year' => 'Année',
+        'passengers' => 'Voyageurs',
+        'footfall' => 'Voyageurs et non-voyageurs',
+        'source' => 'Source : SNCF Gares & Connexions, jeu publié en :year, ODbL.',
+        'licence' => 'Voir le jeu de données',
+    ],
     'aerial' => [
         'title' => 'Vue du ciel',
         'intro' => 'Photographies aériennes de l’IGN autour de la gare, une par période, sur 500 m de large.',
@@ -346,5 +360,6 @@ return [
         'sources' => 'Sources',
         'gallery' => 'Photos',
         'aerial' => 'Vue du ciel',
+        'attendance' => 'Fréquentation',
     ],
 ];

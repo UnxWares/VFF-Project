@@ -156,6 +156,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `compare_line_eras` | Une ligne à deux époques : km par catégorie, gares ouvertes ou fermées entre les deux, signalisation en vigueur, événements qui expliquent le changement. |
 | `line_stops` | Gares d'une ligne dans l'ordre des PK à une époque, avec leur état (modèle GTFS `stop_times`) et le lien de l'archive GTFS de l'ère. |
 | `station_aerial` | Vues aériennes historiques de l'IGN autour d'une gare (1950-1965, 1965-1980, 1980-1995), avec crédit et Licence Ouverte 2.0. |
+| `station_attendance` | Fréquentation annuelle d'une gare depuis 2015 (voyageurs, non-voyageurs) : SNCF Gares & Connexions, ODbL ; 2025 n'est pas comparable à 2015-2024. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
@@ -1303,6 +1304,25 @@ chaque période des photographies de l'IGN (1950-1965, 1965-1980, 1980-1995).
 Renvoie `count` et `views` : `period`, `from`, `to`, `url` (image JPEG servie par VFF, adresse absolue ; 404 hors
 couverture), `layer`, `attribution`, `license` et `license_url` (Licence Ouverte 2.0), `source_url` (« Remonter le
 temps »), `commercial_ok`, `derivatives_ok`. Liste vide quand l'instance désactive les vues aériennes.
+
+```json
+{"station": "angouleme"}
+```
+
+### `station_attendance` : fréquentation annuelle d'une gare
+
+Mêmes données que `GET /api/v1/stations/{station}/attendance` (service `StationAttendance`) : voyageurs par an depuis 2015
+d'après les jeux « Fréquentation en gares » de SNCF Gares & Connexions (ODbL).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `attendance` (nul quand les jeux n'en donnent aucune pour la gare : cela ne veut pas dire « aucun voyageur ») :
+`years[]` (`year`, `passengers`, `footfall`, `non_passengers`, `series`), `latest` (avec `published_year`), `series_break`,
+`sources[]`, `mention`. SNCF écrit que 2025 vient d'autres sources et d'une autre méthode de calcul que 2015-2024 : quand
+`series_break` est vrai, la variation entre 2024 et 2025 ne se présente pas comme une hausse ou une baisse réelle.
 
 ```json
 {"station": "angouleme"}

@@ -292,6 +292,20 @@ return [
     ],
 
     // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
+    'attendance' => [
+        'title' => 'Fahrgastzahlen des Bahnhofs',
+        'latest' => 'Reisende im Jahr :year',
+        'with_visitors' => 'Mit Nichtreisenden (Personen, die den Bahnhof durchqueren, ohne einen Zug zu nehmen, per Befragung geschätzt): :count',
+        'chart_alt' => 'Reisende pro Jahr in :name, von :from bis :to: :first im Jahr :from, :last im Jahr :to.',
+        'series_break' => 'Bruch in der Reihe zwischen 2024 und 2025: SNCF hat Quellen und Berechnungsmethode geändert, die Zahlen von 2025 sind daher nicht direkt mit denen von 2015 bis 2024 vergleichbar.',
+        'table' => 'Zahlen Jahr für Jahr',
+        'table_caption' => 'Reisende pro Jahr in :name',
+        'year' => 'Jahr',
+        'passengers' => 'Reisende',
+        'footfall' => 'Reisende und Nichtreisende',
+        'source' => 'Quelle: SNCF Gares & Connexions, Datensatz veröffentlicht :year, ODbL.',
+        'licence' => 'Zum Datensatz',
+    ],
     'aerial' => [
         'title' => 'Luftbilder',
         'intro' => 'Luftbilder des IGN rund um den Bahnhof, eines je Zeitraum, 500 m breit.',
@@ -346,5 +360,6 @@ return [
         'sources' => 'Quellen',
         'gallery' => 'Fotos',
         'aerial' => 'Luftbilder',
+        'attendance' => 'Fahrgastzahlen',
     ],
 ];

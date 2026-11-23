@@ -292,6 +292,20 @@ return [
     ],
 
     // Sticky contents of the sheet (short section labels).
+    'attendance' => [
+        'title' => 'Station passenger numbers',
+        'latest' => 'passengers in :year',
+        'with_visitors' => 'With non-passengers (people crossing the station without taking a train, estimated by survey): :count',
+        'chart_alt' => 'Passengers per year at :name, from :from to :to: :first in :from, :last in :to.',
+        'series_break' => 'Break in the series between 2024 and 2025: SNCF changed its sources and its calculation method, so the 2025 figures cannot be compared directly with those of 2015 to 2024.',
+        'table' => 'Figures year by year',
+        'table_caption' => 'Passengers per year at :name',
+        'year' => 'Year',
+        'passengers' => 'Passengers',
+        'footfall' => 'Passengers and non-passengers',
+        'source' => 'Source: SNCF Gares & Connexions, dataset published in :year, ODbL.',
+        'licence' => 'See the dataset',
+    ],
     'aerial' => [
         'title' => 'From the air',
         'intro' => 'IGN aerial photographs around the station, one per period, 500 m across.',
@@ -346,5 +360,6 @@ return [
         'sources' => 'Sources',
         'gallery' => 'Photos',
         'aerial' => 'From the air',
+        'attendance' => 'Passenger numbers',
     ],
 ];

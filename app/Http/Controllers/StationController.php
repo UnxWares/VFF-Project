@@ -7,6 +7,7 @@ use App\Models\Era;
 use App\Models\Station;
 use App\Services\Api\MediaGallery;
 use App\Services\Media\Aerial\AerialImages;
+use App\Services\Sncf\StationAttendance;
 use App\Services\StationDirectory;
 use App\Services\StationSheet;
 use Illuminate\Database\Query\Builder;
@@ -102,7 +103,7 @@ class StationController extends Controller
         };
     }
 
-    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery): Response
+    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance): Response
     {
         $page = $sheet->page($station);
 
@@ -112,6 +113,8 @@ class StationController extends Controller
             'media_count' => $gallery->count($station),
             // Vues aériennes historiques de l'IGN (relais /media/aerial) : une par période, absente si hors couverture.
             'aerial_views' => AerialImages::views($station->slug, $page['station']['lat'], $page['station']['lng']),
+            // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
+            'attendance' => $attendance->forStation((int) $station->id),
         ]);
     }
 }

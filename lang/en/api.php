@@ -316,6 +316,7 @@ return [
             'compare_line_eras' => 'One line in two periods: km by category, stations opened or closed in between, signalling in force and the events that explain the change.',
             'line_stops' => 'Stations of a line in kilometre point order in a given period, with their state and the link to the GTFS archive of the era.',
             'station_aerial' => 'Historical IGN aerial views around a station (1950 to 1995), with credit and Licence Ouverte 2.0.',
+            'station_attendance' => 'Yearly footfall of a station since 2015 (passengers and non-passengers), SNCF Gares & Connexions, ODbL; 2025 is not comparable with 2015-2024 (another method).',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'The server also offers prompts, which an MCP client shows as ready-made commands. Each one sends the assistant a message saying which tools to call and how to cite the sources. Arguments are completed as you type.',
