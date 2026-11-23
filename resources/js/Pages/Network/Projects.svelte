@@ -282,6 +282,11 @@
         gap: var(--vff-space-2);
         margin: 0;
     }
+    /* Le badge est nowrap par défaut : « Wiedereröffnung für den Personenverkehr » dépassait 320 px. */
+    .badges :global(.vff-badge) {
+        max-width: 100%;
+        white-space: normal;
+    }
     .summary,
     .next,
     .method {

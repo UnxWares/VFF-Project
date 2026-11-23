@@ -82,6 +82,11 @@
     .status {
         margin: 18px 0 0;
     }
+    /* Le badge est nowrap par défaut : un état long (en, de) dépassait 320 px. */
+    .status :global(.vff-badge) {
+        max-width: 100%;
+        white-space: normal;
+    }
     @media (max-width: 600px) {
         .page-hero {
             padding: 28px 0;
