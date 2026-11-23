@@ -152,6 +152,48 @@ class EventCorrectionsCommandTest extends TestCase
         $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('introuvable')->assertSuccessful();
     }
 
+    public function test_redate_corrects_the_date_text_and_portion_of_an_import_event_and_is_replayable(): void
+    {
+        $description = "Exploitation associative : Train de Test, train touristique entre Pontivy et Lambel-Camors, depuis 1990 (d'après Wikidata) ; aussi nommé « T ». Sources : Wikidata.";
+        $id = $this->sourceEvent('heritage_start', '1990-01-01', ['source' => 'heritage', 'description' => $description, 'section_from' => 'Pontivy',
+            'section_to' => 'Lambel-Camors', 'section_length_m' => 35_000, 'source_url' => 'https://www.wikidata.org/wiki/Q1']);
+        $other = $this->sourceEvent('heritage_start', '1990-01-01', ['source' => 'heritage', 'section_from' => 'Ailleurs', 'description' => 'autre']);
+        $correction = [
+            'line' => '473000', 'action' => 'redate',
+            'match' => ['source' => 'heritage', 'type' => 'heritage_start', 'date' => '1990-01-01', 'from' => 'Pontivy'],
+            'date' => '2021-06-28', 'precision' => 'day', 'from' => 'Pontivy', 'to' => 'Auray',
+            'date_text' => "entre Pontivy et Auray, depuis le 28 juin 2021 (d'après article Wikipédia de l'exploitation)",
+            'source_url' => 'https://fr.wikipedia.org/w/index.php?title=X&oldid=1', 'quote' => 'À compter du 28 juin 2021 [...]',
+            'reason' => 'le début est le 28 juin 2021, pas la fondation',
+        ];
+        $this->useDataFile('line_event_corrections.php', [$correction]);
+
+        $this->artisan('vff:apply-event-corrections', ['--dry-run' => true])->expectsOutputToContain('à redater (1)')->assertSuccessful();
+        $this->assertSame('1990-01-01', substr((string) DB::table('line_events')->where('id', $id)->value('event_date'), 0, 10));
+
+        $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('redaté (1)')->assertSuccessful();
+        /** @var \stdClass $event */
+        $event = DB::table('line_events')->find($id);
+        $this->assertSame(['2021-06-28', 'day', 'Auray', 'pending', null, 'https://fr.wikipedia.org/w/index.php?title=X&oldid=1'],
+            [substr((string) $event->event_date, 0, 10), $event->date_precision, $event->section_to, $event->section_resolution, $event->section_length_m, $event->source_url]);
+        $this->assertSame("Exploitation associative : Train de Test, train touristique entre Pontivy et Auray, depuis le 28 juin 2021 (d'après article Wikipédia de l'exploitation) ; aussi nommé « T ». Sources : Wikidata.", $event->description);
+        $this->assertSame('1990-01-01', substr((string) DB::table('line_events')->where('id', $other)->value('event_date'), 0, 10), 'un autre événement de départ différent reste intact');
+
+        // Rejouable : l'événement porte déjà la nouvelle date.
+        $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('déjà appliqué')->assertSuccessful();
+
+        // Réimport de la source : ancienne date, ancien texte et ancienne portion reviennent, la correction les remet.
+        DB::table('line_events')->where('id', $id)->update(['event_date' => '1990-01-01', 'description' => $description, 'section_to' => 'Lambel-Camors', 'section_resolution' => 'resolved']);
+        $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('redaté (1)')->assertSuccessful();
+        $this->assertSame('2021-06-28', substr((string) DB::table('line_events')->where('id', $id)->value('event_date'), 0, 10));
+
+        // Événement visé disparu : avertissement, pas d'échec ; précision inconnue : refusée.
+        DB::table('line_events')->delete();
+        $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('introuvable')->assertSuccessful();
+        $this->useDataFile('line_event_corrections.php', [[...$correction, 'precision' => 'decade']]);
+        $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('précision inconnue « decade »')->assertFailed();
+    }
+
     public function test_line_filter_applies_only_that_line_but_keeps_other_additions(): void
     {
         $other = $this->rfnLine('884000', 'Ligne de Bourg-en-Bresse à Bellegarde');

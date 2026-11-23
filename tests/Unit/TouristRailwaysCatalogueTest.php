@@ -92,6 +92,24 @@ class TouristRailwaysCatalogueTest extends TestCase
         $this->assertSame('Sentheim', $byName['Train Thur Doller Alsace']['section_to']);
     }
 
+    public function test_the_settled_incoherences_are_reflected_in_the_catalogue(): void
+    {
+        $byName = array_column($this->entries(), null, 'name');
+        // L'Albret a cessé en 2024 (exploitant et article) : plus « exploité aujourd'hui ».
+        $this->assertArrayNotHasKey("Train touristique de l'Albret", $byName);
+        // Sud des Ardennes : jusqu'à Attigny (plus de Challerange), exploitation depuis 1988, autorails.
+        $ardennes = $byName['Chemin de fer touristique du sud des Ardennes'];
+        $this->assertSame(['Amagne - Lucquy', 'Attigny', 1988, 'railcar'], [$ardennes['section_from'], $ardennes['section_to'], $ardennes['start_year'], $ardennes['type']]);
+        // Centre-Bretagne : de Pontivy à Auray depuis 2021 (site de l'association).
+        $cfcb = $byName['Chemins de fer du Centre-Bretagne'];
+        $this->assertSame(['Pontivy', 'Auray', 2021, 'official-site'], [$cfcb['section_from'], $cfcb['section_to'], $cfcb['start_year'], $cfcb['start_year_source']]);
+        // Bon-Repos : voie de 60 cm seulement (la voie métrique est un projet).
+        $this->assertSame([600], $byName['Chemin de fer de Bon-Repos']['gauges']);
+        $this->assertSame('Gouarec', $byName['Chemin de fer de Bon-Repos']['section_from']);
+        // AGRIVAP : d'Ambert à La Chaise-Dieu.
+        $this->assertSame(['Ambert', 'La Chaise-Dieu'], [$byName['AGRIVAP Les trains de la découverte']['section_from'], $byName['AGRIVAP Les trains de la découverte']['section_to']]);
+    }
+
     public function test_no_long_dash_in_the_catalogue(): void
     {
         $text = (string) file_get_contents(dirname(__DIR__, 2).'/'.TouristRailways::CATALOGUE);

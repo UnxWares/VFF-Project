@@ -231,7 +231,7 @@ final class TouristRailways
                 }
                 foreach ($byName as $bucket) {
                     $last = end($bucket['events']);
-                    if ($last['end']) {
+                    if ($last['end'] || $this->endedByCorrection($hints[$lineId][$kind] ?? [], $bucket['name'], count($byName), (string) $last['row']->event_date)) {
                         continue;
                     }
                     // Début : le premier événement qui n'est ni une reprise ni une simple attestation ; longueur et
@@ -316,6 +316,27 @@ final class TouristRailways
             'attested' => str_contains($description, 'date de début non trouvée'),
             'sources' => array_values(array_unique($sources)),
         ];
+    }
+
+    /**
+     * Fin d'exploitation donnée par un événement manuel (correction sourcée `heritage_end`) de la même ligne et du même
+     * type, postérieur au dernier événement de l'import : seulement quand la ligne n'a qu'une exploitation de ce type, ou
+     * que le nom y est cité. L'import ne l'écrit pas (l'association a cessé sans que la source le dise).
+     *
+     * @param  list<object>  $rows
+     */
+    private function endedByCorrection(array $rows, string $name, int $sameKindCount, string $lastEventDate): bool
+    {
+        foreach ($rows as $row) {
+            if ($row->type !== 'heritage_end' || substr((string) $row->event_date, 0, 10) < substr($lastEventDate, 0, 10)) {
+                continue;
+            }
+            if ($sameKindCount === 1 || HeritageText::nameSimilarity((string) $row->description, $name) >= 0.5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
