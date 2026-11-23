@@ -7036,17 +7036,8 @@ return [
         'reason' => 'article de la gare d\'Artix (oldid 238760141) : la section de ligne entre Pau et Puyoô est ouverte en 1863, Puyoô en est le terminus ; l\'article de Puyoô (oldid 239298922) dit seulement « La gare a été construite en 1862 ». Remplace l\'année 1867 déduite de la ligne. Confiance moyenne.',
     ],
 
-    // Meroux (id 15245)
-    [
-        'station' => ['name' => 'Meroux', 'uic' => '87184408'],
-        'action' => 'add',
-        'type' => 'opening',
-        'date' => '2018-12-08',
-        'precision' => 'day',
-        'source_url' => $wp('Gare de Belfort - Montbéliard TGV', 240819248),
-        'quote' => 'Halte TER de Meroux : 8 décembre 2018 dans les chemins de fer',
-        'reason' => 'article de la gare « Gare de Belfort - Montbéliard TGV » (oldid 240819248) : infobox de l\'article « Gare de Belfort - Montbéliard TGV » (la halte TER de Meroux est décrite dans le même article) : halte TER de Meroux le 8 décembre 2018. Remplace le 09/12/2018 d\'OpenStreetMap.',
-    ],
+    // Meroux : non corrigé. Seule l'infobox de « Gare de Belfort - Montbéliard TGV » (oldid 240819248) donne le 8 décembre 2018 ;
+    // la ligne de Belfort à Delle a rouvert au service voyageurs le 09/12/2018, date gardée (une seule source contre la chronologie).
 
     // Pléchâtel (id 16319)
     [
