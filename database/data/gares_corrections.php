@@ -6971,4 +6971,249 @@ return [
         'reason' => 'article de la gare (oldid 221816503) : « jusqu\'à sa fermeture le 4 06 1949 » ; Jour precise : 04/06/1949 (l\'annee 1949 etait deduite de la ligne).',
     ],
 
+    // ── 45. Ouvertures de 150 gares encore ouvertes de 0,148 M à 0,05 M de voyageurs (maximum depuis 2019), que les passes précédentes n'avaient
+    // pas lues, relues contre l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 20 corrigées
+    // (audit-gares-6, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/audit-gares-6.md). Les 3 cas douteux restent à décider
+    // (Sainte-Colombe-Septveilles, Montaudran, Neufchâteau).
+
+    // Bagneaux-sur-Loing (id 17419)
+    [
+        'station' => ['name' => 'Bagneaux-sur-Loing', 'uic' => '87684191'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1916-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Bagneaux-sur-Loing', 231119820),
+        'quote' => 'Mise en service en 1916 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare « Gare de Bagneaux-sur-Loing » (oldid 231119820) : la halte date de 1916 (le texte précise qu\'il n\'existait pas d\'arrêt à Bagneaux à l\'ouverture de la ligne). Remplace le 14/08/1860 déduit de la ligne.',
+    ],
+
+    // St-Roch (Somme) (id 15742)
+    [
+        'station' => ['name' => 'St-Roch (Somme)', 'uic' => '87313080'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Roch (Somme)', 241300034),
+        'quote' => 'mise en service = 1875 (marchandises), 1876 (voyageurs)',
+        'reason' => 'article de la gare « Gare de Saint-Roch (Somme) » (oldid 241300034) : infobox : 1875 pour les marchandises, 1876 pour les voyageurs ; la gare n\'a pas été ouverte avec la ligne de 1847. Remplace l\'année 1847 de Wikidata.',
+    ],
+
+    // Pauillac (id 16849)
+    [
+        'station' => ['name' => 'Pauillac', 'uic' => '87581256'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1870-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Pauillac', 241414232),
+        'quote' => 'mise en service = 1870 dans les chemins de fer',
+        'reason' => 'article de la gare « Gare de Pauillac » (oldid 241414232) : infobox : 1870, ouverture de la gare avec l\'extension jusqu\'à Pauillac de la ligne du Médoc. Remplace l\'année 1868 déduite de la ligne.',
+    ],
+
+    // Artix (id 17297)
+    [
+        'station' => ['name' => 'Artix', 'uic' => '87672212'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Artix', 238760141),
+        'quote' => 'La gare d’Artix est mise en service en 1863 par la Compagnie des chemins de fer du Midi, lors de l’ouverture de la section de ligne entre Pau et Puyoô.',
+        'reason' => 'article de la gare « Gare d\'Artix » (oldid 238760141) : mise en service en 1863 avec la section Pau - Puyoô. Remplace l\'année 1867 déduite de la ligne.',
+    ],
+
+    // Puyoô (id 17301)
+    [
+        'station' => ['name' => 'Puyoô', 'uic' => '87672279'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Artix', 238760141),
+        'quote' => 'La gare d’Artix est mise en service en 1863 par la Compagnie des chemins de fer du Midi, lors de l’ouverture de la section de ligne entre Pau et Puyoô.',
+        'reason' => 'article de la gare d\'Artix (oldid 238760141) : la section de ligne entre Pau et Puyoô est ouverte en 1863, Puyoô en est le terminus ; l\'article de Puyoô (oldid 239298922) dit seulement « La gare a été construite en 1862 ». Remplace l\'année 1867 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // Meroux (id 15245)
+    [
+        'station' => ['name' => 'Meroux', 'uic' => '87184408'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2018-12-08',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Belfort - Montbéliard TGV', 240819248),
+        'quote' => 'Halte TER de Meroux : 8 décembre 2018 dans les chemins de fer',
+        'reason' => 'article de la gare « Gare de Belfort - Montbéliard TGV » (oldid 240819248) : infobox de l\'article « Gare de Belfort - Montbéliard TGV » (la halte TER de Meroux est décrite dans le même article) : halte TER de Meroux le 8 décembre 2018. Remplace le 09/12/2018 d\'OpenStreetMap.',
+    ],
+
+    // Pléchâtel (id 16319)
+    [
+        'station' => ['name' => 'Pléchâtel', 'uic' => '87471177'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-11-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Pléchâtel', 240863371),
+        'quote' => 'La gare de Pléchâtel est mise en service en novembre 1864, par la compagnie des chemins de fer de l\'Ouest, soit deux ans après l\'inauguration de la ligne.',
+        'reason' => 'article de la gare « Gare de Pléchâtel » (oldid 240863371) : mise en service en novembre 1864, deux ans après l\'ouverture de la ligne (infobox : 1864). Remplace l\'année 1862 de Wikidata.',
+    ],
+
+    // Guéthary (id 17324)
+    [
+        'station' => ['name' => 'Guéthary', 'uic' => '87673459'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Guéthary', 238892606),
+        'quote' => 'La gare a été inaugurée en 1884, vingt ans après la mise en service du tronçon Bayonne – Irun (1864)',
+        'reason' => 'article de la gare « Gare de Guéthary » (oldid 238892606) : gare inaugurée en 1884, vingt ans après le tronçon Bayonne - Irun. Remplace le 21/04/1864 déduit de la ligne.',
+    ],
+
+    // Margaux (id 16847)
+    [
+        'station' => ['name' => 'Margaux', 'uic' => '87581215'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Margaux', 223773147),
+        'quote' => 'La gare a été mise en service en même temps que la première partie de la ligne du Médoc, en 1868.',
+        'reason' => 'article de la gare « Gare de Margaux » (oldid 223773147) : mise en service avec la première partie de la ligne du Médoc, en 1868 (le Verdon n\'est atteint qu\'en 1875). Remplace le 01/03/1884 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Noeux-les-Mines (id 15883)
+    [
+        'station' => ['name' => 'Noeux-les-Mines', 'uic' => '87342139'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1861-10-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Nœux-les-Mines', 238682988),
+        'quote' => 'mise en service = 15 octobre 1861 dans les chemins de fer',
+        'reason' => 'article de la gare « Gare de Nœux-les-Mines » (oldid 238682988) : infobox et section Histoire : la station est mise en service le 15 octobre 1861 lors de l\'ouverture de la section Lens - Béthune. Précise l\'année 1861 de Wikidata au jour.',
+    ],
+
+    // Lutzelbourg (id 15447)
+    [
+        'station' => ['name' => 'Lutzelbourg', 'uic' => '87215160'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1851-05-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Lutzelbourg', 241364369),
+        'quote' => 'mise en service (avec un bâtiment voyageurs provisoire) par la Compagnie du chemin de fer de Paris à Strasbourg en mai 1851',
+        'reason' => 'article de la gare « Gare de Lutzelbourg » (oldid 241364369) : mise en service en mai 1851 lors de l\'inauguration de la section Strasbourg - Sarrebourg. Précise l\'année 1851 de Wikidata au mois.',
+    ],
+
+    // Retiers (id 16330)
+    [
+        'station' => ['name' => 'Retiers', 'uic' => '87471359'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Retiers', 236827897),
+        'quote' => 'La gare de Retiers est ouverte lors de la mise en service de la ligne en décembre 1881.',
+        'reason' => 'article de la gare « Gare de Retiers » (oldid 236827897) : ouverture avec la ligne en décembre 1881. Précise l\'année 1881 de Wikidata au mois.',
+    ],
+
+    // Mende (id 18232)
+    [
+        'station' => ['name' => 'Mende', 'uic' => '87783605'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-05-03',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Mende', 235795184),
+        'quote' => 'La gare de Mende est mise en service le 3 mai 1884, lors de l\'ouverture de la section du Monastier à Mende.',
+        'reason' => 'article de la gare « Gare de Mende » (oldid 235795184) : infobox et section Histoire : le 3 mai 1884. Précise l\'année 1884 de Wikidata au jour.',
+    ],
+
+    // Morez (id 17584)
+    [
+        'station' => ['name' => 'Morez', 'uic' => '87715441'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1900-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Morez', 234924903),
+        'quote' => 'La gare était, à son ouverture le 12 août 1900 dans les chemins de fer, le terminus de la ligne venant d\'Andelot.',
+        'reason' => 'article de la gare « Gare de Morez » (oldid 234924903) : infobox et section Histoire : le 12 août 1900. Précise l\'année 1900 de Wikidata au jour.',
+    ],
+
+    // Delle (id 15248)
+    [
+        'station' => ['name' => 'Delle', 'uic' => '87184440'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-06-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Delle', 232254189),
+        'quote' => 'Le chemin de fer arrive à Delle le 29 juin 1868',
+        'reason' => 'article de la gare « Gare de Delle » (oldid 232254189) : le chemin de fer arrive à Delle le 29 juin 1868, avec l\'inauguration de la ligne de Montbéliard à Delle. Précise l\'année 1868 de Wikidata au jour.',
+    ],
+
+    // Saujon (id 16611)
+    [
+        'station' => ['name' => 'Saujon', 'uic' => '87491811'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-08-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saujon', 222377940),
+        'quote' => 'lors de l\'inauguration de sa ligne de Pons à Royan le 28 août 1875',
+        'reason' => 'article de la gare « Gare de Saujon » (oldid 222377940) : mise en service lors de l\'inauguration de la ligne de Pons à Royan le 28 août 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Istres (id 17997)
+    [
+        'station' => ['name' => 'Istres', 'uic' => '87753418'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Istres', 240315247),
+        'quote' => 'La ligne est mise en service en 1882.',
+        'reason' => 'article de la gare « Gare d\'Istres » (oldid 240315247) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l\'année 1875 de Wikidata (décret de concession). Confiance moyenne : l\'article ne date pas l\'arrêt d\'Istres seul.',
+    ],
+
+    // Port-de-Bouc (id 18001)
+    [
+        'station' => ['name' => 'Port-de-Bouc', 'uic' => '87753459'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Port-de-Bouc', 238957960),
+        'quote' => 'La ligne est mise en service en 1882.',
+        'reason' => 'article de la gare « Gare de Port-de-Bouc » (oldid 238957960) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l\'année 1875 de Wikidata (décret de concession). Confiance moyenne : l\'article ne date pas l\'arrêt de Port-de-Bouc seul.',
+    ],
+
+    // Oyonnax (id 17878)
+    [
+        'station' => ['name' => 'Oyonnax', 'uic' => '87743534'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1885-05-16',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Andelot-en-Montagne à La Cluse', 241260215),
+        'quote' => 'd\'Oyonnax à La Cluse : 16 mai 1885',
+        'reason' => 'article de la ligne « Ligne d\'Andelot-en-Montagne à La Cluse » (oldid 241260215) : section d\'Oyonnax à La Cluse ouverte le 16 mai 1885 (article de la gare, oldid 241399044 : construction du 28 mars 1883 au 16 mai 1885, inauguration le 17 mai). Précise l\'année 1885 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Pont-St-Vincent (id 14987)
+    [
+        'station' => ['name' => 'Pont-St-Vincent', 'uic' => '87141523'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-11-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pont-Saint-Vincent', 241364429),
+        'quote' => 'L\'histoire de la gare de Pont-Saint-Vincent débute le 11 novembre 1872, avec l\'ouverture de la première partie de la',
+        'reason' => 'article de la gare « Gare de Pont-Saint-Vincent » (oldid 241364429) : ouverture de la première partie de la ligne de Jarville-la-Malgrange à Vézelise le 11 novembre 1872. Remplace le 18/11/1872 déduit de la ligne. Confiance moyenne.',
+    ],
+
 ];
