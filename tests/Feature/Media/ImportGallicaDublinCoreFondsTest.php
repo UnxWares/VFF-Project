@@ -188,4 +188,19 @@ class ImportGallicaDublinCoreFondsTest extends TestCase
         }
         $this->assertContains('btv1b105615953', $written);
     }
+
+    public function test_pireneas_street_approaches_and_station_projects_are_not_attached_to_the_station(): void
+    {
+        $this->seedCache('pireneas');
+        $this->stationAt('Pau', 'Pau');
+
+        $this->artisan('vff:import-open-data-media', ['source' => ['pireneas'], '--offline' => true])->assertSuccessful();
+
+        // « La Montée de la Gare » et « Le nouveau boulevard et la Gare » (rues), « Projet d'implantation de la gare » (plan) : refusés.
+        $written = Media::query()->where('provider', 'pireneas')->pluck('external_id')->all();
+        foreach (['btv1b10562933k', 'btv1b105629593', 'btv1b10584085f'] as $ark) {
+            $this->assertNotContains($ark, $written, $ark);
+        }
+        $this->assertContains('btv1b105615953', $written, 'Pau : La Gare reste rattachée');
+    }
 }

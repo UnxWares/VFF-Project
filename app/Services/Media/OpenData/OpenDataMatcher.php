@@ -104,6 +104,11 @@ class OpenDataMatcher
         if (! empty($dataset['viewpoint_apart']) && preg_match('/\b(?:vues?|vus?|prises?|depuis)\b[^,;:]*\b(?:de|du|d\'|depuis)\s+(?:la\s+|l\')?gare\b|\b(?:au[- ]dessus|en face|pr[èe]s|au[- ]del[àa]|en dessous)\s+(?:de\s+la\s+|de\s+l\'|du\s+)gare\b|\bsentiers?\b/iu', (string) $candidate['title']) === 1) {
             return ['kind' => null, 'reason' => 'point_de_vue'];
         }
+        // Les abords de la gare (« La Montée de la Gare », « Le nouveau boulevard et la Gare », « Entrée de la ville, côté de la Gare »)
+        // montrent une rue, pas la gare ; un projet de gare n'en montre pas une. Mesuré le 23/11 : 23 des 102 vues de Pireneas rattachées.
+        if (! empty($dataset['viewpoint_apart']) && preg_match('/\b(?:mont[ée]e|descente|boulevard|avenue|rue|projets?)\b[^;:]*\bgare\b|\bc[ôo]t[ée]\s+de\s+la\s+gare\b/iu', (string) $candidate['title']) === 1) {
+            return ['kind' => null, 'reason' => 'abords_de_gare'];
+        }
         $candidate['point_precise'] = ! empty($dataset['point_precise']) && $candidate['lat'] !== null && $candidate['lng'] !== null;
         $alias = $dataset['commune_aliases'][OpenDataText::fold((string) $candidate['commune'])] ?? null;
         $candidate['pool_commune'] = $alias ?? $candidate['commune'];
