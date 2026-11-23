@@ -106,6 +106,7 @@ return [
         ],
         'items' => [
             'stats_network' => 'Das Netz in Zahlen, Jahrzehnt für Jahrzehnt: offene (Personenverkehr, nur Güterverkehr), stillgelegte und abgebaute Kilometer, Elektrifizierung, Bahnhöfe, datierte Stilllegungen und Unfälle, mit dem Datum der Berechnung.',
+            'stats_coverage' => 'Was die Enzyklopädie weiß: für Strecken, Bahnhöfe, Unfälle und Fahrzeuge der erfasste Anteil als Zahl und Prozent, der Anteil offener Quellen, die Genauigkeit je Zeitraum und das Datum der Berechnung.',
             'chronology' => 'Chronik der Eisenbahn in Frankreich, Jahr für Jahr: Zahl der Eröffnungen, Wiedereröffnungen, Stilllegungen, Elektrifizierungen, Inbetriebnahmen von Signaltechnik, Fahrzeugbaureihen, schweren Unfälle und nationalen Meilensteine, nach Art und Region.',
             'chronology_decade' => 'Die Fakten eines Jahrzehnts, Jahr für Jahr: Datum in seiner Genauigkeit, Strecke, Abschnitte, Kilometer, Seite und veröffentlichbare Quellen jedes Fakts.',
             'stats' => 'Die Zahlen der Startseite: Anzahl der Strecken, Bahnhöfe und Fahrzeugbaureihen, Betriebskilometer und die Netzkurve je Epoche.',

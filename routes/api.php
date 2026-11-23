@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AccidentStatisticsController;
 use App\Http\Controllers\Api\ChronologyController;
 use App\Http\Controllers\Api\CommuneController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\CoverageController;
 use App\Http\Controllers\Api\DepartmentHistoryController;
 use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
@@ -114,6 +115,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
     Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
     Route::get('/v1/stats/network', [NetworkFiguresController::class, 'show'])->name('api.stats.network');
+    // Couverture des données : ce que l'encyclopédie sait, en nombre et en part (en cache : vff:compute-coverage-figures).
+    Route::get('/v1/stats/coverage', [CoverageController::class, 'show'])->name('api.stats.coverage');
     // Chronologie du rail en France (faits par année, en cache : vff:compute-network-chronology).
     Route::get('/v1/chronology', [ChronologyController::class, 'index'])->name('api.chronology');
     Route::get('/v1/chronology/{decade}', [ChronologyController::class, 'show'])->where('decade', '[0-9]{4}')->name('api.chronology.decade');

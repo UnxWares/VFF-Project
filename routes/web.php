@@ -14,6 +14,7 @@ use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
+use App\Http\Controllers\CoverageController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ErrorReportController;
@@ -104,6 +105,8 @@ Route::get('/companies/{slug}/lines.json', [CompanyController::class, 'lines'])-
 Route::get('/companies/{slug}', [CompanyController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('companies.show');
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
+// Ce que sait l'encyclopédie : couverture des données (dates, tracés, photos, fréquentation...), agrégats en cache.
+Route::get('/network/coverage', [CoverageController::class, 'index'])->name('network.coverage');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.
 Route::get('/tourist-railways', [TouristRailwayController::class, 'index'])->name('tourist-railways');
 // Projets : réouvertures, lignes nouvelles, LGV, RER métropolitains et électrifications, avec l'état et la source de chaque étape.

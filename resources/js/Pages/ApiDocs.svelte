@@ -50,6 +50,7 @@
             items: [
                 { path: '/api/v1/stats', key: 'stats' },
                 { path: '/api/v1/stats/network', key: 'stats_network' },
+                { path: '/api/v1/stats/coverage', key: 'stats_coverage' },
                 { path: '/api/v1/chronology', key: 'chronology' },
                 { path: '/api/v1/chronology/{decade}', key: 'chronology_decade' },
                 { path: '/api/v1/eras', key: 'eras' },

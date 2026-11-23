@@ -107,6 +107,7 @@ return [
         ],
         'items' => [
             'stats_network' => 'Le réseau en chiffres, décennie par décennie : kilomètres ouverts (voyageurs, fret seul), fermés et déposés, électrification, gares, fermetures datées et accidents, avec la date du calcul.',
+            'stats_coverage' => 'Ce que sait l’encyclopédie : pour les lignes, les gares, les accidents et le matériel, ce qui est renseigné en nombre et en part, la part de sources ouvertes, la précision par époque et la date du calcul.',
             'chronology' => 'Chronologie du rail en France, année par année : nombre d’ouvertures, réouvertures, fermetures, électrifications, mises en service de signalisation, séries de matériel, accidents graves et jalons nationaux, par type et par région.',
             'chronology_decade' => 'Les faits d’une décennie, année par année : date à sa précision, ligne, portions, kilomètres, fiche et sources publiables de chaque fait.',
             'stats' => 'Les chiffres de l’accueil : nombre de lignes, de gares et de matériels, kilomètres exploités et courbe du réseau à chaque ère.',

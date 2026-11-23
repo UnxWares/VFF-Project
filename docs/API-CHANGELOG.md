@@ -25,6 +25,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /stats/coverage` (ce que sait l'encyclopédie : pour les lignes, les gares, les accidents et le matériel, chaque information renseignée en nombre et en part `share`, dont `open` issu de sources ouvertes, précision des dates dans `levels`, ventilation par décennie et par ère, date du calcul `computed_at`). Page : `/network/coverage`.
 - REST : `GET /materials/preserved` (matériel préservé : lieux, musées, associations et lignes touristiques avec leurs pièces, numéro, état, protection au titre des monuments historiques d'après la base Palissy, sources ; `meta` donne la couverture) et `GET /materials/{material}/preserved` (exemplaires préservés d'une série). Page : `/materials/preserved` ; section « Exemplaires préservés » de la fiche de série. Ajout seul.
 - REST : `GET /lines/{line}/at-pk?pk=` (ou `pk_m=` en mètres) : position d'un point kilométrique sur une ligne (`pk` : `120`, `120,5` ou
   `120+500`). Donne les gares qui l'encadrent (`between`, ou `at_station`), la commune, les bornes de la ligne (`bounds`) et un point

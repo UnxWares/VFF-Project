@@ -108,6 +108,7 @@ return [
             'journal' => 'Logbook',
         ],
         'items' => [
+            'stats_coverage' => 'What the encyclopedia knows: for lines, stations, accidents and rolling stock, what is filled in as a number and a share, the share from open sources, the precision by period and the date of the calculation.',
             'stats' => 'The home page figures: number of lines, stations and rolling stock classes, kilometres in operation and the network curve at each era.',
             'line_geojson' => 'A line’s route at an era as GeoJSON, one feature per section, with its provenance and the credit lines of its sources.',
             'line_gpx' => 'A line’s route at an era as a GPX 1.1 download: one track, one segment per section, with the name, the era, the line page address and the licences of the sources.',

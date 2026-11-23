@@ -163,6 +163,7 @@ Chaque ligne devient une vraie page d'encyclopédie.
 - [x] Vie d'une gare en une chronologie datée sur sa fiche : événements regroupés, dessertes, noms, accidents proches, vues aériennes ; servie aussi par REST (`chronology` de la fiche) et GraphQL
 - [x] Impression : feuille de style dédiée, les fiches s'impriment et s'enregistrent en PDF A4 propre
 - [x] Page « Le réseau en chiffres » (`/network`) : agrégats par décennie calculés par `vff:compute-network-figures`, `GET /api/v1/stats/network`
+- [x] Page « Ce que sait l'encyclopédie » (`/network/coverage`) : couverture mesurée des données (lignes, gares, accidents, matériel), en nombre et en part, avec la part de sources ouvertes, calculée par `vff:compute-coverage-figures`, `GET /api/v1/stats/coverage`
 - [~] Adresses de lignes neutres : `vff:neutralize-line-slugs` retire le préfixe de source des adresses, redirections 301 des anciennes (REST, GraphQL, MCP) commitées ; renommage de la base à appliquer
 - [x] Pages `/materials` et `/materials/{slug}` avec 727 séries (voir phase 13)
 - [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage

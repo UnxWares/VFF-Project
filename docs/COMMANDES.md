@@ -173,6 +173,20 @@ Quatre notes par tronçon et par ère (classement, placement, exactitude, tracé
 Exemples : `vff:audit-segments --line=405000 --line=371000` (lignes témoins), `vff:audit-segments --era=2030
 --dry-run`, ou quatre processus `--shard=1/4` à `--shard=4/4` pour tout le réseau.
 
+### `vff:compute-coverage-figures`
+
+Mesure ce que sait l'encyclopédie (page `/network/coverage`, `GET /api/v1/stats/coverage`) : pour les lignes (ouverture et
+fermeture datées au jour, au mois ou à l'année, tracé précis à moins de 3 m, électrification, signalisation, vitesses,
+ouvrages d'art), les gares (dates, photo, fréquentation, desserte, patrimoine, accessibilité, anciens noms), les accidents
+(fiches relues) et le matériel (séries datées), en nombre et en part, avec la part issue de sources sous licence ouverte
+(registre `database/data/source_rights.php`), puis par ère. Lecture seule, chaque requête bornée à 30 s, résultat rangé dans
+le cache sans expiration avec sa date de calcul ; une table facultative absente (fréquentation, dessertes, patrimoine,
+accessibilité) donne une mesure « pas encore importée », jamais une erreur. Aucune planification : à relancer après un import.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Calcule et affiche les mesures sans toucher au cache. |
+
 ### `vff:compute-line-profiles`
 
 Profil en long de chaque ligne sur son tracé de référence entier, toutes époques : altitude du terrain (RGE ALTI) et de
