@@ -3,6 +3,7 @@
 use App\Enums\ApiAccessProfile;
 use App\Enums\LegalDocument;
 use App\Http\Controllers\AccidentController;
+use App\Http\Controllers\AccidentStatisticsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountModerationController;
 use App\Http\Controllers\ApiTokenController;
@@ -104,6 +105,8 @@ Route::get('/materials', [MaterialController::class, 'index'])->name('materials.
 Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
+// Les accidents en chiffres : avant la fiche, dont l'adresse accepterait « statistics » comme identifiant.
+Route::get('/accidents/statistics', [AccidentStatisticsController::class, 'index'])->name('accidents.statistics');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
 // Page de résultats de la recherche (Entrée dans la recherche de l'en-tête et de l'accueil) : non indexée.
 Route::get('/search', [SearchPageController::class, 'index'])->middleware('throttle:public-api')->name('search');

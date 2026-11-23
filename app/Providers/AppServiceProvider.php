@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Requests\Api\AccidentMapRequest;
+use App\Http\Requests\Api\AccidentStatisticsRequest;
 use App\Http\Requests\Api\EraTileRequest;
 use App\Http\Requests\Api\ListAccidentsRequest;
 use App\Http\Requests\Api\ListLevelCrossingsRequest;
@@ -90,7 +91,7 @@ class AppServiceProvider extends ServiceProvider
             LineEventQuery::class, StationEventQuery::class, MediaQuery::class,
             ListMaterialsRequest::class, ListLineMaterialsRequest::class, MaterialQuery::class, MaterialTimelineRequest::class,
             ListLinesRequest::class, ListStationsRequest::class, LineDirectoryQuery::class, StationDirectoryQuery::class,
-            ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class,
+            ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class, AccidentStatisticsRequest::class,
             ListLevelCrossingsRequest::class, EraTileRequest::class,
         ]);
 

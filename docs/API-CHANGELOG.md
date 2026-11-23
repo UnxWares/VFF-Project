@@ -21,6 +21,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /accidents/statistics` (les accidents en chiffres : par décennie, par nature, part des passages à niveau, quinze bilans les plus lourds ; filtres `from`, `to`, `kind`, `review=ok` ; bilans inconnus jamais estimés, `deaths_known` et `injuries_known` donnent le nombre de bilans connus). Page : `/accidents/statistics`.
 - Départements : `GET /api/v1/departments/{code}/history` (le rail d'un département décennie par décennie : `open_km`, `closed_km`,
   `service_km`, `dismantled_km`, `razed_km`, gares, grandes dates, lignes, communes, accidents) et `GET /api/v1/stats/departments`
   (tableau des départements, part fermée depuis 1930) ; agrégats en cache (`vff:compute-department-figures`), 503 tant que rien n'est

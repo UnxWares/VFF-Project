@@ -29,6 +29,7 @@ return [
         'sort_oldest' => 'Älteste zuerst',
         'sort_newest' => 'Neueste zuerst',
         'sort_toll' => 'Schwerste Bilanz',
+        'stats_link' => 'Unfälle in Zahlen: nach Jahrzehnt, nach Art, schwerste Bilanzen',
         'review_badge' => 'Zu prüfen',
         'clear' => 'Filter zurücksetzen',
         'results_one' => ':count Unfall',

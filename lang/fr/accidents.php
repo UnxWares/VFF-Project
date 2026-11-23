@@ -29,6 +29,7 @@ return [
         'sort_oldest' => 'Plus ancien d’abord',
         'sort_newest' => 'Plus récent d’abord',
         'sort_toll' => 'Bilan le plus lourd',
+        'stats_link' => 'Les accidents en chiffres : par décennie, par nature, bilans les plus lourds',
         'review_badge' => 'À vérifier',
         'clear' => 'Effacer les filtres',
         'results_one' => ':count accident',

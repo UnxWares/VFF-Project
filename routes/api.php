@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccidentController;
+use App\Http\Controllers\Api\AccidentStatisticsController;
 use App\Http\Controllers\Api\ChronologyController;
 use App\Http\Controllers\Api\CommuneController;
 use App\Http\Controllers\Api\DepartmentHistoryController;
@@ -203,6 +204,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
         ->name('api.level-crossings.tiles');
     Route::get('/v1/lines/{line:slug}/level-crossings', [LevelCrossingController::class, 'forLine'])->name('api.lines.level-crossings');
+    // Les accidents en chiffres (décennies, natures, passages à niveau, bilans les plus lourds) : avant la fiche.
+    Route::get('/v1/accidents/statistics', [AccidentStatisticsController::class, 'show'])->name('api.accidents.statistics');
     Route::get('/v1/accidents/{accident}', [AccidentController::class, 'show'])->where('accident', '[a-z0-9-]{1,160}')->name('api.accidents.show');
 
     // Journal de bord : articles Markdown versionnés (resources/content/journal), rendus comme sur le site.

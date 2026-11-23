@@ -29,6 +29,7 @@ return [
         'sort_oldest' => 'Oldest first',
         'sort_newest' => 'Most recent first',
         'sort_toll' => 'Heaviest toll',
+        'stats_link' => 'Accidents in figures: by decade, by type, the heaviest tolls',
         'review_badge' => 'To be checked',
         'clear' => 'Reset filters',
         'results_one' => ':count accident',

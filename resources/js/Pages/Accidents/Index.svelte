@@ -106,6 +106,11 @@
             subtitle={$i18n.t('accidents.index.subtitle')}
         >
             <p class="intro">{$i18n.t('accidents.index.intro')}</p>
+            <p class="intro">
+                <Link href="/accidents/statistics" class="vff-link"
+                    >{$i18n.t('accidents.index.stats_link')}</Link
+                >
+            </p>
         </PageHero>
 
         <div class="vff-container directory">
