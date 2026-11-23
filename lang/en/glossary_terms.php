@@ -40,6 +40,10 @@ return [
         'name' => 'Bidirectional track (voie banalisée)',
         'definition' => 'A track equipped so that trains can run on it in either direction under almost identical safety conditions, without applying the usual single-track rules. The term also names the working regime of a line or section so equipped.',
     ],
+    'voie-partagee' => [
+        'name' => 'Shared track',
+        'definition' => 'A stretch of track used by several lines at once. It is drawn only once on the map, and each line concerned counts it as part of its route.',
+    ],
     'ecartement' => [
         'name' => 'Track gauge',
         'definition' => 'The distance between the inner faces of the two rails. Standard gauge, used on the national rail network, is 1,435 mm.',
@@ -59,6 +63,10 @@ return [
     'rampe' => [
         'name' => 'Gradient',
         'definition' => 'A rising stretch in the direction of travel (a falling one is a downgrade). The steepness is given in ‰ (per mille): 10‰ means 10 mm of height difference per metre, that is 1%.',
+    ],
+    'declivite' => [
+        'name' => 'Gradient (‰)',
+        'definition' => 'The slope of a track: the ratio between the difference in height and the distance covered, in thousandths (‰). A gradient of 10 ‰ means 10 metres of height for 1,000 metres of track. It is read from the longitudinal profile, located by PK.',
     ],
     'profil-en-long' => [
         'name' => 'Gradient profile',
@@ -89,6 +97,14 @@ return [
         'name' => 'Junction',
         'definition' => 'The point where one line splits in two; by extension, the installation that serves it.',
     ],
+    'bifurcation-lgv' => [
+        'name' => 'High-speed line junction and connecting curve',
+        'definition' => 'On an LGV, a point where the line splits into two branches, or a short connecting track that links it to a conventional line so that trains can pass from one to the other, often by means of a flyover. These connections let TGVs continue their journey on the conventional network.',
+    ],
+    'gare-de-bifurcation' => [
+        'name' => 'Junction station',
+        'definition' => 'A station built where two lines part, and where passengers can change from one line to the other. Many large interchange stations owe their existence to a junction.',
+    ],
     'ite' => [
         'name' => 'ITE',
         'full' => 'Installation terminale embranchée (private siding)',
@@ -114,6 +130,10 @@ return [
     'gare-de-triage' => [
         'name' => 'Marshalling yard',
         'definition' => 'A specialised station where individual goods wagons are sorted to be made up into new freight trains.',
+    ],
+    'embarcadere' => [
+        'name' => 'Embarcadère',
+        'definition' => 'An old name for a station, above all a terminus, used in the 19th century for the first railways. It survives in some station names, such as the Sceaux embarcadère station.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -159,6 +179,11 @@ return [
         'full' => 'Block manuel (manual block)',
         'definition' => 'A block system in which staff at successive posts announce trains to each other by block instruments or telephone and check that each train is complete before clearing the line. On its own, BM means the double-track manual block.',
     ],
+    'bmu' => [
+        'name' => 'BMU',
+        'full' => 'Block manuel unifié (unified manual block)',
+        'definition' => 'The manual block variant for double track, SNCF type: apparatus links the two neighbouring signal boxes, and a signaller authorises a train to enter the block between them. Its single-track version is the BMVU.',
+    ],
     'bmvu' => [
         'name' => 'BMVU',
         'full' => 'Block manuel de voie unique (single-track manual block)',
@@ -191,6 +216,14 @@ return [
         'full' => 'Transmission voie-machine (track-to-train transmission)',
         'definition' => 'In-cab signalling on French high-speed lines: coded signals sent through the rails tell the train the speed to respect. It both spaces trains and supervises speed. It exists in two versions, TVM 300 and TVM 430, the latter equipping more recent lines.',
     ],
+    'tvm-300' => [
+        'name' => 'TVM 300',
+        'definition' => 'First version of the track-to-train transmission, brought into service with the LGV Sud-Est in 1981 and used again on the LGV Atlantique. The code sent through the rails gives the train the speed not to exceed on the next block; it was designed for speeds up to 300 km/h.',
+    ],
+    'tvm-430' => [
+        'name' => 'TVM 430',
+        'definition' => 'Later version of the track-to-train transmission, introduced with the LGV Nord in 1993 and used again on more recent high-speed lines. It sends more information and supervises continuous braking, which allows trains to run closer together and at up to 320 km/h.',
+    ],
     'etcs' => [
         'name' => 'ETCS',
         'full' => 'European Train Control System',
@@ -201,6 +234,14 @@ return [
         'full' => 'European Rail Traffic Management System',
         'definition' => 'The European framework for interoperable railway signalling. It combines ETCS for train control and GSM-R for radio.',
     ],
+    'ertms-niveau-1' => [
+        'name' => 'ERTMS level 1',
+        'definition' => 'The first level of ETCS: beacons (Eurobalises) placed in the track send the train its movement authority at specific points. Lineside signals and train detection by the track are kept, so the train only receives the information as it passes a beacon.',
+    ],
+    'ertms-niveau-2' => [
+        'name' => 'ERTMS level 2',
+        'definition' => 'The second level of ETCS: the movement authority is sent continuously by GSM-R radio and shown in the cab. Eurobalises are only used to locate the train; train detection stays on the ground (track circuits or axle counters) and lineside signals become optional.',
+    ],
     'gsm-r' => [
         'name' => 'GSM-R',
         'full' => 'Global System for Mobile Communications - Railway',
@@ -209,6 +250,11 @@ return [
     'poste-d-aiguillage' => [
         'name' => 'Signal box',
         'definition' => 'An installation from which staff operate the points and signals of an area.',
+    ],
+    'prci' => [
+        'name' => 'PRCI',
+        'full' => 'Poste à relais à commande informatique (relay interlocking with computer control)',
+        'definition' => 'A signal box where the interlocking between points and signals is done by relays, and routes are set by a computer: the signaller sets whole routes from a panel or a screen, rather than each device.',
     ],
     'electrification' => [
         'name' => 'Electrification',
@@ -270,9 +316,17 @@ return [
         'name' => 'Closure to passenger service',
         'definition' => 'The end of passenger trains on a line or section. The line may keep carrying freight, and it has not necessarily been declassified.',
     ],
+    'fermeture-fret' => [
+        'name' => 'Closure to freight',
+        'definition' => 'The end of freight transport on a line or section. The line may keep passenger trains; it is only closed when neither passengers nor freight use it any more.',
+    ],
     'fermeture' => [
         'name' => 'Closure',
         'definition' => 'The end of operation of a line, a section or a station. On the national rail network, a line is closed when SNCF Réseau has pronounced its closure, after consulting the region. It differs from the lifting of the track and from declassification.',
+    ],
+    'suspension-de-service' => [
+        'name' => 'Suspension of service',
+        'definition' => 'A halt to traffic on a line or section without a closure having been decided: works, poor track or safety reasons. The line stays in the network and may reopen; a long suspension may come before closure.',
     ],
     'reouverture' => [
         'name' => 'Reopening',
@@ -383,6 +437,10 @@ return [
         'name' => 'Lifted track',
         'definition' => 'The physical removal of the track (rails, sleepers). A line can be lifted once it is closed or declassified; its right of way may remain.',
     ],
+    'desaffectation' => [
+        'name' => 'Discontinuance of use',
+        'definition' => 'The finding that land or an installation no longer serves the public railway service. It comes before declassification, which then takes the asset out of the public domain; it does not remove the track, which may stay in place.',
+    ],
     'monument-historique' => [
         'name' => 'Historic monument',
         'definition' => 'Protection granted by the French State to a building or structure of historical or artistic interest: listing as “classé” is the highest level, “inscrit” the level below. Stations, train sheds, roundhouses and viaducts are among them; the “Architecture contemporaine remarquable” label singles out more recent buildings.',
@@ -399,6 +457,14 @@ return [
         'name' => 'Class (series)',
         'definition' => 'A group of vehicles built to the same design and carrying consecutive numbers. The encyclopaedia presents rolling stock class by class.',
     ],
+    'famille-et-version' => [
+        'name' => 'Rolling stock family and version',
+        'definition' => 'Several series may belong to one family, which shares a design and a trade name (Regio 2N); each version has its own designation (Z 56600). When a source names a version, VFF links the line to that version, not to the whole family.',
+    ],
+    'materiel-preserve' => [
+        'name' => 'Preserved rolling stock',
+        'definition' => 'A unit of rolling stock withdrawn from service and kept in a museum, by an association, on a heritage railway or at a site. For each one VFF gives its number, its condition, any protection as a historic monument, and the source.',
+    ],
     'locomotive' => [
         'name' => 'Locomotive',
         'definition' => 'A railway vehicle that provides the motive power of a train.',
@@ -410,6 +476,14 @@ return [
     'autorail' => [
         'name' => 'Railcar (autorail)',
         'definition' => 'A vehicle with a combustion engine that carries passengers itself, used mostly on non-electrified lines.',
+    ],
+    'element-automoteur' => [
+        'name' => 'Multiple unit',
+        'definition' => 'Rolling stock that runs on its own engines, without a locomotive, made of one or more cars permanently coupled. The term covers electric multiple units, railcars and bi-mode units; SNCF speaks of EAD (diesel), EAE (electric) or EAB (bi-mode).',
+    ],
+    'rame-a-turbine-a-gaz' => [
+        'name' => 'Gas turbine trainset',
+        'definition' => 'A multiple-unit trainset powered by gas turbines burning diesel fuel, built in France in the 1970s: first units (ETG), then trainsets (RTG), still in service in the early 2000s.',
     ],
     'rame' => [
         'name' => 'Trainset',

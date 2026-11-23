@@ -40,6 +40,10 @@ return [
         'name' => 'Gleis für beide Richtungen (voie banalisée)',
         'definition' => 'Gleis, das so ausgerüstet ist, dass Züge es in beiden Richtungen unter nahezu gleichen Sicherheitsbedingungen befahren können, ohne dass die üblichen Regeln der eingleisigen Strecke gelten. Der Begriff bezeichnet auch die Betriebsweise einer so ausgerüsteten Strecke oder eines Streckenabschnitts.',
     ],
+    'voie-partagee' => [
+        'name' => 'Gemeinsam genutztes Gleis',
+        'definition' => 'Gleisabschnitt, den mehrere Strecken gleichzeitig nutzen. Er wird auf der Karte nur einmal gezeichnet, und jede betroffene Strecke rechnet ihn zu ihrem Verlauf.',
+    ],
     'ecartement' => [
         'name' => 'Spurweite',
         'definition' => 'Abstand zwischen den Innenseiten der beiden Schienen. Die Normalspur, die im französischen Staatsnetz gilt, beträgt 1.435 mm.',
@@ -59,6 +63,10 @@ return [
     'rampe' => [
         'name' => 'Steigung',
         'definition' => 'Ansteigender Streckenabschnitt in Fahrtrichtung (abfallend spricht man von Gefälle). Die Neigung wird in ‰ angegeben: 10 ‰ bedeuten 10 mm Höhenunterschied je Meter, also 1 %.',
+    ],
+    'declivite' => [
+        'name' => 'Neigung (‰)',
+        'definition' => 'Steigung oder Gefälle eines Gleises: das Verhältnis zwischen Höhenunterschied und zurückgelegter Strecke, in Promille (‰) angegeben. Eine Neigung von 10 ‰ entspricht 10 Metern Höhenunterschied auf 1 000 Meter Gleis. Sie ist im Höhenprofil abzulesen, verortet mit dem Streckenkilometer (PK).',
     ],
     'profil-en-long' => [
         'name' => 'Längsschnitt',
@@ -89,6 +97,14 @@ return [
         'name' => 'Abzweigung',
         'definition' => 'Stelle, an der sich eine Strecke in zwei teilt; im weiteren Sinn die dort befindliche Anlage.',
     ],
+    'bifurcation-lgv' => [
+        'name' => 'Abzweigung und Verbindungskurve einer LGV',
+        'definition' => 'Auf einer LGV ein Punkt, an dem sich die Strecke in zwei Äste teilt, oder eine kurze Verbindung zu einer Altbaustrecke, über die die Züge von der einen auf die andere wechseln, oft mit einem Überwerfungsbauwerk. Diese Verbindungen ermöglichen es den TGV, ihre Fahrt auf dem klassischen Netz fortzusetzen.',
+    ],
+    'gare-de-bifurcation' => [
+        'name' => 'Abzweigbahnhof',
+        'definition' => 'Bahnhof an der Stelle, an der sich zwei Strecken trennen und an dem die Reisenden von einer Strecke auf die andere umsteigen können. Viele große Umsteigebahnhöfe verdanken ihre Entstehung einer Abzweigung.',
+    ],
     'ite' => [
         'name' => 'ITE',
         'full' => 'Installation terminale embranchée (Gleisanschluss)',
@@ -114,6 +130,10 @@ return [
     'gare-de-triage' => [
         'name' => 'Rangierbahnhof',
         'definition' => 'Spezialisierter Bahnhof, in dem einzelne Güterwagen sortiert und zu neuen Güterzügen zusammengestellt werden.',
+    ],
+    'embarcadere' => [
+        'name' => 'Embarcadère (frühe Endstation)',
+        'definition' => 'Alter Name für einen Bahnhof, vor allem für einen Endbahnhof, der im 19. Jahrhundert bei den ersten Eisenbahnen gebräuchlich war. Er hat sich in einigen Bahnhofsnamen erhalten, etwa im Bahnhof Embarcadère de Sceaux.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -159,6 +179,11 @@ return [
         'full' => 'Block manuel (nicht selbsttätiger Streckenblock)',
         'definition' => 'Blocksystem, bei dem Bedienstete aufeinanderfolgender Posten die Züge einander über Blockgeräte oder Telefon melden und prüfen, ob jeder Zug vollständig ist, bevor sie die Strecke freigeben. BM bezeichnet den Streckenblock der zweigleisigen Strecke.',
     ],
+    'bmu' => [
+        'name' => 'BMU',
+        'full' => 'Block manuel unifié (einheitlicher Handblock)',
+        'definition' => 'Variante des nicht selbsttätigen Streckenblocks für zweigleisige Strecken, Bauart SNCF: Geräte verbinden die beiden benachbarten Stellwerke, und ein Bediensteter erlaubt einem Zug die Einfahrt in den Blockabschnitt zwischen ihnen. Die Ausführung für eingleisige Strecken ist der BMVU.',
+    ],
     'bmvu' => [
         'name' => 'BMVU',
         'full' => 'Block manuel de voie unique (Streckenblock der eingleisigen Strecke)',
@@ -191,6 +216,14 @@ return [
         'full' => 'Transmission voie-machine (Übertragung Strecke-Fahrzeug)',
         'definition' => 'Führerstandssignalisierung der französischen Hochgeschwindigkeitsstrecken: Über die Schienen übertragene codierte Signale teilen dem Zug die einzuhaltende Geschwindigkeit mit. Sie hält die Züge auf Abstand und überwacht zugleich die Geschwindigkeit. Es gibt sie in zwei Versionen, TVM 300 und TVM 430, wobei die zweite jüngere Strecken ausrüstet.',
     ],
+    'tvm-300' => [
+        'name' => 'TVM 300',
+        'definition' => 'Erste Version der TVM (Übertragung zwischen Gleis und Fahrzeug), 1981 mit der LGV Sud-Est in Betrieb genommen und auf der LGV Atlantique wieder eingesetzt. Der über die Schienen übertragene Code gibt dem Zug die Geschwindigkeit vor, die im nächsten Block nicht überschritten werden darf; sie wurde für Geschwindigkeiten bis 300 km/h ausgelegt.',
+    ],
+    'tvm-430' => [
+        'name' => 'TVM 430',
+        'definition' => 'Spätere Version der TVM, 1993 mit der LGV Nord eingeführt und auf neueren Hochgeschwindigkeitsstrecken wieder eingesetzt. Sie überträgt mehr Informationen und überwacht ein durchgehendes Bremsen, sodass die Züge dichter aufeinander folgen und bis zu 320 km/h fahren können.',
+    ],
     'etcs' => [
         'name' => 'ETCS',
         'full' => 'European Train Control System (Europäisches Zugsicherungssystem)',
@@ -201,6 +234,14 @@ return [
         'full' => 'European Rail Traffic Management System (Europäisches Eisenbahnverkehrsleitsystem)',
         'definition' => 'Europäischer Rahmen für interoperable Eisenbahnsignalisierung. Er vereint ETCS für die Zugsicherung und GSM-R für den Funk.',
     ],
+    'ertms-niveau-1' => [
+        'name' => 'ERTMS Level 1',
+        'definition' => 'Erste Stufe des ETCS: im Gleis liegende Balisen (Eurobalisen) übermitteln dem Zug die Fahrerlaubnis an bestimmten Punkten. Die Signale am Streckenrand und die gleisseitige Zugortung bleiben bestehen; der Zug erhält die Information also nur beim Überfahren einer Balise.',
+    ],
+    'ertms-niveau-2' => [
+        'name' => 'ERTMS Level 2',
+        'definition' => 'Zweite Stufe des ETCS: Die Fahrerlaubnis wird fortlaufend über den GSM-R-Funk übertragen und im Führerstand angezeigt. Die Eurobalisen dienen nur noch zur Ortung des Zuges; die Zugortung erfolgt weiterhin am Boden (Gleisstromkreise oder Achszähler), und Signale am Streckenrand sind nicht mehr zwingend.',
+    ],
     'gsm-r' => [
         'name' => 'GSM-R',
         'full' => 'Global System for Mobile Communications - Railway (digitaler Zugfunk)',
@@ -209,6 +250,11 @@ return [
     'poste-d-aiguillage' => [
         'name' => 'Stellwerk',
         'definition' => 'Anlage, von der aus Bedienstete die Weichen und Signale eines Bereichs stellen.',
+    ],
+    'prci' => [
+        'name' => 'PRCI',
+        'full' => 'Poste à relais à commande informatique (Relaisstellwerk mit Rechnersteuerung)',
+        'definition' => 'Stellwerk, in dem die Abhängigkeiten zwischen Weichen und Signalen durch Relais hergestellt werden und die Fahrstraßen von einem Rechner gestellt werden: Der Bedienstete stellt ganze Fahrstraßen von einem Pult oder Bildschirm aus, nicht mehr jede Einrichtung einzeln.',
     ],
     'electrification' => [
         'name' => 'Elektrifizierung',
@@ -270,9 +316,17 @@ return [
         'name' => 'Einstellung des Personenverkehrs',
         'definition' => 'Ende der Reisezüge auf einer Strecke oder einem Abschnitt. Die Strecke kann weiter dem Güterverkehr dienen und ist damit nicht zwangsläufig entwidmet.',
     ],
+    'fermeture-fret' => [
+        'name' => 'Einstellung des Güterverkehrs',
+        'definition' => 'Ende des Güterverkehrs auf einer Strecke oder einem Abschnitt. Die Strecke kann weiter von Reisezügen befahren werden; stillgelegt ist sie erst, wenn weder Personen- noch Güterverkehr stattfindet.',
+    ],
     'fermeture' => [
         'name' => 'Stilllegung',
         'definition' => 'Ende des Betriebs einer Strecke, eines Abschnitts oder eines Bahnhofs. Im französischen Staatsnetz ist eine Strecke stillgelegt, wenn SNCF Réseau ihre Schließung nach Anhörung der Region ausgesprochen hat. Sie unterscheidet sich vom Gleisrückbau und von der Entwidmung.',
+    ],
+    'suspension-de-service' => [
+        'name' => 'Betriebsunterbrechung',
+        'definition' => 'Einstellung des Verkehrs auf einer Strecke oder einem Abschnitt, ohne dass eine Stilllegung beschlossen wäre: Bauarbeiten, schlechter Gleiszustand oder Sicherheitsgründe. Die Strecke bleibt im Netz und kann wieder öffnen; eine lange Unterbrechung kann der Stilllegung vorausgehen.',
     ],
     'reouverture' => [
         'name' => 'Wiedereröffnung (Reaktivierung)',
@@ -383,6 +437,10 @@ return [
         'name' => 'Gleisrückbau',
         'definition' => 'Physischer Ausbau des Gleises (Schienen, Schwellen). Eine Strecke kann zurückgebaut werden, wenn sie stillgelegt oder entwidmet ist; ihre Trasse kann erhalten bleiben.',
     ],
+    'desaffectation' => [
+        'name' => 'Entwidmung der Nutzung (désaffectation)',
+        'definition' => 'Feststellung, dass ein Grundstück oder eine Anlage dem öffentlichen Eisenbahndienst nicht mehr dient. Sie geht der Entwidmung (déclassement) voraus, die das Gut anschließend aus dem öffentlichen Eigentum herauslöst; das Gleis wird dadurch nicht entfernt und kann liegen bleiben.',
+    ],
     'monument-historique' => [
         'name' => 'Monument historique (Denkmalschutz)',
         'definition' => 'Schutz, den der französische Staat einem Gebäude oder Bauwerk von geschichtlichem oder künstlerischem Wert gewährt: die Einstufung („classé“) ist die höchste Stufe, die Eintragung („inscrit“) die darunterliegende. Bahnhöfe, Bahnhofshallen, Lokschuppen und Viadukte gehören dazu; das Label „Architecture contemporaine remarquable“ zeichnet jüngere Bauten aus.',
@@ -399,6 +457,14 @@ return [
         'name' => 'Baureihe',
         'definition' => 'Gruppe von Fahrzeugen gleicher Bauart mit fortlaufenden Nummern. Die Enzyklopädie stellt die Fahrzeuge Baureihe für Baureihe vor.',
     ],
+    'famille-et-version' => [
+        'name' => 'Familie und Version eines Fahrzeugs',
+        'definition' => 'Mehrere Baureihen können zu einer Familie gehören, die eine gemeinsame Konstruktion und einen gemeinsamen Handelsnamen hat (Regio 2N); jede Version trägt ihre eigene Bezeichnung (Z 56600). Nennt eine Quelle eine Version, verknüpft VFF die Strecke mit dieser Version und nicht mit der ganzen Familie.',
+    ],
+    'materiel-preserve' => [
+        'name' => 'Erhaltene Fahrzeuge',
+        'definition' => 'Ein aus dem Dienst genommenes und erhaltenes Fahrzeug, das in einem Museum, bei einem Verein, auf einer Museumsbahn oder an einem Ort bewahrt wird. VFF nennt zu jedem Exemplar seine Nummer, seinen Zustand, einen etwaigen Denkmalschutz und die Quelle.',
+    ],
     'locomotive' => [
         'name' => 'Lokomotive',
         'definition' => 'Schienenfahrzeug, das die Antriebsenergie eines Zuges liefert.',
@@ -410,6 +476,14 @@ return [
     'autorail' => [
         'name' => 'Dieseltriebwagen (autorail)',
         'definition' => 'Fahrzeug mit Verbrennungsmotor, das selbst Reisende befördert und vor allem auf nicht elektrifizierten Strecken eingesetzt wird.',
+    ],
+    'element-automoteur' => [
+        'name' => 'Triebzug (élément automoteur)',
+        'definition' => 'Fahrzeug, das mit eigenen Motoren ohne Lokomotive fährt und aus einem oder mehreren dauerhaft gekuppelten Wagenkästen besteht. Der Begriff umfasst Elektrotriebzüge, Schienenbusse und Zweikraftzüge; die SNCF spricht von EAD (Diesel), EAE (elektrisch) oder EAB (bimodal).',
+    ],
+    'rame-a-turbine-a-gaz' => [
+        'name' => 'Gasturbinentriebzug',
+        'definition' => 'Triebzug, dessen Antrieb aus Gasturbinen besteht, die Dieselkraftstoff verbrennen. Er wurde in den 1970er-Jahren in Frankreich gebaut: zuerst als Einheiten (ETG), dann als Züge (RTG), die bis in die frühen 2000er-Jahre im Einsatz waren.',
     ],
     'rame' => [
         'name' => 'Zugeinheit (Rame)',

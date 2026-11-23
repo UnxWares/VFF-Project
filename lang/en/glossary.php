@@ -33,6 +33,7 @@ return [
         'heritage' => 'Protected railway heritage',
         'chronology' => 'Chronology of French railways',
         'signalling_map' => 'Signalling map',
+        'preserved_stock' => 'Preserved rolling stock',
     ],
     // Développé des sigles affichés sur les fiches (title des <abbr>), par sigle.
     'abbr' => [
@@ -44,6 +45,7 @@ return [
         'BAL' => 'Block automatique lumineux (automatic colour-light block)',
         'BAPR' => 'Block automatique à permissivité restreinte (automatic block with restricted permissiveness)',
         'BM' => 'Block manuel (manual block)',
+        'BMU' => 'Block manuel unifié (unified manual block)',
         'BMVU' => 'Block manuel de voie unique (single-track manual block)',
         'CCVU' => 'Commande centralisée de voie unique (single-track centralised control)',
         'KVB' => 'Contrôle de vitesse par balises (speed control by beacons)',
@@ -51,6 +53,7 @@ return [
         'ETCS' => 'European Train Control System',
         'ERTMS' => 'European Rail Traffic Management System',
         'GSM-R' => 'Global System for Mobile Communications - Railway',
+        'PRCI' => 'Poste à relais à commande informatique (relay interlocking with computer control)',
         'RFN' => 'Réseau ferré national (French national rail network)',
         'TER' => 'Transport express régional (regional express transport)',
         'RER' => 'Réseau express régional (regional express network)',

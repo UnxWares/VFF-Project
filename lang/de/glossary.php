@@ -33,6 +33,7 @@ return [
         'heritage' => 'Geschütztes Eisenbahnerbe',
         'chronology' => 'Chronologie der französischen Eisenbahn',
         'signalling_map' => 'Karte der Signaltechnik',
+        'preserved_stock' => 'Erhaltene Fahrzeuge',
     ],
     // Développé des sigles affichés sur les fiches (title des <abbr>), par sigle.
     'abbr' => [
@@ -44,6 +45,7 @@ return [
         'BAL' => 'Block automatique lumineux (selbsttätiger Streckenblock mit Lichtsignalen)',
         'BAPR' => 'Block automatique à permissivité restreinte (selbsttätiger Streckenblock mit eingeschränkter Permissivität)',
         'BM' => 'Block manuel (nicht selbsttätiger Streckenblock)',
+        'BMU' => 'Block manuel unifié (einheitlicher Handblock)',
         'BMVU' => 'Block manuel de voie unique (Streckenblock der eingleisigen Strecke)',
         'CCVU' => 'Commande centralisée de voie unique (zentrale Fernsteuerung einer eingleisigen Strecke)',
         'KVB' => 'Contrôle de vitesse par balises (Geschwindigkeitskontrolle durch Balisen)',
@@ -51,6 +53,7 @@ return [
         'ETCS' => 'European Train Control System (Europäisches Zugsicherungssystem)',
         'ERTMS' => 'European Rail Traffic Management System (Europäisches Eisenbahnverkehrsleitsystem)',
         'GSM-R' => 'Global System for Mobile Communications - Railway (digitaler Zugfunk)',
+        'PRCI' => 'Poste à relais à commande informatique (Relaisstellwerk mit Rechnersteuerung)',
         'RFN' => 'Réseau ferré national (französisches Staatsnetz)',
         'TER' => 'Transport express régional (Regionalverkehr)',
         'RER' => 'Réseau express régional (Regional-Express-Netz)',
