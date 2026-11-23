@@ -217,7 +217,7 @@ final class LineReferenceExclusions
                 DB::insert(<<<'SQL'
                     INSERT INTO line_reference_duplicates (line_id, action, reason, source, matched_source, trace_ids, length_m, gap_median_m, geom, created_at, updated_at)
                     SELECT p.line_id, 'removed', 'retrait à la main', p.source, p.matched_source,
-                           CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
+                           CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
                            ROUND(:len)::int, 0, ST_GeometryN(p.geom, :k), NOW(), NOW()
                     FROM line_reference_parts p WHERE p.id = :id
                     SQL, ['len' => $h->len, 'k' => $h->k, 'id' => $h->id]);

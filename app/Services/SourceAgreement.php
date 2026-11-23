@@ -52,9 +52,10 @@ class SourceAgreement
      * n'est « précis » que si une source indépendante la confirme à LIFECYCLE_CONFIRM_M près : BD TOPO, LiDAR HD
      * (famille « lidar », quand elle existera) ou axe affiné sur photo recalée (ign-historique, classe ortho-precis).
      * archeo et OHM ne comptent pas : ils sont souvent tirés des mêmes documents. Sinon : « estimé » (low).
-     * Décision de Baptiste du 22/11/2026.
+     * Mêmes états que JunctionRepair::DEAD_OSM_LAYERS (dismantled, was:railway… compris). Décision de Baptiste du
+     * 22/11/2026.
      */
-    public const OSM_LIFECYCLE_LAYERS = ['abandoned', 'razed', 'disused', 'abandoned:railway', 'razed:railway', 'disused:railway'];
+    public const OSM_LIFECYCLE_LAYERS = JunctionRepair::DEAD_OSM_LAYERS;
 
     private const LIFECYCLE_CONFIRM_M = 3.0;
 
@@ -70,13 +71,10 @@ class SourceAgreement
     {
         $this->prepare($lineId);
         $parts = [];
-        $lifecycle = "'".implode("', '", self::OSM_LIFECYCLE_LAYERS)."'";
+        $lifecycle = self::osmLifecycleSql();
         foreach (DB::select(<<<SQL
             SELECT p.id, p.line_id, p.source, p.matched_source, p.source_trace_ids::text AS sids, p.matched_trace_ids::text AS mids,
-                   (p.matched_source = 'osm' AND jsonb_array_length(p.matched_trace_ids) > 0 AND NOT EXISTS (
-                       SELECT 1 FROM source_traces s
-                       WHERE s.id IN (SELECT jsonb_array_elements_text(p.matched_trace_ids)::bigint)
-                         AND s.layer NOT IN ({$lifecycle}))) AS osm_lifecycle
+                   {$lifecycle} AS osm_lifecycle
             FROM line_reference_parts p WHERE p.line_id = ?
             SQL, [$lineId]) as $p) {
             $parts[$p->id] = $p;
@@ -252,6 +250,26 @@ class SourceAgreement
 
         return ['class' => $class, 'd' => $d, 'agree' => $agree, 'mine' => $mine, 'gap' => $gap,
             'lon' => (float) $s->lon, 'lat' => (float) $s->lat];
+    }
+
+    /**
+     * Expression SQL (booléen) sur un morceau `p` de line_reference_parts : son dessin vient d'OSM, recalé sur des voies
+     * OSM (matched_trace_ids) ou gardé tel quel depuis la trace source de la ligne (source_trace_ids), et toutes ces
+     * voies sont abandonnées, déposées ou inutilisées (OSM_LIFECYCLE_LAYERS).
+     */
+    public static function osmLifecycleSql(): string
+    {
+        $layers = "'".implode("', '", self::OSM_LIFECYCLE_LAYERS)."'";
+        $ids = 'CASE WHEN p.matched_source IS NULL THEN p.source_trace_ids ELSE p.matched_trace_ids END';
+
+        return <<<SQL
+            (COALESCE(p.matched_source, p.source) = 'osm'
+             AND jsonb_array_length(COALESCE({$ids}, '[]'::jsonb)) > 0
+             AND NOT EXISTS (
+                SELECT 1 FROM source_traces s
+                WHERE s.id IN (SELECT jsonb_array_elements_text({$ids})::bigint)
+                  AND s.layer NOT IN ({$layers})))
+            SQL;
     }
 
     /**

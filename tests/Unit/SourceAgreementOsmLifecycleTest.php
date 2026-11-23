@@ -13,9 +13,9 @@ use PHPUnit\Framework\TestCase;
  */
 class SourceAgreementOsmLifecycleTest extends TestCase
 {
-    private function evaluate(object $sample, bool $lifecycle): array
+    private function evaluate(object $sample, bool $lifecycle, string $own = 'osm'): array
     {
-        return (new \ReflectionMethod(SourceAgreement::class, 'evaluate'))->invoke(new SourceAgreement, $sample, 'osm', 1, $lifecycle);
+        return (new \ReflectionMethod(SourceAgreement::class, 'evaluate'))->invoke(new SourceAgreement, $sample, $own, 1, $lifecycle);
     }
 
     /**
@@ -72,5 +72,18 @@ class SourceAgreementOsmLifecycleTest extends TestCase
     {
         $this->assertSame('medium', $this->evaluate($this->sample(['archeoferroviaire' => [1.9]]), false)['class']);
         $this->assertSame('high', $this->evaluate($this->sample(['bdtopo' => [4.0]]), false)['class']);
+    }
+
+    public function test_a_fused_piece_is_precise_and_never_downgraded_by_the_osm_rule(): void
+    {
+        $this->assertSame('medium', $this->evaluate($this->sample(['archeoferroviaire' => [1.9]]), true, 'fusion')['class']);
+        $this->assertSame('high', $this->evaluate($this->sample(['osm' => [2.0]]), true, 'fusion')['class']);
+    }
+
+    public function test_every_dead_osm_state_of_the_engine_is_covered(): void
+    {
+        foreach (['dismantled', 'dismantled:railway', 'demolished:railway', 'removed:railway', 'was:railway'] as $layer) {
+            $this->assertContains($layer, SourceAgreement::OSM_LIFECYCLE_LAYERS);
+        }
     }
 }

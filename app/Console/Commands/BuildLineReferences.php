@@ -174,7 +174,8 @@ class BuildLineReferences extends Command
     /** Raccord maximal entre une extrémité découpée et la géométrie déjà retenue (m). */
     private const MAX_STITCH_M = 60;
 
-    private const PRECISE = ['contrib', 'bdtopo', 'osm', 'ign-historique'];
+    /** Ordre des géométries précises (un morceau fusionné après la BD TOPO et OSM, comme dans TraceConflation). */
+    private const PRECISE = ['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique'];
 
     /** Libellés des actions de line_reference_duplicates (rapport trace-doublons*.csv). */
     private const DUPLICATE_ACTIONS = [
