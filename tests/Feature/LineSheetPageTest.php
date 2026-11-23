@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Mcp\Support\ServedEventDates;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\LinePhases;
 use App\Services\LineStations;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -463,5 +465,53 @@ class LineSheetPageTest extends TestCase
                 return true;
             })
         );
+    }
+
+    /**
+     * Phase datée par le seul événement d'une source non commerciale : datée sur la page (règle de la mention),
+     * non datée dans get_line (« entre AAAA et AAAA »), sans l'identifiant de cet événement. Un événement servi de
+     * même date ne la remplace que s'il couvre la portion qui change (même règle que la page) ou toute la ligne.
+     */
+    public function test_mcp_never_dates_a_phase_by_a_non_commercial_source_only(): void
+    {
+        $archeo = (int) DB::table('line_events')->where('line_id', $this->line->id)->where('event_date', '1881-03-15')->value('id');
+        DB::table('line_events')->where('id', $archeo)->update(['source' => 'archeoferroviaire', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article9']);
+        $opening = fn (string $portion) => DB::table('line_events')->insertGetId(['line_id' => $this->line->id, 'type' => 'opening',
+            'event_date' => '1881-03-15', 'date_precision' => 'day', 'description' => 'Ouverture', 'source' => 'manual',
+            'source_url' => 'https://example.org/autre', 'confidence' => 'high', 'section_resolution' => 'places',
+            'section_from' => 'X', 'section_to' => 'Y',
+            'section_geom' => DB::raw("ST_Multi(ST_GeomFromText('".constant(self::class.'::'.$portion)."', 4326))"),
+            'created_at' => now(), 'updated_at' => now()]);
+        $phases = function (): array {
+            $response = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+                ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call',
+                    'params' => ['name' => 'get_line', 'arguments' => ['line' => 'ligne-test-434000', 'include_events' => false]]])
+                ->assertOk();
+
+            return json_decode((string) $response->json('result.content.0.text'), true)['line']['phases'];
+        };
+
+        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('phases.1.date', '1881-03-15')->etc());
+
+        $first = $phases();
+        $this->assertSame([null, 'range'], [$first[1]['date'], $first[1]['precision']], 'phase non datée');
+        $this->assertNotContains($archeo, array_column(array_merge(...array_column($first, 'changes')), 'event_id'));
+        $this->assertSame(['1869-12-06', 'day'], [$first[0]['date'], $first[0]['precision']], 'les autres phases restent datées');
+
+        // Remplacement, sur les phases que la page calcule avec l'événement archeoferroviaire : une ouverture servie de
+        // même date sur l'autre portion (A, déjà en service) ne date pas l'ouverture de B ; une sur B la date.
+        ['phases' => $page, 'portions' => $portions] = LinePhases::forLine($this->line->fresh());
+        $this->assertContains($archeo, array_column($page[1]['changes'], 'event_id'));
+        $elsewhere = $opening('A');
+        $second = app(ServedEventDates::class)->phases($page, $portions);
+        $this->assertSame([null, 'range'], [$second[1]['date'], $second[1]['precision']]);
+        $this->assertSame([null], array_column($second[1]['changes'], 'event_id'));
+
+        $covering = $opening('B');
+        $third = app(ServedEventDates::class)->phases($page, $portions);
+        $this->assertSame(['1881-03-15', 'day'], [$third[1]['date'], $third[1]['precision']]);
+        $this->assertSame([$covering], array_column($third[1]['changes'], 'event_id'));
+        $this->assertNotSame($elsewhere, $covering);
     }
 }
