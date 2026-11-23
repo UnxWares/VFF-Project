@@ -53,15 +53,82 @@ export function accidentDetail(accident, lang = 'fr') {
         .join(', ');
 }
 
+/** PK en kilomètres avec les mètres : « 120,500 » (« 120.500 » en anglais). */
+export function pkText(meters, lang = 'fr') {
+    return (meters / 1000).toLocaleString(lang, {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+    });
+}
+
+/** Fiche de la ligne à ce PK : le profil en long y place son curseur (paramètre `pk`, en mètres). */
+export function positionHref(position) {
+    return `/lines/${position.line.slug}?pk=${position.pk_m}#profile`;
+}
+
+/** Carte centrée sur le point (absent quand le tracé n'est pas redistribuable et qu'aucune gare n'encadre le PK). */
+export function positionMapHref(position) {
+    if (position.lat == null || position.lng == null) return null;
+    return `/maps?center=${position.lng},${position.lat}&zoom=14`;
+}
+
 /**
- * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, accidents, communes, puis
+ * Résultats d'une requête qui est une position sur une ligne (« 570000 PK 120 ») : le texte « Ligne 570000, PK
+ * 120,500 : entre Gare A et Gare B (commune) » qui mène à la fiche de ligne à ce PK, et la carte centrée sur le
+ * point. PK hors de la ligne : un seul résultat, qui dit les bornes de la ligne.
+ *
+ * @param {any[]} positions `pk_positions` de GET /api/v1/search
+ * @param {(key: string, params?: object) => string} t
+ * @param {string} [lang]
+ */
+export function positionItems(positions, t, lang = 'fr') {
+    return positions.flatMap((p) => {
+        const line = p.line.code ?? p.line.name;
+        const pk = pkText(p.pk_m, lang);
+        const href = positionHref(p);
+        if (!p.in_range) {
+            return [
+                {
+                    href: `/lines/${p.line.slug}`,
+                    name: t('nav.search.position_out', {
+                        line,
+                        pk,
+                        from: pkText(p.bounds.from_m, lang),
+                        to: pkText(p.bounds.to_m, lang),
+                    }),
+                    icon: 'bi-bezier',
+                    detail: p.line.name,
+                },
+            ];
+        }
+        const place = p.commune ? ` (${p.commune})` : '';
+        const name = p.at_station
+            ? t('nav.search.position_at', { line, pk, station: p.at_station.name + place })
+            : t('nav.search.position_between', {
+                  line,
+                  pk,
+                  from: p.between.from.name,
+                  to: p.between.to.name + place,
+              });
+        const map = positionMapHref(p);
+        return [
+            { href, name, icon: 'bi-bezier', detail: p.line.name },
+            ...(map
+                ? [{ href: map, name: t('nav.search.position_map', { line, pk }), icon: 'bi-map' }]
+                : []),
+        ];
+    });
+}
+
+/**
+ * Groupes de résultats, dans l'ordre affiché : position sur une ligne (PK), rubriques, lignes, gares, matériel roulant, accidents, communes, puis
  * « Tous les résultats » (page de résultats, puis annuaires filtrés, une fois la recherche faite). Les groupes vides sont
  * retirés ; chaque option reçoit un indice continu et un identifiant (aria-activedescendant).
  *
  * @param {object} p
  * @param {string} p.query texte saisi, sans espaces autour
  * @param {boolean} p.suggestions champ vide = toutes les rubriques
- * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[], communes?: any[] }} p.results réponse de l'API
+ * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[], communes?: any[], pk_positions?: any[] }} p.results réponse de l'API
  * @param {boolean} p.searched la réponse correspond au texte saisi (ou l'appel a échoué)
  * @param {(key: string, params?: object) => string} p.t traduction
  * @param {string} p.idPrefix préfixe des identifiants
@@ -78,6 +145,11 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
     const accidents = results.accidents ?? [];
     const communes = results.communes ?? [];
     const groups = [
+        {
+            type: 'position',
+            label: t('nav.search.positions'),
+            items: positionItems(results.pk_positions ?? [], t, lang),
+        },
         {
             type: 'page',
             label: t('nav.search.sections'),

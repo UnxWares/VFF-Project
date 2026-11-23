@@ -5,6 +5,8 @@ import {
     communeDetail,
     fold,
     isSearchShortcut,
+    pkText,
+    positionItems,
     searchGroups,
     shortcutLabel,
     stationDetail,
@@ -324,5 +326,73 @@ describe('communes', () => {
             idPrefix: 'x',
         });
         expect(groups.map((g) => g.type)).toEqual(['more']);
+    });
+});
+
+describe('position sur une ligne (PK)', () => {
+    const t = (key, params = {}) => `${key}|${JSON.stringify(params)}`;
+    const base = {
+        line: {
+            slug: 'rfn-570000',
+            code: '570000',
+            name: 'Ligne de Paris-Austerlitz à Bordeaux-St-Jean',
+        },
+        pk_m: 120500,
+        in_range: true,
+        bounds: { from_m: 0, to_m: 583844 },
+        at_station: null,
+        between: { from: { name: 'Gare A' }, to: { name: 'Gare B' } },
+        commune: 'Ville',
+        lat: 47.9,
+        lng: 1.9,
+    };
+
+    it('formate le PK avec les mètres selon la langue', () => {
+        expect(pkText(120500, 'fr')).toBe('120,500');
+        expect(pkText(120500, 'en')).toBe('120.500');
+    });
+
+    it('propose la fiche de ligne à ce PK, puis la carte centrée', () => {
+        const items = positionItems([base], t, 'fr');
+        expect(items).toHaveLength(2);
+        expect(items[0].href).toBe('/lines/rfn-570000?pk=120500#profile');
+        expect(items[0].name).toContain('nav.search.position_between');
+        expect(items[0].name).toContain('"from":"Gare A"');
+        expect(items[0].name).toContain('"to":"Gare B (Ville)"');
+        expect(items[1].href).toBe('/maps?center=1.9,47.9&zoom=14');
+    });
+
+    it('nomme la gare quand le PK est celui d’une gare, sans commune connue', () => {
+        const [first] = positionItems(
+            [{ ...base, between: null, at_station: { name: 'Gare A' }, commune: null }],
+            t,
+        );
+        expect(first.name).toContain('nav.search.position_at');
+        expect(first.name).toContain('"station":"Gare A"');
+    });
+
+    it('sans point de carte : seulement la fiche', () => {
+        expect(positionItems([{ ...base, lat: null, lng: null }], t)).toHaveLength(1);
+    });
+
+    it('PK hors de la ligne : un résultat avec les bornes', () => {
+        const items = positionItems([{ ...base, in_range: false, pk_m: 700000 }], t);
+        expect(items).toHaveLength(1);
+        expect(items[0].href).toBe('/lines/rfn-570000');
+        expect(items[0].name).toContain('nav.search.position_out');
+        expect(items[0].name).toContain('"to":"583,844"');
+    });
+
+    it('place la position en tête des groupes', () => {
+        const groups = searchGroups({
+            query: '570000 pk 120',
+            suggestions: false,
+            results: { lines: [], stations: [], materials: [], pk_positions: [base] },
+            searched: true,
+            t,
+            idPrefix: 'x',
+        });
+        expect(groups[0].type).toBe('position');
+        expect(groups[0].items[0].index).toBe(0);
     });
 });

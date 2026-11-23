@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\CatalogSearch;
 use App\Services\Communes\CommuneRail;
+use App\Services\Lines\LinePkPosition;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -41,11 +42,18 @@ class SearchController extends Controller
      * `GET /communes/{insee}`), par leur nom, avec le code INSEE (`insee`), le département et la population ; sans
      * noms approchés. Elles ne changent ni l'ordre ni le contenu des autres catégories.
      *
+     * `pk_positions` : quand la requête est une position sur une ligne (« 570000 PK 120 », « 570000 km 120,5 »,
+     * « ligne 570000 120+500 », « Paris - Bordeaux PK 300 »), la ou les lignes désignées (3 au plus) avec les gares
+     * qui encadrent ce PK, la commune et le point de carte, comme `GET /lines/{line}/at-pk` ; une seule, avec
+     * `in_range` faux et ses bornes (`bounds`), quand le PK est hors de la ligne. Vide sinon. Ne change ni l'ordre ni le
+     * contenu des autres catégories.
+     *
      * @response array{
      *     lines: array<array{type: 'line', slug: string, name: string, code: ?string, approximate: bool}>,
      *     stations: array<array{type: 'station', slug: string, name: string, city: ?string, department_code: ?string, lat: float, lng: float, approximate: bool}>,
      *     materials: array<array{type: 'material', slug: string, name: string, kind: string, builder: ?string, notable_unit: ?array{number: string, nickname: ?string}, approximate: bool}>,
      *     communes: array<array{type: 'commune', insee: string, slug: string, name: string, department_code: ?string, department_name: ?string, population: ?int}>,
+     *     pk_positions: array<array{line: array{slug: string, code: ?string, name: string}, pk_m: int, pk_label: string, in_range: bool, bounds: array{from_m: int, to_m: int, from_label: string, to_label: string}, at_station: ?array<string, mixed>, between: ?array<string, mixed>, commune: ?string, lat: ?float, lng: ?float, position_method: ?string, position_withheld: ?string}>,
      *     accidents: array<array{type: 'accident', slug: string, name: string, names: array{fr: string, en: string, de: string}, date: string, date_precision: 'day'|'month'|'year', kind: string, commune: ?string, department_code: ?string, lat: ?float, lng: ?float, approximate: bool}>
      * }
      */
@@ -55,15 +63,17 @@ class SearchController extends Controller
         'stations' => [['type' => 'station', 'slug' => 'brest', 'name' => 'Brest', 'city' => 'Brest', 'department_code' => '29', 'lat' => 48.3876941, 'lng' => -4.4800927, 'approximate' => false]],
         'materials' => [],
         'communes' => [['type' => 'commune', 'insee' => '29019', 'slug' => '29019-brest', 'name' => 'Brest', 'department_code' => '29', 'department_name' => 'Finistère', 'population' => 139602]],
+        'pk_positions' => [],
         'accidents' => [],
     ]])]
-    public function index(Request $request, CatalogSearch $search, CommuneRail $communes): JsonResponse
+    public function index(Request $request, CatalogSearch $search, CommuneRail $communes, LinePkPosition $positions): JsonResponse
     {
         $q = CatalogSearch::normalizeQuery($request->query('q'));
 
         return response()->json([
             ...$search->search($q),
             'communes' => mb_strlen($q) >= CatalogSearch::MIN_LENGTH ? $communes->search($q) : [],
+            'pk_positions' => mb_strlen($q) >= CatalogSearch::MIN_LENGTH ? $positions->find($q) : [],
         ])
             ->header('Cache-Control', 'public, max-age=30');
     }

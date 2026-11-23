@@ -1,4 +1,5 @@
 <script>
+    import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { colon, formatLocale, formatNumber, NBSP } from '$lib/typo.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -11,7 +12,9 @@
         gradeAt,
         labelledStations,
         linePath,
+        indexAtPk,
         nearestIndex,
+        pkFromUrl,
         nearestStation,
         rackSentence,
         showsCumulativeClimb,
@@ -209,6 +212,12 @@
         hover = i >= 0 && profile.points[i][1] !== null ? i : null;
         station = nearestStation(profile.stations, x, x(d));
     }
+    // Arrivée depuis la recherche d'un PK (`?pk=120500#profile`) : la lecture s'ouvre sur ce point.
+    $effect.pre(() => {
+        const pk = pkFromUrl(page.url);
+        const i = pk === null ? -1 : indexAtPk(profile.points, pk);
+        if (i >= 0 && profile.points[i][1] !== null) hover = i;
+    });
     function leave() {
         hover = null;
         station = null;

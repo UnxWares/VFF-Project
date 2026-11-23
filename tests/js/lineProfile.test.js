@@ -7,7 +7,9 @@ import {
     labelledStations,
     nearestStation,
     linePath,
+    indexAtPk,
     nearestIndex,
+    pkFromUrl,
     niceStep,
     rackSentence,
     showsCumulativeClimb,
@@ -255,5 +257,28 @@ describe('showsCumulativeClimb', () => {
         expect(showsCumulativeClimb({ max_grade_withheld: 'tunnel' })).toBe(true);
         expect(showsCumulativeClimb({})).toBe(true);
         expect(showsCumulativeClimb(null)).toBe(true);
+    });
+});
+
+describe('PK demandé par la recherche', () => {
+    it('lit le paramètre pk de l\u2019adresse', () => {
+        expect(pkFromUrl('/lines/rfn-570000?pk=120500#profile')).toBe(120500);
+        expect(pkFromUrl('/lines/rfn-570000?a=1&pk=0')).toBe(0);
+        expect(pkFromUrl('/lines/rfn-570000')).toBeNull();
+        expect(pkFromUrl('/lines/rfn-570000?pk=abc')).toBeNull();
+        expect(pkFromUrl('/lines/rfn-570000?pk=-5')).toBeNull();
+    });
+
+    it('trouve le point du profil au PK le plus proche, sinon -1', () => {
+        const points = [
+            [0, 10, 1000],
+            [100, 11, 1100],
+            [200, null, null],
+            [300, 12, 1300],
+        ];
+        expect(indexAtPk(points, 1090)).toBe(1);
+        expect(indexAtPk(points, 1290)).toBe(3);
+        expect(indexAtPk(points, 5000)).toBe(-1);
+        expect(indexAtPk([[0, 1, null]], 10)).toBe(-1);
     });
 });

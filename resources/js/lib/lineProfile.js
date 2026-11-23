@@ -151,6 +151,36 @@ export function nearestIndex(points, d) {
 }
 
 /**
+ * PK demandé dans l'adresse de la fiche (`?pk=120500`, en mètres, posé par la recherche « 570000 PK 120 »), sinon null.
+ * @param {string} url adresse de la page (chemin et paramètres)
+ */
+export function pkFromUrl(url) {
+    const raw = new URLSearchParams(url.split('#')[0].split('?')[1] ?? '').get('pk');
+    return raw !== null && /^\d{1,7}$/.test(raw) ? Number(raw) : null;
+}
+
+/**
+ * Indice du point du profil dont le PK estimé est le plus proche de `pk` (mètres) ; -1 si le profil n'a pas de PK,
+ * si le PK est en dehors de ses bornes ou si le point le plus proche est à plus de `maxGap` mètres (trou du tracé).
+ * @param {Array<[number, number|null, (number|null)?]>} points [distance, altitude, PK estimé]
+ * @param {number} pk
+ * @param {number} [maxGap]
+ */
+export function indexAtPk(points, pk, maxGap = 1000) {
+    let best = -1;
+    let bestGap = Infinity;
+    points.forEach((p, i) => {
+        if (p[2] === null || p[2] === undefined) return;
+        const gap = Math.abs(p[2] - pk);
+        if (gap < bestGap) {
+            best = i;
+            bestGap = gap;
+        }
+    });
+    return bestGap <= maxGap ? best : -1;
+}
+
+/**
  * Déclivité locale en ‰ autour d'une distance : pente de la droite des moindres carrés des
  * points d'une fenêtre de 1 km centrée (même méthode que la déclivité maximale du serveur).
  * Positive quand la ligne monte dans le sens du parcours. Null s'il manque une altitude dans

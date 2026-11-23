@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Services\CatalogSearch;
+use App\Services\Lines\LinePkPosition;
 use App\Services\SearchResultsPage;
 use App\Support\FrenchDepartments;
 use App\Support\Search\SearchQuery;
@@ -17,14 +18,14 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Paramètres (une valeur inconnue est ignorée, comme dans les annuaires) : `q`, `type` (line, station, accident,
  * material ; tout sinon), `state` (open, closed) et `dept` (code de département) pour les lignes et les gares,
- * `page`. Les pages de résultats ne sont pas indexées (`X-Robots-Tag: noindex`) : leur adresse se partage, mais
+ * `page`. Une requête qui est une position sur une ligne (« 570000 PK 120 ») ajoute `positions` en tête de la vue « tout ». Les pages de résultats ne sont pas indexées (`X-Robots-Tag: noindex`) : leur adresse se partage, mais
  * leur contenu est déjà celui des fiches.
  */
 class SearchPageController extends Controller
 {
     use ReadsListFilters;
 
-    public function index(Request $request, SearchResultsPage $search): Response
+    public function index(Request $request, SearchResultsPage $search, LinePkPosition $positions): Response
     {
         $q = mb_substr(CatalogSearch::normalizeQuery($request->query('q')), 0, SearchQuery::MAX_LENGTH);
         $type = $this->filterString($request, 'type');
@@ -53,6 +54,8 @@ class SearchPageController extends Controller
             'approximate' => $results['approximate'] ?? false,
             'suggestion' => $results['suggestion'] ?? null,
             'departments' => $results['departments'] ?? [],
+            // Position sur une ligne (« 570000 PK 120 ») : en tête de la page (LinePkPosition::find).
+            'positions' => $searched && $type === '' ? $positions->find($q) : [],
         ])->toResponse($request);
         $response->headers->set('X-Robots-Tag', 'noindex');
 

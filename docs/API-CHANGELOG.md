@@ -25,6 +25,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /lines/{line}/at-pk?pk=` (ou `pk_m=` en mètres) : position d'un point kilométrique sur une ligne (`pk` : `120`, `120,5` ou
+  `120+500`). Donne les gares qui l'encadrent (`between`, ou `at_station`), la commune, les bornes de la ligne (`bounds`) et un point
+  de carte (`lat`, `lng`, `position_method` : `profile`, `stations` ou `station`). PK hors de la ligne : 404 `pk_out_of_range` avec les bornes.
+  `GET /search` ajoute `pk_positions` (vide sauf pour une requête de position comme « 570000 PK 120 », « Paris - Bordeaux km 300 »,
+  « ligne 570000 120+500 ») ; les autres catégories ne changent pas.
+
 - REST, GraphQL : `lines[].neighbours` de la fiche de gare (`GET /api/v1/stations/{slug}`, type `StationLine`) : gares précédente (`previous`)
   et suivante (`next`) le long de la ligne, par PK, avec `slug`, `name`, `type`, `status` (aujourd'hui), `distance_m` (écart de PK),
   `last_open_era` (dernière ère ouverte d'une gare fermée) et, en REST, `links`. `null` quand le PK de la gare est inconnu.

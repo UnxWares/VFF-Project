@@ -159,6 +159,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/regions/{region}', [TerritoryController::class, 'region'])->where('region', '[0-9]{2}')->name('api.regions.show');
     Route::get('/v1/lines/{line:slug}/history', [LineHistoryController::class, 'show'])->name('api.lines.history');
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
+    // Position d'un PK sur la ligne : gares qui l'encadrent, commune, point de carte (App\Services\Lines\LinePkPosition).
+    Route::get('/v1/lines/{line:slug}/at-pk', [LinePkController::class, 'atPk'])->name('api.lines.at-pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');

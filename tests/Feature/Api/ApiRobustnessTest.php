@@ -266,7 +266,7 @@ class ApiRobustnessTest extends TestCase
     {
         $this->getJson('/api/v1/search?q[]=versailles&q[]=paris')
             ->assertOk()
-            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => []]);
+            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
     }
 
     public function test_search_strips_control_characters_but_keeps_the_words(): void
@@ -279,8 +279,8 @@ class ApiRobustnessTest extends TestCase
     public function test_search_wildcards_are_literal_not_match_all(): void
     {
         // « %% » ou « __ » ne doivent pas tout renvoyer (jokers SQL échappés).
-        $this->getJson('/api/v1/search?q=%25%25')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => []]);
-        $this->getJson('/api/v1/search?q=__')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => []]);
+        $this->getJson('/api/v1/search?q=%25%25')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
+        $this->getJson('/api/v1/search?q=__')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
 
         Station::factory()->create(['slug' => 'pourcent', 'name' => 'Halte 100% vélo', 'geom' => Point::makeGeodetic(45.0, 5.0)]);
         $this->getJson('/api/v1/search?q='.rawurlencode('100%'))

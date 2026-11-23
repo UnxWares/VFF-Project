@@ -45,6 +45,7 @@
         materials: [],
         accidents: [],
         communes: [],
+        pk_positions: [],
     });
     // idle | loading | done | error
     let phase = $state('idle');
@@ -104,7 +105,8 @@
             results.stations.length +
             results.materials.length +
             results.accidents.length +
-            results.communes.length,
+            results.communes.length +
+            results.pk_positions.length,
     );
 
     // Rien ne correspond mot pour mot : tous les résultats sont des noms approchés (fautes de frappe).
@@ -157,6 +159,7 @@
                 materials: data.materials ?? [],
                 accidents: data.accidents ?? [],
                 communes: data.communes ?? [],
+                pk_positions: data.pk_positions ?? [],
             };
             phase = 'done';
         } catch (e) {
@@ -167,6 +170,7 @@
                 materials: [],
                 accidents: [],
                 communes: [],
+                pk_positions: [],
             };
             phase = 'error';
         }
@@ -184,6 +188,7 @@
             materials: [],
             accidents: [],
             communes: [],
+            pk_positions: [],
         };
         phase = 'idle';
         searched = '';

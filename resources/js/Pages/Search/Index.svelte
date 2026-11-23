@@ -5,6 +5,7 @@
     import Pagination from '$components/Directory/Pagination.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { positionItems } from '$lib/siteSearch.js';
     import {
         FILTERABLE_TYPES,
         resultDetail,
@@ -29,6 +30,7 @@
         approximate = false,
         suggestion = null,
         departments = [],
+        positions = [],
     } = $props();
 
     /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
@@ -67,6 +69,8 @@
     const pageTitle = $derived(query ? t('search.page_title', { query }) : t('search.title'));
     const single = $derived(type !== '' ? groups[0] : null);
     const shown = $derived(groups.filter((g) => g.items.length));
+    // Position sur une ligne (« 570000 PK 120 ») : fiche de la ligne à ce PK, carte centrée, ou bornes de la ligne.
+    const positionList = $derived(positionItems(positions, t, lang));
 
     function visit(params, options = {}) {
         router.get(searchHref({ q: query, ...filters, ...params }), {}, options);
@@ -204,23 +208,43 @@
                     </form>
                 {/if}
 
-                <div class="summary">
-                    <p role="status">
-                        {single
-                            ? t('search.results', { count: single.total, query })
-                            : t('search.results', { count: total, query })}
-                    </p>
-                    {#if suggestion}
-                        <p class="suggestion">
-                            {suggestionText[0]}<Link href={searchHref({ q: suggestion, type })}
-                                >{suggestion}</Link
-                            >{suggestionText[1]}
+                {#if positionList.length}
+                    <section class="group" aria-labelledby="search-group-position">
+                        <div class="group-head">
+                            <h2 id="search-group-position">{t('nav.search.positions')}</h2>
+                        </div>
+                        <ul class="items">
+                            {#each positionList as item (item.href)}
+                                <li class="item">
+                                    <Link class="item-link" href={item.href}>
+                                        <span class="item-name">{item.name}</span>
+                                    </Link>
+                                    {#if item.detail}<p class="item-detail">{item.detail}</p>{/if}
+                                </li>
+                            {/each}
+                        </ul>
+                    </section>
+                {/if}
+
+                {#if total > 0 || !positionList.length}
+                    <div class="summary">
+                        <p role="status">
+                            {single
+                                ? t('search.results', { count: single.total, query })
+                                : t('search.results', { count: total, query })}
                         </p>
-                    {/if}
-                    {#if approximate}
-                        <p class="note">{t('search.approximate', { query })}</p>
-                    {/if}
-                </div>
+                        {#if suggestion}
+                            <p class="suggestion">
+                                {suggestionText[0]}<Link href={searchHref({ q: suggestion, type })}
+                                    >{suggestion}</Link
+                                >{suggestionText[1]}
+                            </p>
+                        {/if}
+                        {#if approximate}
+                            <p class="note">{t('search.approximate', { query })}</p>
+                        {/if}
+                    </div>
+                {/if}
 
                 {#each shown as g (g.type)}
                     <section class="group" aria-labelledby="search-group-{g.type}">
@@ -272,22 +296,24 @@
                         {/if}
                     </section>
                 {:else}
-                    <EmptyState
-                        icon="bi-search"
-                        title={hasFilters
-                            ? t('search.no_filtered')
-                            : t('search.no_results', { query })}
-                        text={hasFilters ? null : t('search.no_results_text')}
-                    >
-                        {#if hasFilters}
-                            <button
-                                type="button"
-                                class="vff-btn secondary small"
-                                onclick={() => visit({ state: '', dept: '', page: 1 })}
-                                >{t('search.reset_filters')}</button
-                            >
-                        {/if}
-                    </EmptyState>
+                    {#if !positionList.length}
+                        <EmptyState
+                            icon="bi-search"
+                            title={hasFilters
+                                ? t('search.no_filtered')
+                                : t('search.no_results', { query })}
+                            text={hasFilters ? null : t('search.no_results_text')}
+                        >
+                            {#if hasFilters}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary small"
+                                    onclick={() => visit({ state: '', dept: '', page: 1 })}
+                                    >{t('search.reset_filters')}</button
+                                >
+                            {/if}
+                        </EmptyState>
+                    {/if}
                 {/each}
             {/if}
         </div>
