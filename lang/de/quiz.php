@@ -3,9 +3,9 @@
 // Bahn-Quiz (/quiz): Texte der Seite und Links von /lines und /materials.
 return [
     'meta_title' => 'Bahn-Quiz',
-    'meta_description' => 'Erkennen Sie eine französische Bahnstrecke an ihrem Verlauf oder eine Fahrzeugbaureihe an ihrem Foto: zehn Fragen aus der Datenbank von VFF.',
+    'meta_description' => 'Erkennen Sie eine französische Bahnstrecke an ihrem Verlauf, eine Fahrzeugbaureihe an ihrem Foto oder beantworten Sie belegte Fragen zu Daten, Gesellschaften, Bauwerken und Bahnhöfen: zehn Fragen aus der Datenbank von VFF.',
     'title' => 'Bahn-Quiz',
-    'subtitle' => 'Erkennen Sie eine Strecke an ihrem Verlauf oder eine Baureihe an ihrem Foto. Zehn Fragen aus der Datenbank von VFF, ohne Zeitlimit.',
+    'subtitle' => 'Erkennen Sie eine Strecke an ihrem Verlauf oder eine Baureihe an ihrem Foto, oder testen Sie Ihr Wissen zu Daten, Gesellschaften, Bauwerken und Bahnhöfen. Zehn Fragen aus der Datenbank von VFF, ohne Zeitlimit.',
     'links' => [
         'home' => 'Bahnquiz: eine Strecke oder Baureihe in zehn Fragen erkennen',
         'lines' => 'Quiz: eine Strecke an ihrem Verlauf erkennen',
@@ -23,6 +23,8 @@ return [
         'lines_text' => 'Nur der Verlauf, ohne Namen und ohne Karte. Die vier vorgeschlagenen Strecken liegen nah beieinander.',
         'materials' => 'Fahrzeug erkennen',
         'materials_text' => 'Ein Foto von Wikimedia Commons und vier Baureihen desselben Typs.',
+        'facts' => 'Bahnwissen',
+        'facts_text' => 'Textfragen zu belegten Fakten: Eröffnung einer Strecke, Gesellschaft, längster Tunnel, Architekt eines Bahnhofs, meistgenutzter Bahnhof, erste Baureihe im Einsatz. Beim leichten Schwierigkeitsgrad liegen die falschen Antworten weit entfernt, und die anspruchsvollsten Fragen entfallen.',
         'unavailable' => 'Für dieses Spiel gibt es noch nicht genug geprüfte Daten.',
     ],
     'levels' => [
@@ -92,6 +94,8 @@ return [
         'source' => 'Nach :source',
         'sheet_lines' => 'Seite der Strecke öffnen',
         'sheet_materials' => 'Seite der Baureihe öffnen',
+        'source_page' => 'Quellseite',
+        'sheet_facts' => 'Seite öffnen',
     ],
     'result' => [
         'title' => 'Ergebnis',
@@ -104,5 +108,44 @@ return [
         'copy' => 'Adresse kopieren',
         'copied' => 'Adresse kopiert.',
         'again' => 'Neues Quiz',
+    ],
+    'facts' => [
+        'difficulty' => 'Schwierigkeit der Frage: :level',
+        'levels' => ['easy' => 'leicht', 'medium' => 'mittel', 'hard' => 'schwer'],
+        'prompt' => [
+            'opening_year' => 'In welchem Jahr wurde diese Strecke eröffnet?',
+            'electrification_year' => 'In welchem Jahr wurde diese Strecke elektrifiziert?',
+            'company' => 'Welche Gesellschaft hatte im Jahr :year die Konzession dieser Strecke?',
+            'milestone' => 'In welchem Jahr fand dieser Meilenstein statt?',
+            'longest_tunnel' => 'Welcher dieser Tunnel ist der längste?',
+            'longest_viaduct' => 'Welcher dieser Viadukte ist der längste?',
+            'architect' => 'Welcher Architekt hat diesen Bahnhof entworfen?',
+            'heritage_year' => 'In welchem Jahr wurde dieser Bahnhof oder ein Teil seiner Gebäude unter Denkmalschutz gestellt?',
+            'attendance' => 'Welcher dieser Bahnhöfe hatte im Jahr :year die meisten Reisenden?',
+            'first_series' => 'Welche dieser Baureihen (:type) ging als erste in Betrieb?',
+        ],
+        'reveal' => [
+            'opening_year' => '„:line“ wurde im Jahr :year eröffnet.',
+            'electrification_year' => '„:line“ wurde im Jahr :year elektrifiziert.',
+            'milestone' => '„:title“: :year.',
+            'heritage_year' => 'Der Bahnhof :station oder ein Teil seiner Gebäude wurde im Jahr :year unter Denkmalschutz gestellt (:protection).',
+            'architect' => 'Der Architekt des Bahnhofs :station ist :architect.',
+            'company' => ':company hatte im Jahr :year die Konzession von „:line“, von :from bis :to.',
+            'company_open' => ':company hatte im Jahr :year die Konzession von „:line“, seit :from.',
+            'longest_tunnel' => ':name ist der längste dieser Tunnel mit :length m. Die anderen: :others.',
+            'longest_viaduct' => ':name ist der längste dieser Viadukte mit :length m. Die anderen: :others.',
+            'attendance' => ':name ist der meistgenutzte dieser Bahnhöfe im Jahr :year, mit :count Reisenden. Die anderen: :others.',
+            'first_series' => 'Die Baureihe :name ging als erste in Betrieb, im Jahr :year. Die anderen: :others.',
+        ],
+        'protection' => [
+            'registered' => 'Eintragung',
+            'classified' => 'Einstufung',
+        ],
+        'hint' => ['city' => 'Gemeinde', 'built' => 'Bau des Gebäudes'],
+        'sources' => [
+            'ign' => 'IGN, BD TOPO',
+            'pop' => 'Mérimée-Datenbank (POP, französisches Kulturministerium)',
+            'sncf' => 'SNCF Gares & Connexions',
+        ],
     ],
 ];

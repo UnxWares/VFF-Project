@@ -4,7 +4,7 @@
 // le choix du joueur. Seul le meilleur score est gardé, dans le navigateur (localStorage), jamais sur
 // le serveur.
 
-export const GAMES = ['lines', 'materials'];
+export const GAMES = ['lines', 'materials', 'facts'];
 export const LEVELS = ['easy', 'hard'];
 
 /** Marge autour du tracé dans le cadre SVG (unités du cadre de 1 000). */
@@ -138,6 +138,20 @@ export function materialHints(h, t, lang) {
         h.units_built && { id: 'units', value: Number(h.units_built).toLocaleString(lang) },
     ];
     return rows.filter(Boolean).map((r) => ({ ...r, label: t(`quiz.hints.${r.id}`) }));
+}
+
+/**
+ * Indices du jeu « Culture du rail » : le serveur les envoie déjà rédigés dans la langue de la page
+ * (`{ label, value }`) ; on leur donne seulement un identifiant de liste.
+ * @returns {HintRow[]}
+ */
+export function factHints(hints) {
+    return (hints ?? []).map((h) => ({ id: h.label, label: h.label, value: h.value }));
+}
+
+/** Clé de traduction du degré de difficulté d'une question (1 facile, 2 moyenne, 3 difficile). */
+export function difficultyKey(level) {
+    return ['easy', 'medium', 'hard'][Math.min(Math.max(Number(level) || 2, 1), 3) - 1];
 }
 
 /** Score : nombre de réponses justes parmi les résultats reçus. */
