@@ -7,6 +7,7 @@ namespace App\Services\Heritage;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -18,8 +19,10 @@ use Illuminate\Support\Str;
  *   - `station_heritage` (vff:import-station-heritage) : bâtiments et ouvrages de gare, avec architecte, construction,
  *     style, notice Mérimée et image libre ; les objets seulement « recensés à l'Inventaire » ne sont pas repris, ils
  *     ne sont ni protégés ni labellisés ;
- *   - `structures` (vff:import-structures) : ouvrages d'art protégés, avec la ligne qui les porte. Mérimée et Wikidata
- *     ne donnent ni architecte ni style pour eux ; la commune est celle dont le centre est le plus proche.
+ *   - `structures` (vff:import-structures) : ouvrages d'art protégés, avec la ligne qui les porte ; `structure_heritage`
+ *     (vff:import-structure-heritage), quand elle existe, y ajoute l'arrêté, les auteurs et la datation de la notice
+ *     Mérimée rapprochée de l'ouvrage (et les ouvrages que Wikidata ne disait pas protégés). Wikidata ne donne ni
+ *     architecte ni style ; la commune est celle dont le centre est le plus proche.
  *
  * Tant qu'une table manque, sa part est vide (aucune erreur).
  */
@@ -129,17 +132,27 @@ final class HeritageIndex
     /** @return list<array<string, mixed>> */
     private function structureItems(): array
     {
+        $detail = Schema::hasTable('structure_heritage');
         try {
+            // Une seule notice Mérimée par ouvrage, dont viennent le titre, les auteurs, la datation ET la référence : celle que l'ouvrage
+            // cite (`merimee_ref`) quand elle est rapprochée, sinon la plus protégée. Quand la table existe.
             $rows = DB::select(
-                'SELECT st.id, st.kind, st.name, st.heritage, st.merimee_ref, st.image, st.built_on, st.lat, st.lon,
+                'SELECT st.id, st.kind, st.name, st.merimee_ref, st.image, st.built_on, st.lat, st.lon,
+                        '.($detail ? 'COALESCE(NULLIF(st.heritage, \'protected\'), sh.protection) AS heritage, sh.protection_date, sh.scope, sh.architects, sh.built_from AS sh_from,
+                        sh.built_to AS sh_to, sh.built_period AS sh_period, sh.ref AS sh_ref, sh.ref_url AS sh_ref_url, sh.title AS sh_title,
+                        sh.protection AS sh_protection, sh.designations AS sh_designations,' : 'st.heritage, NULL AS protection_date, NULL AS scope, NULL AS architects, NULL AS sh_from,
+                        NULL AS sh_to, NULL AS sh_period, NULL AS sh_ref, NULL AS sh_ref_url, NULL AS sh_title,
+                        NULL AS sh_protection, NULL AS sh_designations,').'
                         c.nom AS commune, c.departement,
                         l.slug AS line_slug, l.name AS line_name
                    FROM structures st
+                   '.($detail ? 'LEFT JOIN LATERAL (SELECT * FROM structure_heritage h WHERE h.structure_id = st.id
+                                       ORDER BY (h.ref IS DISTINCT FROM st.merimee_ref), CASE h.protection WHEN \'classified\' THEN 1 WHEN \'registered\' THEN 2 ELSE 3 END, (h.architects IS NULL), h.ref LIMIT 1) sh ON true' : '').'
                    LEFT JOIN LATERAL (SELECT nom, departement FROM communes WHERE type = \'commune-actuelle\'
                                        ORDER BY geom <-> ST_SetSRID(ST_MakePoint(st.lon, st.lat), 4326) LIMIT 1) c ON true
                    LEFT JOIN LATERAL (SELECT l2.slug, l2.name FROM line_structures ls JOIN lines l2 ON l2.id = ls.line_id
                                        WHERE ls.structure_id = st.id ORDER BY ls.offset_m, ls.line_id LIMIT 1) l ON true
-                  WHERE st.heritage IN (\'classified\', \'registered\')'
+                  WHERE '.($detail ? '(st.heritage IN (\'classified\', \'registered\') OR sh.protection IN (\'classified\', \'registered\', \'acr\'))' : 'st.heritage IN (\'classified\', \'registered\')')
             );
         } catch (\Throwable) {
             return [];
@@ -149,12 +162,34 @@ final class HeritageIndex
         foreach ($rows as $r) {
             $img = json_decode((string) $r->image, true);
             $free = is_array($img) && ($img['rights_status'] ?? null) === 'open_license' && ! empty($img['thumb_url']);
+            $architects = [];
+            foreach ((array) json_decode((string) $r->architects, true) as $a) {
+                if (is_array($a) && ($a['name'] ?? '') !== '') {
+                    $architects[] = (string) $a['name'];
+                }
+            }
+            $from = $r->built_on !== null ? (int) substr((string) $r->built_on, 0, 4) : ($r->sh_from !== null ? (int) $r->sh_from : null);
+            // Même notice que le titre et les auteurs (jamais la référence d'une notice avec les détails d'une autre).
+            $reference = $r->sh_ref ?? $r->merimee_ref;
+            // La date et la portée de la notice sont celles de SA protection : quand la protection montrée est une
+            // autre (Wikidata dit « inscrit », la notice « classé »), sa date est celle de la même mention dans la
+            // notice, sinon aucune (jamais la date du classement sous « inscrit »).
+            [$date, $scope] = [$r->protection_date, $r->scope];
+            if ($r->sh_protection !== null && $r->sh_protection !== $r->heritage) {
+                $date = null;
+                $scope = null;
+                foreach ((array) json_decode((string) $r->sh_designations, true) as $d) {
+                    if (is_array($d) && ($d['kind'] ?? null) === $r->heritage && is_string($d['date'] ?? null)) {
+                        $date = $d['date'];
+                    }
+                }
+            }
             $items[] = $this->item(
                 id: 'ou'.$r->id, object: in_array($r->kind, ['viaduct', 'bridge', 'tunnel'], true) ? (string) $r->kind : 'bridge',
-                name: (string) ($r->name ?? ''), title: null, protection: (string) $r->heritage, date: null, scope: null,
-                architects: [], from: $r->built_on !== null ? (int) substr((string) $r->built_on, 0, 4) : null, to: null, period: null,
+                name: (string) ($r->name ?? ''), title: $r->sh_title, protection: (string) $r->heritage, date: $date, scope: $scope,
+                architects: $architects, from: $from, to: $r->sh_to !== null ? (int) $r->sh_to : null, period: $from === null ? $r->sh_period : null,
                 style: null, commune: $r->commune, department: $r->departement,
-                reference: $r->merimee_ref, referenceUrl: $r->merimee_ref !== null ? self::MERIMEE_URL.$r->merimee_ref : null,
+                reference: $reference, referenceUrl: $r->sh_ref !== null ? $r->sh_ref_url : ($r->merimee_ref !== null ? self::MERIMEE_URL.$r->merimee_ref : null),
                 image: $free ? ['url' => $img['thumb_url'], 'source_url' => $img['source_url'] ?? null, 'license' => $img['license'] ?? null, 'author' => $img['author'] ?? null] : null,
                 station: null, line: $r->line_slug !== null ? ['slug' => (string) $r->line_slug, 'name' => (string) $r->line_name] : null,
                 lat: (float) $r->lat, lng: (float) $r->lon,

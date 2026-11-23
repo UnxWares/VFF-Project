@@ -3,10 +3,10 @@
     import { onDestroy, onMount } from 'svelte';
     import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { hasPmtilesProtocol, loadMaplibre } from '$lib/loadMaplibre.js';
     import { MAP_MAX_ZOOM } from '$lib/basemap.js';
-    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
-    import { theme } from '$lib/stores/theme.svelte.js';
+    import { followBasemapTheme, pageMapStyle } from '$lib/mapStyle.svelte.js';
+    import { isOfflineView, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { HERITAGE_COLOR } from '$lib/railStyle.js';
     import { pointsBounds, railwayPoints } from '$lib/touristRailways.js';
 
@@ -22,6 +22,9 @@
 
     let container = $state();
     let map = null;
+    // Carte dessinée sur le fond libre de VFF (lib/mapStyle.svelte.js) : ses couleurs suivent le thème.
+    let onBasemap = false;
+    followBasemapTheme(() => (onBasemap ? map : null));
     let maplibre = null;
     let ready = false;
     let releasePartialMap = null;
@@ -30,31 +33,6 @@
 
     const points = $derived(railwayPoints(railways));
     const located = $derived(points.features.length);
-
-    /**
-     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
-     * @returns {string | import('maplibre-gl').StyleSpecification}
-     */
-    function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
-        const key = import.meta.env.VITE_MAPTILER_KEY;
-        if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-        return {
-            version: 8,
-            sources: {
-                'osm-raster': {
-                    type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    maxzoom: 19,
-                    attribution:
-                        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                },
-            },
-            layers: [{ id: 'osm', type: 'raster', source: 'osm-raster' }],
-            glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-        };
-    }
 
     function fit(collection) {
         const bounds = pointsBounds(collection);
@@ -84,9 +62,11 @@
         if (destroyed || !container) return;
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        const mapBackground = pageMapStyle(offline, { pmtiles: hasPmtilesProtocol() });
+        onBasemap = mapBackground.onBasemap;
         map = new maplibre.Map({
             container,
-            style: buildStyle(offline),
+            style: mapBackground.style,
             center: [2.5, 46.6],
             zoom: 4.6,
             maxZoom: MAP_MAX_ZOOM,

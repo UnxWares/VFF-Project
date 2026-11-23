@@ -9,6 +9,7 @@ use App\Services\LineSheet;
 use App\Services\LineStations;
 use App\Services\LineStats;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\StationServiceDates;
 use App\Support\EventText;
 use App\Support\Lgv;
@@ -32,6 +33,7 @@ final class LineDossier
         private readonly LineSignallingHistory $signallingHistory,
         private readonly LineStations $stations,
         private readonly ServedEventDates $served,
+        private readonly SignallingDating $signallingDating,
     ) {}
 
     /**
@@ -128,6 +130,8 @@ final class LineDossier
                 'source' => 'sncf',
                 // Historique daté (Wikipédia), à part de l'état actuel ci-dessus ; faits sûrs seulement, liste vide sinon.
                 'history' => $signallingHistory,
+                // Date connue de la mise en service du cantonnement, calculée (status, checked_at, messages fr/en/de).
+                'dating' => $this->signallingDating->forLine($line),
             ],
             'facts' => array_map(fn (array $f) => array_diff_key($f, array_flip(['scope'])), $facts),
             // Date dont le seul événement vient d'une source non commerciale : non datée ici (ServedEventDates).

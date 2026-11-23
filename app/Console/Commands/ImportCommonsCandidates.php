@@ -31,7 +31,7 @@ class ImportCommonsCandidates extends Command
         {--sample=0 : Nombre de rattachements tirés au hasard et affichés (avec --dry-run)}
         {--seed=1 : Graine du tirage de l\'échantillon}
         {--limit= : Nombre maximal de fiches lues}
-        {--via= : Origines retenues, séparées par des virgules (p18, category, weak_category, name_category, geosearch)}
+        {--via= : Origines retenues, séparées par des virgules (p18, category, weak_category, name_category, geosearch, search)}
         {--gains= : Fichier CSV (sujet, slug, nombre d\'images) des fiches qui gagnent des images}';
 
     protected $description = 'Écrit dans media les images Commons candidates des fiches sans image (licence et auteur revérifiés, sans réseau)';
@@ -94,7 +94,7 @@ class ImportCommonsCandidates extends Command
             $rows = [];
             $featured = false;
             $pos = $rec['subject'] === 'station'
-                ? DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lon FROM stations WHERE id = ?', [$rec['id']])
+                ? DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lon, city, department_code, (SELECT COUNT(*) FROM stations o WHERE o.id <> stations.id AND o.search_name = stations.search_name) AS homonyms FROM stations WHERE id = ?', [$rec['id']])
                 : null;
             foreach ($rec['files'] as $f) {
                 $meta = $f['meta'] ?? [];
@@ -104,6 +104,16 @@ class ImportCommonsCandidates extends Command
                     $via === 'geosearch' && (! CommonsCoverage::titleIsRailway((string) ($meta['file_title'] ?? '')) || ($f['distance_m'] ?? 0) > CommonsCoverage::MAX_GEOSEARCH_DISTANCE_M) => 'hors_sujet',
                     in_array($via, ['name_category', 'weak_category'], true) && CommonsCoverage::offTopicTitle((string) ($meta['file_title'] ?? '')) => 'hors_sujet',
                     in_array($via, ['geosearch', 'weak_category'], true) && ! CommonsCoverage::mentionsPlace($meta, (string) ($rec['name'] ?? '')) => 'hors_sujet',
+                    $via === 'search' && (! CommonsCoverage::titleIsRailway((string) ($meta['file_title'] ?? ''))
+                        || ! CommonsCoverage::titleNamesStation($meta, (string) ($rec['name'] ?? ''))
+                        || ! CommonsCoverage::mentionsCity($meta, $pos->city ?? null, (string) ($rec['name'] ?? ''))) => 'hors_sujet',
+                    // Nom partagé avec une autre gare de VFF (homonymes) : la recherche par texte ne peut pas trancher.
+                    $via === 'search' && ($pos->homonyms ?? 0) > 0 => 'homonyme',
+                    // Règle de lieu : ni pays ni département étranger à la gare, position à 2 km ou commune et département nommés.
+                    $via === 'search' && CommonsCoverage::placeReject($meta, (string) ($rec['name'] ?? ''), $pos->city ?? null, $pos->department_code ?? null, $pos?->lat !== null ? (float) $pos->lat : null, $pos?->lon !== null ? (float) $pos->lon : null) !== null => 'hors_sujet',
+                    $via === 'search' && ($meta['mime'] ?? '') === 'image/png' => 'hors_sujet',
+                    $via === 'search' && (preg_match('#^https?://#i', (string) ($meta['author'] ?? '')) === 1
+                        || preg_match('/\b(thermale|mines?)\b/iu', (string) ($meta['file_title'] ?? '')) === 1) => 'hors_sujet',
                     default => null,
                 };
                 $reason ??= $pos !== null

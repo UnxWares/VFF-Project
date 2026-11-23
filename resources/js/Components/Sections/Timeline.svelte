@@ -91,8 +91,13 @@
 
         <details class="figures">
             <summary>{$i18n.t('home.network.table_toggle')}</summary>
-            <!-- Trois colonnes courtes : le tableau tient à 320 px, pas de défilement à rendre focalisable. -->
-            <div class="vff-table-wrap">
+            <!-- Région focalisable : au 320 px le cadre peut défiler (axe : scrollable-region-focusable). -->
+            <div
+                class="vff-table-wrap"
+                tabindex="0"
+                role="region"
+                aria-label={$i18n.t('home.network.table_caption')}
+            >
                 <table class="vff-table">
                     <caption class="vff-sr-only">{$i18n.t('home.network.table_caption')}</caption>
                     <thead>

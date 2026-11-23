@@ -43,8 +43,58 @@ final class PreservedRollingStock
     public function __construct(private readonly ?TouristRailways $touristRailways, ?array $data = null)
     {
         /** @var array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} $loaded */
-        $loaded = $data ?? require database_path('data/preserved_rolling_stock.php');
+        $loaded = $data ?? self::merge(
+            require database_path('data/preserved_rolling_stock.php'),
+            require database_path('data/preserved_rolling_stock_complement.php'),
+        );
         $this->data = $loaded;
+    }
+
+    /**
+     * Fusionne le complément (database/data/preserved_rolling_stock_complement.php) dans le fichier de base : un exemplaire
+     * déjà connu (même série, même numéro) ne reçoit que ce qui lui manquait (lieu, texte du lieu, état, protection) et les
+     * sources qu'il n'avait pas, un exemplaire nouveau est ajouté, un lieu nouveau est ajouté (jamais remplacé).
+     *
+     * @param  array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>}  $base
+     * @param  array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>}  $extra
+     * @return array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>}
+     */
+    public static function merge(array $base, array $extra): array
+    {
+        $base['venues'] += $extra['venues'];
+        foreach ($extra['units'] as $slug => $units) {
+            foreach ($units as $unit) {
+                $id = preg_replace('/\W+/u', '', (string) $unit['number']);
+                $found = null;
+                foreach ($base['units'][$slug] ?? [] as $i => $known) {
+                    if (preg_replace('/\W+/u', '', (string) $known['number']) === $id) {
+                        $found = $i;
+                        break;
+                    }
+                }
+                if ($found === null) {
+                    $base['units'][$slug][] = $unit;
+
+                    continue;
+                }
+                $known = $base['units'][$slug][$found];
+                foreach (['venue', 'where', 'state', 'mh'] as $field) {
+                    if (($known[$field] ?? null) === null && ($unit[$field] ?? null) !== null) {
+                        $known[$field] = $unit[$field];
+                    }
+                }
+                foreach ($unit['src'] as $src) {
+                    if (! in_array($src, $known['src'], true)) {
+                        $known['src'][] = $src;
+                    }
+                }
+                $base['units'][$slug][$found] = $known;
+            }
+            usort($base['units'][$slug], fn (array $a, array $b): int => strnatcasecmp((string) $a['number'], (string) $b['number']));
+        }
+        $base['others'] = [...$base['others'], ...$extra['others']];
+
+        return $base;
     }
 
     /**

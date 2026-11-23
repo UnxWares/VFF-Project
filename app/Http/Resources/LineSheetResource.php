@@ -79,6 +79,8 @@ class LineSheetResource extends JsonResource
                 'ranges' => $sheet['signalling'],
                 // Mises en service datées (Wikipédia), historique à part de l'état actuel ci-dessus : `/signalling-history`.
                 'history' => $sheet['signalling_history'] ?? [],
+                // Date connue de la mise en service du cantonnement (SignallingDating) : `status`, `checked_at`, `messages` (fr, en, de).
+                'dating' => $sheet['signalling_dating'] ?? null,
             ],
             'facts' => $line['facts'],
             'era_summary' => $sheet['era_summary'],

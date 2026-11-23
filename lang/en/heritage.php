@@ -77,7 +77,7 @@ return [
 
     'group_count' => ':count monuments',
     'group_none' => 'Architect not recorded',
-    'group_intro' => 'Monuments grouped by architect or company, the most prolific first. Engineering structures have no architect in the sources: they are in the last group.',
+    'group_intro' => 'Monuments grouped by architect or company, the most prolific first. Engineering structures whose Mérimée record names no author are in the last group.',
 
     'show_more' => 'Show :count more',
     'empty_title' => 'No monument matches',

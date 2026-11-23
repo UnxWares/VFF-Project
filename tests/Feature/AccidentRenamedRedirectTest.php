@@ -44,4 +44,14 @@ class AccidentRenamedRedirectTest extends TestCase
         $this->assertNull(Accident::redirectSlugFor('1999-01-01-nulle-part'));
         $this->assertNull(Accident::redirectSlugFor('1910-09-20-la-faloise'));
     }
+
+    public function test_the_sheets_whose_day_or_commune_was_settled_by_press_or_report_keep_their_old_address(): void
+    {
+        $table = new AccidentSlugTable;
+
+        $this->assertSame('1924-03-24-benestroff', $table->renamedTo('1924-03-23-benestroff'));
+        $this->assertSame('1938-04-25-noyant', $table->renamedTo('1938-04-24-noyant'));
+        $this->assertSame('1924-07-12-vitry-la-ville', $table->renamedTo('1924-07-11-vitry-la-ville'));
+        $this->assertSame('2024-01-17-vergigny', $table->renamedTo('2024-01-18-saint-florentin'));
+    }
 }

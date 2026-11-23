@@ -17,7 +17,7 @@ final class OpenDataCatalogue
     public const PUBLIC_DIR = 'downloads/open-data';
 
     /** Ordre des jeux thématiques, avant les réseaux par ère. */
-    public const KINDS = ['network', 'events', 'accidents', 'materials'];
+    public const KINDS = ['network', 'events', 'accidents', 'materials', 'signalling', 'preserved', 'projects', 'infrastructure', 'profiles', 'redirects'];
 
     public static function publicRoot(): string
     {

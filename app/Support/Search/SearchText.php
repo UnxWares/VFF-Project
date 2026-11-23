@@ -28,6 +28,46 @@ final class SearchText
     public const STOPWORDS = ['de', 'du', 'des', 'd', 'la', 'le', 'les', 'l', 'en', 'et', 'a', 'au', 'aux'];
 
     /**
+     * Mots qui disent ce qu'on cherche sans le nommer (« gare », « Bahnhof », « line », « Unfall », « UIC »), et
+     * petits mots anglais et allemands : facultatifs partout, même en dernier (« Paris Nord station », « ligne
+     * 830 000 », « Lagny rail accident »), sauf quand la requête n'a rien d'autre (« gare »). Le cœur d'un nom
+     * (core()) les garde : « Paris-Gare-de-Lyon » reste « paris gare lyon ». Pas d'article allemand (der, die,
+     * das) : Die est une gare.
+     */
+    public const GENERIC_WORDS = [
+        'gare', 'halte', 'station', 'railway', 'rail', 'train', 'bahnhof', 'hbf',
+        'ligne', 'line', 'strecke', 'bahnstrecke', 'eisenbahnstrecke',
+        'accident', 'catastrophe', 'disaster', 'crash', 'unfall', 'eisenbahnunfall',
+        'uic', 'code',
+        'the', 'of', 'to', 'at', 'and', 'von', 'nach', 'am', 'im', 'und',
+    ];
+
+    /**
+     * Noms allemands et anglais de villes françaises ou voisines (ceux des gares d'Alsace-Moselle de 1871 à 1918,
+     * ceux qu'emploient les cartes et les articles étrangers) : le mot vaut aussi pour le nom français.
+     *
+     * @var array<string, string>
+     */
+    public const EXONYMS = [
+        'strassburg' => 'strasbourg',
+        'mulhausen' => 'mulhouse',
+        'muhlhausen' => 'mulhouse',
+        'kolmar' => 'colmar',
+        'schlettstadt' => 'selestat',
+        'hagenau' => 'haguenau',
+        'zabern' => 'saverne',
+        'diedenhofen' => 'thionville',
+        'saarburg' => 'sarrebourg',
+        'saargemund' => 'sarreguemines',
+        'basel' => 'bale',
+        'genf' => 'geneve',
+        'geneva' => 'geneve',
+        'dunkirk' => 'dunkerque',
+        'marseilles' => 'marseille',
+        'nizza' => 'nice',
+    ];
+
+    /**
      * Abréviations développées, dans l'ordre d'application (les groupes de deux lettres d'abord).
      *
      * @var array<string, string>

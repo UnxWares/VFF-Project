@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\DB;
  *     (`lines.wikipedia_title`) ; une exploitation de la base absente du catalogue (repérée par l'IGN ou OpenStreetMap)
  *     est affichée avec ses seuls faits de la base.
  *
+ * Faits facultatifs du catalogue, relevés dans l'article Wikipédia de l'exploitation (version citée par
+ * `detail_source`) : `section_from` / `section_to` (lieux de départ et d'arrivée de la section exploitée, pas les gares
+ * SNCF voisines), `season` (saison d'exploitation, en texte) et `opened_on` (jour d'ouverture touristique, AAAA-MM-JJ) ;
+ * servis par l'API sous `section`, `season`, `opened_on` et `detail_source_url`.
+ *
  * Chaque fait porte sa source (`sources`, clé = fait, valeur = clé du registre SOURCES). Les voies vertes viennent
  * de `line_greenways` (OpenStreetMap, ODbL) : seules celles d'au moins GREENWAY_MIN_M sur l'ancienne emprise, nommées.
  */
@@ -226,7 +231,7 @@ final class TouristRailways
                 }
                 foreach ($byName as $bucket) {
                     $last = end($bucket['events']);
-                    if ($last['end']) {
+                    if ($last['end'] || $this->endedByCorrection($hints[$lineId][$kind] ?? [], $bucket['name'], count($byName), (string) $last['row']->event_date)) {
                         continue;
                     }
                     // Début : le premier événement qui n'est ni une reprise ni une simple attestation ; longueur et
@@ -311,6 +316,27 @@ final class TouristRailways
             'attested' => str_contains($description, 'date de début non trouvée'),
             'sources' => array_values(array_unique($sources)),
         ];
+    }
+
+    /**
+     * Fin d'exploitation donnée par un événement manuel (correction sourcée `heritage_end`) de la même ligne et du même
+     * type, postérieur au dernier événement de l'import : seulement quand la ligne n'a qu'une exploitation de ce type, ou
+     * que le nom y est cité. L'import ne l'écrit pas (l'association a cessé sans que la source le dise).
+     *
+     * @param  list<object>  $rows
+     */
+    private function endedByCorrection(array $rows, string $name, int $sameKindCount, string $lastEventDate): bool
+    {
+        foreach ($rows as $row) {
+            if ($row->type !== 'heritage_end' || substr((string) $row->event_date, 0, 10) < substr($lastEventDate, 0, 10)) {
+                continue;
+            }
+            if ($sameKindCount === 1 || HeritageText::nameSimilarity((string) $row->description, $name) >= 0.5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -558,6 +584,10 @@ final class TouristRailways
             'wikidata' => $entry['wikidata'],
             'lat' => $entry['lat'],
             'lng' => $entry['lng'],
+            'section' => ($entry['section_from'] ?? null) !== null ? ['from' => $entry['section_from'], 'to' => $entry['section_to'] ?? null] : null,
+            'season' => $entry['season'] ?? null,
+            'opened_on' => $entry['opened_on'] ?? null,
+            'detail_source_url' => $entry['detail_source'] ?? null,
             'sources' => $sources,
         ];
     }
@@ -589,6 +619,10 @@ final class TouristRailways
             'wikidata' => null,
             'lat' => $g['lat'] !== null ? round((float) $g['lat'], 5) : null,
             'lng' => $g['lng'] !== null ? round((float) $g['lng'], 5) : null,
+            'section' => null,
+            'season' => null,
+            'opened_on' => null,
+            'detail_source_url' => null,
             'sources' => [
                 'type' => $g['kind'] === 'velorail' ? ($dbSources[0] ?? 'vff') : 'vff',
                 'gauge' => $g['gauge'] !== null ? 'vff' : null,

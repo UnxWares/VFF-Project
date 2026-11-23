@@ -1,0 +1,68 @@
+# Sites du suivi : page d'état Kener (status.vff-project.org) et GlitchTip (erreurs.vff-project.org).
+# Exemple à copier dans /etc/nginx/conf.d/ de la machine qui fait tourner chaque outil (docs/MISE-EN-PRODUCTION.md,
+# étape 17 ; docs/SUIVI-PRODUCTION.md). La page d'état doit tourner sur une AUTRE machine que le site : elle tombe
+# avec lui sinon. Les deux outils écoutent sur la boucle locale ; certificats par certbot comme pour le site.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name status.vff-project.org erreurs.vff-project.org;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/acme;
+        default_type text/plain;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name status.vff-project.org;
+
+    ssl_certificate     /etc/letsencrypt/live/status.vff-project.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/status.vff-project.org/privkey.pem;
+    include /etc/nginx/snippets/vff-tls.conf;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;     # Kener (ORIGIN=https://status.vff-project.org)
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name erreurs.vff-project.org;
+
+    ssl_certificate     /etc/letsencrypt/live/erreurs.vff-project.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/erreurs.vff-project.org/privkey.pem;
+    include /etc/nginx/snippets/vff-tls.conf;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Évènements du SDK Sentry : quelques centaines de Ko au plus.
+    client_max_body_size 10m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;     # GlitchTip (GLITCHTIP_DOMAIN=https://erreurs.vff-project.org)
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

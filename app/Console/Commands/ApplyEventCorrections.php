@@ -43,7 +43,7 @@ class ApplyEventCorrections extends Command
 
     public const FINGERPRINT_PREFIX = 'correction:';
 
-    private const ACTIONS = ['add', 'neutralize', 'relocate'];
+    private const ACTIONS = ['add', 'neutralize', 'relocate', 'redate'];
 
     /** Valeurs admises (contraintes de line_events). */
     private const REUSES = ['greenway', 'road', 'path', 'urban', 'other'];
@@ -89,7 +89,8 @@ class ApplyEventCorrections extends Command
                 $line === null => 'ligne inconnue « '.($c['line'] ?? '?').' »',
                 ! in_array($c['action'] ?? null, self::ACTIONS, true) => 'action inconnue « '.($c['action'] ?? '?').' »',
                 ($c['action'] === 'add') && ! in_array($c['type'] ?? null, $types, true) => 'type inconnu « '.($c['type'] ?? '?').' »',
-                ($c['action'] === 'add') && ! $this->validDate($c['date'] ?? null) => 'date invalide',
+                in_array($c['action'], ['add', 'redate'], true) && ! $this->validDate($c['date'] ?? null) => 'date invalide',
+                $c['action'] === 'redate' && isset($c['precision']) && ! in_array($c['precision'], ['day', 'month', 'year'], true) => 'précision inconnue « '.$c['precision'].' »',
                 ($c['action'] === 'add') && isset($c['reuse']) && ! in_array($c['reuse'], self::REUSES, true) => 'reuse inconnu « '.$c['reuse'].' »',
                 ($c['action'] === 'add') && isset($c['heritage_kind']) && ! in_array($c['heritage_kind'], self::HERITAGE_KINDS, true) => 'heritage_kind inconnu « '.$c['heritage_kind'].' »',
                 $c['action'] !== 'add' && (empty($c['match']['source']) || empty($c['match']['type']) || ! $this->validDate($c['match']['date'] ?? null)) => 'match incomplet (source, type, date)',
@@ -114,6 +115,7 @@ class ApplyEventCorrections extends Command
                 'add' => $this->add($line, $c, $dry),
                 'neutralize' => $this->neutralize($line, $c, $dry),
                 'relocate' => $this->relocate($line, $c, $dry),
+                'redate' => $this->redate($line, $c, $dry),
             };
             $rows[] = [$line->code ?? $line->id, $c['action'], $c['type'] ?? $c['match']['type'], $c['date'] ?? $c['match']['date'], $decision, mb_strimwidth($detail, 0, 70, '…')];
         }
@@ -240,6 +242,54 @@ class ApplyEventCorrections extends Command
         }
 
         return [$todo->isEmpty() ? 'déjà appliqué' : ($dry ? 'à déplacer' : 'déplacé').' ('.$todo->count().')', $c['reason']];
+    }
+
+    /**
+     * Corrige la DATE d'un événement d'une source (l'import la lit mal : date de fondation de l'association prise pour
+     * le début de l'exploitation, par exemple) : `match` désigne l'événement par son ancienne date, `date` (et
+     * `precision`) donne la bonne. `date_text`, facultatif, remplace dans la description le groupe « [entre A et B, ]depuis ... (d'après
+     * ...) » (le début de l'exploitation, relu par TouristRailways). `from` / `to` / `pk_start` / `pk_end`, facultatifs,
+     * corrigent aussi la portion (elle est alors à résoudre de nouveau). Déjà appliquée : l'événement porte la nouvelle date.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function redate(object $line, array $c, bool $dry): array
+    {
+        $precision = $c['precision'] ?? 'day';
+        $withPortion = array_key_exists('from', $c) || array_key_exists('to', $c) || array_key_exists('pk_start', $c);
+        $targets = DB::table('line_events')->where('line_id', $line->id)->where('source', $c['match']['source'])
+            ->where('type', $c['match']['type'])->whereIn('event_date', [$c['match']['date'], $c['date']])
+            ->when(isset($c['match']['from']), fn ($q) => $q->whereIn('section_from', array_filter([$c['match']['from'], $c['from'] ?? null])))
+            ->get(['id', 'event_date', 'date_precision', 'description', 'source_url', 'section_from', 'section_to', 'section_pk_start_m', 'section_pk_end_m']);
+        if ($targets->isEmpty()) {
+            $this->warn("  {$line->code} : aucun événement {$c['match']['source']} {$c['match']['type']} du {$c['match']['date']} (source modifiée ?)");
+
+            return ['introuvable', $c['reason']];
+        }
+        $text = isset($c['date_text']) ? $this->text($c['date_text']) : null;
+        $todo = $targets->filter(fn ($e) => substr((string) $e->event_date, 0, 10) !== $c['date'] || $e->date_precision !== $precision
+            || $e->source_url !== $c['source_url']
+            || ($text !== null && ! str_contains((string) $e->description, $text))
+            || ($withPortion && ($e->section_from !== ($c['from'] ?? null) || $e->section_to !== ($c['to'] ?? null)
+                || $e->section_pk_start_m != ($c['pk_start'] ?? null) || $e->section_pk_end_m != ($c['pk_end'] ?? null))));
+        if (! $dry) {
+            foreach ($todo as $e) {
+                $data = ['event_date' => $c['date'], 'date_precision' => $precision, 'source_url' => $c['source_url'],
+                    'source_quote' => $this->text(mb_strimwidth($c['quote'] ?? '', 0, 300, '…')), 'updated_at' => now()];
+                if ($text !== null) {
+                    $data['description'] = $this->text(preg_replace('/(?:entre [^,;()]+, )?depuis [^()]*\([^)]*\)/u', $text, (string) $e->description, 1) ?? (string) $e->description);
+                }
+                if ($withPortion) {
+                    $data += ['section_from' => $c['from'] ?? null, 'section_to' => $c['to'] ?? null,
+                        'section_pk_start_m' => $c['pk_start'] ?? null, 'section_pk_end_m' => $c['pk_end'] ?? null,
+                        'section_resolution' => 'pending', 'section_geom' => null, 'section_length_m' => null,
+                        'section_resolution_note' => mb_strimwidth($this->text('Portion corrigée : '.$c['reason']), 0, 500, '…')];
+                }
+                DB::table('line_events')->where('id', $e->id)->update($data);
+            }
+        }
+
+        return [$todo->isEmpty() ? 'déjà appliqué' : ($dry ? 'à redater' : 'redaté').' ('.$todo->count().')', $c['reason']];
     }
 
     /**

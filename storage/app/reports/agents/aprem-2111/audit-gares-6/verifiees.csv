@@ -1,0 +1,151 @@
+station_id,gare,date_article,date_vff,verdict,motif
+15591,Arnèke,,1848-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17419,Bagneaux-sur-Loing,1916-01-01,1860-08-14/day/inferred:line_event,corrigee,article de la gare (oldid 231119820) : la halte date de 1916 (le texte précise qu'il n'existait pas d'arrêt à Bagneaux à l'ouverture de la ligne). Remplace le 14/08/1860 déduit de la ligne.
+16521,Varades-St-Florent-le-Vieil,,1851-08-21/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17629,Collonges-Fontaines,,1860-12-31/range/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+14902,Ste-Colombe-Septveilles,1858-12-11,1858-01-01/year/wikidata,a_decider,la halte n'était qu'une maison de garde-barrière lors de la mise en service de l'embranchement de Longueville à Provins le 11/12/1858 : date de l'ouverture de la halte aux voyageurs à rechercher (VFF 1858)
+16871,Labouheyre,,1854-09-01/month/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16681,Sermaise,,1865-12-28/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17878,Oyonnax,1885-05-16,1885-01-01/year/wikidata,corrigee,"article de la ligne « Ligne d'Andelot-en-Montagne à La Cluse » (oldid 241260215) : section d'Oyonnax à La Cluse ouverte le 16 mai 1885 (article de la gare, oldid 241399044 : construction du 28 mars 1883 au 16 mai 1885, inauguration le 17 mai). Précise l'année 1885 de Wikidata au jour. Confiance moyenne."
+17807,Brassac-les-Mines-Ste-Florine,,1856-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16686,Bonneval,1865,1865-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17595,Poligny,,1884-08-30/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16722,Azay-le-Rideau,,1880-12-31/range/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17768,Montrond-les-Bains,,1876-01-17/day/ohm,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15550,Bruyères-sur-Oise,1891,1891-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15742,St-Roch (Somme),1876-01-01,1847-01-01/year/wikidata,corrigee,"article de la gare (oldid 241300034) : infobox : 1875 pour les marchandises, 1876 pour les voyageurs ; la gare n'a pas été ouverte avec la ligne de 1847. Remplace l'année 1847 de Wikidata."
+15188,St-Gilles,,1868-12-03/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17684,Francheville,,1910-06-01/day/ohm,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15627,Pérenchies,,1848-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15718,Anizy-Pinon,,1866-01-03/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18036,La Crau,,1875-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18244,Banyuls-sur-Mer,1878,1878-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+16476,Vertou,,1866-12-26/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16315,Breteil,1980,1980-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15245,Meroux,2018-12-08,2018-12-09/day/osm,corrigee,article de la gare (oldid 240819248) : infobox de l'article « Gare de Belfort - Montbéliard TGV » (la halte TER de Meroux est décrite dans le même article) : halte TER de Meroux le 8 décembre 2018. Remplace le 09/12/2018 d'OpenStreetMap.
+15980,Us,,1868-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15600,Watten-Éperlecques,,1848-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17391,St-Fargeau,1897,1897-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17761,Bas-Monistrol,1863,1863-11-09/day/ohm,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18101,St-Hilaire-St-Nazaire,,1864-05-09/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16560,La Mothe-Achard,1866,1866-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+16563,St-Hilaire-de-Riez,,1881-10-17/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+14944,Bar-sur-Aube,,1857-04-25/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16921,Vayres,,1852-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16849,Pauillac,1870-01-01,1868-01-01/year/inferred:line_event,corrigee,"article de la gare (oldid 241414232) : infobox : 1870, ouverture de la gare avec l'extension jusqu'à Pauillac de la ligne du Médoc. Remplace l'année 1868 déduite de la ligne."
+17673,Givors-Canal,,1832-04-03/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15543,Villers-St-Paul,,1847-10-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17785,Gannat,,1871-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17297,Artix,1863-01-01,1867-01-01/year/inferred:line_event,corrigee,article de la gare (oldid 238760141) : mise en service en 1863 avec la section Pau - Puyoô. Remplace l'année 1867 déduite de la ligne.
+17621,Arc-et-Senans,,1870-12-31/range/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15185,Graffenwald,,1855-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15057,Arches,,1864-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15375,Roeschwoog,1876,1876-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17163,Montaudran,1980/1990,1857-04-22/day/inferred:line_event,a_decider,"halte ouverte « dans les décennies 1980-1990 » selon l'article, sans année précise : le 22/04/1857 déduit de la ligne est trop ancien, date à rechercher"
+20962,Ranguin,1897,1897-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17457,Montceau-les-Mines,1861,1861-09-21/day/ohm,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17007,Uzerche,,1893-07-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17387,La Grande-Paroisse,,1897-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17594,Arbois,,1864-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17301,Puyoô,1863-01-01,1867-01-01/year/inferred:line_event,corrigee,"article de la gare d'Artix (oldid 238760141) : la section de ligne entre Pau et Puyoô est ouverte en 1863, Puyoô en est le terminus ; l'article de Puyoô (oldid 239298922) dit seulement « La gare a été construite en 1862 ». Remplace l'année 1867 déduite de la ligne. Confiance moyenne."
+15615,Haubourdin,,1867-08-05/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16555,Luçon,1871,1871-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15883,Noeux-les-Mines,1861-10-15,1861-01-01/year/wikidata,corrigee,article de la gare (oldid 238682988) : infobox et section Histoire : la station est mise en service le 15 octobre 1861 lors de l'ouverture de la section Lens - Béthune. Précise l'année 1861 de Wikidata au jour.
+17383,Héricy,,1897-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15447,Lutzelbourg,1851-05-01,1851-01-01/year/wikidata,corrigee,article de la gare (oldid 241364369) : mise en service en mai 1851 lors de l'inauguration de la section Strasbourg - Sarrebourg. Précise l'année 1851 de Wikidata au mois.
+14974,Neufchâteau,1866/1867,1867-08-14/day/inferred:line_event,a_decider,"gare « construite en 1866 » selon l'article, section de la ligne ouverte le 14/08/1867 en base : date d'ouverture aux voyageurs à confirmer"
+15547,Précy-sur-Oise,1847,1847-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17600,St-Amour,,1864-08-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15647,Fretin,,1870-06-22/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15926,Brebières-Sud,,1846-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16330,Retiers,1881-12-01,1881-01-01/year/wikidata,corrigee,article de la gare (oldid 236827897) : ouverture avec la ligne en décembre 1881. Précise l'année 1881 de Wikidata au mois.
+17361,Coudray-Montceaux,1897,1897-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17936,Vallorcine,,1901-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17800,Sarliève-Cournon,,1855-07-02/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16839,Gièvres,,1902-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17084,Guéret,1864,1864-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15839,Les Fontinettes,,1848-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16063,Conches,,1855-07-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16846,Macau,,1868-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18188,Vauvert,,1873-05-19/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15642,Landas,1874,1874-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15639,Ronchin,,1879-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16854,Caudéran-Mérignac,1933,1933-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15908,Avion,,1860-10-06/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17321,Labenne,,1855-03-25/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15186,Colmar-St-Joseph,,1868-12-03/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16905,Vélines,,1873-11-29/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17760,Aurec,1863,1863-11-09/day/ohm,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17997,Istres,1882-01-01,1875-01-01/year/wikidata,corrigee,"article de la gare (oldid 240315247) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l'année 1875 de Wikidata (décret de concession). Confiance moyenne : l'article ne date pas l'arrêt d'Istres seul."
+18165,St-Césaire,,1845-01-09/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15248,Delle,1868-06-29,1868-01-01/year/wikidata,corrigee,"article de la gare (oldid 232254189) : le chemin de fer arrive à Delle le 29 juin 1868, avec l'inauguration de la ligne de Montbéliard à Delle. Précise l'année 1868 de Wikidata au jour."
+17587,Besançon-Mouillère,,1884-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15287,Rombas-Clouange,,1888-11-15/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15834,Hesdin,,1866-01-01/year/inferred:trace,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15660,Baisieux,,1865-12-01/day/ohm,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17804,Parent-Coudes-Champeix,,1856-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18159,Vic-Mireval,,1839-03-08/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15764,Estrées-St-Denis,,1880-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15768,Marcelcave,,1862-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17577,Ste-Colombe,,1862-11-15/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15785,Laboissière-le-Déluge,,1876-04-15/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17386,Vernou-sur-Seine,,1897-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16611,Saujon,1875-08-28,1875-01-01/year/wikidata,corrigee,article de la gare (oldid 222377940) : mise en service lors de l'inauguration de la ligne de Pons à Royan le 28 août 1875. Précise l'année 1875 de Wikidata au jour.
+16993,Nexon,,1861-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15701,Marle-sur-Serre,,1869-10-30/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17382,Fontaine-le-Port,,1897-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15790,Marseille-en-Beauvaisis,,1875-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15566,Montataire,,1857-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+14942,Vendeuvre (Aube),,1857-04-25/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16365,Carhaix,1891,1891-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18032,Le Luc-et-Le Cannet,,1862-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17225,Naucelle,,1902-12-18/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16847,Margaux,1868-01-01,1884-03-01/day/inferred:line_event,corrigee,"article de la gare (oldid 223773147) : mise en service avec la première partie de la ligne du Médoc, en 1868 (le Verdon n'est atteint qu'en 1875). Remplace le 01/03/1884 déduit de la ligne. Confiance moyenne."
+15232,Metzeral,1893,1893-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18158,Villeneuve-lès-Maguelone,,1839-03-08/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15254,Clerval,,1858-06-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17381,Chartrettes,,1897-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18232,Mende,1884-05-03,1884-01-01/year/wikidata,corrigee,article de la gare (oldid 235795184) : infobox et section Histoire : le 3 mai 1884. Précise l'année 1884 de Wikidata au jour.
+15946,Sin-le-Noble,1888,1888-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+16863,Bassens,,1852-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18272,Font-Romeu-Odeillo-Via,,1910-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17413,Avallon,,1873-10-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15889,Aubigny-en-Artois,,1890-08-08/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15616,Loos-lez-Lille,,1868-07-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16685,Voves,1868,1868-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18073,Agay,,1863-04-10/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16601,Ste-Eulalie-Carbon-Blanc,,2017-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+14987,Pont-St-Vincent,1872-11-11,1872-11-18/day/inferred:line_event,corrigee,article de la gare (oldid 241364429) : ouverture de la première partie de la ligne de Jarville-la-Malgrange à Vézelise le 11 novembre 1872. Remplace le 18/11/1872 déduit de la ligne. Confiance moyenne.
+17388,Vosves,1897,1897-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15338,Longuyon,,1862-08-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15437,St-Blaise-la-Roche-Poutay,,1889-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16908,Gardonne,,1875-12-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17357,Buno-Gironville,,1867-01-01/year/wikidata,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17336,Les Deux Jumeaux,1926,1926-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15577,Thourotte,,1849-02-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15829,Montreuil-sur-Mer,,1875-01-10/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17753,St-Romain-le-Puy,,1866-07-12/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16596,Aubie-St-Antoine,,1874-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15964,St-Sébastien-Pas-Enchantés,,1870-12-31/range/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15361,Graffenstaden,,1841-05-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+18001,Port-de-Bouc,1882-01-01,1875-01-01/year/wikidata,corrigee,"article de la gare (oldid 238957960) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l'année 1875 de Wikidata (décret de concession). Confiance moyenne : l'article ne date pas l'arrêt de Port-de-Bouc seul."
+17829,Retournac,1866,1866-05-14/day/ohm,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+17150,Mérenvielle,,1877-10-22/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15208,Wihr-au-Val-Soultzbach-les-Bains,,1868-12-03/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16319,Pléchâtel,1864-11-01,1862-01-01/year/wikidata,corrigee,"article de la gare (oldid 240863371) : mise en service en novembre 1864, deux ans après l'ouverture de la ligne (infobox : 1864). Remplace l'année 1862 de Wikidata."
+17324,Guéthary,1884-01-01,1864-04-21/day/inferred:line_event,corrigee,"article de la gare (oldid 238892606) : gare inaugurée en 1884, vingt ans après le tronçon Bayonne - Irun. Remplace le 21/04/1864 déduit de la ligne."
+15905,Calonne-Ricouart,,1875-11-22/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15576,Le Meux-la-Croix-St-Ouen,,1847-10-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15692,Sains-du-Nord,,1869-10-30/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17827,Vorey,1866,1866-05-14/day/ohm,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18030,Pignans,,1862-09-01/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17880,St-Claude,1889,1889-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+18071,Boulouris-sur-Mer,,1863-04-10/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+17584,Morez,1900-08-12,1900-01-01/year/wikidata,corrigee,article de la gare (oldid 234924903) : infobox et section Histoire : le 12 août 1900. Précise l'année 1900 de Wikidata au jour.
+17503,Clamecy,,1870-07-04/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16454,Port-Brillet,,1860-12-31/range/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16858,Bruges,1868,1868-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15950,Aubigny-au-Bac,1881,1881-01-01/year/wikidata,confirmee,article de la gare (infobox ou texte) : même date ou même année que la base
+15618,Steenwerck,,1848-01-01/year/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+16605,St-Jean-d'Angély,,1878-08-25/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée
+15538,Chevrières,,1847-10-20/day/inferred:line_event,confirmee,l'article de la gare ne donne aucune date d'ouverture (ou une date sans lien avec l'ouverture) : la date de la section de la ligne est gardée

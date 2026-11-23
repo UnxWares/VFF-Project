@@ -85,4 +85,50 @@ class SearchQueryTest extends TestCase
         $this->assertSame(SearchQuery::parse(mb_substr($words, 0, SearchQuery::MAX_LENGTH))->tokens, $search->tokens);
         $this->assertSame([['saint'], ['hilaire']], SearchQuery::parse('St-Hilaire')->tokens, 'requête courte inchangée');
     }
+
+    public function test_generic_words_are_optional_even_last_unless_alone(): void
+    {
+        $this->assertSame([['paris'], ['nord']], SearchQuery::parse('Paris Nord station')->tokens);
+        $this->assertSame([['lagny']], SearchQuery::parse('Lagny rail accident')->tokens);
+        $this->assertSame([['melun']], SearchQuery::parse('Eisenbahnunfall von Melun')->tokens);
+        $this->assertSame([['gare']], SearchQuery::parse('gare')->tokens, 'seul, le mot générique est exigé');
+        $this->assertSame([['die']], SearchQuery::parse('gare de Die')->tokens, 'Die est une gare, pas un article');
+    }
+
+    public function test_foreign_city_names_also_count_as_the_french_name(): void
+    {
+        $this->assertSame([['strassburg', 'strasbourg']], SearchQuery::parse('Bahnhof Straßburg')->tokens);
+        $this->assertSame([['mulhausen', 'mulhouse']], SearchQuery::parse('Mülhausen')->tokens);
+        $this->assertSame('strasbourg', SearchQuery::parse('Bahnhof Straßburg')->fuzzyText());
+    }
+
+    public function test_digits_ignore_generic_words(): void
+    {
+        $this->assertSame('830000', SearchQuery::parse('ligne 830 000')->digits());
+        $this->assertSame('87686006', SearchQuery::parse('UIC 87686006')->digits());
+        $this->assertNull(SearchQuery::parse('ligne')->digits());
+        $this->assertNull(SearchQuery::parse('linea 830000')->digits(), 'seuls les mots génériques entiers tombent');
+    }
+
+    public function test_split_year_keeps_the_other_words(): void
+    {
+        [$year, $rest] = SearchQuery::parse('Lagny 1933')->splitYear();
+        $this->assertSame(1933, $year);
+        $this->assertSame([['lagny']], $rest->tokens);
+        [$year, $rest] = SearchQuery::parse('accident 1933')->splitYear();
+        $this->assertSame(1933, $year);
+        $this->assertTrue($rest->isEmpty(), 'rien d\'autre : tous les accidents de l\'année');
+        $this->assertNull(SearchQuery::parse('Z 5300')->splitYear()[0], 'hors des années 1800 à 2099');
+        $this->assertNull(SearchQuery::parse('antenne de hessange')->splitYear()[0]);
+    }
+
+    public function test_rank_keys_follows_the_sql_rank(): void
+    {
+        $q = SearchQuery::parse('tvm 430');
+        $this->assertSame(0, $q->rankKeys([SearchText::key('TVM 430')], SearchText::key('TVM 430 tvm 430')));
+        $this->assertSame(1, $q->rankKeys([SearchText::key('TVM 430 numérique')], SearchText::key('TVM 430 numérique')));
+        $this->assertSame(5, SearchQuery::parse('430 tvm')->rankKeys([SearchText::key('TVM 430')], SearchText::key('TVM 430')));
+        $this->assertSame(3, SearchQuery::parse('block automatique')->rankKeys([SearchText::key('BAL')], SearchText::key('BAL Block automatique lumineux')), 'dans le développé');
+        $this->assertNull($q->rankKeys([SearchText::key('KVB')], SearchText::key('KVB Contrôle de vitesse par balises')));
+    }
 }

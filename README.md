@@ -226,33 +226,19 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 
 ### En cours et prévu
 
-Le détail est dans [ROADMAP.md](ROADMAP.md).
+Le détail, point par point, est dans [ROADMAP.md](ROADMAP.md). Les fonctions du site, des trois API et du serveur MCP
+décrites plus haut sont faites ; ce qui reste tient en quatre groupes.
 
-- Audits des données : le contrôle automatique des tronçons (`vff:audit-segments`) et des gares
-  (`vff:audit-stations`), avec leurs pages de relecture et leur API, est écrit et réglé sur des contrôles à la main
-  ([docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md), [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md)) ; reste à repasser
-  les ères passées et les gares sur la base complète.
-- Matériel : les relations ambiguës dont aucun itinéraire proche ne tranche, et le retrait de deux liens de Z 20500 jugés faux à la relecture.
-- Moteur des tracés et jonctions : les règles de raccords en équerre lissés, de bouts prolongés jusqu'à la gare et de
-  raccords pendants retirés, sont appliquées au réseau depuis la nuit du 22 au 23/11 et les jonctions latérales sont en
-  cours d'application ; restent les retraits à la main de trois fragments (arrêtés par prudence à Domfront), la fusion des lignes du même couloir et le recalcul des gares et de
-  leurs ères.
-- Fusion des sources de géométrie à 1 m : l'erreur de chaque source (vecteurs, photos aériennes, LiDAR HD) est mesurée et la
-  fusion validée sur six lignes ; un morceau n'est dit « précis » que sous 3 m d'erreur estimée. À faire : pilote sur le
-  Calvados, passe nationale, puis un modèle sur photos aériennes centré sur l'axe de la voie.
-- Médias : droits propres à chaque image, comblement par Wikidata et Commons, premiers fonds ouverts (autochromes,
-  cartes postales d'archives, Rosalis, Pireneas) appliqués ; photos de rue Panoramax triées par un modèle de vision, import
-  en attente ; d'autres fonds d'images libres à intégrer.
-- Altitude de la voie estimée d'après le terrain et étalonnée sur le LiDAR HD : code commité, à lancer sur la base.
-- Signalisation datée lue dans Wikipédia (mises en service de BAL et de BAPR par section) et exports de données ouvertes
-  complets par époque : code commité, à lancer sur la base.
-- Temps réel en production (lancer Reverb et le proxy WebSocket, code prêt) ; relais des vignettes de Wikimedia Commons
-  (`VFF_COMMONS_PROXY`, code prêt, désactivé) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
-- Adresses de lignes neutres : `vff:neutralize-line-slugs` retire le préfixe de source des adresses et garde une
-  redirection 301 de chaque ancienne (acceptées par GraphQL et le MCP) ; le renommage reste à appliquer à la base.
-- Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, installation de Kener et
-  de GlitchTip (la part application et la documentation sont faites), sauvegarde de la base de production.
-- Reconstitutions 3D de lieux disparus à partir de photos d'archives (recherche, pas commencée).
+- Données à appliquer à la base de développement : le code est commité et testé, les scripts sont prêts et passent
+  un par un (altitude de la voie estimée d'après le terrain, trous du tracé sous le profil, seconde série d'ouvertures
+  datées au jour, fusion des lignes du même couloir, pilote de fusion des sources à 1 m sur le Calvados, photos de rue
+  Panoramax pour tout le réseau) ; les audits des tronçons et des gares sont ensuite repassés sur la base complète.
+- Mise en production : messagerie de `vff-project.org` (chez Hetzner comme le reste d'UnxWares, avec `contact@` et `privacy@`), hébergement sur l'infrastructure d'UnxWares, puis pose des
+  services déjà prêts (suivi des erreurs et de la disponibilité avec GlitchTip et Kener, planificateur, temps réel
+  Reverb, relais des vignettes de Wikimedia Commons, fond de carte libre, sauvegarde de la base chez Infomaniak Swiss Backup, chiffrée par restic).
+- Enrichissement continu : relecture des gares et des tronçons, signalisation datée au-delà des sources libres déjà
+  lues, fonds d'images et d'archives ouverts, accidents à seconde source, fusion des tracés à 1 m sur tout le réseau.
+- Recherche : reconstitutions 3D de lieux disparus à partir de photos d'archives (pas commencée).
 
 ## Stack technique
 
@@ -414,13 +400,13 @@ SHA de commit et chaque tâche n'a que le droit de lire le dépôt.
 - Instagram : [@vff_project](https://www.instagram.com/vff_project)
 - GitHub : [UnxWares/VFF-Project](https://github.com/UnxWares/VFF-Project)
 - Éditeur : [UnxWares](https://www.unxwares.com)
-- Contact : `contact@vff-project.org` (la messagerie du domaine n'est pas encore ouverte)
+- Contact : `contact@vff-project.org` (la messagerie du domaine, chez Hetzner, n'est pas encore ouverte)
 
 ## Soutenir le projet
 
 Les dons passeront par UnxWares Open Source & Community (UWOSC), l'association soutenue par UnxWares pour ses
-projets libres, en cours de création. La page `/donate` est en place ; la plateforme (Patreon ou HelloAsso) sera
-choisie avec le statut de l'association.
+projets libres, en cours de création. Aucun don n'est branché avant sa création ; ensuite la plateforme sera
+HelloAsso. La page `/donate` est en place et reste au futur d'ici là.
 
 ## Licence
 

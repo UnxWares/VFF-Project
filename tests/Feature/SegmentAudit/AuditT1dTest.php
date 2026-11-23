@@ -86,7 +86,7 @@ class AuditT1dTest extends TestCase
         $auditor->write($this->audited->id, $auditor->auditLine($this->audited->id, [$this->current->year], self::AS_OF));
 
         $rest = $this->getJson('/api/v1/lines/rfn-654350/audit')->assertOk()
-            ->assertJsonPath('rule_version', '2026-11-21.8')->json('segments');
+            ->assertJsonPath('rule_version', '2026-11-23.2')->json('segments');
         $this->assertSame([$segment], array_column($rest, 'segment_id'));
         $this->assertSame('good', $rest[0]['grades']['placement']);
         $this->assertSame(['on_other_line_track'], $rest[0]['evidence']['placement']['reasons']);

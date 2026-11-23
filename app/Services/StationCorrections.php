@@ -23,7 +23,10 @@ use Illuminate\Support\Facades\DB;
  *
  * Actions :
  *   - add        : événement (type, date AAAA-MM-JJ, precision day | month | year | before), source
- *                  « correction » (la plus sûre : StationTimeline::SOURCE_RANK) ;
+ *                  « correction » (la plus sûre : StationTimeline::SOURCE_RANK) ; une ouverture encadrée
+ *                  (precision range : date de la ligne démontrée fausse, aucune date de remplacement) donne
+ *                  « after » (ouverte après cette année) et / ou « date » (au plus tard ce jour, null sans borne
+ *                  haute) : deux événements d'ouverture « après » et « avant » (StationTimeline::openingBounds) ;
  *   - neutralize : l'événement d'une source (match : source, type, date) n'est pas ce qu'il
  *                  dit (déclassement d'un tronçon lu comme fermeture de la gare, date d'un
  *                  référentiel) : retiré de la chronologie, à chaque passage ;
@@ -49,6 +52,12 @@ use Illuminate\Support\Facades\DB;
  *                  l'élément Wikidata ne la rejoint pas ; les objets qui portent le tag restent rattachés
  *                  (seul le Q-id est ignoré). Gare visée par « uic » ou « osm » (lue sur les sources, avant
  *                  la consolidation), « name » en contrôle ; sans effet dans vff:build-station-eras ;
+ *   - link       : rattachement d'une gare à un élément Wikidata trouvé par l'UIC (P722), le nom et la distance
+ *                  (« source » wikidata, « ref » Q-id) : la gare n'avait aucun Q-id parce que l'élément n'est pas importé
+ *                  (gare de marchandises, élément créé après la recherche) ou ne l'a pas rejointe. Lu par
+ *                  vff:consolidate-stations au rattachement : l'objet source de la gare visée (UIC sur 7 chiffres, ou
+ *                  objet OSM, ou « near » [lng, lat, rayon en km] avec le nom) qui n'a pas de Q-id prend celui-ci ;
+ *                  un Q-id déjà porté par un objet de la gare n'est jamais remplacé ; sans effet dans vff:build-station-eras ;
  *   - merge      : deux fiches désignent la même gare (une seule gare dans le schéma de la ligne, même PK) :
  *                  la fiche « station » est gardée (son id, son slug), la fiche « absorbed » s'y fond. Les deux
  *                  sont visées par « uic », « wikidata » ou « osm » (lus sur les sources, avant la consolidation,
@@ -62,12 +71,12 @@ use Illuminate\Support\Facades\DB;
  */
 final class StationCorrections
 {
-    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink', 'merge'];
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink', 'link', 'merge'];
 
     /** Fiche dont la fusion (action « merge ») reprend la position. */
     public const MERGE_POSITIONS = ['kept', 'absorbed'];
 
-    /** Sources dont un lien peut être défait (action « unlink »). */
+    /** Sources dont un lien peut être défait (action « unlink ») ou posé (action « link »). */
     public const UNLINK_SOURCES = ['wikidata'];
 
     /** États du jour admis par l'action « current ». */
@@ -112,7 +121,9 @@ final class StationCorrections
             $errors[] = 'reason manquante';
         }
         $date = fn ($d) => is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) === 1;
-        if ($action === 'add' && (! in_array($c['type'] ?? null, self::EVENT_TYPES, true) || ! $date($c['date'] ?? null)
+        if ($action === 'add' && ($c['precision'] ?? null) === StationTimeline::RANGE) {
+            $errors = [...$errors, ...self::validateRange($c)];
+        } elseif ($action === 'add' && (! in_array($c['type'] ?? null, self::EVENT_TYPES, true) || ! $date($c['date'] ?? null)
             || ! in_array($c['precision'] ?? 'day', ['day', 'month', 'year', StationTimeline::BEFORE], true))) {
             $errors[] = 'add : type, date, precision';
         }
@@ -135,6 +146,11 @@ final class StationCorrections
             || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st) || (! isset($st['uic']) && ! isset($st['osm'])))) {
             $errors[] = 'unlink : source wikidata, ref (Q-id), gare visée par uic ou osm';
         }
+        if ($action === 'link' && (! in_array($c['source'] ?? null, self::UNLINK_SOURCES, true)
+            || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st)
+            || (! isset($st['uic']) && ! isset($st['osm']) && ! isset($st['near'])))) {
+            $errors[] = 'link : source wikidata, ref (Q-id), gare visée par uic, osm ou near';
+        }
         if ($action === 'merge') {
             $errors = [...$errors, ...self::validateMerge($c)];
         }
@@ -145,6 +161,49 @@ final class StationCorrections
         }
 
         return $errors;
+    }
+
+    /**
+     * Erreurs d'une ouverture encadrée (add, precision range) : une ouverture, une borne au moins, « after » une année
+     * (ouverte après elle), « date » AAAA-MM-JJ ou null (au plus tard ce jour), la borne basse avant la borne haute.
+     *
+     * @param  array<string, mixed>  $c
+     * @return list<string>
+     */
+    private static function validateRange(array $c): array
+    {
+        $after = $c['after'] ?? null;
+        $upper = $c['date'] ?? null;
+        $ok = ($c['type'] ?? null) === 'opening'
+            && ($after === null || (is_int($after) && $after >= 1800 && $after <= 2100))
+            && ($upper === null || (is_string($upper) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $upper) === 1))
+            && ($after !== null || $upper !== null)
+            && ($after === null || $upper === null || $after < (int) substr($upper, 0, 4));
+
+        return $ok ? [] : ['add range : ouverture, after (année) et / ou date (borne haute), after avant la date'];
+    }
+
+    /**
+     * Événements d'une correction « add » : un seul, ou les deux bornes d'une ouverture encadrée (« après » au 31/12 de
+     * l'année after, « avant » à la date).
+     *
+     * @param  array<string, mixed>  $c
+     * @return list<array{date: string, precision: string}>
+     */
+    public static function addedEvents(array $c): array
+    {
+        if (($c['precision'] ?? null) !== StationTimeline::RANGE) {
+            return [['date' => (string) $c['date'], 'precision' => (string) ($c['precision'] ?? 'day')]];
+        }
+        $out = [];
+        if (is_int($c['after'] ?? null)) {
+            $out[] = ['date' => sprintf('%04d-12-31', $c['after']), 'precision' => StationTimeline::AFTER];
+        }
+        if (is_string($c['date'] ?? null)) {
+            $out[] = ['date' => $c['date'], 'precision' => StationTimeline::BEFORE];
+        }
+
+        return $out;
     }
 
     /**
@@ -216,6 +275,30 @@ final class StationCorrections
                     'name' => (string) $c['station']['name'],
                     'uic' => isset($c['station']['uic']) ? (string) $c['station']['uic'] : null,
                     'osm' => isset($c['station']['osm']) ? (string) $c['station']['osm'] : null,
+                    'source' => (string) $c['source'],
+                    'ref' => (string) $c['ref'],
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Rattachements à un élément Wikidata (action « link »), valides, pour vff:consolidate-stations.
+     *
+     * @return list<array{name: string, uic: ?string, osm: ?string, near: ?array{float, float, float}, source: string, ref: string}>
+     */
+    public function links(): array
+    {
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'link' && self::validate($c) === []) {
+                $out[] = [
+                    'name' => (string) $c['station']['name'],
+                    'uic' => isset($c['station']['uic']) ? (string) $c['station']['uic'] : null,
+                    'osm' => isset($c['station']['osm']) ? (string) $c['station']['osm'] : null,
+                    'near' => isset($c['station']['near']) ? array_map('floatval', array_values($c['station']['near'])) : null,
                     'source' => (string) $c['source'],
                     'ref' => (string) $c['ref'],
                 ];
@@ -306,12 +389,12 @@ final class StationCorrections
                 $sid = $ids[0];
                 $note = mb_strimwidth(trim(($c['reason'] ?? '').(isset($c['quote']) ? ' : « '.$c['quote'].' »' : '')), 0, 1000, '…');
                 $done = match ($c['action']) {
-                    'add' => DB::table('station_events')->insertOrIgnore([
-                        'station_id' => $sid, 'type' => $c['type'], 'event_date' => $c['date'], 'date_precision' => $c['precision'] ?? 'day',
+                    'add' => DB::table('station_events')->insertOrIgnore(array_map(fn (array $e) => [
+                        'station_id' => $sid, 'type' => $c['type'], 'event_date' => $e['date'], 'date_precision' => $e['precision'],
                         'source' => StationTimeline::CORRECTION, 'source_ref' => 'gares_corrections:'.substr(sha1(json_encode($c) ?: ''), 0, 12),
                         'source_url' => mb_substr((string) $c['source_url'], 0, 500), 'is_inferred' => false, 'note' => $note,
                         'created_at' => now(), 'updated_at' => now(),
-                    ]) > 0,
+                    ], self::addedEvents($c))) > 0,
                     'neutralize' => DB::table('station_events')->where('station_id', $sid)->where('is_inferred', false)
                         ->where('source', $c['match']['source'])->where('type', $c['match']['type'])->where('event_date', $c['match']['date'])->delete() >= 0,
                     'position' => DB::update(<<<'SQL'
@@ -325,6 +408,8 @@ final class StationCorrections
                     'current' => (bool) ($out['current'][$sid] = (string) $c['status']),
                     // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
                     'unlink' => true,
+                    // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
+                    'link' => true,
                     // Appliquée par vff:consolidate-stations (StationMerger) : la fiche absorbée n'existe plus ici.
                     'merge' => true,
                     'pk' => DB::update(<<<'SQL'

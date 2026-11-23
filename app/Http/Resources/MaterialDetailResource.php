@@ -75,7 +75,7 @@ class MaterialDetailResource extends MaterialResource
                 'source' => $source,
                 'reference' => $ref,
                 // Contribution validée : l'adresse de la source citée par le contributeur, gardée avec la provenance.
-                'url' => $entry['url'] ?? self::sourceUrl($source, $ref, $entry['revid'] ?? null),
+                'url' => $entry['url'] ?? self::sourceUrl($source, $ref, $entry['revid'] ?? null, $entry['lang'] ?? null),
                 'original' => $entry['original'] ?? null,
                 ...$provenance->for('materials.fields', $source),
             ];
@@ -90,9 +90,10 @@ class MaterialDetailResource extends MaterialResource
 
     /**
      * Page de la source d'un champ : élément Wikidata, fichier Commons, catégorie ou article Wikipédia (version
-     * citée quand la révision est connue).
+     * citée quand la révision est connue). `$lang` : édition de Wikipédia de l'article (français par défaut ; en, de, it, nl
+     * pour une valeur relevée dans l'article d'une autre langue).
      */
-    public static function sourceUrl(string $source, ?string $ref, ?int $revid = null): ?string
+    public static function sourceUrl(string $source, ?string $ref, ?int $revid = null, ?string $lang = null): ?string
     {
         if ($ref === null || $ref === '') {
             return null;
@@ -101,19 +102,20 @@ class MaterialDetailResource extends MaterialResource
         return match ($source) {
             'wikidata' => 'https://www.wikidata.org/wiki/'.strtok($ref, '#'),
             'commons' => 'https://commons.wikimedia.org/wiki/'.str_replace('%3A', ':', rawurlencode(str_replace(' ', '_', $ref))),
-            'wikipedia' => self::wikipediaUrl($ref, $revid),
+            'wikipedia' => self::wikipediaUrl($ref, $revid, $lang),
             default => null,
         };
     }
 
     /** Article Wikipédia : permalien de la révision citée quand elle est connue, sinon article courant. L'ancre (`#infobox:Type`) n'est pas une page. */
-    private static function wikipediaUrl(string $ref, ?int $revid): string
+    private static function wikipediaUrl(string $ref, ?int $revid, ?string $lang = null): string
     {
         $title = str_replace(' ', '_', (string) strtok($ref, '#'));
+        $host = in_array($lang, ['en', 'de', 'it', 'nl'], true) ? $lang : 'fr';
         if ($revid !== null) {
-            return 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode($title).'&oldid='.$revid;
+            return 'https://'.$host.'.wikipedia.org/w/index.php?title='.rawurlencode($title).'&oldid='.$revid;
         }
 
-        return 'https://fr.wikipedia.org/wiki/'.str_replace('%3A', ':', rawurlencode($title));
+        return 'https://'.$host.'.wikipedia.org/wiki/'.str_replace('%3A', ':', rawurlencode($title));
     }
 }

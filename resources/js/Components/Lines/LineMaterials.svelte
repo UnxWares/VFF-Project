@@ -9,6 +9,7 @@
         earliestText,
         endText,
         periodsSummary,
+        portionsList,
         relationNotes,
         relationsList,
         splitDoubtful,
@@ -39,7 +40,7 @@
      *
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
      *   builders?: string[], link_doubt?: ?string, family?: ?{ slug: string, name: string },
-     *   earliest_on_line?: ?{ reason: string, date: string, precision?: ?string, section?: ?string }, in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
+     *   earliest_on_line?: ?{ reason: string, date: string, precision?: ?string, section?: ?string, conflict?: boolean }, in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
      *   relations?: Array<any>, end?: { kind: string, year: ?number, source_url: ?string }, image?: ?{ url: string, width: number, height: number, file: ?string,
      *   author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, fit?: string } }> }}
      */
@@ -78,6 +79,7 @@
                 {@const builders = buildersText(m.builders, m.builder, t)}
                 {@const onLine = m.periods?.length ? periodsSummary(m.periods, t) : null}
                 {@const relations = relationsList(m.relations, m.periods, t)}
+                {@const portions = portionsList(m.periods, t, lang)}
                 {@const notes = relationNotes(m.relations, t, lang)}
                 {@const earliest = earliestText(m.earliest_on_line, t, lang)}
                 <li class="vff-tile material-card">
@@ -137,6 +139,11 @@
                         >{/if}
                     {#if onLine}<span class="on-line"
                             >{t('materials.periods.on_line', { periods: onLine })}</span
+                        >{/if}
+                    {#if portions.length}<span class="on-line"
+                            >{t('materials.periods.on_portions', {
+                                portions: portions.join(' ; '),
+                            })}</span
                         >{/if}
                     {#if earliest}<span class="on-line">{earliest}</span>{/if}
                     {#if relations.length}<span class="on-line"

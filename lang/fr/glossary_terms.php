@@ -40,6 +40,10 @@ return [
         'name' => 'Voie banalisée',
         'definition' => 'Voie équipée pour que les trains puissent y circuler dans un sens comme dans l’autre, dans des conditions de sécurité quasi identiques, sans appliquer les règles habituelles de la voie unique. Le terme désigne aussi le régime d’exploitation d’une ligne ou d’une section de ligne ainsi équipée.',
     ],
+    'voie-partagee' => [
+        'name' => 'Voie partagée',
+        'definition' => 'Portion de voie empruntée par plusieurs lignes à la fois. Elle est dessinée une seule fois sur la carte, et chacune des lignes concernées la compte dans son parcours.',
+    ],
     'ecartement' => [
         'name' => 'Écartement',
         'definition' => 'Distance entre les faces intérieures des deux rails. L’écartement standard, celui du réseau ferré national, est de 1 435 mm.',
@@ -59,6 +63,10 @@ return [
     'rampe' => [
         'name' => 'Rampe',
         'definition' => 'Portion en montée dans le sens de la marche (en descente, on parle de pente). La déclivité s’exprime en ‰ : 10 ‰ signifie 10 mm de dénivelé par mètre, soit 1 %.',
+    ],
+    'declivite' => [
+        'name' => 'Déclivité (‰)',
+        'definition' => 'Pente d’une voie : le rapport entre la différence d’altitude et la distance parcourue, exprimé en millièmes (‰). Une déclivité de 10 ‰ correspond à 10 mètres de dénivelé pour 1 000 mètres de voie. Elle se lit sur le profil en long, repérée par PK.',
     ],
     'profil-en-long' => [
         'name' => 'Profil en long',
@@ -89,6 +97,14 @@ return [
         'name' => 'Bifurcation',
         'definition' => 'Point où une ligne se sépare en deux ; par extension, l’installation qui l’équipe.',
     ],
+    'bifurcation-lgv' => [
+        'name' => 'Bifurcation et raccordement de LGV',
+        'definition' => 'Sur une LGV, point où la ligne se divise en deux branches, ou voie courte qui la relie à une ligne classique pour que les trains passent de l’une à l’autre, souvent grâce à un saut-de-mouton. Ces raccordements permettent aux TGV de prolonger leur parcours sur le réseau classique.',
+    ],
+    'gare-de-bifurcation' => [
+        'name' => 'Gare de bifurcation',
+        'definition' => 'Gare établie à l’endroit où deux lignes se séparent, et où les voyageurs peuvent changer de ligne. Elle peut se trouver dans une petite localité : en 1867, le jury de l’exposition universelle citait Tergnier comme exemple de l’importance d’une gare de bifurcation dans une « localité sans importance ».',
+    ],
     'ite' => [
         'name' => 'ITE',
         'full' => 'Installation terminale embranchée',
@@ -114,6 +130,10 @@ return [
     'gare-de-triage' => [
         'name' => 'Gare de triage',
         'definition' => 'Gare spécialisée où les wagons de marchandises isolés sont triés pour être incorporés dans de nouveaux trains de fret.',
+    ],
+    'embarcadere' => [
+        'name' => 'Embarcadère',
+        'definition' => 'Nom employé au XIXe siècle pour la gare des premiers chemins de fer : la gare Saint-Lazare, ouverte en 1837 pour la ligne de Paris à Saint-Germain-en-Laye, était alors un « embarcadère ». Le mot survit dans certains noms de gares, comme la gare embarcadère de Sceaux.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -159,6 +179,11 @@ return [
         'full' => 'Block manuel',
         'definition' => 'Mode de cantonnement où des agents de postes successifs s’annoncent les trains par appareils de block ou par téléphone et vérifient que chaque train est complet avant de rendre la voie libre. BM désigne le block manuel de double voie.',
     ],
+    'bmu' => [
+        'name' => 'BMU',
+        'full' => 'Block manuel unifié',
+        'definition' => 'Variante du block manuel de la double voie, de type SNCF : des appareils relient les deux postes voisins, et un agent autorise l’entrée d’un train dans le canton qui les sépare. Sa version pour la voie unique est le BMVU.',
+    ],
     'bmvu' => [
         'name' => 'BMVU',
         'full' => 'Block manuel de voie unique',
@@ -191,6 +216,14 @@ return [
         'full' => 'Transmission voie-machine',
         'definition' => 'Signalisation en cabine des lignes à grande vitesse françaises : des signaux codés transmis par les rails indiquent au train la vitesse à respecter. Elle assure à la fois l’espacement des trains et le contrôle de vitesse. Elle existe en deux versions, TVM 300 et TVM 430, la seconde équipant des lignes plus récentes.',
     ],
+    'tvm-300' => [
+        'name' => 'TVM 300',
+        'definition' => 'Première version de la transmission voie-machine (TVM), analogique : le circuit de voie UM 71 transmet par les rails une consigne de vitesse parmi 18, contrôlée par paliers, sans distance but ni profil. Elle équipe la LGV Sud-Est (première mise en service commerciale le 27 septembre 1981, en TVM 260 puis 270 à l’origine), la LGV Atlantique (24 septembre 1989) et la section nord de la LGV Rhône-Alpes (13 décembre 1992).',
+    ],
+    'tvm-430' => [
+        'name' => 'TVM 430',
+        'definition' => 'Version numérique de la transmission voie-machine (TVM), installée d’abord sur la LGV Nord (première section de Gonesse à Arras mise en service le 23 mai 1993) puis sur les LGV plus récentes. Son message de 27 bits comprend une consigne de vitesse, une distance but et un profil moyen, ce qui permet au train de suivre une courbe de contrôle continue de la vitesse, y compris en cas de freinage d’urgence ; elle code des vitesses jusqu’à 320 km/h.',
+    ],
     'etcs' => [
         'name' => 'ETCS',
         'full' => 'European Train Control System',
@@ -201,6 +234,14 @@ return [
         'full' => 'European Rail Traffic Management System',
         'definition' => 'Cadre européen d’interopérabilité de la signalisation ferroviaire. Il réunit l’ETCS pour le contrôle des trains et le GSM-R pour la radio.',
     ],
+    'ertms-niveau-1' => [
+        'name' => 'ERTMS niveau 1',
+        'definition' => 'Premier niveau de l’ETCS : des balises (eurobalises) posées dans la voie transmettent au train, en des points précis, l’autorisation de mouvement. Les signaux latéraux et la détection des trains par la voie sont conservés ; le train ne reçoit donc l’information qu’au passage d’une balise.',
+    ],
+    'ertms-niveau-2' => [
+        'name' => 'ERTMS niveau 2',
+        'definition' => 'Deuxième niveau de l’ETCS : le train transmet en continu sa position au Radio Block Centre (RBC), qui lui renvoie l’autorisation de mouvement par la radio GSM-R, affichée en cabine. Les eurobalises ne servent plus qu’à repérer le train ; la détection des trains reste faite au sol (circuits de voie).',
+    ],
     'gsm-r' => [
         'name' => 'GSM-R',
         'full' => 'Global System for Mobile Communications - Railway',
@@ -209,6 +250,11 @@ return [
     'poste-d-aiguillage' => [
         'name' => 'Poste d’aiguillage',
         'definition' => 'Installation d’où des agents commandent les aiguillages et les signaux d’une zone.',
+    ],
+    'prci' => [
+        'name' => 'PRCI',
+        'full' => 'Poste à relais à commande informatique',
+        'definition' => 'Poste d’aiguillage où les enclenchements entre aiguilles et signaux sont réalisés par des relais, et la commande des itinéraires par un calculateur : un clavier et un écran remplacent le pupitre du poste à relais à câblage géographique, et l’agent peut programmer des séquences d’itinéraires. Le premier est entré en service en France en 1984.',
     ],
     'electrification' => [
         'name' => 'Électrification',
@@ -270,9 +316,17 @@ return [
         'name' => 'Fermeture au service voyageurs',
         'definition' => 'Arrêt des trains de voyageurs sur une ligne ou une portion. La ligne peut continuer à servir au fret, et elle n’est pas pour autant déclassée.',
     ],
+    'fermeture-fret' => [
+        'name' => 'Fermeture au fret',
+        'definition' => 'Fin du transport de marchandises sur une ligne ou une portion. La ligne peut garder des trains de voyageurs ; elle n’est fermée que lorsque ni les voyageurs ni le fret ne l’utilisent plus.',
+    ],
     'fermeture' => [
         'name' => 'Fermeture',
         'definition' => 'Fin de l’exploitation d’une ligne, d’une portion ou d’une gare. Sur le réseau ferré national, une ligne est fermée quand SNCF Réseau en a prononcé la fermeture, après consultation de la région. Elle se distingue de la dépose des voies et du déclassement.',
+    ],
+    'suspension-de-service' => [
+        'name' => 'Suspension de service',
+        'definition' => 'Arrêt de la circulation sur une ligne ou une portion, sans fermeture prononcée : travaux, voie dégradée ou raison de sécurité. La ligne reste dans le réseau et peut rouvrir ; une suspension qui dure peut précéder la fermeture.',
     ],
     'reouverture' => [
         'name' => 'Réouverture',
@@ -383,6 +437,10 @@ return [
         'name' => 'Dépose',
         'definition' => 'Retrait physique de la voie (rails, traverses). Une ligne peut être déposée lorsqu’elle est fermée ou déclassée ; son emprise peut subsister.',
     ],
+    'desaffectation' => [
+        'name' => 'Désaffectation',
+        'definition' => 'Constat qu’un terrain ou une installation ne sert plus au service public ferroviaire. Elle précède le déclassement, qui fait ensuite sortir le bien du domaine public ; elle ne supprime pas la voie, qui peut rester posée.',
+    ],
     'monument-historique' => [
         'name' => 'Monument historique',
         'definition' => 'Protection que l’État accorde à un bâtiment ou à un ouvrage d’intérêt d’histoire ou d’art : le classement est le niveau le plus élevé, l’inscription le niveau inférieur. Des gares, des halles, des rotondes et des viaducs en bénéficient ; le label « Architecture contemporaine remarquable » distingue des édifices plus récents.',
@@ -399,6 +457,14 @@ return [
         'name' => 'Série',
         'definition' => 'Groupe de véhicules construits sur le même modèle et portant des numéros consécutifs. L’encyclopédie présente le matériel série par série.',
     ],
+    'famille-et-version' => [
+        'name' => 'Famille et version d’un matériel',
+        'definition' => 'Plusieurs séries peuvent appartenir à une même famille, qui partage une conception et un nom commercial (Regio 2N) ; chaque version a sa propre désignation (Z 56600). Quand une source cite une version, VFF relie la ligne à cette version et non à toute la famille.',
+    ],
+    'materiel-preserve' => [
+        'name' => 'Matériel préservé',
+        'definition' => 'Exemplaire d’un matériel roulant retiré du service et conservé dans un musée, par une association, sur une ligne touristique ou sur un site. VFF indique pour chacun son numéro, son état, sa protection éventuelle au titre des monuments historiques et la source.',
+    ],
     'locomotive' => [
         'name' => 'Locomotive',
         'definition' => 'Véhicule ferroviaire qui fournit l’énergie motrice d’un train.',
@@ -410,6 +476,14 @@ return [
     'autorail' => [
         'name' => 'Autorail',
         'definition' => 'Véhicule à moteur thermique qui transporte lui-même des voyageurs, utilisé surtout sur les lignes non électrifiées.',
+    ],
+    'element-automoteur' => [
+        'name' => 'Élément automoteur',
+        'definition' => 'Rame automotrice formée de plusieurs caisses accouplées en permanence, qui roule seule grâce à ses propres moteurs, sans locomotive. La SNCF les classe selon leur motorisation : EAD (diesel), EAE (électrique) ou EAB (bimode). Les automotrices et autorails à une seule caisse forment une catégorie distincte.',
+    ],
+    'rame-a-turbine-a-gaz' => [
+        'name' => 'Rame à turbine à gaz',
+        'definition' => 'Rame automotrice dont la traction est assurée par des turbines à gaz, construite en France dans les années 1970 : d’abord les éléments à turbine à gaz (ETG), quatorze rames entrées en service entre 1970 et 1972 avec une turbine et un moteur diesel, puis les rames à turbine à gaz (RTG), quarante-quatre exemplaires livrés à partir de 1973 et alimentés au gazole. Le dernier turbotrain a terminé son service en France en décembre 2004.',
     ],
     'rame' => [
         'name' => 'Rame',

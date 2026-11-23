@@ -189,8 +189,10 @@ class LineSheetPageTest extends TestCase
             ->where('stations.2.slug', 'couterne')
             ->where('stations.0.status_today', 'no_commercial')
             ->where('stations.1.status_today', null) // n'existe plus à l'ère courante, mais reste sur la fiche
-            ->where('stations.2.pk_label', '14+600')
-            ->where('stations.2.closed_at', '1940-01-01')
+            // PK et dates : détails de la liste des gares, reçus après le premier affichage (LineSheet::pageStationDetails).
+            ->where('station_details.2.slug', 'couterne')
+            ->where('station_details.2.pk_label', '14+600')
+            ->where('station_details.2.closed_at', '1940-01-01')
             ->where('stations.1.eras', fn ($eras) => $this->rows($eras)->all() === [1890 => 'active', 1950 => 'declassified'])
             ->where('stats.station_count', 3)
         );
@@ -237,7 +239,7 @@ class LineSheetPageTest extends TestCase
         $this->getWithDeferredProps('/lines/ligne-fermee')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('stations', 3)
             ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === ['origine', 'milieu', 'terminus'])
-            ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === ['1946-03-02', '1946-03-02', '1944-09-30'])
+            ->where('station_details', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === ['1946-03-02', '1946-03-02', '1944-09-30'])
             ->where('stations', fn ($s) => $this->rows($s)->pluck('status_today')->unique()->values()->all() === ['declassified'])
             ->where('stats.station_count', 3)
             ->where('stats.station_open_count', 0)
@@ -320,7 +322,8 @@ class LineSheetPageTest extends TestCase
         $byEra = collect($service->byEra($this->line->id))->keyBy('year');
         $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === $expected->pluck('slug')->all())
-            ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === $expected->pluck('closed_at')->all())
+            ->where('station_details', fn ($s) => $this->rows($s)->pluck('slug')->all() === $expected->pluck('slug')->all())
+            ->where('station_details', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === $expected->pluck('closed_at')->all())
             ->where('stats.station_count', $expected->count())
             ->where('decades', function ($decades) use ($byEra) {
                 foreach ($decades as $d) {

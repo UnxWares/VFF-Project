@@ -90,6 +90,24 @@ class TouristRailwaysTest extends TestCase
         $this->assertSame('database', $all['Train de Reprise']['origin']);
     }
 
+    public function test_a_manual_end_after_the_import_start_ends_the_operation_unless_it_names_another_one(): void
+    {
+        $stopped = $this->line('rfn-5');
+        $this->heritage($stopped, 'heritage_start', 'tourist_train', '2007-01-01', 'Exploitation associative : Train des Arrêtés, train touristique entre A et B, depuis 2007 (d\'après le site de l\'association). Sources : IGN BD TOPO.', 35000);
+        $this->heritage($stopped, 'heritage_end', 'tourist_train', '2017-01-01', 'Fin de l\'exploitation patrimoniale de A à B (correction sourcée : ligne fermée en 2017)', 0, 'manual');
+
+        $two = $this->line('rfn-6');
+        $this->heritage($two, 'heritage_start', 'tourist_train', '2001-01-01', 'Exploitation associative : Train Premier, train touristique entre C et D, depuis 2001 (d\'après article Wikipédia de l\'exploitation). Sources : IGN BD TOPO.', 8000);
+        $this->heritage($two, 'heritage_start', 'tourist_train', '2003-01-01', 'Exploitation associative : Autre Chemin de Fer Voisin, train touristique entre D et E, depuis 2003 (d\'après article Wikipédia de l\'exploitation). Sources : IGN BD TOPO.', 9000);
+        $this->heritage($two, 'heritage_end', 'tourist_train', '2015-01-01', 'Fin de l\'exploitation patrimoniale (Autre Chemin de Fer Voisin) de D à E (correction sourcée : cessation)', 0, 'manual');
+
+        $all = $this->railways();
+
+        $this->assertArrayNotHasKey('Train des Arrêtés', $all, 'la fin manuelle retire une exploitation seule de son type sur la ligne');
+        $this->assertArrayHasKey('Train Premier', $all, 'une fin manuelle qui cite une autre exploitation ne retire pas celle-ci');
+        $this->assertArrayNotHasKey('Autre Chemin de Fer Voisin', $all);
+    }
+
     public function test_an_attested_operation_has_no_start_year_unless_a_correction_gives_one(): void
     {
         $line = $this->line('rfn-5');
@@ -110,6 +128,18 @@ class TouristRailwaysTest extends TestCase
         $this->heritage($line, 'heritage_start', 'tourist_train', '2001-01-01', 'Exploitation associative : Vélorail du Larzac, train touristique, depuis 2001 (d\'après article Wikipédia de l\'exploitation). Sources : IGN BD TOPO.', 8200);
 
         $this->assertSame('velorail', $this->railways()['Vélorail du Larzac']['type']);
+    }
+
+    public function test_the_section_season_and_article_version_of_the_catalogue_are_served(): void
+    {
+        $r = $this->railways()['Train Thur Doller Alsace'];
+
+        $this->assertSame(['from' => 'Cernay-Saint-André', 'to' => 'Sentheim'], $r['section']);
+        $this->assertStringContainsString('oldid=238310486', $r['detail_source_url']);
+        $this->assertNull($r['opened_on']);
+        $this->assertSame('d\'avril à octobre', $this->railways()['Le p\'tit train de Saint-Trojan']['season']);
+        $this->assertSame('2012-06-28', $this->railways()['Panoramique des Dômes']['opened_on']);
+        $this->assertNull($this->railways()['Vélo-rail du Grand Morin']['section']);
     }
 
     public function test_a_catalogue_operation_without_a_database_match_is_listed_without_length(): void

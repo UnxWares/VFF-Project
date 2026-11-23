@@ -75,10 +75,16 @@ final class AccidentQuery
             if ($date !== null) {
                 $query->whereRaw("({$date[0]})", $date[1]);
             } else {
-                $search = SearchQuery::parse($q);
-                $keys = SearchFields::keys('accident', 'accidents.');
-                $approximate = $search->onlyApproximate(Accident::query(), $keys);
-                $search->where($query, $keys, approximate: $approximate);
+                // Une année à côté d'autres mots (« Lagny 1933 ») : les accidents de cette année, par les autres mots.
+                [$year, $search] = SearchQuery::parse($q)->splitYear();
+                if ($year !== null) {
+                    $query->whereRaw('EXTRACT(YEAR FROM accidents.occurred_on) = ?', [$year]);
+                }
+                if (! $search->isEmpty()) {
+                    $keys = SearchFields::keys('accident', 'accidents.');
+                    $approximate = $search->onlyApproximate(Accident::query(), $keys);
+                    $search->where($query, $keys, approximate: $approximate);
+                }
             }
         }
         $from = isset($filters['from']) ? (int) $filters['from'] : null;

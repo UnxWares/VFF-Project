@@ -330,7 +330,7 @@ return [
         'col_status' => 'Usage sur la fiche',
         'differs_from' => 'Autre date pour le même fait :',
         'correct' => 'Corriger',
-        'correct_label' => 'Proposer une correction : :event, :date',
+        'correct_label' => 'Corriger : :event, :date',
         'conflict_title' => 'Les sources divergent',
         'status' => [
             'retained' => 'Retenu',

@@ -2,9 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Module neuf à chaque test : le chargement mémorisé ne passe pas d'un test à l'autre. */
 let loadMaplibre;
+let hasPmtilesProtocol;
 beforeEach(async () => {
     vi.resetModules();
-    ({ loadMaplibre } = await import('../../resources/js/lib/loadMaplibre.js'));
+    ({ loadMaplibre, hasPmtilesProtocol } = await import('../../resources/js/lib/loadMaplibre.js'));
 });
 
 describe('loadMaplibre', () => {
@@ -52,5 +53,23 @@ describe('loadMaplibre', () => {
                 async () => Promise.reject(new Error('réseau')),
             ),
         ).resolves.toBe(lib);
+    });
+
+    it('dit si le fond de carte libre peut être lu (protocole enregistré)', async () => {
+        const lib = { Map: class {} };
+        expect(hasPmtilesProtocol()).toBe(false);
+        await loadMaplibre(
+            async () => lib,
+            async () => ({ registerPmtilesProtocol: () => true }),
+        );
+        expect(hasPmtilesProtocol()).toBe(true);
+    });
+
+    it('signale le protocole absent quand son module ne se charge pas', async () => {
+        await loadMaplibre(
+            async () => ({ Map: class {} }),
+            async () => Promise.reject(new Error('réseau')),
+        );
+        expect(hasPmtilesProtocol()).toBe(false);
     });
 });

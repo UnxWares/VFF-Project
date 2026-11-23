@@ -175,4 +175,18 @@ class ImportCommonsCandidatesTest extends TestCase
         $this->artisan('vff:import-commons-candidates', ['file' => $this->file])->assertSuccessful();
         $this->assertSame(['3'], Media::query()->pluck('external_id')->all());
     }
+
+    public function test_text_search_refuses_homonym_stations_abroad_and_in_other_departments(): void
+    {
+        $station = Station::factory()->create(['name' => 'Walheim', 'city' => 'Walheim', 'department_code' => '68', 'wikidata_id' => 'Q1']);
+        $this->write($station, [
+            ['pageid' => 1, 'via' => 'search', 'category' => null, 'distance_m' => null, 'meta' => $this->meta('File:Bahnhof Walheim.jpg', ['caption' => 'Nahverkehr auf der Frankenbahn (KBS 780)', 'categories' => ['Trains in Landkreis Ludwigsburg', 'Bahnhof Walheim (Württ)']])],
+            ['pageid' => 2, 'via' => 'search', 'category' => null, 'distance_m' => null, 'meta' => $this->meta('File:Gare de Walheim 1.jpg', ['caption' => 'La gare de Walheim (Gard)', 'categories' => ['Gare de Walheim']])],
+            ['pageid' => 3, 'via' => 'search', 'category' => null, 'distance_m' => null, 'meta' => $this->meta('File:Gare de Walheim 2.jpg', ['caption' => 'La gare de Walheim', 'categories' => ['Gare de Walheim']])],
+            ['pageid' => 4, 'via' => 'search', 'category' => null, 'distance_m' => null, 'meta' => $this->meta('File:Gare de Walheim 3.jpg', ['caption' => 'La gare de Walheim, Haut-Rhin', 'categories' => ['Gare de Walheim', 'Train stations in Haut-Rhin']])],
+        ]);
+
+        $this->artisan('vff:import-commons-candidates', ['file' => $this->file])->assertSuccessful();
+        $this->assertSame(['4'], Media::query()->pluck('external_id')->all());
+    }
 }

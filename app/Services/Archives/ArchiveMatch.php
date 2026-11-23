@@ -29,6 +29,12 @@ final readonly class ArchiveMatch
         return in_array($code, array_column($this->reasons, 'code'), true);
     }
 
+    /** Copie du jugement avec une raison de plus, sans point (le score ne change pas). */
+    public function withReason(string $code): self
+    {
+        return new self($this->lineId, $this->score, [...$this->reasons, ['code' => $code, 'points' => 0]], $this->places, $this->rejected, $this->keys, $this->lineSince);
+    }
+
     public function passes(int $threshold): bool
     {
         return $this->rejected === null && $this->score >= $threshold;

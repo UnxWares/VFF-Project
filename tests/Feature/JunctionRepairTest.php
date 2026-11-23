@@ -193,6 +193,67 @@ class JunctionRepairTest extends TestCase
         $this->assertEqualsWithDelta(2000, $this->totalLength(), 1);
     }
 
+    /**
+     * Règle 2 bis : deux lignes roulent sur les mêmes voies d'une gare ; deux voies parallèles qui ne se touchent pas
+     * (aiguillage absent des sources) et l'autre ligne L y est dessinée avec un changement de voie estimé. Le trou de la
+     * ligne est comblé par le dessin de L, au bit près, avec sa provenance (courbe estimée gardée « raccord-lisse »),
+     * jamais par une courbe propre à côté (gare de Domfront, 432000 et 437000 sur 436000).
+     *
+     * @return array{0: Line, 1: array<string, float|int>}
+     */
+    private function holeOnOtherDrawing(array $curve, ?int $otherGauge = 1435): array
+    {
+        $other = Line::factory()->create(['code' => '436000', 'gauge_mm_default' => $otherGauge]);
+        $east = $this->trace($other, 'osm', [[0, 0], [1000, 0]]);
+        $west = $this->trace($other, 'osm', [[1080, 10], [2000, 10]]);
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1080, 10], [2000, 10]]], [$east, $west], null, $other);
+        $this->part('osm', [$curve], [], JunctionRepair::SMOOTHED, $other);
+        // La ligne : recalée sur les deux voies de L, arrêtée de part et d'autre du changement de voie.
+        $this->part('archeoferroviaire', [[[0, 0], [980, 0]], [[1100, 10], [2000, 10]]], [], 'osm');
+
+        return [$other, $this->repair()];
+    }
+
+    /** Écart maximal (m) du dessin de la ligne à celui de L entre x = 900 et x = 1 200. */
+    private function gapToOther(Line $other): float
+    {
+        return (float) DB::selectOne(<<<'SQL'
+            WITH w AS (SELECT ST_MakeEnvelope(:x0, :y0, :x1, :y1, 2154) AS w),
+            a AS (SELECT ST_Intersection(ST_Collect(ST_Transform(geom, 2154)), w.w) AS g FROM line_reference_parts, w WHERE line_id = :line GROUP BY w.w),
+            o AS (SELECT ST_Collect(ST_Transform(geom, 2154)) AS g FROM line_reference_parts WHERE line_id = :other)
+            SELECT ST_HausdorffDistance(a.g, ST_Intersection(o.g, w.w)) AS d FROM a, o, w
+            SQL, ['x0' => self::X0 + 900, 'y0' => self::Y0 - 50, 'x1' => self::X0 + 1200, 'y1' => self::Y0 + 50, 'line' => $this->line->id, 'other' => $other->id])->d;
+    }
+
+    public function test_hole_on_the_drawing_of_another_line_is_filled_by_that_drawing(): void
+    {
+        [$other, $stats] = $this->holeOnOtherDrawing([[1000, 0], [1020, 0.6], [1040, 2.5], [1060, 6.2], [1080, 10]]);
+
+        $this->assertSame(1, $stats['hole_on_drawing']);
+        $this->assertEqualsWithDelta(121, $stats['hole_on_drawing_m'], 1);
+        $this->assertSame(0, $stats['hole_smoothed']);
+        $this->assertSame([[0.0, 0.0], [2000.0, 10.0]], $this->freeEnds());
+        $this->assertLessThan(0.01, $this->gapToOther($other));
+        // Provenance de L : voie OSM sur ses morceaux précis, courbe estimée sur son changement de voie (80,6 m).
+        $estimated = (float) DB::selectOne("SELECT SUM(ST_Length(ST_Transform(geom, 2154))) AS m FROM line_reference_parts WHERE line_id = ? AND matched_source = 'raccord-lisse'",
+            [$this->line->id])->m;
+        $this->assertEqualsWithDelta(80.6, $estimated, 0.5);
+    }
+
+    public function test_hole_on_another_line_drawing_with_a_detour_is_not_taken(): void
+    {
+        // Dessin de L qui fait une bosse de 100 m : 252 m pour un trou de 120 m (> 1,5 × 120 + 30).
+        [$other, $stats] = $this->holeOnOtherDrawing([[1000, 0], [1020, 80], [1040, 100], [1060, 80], [1080, 10]]);
+        $this->assertSame(0, $stats['hole_on_drawing']);
+        $this->assertGreaterThan(5, $this->gapToOther($other));
+    }
+
+    public function test_hole_on_the_drawing_of_a_line_of_another_gauge_is_not_taken(): void
+    {
+        [, $stats] = $this->holeOnOtherDrawing([[1000, 0], [1020, 0.6], [1040, 2.5], [1060, 6.2], [1080, 10]], 1000);
+        $this->assertSame(0, $stats['hole_on_drawing']);
+    }
+
     public function test_straight_fill_never_changes_track_but_the_repair_after_single_axis_may(): void
     {
         // Aiguillages aux sommets partagés (comme dans la BD TOPO et OSM).

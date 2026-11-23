@@ -33,6 +33,7 @@ return [
         'heritage' => 'Patrimoine ferroviaire protégé',
         'chronology' => 'Chronologie du rail en France',
         'signalling_map' => 'Carte de la signalisation',
+        'preserved_stock' => 'Matériel roulant préservé',
     ],
     // Développé des sigles affichés sur les fiches (title des <abbr>), par sigle.
     'abbr' => [
@@ -44,6 +45,7 @@ return [
         'BAL' => 'Block automatique lumineux',
         'BAPR' => 'Block automatique à permissivité restreinte',
         'BM' => 'Block manuel',
+        'BMU' => 'Block manuel unifié',
         'BMVU' => 'Block manuel de voie unique',
         'CCVU' => 'Commande centralisée de voie unique',
         'KVB' => 'Contrôle de vitesse par balises',
@@ -51,6 +53,7 @@ return [
         'ETCS' => 'European Train Control System',
         'ERTMS' => 'European Rail Traffic Management System',
         'GSM-R' => 'Global System for Mobile Communications - Railway',
+        'PRCI' => 'Poste à relais à commande informatique',
         'RFN' => 'Réseau ferré national',
         'TER' => 'Transport express régional',
         'RER' => 'Réseau express régional',

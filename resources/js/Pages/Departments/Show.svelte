@@ -33,7 +33,9 @@
         lines = [],
         communes = [],
         accidents,
+        // Carte des lignes et des gares : prop différée (DepartmentController::show), absente au premier affichage.
         map,
+        map_station_count = 0,
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -462,12 +464,14 @@
         >
             <div class="map-lines">
                 <div class="map-col">
-                    <div class="map-frame">
-                        <CommuneMap {map} name={department.name} />
+                    <div class="map-frame" aria-busy={!map}>
+                        {#if map}
+                            <CommuneMap {map} name={department.name} />
+                        {/if}
                     </div>
                     <p class="map-note">
                         {t('departments.map.summary', {
-                            stations: map.stations.length,
+                            stations: map_station_count,
                             lines: lines.length,
                         })}
                     </p>

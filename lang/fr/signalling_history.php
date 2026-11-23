@@ -3,7 +3,7 @@
 // Historique de la signalisation (vff:import-signalling-history) : frise de la fiche ligne.
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
-    'title' => 'Signalisation au fil du temps',
+    'title' => 'Signalisation et protection au fil du temps',
     'intro' => 'Dates de mise en service relevées dans l’article Wikipédia de la ligne et dans d’autres documents (décisions et rapports de l’EPSF, bilans de SNCF Réseau et de l’État, presse). Le relevé est partiel : un système absent de la liste a pu être mis en service sans qu’aucun de ces documents n’en donne la date.',
     'system' => [
         'BM' => 'BM, block manuel',
@@ -33,5 +33,34 @@ return [
         'note_other' => 'Faits relevés dans les articles de Wikipédia « :title » (licence CC BY-SA 4.0). Le jour ou le mois n’apparaît que si l’article le donne.',
         'document_hint' => ':title, nouvel onglet',
         'note_documents' => 'Quand le lien porte le nom d’un éditeur, la date vient de ce document, confirmée par une source officielle ou par deux sources indépendantes. Le jour ou le mois n’apparaît que si ces documents le donnent.',
+    ],
+    'at' => [
+        'intro' => 'Date choisie dans « :section » : :date. Chaque mise en service est située par rapport à cette date.',
+        'change' => 'Choisir une autre date',
+    ],
+    'status' => [
+        'in_force' => 'En vigueur à cette date',
+        'replaced' => 'Remplacé par :system (:when)',
+        'later' => 'Pas encore en service à cette date',
+        'uncertain_year' => 'Date connue à l’année près : en service avant ou après cette date',
+        'uncertain_month' => 'Date connue au mois près : en service avant ou après cette date',
+    ],
+    // Dates contredites par des documents (corrections sourcées), repliées sous la frise.
+    'corrections' => [
+        'summary' => 'Dates contredites par des documents (:count)',
+        'intro' => 'Ces dates, lues dans un article ou un document, sont contredites par des documents plus sûrs. Elles ne sont ni dans la frise ni sur la carte.',
+        'read_in' => 'Date lue dans',
+        'original_document' => 'un document',
+        'action' => [
+            'neutralize' => 'Écartée',
+            'replace' => 'Remplacée dans la frise par la date des documents',
+        ],
+        'reason' => 'Pourquoi :',
+        'documents' => 'Contredite par :',
+    ],
+    // Ligne classique en service sans mise en service de cantonnement datée (SignallingDating, calculé) ; `checked`: date du dernier passage.
+    'dating' => [
+        'undated' => 'Aucun document libre consulté ne date la mise en service de la signalisation de cette ligne.',
+        'checked' => 'Dernière vérification : :date.',
     ],
 ];

@@ -116,8 +116,8 @@ type Line {
         era: Int @builder(method: "App\\GraphQL\\Builders\\LineSegmentBuilder@era")
     ): [LineSegment!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
-    "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
-    events: [LineEvent!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+    "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`), sans les événements dont aucune source n'est redistribuable."
+    events: [LineEvent!]! @hasMany(scopes: ["redistributable"]) @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la ligne, page par page (20 par défaut,
@@ -269,6 +269,12 @@ type Line {
     `corrections` de `GET /api/v1/lines/{line}/signalling-history` et de l'outil MCP `signalling_history`.
     """
     signalling_corrections: [SignallingCorrection!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@corrections") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+
+    """
+    Ce que VFF sait de la date de mise en service du cantonnement de la ligne, calculé et non écrit à la main : voir
+    `SignallingDating`. Même contenu que la clé `dating` de `GET /api/v1/lines/{line}/signalling-history`.
+    """
+    signalling_dating: SignallingDating! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@dating") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
@@ -1422,17 +1428,17 @@ type Station {
     "Code du département (INSEE, ex. `35`, `2A`)."
     department_code: String
 
-    "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01."
-    opened_at: Date
+    "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01. Nulle quand aucune source redistribuable ne la donne."
+    opened_at: Date @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedAt")
 
-    "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr)."
-    opened_precision: String
+    "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr) ; nulle avec `opened_at`."
+    opened_precision: String @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedPrecision")
 
     "Gare ouverte après cette année (précision `range` : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
     opened_after: Int @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedAfter")
 
-    "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
-    closed_at: Date
+    "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte, si la date est inconnue ou si aucune source redistribuable ne la donne ; quand seule l'année est connue, jour et mois valent 01."
+    closed_at: Date @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@closedAt")
 
     "Présentation de la gare, en français."
     description: String
@@ -1443,8 +1449,8 @@ type Station {
     "Longitude WGS 84, en degrés décimaux."
     lng: Float @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@lng")
 
-    "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
-    events: [StationEvent!]! @hasMany @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+    "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement ; sans les événements dont aucune source n'est redistribuable, ni les dates déduites de tels événements."
+    events: [StationEvent!]! @hasMany(scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la gare, page par page (20 par défaut,
@@ -2705,6 +2711,54 @@ type LineMaterialLink {
 
     "Fournisseur et licence de la source du lien."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+
+    """
+    Comme `LineSheetMaterial.link_doubt` : raison du doute quand toutes les preuves de la série sur la ligne
+    en portent un et qu'aucune période n'est datée (`trial`, `one_off`, `order`…), nulle pour une série qui a
+    circulé. Calculé sur tous les liens de la série sur la ligne.
+    """
+    link_doubt: String @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
+    Comme `LineSheetMaterial.earliest_on_line` : borne « pas avant la première électrification connue » d'une
+    série électrique, avec `conflict` quand une période sourcée commence avant (la période garde sa date).
+    """
+    earliest_on_line: LineSheetMaterialBound @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    "Comme `LineSheetMaterial.family` : famille dont la série est une version, quand la famille est aussi liée à la ligne."
+    family: LineSheetMaterialFamily @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    "Vrai pour une famille que la fiche de la ligne ne montre pas, parce qu'une de ses versions liées à la ligne a circulé."
+    folded_into_versions: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+}
+
+"""
+Portion de la ligne parcourue pendant une période de circulation, placée sur le tracé.
+"""
+type LineMaterialPeriodPortion {
+    "`stations` (deux gares de la ligne), `landmarks` (un point remarquable au moins, comme une bifurcation) ou `line` (la portion couvre la ligne entière)."
+    location: String!
+
+    "Première extrémité : gare (`id`, `name`) ou point remarquable (`id` nul, nom tel qu'écrit)."
+    from: LineMaterialPortionEnd
+
+    "Seconde extrémité (voir `from`)."
+    to: LineMaterialPortionEnd
+
+    "PK de début de la portion, en mètres (PK calé de la gare ou du point, jamais l'abscisse brute d'un tracé)."
+    pk_start_m: Int
+
+    "PK de fin de la portion, en mètres (au moins `pk_start_m`)."
+    pk_end_m: Int
+}
+
+"Extrémité d'une portion parcourue : gare de la ligne, ou point remarquable sans gare."
+type LineMaterialPortionEnd {
+    "Gare (`stations.id`), nulle pour un point remarquable."
+    id: Int
+
+    "Nom lisible de la gare, ou nom du point tel que la source l'écrit."
+    name: String!
 }
 
 """
@@ -2734,6 +2788,14 @@ type LineMaterialPeriod {
 
     "Relation assurée pendant cette période, quand la phrase datée cite une relation ou un itinéraire (sans `kind`, `title` ni `periods`). Nulle sinon."
     relation: LineMaterialRelation
+
+    """
+    Portion de la ligne parcourue, placée sur le tracé par ses gares d'extrémité et leurs PK calés quand la
+    source la nomme (titre de section, relation citée, portion écrite dans la phrase datée), comme `portion` de
+    `GET /api/v1/lines/{line}/materials`. Nulle quand aucune portion n'est nommée ou qu'elle n'a pas pu être
+    placée sûrement : la période vaut alors pour la ligne, sans précision.
+    """
+    portion: LineMaterialPeriodPortion @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialPeriodField")
 
     "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
     confidence: String!
@@ -3030,7 +3092,7 @@ type Accident {
     Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
     `wikidata_wikipedia`, `wikipedia_editions` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
     qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
-    lecture `retrieved_at`), `families` (familles qui confirment, dont `press` pour la presse d'époque numérisée),
+    lecture `retrieved_at` ; une source `bea-tt` dont la page d'enquête a été relue ajoute `report` : `title`, `url`, et `number` et `published` quand ils sont connus), `families` (familles qui confirment : `official`, `wikipedia`, `wikidata`, `wikidata-bare`, `wikipedia-edition` pour les listes de Wikipédia en anglais et en allemand, `press` pour la presse d'époque numérisée),
     `deaths` (bilan comparé aux articles de presse), `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
     même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
     """
@@ -4967,7 +5029,9 @@ type Query {
     """
     Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom, autres noms ou code
     à 6 chiffres, avec ou sans espace), gares (nom, commune, anciens noms, code UIC), matériels roulants et
-    accidents (par nom dans l'une des trois langues, commune ou date : `1891`, `07/2013`, `2013-07-12`).
+    accidents (par nom dans l'une des trois langues, commune ou date : `1891`, `07/2013`, `2013-07-12`),
+    plus les termes du glossaire (`glossary` : nom dans l'une des trois langues, sigle ou développé, comme
+    « TVM 430 » ou « overhead line »).
     Casse, accents, tirets, apostrophes et abréviations (St, Ste, N.-D., s/, lès) indifférents, petits mots
     facultatifs, mots dans n'importe quel ordre ; tri par pertinence (nom exact, début du nom, début d'un mot,
     tous les mots, puis le reste) ; noms approchés (`approximate`) quand moins de 3 fiches correspondent.
@@ -5148,18 +5212,19 @@ type Query {
     page par page (25 par défaut, 100 au plus), du plus ancien au plus récent, filtrables par
     ligne, type, source, département et période. Pagination par curseur : lisez
     `pageInfo { hasNextPage endCursor }` et repassez `endCursor` dans `after`. Chaque événement
-    garde sa source, sa citation et la licence de sa source (`provenance`).
+    garde sa source, sa citation et la licence de sa source (`provenance`). Un événement sans source
+    redistribuable n'y figure pas.
     """
     lineEvents(
         "Filtres facultatifs, combinés (ET)."
         filter: LineEventFilter = {} @builder(method: "App\\GraphQL\\Builders\\LineEventBuilder@filter")
     ): [LineEvent!]! @paginate(type: CONNECTION, defaultCount: 25, maxCount: 100, model: "App\\Models\\LineEvent")
 
-    "Un événement de ligne, par son identifiant."
+    "Un événement de ligne, par son identifiant ; nul pour un événement sans source redistribuable."
     lineEvent(
         "Identifiant de l'événement."
         id: ID! @eq
-    ): LineEvent @find
+    ): LineEvent @find(scopes: ["redistributable"])
 
     """
     Médias (photos, cartes postales, plans, cartes, documents) de toutes les lignes et gares,
@@ -5569,6 +5634,38 @@ type LineSheetSignalling {
 
     "Mises en service datées relevées dans l'article Wikipédia de la ligne ou dans d'autres documents (historique à part de l'état actuel ci-dessus), comme `Line.signalling_history`."
     history: [SignallingEvent!]!
+
+    "Date connue de la mise en service du cantonnement (même valeur que `Line.signalling_dating`)."
+    dating: SignallingDating
+}
+
+"""
+Date connue de la mise en service du cantonnement d'une ligne, calculée : `dated` quand au moins une mise en service
+de cantonnement (BAL, BAPR, BM, CT, TVM, ETCS) est datée et sûre, `undated` pour une ligne classique en service dont
+aucun document libre consulté ne date la signalisation, `not_applicable` pour une ligne à grande vitesse, fermée ou
+touristique seule.
+"""
+type SignallingDating {
+    "`dated`, `undated` ou `not_applicable`."
+    status: String!
+
+    "Date du dernier passage sur les documents libres (`AAAA-MM-JJ`)."
+    checked_at: Date!
+
+    "La mention, dans les trois langues du site, quand `status` vaut `undated` ; nul sinon."
+    messages: SignallingDatingMessages
+}
+
+"Mention « aucun document libre consulté ne date la mise en service de la signalisation de cette ligne » en français, anglais et allemand."
+type SignallingDatingMessages {
+    "En français."
+    fr: String!
+
+    "En anglais."
+    en: String!
+
+    "En allemand."
+    de: String!
 }
 
 "L'état de la ligne au 31/12 d'une décennie (frise « évolution »)."
@@ -5630,7 +5727,7 @@ type LineSheetStation {
     "Vrai pour une gare d'extrémité."
     is_terminal: Boolean!
 
-    "Comment la gare est rattachée à la ligne (`sncf_pk`, `wikidata_p81`, `segment`…)."
+    "Comment la gare est rattachée à la ligne (`sncf_pk`, `wikidata_p81`, `segment`, `reviewed_link` : couple gare - ligne relu à la main d'après une source…)."
     link_method: String
 
     "Première année de desserte par la ligne."
@@ -5790,7 +5887,7 @@ type LineSheetMaterial {
 
 "Borne de date d'une série sur une ligne."
 type LineSheetMaterialBound {
-    "Motif de la borne : `electrification` (pas avant la première électrification connue de la ligne, entière ou d'une section)."
+    "Motif de la borne : `electrification` (pas avant la première électrification connue de la ligne, entière ou d'une section ; ne déplace que les périodes sans source)."
     reason: String!
 
     "Date de la borne (`AAAA-MM-JJ`)."
@@ -5801,6 +5898,13 @@ type LineSheetMaterialBound {
 
     "Section nommée (`Bernay - Lisieux`) quand la première électrification est celle d'une section et non de la ligne entière, nulle sinon."
     section: String
+
+    """
+    Vrai quand une période sourcée de la série commence avant la borne : la période garde sa date (une date
+    sourcée ne se déplace jamais) et une électrification plus ancienne manque probablement dans VFF ; la borne
+    n'est alors pas une date sûre.
+    """
+    conflict: Boolean!
 }
 
 "Famille d'une série (voir `LineSheetMaterial.family`)."
@@ -5874,7 +5978,7 @@ type LineSheetMaterialPeriod {
     "Précision du début : `day`, `month` ou `year`."
     start_precision: String
 
-    "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon."
+    "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon. Seule une période sans source est ramenée : une date sourcée ne se déplace jamais."
     start_bounded_by: String
 
     "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
@@ -6842,6 +6946,9 @@ type SearchResults {
 
     "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
     accidents: [SearchAccident!]!
+
+    "Termes du glossaire (`/glossary`) dont le nom, dans l'une des trois langues, le sigle ou le développé correspond."
+    glossary: [SearchGlossaryTerm!]!
 }
 
 "Une ligne trouvée par la recherche."
@@ -6947,6 +7054,21 @@ type SearchAccident {
 
     "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
     approximate: Boolean!
+}
+
+"Un terme du glossaire trouvé par la recherche."
+type SearchGlossaryTerm {
+    "Identifiant du terme : ancre de sa définition dans la page `/glossary#{slug}`."
+    slug: String!
+
+    "Nom du terme."
+    name(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField@glossaryTermName")
+
+    "Sigle du terme (`KVB`, `TVM`), nul s'il n'en a pas."
+    abbr: String
 }
 
 "Point kilométrique d'un lieu sur une ligne (`Line.pk`)."

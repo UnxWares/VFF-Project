@@ -28,6 +28,7 @@
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
     import LineStructures from '$components/Lines/LineStructures.svelte';
     import LineArchives from '$components/Lines/LineArchives.svelte';
+    import LineSignallingDating from '$components/Lines/LineSignallingDating.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
@@ -48,6 +49,7 @@
     import { mediaCaption } from '$lib/mediaCredits.js';
     import GlossaryText from '$components/GlossaryText.svelte';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
+    import { phaseMoment } from '$lib/signallingHistory.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -60,6 +62,7 @@
         phaseStrip,
         stageNotes,
     } from '$lib/linePhases.js';
+    import { withStationDetails } from '$lib/lineStationDetails.js';
 
     /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API). Les props
      * du bas de la page (LineSheet::PAGE_DEFERRED et sections de LineController::show) arrivent juste après
@@ -74,12 +77,15 @@
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
-     *   signalling_history?: Array<any>,
-     *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
+     *   signalling_history?: Array<any>, signalling_corrections?: Array<any>,
+     *   signalling_dating?: { status: string, checked_at: string } | null,
+     *   profile?: any, profile_unavailable?: { reason: 'no_trace'|'outside_france'|'not_computed' }|null,
+     *   speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
      *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
+     *   station_details?: Array<Record<string, any>>,
      *   journal?: Array<{ slug: string, title: string, lang: string }>,
      *   companies?: Array<{ slug: string, name: string, from_year: number, to_year: number|null, to_basis: string }>,
      * }} */
@@ -117,8 +123,14 @@
         greenways: greenwaysProp,
         // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
         signalling_history: signallingHistoryProp,
+        // Dates de signalisation contredites par des documents, repliées sous la frise (LineSignallingHistory::correctionsForSheet).
+        signalling_corrections: signallingCorrectionsProp,
+        // Date connue de la mise en service du cantonnement : mention des lignes classiques sans date (App\Services\Signalling\SignallingDating).
+        signalling_dating: signallingDatingProp,
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile: profileProp,
+        // Sans profil : son motif (App\Services\Profiles\LineProfiles::unavailable), dit dans la même section.
+        profile_unavailable: profileUnavailableProp,
         // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
         structures: structuresProp,
         // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
@@ -131,6 +143,8 @@
         archive_records: archiveRecordsProp,
         // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
         story_events: storyEventsProp,
+        // Liste des gares : PK, commune et dates de chaque gare (LineSheet::pageStationDetails).
+        station_details: stationDetailsProp,
     } = $props();
 
     const deferredProps = $derived([
@@ -143,13 +157,16 @@
         levelCrossingsProp,
         greenwaysProp,
         signallingHistoryProp,
+        signallingCorrectionsProp,
         profileProp,
+        profileUnavailableProp,
         structuresProp,
         speedsProp,
         electrificationProp,
         archivesProp,
         archiveRecordsProp,
         storyEventsProp,
+        stationDetailsProp,
     ]);
     // Sections du bas de la page pas encore reçues (une valeur nulle est une réponse : section absente).
     const pending = $derived(deferredProps.some((v) => v === undefined));
@@ -162,7 +179,18 @@
     const level_crossings = $derived(levelCrossingsProp ?? { total: 0, summary: [], items: [] });
     const greenways = $derived(greenwaysProp ?? { total_length_m: 0, osm_date: null, items: [] });
     const signalling_history = $derived(signallingHistoryProp ?? []);
+    const signalling_corrections = $derived(signallingCorrectionsProp ?? []);
+    const signalling_dating = $derived(signallingDatingProp ?? null);
     const profile = $derived(profileProp ?? null);
+    // Texte de la section « Profil en long » d'une ligne sans profil, selon le motif.
+    const PROFILE_UNAVAILABLE = {
+        no_trace: 'profile.unavailable_no_trace',
+        outside_france: 'profile.unavailable_outside_france',
+        not_computed: 'profile.unavailable_not_computed',
+    };
+    const profileUnavailableKey = $derived(
+        profile ? null : (PROFILE_UNAVAILABLE[profileUnavailableProp?.reason] ?? null),
+    );
     const structures = $derived(
         structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
     );
@@ -173,6 +201,8 @@
         archiveRecordsProp ?? { total: 0, fetched_on: null, items: [] },
     );
     const story_events = $derived(storyEventsProp ?? []);
+    // Gares de la liste, avec leurs détails une fois reçus (null jusque-là).
+    const stationRows = $derived(withStationDetails(stations, stationDetailsProp));
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -1104,8 +1134,10 @@
             count={stations.length}
             intro={stations.length ? t('lines.stations.intro') : t('lines.stations.empty')}
         >
-            {#if stations.length}
-                <LineStations {stations} {eraYears} />
+            {#if stations.length && stationRows}
+                <LineStations stations={stationRows} {eraYears} />
+            {:else if stations.length}
+                <p class="stations-pending" aria-busy="true">{t('common.sheet_loading')}</p>
             {/if}
         </SheetSection>
 
@@ -1271,7 +1303,7 @@
             </SheetSection>
         {/if}
 
-        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length)}
+        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length || signalling_corrections.length || signalling_dating?.status === 'undated')}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1395,9 +1427,16 @@
                     </ol>
                 {/if}
 
-                {#if signalling_history.length}
-                    <LineSignallingHistory history={signalling_history} />
+                {#if signalling_history.length || signalling_corrections.length}
+                    <LineSignallingHistory
+                        history={signalling_history}
+                        corrections={signalling_corrections}
+                        moment={phaseMoment(phase)}
+                        momentLabel={phase ? phaseDate(phase) : null}
+                        momentSection={t('lines.section.route_through_time')}
+                    />
                 {/if}
+                <LineSignallingDating dating={signalling_dating} />
             </SheetSection>
         {/if}
 
@@ -1408,6 +1447,12 @@
 
         {#if profile}
             <LineProfile {profile} structures={structures.items} />
+        {:else if profileUnavailableKey}
+            <SheetSection
+                id="profile"
+                title={t('profile.title')}
+                intro={t(profileUnavailableKey)}
+            />
         {/if}
 
         {#if speeds && (speeds.ranges.length || speeds.history.length)}
@@ -1545,7 +1590,8 @@
     .tnum {
         font-variant-numeric: tabular-nums;
     }
-    .empty {
+    .empty,
+    .stations-pending {
         margin: 0;
         font-size: var(--vff-fs-md);
         color: var(--vff-text-muted);

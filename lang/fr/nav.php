@@ -45,6 +45,7 @@ return [
         'materials' => 'Matériel roulant',
         'accidents' => 'Accidents',
         'communes' => 'Communes',
+        'glossary' => 'Glossaire',
         'positions' => 'Position sur une ligne',
         'position_between' => "Ligne :line, PK :pk\u{00A0}: entre :from et :to",
         'position_at' => "Ligne :line, PK :pk\u{00A0}: à :station",

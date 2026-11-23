@@ -414,8 +414,10 @@ final class LineChronicle
      * @param  list<array{name: string, pk_m: ?int}>  $stations  gares de la ligne (LineStations) : noms et PK
      * @param  ?int  $lineLengthM  longueur de la ligne affichée dans l'en-tête (portion « toute la ligne »)
      */
-    public static function forLine(object $line, array $used, array $stations = [], ?int $lineLengthM = null): array
+    public static function forLine(object $line, array $used, array $stations = [], ?int $lineLengthM = null, ?string $kept = null): array
     {
+        // Condition SQL facultative sur line_events (hors du site : RedistributableDates::lineEventKept).
+        $kept ??= 'TRUE';
         $locale = app()->getLocale();
         $names = [];
         $pkByPlace = [];
@@ -449,7 +451,7 @@ final class LineChronicle
         $events = [];
         foreach (DB::select('SELECT id, type, event_date, date_precision, description, source, source_url, source_quote, confidence,
                     section_from, section_to, section_length_m, heritage_kind, reuse
-                FROM line_events WHERE line_id = ? ORDER BY event_date, id', [$line->id]) as $r) {
+                FROM line_events WHERE line_id = ? AND '.$kept.' ORDER BY event_date, id', [$line->id]) as $r) {
             // Charte : pas de tiret long à l'affichage. Raison d'une correction sourcée à part.
             [$raw, $correction] = $r->description === null ? [null, null] : EventText::splitCorrection(self::dashes($r->description));
             // Textes générés dans la langue de la page (App\Support\EventText) ; *_lang = fr quand tout

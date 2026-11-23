@@ -13,6 +13,7 @@ use App\Services\Api\LineDirectoryQuery;
 use App\Services\Api\SortedCursor;
 use App\Services\LineSheet;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\QueryBoolean;
 use Dedoc\Scramble\Attributes\Group;
@@ -274,7 +275,9 @@ class LineController extends Controller
      * `signalling`, `signalling_history`, `stops`, `media`, `events`, `history`, `segments`).
      * **Signalisation** (`signalling`) : l'état actuel (`block_systems_km`, `train_protection_km`, `ranges`,
      * SNCF Réseau) et `history`, les mises en service datées lues dans Wikipédia (même contenu que
-     * `signalling_history`).
+     * `signalling_history`), plus `dating` : la date connue du cantonnement, calculée (`status` : `dated`, `undated` pour
+     * une ligne classique en service dont aucun document libre consulté ne date la signalisation, ou `not_applicable` ;
+     * `checked_at`, date du dernier passage ; `messages` : la mention en `fr`, `en` et `de`).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par l\'annuaire ou la recherche. Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-447000')]
     #[QueryParameter('geometry', 'Joindre le tracé GeoJSON de chaque portion (`portions.geometry`) : `true` ou `false` (par défaut). Une portion dont une source n\'autorise pas la redistribution garde `geometry` à `null`, avec `geometry_withheld` et `geometry_withheld_reason`.', type: 'boolean', default: false, example: false)]
@@ -282,11 +285,11 @@ class LineController extends Controller
     #[ApiResponse(404, 'Ligne inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, '`geometry` n\'est pas un booléen.', examples: [ErrorExamples::GEOMETRY_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function show(Request $request, Line $line, LineSheet $sheet, LineSignallingHistory $signallingHistory): JsonResponse
+    public function show(Request $request, Line $line, LineSheet $sheet, LineSignallingHistory $signallingHistory, SignallingDating $dating): JsonResponse
     {
         $request->merge(['geometry' => QueryBoolean::cast($request->query('geometry'))])->validate(['geometry' => ['nullable', 'boolean']]);
 
-        return LineSheetResource::make($sheet->build($line) + ['signalling_history' => $signallingHistory->facts($line)])->response()->header('Cache-Control', 'public, max-age=300');
+        return LineSheetResource::make($sheet->build($line) + ['signalling_history' => $signallingHistory->facts($line), 'signalling_dating' => $dating->forLine($line)])->response()->header('Cache-Control', 'public, max-age=300');
     }
 
     /**

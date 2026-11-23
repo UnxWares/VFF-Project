@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\CatalogSearch;
 use App\Services\Communes\CommuneRail;
+use App\Services\GlossarySearch;
 use App\Services\Lines\LinePkPosition;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -42,6 +43,18 @@ class SearchController extends Controller
      * `GET /communes/{insee}`), par leur nom, avec le code INSEE (`insee`), le département et la population ; sans
      * noms approchés. Elles ne changent ni l'ordre ni le contenu des autres catégories.
      *
+     * `glossary` : jusqu'à 5 termes du glossaire (`/glossary#{slug}`) par leur nom, leur sigle ou leur développé dans
+     * l'une des trois langues (« TVM 430 », « KVB », « block automatique lumineux », « overhead line »), avec le nom
+     * dans chaque langue (`names`) ; même pertinence, sans noms approchés. Ils ne changent ni l'ordre ni le contenu des
+     * autres catégories.
+     *
+     * Mots génériques facultatifs (« gare », « station », « Bahnhof », « ligne », « line », « Strecke », « accident »,
+     * « UIC » : « Paris Nord station », « ligne 830 000 », « UIC 87686006 ») ; noms allemands et anglais des villes
+     * (« Straßburg », « Mülhausen ») ; une année à côté d'un lieu limite les accidents à cette année (« Lagny
+     * 1933 ») ; l'ancien slug d'une gare fusionnée ou d'une ligne renommée trouve la fiche qui l'a remplacé, en
+     * premier. Pour une commune, sa gare ouverte aux voyageurs dont le nom commence par celui de la commune vaut un
+     * nom exact (« strasbourg » : Strasbourg-Ville avant l'ancienne gare Strasbourg).
+     *
      * `pk_positions` : quand la requête est une position sur une ligne (« 570000 PK 120 », « 570000 km 120,5 »,
      * « ligne 570000 120+500 », « Paris - Bordeaux PK 300 »), la ou les lignes désignées (3 au plus) avec les gares
      * qui encadrent ce PK, la commune et le point de carte, comme `GET /lines/{line}/at-pk` ; une seule, avec
@@ -54,7 +67,8 @@ class SearchController extends Controller
      *     materials: array<array{type: 'material', slug: string, name: string, kind: string, builder: ?string, notable_unit: ?array{number: string, nickname: ?string}, approximate: bool}>,
      *     communes: array<array{type: 'commune', insee: string, slug: string, name: string, department_code: ?string, department_name: ?string, population: ?int}>,
      *     pk_positions: array<array{line: array{slug: string, code: ?string, name: string}, pk_m: int, pk_label: string, in_range: bool, bounds: array{from_m: int, to_m: int, from_label: string, to_label: string}, at_station: ?array<string, mixed>, between: ?array<string, mixed>, commune: ?string, lat: ?float, lng: ?float, position_method: ?string, position_withheld: ?string}>,
-     *     accidents: array<array{type: 'accident', slug: string, name: string, names: array{fr: string, en: string, de: string}, date: string, date_precision: 'day'|'month'|'year', kind: string, commune: ?string, department_code: ?string, lat: ?float, lng: ?float, approximate: bool}>
+     *     accidents: array<array{type: 'accident', slug: string, name: string, names: array{fr: string, en: string, de: string}, date: string, date_precision: 'day'|'month'|'year', kind: string, commune: ?string, department_code: ?string, lat: ?float, lng: ?float, approximate: bool}>,
+     *     glossary: array<array{type: 'glossary', slug: string, name: string, names: array{fr: string, en: string, de: string}, abbr: ?string}>
      * }
      */
     #[QueryParameter('q', 'Texte recherché, 2 caractères au moins : nom de ligne, code de ligne (ex. `420000`), nom de gare, de matériel ou d\'accident, commune ou date d\'accident (`1891`, `07/2013`, `12/07/2013`).', required: true, type: 'string', example: 'brest')]
@@ -65,8 +79,9 @@ class SearchController extends Controller
         'communes' => [['type' => 'commune', 'insee' => '29019', 'slug' => '29019-brest', 'name' => 'Brest', 'department_code' => '29', 'department_name' => 'Finistère', 'population' => 139602]],
         'pk_positions' => [],
         'accidents' => [],
+        'glossary' => [],
     ]])]
-    public function index(Request $request, CatalogSearch $search, CommuneRail $communes, LinePkPosition $positions): JsonResponse
+    public function index(Request $request, CatalogSearch $search, CommuneRail $communes, LinePkPosition $positions, GlossarySearch $glossary): JsonResponse
     {
         $q = CatalogSearch::normalizeQuery($request->query('q'));
 
@@ -74,6 +89,7 @@ class SearchController extends Controller
             ...$search->search($q),
             'communes' => mb_strlen($q) >= CatalogSearch::MIN_LENGTH ? $communes->search($q) : [],
             'pk_positions' => mb_strlen($q) >= CatalogSearch::MIN_LENGTH ? $positions->find($q) : [],
+            'glossary' => $glossary->search($q),
         ])
             ->header('Cache-Control', 'public, max-age=30');
     }

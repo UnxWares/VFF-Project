@@ -98,6 +98,20 @@ return [
         'quote' => 'Fermé le 19 janvier 2009 pour cause de vétusté, le tronçon entre Gisors et Serqueux est rouvert le 15 décembre 2013 au service des voyageurs',
         'reason' => 'section fermée pour vétusté du 19/01/2009 au 15/12/2013',
     ],
+    // La réouverture du 15/12/2013, au même rang « manual » : sans elle, la chronologie de cette source finit sur
+    // la fermeture de 2009 et contredit la section en service (audit des tronçons de 2030, 50 km « à revoir »).
+    [
+        'line' => '330000',
+        'action' => 'add',
+        'type' => 'reopening',
+        'date' => '2013-12-15',
+        'precision' => 'day',
+        'from' => 'Gisors',
+        'to' => 'Serqueux',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'Fermé le 19 janvier 2009 pour cause de vétusté, le tronçon entre Gisors et Serqueux est rouvert le 15 décembre 2013 au service des voyageurs',
+        'reason' => 'réouverture de la section Gisors - Serqueux (voyageurs, puis fret à nouveau en 2021)',
+    ],
     // Même ligne : « bien qu'officiellement ouverte, n'est plus exploitée depuis le 19 janvier 2009 » était lu
     // comme une ouverture le jour de la fermeture ; la section, fermée de 2009 à 2013, paraissait ouverte en 2010.
     [

@@ -9,6 +9,7 @@ use App\Models\Material;
 use App\Services\Materials\NotableUnits;
 use App\Support\Search\SearchFields;
 use App\Support\Search\SearchQuery;
+use App\Support\Search\SearchText;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
@@ -26,8 +27,14 @@ use Illuminate\Support\Facades\DB;
  * `2013-07-12`) ; un accident dont seul le mois ou l'année est connu ne répond pas à un jour précis.
  *
  * Pertinence (lignes, gares et accidents) : correspondance exacte, début du nom, mot du nom (après une espace,
- * un tiret ou une apostrophe), puis le reste ; à pertinence égale, les lignes en service passent
- * avant les lignes fermées, puis ordre alphabétique français. Insensible à la casse et aux accents.
+ * un tiret ou une apostrophe), puis le reste (SearchQuery::rankSql) ; à pertinence égale, les lignes en service
+ * passent avant les lignes fermées, les gares ouvertes aux voyageurs avant les autres, puis les plus fréquentées,
+ * puis ordre alphabétique français. Insensible à la casse et aux accents. La gare ouverte aux voyageurs d'une
+ * commune dont le nom commence par celui de la commune (« strasbourg » : Strasbourg-Ville) vaut un nom exact.
+ *
+ * Ancienne adresse : une requête qui est l'ancien slug d'une gare fusionnée (station_redirects) ou d'une ligne
+ * renommée (LineSlugRedirects) trouve la fiche qui l'a remplacé, en premier. Une année à côté d'autres mots
+ * (« Lagny 1933 ») limite les accidents à cette année.
  */
 final class CatalogSearch
 {
@@ -67,7 +74,8 @@ final class CatalogSearch
             $sq,
             SearchFields::keys('line', 'lines.'),
             // Code à 6 chiffres, espaces ignorées : « 570 000 », « 570000 » et « 5700 » trouvent 570000.
-            $digits !== null && strlen($digits) >= 3 ? ["replace(COALESCE(lines.code, ''), ' ', '') LIKE ?", [$digits.'%'], "replace(COALESCE(lines.code, ''), ' ', '') = ?", [$digits]] : null,
+            $digits !== null && strlen($digits) >= 3 ? ["replace(COALESCE(lines.code, ''), ' ', '') LIKE ?", [$digits.'%'], "replace(COALESCE(lines.code, ''), ' ', '') = ?", [$digits]]
+                : self::slugExtra('lines.slug', self::looksLikeSlug($q) ? Line::redirectSlugFor($q) : null),
             [["CASE WHEN EXISTS (
                 SELECT 1 FROM line_segments s
                 WHERE s.line_id = lines.id AND s.era_id = ? AND s.status IN ('in_service', 'single_track')
@@ -88,18 +96,28 @@ final class CatalogSearch
             $stationExtra = ['stations.uic_code LIKE ?', [$digits.'%'], 'stations.uic_code = ?', [$digits]];
         } elseif (preg_match('/^(\d{2,3}|2[ab])$/i', trim($q)) === 1) {
             $stationExtra = ['stations.department_code = ?', [strtoupper(trim($q))], 'FALSE', []];
+        } elseif ($stationLimit > 0 && self::looksLikeSlug($q)) {
+            // Une seule lecture (index unique de old_slug) : une gare fusionnée n'a plus de fiche sous son ancien slug.
+            $merged = DB::table('station_redirects as r')->join('stations as s', 's.id', '=', 'r.station_id')->where('r.old_slug', $q)->value('s.slug');
+            $stationExtra = self::slugExtra('stations.slug', is_string($merged) ? $merged : null);
         }
+        $stationKeys = SearchFields::keys('station', 'stations.');
+        [$city, $cityBind] = $sq->citySql($stationKeys[0], SearchText::sqlKeyFormula('stations.city', 'unaccent'));
         $stations = $stationLimit <= 0 ? [] : $this->ranked(
             DB::table('stations'),
             $sq,
-            SearchFields::keys('station', 'stations.'),
+            $stationKeys,
             $stationExtra,
-            // À pertinence égale : gares ouvertes aux voyageurs, puis les plus desservies, puis l'ordre alphabétique.
+            // À pertinence égale : gares ouvertes aux voyageurs, puis les plus fréquentées (correspondances exactes
+            // seulement : lue pour chaque fiche approchée, la fréquentation coûtait 35 ms), les plus desservies, puis
+            // l'ordre alphabétique.
             [["CASE WHEN stations.status = 'active' THEN 0 ELSE 1 END", []],
                 ['(SELECT COUNT(*) FROM station_lines sl WHERE sl.station_id = stations.id) DESC', []],
                 ['stations.name COLLATE "fr-x-icu"', []], ['stations.id', []]],
             ['stations.slug', 'stations.name', 'stations.city', 'stations.department_code', DB::raw('ST_X(stations.geom) AS lng'), DB::raw('ST_Y(stations.geom) AS lat')],
             $stationLimit,
+            ["stations.status = 'active' AND {$city}", $cityBind],
+            [["CASE WHEN stations.status = 'active' THEN 0 ELSE 1 END", []], [SearchFields::stationAttendance('stations.').' DESC NULLS LAST', []]],
         )->all();
 
         // Surnom d'une rame remarquable (« Patrick », « TGV Patrick ») : sa série vient en tête, avec la rame.
@@ -152,8 +170,15 @@ final class CatalogSearch
     {
         // Une date ne cherche que par la date (« 01/03/1950 » ne doit pas trouver l'accident du 1er mars par ses chiffres).
         $date = self::dateCondition($q);
+        // Une année à côté d'autres mots (« Lagny 1933 ») : les accidents de cette année, par les autres mots.
+        [$year, $sq] = $sq->splitYear();
+        if ($date === null && $year !== null && $sq->isEmpty()) {
+            $date = ['EXTRACT(YEAR FROM accidents.occurred_on) = ?', [$year]];
+        }
+        $base = Accident::query()->withCoordinates()
+            ->when($date === null && $year !== null, fn ($b) => $b->whereRaw('EXTRACT(YEAR FROM accidents.occurred_on) = ?', [$year]));
         $rows = $this->ranked(
-            Accident::query()->withCoordinates(),
+            $base,
             $date === null ? $sq : SearchQuery::parse(''),
             SearchFields::keys('accident', 'accidents.'),
             $date === null ? null : [$date[0], $date[1], 'FALSE', []],
@@ -193,13 +218,18 @@ final class CatalogSearch
      * @param  array{0: string, 1: list<mixed>, 2: string, 3: list<mixed>}|null  $extra  autre correspondance (code, date) et sa condition d'égalité (rang 0)
      * @param  list<array{0: string, 1: list<mixed>}>  $tieBreak
      * @param  list<mixed>  $columns  colonnes lues (vide : celles déjà choisies par `$base`)
+     * @param  array{0: string, 1: list<mixed>}|null  $promote  condition SQL d'une fiche classée comme un nom exact (gare de la commune cherchée)
+     * @param  list<array{0: string, 1: list<mixed>}>  $exactTieBreak  départage des seules correspondances exactes, avant `$tieBreak`
      * @return Collection<int, mixed>
      */
-    private function ranked(QueryBuilder|EloquentBuilder $base, SearchQuery $sq, array $keys, ?array $extra, array $tieBreak, array $columns, int $limit): Collection
+    private function ranked(QueryBuilder|EloquentBuilder $base, SearchQuery $sq, array $keys, ?array $extra, array $tieBreak, array $columns, int $limit, ?array $promote = null, array $exactTieBreak = []): Collection
     {
         [$nameKey, $allKey] = $keys;
         [$match, $matchBind] = $sq->matchSql($allKey, anywhere: true);
         [$rank, $rankBind] = $sq->rankSql($nameKey, $allKey);
+        if ($promote !== null && ! $sq->isEmpty()) {
+            [$rank, $rankBind] = ["CASE WHEN {$promote[0]} THEN 0 ELSE {$rank} END", [...$promote[1], ...$rankBind]];
+        }
         $exact = (clone $base)
             ->where(function ($w) use ($match, $matchBind, $extra): void {
                 $w->whereRaw("({$match})", $matchBind);
@@ -208,7 +238,7 @@ final class CatalogSearch
                 }
             })
             ->orderByRaw($extra === null ? $rank : "CASE WHEN {$extra[2]} THEN 0 ELSE {$rank} END", [...($extra[3] ?? []), ...$rankBind]);
-        foreach ($tieBreak as [$sql, $bind]) {
+        foreach ([...$exactTieBreak, ...$tieBreak] as [$sql, $bind]) {
             $exact->orderByRaw($sql, $bind);
         }
         $select = fn ($b, bool $approximate) => $columns === []
@@ -273,6 +303,22 @@ final class CatalogSearch
             "accidents.occurred_on BETWEEN ? AND ? AND accidents.date_precision IN ('day', 'month')",
             [sprintf('%04d-%02d-01', $year, $month), date('Y-m-t', (int) mktime(0, 0, 0, $month, 1, $year))],
         ];
+    }
+
+    /** Requête qui a la forme d'un slug (« osm-1234 », « archeo-ligne-de-x ») : peut-être une ancienne adresse. */
+    private static function looksLikeSlug(string $q): bool
+    {
+        return preg_match('/^[a-z0-9]+(-[a-z0-9]+)+$/', $q) === 1;
+    }
+
+    /**
+     * Correspondance « ancienne adresse » : la fiche qui a remplacé l'ancien slug, en premier (rang 0), ou null.
+     *
+     * @return array{0: string, 1: list<string>, 2: string, 3: list<string>}|null
+     */
+    private static function slugExtra(string $column, ?string $target): ?array
+    {
+        return $target === null ? null : ["{$column} = ?", [$target], "{$column} = ?", [$target]];
     }
 
     /**

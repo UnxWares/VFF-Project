@@ -34,6 +34,15 @@ final class MerimeeSource
 
     private const RAIL_TITLE = '/\b(gare|SNCF|ferroviaire|chemin de fer|PLM|P\.?O\.?|PO-Midi|Orl[ée]ans)\b/iu';
 
+    /** Ouvrages propres à une gare ou à un dépôt, dont la notice peut ne dire « chemin de fer » que dans son texte. */
+    private const WORKS_EXTRA_TITLE = '/\b(escalier|poste d.aiguillage|garde[- ]barri[èe]re|pont[- ]tournant|plaque tournante|halle ferroviaire)\b/iu';
+
+    /** Preuve ferroviaire dans le texte d'une notice (historique, description, destination). */
+    private const RAIL_TEXT = '/(chemins? de fer|ferroviaire|\bSNCF\b|\bPLM\b|locomotives?|\bla gare\b|\bgare (?:de|d[\x{2019}\']|du|des)\b|compagnie du (?:Nord|Midi|Midi|Paris|Est|Ouest)|Compagnie d.Orl[ée]ans)/iu';
+
+    /** Mots qui écartent un ouvrage d'art d'un chemin de fer (eau, canal, route romaine). */
+    private const STRUCTURE_NOT_RAIL = ['aqueduc', 'canal', 'écluse', 'site d\'écluse', 'pont-canal', 'route', 'quai'];
+
     /**
      * Télécharge le jeu s'il manque (ou avec `$refresh`) après avoir vérifié sa licence et son éditeur.
      *
@@ -95,6 +104,31 @@ final class MerimeeSource
      */
     public function railwayRecords(string $path): array
     {
+        return $this->scan($path)['railway'];
+    }
+
+    /**
+     * Notices d'ouvrage d'art (viaduc, pont, tunnel) protégées ou labellisées, sans les autres monuments.
+     *
+     * @return list<array<string, mixed>> voir `structureRecord()`
+     */
+    public function structureRecords(string $path): array
+    {
+        return $this->scan($path)['structures'];
+    }
+
+    /**
+     * Une seule lecture du fichier : gares et ouvrages de gare, ouvrages d'art.
+     *
+     * @return array{railway: list<array<string, mixed>>, structures: list<array<string, mixed>>}
+     */
+    public function scan(string $path): array
+    {
+        static $cache = [];
+        $key = $path.'|'.(string) @filemtime($path);
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
             throw new \RuntimeException("Fichier Mérimée illisible : {$path}");
@@ -105,7 +139,7 @@ final class MerimeeSource
             throw new \RuntimeException('Fichier Mérimée vide.');
         }
         $header[0] = ltrim((string) $header[0], "\xEF\xBB\xBF");
-        $out = [];
+        $out = ['railway' => [], 'structures' => []];
         while (($cells = fgetcsv($handle, 0, '|', '"', '')) !== false) {
             if (count($cells) !== count($header)) {
                 continue;
@@ -113,12 +147,18 @@ final class MerimeeSource
             $row = array_combine($header, $cells);
             $record = self::record($row);
             if ($record !== null) {
-                $out[] = $record;
+                $out['railway'][] = $record;
+
+                continue;
+            }
+            $structure = self::structureRecord($row);
+            if ($structure !== null) {
+                $out['structures'][] = $structure;
             }
         }
         fclose($handle);
 
-        return $out;
+        return $cache[$key] = $out;
     }
 
     /**
@@ -134,9 +174,33 @@ final class MerimeeSource
      */
     public static function record(array $row): ?array
     {
-        $ref = trim($row['Reference'] ?? '');
         $element = self::element($row);
-        if ($ref === '' || $element === null) {
+
+        return $element === null ? null : self::compose($row, $element, null);
+    }
+
+    /**
+     * Notice d'un ouvrage d'art (viaduc, pont, tunnel) protégé ou labellisé : les clés de `record()` avec `element` à `structure`,
+     * `kind` (`viaduct` | `bridge` | `tunnel`) et `rail_text` (le texte de la notice parle de chemin de fer).
+     *
+     * @param  array<string, string>  $row
+     * @return array<string, mixed>|null
+     */
+    public static function structureRecord(array $row): ?array
+    {
+        $kind = self::structureKind($row);
+
+        return $kind === null ? null : self::compose($row, 'structure', $kind);
+    }
+
+    /**
+     * @param  array<string, string>  $row
+     * @return array<string, mixed>|null
+     */
+    private static function compose(array $row, string $element, ?string $structureKind): ?array
+    {
+        $ref = trim($row['Reference'] ?? '');
+        if ($ref === '') {
             return null;
         }
         $designations = self::designations((string) ($row['Date_et_typologie_de_la_protection'] ?? ''));
@@ -159,9 +223,13 @@ final class MerimeeSource
         $coordinates = array_map('trim', explode(',', (string) ($row['coordonnees_au_format_WGS84'] ?? '')));
         $lat = count($coordinates) === 2 && is_numeric($coordinates[0]) ? (float) $coordinates[0] : null;
         $lng = count($coordinates) === 2 && is_numeric($coordinates[1]) ? (float) $coordinates[1] : null;
+        // Coordonnées arrondies au degré (« 43,5 », « 49,3.0000000000000004 ») : placées au hasard, jamais lues.
+        if ($lat !== null && $lng !== null && (abs($lat - round($lat)) < 1e-6 || abs($lng - round($lng)) < 1e-6)) {
+            $lat = $lng = null;
+        }
         [$from, $to] = self::years((string) ($row['Datation_de_l_edifice'] ?? ''));
 
-        return [
+        $record = [
             'ref' => $ref,
             'title' => trim((string) ($row['Titre_editorial_de_la_notice'] ?? '')),
             'denomination' => trim((string) ($row['Denomination_de_l_edifice'] ?? '')),
@@ -179,6 +247,12 @@ final class MerimeeSource
             'built_to' => $to,
             'built_period' => self::period((string) ($row['Siecle_de_la_campagne_principale_de_construction'] ?? '')),
         ];
+        if ($structureKind !== null) {
+            $record['kind'] = $structureKind;
+            $record['rail_text'] = self::railText($row) || preg_match(self::RAIL_TITLE, (string) ($row['Titre_editorial_de_la_notice'] ?? '')) === 1;
+        }
+
+        return $record;
     }
 
     /** `building` pour une gare, `works` pour un ouvrage de gare (remise, halle, marquise, rotonde), sinon null. */
@@ -191,15 +265,61 @@ final class MerimeeSource
                 return null;
             }
         }
-        if (in_array('gare', $tokens, true)) {
+        if (preg_match('/\b(t[ée]l[ée]ph[ée]rique|t[ée]l[ée]cabine|funiculaire|m[ée]tropolitain)\b/iu', $title) === 1) {
+            return null;
+        }
+        if (array_intersect($tokens, ['gare', 'gare de chemin de fer', 'gare ferroviaire']) !== []) {
             return 'building';
         }
-        if (in_array('remise ferroviaire', $tokens, true)) {
+        if (array_intersect($tokens, ['remise ferroviaire', 'halle ferroviaire']) !== []) {
             return 'works';
         }
-        if (preg_match(self::WORKS_TITLE, $title) === 1 && preg_match(self::RAIL_TITLE, $title) === 1
+        if (preg_match('/\bgarde[- ]barri[èe]re\b/iu', $title) === 1) {
+            return 'works';
+        }
+        $railTitle = preg_match(self::RAIL_TITLE, $title) === 1;
+        if ((preg_match(self::WORKS_TITLE, $title) === 1 || preg_match(self::WORKS_EXTRA_TITLE, $title) === 1) && $railTitle
             && ! in_array('hôtel de voyageurs', $tokens, true)) {
             return 'works';
+        }
+        // Château d'eau, réservoir, rotonde, maison de garde-barrière dont seul le texte parle de chemin de fer.
+        if (self::railText($row) && (array_intersect($tokens, ['château d\'eau', 'château d\u{2019}eau', 'réservoir', 'maison']) !== [] || $title !== '')
+            && preg_match('/^(?:ancien |ancienne )?(?:château d.eau|rotonde|r[ée]servoir|maison de garde|maison de garde-barri[èe]re|poste d.aiguillage)\b/iu', $title) === 1) {
+            return 'works';
+        }
+
+        return null;
+    }
+
+    /** Vrai quand l'historique, la description ou la destination d'une notice parlent de chemin de fer, de gare ou de la SNCF. */
+    public static function railText(array $row): bool
+    {
+        $text = implode(' ', array_map(fn (string $k): string => (string) ($row[$k] ?? ''),
+            ['Historique', 'Description_de_l_edifice', 'Destination_actuelle_de_l_edifice', 'Precision_sur_la_denomination', 'Observations']));
+
+        return preg_match(self::RAIL_TEXT, $text) === 1;
+    }
+
+    /**
+     * `viaduct`, `bridge` ou `tunnel` pour un ouvrage d'art de la notice (viaduc, pont, passerelle, tunnel), sinon null.
+     * Les ponts-canaux, aqueducs, écluses et routes sont écartés ; le caractère ferroviaire se décide plus loin (rapprochement
+     * avec un ouvrage de VFF porté par une ligne, ou preuve dans le texte).
+     */
+    public static function structureKind(array $row): ?string
+    {
+        $tokens = array_map(fn (string $t): string => mb_strtolower(trim($t)), explode(';', (string) ($row['Denomination_de_l_edifice'] ?? '')));
+        $title = mb_strtolower((string) ($row['Titre_editorial_de_la_notice'] ?? ''));
+        if (array_intersect($tokens, self::STRUCTURE_NOT_RAIL) !== [] || preg_match('/\b(canal|aqueduc|pont-canal|romain|romaine|antique|hydraulique|m[ée]tropolitain)\b/u', $title) === 1) {
+            return null;
+        }
+        if (in_array('tunnel', $tokens, true) || preg_match('/^(?:ancien )?tunnel\b/u', $title) === 1) {
+            return 'tunnel';
+        }
+        if (in_array('viaduc', $tokens, true) || preg_match('/^(?:ancien )?viaduc\b/u', $title) === 1) {
+            return 'viaduct';
+        }
+        if (array_intersect($tokens, ['pont', 'passerelle']) !== []) {
+            return 'bridge';
         }
 
         return null;

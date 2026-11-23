@@ -71,6 +71,9 @@ return [
         'start_year' => 'Année de début',
         'operator' => 'Exploitant',
         'website' => 'Site officiel',
+        'section' => 'Portion exploitée',
+        'season' => 'Saison',
+        'opened_on' => 'Ouverture',
     ],
     'src' => [
         'wp_list' => 'Wikipédia, liste des chemins de fer touristiques de France',
@@ -96,6 +99,25 @@ return [
         'lignes_oubliees' => 'lignes-oubliees.com',
         'vff' => 'Fiche VFF',
         'correction' => 'Correction VFF',
+        'wp_revision' => 'Wikipédia (version citée)',
+    ],
+    // Faits d'exploitation sous le nom (catalogue, article cité par detail_source).
+    'section' => 'Portion exploitée : :from - :to',
+    'section_from' => 'Départ : :from',
+    'season' => 'Saison : :season',
+    'opened_on' => 'Ouverture : :date',
+    // Saisons du catalogue (texte français), par clé seasonKey() de resources/js/lib/touristRailways.js.
+    'season_text' => [
+        'a_la_belle_saison' => 'à la belle saison',
+        'd_avril_a_octobre' => 'd’avril à octobre',
+        'd_avril_a_octobre_le_samedi_le_dimanche_et_certains_jours_feries' => 'd’avril à octobre, le samedi, le dimanche et certains jours fériés',
+        'd_avril_a_septembre' => 'd’avril à septembre',
+        'de_debut_juin_a_fin_septembre_et_pendant_certaines_vacances_scolaires' => 'de début juin à fin septembre et pendant certaines vacances scolaires',
+        'de_fevrier_a_decembre' => 'de février à décembre',
+        'de_la_mi_juin_a_la_mi_septembre' => 'de la mi-juin à la mi-septembre',
+        'du_1er_mai_au_31_octobre' => 'du 1er mai au 31 octobre',
+        'en_saison' => 'en saison',
+        'pendant_la_saison_touristique' => 'pendant la saison touristique',
     ],
     'colon' => "\u{00A0}: ",
 

@@ -132,6 +132,28 @@ WIKI;
         $this->assertNull($c['sources'][1]['published']);
     }
 
+    /** Décision du 23/11 : la fiche ligne montre les corrections, repliées sous la frise, avec leurs documents. */
+    public function test_the_line_sheet_receives_the_correction_with_its_documents_but_without_the_quote(): void
+    {
+        $this->importWikipedia($this->writeCorrections([$this->correction()]))->assertSuccessful();
+
+        $first = $this->get('/lines/rfn-974000')->assertOk()->viewData('page');
+        $this->assertContains('signalling_corrections', $first['deferredProps']['sheet'] ?? []);
+        $this->assertArrayNotHasKey('signalling_corrections', $first['props'], 'prop différée : absente du premier affichage');
+        $props = $this->get('/lines/rfn-974000', [
+            'X-Inertia' => 'true', 'X-Inertia-Version' => (string) $first['version'], 'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia-Partial-Component' => 'Lines/Show', 'X-Inertia-Partial-Data' => 'signalling_history,signalling_corrections',
+        ])->assertOk()->json('props');
+
+        $this->assertSame(['BAL'], array_column($props['signalling_history'], 'system'), 'le fait contredit reste hors de la frise');
+        $this->assertCount(1, $props['signalling_corrections']);
+        $c = $props['signalling_corrections'][0];
+        $this->assertSame(['KVB', '1989-01-01', 'year', 'neutralize', 'le KVB est de 1991, pas de 1989'], [$c['system'], $c['date'], $c['date_precision'], $c['action'], $c['reason']]);
+        $this->assertSame(['wikipedia', 'Ligne de Saint-Cloud'], [$c['original']['provider'], $c['original']['title']]);
+        $this->assertSame(['https://a.example/x', 'https://b.example/y'], array_column($c['sources'], 'url'));
+        $this->assertArrayNotHasKey('quote', $c, 'les liens suffisent, comme pour les faits');
+    }
+
     public function test_the_mcp_tool_gives_the_same_corrections_as_the_rest_api(): void
     {
         $this->importWikipedia($this->writeCorrections([$this->correction()]))->assertSuccessful();

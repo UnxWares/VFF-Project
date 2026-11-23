@@ -121,18 +121,30 @@ export function positionItems(positions, t, lang = 'fr') {
 }
 
 /**
- * Groupes de résultats, dans l'ordre affiché : position sur une ligne (PK), rubriques, lignes, gares, matériel roulant, accidents, communes, puis
+ * Une option de la liste : `plate` (code de la ligne) ou `detail` (ligne de précision) quand son groupe en a.
+ *
+ * @typedef {object} SearchItem
+ * @property {string} href
+ * @property {string} name
+ * @property {string} [icon]
+ * @property {string | null} [plate]
+ * @property {string | null} [detail]
+ */
+
+/**
+ * Groupes de résultats, dans l'ordre affiché : position sur une ligne (PK), rubriques, lignes, gares, matériel roulant, accidents,
+ * termes du glossaire, communes, puis
  * « Tous les résultats » (page de résultats, puis annuaires filtrés, une fois la recherche faite). Les groupes vides sont
  * retirés ; chaque option reçoit un indice continu et un identifiant (aria-activedescendant).
  *
  * @param {object} p
  * @param {string} p.query texte saisi, sans espaces autour
  * @param {boolean} p.suggestions champ vide = toutes les rubriques
- * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[], communes?: any[], pk_positions?: any[] }} p.results réponse de l'API
+ * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[], glossary?: any[], communes?: any[], pk_positions?: any[] }} p.results réponse de l'API
  * @param {boolean} p.searched la réponse correspond au texte saisi (ou l'appel a échoué)
  * @param {(key: string, params?: object) => string} p.t traduction
  * @param {string} p.idPrefix préfixe des identifiants
- * @param {string} [p.lang] langue de la page (nom et date des accidents)
+ * @param {string} [p.lang] langue de la page (nom et date des accidents, nom des termes du glossaire)
  */
 export function searchGroups({ query, suggestions, results, searched, t, idPrefix, lang = 'fr' }) {
     const pages =
@@ -144,6 +156,8 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
     const encoded = encodeURIComponent(query);
     const accidents = results.accidents ?? [];
     const communes = results.communes ?? [];
+    const glossary = results.glossary ?? [];
+    /** @type {{ type: string, label: string, items: SearchItem[] }[]} */
     const groups = [
         {
             type: 'position',
@@ -204,6 +218,16 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 name: a.names?.[lang] ?? a.name,
                 icon: 'bi-exclamation-triangle',
                 detail: accidentDetail(a, lang),
+            })),
+        },
+        {
+            type: 'glossary',
+            label: t('nav.search.glossary'),
+            items: glossary.map((g) => ({
+                href: `/glossary#${g.slug}`,
+                name: g.names?.[lang] ?? g.name,
+                icon: 'bi-book',
+                detail: null,
             })),
         },
         {

@@ -37,6 +37,15 @@ class E2eSeeder extends Seeder
 
     public const string DEPARTMENT = '39';
 
+    /** Gare du jeu dont l'ancienne adresse (fiche fusionnée) renvoie vers `andelot` (301). */
+    public const string MERGED_STATION_OLD_SLUG = 'osm-4242424242-andelot';
+
+    /** Ligne au slug neutre dont l'ancienne adresse « archeo-… » (database/data/line_slug_redirects.php) renvoie ici (301). */
+    public const string NEUTRAL_LINE = 'antenne-de-la-flotte';
+
+    /** Gare fermée dont la date de fermeture est un intervalle (« entre 1951 et 1960 »), près de la commune du jeu. */
+    public const string CLOSED_RANGE_STATION = 'andelot-le-haut';
+
     /** Première ère où la ligne figure (ouverture de la ligne en 1862 à 1883). */
     private const int FIRST_ERA = 1870;
 
@@ -79,11 +88,125 @@ class E2eSeeder extends Seeder
 
             $this->accident($stationIds[self::STATION], $lineId);
             $this->commune();
+            $this->redirects($stationIds[self::STATION]);
+            $this->closedRangeStation();
+            $this->doubtfulMaterials($lineId);
+            $this->quizFacts($lineId, $stationIds[self::STATION]);
         });
 
         // Fiches lues dans le cache seulement (pages /departments/39-jura et /companies/…).
         app(DepartmentFigures::class)->refresh([self::DEPARTMENT]);
         app(CompanyFigures::class)->refresh();
+    }
+
+    /**
+     * Anciennes adresses : une fiche de gare fusionnée dans `andelot` (table station_redirects) et une ligne au
+     * slug neutre dont l'ancien slug « archeo-… » vit dans le fichier versionné des redirections de lignes.
+     */
+    private function redirects(int $stationId): void
+    {
+        $now = now();
+        DB::table('station_redirects')->updateOrInsert(['old_slug' => self::MERGED_STATION_OLD_SLUG], [
+            'station_id' => $stationId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $neutral = $this->line(self::NEUTRAL_LINE, 'Antenne de La Flotte (ligne de démonstration)', '878999', 'mixed', 'secondaire');
+        $this->segment($neutral, (int) Era::query()->where('year', 2030)->value('id'), 'LINESTRING(5.9236614 46.8593999, 5.9300 46.8700)');
+    }
+
+    /**
+     * Gare fermée dont la fermeture n'est connue que par un intervalle (précision `range` : fermée après 1950, au plus
+     * tard en 1960), à moins d'un kilomètre de la gare d'Andelot : annuaire des gares et « Autour de moi ».
+     */
+    private function closedRangeStation(): void
+    {
+        $id = $this->station(['slug' => self::CLOSED_RANGE_STATION, 'name' => 'Andelot-le-Haut', 'city' => 'Andelot-en-Montagne', 'dep' => '39', 'lon' => 5.9100, 'lat' => 46.8650, 'opened' => '1862-01-01', 'pk' => 0]);
+        DB::table('stations')->where('id', $id)->update([
+            'status' => 'declassified',
+            'lifecycle' => 'disused',
+            'closed_at' => '1960-12-31',
+            'closed_precision' => 'range',
+            'provenance' => json_encode(['opened_at' => 'wikipedia', 'closed_at' => 'vff:eras-range', 'closed_after' => 1950]),
+        ]);
+    }
+
+    /**
+     * Séries citées sur la ligne sans service attesté (liens de fiabilité faible dont chaque preuve nomme un doute) :
+     * la fiche de ligne les range dans le groupe replié « Cités, sans service attesté ».
+     */
+    private function doubtfulMaterials(int $lineId): void
+    {
+        $now = now();
+        foreach ([['bb-9999-essais', 'BB 9999', 'trial'], ['z-9999-commande', 'Z 9999', 'order']] as [$slug, $name, $doubt]) {
+            DB::table('materials')->updateOrInsert(['slug' => $slug], [
+                'name' => $name,
+                'type' => 'locomotive_electrique',
+                'in_service_from' => 1980,
+                'scope' => 'france',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $materialId = (int) DB::table('materials')->where('slug', $slug)->value('id');
+            DB::table('line_materials')->updateOrInsert(['line_id' => $lineId, 'material_id' => $materialId, 'era_id' => null], [
+                'source' => 'wikipedia',
+                'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_demonstration&oldid=1',
+                'confidence' => 'low',
+                'evidence' => json_encode([['kind' => 'wikipedia_line_article', 'doubt' => $doubt]]),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
+    /**
+     * Un sujet de chaque famille du jeu « Culture du rail » tirée des données du jour (App\Services\Quiz\DailyFactPool) :
+     * ouverture d'une grande gare corrigée au jour, système de cabine d'une LGV, série de matériel citée sur une ligne
+     * (avec cinq séries du même type sans lien, pour les mauvaises réponses) et année d'un accident relu de plus de
+     * 25 ans. Quatre sujets suffisent à ouvrir le jeu (QuizSeries::OPTIONS).
+     */
+    private function quizFacts(int $lineId, int $stationId): void
+    {
+        $now = now();
+
+        DB::table('station_attendances')->updateOrInsert(['station_id' => $stationId, 'year' => 2024, 'series' => '2015-2024'], [
+            'passengers' => 1_500_000, 'footfall' => 1_500_000, 'uic_code' => '87000001', 'match_method' => 'uic',
+            'source' => 'sncf', 'dataset' => 'frequentation-gares-archive', 'created_at' => $now, 'updated_at' => $now,
+        ]);
+        DB::table('station_events')->updateOrInsert(['station_id' => $stationId, 'type' => 'opening', 'event_date' => '1862-03-04', 'source' => 'correction'], [
+            'date_precision' => 'day', 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_d%27Andelot&oldid=1',
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
+
+        $lgv = $this->line('rfn-e2e-lgv', 'LGV de démonstration', '999000', 'passenger', 'principal');
+        DB::table('lines')->where('id', $lgv)->update(['is_lgv' => true]);
+        DB::table('line_signalling_events')->updateOrInsert(['fingerprint' => sha1('e2e-lgv-tvm-430')], [
+            'line_id' => $lgv, 'system' => 'TVM-430', 'role' => 'cab', 'event_date' => '1993-05-23', 'date_precision' => 'day',
+            'scope' => 'whole_line', 'confidence' => 'high', 'origin' => 'document', 'source' => 'manual', 'source_title' => 'Bilan LOTI de démonstration',
+            'source_revision' => 1, 'source_url' => 'https://example.org/loti-demonstration.pdf', 'source_excerpt' => 'Extrait de démonstration',
+            'verification' => 'official', 'created_at' => $now, 'updated_at' => $now,
+        ]);
+
+        $cited = null;
+        foreach ([['bb-9101', 'BB 9101'], ['bb-9102', 'BB 9102'], ['bb-9103', 'BB 9103'], ['bb-9104', 'BB 9104'], ['bb-9105', 'BB 9105'], ['bb-9106', 'BB 9106']] as $i => [$slug, $name]) {
+            DB::table('materials')->updateOrInsert(['slug' => $slug], [
+                'name' => $name, 'type' => 'locomotive_diesel', 'in_service_from' => 1960 + $i * 5, 'scope' => 'france',
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $cited ??= (int) DB::table('materials')->where('slug', $slug)->value('id');
+        }
+        DB::table('line_materials')->updateOrInsert(['line_id' => $lineId, 'material_id' => $cited, 'era_id' => null], [
+            'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_demonstration&oldid=2',
+            'confidence' => 'high', 'evidence' => json_encode([['kind' => 'wikipedia_line_article']]),
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
+
+        $accidentId = (int) DB::table('accidents')->where('slug', self::ACCIDENT)->value('id');
+        DB::table('accident_sources')->updateOrInsert(['accident_id' => $accidentId, 'url' => 'https://fr.wikipedia.org/wiki/Collision_d%27Andelot-en-Montagne'], [
+            'provider' => 'wikipedia', 'external_id' => 'Collision d\'Andelot-en-Montagne', 'role' => 'article', 'title' => 'Collision d\'Andelot-en-Montagne',
+            'licence' => 'CC BY-SA 4.0', 'licence_url' => 'https://creativecommons.org/licenses/by-sa/4.0/', 'retrieved_at' => $now,
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
     }
 
     /** Commune d'Andelot-en-Montagne : contour carré simplifié qui contient la gare `andelot`. */

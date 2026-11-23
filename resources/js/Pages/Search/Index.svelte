@@ -9,14 +9,15 @@
     import {
         FILTERABLE_TYPES,
         resultDetail,
+        resultHref,
         searchHref,
         splitAround,
         typeTabs,
     } from '$lib/searchPage.js';
 
     /**
-     * Page de résultats de la recherche (/search?q=…) : lignes, gares, accidents et matériel roulant
-     * (SearchPageController). Vue « tout » : les premiers résultats de chaque groupe et un lien vers
+     * Page de résultats de la recherche (/search?q=…) : lignes, gares, accidents, matériel roulant, termes du glossaire
+     * et communes (SearchPageController). Vue « tout » : les premiers résultats de chaque groupe et un lien vers
      * la suite ; vue d'un type : tous ses résultats, page par page, avec les filtres d'état et de
      * département pour les lignes et les gares. Tout réglage est dans l'adresse (partageable).
      */
@@ -261,7 +262,7 @@
                         </div>
                         <ol class="items" start={(g.current_page - 1) * g.per_page + 1}>
                             {#each g.items as item (item.slug)}
-                                {@const href = `/${g.type}s/${item.slug}`}
+                                {@const href = resultHref(g.type, item.slug)}
                                 <li class="item">
                                     <Link class="item-link" {href}>
                                         {#if g.type === 'line' && item.code}

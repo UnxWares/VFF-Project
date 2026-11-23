@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\Communes\CommuneSheet;
+use App\Support\RedistributableDates;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -48,6 +49,8 @@ class CommuneController extends Controller
         $page = $sheet->page(strtoupper($insee), app()->getLocale());
         abort_if($page === null, 404, 'Unknown commune.');
         unset($page['map']);
+        // Dates de gare sans source redistribuable : remplacées par une source servie de même année, ou retirées.
+        $page = app(RedistributableDates::class)->communeSheet($page);
         $page['links'] = ['page' => route('communes.show', $page['commune']['slug'])];
 
         return response()->json(['data' => $page])->header('Cache-Control', 'public, max-age=600');

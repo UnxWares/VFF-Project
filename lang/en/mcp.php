@@ -34,6 +34,9 @@ return [
         'line_not_found' => 'Line not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'no_geometry' => 'The route of “:line” does not exist for the :year era: no kilometre point.',
         'profile_not_computed' => 'The longitudinal profile of “:line” has not been computed yet.',
+        'profile_unavailable_no_trace' => 'No longitudinal profile possible: no route of “:line” is known.',
+        'profile_unavailable_outside_france' => 'No longitudinal profile possible: the route of “:line” lies entirely outside France, where IGN gives no altitude.',
+        'profile_unavailable_not_computed' => 'The longitudinal profile of “:line” can be computed but has not been yet.',
         'audit_not_computed' => 'The section audit of “:line” has not been computed for :year yet.',
         'station_not_found' => 'Station not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'material_not_found' => 'Rolling stock class not found: “:query”. Look up its identifier with the search or materials tool (suggestions attached).',
@@ -52,15 +55,36 @@ return [
         'invalid_uri' => 'Invalid resource address: expected vff://{lang}/lines/{slug}, lang = fr, en or de.',
         'event_not_on_line' => 'Event :event does not belong to line :line. Use an id given by line_events, or by line_stories without `event`.',
         'no_story' => 'Event :event has no story: fewer than 3 images and documents dated within 5 years (2 images at least), or an event type without stories.',
+        'figures_not_computed' => 'These figures have not been computed on this server yet: try again later.',
+        'company_not_found' => 'Company not found: “:query”. The available addresses are in `available` (companies tool without arguments).',
+        'commune_not_found' => 'Commune not found or without railway: “:query”. Give its INSEE code (e.g. 16015) or its exact name; only communes with a station or a line have a sheet.',
+        'commune_ambiguous' => 'Several communes match “:query”: give `department` or pass the INSEE code of one of the candidates.',
+        'department_not_found' => 'Department not found or without railway: “:query”. Give its INSEE code (e.g. 16, 2A, 971) or its name (see list_departments).',
+        'invalid_pk' => 'Invalid kilometre point: “:pk”. Give kilometres (120, 120,5 or 120+500) or `pk_m` in metres.',
+        'no_stops' => 'Line “:line” has no station placed by kilometre point: no position can be given.',
+        'pk_out_of_range' => 'Kilometre point :pk is off the line, which runs from :from to :to (see `bounds`).',
     ],
 
     'truncated' => 'Answer shortened to stay under the maximum size: narrow the request (period, types, limit).',
     'truncated_page' => 'Page shortened to stay under the maximum size: next_cursor resumes at the first item not returned, so nothing is lost.',
+    'redirected' => [
+        'line' => 'The identifier “:requested” is the old address of a renamed line: this answer is its current sheet, “:current”. Use “:current” from now on and tell the user if they gave the old one.',
+        'station' => 'The identifier “:requested” is the old address of a station merged into another record (same station): this answer is the current record, “:current”. Use “:current” from now on.',
+        'accident' => 'The identifier “:requested” is the old address of a renamed or merged accident record (same accident): this answer is the current record, “:current”. Use “:current” from now on.',
+    ],
     'between' => 'between :from and :to (no source dates this change)',
     'today' => 'today',
     'dates' => [
         'unknown_after' => 'date unknown, after :year (no source gives it)',
         'unknown' => 'date unknown (no source gives it)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'A stage whose `done` is false is a date PLANNED by its source, never certain: write “planned for <date> according to <source.label>”. A project that has opened leaves this list.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'List of the units that sources say are preserved, not an inventory: a missing unit is not necessarily scrapped, and the state is the one the source reported when it was read.',
     ],
 
     'accidents' => [
@@ -96,6 +120,7 @@ return [
         'max_speed' => 'Maximum speed',
         'electrification' => 'Electrification',
         'signalling' => 'Signalling',
+        'signalling_history' => 'Signalling and train protection over time',
         'phases' => 'Phases',
         'chronology' => 'Chronology',
         'source' => 'source',

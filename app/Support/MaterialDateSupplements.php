@@ -9,17 +9,17 @@ namespace App\Support;
  */
 final class MaterialDateSupplements
 {
-    /** @var array<string, array<string, array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string}>>|null */
+    /** @var array<string, array<string, array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string, lang?: string}>>|null */
     private static ?array $rows = null;
 
     /**
-     * @return array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string}|null
+     * @return array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string, lang?: string}|null
      */
     public static function for(string $qid, string $field): ?array
     {
         if (self::$rows === null) {
             self::$rows = [];
-            /** @var list<array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string}> $data */
+            /** @var list<array{material: string, field: string, value: int|string, basis: string, source: string, revid: int|null, quote: string, lang?: string}> $data */
             $data = require database_path('data/material_date_supplements.php');
             foreach ($data as $row) {
                 self::$rows[$row['material']][$row['field']] = $row;

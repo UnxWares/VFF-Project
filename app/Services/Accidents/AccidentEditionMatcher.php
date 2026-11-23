@@ -59,9 +59,31 @@ final class AccidentEditionMatcher
         return $accident === null ? [self::UNMATCHED, null, null] : [self::MATCHED, $accident, $named[$accident->commune_insee]];
     }
 
+    /** Commune de Paris : ses gares, tunnels et stations ne sont pas des communes, mais ces lieux sont à Paris. */
+    public const PARIS_INSEE = '75056';
+
+    /**
+     * Le lieu cité est-il un lieu de Paris (gare, station, tunnel) plutôt qu'une commune ? « Gare Montparnasse »,
+     * « Paris-Gare de Lyon », « Auber station », « Batignolles tunnel » : jamais le nom d'une commune
+     * d'une autre ville (« Gare de Lyon » seule vaut Paris, « Gare de Lyon-Perrache » non).
+     */
+    public static function isParisPlace(string $name): bool
+    {
+        $name = trim($name);
+        $stations = 'Auber|Batignolles|Bir-Hakeim|Charonne|Châtelet|Couronnes|Nation';
+
+        // « Gare Montparnasse », « Paris-Gare de Lyon », « Gare d'Austerlitz » ; « Auber station », « Batignolles tunnel ».
+        return (bool) preg_match('/^(?:Paris[ -]+)?Gare (?:de |d\'|du )?(?:l\')?(?:Lyon|Montparnasse|Austerlitz|Nord|Est|Saint-Lazare|Bercy)$/iu', $name)
+            || (bool) preg_match('/^(?:'.$stations.')\s+(?:station|tunnel)$/iu', $name)
+            || (bool) preg_match('/^(?:'.$stations.')$/iu', $name);
+    }
+
     /** Code INSEE de la seule commune de ce nom (dans le département du qualificatif quand il en est un), sinon null. */
     private function commune(string $name, ?string $qualifier): ?string
     {
+        if (self::isParisPlace($name)) {
+            return self::PARIS_INSEE;
+        }
         $department = $qualifier !== null ? $this->departments->department($qualifier) : null;
         $key = PlaceNames::normalize($name).'|'.$department;
         if (! array_key_exists($key, $this->communes)) {

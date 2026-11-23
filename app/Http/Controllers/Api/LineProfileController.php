@@ -169,7 +169,9 @@ class LineProfileController extends Controller
      * en mètres, null s'il est inconnu ou seulement estimé) et leur écart au parcours (`offset_m`).
      *
      * Les profils sont calculés à l'avance, ligne par ligne : une ligne sans profil répond 404 avec
-     * `error` = `profile_not_computed`.
+     * `error` = `profile_not_computed` et le motif dans `reason` : `no_trace` (aucun tracé connu de la
+     * ligne), `outside_france` (tracé entièrement hors de France, où l'IGN ne donne pas d'altitude) ou
+     * `not_computed` (calcul possible, pas encore fait).
      *
      * @response array{
      *     line: array{slug: string, code: ?string, name: string},
@@ -203,7 +205,7 @@ class LineProfileController extends Controller
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-896000')]
     #[QueryParameter('max_points', 'Nombre de points au plus (10 à 5 000) : profil allégé, points régulièrement espacés plus les deux bouts, le point le plus bas, le plus haut et les bords des trous. Par défaut : tous les points.', type: 'int', example: 200)]
     #[ApiResponse(200, 'Profil en long de la ligne.', examples: [self::EXAMPLE])]
-    #[ApiResponse(404, 'Ligne inconnue, ou profil pas encore calculé pour cette ligne (`error` = `profile_not_computed`).', examples: [['error' => 'profile_not_computed', 'message' => 'Le profil en long de cette ligne n\'est pas encore calculé.']])]
+    #[ApiResponse(404, 'Ligne inconnue, ou pas de profil pour cette ligne (`error` = `profile_not_computed`, motif dans `reason` : `no_trace`, `outside_france` ou `not_computed`).', examples: [['error' => 'profile_not_computed', 'reason' => 'outside_france', 'message' => 'Profil en long impossible : le tracé de cette ligne est entièrement hors de France, où l\'IGN ne donne pas d\'altitude.']])]
     #[ApiResponse(422, 'Paramètre invalide (`max_points` hors de 10 à 5 000).', examples: [['message' => 'The max points field must be between 10 and 5000.', 'errors' => ['max_points' => ['The max points field must be between 10 and 5000.']]]])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(Line $line, Request $request, LineProfiles $profiles): JsonResponse
@@ -212,10 +214,7 @@ class LineProfileController extends Controller
 
         $profile = $profiles->forLine($line, $request->filled('max_points') ? $request->integer('max_points') : null);
         if ($profile === null) {
-            return response()->json([
-                'error' => 'profile_not_computed',
-                'message' => 'Le profil en long de cette ligne n\'est pas encore calculé.',
-            ], 404);
+            return self::notComputed($line, $profiles);
         }
 
         return response()->json([
@@ -267,7 +266,7 @@ class LineProfileController extends Controller
     #[QueryParameter('pk_to_m', 'PK de fin en mètres (borne incluse).', type: 'int', example: 45900)]
     #[QueryParameter('max_points', 'Nombre de points au plus (10 à 5 000). Par défaut : tous.', type: 'int', example: 500)]
     #[ApiResponse(200, 'Points du profil.', examples: [self::POINTS_EXAMPLE])]
-    #[ApiResponse(404, 'Ligne inconnue, ou profil pas encore calculé (`error` = `profile_not_computed`).', examples: [['error' => 'profile_not_computed', 'message' => 'Le profil en long de cette ligne n\'est pas encore calculé.']])]
+    #[ApiResponse(404, 'Ligne inconnue, ou pas de profil (`error` = `profile_not_computed`, motif dans `reason` : `no_trace`, `outside_france` ou `not_computed`).', examples: [['error' => 'profile_not_computed', 'reason' => 'not_computed', 'message' => 'Le profil en long de cette ligne n\'est pas encore calculé.']])]
     #[ApiResponse(422, 'Paramètre invalide (`pk_to_m` inférieur à `pk_from_m`, `max_points` hors de 10 à 5 000).', examples: [['message' => 'The pk to m field must be greater than or equal to 15000.', 'errors' => ['pk_to_m' => ['The pk to m field must be greater than or equal to 15000.']]]])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function points(Line $line, Request $request, LineProfiles $profiles): JsonResponse
@@ -279,7 +278,7 @@ class LineProfileController extends Controller
         ]);
         $profile = $profiles->find($line);
         if ($profile === null) {
-            return self::notComputed();
+            return self::notComputed($line, $profiles);
         }
         $points = $profiles->detailedPoints(
             $profile,
@@ -324,7 +323,7 @@ class LineProfileController extends Controller
         $request->validate(['pk_m' => 'required|integer|between:-100000,5000000']);
         $profile = $profiles->find($line);
         if ($profile === null) {
-            return self::notComputed();
+            return self::notComputed($line, $profiles);
         }
         $at = $profiles->altitudeAtPk($profile, $request->integer('pk_m'));
         if ($at === null) {
@@ -341,11 +340,19 @@ class LineProfileController extends Controller
         ])->header('Cache-Control', 'public, max-age=3600');
     }
 
-    private static function notComputed(): JsonResponse
+    /** 404 d'une ligne sans profil, avec son motif (LineProfiles::unavailable). */
+    private static function notComputed(Line $line, LineProfiles $profiles): JsonResponse
     {
+        $reason = $profiles->unavailable($line)['reason'] ?? 'not_computed';
+
         return response()->json([
             'error' => 'profile_not_computed',
-            'message' => 'Le profil en long de cette ligne n\'est pas encore calculé.',
+            'reason' => $reason,
+            'message' => match ($reason) {
+                'no_trace' => 'Profil en long impossible : aucun tracé de cette ligne n\'est connu.',
+                'outside_france' => 'Profil en long impossible : le tracé de cette ligne est entièrement hors de France, où l\'IGN ne donne pas d\'altitude.',
+                default => 'Le profil en long de cette ligne n\'est pas encore calculé.',
+            },
         ], 404);
     }
 }

@@ -1,0 +1,3235 @@
+{
+ "stations": [
+  {
+   "slug": "aix-en-provence",
+   "name": "Aix-en-Provence",
+   "city": "Aix-en-Provence",
+   "uic_code": "87751404",
+   "department_code": "13",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 1106279,
+   "line_count": 2
+  },
+  {
+   "slug": "aix-en-provence-marchandises",
+   "name": "Aix-en-Provence-Marchandises",
+   "city": "Aix-en-Provence",
+   "uic_code": "87674770",
+   "department_code": "13",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "aix-en-provence-tgv",
+   "name": "Aix-en-Provence-TGV",
+   "city": "Aix-en-Provence",
+   "uic_code": "87319012",
+   "department_code": "13",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 4040747,
+   "line_count": 1
+  },
+  {
+   "slug": "aixe-sur-vienne",
+   "name": "Aixe-sur-Vienne",
+   "city": "Aixe-sur-Vienne",
+   "uic_code": "87592667",
+   "department_code": "87",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 15677,
+   "line_count": 2
+  },
+  {
+   "slug": "ambrieres-centre",
+   "name": "Ambrières-Centre",
+   "city": "Ambrières-les-Vallées",
+   "uic_code": "87478636",
+   "department_code": "53",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"Ambrières\", \"source\": \"wikipedia_schema\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "athis-tours-sur-marne",
+   "name": "Athis-Tours-sur-Marne",
+   "city": "Athis",
+   "uic_code": "87174110",
+   "department_code": "51",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "aytre-les-minimes",
+   "name": "Aytré-les-Minimes",
+   "city": "Aytré",
+   "uic_code": "87402263",
+   "department_code": "17",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "balagny-st-epin",
+   "name": "Balagny-St-Épin",
+   "city": "Balagny-sur-Thérain",
+   "uic_code": "87313569",
+   "department_code": "60",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 14172,
+   "line_count": 1
+  },
+  {
+   "slug": "beaumont-26",
+   "name": "Beaumont",
+   "city": "Beaumont-lès-Valence",
+   "uic_code": null,
+   "department_code": "26",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "besancon-viotte",
+   "name": "Besançon-Viotte",
+   "city": "Besançon",
+   "uic_code": "87718007",
+   "department_code": "25",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 3197903,
+   "line_count": 3
+  },
+  {
+   "slug": "besancon-viotte-25",
+   "name": "Besançon-Viotte",
+   "city": "Geneuille",
+   "uic_code": null,
+   "department_code": "25",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "besancon-viotte-25-3",
+   "name": "Besançon-Viotte",
+   "city": "Rigney",
+   "uic_code": null,
+   "department_code": "25",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "blagny",
+   "name": "Blagny",
+   "city": "Blagny",
+   "uic_code": "87172387",
+   "department_code": "08",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bonneuil-matours",
+   "name": "Bonneuil-Matours",
+   "city": "Bonneuil-Matours",
+   "uic_code": null,
+   "department_code": "86",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bordeaux-bastide",
+   "name": "Bordeaux-Bastide",
+   "city": "Bordeaux",
+   "uic_code": "87581017",
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bordeaux-benauge",
+   "name": "Bordeaux-Bénauge",
+   "city": "Floirac",
+   "uic_code": "87581041",
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 4
+  },
+  {
+   "slug": "bordeaux-benouville",
+   "name": "Bordeaux - Bénouville",
+   "city": "Bordeaux-Saint-Clair",
+   "uic_code": null,
+   "department_code": "76",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bordeaux-cadillac",
+   "name": "Bordeaux-Cadillac",
+   "city": "Bordeaux",
+   "uic_code": null,
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bordeaux-etat",
+   "name": "Bordeaux-État",
+   "city": "Bordeaux",
+   "uic_code": null,
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 3
+  },
+  {
+   "slug": "bordeaux-passerelle",
+   "name": "Bordeaux-Passerelle",
+   "city": "Bordeaux",
+   "uic_code": "87581033",
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "bordeaux-segur",
+   "name": "Bordeaux-Ségur",
+   "city": "Bordeaux",
+   "uic_code": null,
+   "department_code": "33",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "bordeaux-st-jean",
+   "name": "Bordeaux-St-Jean",
+   "city": "Bordeaux",
+   "uic_code": "87581009",
+   "department_code": "33",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Bordeaux-Saint-Louis\", \"source\": \"wikipedia_schema\"}]",
+   "passengers": 23988186,
+   "line_count": 6
+  },
+  {
+   "slug": "bretigny",
+   "name": "Brétigny",
+   "city": "Brétigny-sur-Orge",
+   "uic_code": "87545194",
+   "department_code": "91",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Brétigny-sur-Orge\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 7200594,
+   "line_count": 2
+  },
+  {
+   "slug": "bretigny-norges",
+   "name": "Bretigny-Norges",
+   "city": "Bretigny",
+   "uic_code": "87712265",
+   "department_code": "21",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 19088,
+   "line_count": 1
+  },
+  {
+   "slug": "cametours",
+   "name": "Cametours",
+   "city": "Cametours",
+   "uic_code": "87447136",
+   "department_code": "50",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "capelle",
+   "name": "Capelle",
+   "city": "Capelle-Fermont",
+   "uic_code": null,
+   "department_code": "62",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 3
+  },
+  {
+   "slug": "capelle-en-pevele",
+   "name": "Capelle-en-Pévèle",
+   "city": "Cappelle-en-Pévèle",
+   "uic_code": null,
+   "department_code": "59",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"Cappelle-en-Pévèle\", \"source\": \"wikipedia_schema\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "chalon-sur-saone",
+   "name": "Chalon-sur-Saône",
+   "city": "Chalon-sur-Saône",
+   "uic_code": "87725002",
+   "department_code": "71",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 1696120,
+   "line_count": 5
+  },
+  {
+   "slug": "chapeauroux",
+   "name": "Chapeauroux",
+   "city": "Saint Bonnet-Laval",
+   "uic_code": "87734343",
+   "department_code": "48",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 1527,
+   "line_count": 1
+  },
+  {
+   "slug": "chasseneuil-vienne",
+   "name": "Chasseneuil (Vienne)",
+   "city": "Chasseneuil-du-Poitou",
+   "uic_code": "87575225",
+   "department_code": "86",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Chasseneuil-du-Poitou\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 30910,
+   "line_count": 1
+  },
+  {
+   "slug": "chateaurenard",
+   "name": "Châteaurenard",
+   "city": "Châteaurenard",
+   "uic_code": null,
+   "department_code": "13",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "chateauroux",
+   "name": "Châteauroux",
+   "city": "Châteauroux",
+   "uic_code": "87597005",
+   "department_code": "36",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 805216,
+   "line_count": 4
+  },
+  {
+   "slug": "chateauroux-hautes-alpes",
+   "name": "Châteauroux (Hautes-Alpes)",
+   "city": "Châteauroux-les-Alpes",
+   "uic_code": "87763482",
+   "department_code": "05",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "chatillon-sur-chalaronne",
+   "name": "Châtillon-sur-Chalaronne (MC)",
+   "city": "Châtillon-sur-Chalaronne",
+   "uic_code": null,
+   "department_code": "01",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "complexe-sportif-de-lucciana",
+   "name": "Lucciana Pôle Sportif",
+   "city": "Lucciana",
+   "uic_code": null,
+   "department_code": "2B",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Complexe sportif de Lucciana\", \"source\": \"wikidata\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "coudray-montceaux",
+   "name": "Coudray-Montceaux",
+   "city": "Le Coudray-Montceaux",
+   "uic_code": "87681635",
+   "department_code": "91",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Le Coudray-Montceaux\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 93102,
+   "line_count": 1
+  },
+  {
+   "slug": "couhe-verac",
+   "name": "Couhé-Vérac",
+   "city": "Valence-en-Poitou",
+   "uic_code": "87575340",
+   "department_code": "86",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "exideuil-sur-vienne",
+   "name": "Exideuil-sur-Vienne",
+   "city": "Exideuil-sur-Vienne",
+   "uic_code": "87592881",
+   "department_code": "16",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"Exideuil\", \"source\": \"wikidata\"}]",
+   "passengers": 834,
+   "line_count": 1
+  },
+  {
+   "slug": "frevin-capelle",
+   "name": "Frévin-Capelle",
+   "city": "Frévin-Capelle",
+   "uic_code": "87342212",
+   "department_code": "62",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 11509,
+   "line_count": 1
+  },
+  {
+   "slug": "grezan",
+   "name": "Grezan",
+   "city": "Nîmes",
+   "uic_code": null,
+   "department_code": "30",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "hasenrain",
+   "name": "Hasenrain",
+   "city": "Mulhouse",
+   "uic_code": "87181024",
+   "department_code": "68",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"Mulhouse-Hasenrain\", \"source\": \"wikidata\"}]",
+   "passengers": 566,
+   "line_count": 1
+  },
+  {
+   "slug": "ingrandes-sur-vienne",
+   "name": "Ingrandes-sur-Vienne",
+   "city": "Ingrandes",
+   "uic_code": "87575134",
+   "department_code": "86",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 12393,
+   "line_count": 1
+  },
+  {
+   "slug": "joue-les-tours",
+   "name": "Joué-lès-Tours",
+   "city": "Joué-lès-Tours",
+   "uic_code": "87571885",
+   "department_code": "37",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 65666,
+   "line_count": 3
+  },
+  {
+   "slug": "krimmeri-meinau",
+   "name": "Krimmeri-Meinau",
+   "city": "Strasbourg",
+   "uic_code": "87338525",
+   "department_code": "67",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 224277,
+   "line_count": 3
+  },
+  {
+   "slug": "la-capelle-en-thierache",
+   "name": "La Capelle-en-Thiérache",
+   "city": "La Capelle",
+   "uic_code": "87296087",
+   "department_code": "02",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"La Capelle\", \"source\": \"wikipedia_schema\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "la-douzillere",
+   "name": "La Douzillère",
+   "city": "Joué-lès-Tours",
+   "uic_code": "87009696",
+   "department_code": "37",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 17749,
+   "line_count": 1
+  },
+  {
+   "slug": "la-garenne-colombes",
+   "name": "La Garenne-Colombes",
+   "city": "Colombes",
+   "uic_code": "87386003",
+   "department_code": "92",
+   "status": "active",
+   "alt_names": "[{\"to\": 1985, \"from\": null, \"lang\": \"fr\", \"name\": \"La Garenne-Bezons\", \"quote\": \"pont dans une nouvelle gare dite La Garenne-Bezons, qui est renommée La Garenne-Colombes en 1985.\", \"source\": \"wikipedia_history\", \"to_date\": \"1985\", \"source_url\": \"https://fr.wikipedia.org/w/index.php?title=Gare_de_La_Garenne-Colombes&oldid=240339062\", \"to_precision\": \"year\"}, {\"to\": null, \"from\": 1985, \"lang\": \"fr\", \"name\": \"La Garenne-Colombes\", \"quote\": \"pont dans une nouvelle gare dite La Garenne-Bezons, qui est renommée La Garenne-Colombes en 1985.\", \"source\": \"wikipedia_history\", \"renamed\": true, \"from_date\": \"1985\", \"source_url\": \"https://fr.wikipedia.org/w/index.php?title=Gare_de_La_Garenne-Colombes&oldid=240339062\", \"from_precision\": \"year\"}]",
+   "passengers": 4965571,
+   "line_count": 2
+  },
+  {
+   "slug": "la-rabaterie",
+   "name": "La Rabaterie",
+   "city": "Joué-lès-Tours",
+   "uic_code": "87571356",
+   "department_code": "37",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "lagny-thorigny",
+   "name": "Lagny-Thorigny",
+   "city": "Thorigny-sur-Marne",
+   "uic_code": "87116319",
+   "department_code": "77",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 4011925,
+   "line_count": 1
+  },
+  {
+   "slug": "lancerf",
+   "name": "Lancerf",
+   "city": "Plourivo",
+   "uic_code": "87473850",
+   "department_code": "22",
+   "status": "active",
+   "alt_names": "[{\"to\": 1911, \"from\": null, \"lang\": \"fr\", \"name\": \"Plourivo-Lézardrieux\", \"quote\": \"Elle portait antérieurement le nom de \\\"Gare de Plourivo-Lézardrieux\\\", le changement de nom étant survenu en 1911.\", \"source\": \"wikipedia_history\", \"to_date\": \"1911\", \"source_url\": \"https://fr.wikipedia.org/w/index.php?title=Gare_de_Lancerf&oldid=229718497\", \"to_precision\": \"year\"}]",
+   "passengers": 964,
+   "line_count": 1
+  },
+  {
+   "slug": "lardenne",
+   "name": "Lardenne",
+   "city": "Toulouse",
+   "uic_code": "87611939",
+   "department_code": "31",
+   "status": "active",
+   "alt_names": "[{\"to\": \"2003\", \"from\": \"1877\", \"name\": \"Capelles\", \"source\": \"ohm\"}, {\"to\": 2003, \"from\": null, \"lang\": \"fr\", \"name\": \"Capelles\", \"quote\": \"La gare s'appelait «gare des Capelles» avant d'être renommée «gare de Lardenne» le 2003 par la Société nationale des chemi\", \"source\": \"wikipedia_history\", \"to_date\": \"2003\", \"source_url\": \"https://fr.wikipedia.org/w/index.php?title=Gare_de_Lardenne&oldid=234282888\", \"to_precision\": \"year\"}, {\"to\": null, \"from\": 2003, \"lang\": \"fr\", \"name\": \"Lardenne\", \"quote\": \"La gare s'appelait «gare des Capelles» avant d'être renommée «gare de Lardenne» le 2003 par la Société nationale des chemi\", \"source\": \"wikipedia_history\", \"renamed\": true, \"from_date\": \"2003\", \"source_url\": \"https://fr.wikipedia.org/w/index.php?title=Gare_de_Lardenne&oldid=234282888\", \"from_precision\": \"year\"}]",
+   "passengers": 18449,
+   "line_count": 1
+  },
+  {
+   "slug": "larjasse-nezel",
+   "name": "Larjasse-Nézel",
+   "city": "Larajasse",
+   "uic_code": null,
+   "department_code": "69",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "les-ormes-sur-vienne",
+   "name": "Les Ormes-sur-Vienne",
+   "city": "Les Ormes",
+   "uic_code": "87575118",
+   "department_code": "86",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Les Ormes\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 6819,
+   "line_count": 1
+  },
+  {
+   "slug": "lussac-les-chateaux",
+   "name": "Lussac-les-Châteaux",
+   "city": "Lussac-les-Châteaux",
+   "uic_code": "87575845",
+   "department_code": "86",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 33668,
+   "line_count": 2
+  },
+  {
+   "slug": "lyon-part-dieu",
+   "name": "Lyon-Part-Dieu",
+   "city": "Lyon 3e Arrondissement",
+   "uic_code": "87723197",
+   "department_code": "69",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 47278206,
+   "line_count": 3
+  },
+  {
+   "slug": "marseille-st-charles",
+   "name": "Marseille-St-Charles",
+   "city": "Marseille 3e Arrondissement",
+   "uic_code": "87751008",
+   "department_code": "13",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 19793826,
+   "line_count": 5
+  },
+  {
+   "slug": "mas-de-ponge",
+   "name": "Mas-de-Ponge",
+   "city": "Nîmes",
+   "uic_code": "87775387",
+   "department_code": "30",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "melun",
+   "name": "Melun",
+   "city": "Melun",
+   "uic_code": "87682005",
+   "department_code": "77",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 19305248,
+   "line_count": 3
+  },
+  {
+   "slug": "metz",
+   "name": "Metz",
+   "city": "Metz",
+   "uic_code": null,
+   "department_code": "57",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 0
+  },
+  {
+   "slug": "metz-chambiere",
+   "name": "Metz-Chambière",
+   "city": "Metz",
+   "uic_code": "87192062",
+   "department_code": "57",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "metz-devant-les-ponts",
+   "name": "Metz-devant-les-Ponts",
+   "city": "Metz",
+   "uic_code": "87192054",
+   "department_code": "57",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "metz-marchandises",
+   "name": "Metz-Marchandises",
+   "city": "Metz",
+   "uic_code": "87192005",
+   "department_code": "57",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "metz-nord",
+   "name": "Metz-Nord",
+   "city": "Metz",
+   "uic_code": "87192070",
+   "department_code": "57",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 103491,
+   "line_count": 1
+  },
+  {
+   "slug": "metz-ville",
+   "name": "Metz-Ville",
+   "city": "Metz",
+   "uic_code": "87192039",
+   "department_code": "57",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Metz\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 10966136,
+   "line_count": 5
+  },
+  {
+   "slug": "metzeral",
+   "name": "Metzeral",
+   "city": "Metzeral",
+   "uic_code": "87182816",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 68257,
+   "line_count": 1
+  },
+  {
+   "slug": "metzeresche",
+   "name": "Metzeresche",
+   "city": "Buding",
+   "uic_code": null,
+   "department_code": "57",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "metzervisse",
+   "name": "Metzervisse",
+   "city": "Metzervisse",
+   "uic_code": "87191338",
+   "department_code": "57",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": 6867,
+   "line_count": 1
+  },
+  {
+   "slug": "mezel-chateauredon",
+   "name": "Mézel - Châteauredon",
+   "city": "Mézel",
+   "uic_code": "8772455",
+   "department_code": "04",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "montceau-les-mines",
+   "name": "Montceau-les-Mines",
+   "city": "Montceau-les-Mines",
+   "uic_code": "87694620",
+   "department_code": "71",
+   "status": "active",
+   "alt_names": "[{\"to\": \"1934\", \"from\": \"1900\", \"name\": \"Montceaux-les-Mines\", \"source\": \"ohm\"}]",
+   "passengers": 99863,
+   "line_count": 2
+  },
+  {
+   "slug": "montceaux-vindecy",
+   "name": "Montceaux-Vindecy",
+   "city": "Vindecy",
+   "uic_code": "87694810",
+   "department_code": "71",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "montrejeau-gourdan-polignan",
+   "name": "Montréjeau-Gourdan-Polignan",
+   "city": "Gourdan-Polignan",
+   "uic_code": "87611152",
+   "department_code": "31",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 277432,
+   "line_count": 2
+  },
+  {
+   "slug": "montreuil",
+   "name": "Montreuil",
+   "city": "Versailles",
+   "uic_code": "87382879",
+   "department_code": "78",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 2248554,
+   "line_count": 1
+  },
+  {
+   "slug": "montreuil-59",
+   "name": "Montreuil",
+   "city": "Flines-lez-Raches",
+   "uic_code": null,
+   "department_code": "59",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "montreuil-belfroi",
+   "name": "Montreuil-Belfroi",
+   "city": "Montreuil-Juigné",
+   "uic_code": "87484030",
+   "department_code": "49",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "montreuil-bellay",
+   "name": "Montreuil-Bellay",
+   "city": "Montreuil-Bellay",
+   "uic_code": "87487637",
+   "department_code": "49",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 29175,
+   "line_count": 3
+  },
+  {
+   "slug": "montreuil-cernieres",
+   "name": "Montreuil-Cernières",
+   "city": "Saint-Pierre-de-Cernières",
+   "uic_code": null,
+   "department_code": "27",
+   "status": "declassified",
+   "alt_names": "[{\"name\": \"Montreuil-Cernière\", \"source\": \"lignes-oubliees\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "montreuil-sur-ille",
+   "name": "Montreuil-sur-Ille",
+   "city": "Montreuil-sur-Ille",
+   "uic_code": "87478032",
+   "department_code": "35",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 471159,
+   "line_count": 1
+  },
+  {
+   "slug": "montreuil-sur-mer",
+   "name": "Montreuil-sur-Mer",
+   "city": "Montreuil-sur-Mer",
+   "uic_code": "87317164",
+   "department_code": "62",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 58721,
+   "line_count": 2
+  },
+  {
+   "slug": "montreuil-sur-therain",
+   "name": "Montreuil-sur-Thérain",
+   "city": "Montreuil-sur-Thérain",
+   "uic_code": "87316406",
+   "department_code": "60",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 5769,
+   "line_count": 1
+  },
+  {
+   "slug": "mulhouse-dornach",
+   "name": "Mulhouse-Dornach",
+   "city": "Mulhouse",
+   "uic_code": "87182055",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Dornach\", \"source\": \"osm\"}]",
+   "passengers": 293410,
+   "line_count": 2
+  },
+  {
+   "slug": "mulhouse-dornach-tramtrain",
+   "name": "Mulhouse-Dornach (Tram/Train)",
+   "city": "Mulhouse",
+   "uic_code": "87534321",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "mulhouse-musees",
+   "name": "Mulhouse-Musées",
+   "city": "Mulhouse",
+   "uic_code": "87182964",
+   "department_code": "68",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "mulhouse-musees-tramtrain",
+   "name": "Mulhouse-Musées (Tram/Train)",
+   "city": "Mulhouse",
+   "uic_code": "87534339",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 12,
+   "line_count": 2
+  },
+  {
+   "slug": "mulhouse-nord",
+   "name": "Mulhouse-Nord",
+   "city": "Mulhouse",
+   "uic_code": "87182006",
+   "department_code": "68",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "mulhouse-ville",
+   "name": "Mulhouse-Ville",
+   "city": "Mulhouse",
+   "uic_code": "87182063",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Mulhouse\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 7953570,
+   "line_count": 2
+  },
+  {
+   "slug": "nimes",
+   "name": "Nîmes",
+   "city": "Nîmes",
+   "uic_code": "87775007",
+   "department_code": "30",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Nîmes-Centre\", \"source\": \"wikidata\"}]",
+   "passengers": 5045729,
+   "line_count": 3
+  },
+  {
+   "slug": "nimes-ie",
+   "name": "Nîmes (IE)",
+   "city": "Nîmes",
+   "uic_code": "87775908",
+   "department_code": "30",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "nimes-pont-du-gard",
+   "name": "Nîmes-Pont du Gard",
+   "city": "Manduel",
+   "uic_code": "87703975",
+   "department_code": "30",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 1168501,
+   "line_count": 2
+  },
+  {
+   "slug": "nouvel-avricourt",
+   "name": "Nouvel-Avricourt",
+   "city": "Avricourt",
+   "uic_code": "87215111",
+   "department_code": "57",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "paris-austerlitz",
+   "name": "Paris-Austerlitz",
+   "city": "Paris 13e Arrondissement",
+   "uic_code": "87547000",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 23798578,
+   "line_count": 2
+  },
+  {
+   "slug": "paris-gare-de-lyon",
+   "name": "Paris-Gare-de-Lyon",
+   "city": "Paris",
+   "uic_code": "87686006",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Paris-Lyon\", \"source\": \"wikidata\"}, {\"name\": \"Lyon\", \"source\": \"osm\"}]",
+   "passengers": 122546761,
+   "line_count": 3
+  },
+  {
+   "slug": "paris-gare-de-lyon-souterrain",
+   "name": "Paris-Gare-de-Lyon-Souterrain",
+   "city": "Paris",
+   "uic_code": "87686030",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Lyon\", \"source\": \"osm\"}]",
+   "passengers": null,
+   "line_count": 3
+  },
+  {
+   "slug": "paris-la-chapelle",
+   "name": "Paris-La Chapelle",
+   "city": "Paris",
+   "uic_code": "87278002",
+   "department_code": "75",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "paris-la-chapelle-evangile",
+   "name": "Paris-La Chapelle-Évangile",
+   "city": "Paris",
+   "uic_code": "87278135",
+   "department_code": "75",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "paris-la-villette-hebert",
+   "name": "Paris-La Villette-Hébert",
+   "city": "Paris",
+   "uic_code": "87113134",
+   "department_code": "75",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "paris-lhopital-71",
+   "name": "Paris-l'Hopital",
+   "city": "Paris-l'Hôpital",
+   "uic_code": null,
+   "department_code": "71",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "paris-nord",
+   "name": "Paris-Nord",
+   "city": "Paris 10e Arrondissement",
+   "uic_code": "87271007",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Paris Gare du Nord\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 263160032,
+   "line_count": 2
+  },
+  {
+   "slug": "paris-nord-souterraine",
+   "name": "Paris-Nord-Souterraine",
+   "city": "Paris 10e Arrondissement",
+   "uic_code": "87271023",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Paris Gare du Nord (RER)\", \"source\": \"osm\"}]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "paris-nord-surface",
+   "name": "Paris-Nord-Surface",
+   "city": "Paris 10e Arrondissement",
+   "uic_code": "87271031",
+   "department_code": "75",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Paris Gare du Nord\", \"source\": \"osm\"}]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "pleine-fougeres",
+   "name": "Pleine-Fougères",
+   "city": "Pleine-Fougères",
+   "uic_code": "87478255",
+   "department_code": "35",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "pleine-fougeres-35",
+   "name": "Pleine-Fougères",
+   "city": "Pleine-Fougères",
+   "uic_code": null,
+   "department_code": "35",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 0
+  },
+  {
+   "slug": "polienas",
+   "name": "Poliénas",
+   "city": "Poliénas",
+   "uic_code": "87761742",
+   "department_code": "38",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 49017,
+   "line_count": 1
+  },
+  {
+   "slug": "poligny",
+   "name": "Poligny",
+   "city": "Poligny",
+   "uic_code": "87718189",
+   "department_code": "39",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 130762,
+   "line_count": 2
+  },
+  {
+   "slug": "polisot",
+   "name": "Polisot",
+   "city": "Polisot",
+   "uic_code": "87118505",
+   "department_code": "10",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "polliat",
+   "name": "Polliat",
+   "city": "Polliat",
+   "uic_code": "87725846",
+   "department_code": "01",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 10338,
+   "line_count": 1
+  },
+  {
+   "slug": "polyclinique",
+   "name": "Polyclinique",
+   "city": "Furiani",
+   "uic_code": "87242461",
+   "department_code": "2B",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Sansonetti-Puliclinica\", \"source\": \"wikidata\"}]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "pont-du-casse",
+   "name": "Pont-du-Casse",
+   "city": "Pont-du-Casse",
+   "uic_code": "87586404",
+   "department_code": "47",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": 711,
+   "line_count": 1
+  },
+  {
+   "slug": "port-fluvial-de-chalon-sur-saone",
+   "name": "Port-Fluvial-de-Chalon-sur-Saône",
+   "city": "Chalon-sur-Saône",
+   "uic_code": "87729210",
+   "department_code": "71",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "portes",
+   "name": "Portes",
+   "city": "Portes-lès-Valence",
+   "uic_code": "87761205",
+   "department_code": "26",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "ruffigne-saint-aubin-des-chateaux",
+   "name": "Ruffigné - Saint-Aubin-des-Châteaux",
+   "city": "Rougé",
+   "uic_code": null,
+   "department_code": "44",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "saint-denis",
+   "name": "Saint-Denis",
+   "city": "Saint-Denis",
+   "uic_code": null,
+   "department_code": "974",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 0
+  },
+  {
+   "slug": "saint-denis-dauthou",
+   "name": "Saint-Denis-d’Authou",
+   "city": "Saintigny",
+   "uic_code": null,
+   "department_code": "28",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "saint-denis-de-cabanne",
+   "name": "Saint-Denis-de-Cabanne",
+   "city": "Saint-Denis-de-Cabanne",
+   "uic_code": null,
+   "department_code": "42",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "saint-denis-de-gastines",
+   "name": "Saint-Denis-de-Gastines",
+   "city": "Saint-Denis-de-Gastines",
+   "uic_code": null,
+   "department_code": "53",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "saint-paul-trois-chateaux",
+   "name": "Saint-Paul-Trois-Châteaux",
+   "city": "Saint-Paul-Trois-Châteaux",
+   "uic_code": null,
+   "department_code": "26",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "sete",
+   "name": "Sète",
+   "city": "Sète",
+   "uic_code": "87773200",
+   "department_code": "34",
+   "status": "active",
+   "alt_names": "[{\"to\": null, \"from\": \"1857\", \"name\": \"Sète Ville\", \"source\": \"ohm\"}]",
+   "passengers": 1647112,
+   "line_count": 3
+  },
+  {
+   "slug": "sete-ie",
+   "name": "Sète (IE)",
+   "city": "Sète",
+   "uic_code": "87773903",
+   "department_code": "34",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "st-benoit-vienne",
+   "name": "St-Benoît (Vienne)",
+   "city": "Saint-Benoît",
+   "uic_code": "87575266",
+   "department_code": "86",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 4
+  },
+  {
+   "slug": "st-brice-sur-vienne",
+   "name": "St-Brice-sur-Vienne",
+   "city": "Saint-Brice-sur-Vienne",
+   "uic_code": "87592691",
+   "department_code": "87",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 4800,
+   "line_count": 1
+  },
+  {
+   "slug": "st-cesaire",
+   "name": "St-Césaire",
+   "city": "Nîmes",
+   "uic_code": "87775072",
+   "department_code": "30",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 81148,
+   "line_count": 3
+  },
+  {
+   "slug": "st-cesaire-min",
+   "name": "St-Césaire (MIN)",
+   "city": "Nîmes",
+   "uic_code": "87775080",
+   "department_code": "30",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 3
+  },
+  {
+   "slug": "st-denis",
+   "name": "St-Denis",
+   "city": "Saint-Denis",
+   "uic_code": "87271015",
+   "department_code": "93",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Saint-Denis - L'Île-Saint-Denis\", \"source\": \"osm\"}]",
+   "passengers": 37300784,
+   "line_count": 2
+  },
+  {
+   "slug": "st-denis-de-pile",
+   "name": "St-Denis-de-Pile",
+   "city": "Saint-Denis-de-Pile",
+   "uic_code": "87584508",
+   "department_code": "33",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 36759,
+   "line_count": 1
+  },
+  {
+   "slug": "st-denis-des-murs",
+   "name": "St-Denis-des-Murs",
+   "city": "Saint-Denis-des-Murs",
+   "uic_code": "87592097",
+   "department_code": "87",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 7652,
+   "line_count": 1
+  },
+  {
+   "slug": "st-denis-pres-martel",
+   "name": "St-Denis-près-Martel",
+   "city": "Saint-Denis-lès-Martel",
+   "uic_code": "87594572",
+   "department_code": "46",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Saint-Denis-lès-Martel\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 25700,
+   "line_count": 1
+  },
+  {
+   "slug": "st-etienne-chateaucreux",
+   "name": "St-Étienne-Châteaucreux",
+   "city": "Saint-Étienne",
+   "uic_code": "87726000",
+   "department_code": "42",
+   "status": "active",
+   "alt_names": "[{\"to\": null, \"from\": \"1857\", \"name\": \"Gare Saint-Etienne Chaateaucreux\", \"source\": \"ohm\"}]",
+   "passengers": 6054642,
+   "line_count": 2
+  },
+  {
+   "slug": "st-marcel-les-valence",
+   "name": "St-Marcel-lès-Valence",
+   "city": "Alixan",
+   "uic_code": "87761601",
+   "department_code": "26",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "st-pol-de-leon",
+   "name": "St-Pol-de-Léon",
+   "city": "Saint-Pol-de-Léon",
+   "uic_code": "87474569",
+   "department_code": "29",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": 14305,
+   "line_count": 2
+  },
+  {
+   "slug": "st-pol-sur-ternoise",
+   "name": "St-Pol-sur-Ternoise",
+   "city": "Saint-Pol-sur-Ternoise",
+   "uic_code": "87342337",
+   "department_code": "62",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 287265,
+   "line_count": 3
+  },
+  {
+   "slug": "ste-segree",
+   "name": "Ste-Segrée",
+   "city": "Sainte-Segrée",
+   "uic_code": "87316596",
+   "department_code": "80",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "strasbourg",
+   "name": "Strasbourg",
+   "city": "Strasbourg",
+   "uic_code": null,
+   "department_code": "67",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 6
+  },
+  {
+   "slug": "strasbourg-cronenbourg",
+   "name": "Strasbourg-Cronenbourg",
+   "city": "Strasbourg",
+   "uic_code": "87212050",
+   "department_code": "67",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 3
+  },
+  {
+   "slug": "strasbourg-koenigshoffen",
+   "name": "Strasbourg-Koenigshoffen",
+   "city": "Strasbourg",
+   "uic_code": "87212084",
+   "department_code": "67",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 4
+  },
+  {
+   "slug": "strasbourg-neudorf",
+   "name": "Strasbourg-Neudorf",
+   "city": "Strasbourg",
+   "uic_code": "87212068",
+   "department_code": "67",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "strasbourg-port-du-rhin",
+   "name": "Strasbourg-Port-du-Rhin",
+   "city": "Strasbourg",
+   "uic_code": "87212076",
+   "department_code": "67",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 2
+  },
+  {
+   "slug": "strasbourg-roethig",
+   "name": "Strasbourg-Roethig",
+   "city": "Strasbourg",
+   "uic_code": "87212191",
+   "department_code": "67",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 115176,
+   "line_count": 1
+  },
+  {
+   "slug": "strasbourg-ville",
+   "name": "Strasbourg-Ville",
+   "city": "Strasbourg",
+   "uic_code": "87212027",
+   "department_code": "67",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Strasbourg\", \"source\": \"sncf_voyageurs\"}]",
+   "passengers": 27634507,
+   "line_count": 7
+  },
+  {
+   "slug": "toulouse-matabiau",
+   "name": "Toulouse-Matabiau",
+   "city": "Toulouse",
+   "uic_code": "87611004",
+   "department_code": "31",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 14933345,
+   "line_count": 4
+  },
+  {
+   "slug": "tours",
+   "name": "Tours",
+   "city": "Tours",
+   "uic_code": "87571000",
+   "department_code": "37",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 7013155,
+   "line_count": 4
+  },
+  {
+   "slug": "tours-savoie",
+   "name": "Tours (Savoie)",
+   "city": "Tours-en-Savoie",
+   "uic_code": "87741660",
+   "department_code": "73",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "valence",
+   "name": "Valence",
+   "city": "Valence",
+   "uic_code": "87761007",
+   "department_code": "26",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Valence-Ville\", \"source\": \"wikidata\"}]",
+   "passengers": 3224259,
+   "line_count": 4
+  },
+  {
+   "slug": "valence-dagen",
+   "name": "Valence-d'Agen",
+   "city": "Valence",
+   "uic_code": "87611863",
+   "department_code": "82",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 100125,
+   "line_count": 2
+  },
+  {
+   "slug": "valence-sur-baise",
+   "name": "Valence-sur-Baïse",
+   "city": "Valence-sur-Baïse",
+   "uic_code": null,
+   "department_code": "32",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "valence-tgv",
+   "name": "Valence-TGV",
+   "city": "Alixan",
+   "uic_code": "87763029",
+   "department_code": "26",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Valence TGV Rhône-Alpes Sud\", \"source\": \"sncf_voyageurs\"}, {\"name\": \"Valence-Rhône-Alpes-Sud TGV\", \"source\": \"wikidata\"}, {\"name\": \"Valence TGV Sud Rhône-Alpes\", \"source\": \"osm\"}]",
+   "passengers": 3550552,
+   "line_count": 2
+  },
+  {
+   "slug": "vienne",
+   "name": "Vienne",
+   "city": "Vienne",
+   "uic_code": "87722587",
+   "department_code": "38",
+   "status": "active",
+   "alt_names": "[]",
+   "passengers": 2457676,
+   "line_count": 3
+  },
+  {
+   "slug": "vienne-en-val",
+   "name": "Vienne-en-Val",
+   "city": "Vienne-en-Val",
+   "uic_code": null,
+   "department_code": "45",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "zoufftgen",
+   "name": "Zoufftgen",
+   "city": "Zoufftgen",
+   "uic_code": "87191189",
+   "department_code": "57",
+   "status": "declassified",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "zoufftgen-ie",
+   "name": "Zoufftgen (IE)",
+   "city": "Zoufftgen",
+   "uic_code": "87191973",
+   "department_code": "57",
+   "status": "no_commercial",
+   "alt_names": "[]",
+   "passengers": null,
+   "line_count": 1
+  },
+  {
+   "slug": "zu-rhein",
+   "name": "Zu-Rhein",
+   "city": "Mulhouse",
+   "uic_code": "87472639",
+   "department_code": "68",
+   "status": "active",
+   "alt_names": "[{\"name\": \"Mulhouse Zu Rhein Tram-Train\", \"source\": \"sncf_voyageurs\"}, {\"name\": \"Mulhouse Zu Rhein\", \"source\": \"osm\"}]",
+   "passengers": 15,
+   "line_count": 1
+  }
+ ],
+ "lines": [
+  {
+   "slug": "bifurcation-de-mirambeau",
+   "name": "Bifurcation de Mirambeau",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"EC [AS]-Bifurcation Mirambeau\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|bifurcation de mirambeau@b0f140ccf9b9fedcf6dd825db49d0c24\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "chemin-de-fer-des-combes",
+   "name": "Chemin de fer des Combes",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Chemin de fer des Combes\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:particulier|chemin de fer des combes@e064294ececfd027a4d1cf0eb84aefb7\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-dalbi-a-valence-dalbigeois",
+   "name": "Ligne d'Albi à Valence-d'Albigeois",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Albi Valence-d'Albigeois\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne d albi a valence d albigeois@5f3c3cdbf3d45a48665fc2df9cfb204a\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-bram-a-saint-denis",
+   "name": "Ligne de Bram à Saint-Denis",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Bram Saint-Denis\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de bram a saint denis@1fc4bea15c6d682f226b68ff42c7206b\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-bressuire-a-montreuil-bellay",
+   "name": "Ligne de Bressuire à Montreuil-Bellay",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Bressuire Montreuil-Bellay\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de bressuire a montreuil bellay@7cff9d9ddcd09820c842032b4a08c61b\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-brest-a-saint-pol",
+   "name": "Ligne de Brest à Saint-Pol",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Brest Saint-Pol\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de brest a saint pol@cae3b82859730fec8b260f316f47469b\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-chalon-sur-saone-a-macon",
+   "name": "Ligne de Chalon-sur-Saône à Mâcon",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Chalon-sur-Saône Mâcon (via Cluny)\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:principal|ligne de chalon sur saone a macon@793b7019046a96eeb19d511982f378a2\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-chalon-sur-saone-a-mervans",
+   "name": "Ligne de Chalon-sur-Saône à Mervans",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Chalon-sur-Saône Mervans\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de chalon sur saone a mervans@b2cae49ce3b554864137a461e3ffa1ca\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-chambery-a-pont-saint-charles",
+   "name": "Ligne de Chambéry à Pont-Saint-Charles",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Chambéry Pont-Saint-Charles\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de chambery a pont saint charles@1842fd727db6e656c9b2914d5497cd4f\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-chateauroux-a-valencay",
+   "name": "Ligne de Châteauroux à Valençay",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Châteauroux Valençay\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de chateauroux a valencay@f6b5984fdf2d143024394b681bc0dfec\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-joue-les-tours-a-tours",
+   "name": "Ligne de Joué-lès-Tours à Tours",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:ends|principal@b65a9539f2ba5a31c35f8b4a7b4d2402\", \"created_by\": \"vff:link-traces\", \"name_source\": \"derived\"}"
+  },
+  {
+   "slug": "ligne-de-jure-a-saint-polgues",
+   "name": "Ligne de Juré à Saint-Polgues",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Juré Saint-Polgues\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de jure a saint polgues@836d00acab46f4e52d2b5fdb20692bf0\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-lagny-a-mortcerf",
+   "name": "Ligne de Lagny à Mortcerf",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Lagny Mortcerf\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de lagny a mortcerf@1cf727af9967ea656637809fae19411c\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-melun-a-barbizon",
+   "name": "Ligne de Melun à Barbizon",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Melun Barbizon\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de melun a barbizon@6eab9a4481ddaee39c36daac6db79a77\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-melun-a-verneuil-letang",
+   "name": "Ligne de Melun à Verneuil-l’Etang",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Melun Verneuil-l’Etang\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de melun a verneuil l etang@16d954188e2919cbe42f66747f9fe16e\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-mi-foret-a-pleine-fougeres",
+   "name": "Ligne de Mi-Forêt à Pleine-Fougères",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Mi-Forêt Pleine-Fougères\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de mi foret a pleine fougeres@4827b61fd16c733efd8d58b9d3f658ef\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-mulhouse-a-ensisheim-par-battenheim",
+   "name": "Ligne de Mulhouse à Ensisheim par Battenheim",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Mulhouse Battenheim Ensisheim (avant 1929)\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de mulhouse a ensisheim par battenheim@a04b8ae962597c09bd576eadb0b6b268\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-mulhouse-a-ensisheim-par-wittenheim",
+   "name": "Ligne de Mulhouse à Ensisheim par Wittenheim",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Mulhouse Wittenheim Ensisheim (après 1929)\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de mulhouse a ensisheim par wittenheim@54c38f74a894defac3cf3b7160b54eb1\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-nimes-a-arles",
+   "name": "Ligne de Nîmes à Arles",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Nîmes Arles\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de nimes a arles@3f60f49d0490f063a46f2ab44da6be64\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-saint-just-en-chaussee-a-estrees-saint-denis",
+   "name": "Ligne de Saint-Just-en-Chaussée à Estrées-Saint-Denis",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Saint-Just-en-Chaussée Estrées-Saint-Denis\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de saint just en chaussee a estrees saint denis@9fa09db77159c9a529d8adba9326b697\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-saint-trojan-a-saint-denis",
+   "name": "Ligne de Saint-Trojan à Saint-Denis",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"EC [SaSa]-Tracé entre Saint-Trojan et Saint-Denis\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de saint trojan a saint denis@2d816e0803f8f5a1feb21231db963dfe\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-valence-a-bourg-de-peage",
+   "name": "Ligne de Valence à Bourg-de-Péage",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Valence Bourg-de-Péage\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de valence a bourg de peage@c38257c2d959df8a80bfbfbd90e79e7e\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-valence-a-saint-peray",
+   "name": "Ligne de Valence à Saint-Péray",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Valence Saint-Péray\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de valence a saint peray@b89e5265041f99ff71abac089a20e79e\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-valence-dagen-a-montaigu-du-quercy",
+   "name": "Ligne de Valence-d’Agen à Montaigu-du-Quercy",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Valence-d’Agen Montaigu-du-Quercy\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de valence d agen a montaigu du quercy@4c537e0dc119888de234b43c4969562c\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-vienne-a-estressin",
+   "name": "Ligne de Vienne à Estressin",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Vienne Estressin\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de vienne a estressin@69b49beaa93e88e2803b9b308827713e\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-de-vienne-a-voiron",
+   "name": "Ligne de Vienne à Voiron",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Vienne Voiron\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne de vienne a voiron@d1b521b34ad57a54cf84aa1cd12077db\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-militaire-de-cirey-a-montreux",
+   "name": "Ligne militaire de Cirey à Montreux",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Cirey Montreux\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:militaire|ligne militaire de cirey a montreux@9701ce2424781d98ec945cc74f7e3522\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-militaire-de-lauw-a-montreux-chateau",
+   "name": "Ligne militaire de Lauw à Montreux-Château",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Lauw Montreux-Château\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:militaire|ligne militaire de lauw a montreux chateau@be603aa1e46425e456541ee3922977e9\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-militaire-de-montreux-chateau-a-bourogne",
+   "name": "Ligne militaire de Montreux-Château à Bourogne",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Montreux-Château Bourogne\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:militaire|ligne militaire de montreux chateau a bourogne@aae767254b55d72d94a12e007ce569ec\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-militaire-de-villey-saint-etienne-a-lagney",
+   "name": "Ligne militaire de Villey-Saint-Etienne à Lagney",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Villey-Saint-Etienne Lagney\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:militaire|ligne militaire de villey saint etienne a lagney@db43e2a8cdf637b6e78181149b315bf4\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "ligne-miniere-de-saint-bonnet-beaubery-a-montceau-les-mines",
+   "name": "Ligne minière de Saint-Bonnet-Beaubery à Montceau-les-Mines",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Saint-Bonnet/Beaubery Montceau-les-Mines\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:secondaire|ligne miniere de saint bonnet beaubery a montceau les mines@975cf52fd21b1031efbf5e36a4f0e2d9\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "lo-464000",
+   "name": "Ligne de Saint-Vincent-des-Landes à Massérac",
+   "code": "464000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Vincent-des-Landes - Massérac\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239914\"}], \"wikidata\": \"Q3239914\", \"name_source\": \"lignes-oubliees\", \"lignes_oubliees\": {\"url\": \"https://www.lignes-oubliees.com/index.php?page=inventaire&debut=0&limite=376\", \"name\": \"Saint-Vincent-des-Landes – Massérac\"}}"
+  },
+  {
+   "slug": "lo-770611",
+   "name": "Voie-mère de la ZI de Moulins n° 2",
+   "code": "770611",
+   "historical_operator": null,
+   "alt_names": "{\"name_source\": \"lignes-oubliees\", \"lignes_oubliees\": {\"url\": \"https://www.lignes-oubliees.com/fichiers/fermetures.pdf\", \"name\": \"Voie-mère de la ZI de Moulins n° 2\"}}"
+  },
+  {
+   "slug": "lo-864000",
+   "name": "Ligne de Beaune à Saint-Loup-de-la-Salle",
+   "code": "864000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Beaune - St-Loup-de-la-Salle\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239367\"}], \"wikidata\": \"Q3239367\", \"name_source\": \"lignes-oubliees\", \"lignes_oubliees\": {\"url\": \"https://www.lignes-oubliees.com/index.php?page=stloup\", \"name\": \"Beaune – Saint-Loup-la-Salle\"}}"
+  },
+  {
+   "slug": "raccordement-militaire-de-saint-pol-1914-1918",
+   "name": "Raccordement militaire de Saint-Pol (1914-1918)",
+   "code": null,
+   "historical_operator": null,
+   "alt_names": "{\"labels\": [\"Saint-Pol raccordement 14-18 (ligne anglaise)\"], \"source\": \"archeoferroviaire\", \"group_key\": \"archeoferroviaire:militaire|raccordement militaire de saint pol 1914 1918@ad52ff3c22e8c29bc341d0d8f1cd2f93\", \"created_by\": \"vff:link-traces\", \"name_source\": \"archeoferroviaire\"}"
+  },
+  {
+   "slug": "rfn-1000",
+   "name": "Ligne de Paris-Est à Mulhouse-Ville",
+   "code": "001000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris à Mulhouse\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q779381\"}], \"wikidata\": \"Q779381\"}"
+  },
+  {
+   "slug": "rfn-100000",
+   "name": "Ligne de Nouvel-Avricourt à Bénestroff",
+   "code": "100000",
+   "historical_operator": null,
+   "alt_names": "{\"merged\": [{\"name\": \"Ligne de Nouvel-Avricourt à Dieuze\", \"slug\": \"archeo-ligne-de-nouvel-avricourt-a-dieuze\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q17633397\"}"
+  },
+  {
+   "slug": "rfn-110000",
+   "name": "Ligne de Strasbourg-Ville à St-Dié",
+   "code": "110000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne 18 Est (Est)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803277\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Strasbourg - Saint-Dié\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803277\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Strasbourg - Saint-Dié-des-Vosges\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803277\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Strasbourg-Ville - Saint-Dié\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803277\"}], \"wikidata\": \"Q803277\"}"
+  },
+  {
+   "slug": "rfn-115000",
+   "name": "Ligne de Strasbourg-Ville à St-Louis",
+   "code": "115000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Strasbourg à Bâle\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q663526\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne 3\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q663526\"}], \"wikidata\": \"Q663526\"}"
+  },
+  {
+   "slug": "rfn-115306",
+   "name": "Raccordement de Mulhouse-Dornach à Mulhouse-Nord",
+   "code": "115306",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-119000",
+   "name": "Ligne de Colmar-Central à Metzeral",
+   "code": "119000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Colmar-Central - Metzeral\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802117\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Colmar à Metzeral\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802117\"}], \"wikidata\": \"Q802117\"}"
+  },
+  {
+   "slug": "rfn-124000",
+   "name": "Ligne de Mulhouse-Ville à Chalampé",
+   "code": "124000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629970\"}"
+  },
+  {
+   "slug": "rfn-125306",
+   "name": "Raccordement de la bifurcation de Wanne à Mulhouse-Ville",
+   "code": "125306",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-1379",
+   "name": "Raccordement de la ligne EOLE à la ligne Paris-Mulhouse",
+   "code": "001379",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-1391",
+   "name": "Raccordement court de Mulhouse",
+   "code": "001391",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Shunt de Mulhouse\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3415989\"}], \"wikidata\": \"Q3415989\"}"
+  },
+  {
+   "slug": "rfn-139300",
+   "name": "Raccordement de Hausbergen à Strasbourg-Cronenbourg  V1C",
+   "code": "139300",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata_parent\": \"Q17637419\"}"
+  },
+  {
+   "slug": "rfn-140000",
+   "name": "Ligne de Réding à Metz-Ville",
+   "code": "140000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Réding - Metz\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803134\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Réding - Metz-Ville\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803134\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Réding à Metz\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803134\"}], \"wikidata\": \"Q803134\"}"
+  },
+  {
+   "slug": "rfn-141000",
+   "name": "Ligne de Graffenstaden à Strasbourg-Neudorf",
+   "code": "141000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q17633384\"}"
+  },
+  {
+   "slug": "rfn-142000",
+   "name": "Ligne de Strasbourg-Ville à Strasbourg-Port-du-Rhin",
+   "code": "142000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q15148524\"}"
+  },
+  {
+   "slug": "rfn-145000",
+   "name": "Ligne de Strasbourg à Lauterbourg",
+   "code": "145000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne 33-7 (Est)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803278\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Strasbourg - Lauterbourg\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803278\"}], \"wikidata\": \"Q803278\"}"
+  },
+  {
+   "slug": "rfn-174000",
+   "name": "Ligne de Metz-Ville à la frontière allemande vers Ueberherrn",
+   "code": "174000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Metz-Ville à la frontière allemande vers Überherrn\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q673070\"}], \"merged\": [{\"name\": \"Ligne de Bettelainville à Anzeling\", \"slug\": \"archeo-ligne-de-bettelainville-a-anzeling\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}, {\"name\": \"Ligne de Metz à Vigy\", \"slug\": \"archeo-ligne-de-metz-a-vigy\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}, {\"name\": \"Ligne de Vigy à Bettelainville\", \"slug\": \"archeo-ligne-de-vigy-a-bettelainville\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}, {\"name\": \"Ligne de Hargarten-Falck à Völklingen\", \"slug\": \"archeo-ligne-de-hargarten-falck-a-volklingen\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q673070\"}"
+  },
+  {
+   "slug": "rfn-180000",
+   "name": "Ligne de Metz-Ville à Zoufftgen",
+   "code": "180000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Metz à Zoufftgen\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802767\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Metz - Zoufftgen\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802767\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Metz-Ville - Zoufftgen\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802767\"}], \"wikidata\": \"Q802767\"}"
+  },
+  {
+   "slug": "rfn-192000",
+   "name": "Ceinture de Metz",
+   "code": "192000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q28494023\"}"
+  },
+  {
+   "slug": "rfn-232000",
+   "name": "Ligne d'Ormoy-Villers à Boves",
+   "code": "232000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Ormoy-Villers - Boves\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239336\"}], \"merged\": [{\"name\": \"Ligne de Longueil à Estrées-Saint-Denis\", \"slug\": \"archeo-ligne-de-longueil-a-estrees-saint-denis\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q3239336\"}"
+  },
+  {
+   "slug": "rfn-242910",
+   "name": "Voie de desserte de la ZI de Nogent-sur-Oise-Villers-St-Paul",
+   "code": "242910",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-254610",
+   "name": "Voie-mère de la ZI de Valenciennes-Aéroport n° 2",
+   "code": "254610",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-272000",
+   "name": "Ligne de Paris-Nord à Lille",
+   "code": "272000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris à Lille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q240378\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris - Lille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q240378\"}], \"wikidata\": \"Q240378\"}"
+  },
+  {
+   "slug": "rfn-272306",
+   "name": "Raccordement de La Chapelle-St-Denis",
+   "code": "272306",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-272953",
+   "name": "Saut-de-mouton de St-Denis",
+   "code": "272953",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-307000",
+   "name": "Ligne d'Arras à St-Pol-sur-Ternoise",
+   "code": "307000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Arras - Saint-Pol-sur-Ternoise\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239295\"}], \"wikidata\": \"Q3239295\"}"
+  },
+  {
+   "slug": "rfn-308000",
+   "name": "Ligne de St-Pol-sur-Ternoise à Étaples",
+   "code": "308000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Pol-sur-Ternoise - Étaples\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239908\"}], \"wikidata\": \"Q3239908\"}"
+  },
+  {
+   "slug": "rfn-317000",
+   "name": "Ligne de Rochy-Condé à Soissons",
+   "code": "317000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Rochy-Condé - Soissons\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239850\"}], \"merged\": [{\"name\": \"Ligne d'Avrigny à Estrées-Saint-Denis\", \"slug\": \"archeo-ligne-davrigny-a-estrees-saint-denis\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}, {\"name\": \"Ligne de Bresles à Clermont\", \"slug\": \"archeo-ligne-de-bresles-a-clermont\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q3239850\"}"
+  },
+  {
+   "slug": "rfn-330000",
+   "name": "Ligne de St-Denis à Dieppe",
+   "code": "330000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Saint-Denis à Pontoise\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239881\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Pontoise à Dieppe\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239881\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Denis - Dieppe\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239881\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Pontoise - Dieppe\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239881\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Denis - Pontoise\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239881\"}], \"wikidata\": \"Q3239881\"}"
+  },
+  {
+   "slug": "rfn-5000",
+   "name": "Ligne de Paris à Strasbourg (LGV)",
+   "code": "005000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": 2007, \"kind\": \"name\", \"name\": \"LGV Est européenne\", \"source\": \"wikipedia\", \"source_url\": \"https://fr.wikipedia.org/wiki/LGV_Est_europ%C3%A9enne\"}], \"wikidata\": \"Q945937\"}"
+  },
+  {
+   "slug": "rfn-500000",
+   "name": "Ligne de Chartres à Bordeaux-St-Jean",
+   "code": "500000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Chartres - Bordeaux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239465\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Chartres à Bordeaux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239465\"}], \"wikidata\": \"Q3239465\"}"
+  },
+  {
+   "slug": "rfn-515000",
+   "name": "Ligne de Tours à St-Nazaire",
+   "code": "515000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Paris-Nantes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239962\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Le Mans-Nantes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239962\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Angers-Tours\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239962\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Tours - Le Croisic\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239962\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Tours - Saint-Nazaire\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239962\"}], \"wikidata\": \"Q3239962\"}"
+  },
+  {
+   "slug": "rfn-525000",
+   "name": "Ligne des Sables-d'Olonne à Tours",
+   "code": "525000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Les Sables-d'Olonne - Tours\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240098\"}], \"wikidata\": \"Q3240098\"}"
+  },
+  {
+   "slug": "rfn-550000",
+   "name": "Ligne de Brétigny à La Membrolle-sur-Choisille",
+   "code": "550000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q2055319\"}"
+  },
+  {
+   "slug": "rfn-561000",
+   "name": "Ligne de Tours au Mans",
+   "code": "561000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Tours - Le Mans\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239960\"}], \"wikidata\": \"Q3239960\"}"
+  },
+  {
+   "slug": "rfn-563300",
+   "name": "Raccordement de St-Pierre-des-Corps à Tours",
+   "code": "563300",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-564300",
+   "name": "Raccordement de Tours à Monts (bifurcation de Bordeaux)",
+   "code": "564300",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-568000",
+   "name": "Ligne de Lormont à Bordeaux-Bastide",
+   "code": "568000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629695\"}"
+  },
+  {
+   "slug": "rfn-569300",
+   "name": "Raccordement d'Orléans vers Tours",
+   "code": "569300",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-570000",
+   "name": "Ligne de Paris-Austerlitz à Bordeaux-St-Jean",
+   "code": "570000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris - Bordeaux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802972\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris-Austerlitz - Bordeaux-St-Jean\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802972\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne classique Paris - Bordeaux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802972\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris à Bordeaux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802972\"}], \"wikidata\": \"Q802972\"}"
+  },
+  {
+   "slug": "rfn-570316",
+   "name": "Raccordement circulaire de Brétigny",
+   "code": "570316",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-583000",
+   "name": "Ligne de Bassens au Bec-d'Ambès",
+   "code": "583000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629692\"}"
+  },
+  {
+   "slug": "rfn-586000",
+   "name": "Ceinture de Bordeaux",
+   "code": "586000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q16536745\"}"
+  },
+  {
+   "slug": "rfn-590000",
+   "name": "Ligne des Aubrais-Orléans à Montauban-Ville-Bourbon",
+   "code": "590000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"POLT\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240094\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Orléans - Montauban\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240094\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Paris-Toulouse\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240094\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Les Aubrais - Montauban\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240094\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Les Aubrais-Orléans - Montauban-Ville-Bourbon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240094\"}], \"wikidata\": \"Q3240094\"}"
+  },
+  {
+   "slug": "rfn-594000",
+   "name": "Ligne de Joué-lès-Tours à Châteauroux",
+   "code": "594000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Tours - Châteauroux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239593\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Tours à Châteauroux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239593\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Joué-lès-Tours - Châteauroux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239593\"}], \"wikidata\": \"Q3239593\"}"
+  },
+  {
+   "slug": "rfn-615000",
+   "name": "Ligne de Saillat-sur-Vienne à Bussière-Galant",
+   "code": "615000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saillat-sur-Vienne - Bussière-Galant\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239863\"}], \"wikidata\": \"Q3239863\", \"name_source\": \"wikidata\"}"
+  },
+  {
+   "slug": "rfn-64000",
+   "name": "Ligne de Saint-Léonard à Fraize",
+   "code": "064000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne 18-4 (est)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239899\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Léonard - Fraize\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239899\"}], \"wikidata\": \"Q3239899\", \"name_source\": \"wikidata\"}"
+  },
+  {
+   "slug": "rfn-640000",
+   "name": "Ligne de Bordeaux-St-Jean à Sète-Ville",
+   "code": "640000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Bordeaux à Sète\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne classique Bordeaux-Toulouse\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Bordeaux-Montauban\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Toulouse-Tarascon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Bordeaux-Saint-Jean - Sète-Ville\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Bordeaux - Sète\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239394\"}], \"wikidata\": \"Q3239394\"}"
+  },
+  {
+   "slug": "rfn-640306",
+   "name": "Raccordement circulaire de Bordeaux-St-Jean",
+   "code": "640306",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-640311",
+   "name": "Raccordement de Toulouse à Montredon",
+   "code": "640311",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-655000",
+   "name": "Ligne de Bordeaux-St-Jean à Irun",
+   "code": "655000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Bordeaux à Irun\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801991\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Bordeaux - Irun\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801991\"}], \"wikidata\": \"Q801991\"}"
+  },
+  {
+   "slug": "rfn-664000",
+   "name": "Ligne de Pau à Canfranc (frontière)",
+   "code": "664000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Pau à Canfranc\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802986\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Pau-Canfranc\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802986\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Transpyrénéen occidental\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802986\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Pau - Canfranc (frontière)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802986\"}], \"wikidata\": \"Q802986\"}"
+  },
+  {
+   "slug": "rfn-668000",
+   "name": "Ligne de Montréjeau-Gourdan-Polignan à Luchon",
+   "code": "668000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Montréjeau - Luchon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239705\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Montréjeau-Gourdan-Polignan - Luchon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239705\"}], \"wikidata\": \"Q3239705\"}"
+  },
+  {
+   "slug": "rfn-683000",
+   "name": "Ligne des Aubrais-Orléans à Malesherbes",
+   "code": "683000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Les Aubrais - Malesherbes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240089\"}], \"wikidata\": \"Q3240089\"}"
+  },
+  {
+   "slug": "rfn-696000",
+   "name": "Ligne de Châteauroux à La Ville-Gozet",
+   "code": "696000",
+   "historical_operator": null,
+   "alt_names": "{\"merged\": [{\"name\": \"Ligne de La Châtre à La Ville-Gozet\", \"slug\": \"archeo-ligne-de-la-chatre-a-la-ville-gozet\", \"reason\": \"vff:merge-split-lines (sections) : section sans extrémité partagée : section 66.5 km + tracé 40.5 km (sans longueur officielle) ; deux toponymes sur la ligne ; PK 298.8 → 364.9 km\"}], \"sections\": [\"Ligne de La Châtre à La Ville-Gozet\"], \"wikidata\": \"Q22248756\"}"
+  },
+  {
+   "slug": "rfn-70000",
+   "name": "Ligne de Noisy-le-Sec à Strasbourg-Ville",
+   "code": "070000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris-Est à Strasbourg-Ville\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q268299\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris à Strasbourg\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q268299\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris - Strasbourg\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q268299\"}], \"wikidata\": \"Q268299\"}"
+  },
+  {
+   "slug": "rfn-718000",
+   "name": "Ligne de Brive-la-Gaillarde à Toulouse-Matabiau via Capdenac",
+   "code": "718000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Brive-la-Gaillarde à Toulouse via Capdenac\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239409\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Brive - Toulouse\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239409\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Brive-la-Gaillarde - Toulouse-Matabiau via Capdenac\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239409\"}], \"wikidata\": \"Q3239409\"}"
+  },
+  {
+   "slug": "rfn-731000",
+   "name": "Ligne de Sète-Ville à Montbazin-Gigean",
+   "code": "731000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q22249284\"}"
+  },
+  {
+   "slug": "rfn-752000",
+   "name": "Ligne de Combs-la-Ville à St-Louis (LGV)",
+   "code": "752000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": 1981, \"kind\": \"name\", \"name\": \"LGV Sud-Est\", \"source\": \"wikipedia\", \"source_url\": \"https://fr.wikipedia.org/wiki/LGV_Sud-Est\"}, {\"to\": null, \"from\": 1981, \"kind\": \"name\", \"name\": \"LGV Paris - Lyon\", \"source\": \"wikipedia\", \"source_url\": \"https://fr.wikipedia.org/wiki/LGV_Sud-Est\"}, {\"to\": null, \"from\": 1981, \"kind\": \"name\", \"name\": \"LN1\", \"source\": \"wikipedia\", \"source_url\": \"https://fr.wikipedia.org/wiki/LGV_Sud-Est\"}], \"wikidata\": \"Q585219\"}"
+  },
+  {
+   "slug": "rfn-752342",
+   "name": "Raccordement de St-Marcel-lès-Valence",
+   "code": "752342",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q131462537\"}"
+  },
+  {
+   "slug": "rfn-760306",
+   "name": "Raccordement des lignes de Chagny à Dole et de Paris-Lyon à Marseille-St-Charles",
+   "code": "760306",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-764000",
+   "name": "Ligne de St-Florentin-Vergigny à Moneteau-Gurgy",
+   "code": "764000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Florentin-Vergigny - Monéteau-Gurgy\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239883\"}], \"wikidata\": \"Q3239883\"}"
+  },
+  {
+   "slug": "rfn-772000",
+   "name": "Ligne de Cluny à Chalon-sur-Saône",
+   "code": "772000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Cluny - Chalon-sur-Saône\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239485\"}], \"wikidata\": \"Q3239485\"}"
+  },
+  {
+   "slug": "rfn-783000",
+   "name": "Ligne du Coteau à St-Germain-au-Mont-d'Or",
+   "code": "783000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Le Coteau - St-Germain-au-Mont-d'Or\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3240107\"}], \"wikidata\": \"Q3240107\"}"
+  },
+  {
+   "slug": "rfn-790000",
+   "name": "Ligne de St-Germain-des-Fossés à Nîmes-CRB1",
+   "code": "790000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Germain-des-Fossés - Riom-Châtel-Guyon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Germain-des-Fossés - Nîmes-Courbessac-1\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne St-Germain-des-Fossés - Nîmes-CRB1\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Germain-des-Fossés - Nîmes-Courbessac\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne des Cévennes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1057844\"}], \"wikidata\": \"Q1057844\"}"
+  },
+  {
+   "slug": "rfn-798000",
+   "name": "Ligne de St-Georges-d'Aurac à St-Étienne-Châteaucreux",
+   "code": "798000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Saint-Georges-d'Aurac - Saint-Étienne-Châteaucreux\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239885\"}], \"wikidata\": \"Q3239885\"}"
+  },
+  {
+   "slug": "rfn-800000",
+   "name": "Ligne de Givors-Canal à Grezan",
+   "code": "800000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne ferroviaire \\\"Rive Droite du Rhône\\\"\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Lyon-Nîmes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne ferroviaire Lyon-Nîmes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Givors - Nîmes\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Givors-Canal - Grezan\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Villeneuve-lès-Avignon à Avignon\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Livron à La Voulte\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Givors-Canal à Chasse-sur-Rhône\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de la rive droite du Rhône\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239568\"}], \"wikidata\": \"Q3239568\"}"
+  },
+  {
+   "slug": "rfn-810000",
+   "name": "Ligne de Tarascon à Sète-Ville",
+   "code": "810000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Tarascon - Sète\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803311\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Tarascon - Sète-Ville\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803311\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Tarascon à Sète\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q803311\"}], \"wikidata\": \"Q803311\"}"
+  },
+  {
+   "slug": "rfn-810315",
+   "name": "Raccordement de Nimes-Alès",
+   "code": "810315",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-819000",
+   "name": "Ligne de St-Césaire au Grau-du-Roi",
+   "code": "819000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne nîmes - le grau-du-roi\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239879\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Saint-Césaire - Le Grau-du-Roi\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239879\"}], \"wikidata\": \"Q3239879\"}"
+  },
+  {
+   "slug": "rfn-830000",
+   "name": "Ligne de Paris-Lyon à Marseille-St-Charles",
+   "code": "830000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"artère impériale\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne impériale\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne PLM\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne classique Paris-Marseille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne classique de Paris à Marseille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris-Lyon-Méditerranée\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne  830000\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Paris à Marseille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Paris - Marseille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802978\"}], \"wikidata\": \"Q802978\"}"
+  },
+  {
+   "slug": "rfn-830366",
+   "name": "Raccordement de Lyon-Guillotière à Lyon-Part-Dieu",
+   "code": "830366",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-834000",
+   "name": "Ligne des Angles à Lattes",
+   "code": "834000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"contournement ferroviaire de Nîmes et de Montpellier\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1221456\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Contournement de Nîmes et de Montpellier\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1221456\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Contournement Nîmes-Montpellier\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q1221456\"}], \"wikidata\": \"Q1221456\"}"
+  },
+  {
+   "slug": "rfn-856000",
+   "name": "Ligne de Besançon-Viotte à Vesoul",
+   "code": "856000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Besançon-Devecey\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801954\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Besançon - Vesoul\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801954\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Besançon-Viotte - Vesoul\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801954\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Besançon à Vesoul\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q801954\"}], \"sections\": [\"Ligne de Devecey à Vesoul\"], \"wikidata\": \"Q801954\"}"
+  },
+  {
+   "slug": "rfn-86000",
+   "name": "Ligne de Conflans-Jarny à Metz-Ville",
+   "code": "086000",
+   "historical_operator": null,
+   "alt_names": "{\"merged\": [{\"name\": \"Ligne de Batilly à Longeville-lès-Metz\", \"slug\": \"archeo-ligne-de-batilly-a-longeville-les-metz\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q23058431\"}"
+  },
+  {
+   "slug": "rfn-867000",
+   "name": "Ligne de Seurre à Chalon-sur-Saône",
+   "code": "867000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Seurre - Chalon-sur-Saône\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239929\"}], \"wikidata\": \"Q3239929\"}"
+  },
+  {
+   "slug": "rfn-867606",
+   "name": "Voie-mère de Chalon-sur-Saône n° 1",
+   "code": "867606",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-867612",
+   "name": "Ligne près de Port-Fluvial-de-Chalon-sur-Saône",
+   "code": "867612",
+   "historical_operator": null,
+   "alt_names": "{\"name_source\": \"derived_nearest\"}"
+  },
+  {
+   "slug": "rfn-867616",
+   "name": "Voie-mère de Chalon-sur-Saône n° 2",
+   "code": "867616",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-869000",
+   "name": "Ligne de Dole-Ville à Poligny",
+   "code": "869000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q3239525\"}"
+  },
+  {
+   "slug": "rfn-872000",
+   "name": "Ligne de Besançon-Viotte au Locle-Col-des-Roches",
+   "code": "872000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne des Horlogers\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q174521\"}], \"wikidata\": \"Q174521\"}"
+  },
+  {
+   "slug": "rfn-882000",
+   "name": "Ligne de Chalon-sur-Saône à Bourg-en-Bresse",
+   "code": "882000",
+   "historical_operator": null,
+   "alt_names": "{\"merged\": [{\"name\": \"Ligne de Saint-Germain-du-Plain à Bourg-en-Bresse\", \"slug\": \"archeo-ligne-de-saint-germain-du-plain-a-bourg-en-bresse\", \"reason\": \"vff:link-traces : tous ses tracés archeoferroviaire rattachés (trace_overlap)\"}], \"wikidata\": \"Q3239457\"}"
+  },
+  {
+   "slug": "rfn-883000",
+   "name": "Ligne de Mâcon à Ambérieu",
+   "code": "883000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Mâcon - Ambérieu\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239725\"}], \"wikidata\": \"Q3239725\"}"
+  },
+  {
+   "slug": "rfn-89000",
+   "name": "Ligne de Lérouville à Metz-Ville",
+   "code": "089000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Lérouville - Metz\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239669\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Lérouville - Metz-Ville\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239669\"}], \"wikidata\": \"Q3239669\"}"
+  },
+  {
+   "slug": "rfn-901000",
+   "name": "Ligne de Lyon-Part-Dieu à Montalieu-Vercieu",
+   "code": "901000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629569\", \"name_source\": \"wikidata\"}"
+  },
+  {
+   "slug": "rfn-905000",
+   "name": "Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)",
+   "code": "905000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Lyon-Perrache à Marseille-Saint-Charles\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Lyon-Perrache P1 - Marseille-St-Ch.(via Grenoble)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Lyon-Pche P1 - Marseille-St-Ch. (via Gren.)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Lyon-Perrache - Marseille-Saint-Charles (Via Grenoble)\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Lyon-Perrache - Marseille-Saint-Charles\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239666\"}], \"wikidata\": \"Q3239666\"}"
+  },
+  {
+   "slug": "rfn-908000",
+   "name": "Ligne de Valence à Moirans",
+   "code": "908000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Valence - Moirans\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239970\"}], \"wikidata\": \"Q3239970\"}"
+  },
+  {
+   "slug": "rfn-928000",
+   "name": "Ligne de Rognac à Aix-en-Provence",
+   "code": "928000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Rognac - Aix-en-Provence\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239851\"}], \"wikidata\": \"Q3239851\"}"
+  },
+  {
+   "slug": "rfn-928106",
+   "name": "DESSERTE d'Aix-en-Provence-Marchandises",
+   "code": "928106",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-930000",
+   "name": "Ligne de Marseille-St-Charles à Vintimille (frontière)",
+   "code": "930000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de Marseille à Vintimille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802754\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne Marseille-Vintimille\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802754\"}], \"wikidata\": \"Q802754\"}"
+  },
+  {
+   "slug": "rfn-938000",
+   "name": "Ligne de Marseille-Saint-Charles à Marseille-Joliette",
+   "code": "938000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Marseille-St-Charles - Marseille-Joliette\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239680\"}], \"wikidata\": \"Q3239680\", \"name_source\": \"wikidata\"}"
+  },
+  {
+   "slug": "rfn-939001",
+   "name": "L'Estaque à Marseille St-Charles (Via Marseille Maritime)",
+   "code": "939001",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"ligne de L'Estaque à Marseille-Joliette\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239607\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne L'Estaque - Marseille-Joliette\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239607\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne de l'Estaque à Marseille Saint-Charles\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q3239607\"}], \"wikidata\": \"Q3239607\"}"
+  },
+  {
+   "slug": "rfn-968300",
+   "name": "Raccordement des Vallées (La Garenne-Bezons)",
+   "code": "968300",
+   "historical_operator": null,
+   "alt_names": null
+  },
+  {
+   "slug": "rfn-981000",
+   "name": "Ligne de Paris-Nord à Paris-Gare-de-Lyon (RER ligne D)",
+   "code": "981000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629533\"}"
+  },
+  {
+   "slug": "rfn-983000",
+   "name": "Ligne des Invalides à Quai-d'Orsay",
+   "code": "983000",
+   "historical_operator": null,
+   "alt_names": "{\"wikidata\": \"Q106629531\"}"
+  },
+  {
+   "slug": "rfn-99000",
+   "name": "Ligne de Metz-Ville à Château-Salins",
+   "code": "099000",
+   "historical_operator": null,
+   "alt_names": "{\"names\": [{\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Château-Salins - Metz\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802763\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Metz - Château-Salins\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802763\"}, {\"to\": null, \"from\": null, \"kind\": \"name\", \"name\": \"Ligne Metz-Ville - Château-Salins\", \"source\": \"wikidata\", \"source_url\": \"https://www.wikidata.org/wiki/Q802763\"}], \"sections\": [\"Ligne d'Augny à Château-Salins\"], \"wikidata\": \"Q802763\"}"
+  }
+ ],
+ "materials": [
+  {
+   "slug": "040-plm-4501-a-4640",
+   "name": "040 PLM 4501 à 4640",
+   "type": "locomotive_vapeur",
+   "builder": "Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée",
+   "designations": "[\"PLM 4501 à 4640\", \"PLM 4501 to 4640\", \"PLM 4.C\", \"SNCF 5-040.C\"]",
+   "fleet_numbers": "4501-4640 ; 4.C.1 … 4.C.130, 4.D.1 … 4.D.10 ; 5-040.C.1 … 5-040.C.129, 5-040.D.1 - 5-040.D.10 ; 4.C.1 … 4.C.16"
+  },
+  {
+   "slug": "130-plm-1-a-60",
+   "name": "130 PLM 1 à 60",
+   "type": "locomotive_vapeur",
+   "builder": "Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée",
+   "designations": "[\"PLM 1 to 60\", \"130 A 1 à 60\", \"PLM 130.A\", \"SNCF 5-130.A\", \"SNCF 130.A (PLM)\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "230-po-4201-a-4370",
+   "name": "230 PO 4201 à 4370",
+   "type": "locomotive_vapeur",
+   "builder": "Société de construction des Batignolles, Société alsacienne de constructions mécaniques, North-British locomotive company limited, Compagnie du chemin de fer de Paris à Orléans, Ateliers de PO, Tours",
+   "designations": "[\"PO 4201 to 4370\", \"230 G\", \"État 230-401 à 230-451\", \"Etat 230-401 à 230-451\", \"SNCF 4-230.G\", \"SNCF 3-230.K\"]",
+   "fleet_numbers": "4201 - 4370"
+  },
+  {
+   "slug": "231-po-3701-a-3721",
+   "name": "231 PO 3701 à 3721",
+   "type": "locomotive_vapeur",
+   "builder": "Ateliers de PO, Tours",
+   "designations": "[\"PO 3701 to 3721\", \"SNCF 4-231.F.701 to 721\", \"SNCF 231.F.701 to 721 Sud-Ouest\", \"SNCF 231.F.701 to 721 PO\"]",
+   "fleet_numbers": "3701 - 3721 ; 231.701 - 231.721 ; 4-231.F.701 - 4-231.F.721"
+  },
+  {
+   "slug": "231-po-3722-a-3731",
+   "name": "231 PO 3722 à 3731",
+   "type": "locomotive_vapeur",
+   "builder": "Ateliers de PO, Tours",
+   "designations": "[\"PO 3722 to 3731\", \"PO-Midi 231-722\", \"SNCF 231.H (PO)\", \"SNCF 4-231.H\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "231-po-3801-a-3806-3821-a-3829",
+   "name": "231 PO 3801 à 3806, 3821 à 3829",
+   "type": "locomotive_vapeur",
+   "builder": "Ateliers de PO, Tours",
+   "designations": "[\"PO 3801 to 3806, 3821 to 3829\", \"231 PO 3800\", \"PO-Midi 3801 to 3806, 3821 to 3829\", \"SNCF 4-231.G\", \"SNCF 231.G PO\", \"SNCF 231.J\"]",
+   "fleet_numbers": "3801 - 3806, 3821 - 3829 ; 231.801 - 231.806, 231.821 - 231.829 ; 4-231.G.801 - 4-231.G.806, 4-231.G.821 - 4-231.G.829 ; 4-231.J.801 - 4-231.J.806, 4-231.J.821 - 4-231.J.829"
+  },
+  {
+   "slug": "240-po-4701-a-4712",
+   "name": "240 PO 4701 à 4712",
+   "type": "locomotive_vapeur",
+   "builder": "Ateliers de PO, Tours",
+   "designations": "[\"PO 4701 to 4712\", \"PO-Midi 240-700 series\", \"SNCF 4-240.A\", \"SNCF 240.A (PO)\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "alteo",
+   "name": "Altéo",
+   "type": "automotrice",
+   "builder": "Alstom",
+   "designations": "[\"Z 1500\", \"Z1500\", \"MI2N Altéo\", \"Mi2N\", \"MI 2N\", \"Alteo\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "ateliers-metallurgiques-ct",
+   "name": "Ateliers métallurgiques Ct",
+   "type": "locomotive_vapeur",
+   "builder": "Ateliers métallurgiques",
+   "designations": "[\"Ateliers métallurgiques Ct (Tramway de la Vallée d'Hérimoncourt)\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "autorail-grande-capacite",
+   "name": "Autorail grande capacité",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"autorail à grande capacité\", \"Bombardier agc\", \"Autorail de Grande Capacité\", \"Autorail a grande capacite\", \"Automoteur à grande capacité\", \"Automoteur grande capacité\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "bb-22200",
+   "name": "BB 22200",
+   "type": "locomotive_electrique",
+   "builder": "Alstom",
+   "designations": "[\"SNCF BB 22200\", \"SNCF Class BB 22200\", \"nez cassés\"]",
+   "fleet_numbers": "BB 22201 - BB 22405"
+  },
+  {
+   "slug": "bb-26000",
+   "name": "BB 26000",
+   "type": "locomotive_electrique",
+   "builder": "Alstom",
+   "designations": "[\"SNCF BB 26000\", \"Sybic\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "cc-65500",
+   "name": "CC 65500",
+   "type": "locomotive_diesel",
+   "builder": "Compagnie des forges et aciéries de la marine et d'Homécourt, Société alsacienne de constructions mécaniques, Alstom",
+   "designations": "[\"SNCF 060 DA puis CC 65500\", \"SNCF CC 65500\", \"060 DA\", \"CC 64000\", \"SNCF CC 64000\", \"SNCF 060.DA\"]",
+   "fleet_numbers": "060.DA.1 - 060.DA.35 ; CC 64001 - CC 64035 ; CC 65501 - CC 65535"
+  },
+  {
+   "slug": "est-01-to-0120",
+   "name": "Est 0.1 to 0.120",
+   "type": "locomotive_vapeur",
+   "builder": "ateliers de Mulhouse, Société J.F Cail & Cie, André Koechlin & Cie",
+   "designations": null,
+   "fleet_numbers": "0.1 - 0.107, 0.114 - 0.119"
+  },
+  {
+   "slug": "melusine",
+   "name": "Mélusine",
+   "type": "engin_service",
+   "builder": "Alstom",
+   "designations": "[\"SNCF Class Mélusine\", \"Voiture d'Essais à Grande Vitesse\", \"VEGV\", \"Melusine (TGV)\", \"Measuring railway coaches of SNCF Class Mélusine (TGV)\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "mi-09",
+   "name": "MI 09",
+   "type": "automotrice",
+   "builder": "Alstom",
+   "designations": "[\"RATP MI 09\", \"MI2N NG\", \"MI 2N NG\", \"MI09\", \"Z 1600\"]",
+   "fleet_numbers": "Z 1601/02 - Z 1879/80"
+  },
+  {
+   "slug": "regio-2n",
+   "name": "Regio 2N",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Bombardier Regio 2N\", \"Regio2N\", \"Bombardier Omneo\", \"Régio2N\", \"Régio 2N\", \"Porteur hyperdense\", \"PHD\", \"Z 57000\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "regiolis",
+   "name": "Régiolis",
+   "type": "bimode",
+   "builder": "Alstom",
+   "designations": "[\"Alstom Régiolis\", \"Alstom Coradia Polyvalent\", \"REGIOLIS\", \"Porteur Polyvalent\", \"B 83500\", \"Coradia Polyvalent\", \"Alstom Regiolis\", \"SNCF B 83500\", \"SNCF Class B 83500\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "voiture-metallique-est",
+   "name": "Voiture métallique Est",
+   "type": "voiture",
+   "builder": null,
+   "designations": "[\"Est metallic coach\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "voiture-ouest-a-imperiale",
+   "name": "Voiture Ouest à impériale",
+   "type": "voiture",
+   "builder": null,
+   "designations": null,
+   "fleet_numbers": null
+  },
+  {
+   "slug": "voiture-standard-europeenne",
+   "name": "Voiture standard européenne",
+   "type": "voiture",
+   "builder": null,
+   "designations": "[\"Eurofima coach\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "voitures-semi-metalliques-du-po",
+   "name": "Voitures semi-métalliques du PO",
+   "type": "voiture",
+   "builder": null,
+   "designations": null,
+   "fleet_numbers": null
+  },
+  {
+   "slug": "x-3800",
+   "name": "X 3800",
+   "type": "autorail",
+   "builder": "Renault, Blanc-Misseron, Alstom Reichshoffen, Société alsacienne de constructions mécaniques",
+   "designations": "[\"SNCF X 3800\", \"Autorail Picasso\", \"Picasso\"]",
+   "fleet_numbers": "X 3801 - X 4051"
+  },
+  {
+   "slug": "z-24500",
+   "name": "Z 24500",
+   "type": "automotrice",
+   "builder": "Alstom",
+   "designations": "[\"TER 2N NG\", \"SNCF Class Z 26500\", \"Z 26500\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-27500",
+   "name": "Z 27500",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"SNCF Z 27500\", \"SNCF Class Z 27500\", \"ZGC\", \"Z 27500 AGC version électrique\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-2n",
+   "name": "Z 2N",
+   "type": "automotrice",
+   "builder": null,
+   "designations": "[\"Z 2N series\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-2n-ng",
+   "name": "Z 2N-NG",
+   "type": "automotrice",
+   "builder": null,
+   "designations": null,
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-50000",
+   "name": "Z 50000",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"SNCF Class Z 50000\", \"Francilien\", \"NAT\", \"Z50000\", \"Nouvelle Automotrice Transilien\", \"Bombardier Spacium\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-55500",
+   "name": "Z 55500",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"SNCF Class Z 55500\", \"Regio 2N Z 55500\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-56300",
+   "name": "Z 56300",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Regio 2N Z 56300\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-56500",
+   "name": "Z 56500",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Regio 2N Z 56500\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-56600",
+   "name": "Z 56600",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Regio 2N Z 56600\", \"Omneo Premium\", \"Bombardier Regio 2N Omneo Premium\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-56700",
+   "name": "Z 56700",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Regio 2N Z 56700\"]",
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-56800",
+   "name": "Z 56800",
+   "type": "automotrice",
+   "builder": "Bombardier Transport France, puis Alstom Crespin",
+   "designations": null,
+   "fleet_numbers": null
+  },
+  {
+   "slug": "z-57000",
+   "name": "Z 57000",
+   "type": "automotrice",
+   "builder": "ALSTOM Transportation Germany",
+   "designations": "[\"Regio 2N Z 57000\"]",
+   "fleet_numbers": null
+  }
+ ],
+ "accidents": [
+  {
+   "slug": "1844-07-29-sete",
+   "fr": "Rupture d’ouvrage à Sète",
+   "en": "Structural failure at Sète",
+   "de": "Bauwerksversagen in Sète",
+   "commune_name": "Sète",
+   "occurred_on": "1844-07-29",
+   "kind": "structure_failure"
+  },
+  {
+   "slug": "1852-11-11-melun",
+   "fr": "Déraillement à Melun",
+   "en": "Derailment at Melun",
+   "de": "Entgleisung in Melun",
+   "commune_name": "Melun",
+   "occurred_on": "1852-11-11",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1876-06-13-nimes",
+   "fr": "Déraillement à Nîmes",
+   "en": "Derailment at Nîmes",
+   "de": "Entgleisung in Nîmes",
+   "commune_name": "Nîmes",
+   "occurred_on": "1876-06-13",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1883-07-05-orchies",
+   "fr": "Déraillement à Valenciennes",
+   "en": "Derailment at Valenciennes",
+   "de": "Entgleisung in Valenciennes",
+   "commune_name": "Valenciennes",
+   "occurred_on": "1883-07-05",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1884-05-13-saint-denis",
+   "fr": "Collision à Saint-Denis",
+   "en": "Collision at Saint-Denis",
+   "de": "Zusammenstoß in Saint-Denis",
+   "commune_name": "Saint-Denis",
+   "occurred_on": "1884-05-14",
+   "kind": "collision"
+  },
+  {
+   "slug": "1886-05-21-tournay",
+   "fr": "Déraillement à Tournay",
+   "en": "Derailment at Tournay",
+   "de": "Entgleisung in Tournay",
+   "commune_name": "Tournay",
+   "occurred_on": "1886-05-21",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1889-11-20-bordeaux",
+   "fr": "Déraillement à Bordeaux",
+   "en": "Derailment at Bordeaux",
+   "de": "Entgleisung in Bordeaux",
+   "commune_name": "Bordeaux",
+   "occurred_on": "1889-11-20",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1892-02-22-saint-denis",
+   "fr": "Collision à Saint-Denis",
+   "en": "Collision at Saint-Denis",
+   "de": "Zusammenstoß in Saint-Denis",
+   "commune_name": "Saint-Denis",
+   "occurred_on": "1892-02-22",
+   "kind": "collision"
+  },
+  {
+   "slug": "1897-07-08-mars-la-tour",
+   "fr": "Déraillement à Mars-la-Tour",
+   "en": "Derailment at Mars-la-Tour",
+   "de": "Entgleisung in Mars-la-Tour",
+   "commune_name": "Mars-la-Tour",
+   "occurred_on": "1897-07-08",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1897-11-24-tournay",
+   "fr": "Collision à Tournay",
+   "en": "Collision at Tournay",
+   "de": "Zusammenstoß in Tournay",
+   "commune_name": "Tournay",
+   "occurred_on": "1897-11-24",
+   "kind": "collision"
+  },
+  {
+   "slug": "1898-07-22-bordeaux",
+   "fr": "Collision à Bordeaux",
+   "en": "Collision at Bordeaux",
+   "de": "Zusammenstoß in Bordeaux",
+   "commune_name": "Bordeaux",
+   "occurred_on": "1898-07-22",
+   "kind": "collision"
+  },
+  {
+   "slug": "1899-10-29-tours",
+   "fr": "Déraillement à Tours",
+   "en": "Derailment at Tours",
+   "de": "Entgleisung in Tours",
+   "commune_name": "Tours",
+   "occurred_on": "1899-10-29",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1902-12-29-saint-pol-sur-ternoise",
+   "fr": "Déraillement à Saint-Pol-sur-Ternoise",
+   "en": "Derailment at Saint-Pol-sur-Ternoise",
+   "de": "Entgleisung in Saint-Pol-sur-Ternoise",
+   "commune_name": "Saint-Pol-sur-Ternoise",
+   "occurred_on": "1902-12-29",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1905-11-20-gourdan-polignan",
+   "fr": "Accident ferroviaire à Gourdan-Polignan",
+   "en": "Railway accident at Gourdan-Polignan",
+   "de": "Eisenbahnunfall in Gourdan-Polignan",
+   "commune_name": "Gourdan-Polignan",
+   "occurred_on": "1905-11-20",
+   "kind": "other"
+  },
+  {
+   "slug": "1909-12-11-saint-pol-sur-ternoise",
+   "fr": "Déraillement à Saint-Pol-sur-Ternoise",
+   "en": "Derailment at Saint-Pol-sur-Ternoise",
+   "de": "Entgleisung in Saint-Pol-sur-Ternoise",
+   "commune_name": "Saint-Pol-sur-Ternoise",
+   "occurred_on": "1909-12-11",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1910-09-16-bordeaux",
+   "fr": "Collision à Bordeaux",
+   "en": "Collision at Bordeaux",
+   "de": "Zusammenstoß in Bordeaux",
+   "commune_name": "Bordeaux",
+   "occurred_on": "1910-09-16",
+   "kind": "collision"
+  },
+  {
+   "slug": "1911-11-23-montreuil-bellay",
+   "fr": "Accident ferroviaire de Montreuil-Bellay le 23 novembre 1911",
+   "en": "Structural failure at Montreuil-Bellay",
+   "de": "Eisenbahnunfall von Montreuil-Bellay",
+   "commune_name": "Montreuil-Bellay",
+   "occurred_on": "1911-11-23",
+   "kind": "structure_failure"
+  },
+  {
+   "slug": "1912-11-25-nimes",
+   "fr": "Déraillement à Nîmes",
+   "en": "Derailment at Nîmes",
+   "de": "Entgleisung in Nîmes",
+   "commune_name": "Nîmes",
+   "occurred_on": "1912-11-25",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1913-11-04-melun",
+   "fr": "Catastrophe ferroviaire de Melun du 4 novembre 1913",
+   "en": "Melun railway disaster of 4 November 1913",
+   "de": "Eisenbahnunfall von Melun",
+   "commune_name": "Melun",
+   "occurred_on": "1913-11-04",
+   "kind": "collision"
+  },
+  {
+   "slug": "1916-02-01-saint-denis",
+   "fr": "Déraillement à Saint-Denis",
+   "en": "Derailment at Saint-Denis",
+   "de": "Entgleisung in Saint-Denis",
+   "commune_name": "Saint-Denis",
+   "occurred_on": "1916-02-01",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1917-08-17-nimes",
+   "fr": "Dérive à Nîmes",
+   "en": "Runaway at Nîmes",
+   "de": "Entlaufene Fahrzeuge in Nîmes",
+   "commune_name": "Nîmes",
+   "occurred_on": "1917-08-17",
+   "kind": "runaway"
+  },
+  {
+   "slug": "1917-09-20-nimes",
+   "fr": "Collision à un passage à niveau à Nîmes",
+   "en": "Level crossing collision at Nîmes",
+   "de": "Zusammenstoß an einem Bahnübergang in Nîmes",
+   "commune_name": "Nîmes",
+   "occurred_on": "1917-09-20",
+   "kind": "level_crossing"
+  },
+  {
+   "slug": "1919-08-30-mars-la-tour",
+   "fr": "Collision à Mars-la-Tour",
+   "en": "Collision at Mars-la-Tour",
+   "de": "Zusammenstoß in Mars-la-Tour",
+   "commune_name": "Mars-la-Tour",
+   "occurred_on": "1919-08-30",
+   "kind": "collision"
+  },
+  {
+   "slug": "1919-12-11-marseille",
+   "fr": "Collision à Aix-en-Provence",
+   "en": "Collision at Aix-en-Provence",
+   "de": "Zusammenstoß in Aix-en-Provence",
+   "commune_name": "Aix-en-Provence",
+   "occurred_on": "1919-12-11",
+   "kind": "collision"
+  },
+  {
+   "slug": "1920-10-18-nimes",
+   "fr": "Déraillement à Nîmes",
+   "en": "Derailment at Nîmes",
+   "de": "Entgleisung in Nîmes",
+   "commune_name": "Nîmes",
+   "occurred_on": "1920-10-18",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1927-09-02-joue-les-tours",
+   "fr": "Déraillement à Joué-lès-Tours",
+   "en": "Derailment at Joué-lès-Tours",
+   "de": "Entgleisung in Joué-lès-Tours",
+   "commune_name": "Joué-lès-Tours",
+   "occurred_on": "1927-09-02",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1928-04-30-mulhouse",
+   "fr": "Collision à un passage à niveau à Mulhouse",
+   "en": "Level crossing collision at Mulhouse",
+   "de": "Zusammenstoß an einem Bahnübergang in Mulhouse",
+   "commune_name": "Mulhouse",
+   "occurred_on": "1928-04-30",
+   "kind": "level_crossing"
+  },
+  {
+   "slug": "1931-04-16-mulhouse",
+   "fr": "Collision à Mulhouse",
+   "en": "Collision at Mulhouse",
+   "de": "Zusammenstoß in Mulhouse",
+   "commune_name": "Mulhouse",
+   "occurred_on": "1931-04-16",
+   "kind": "collision"
+  },
+  {
+   "slug": "1931-08-01-lagny-sur-marne",
+   "fr": "Collision à un passage à niveau à Lagny-sur-Marne",
+   "en": "Level crossing collision at Lagny-sur-Marne",
+   "de": "Zusammenstoß an einem Bahnübergang in Lagny-sur-Marne",
+   "commune_name": "Lagny-sur-Marne",
+   "occurred_on": "1931-08-01",
+   "kind": "level_crossing"
+  },
+  {
+   "slug": "1933-12-23-pomponne",
+   "fr": "Accident ferroviaire de Lagny-Pomponne",
+   "en": "Lagny-Pomponne rail accident",
+   "de": "Eisenbahnunfall von Lagny",
+   "commune_name": "Pomponne",
+   "occurred_on": "1933-12-23",
+   "kind": "collision"
+  },
+  {
+   "slug": "1937-03-07-neuville-sous-montreuil",
+   "fr": "Collision à un passage à niveau à Neuville-sous-Montreuil",
+   "en": "Level crossing collision at Neuville-sous-Montreuil",
+   "de": "Zusammenstoß an einem Bahnübergang in Neuville-sous-Montreuil",
+   "commune_name": "Neuville-sous-Montreuil",
+   "occurred_on": "1937-03-07",
+   "kind": "level_crossing"
+  },
+  {
+   "slug": "1939-03-13-chateauroux",
+   "fr": "Déraillement à Châteauroux",
+   "en": "Derailment at Châteauroux",
+   "de": "Entgleisung in Châteauroux",
+   "commune_name": "Châteauroux",
+   "occurred_on": "1939-03-13",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1940-08-07-saint-pol-de-leon",
+   "fr": "Collision à Saint-Pol-de-Léon",
+   "en": "Collision at Saint-Pol-de-Léon",
+   "de": "Zusammenstoß in Saint-Pol-de-Léon",
+   "commune_name": "Saint-Pol-de-Léon",
+   "occurred_on": "1940-08-07",
+   "kind": "collision"
+  },
+  {
+   "slug": "1943-10-06-varennes-le-grand",
+   "fr": "Déraillement à Chalon-sur-Saône",
+   "en": "Derailment at Chalon-sur-Saône",
+   "de": "Entgleisung in Chalon-sur-Saône",
+   "commune_name": "Chalon-sur-Saône",
+   "occurred_on": "1943-10-06",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1943-10-31-tournus",
+   "fr": "Déraillement à Tournus",
+   "en": "Derailment at Tournus",
+   "de": "Entgleisung in Tournus",
+   "commune_name": "Tournus",
+   "occurred_on": "1943-10-31",
+   "kind": "derailment"
+  },
+  {
+   "slug": "1947-12-03-arras",
+   "fr": "Sabotage et déraillement du train postal Paris-Tourcoing le 3 décembre 1947 à Arras",
+   "en": "Derailment at Arras",
+   "de": "Eisenbahnunfall von Arras",
+   "commune_name": "Arras",
+   "occurred_on": "1947-12-03",
+   "kind": "attack"
+  },
+  {
+   "slug": "1961-06-18-blacy",
+   "fr": "Attentat du train Strasbourg-Paris",
+   "en": "1961 Vitry-Le-François train bombing",
+   "de": "Anschlag auf den Schnellzug Straßburg–Paris",
+   "commune_name": "Blacy",
+   "occurred_on": "1961-06-18",
+   "kind": "attack"
+  },
+  {
+   "slug": "1988-06-27-paris",
+   "fr": "Accident ferroviaire de la gare de Lyon",
+   "en": "Gare de Lyon rail accident",
+   "de": "Eisenbahnunfall am Gare de Lyon",
+   "commune_name": "Paris",
+   "occurred_on": "1988-06-27",
+   "kind": "collision"
+  },
+  {
+   "slug": "1991-10-17-melun",
+   "fr": "Catastrophe ferroviaire de Melun du 17 octobre 1991",
+   "en": "Serious incident at Melun",
+   "de": "Schwerer Zwischenfall in Melun",
+   "commune_name": "Melun",
+   "occurred_on": "1991-10-17",
+   "kind": "collision"
+  },
+  {
+   "slug": "2006-10-11-zoufftgen",
+   "fr": "Accident ferroviaire de Zoufftgen",
+   "en": "Zoufftgen train collision",
+   "de": "Eisenbahnunfall von Zoufftgen",
+   "commune_name": "Zoufftgen",
+   "occurred_on": "2006-10-11",
+   "kind": "collision"
+  },
+  {
+   "slug": "2011-10-20-valence",
+   "fr": "Déraillement à Valence",
+   "en": "Derailment at Valence",
+   "de": "Entgleisung in Valence",
+   "commune_name": "Valence",
+   "occurred_on": "2011-10-20",
+   "kind": "derailment"
+  },
+  {
+   "slug": "2013-07-12-bretigny-sur-orge",
+   "fr": "Accident ferroviaire de Brétigny-sur-Orge",
+   "en": "Brétigny-sur-Orge train crash",
+   "de": "Eisenbahnunfall von Brétigny-sur-Orge",
+   "commune_name": "Brétigny-sur-Orge",
+   "occurred_on": "2013-07-12",
+   "kind": "derailment"
+  },
+  {
+   "slug": "2015-11-14-eckwersheim",
+   "fr": "Accident ferroviaire d'Eckwersheim",
+   "en": "Eckwersheim derailment",
+   "de": "TGV-Unfall von Eckwersheim",
+   "commune_name": "Eckwersheim",
+   "occurred_on": "2015-11-14",
+   "kind": "derailment"
+  },
+  {
+   "slug": "2024-02-11-metz",
+   "fr": "Déraillement à Metz",
+   "en": "Derailment at Metz",
+   "de": "Entgleisung in Metz",
+   "commune_name": "Metz",
+   "occurred_on": "2024-02-11",
+   "kind": "derailment"
+  }
+ ]
+}

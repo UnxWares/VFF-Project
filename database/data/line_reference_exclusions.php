@@ -19,6 +19,7 @@
 $fragments = 'storage/app/reports/agents/aprem-2111/fragments-60m.md (relecture sur orthophoto IGN, planche ';
 $day = '2026-11-23';
 $osm = 'https://www.openstreetmap.org/way/';
+$dom = 'storage/app/reports/agents/aprem-2111/domfront.md';
 
 return [
     // Domfront (Orne), gare : deux voies OSM abandonnées parallèles à 10-12 m (way 230093155, voie est, 715 m ; way
@@ -33,6 +34,37 @@ return [
     ['kind' => 'trace', 'line' => '436000', 'source_name' => 'osm', 'source_ref' => '1075679256', 'near' => [-0.667251, 48.586676], 'radius_m' => 40,
         'reason' => 'gare de Domfront : bout nord de la voie ouest, en courbe d\'aiguillage arrêtée à 4 m de la voie est puis le long d\'elle (crochet et doublon)',
         'source' => $osm.'1075679256', 'reviewed_at' => $day],
+
+    // Les lignes d'Alençon à Domfront (432000) et de Domfront à Pontaubault (437000) roulent dans la gare sur les mêmes
+    // voies que 436000 et y changent de voie au même endroit. Sans les mêmes coupes, elles gardaient les deux crochets,
+    // reliés par un raccord droit de 7 à 10 m à côté de la courbe de 436000 : 7 jonctions à 0 m perdues (23/11/2026,
+    // exclusions-traces/application/jonctions-perdues.csv). Mêmes coupes des deux voies OSM, et leurs traces archeo et
+    // OHM (cordes droites à travers la gare) retirées à moins de 70 m du changement de voie : le trou est comblé par le
+    // dessin de 436000, au bit près (JunctionRepair, règle 2 bis). Mesure : rapport domfront.md.
+    ['kind' => 'trace', 'line' => '432000', 'source_name' => 'osm', 'source_ref' => '230093155', 'near' => [-0.667405, 48.586495], 'radius_m' => 59,
+        'reason' => 'gare de Domfront : bout sud de la voie est (crochet), comme pour 436000 dont la ligne partage les voies',
+        'source' => $osm.'230093155', 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '432000', 'source_name' => 'osm', 'source_ref' => '1075679256', 'near' => [-0.667251, 48.586676], 'radius_m' => 40,
+        'reason' => 'gare de Domfront : bout nord de la voie ouest (crochet), comme pour 436000 dont la ligne partage les voies',
+        'source' => $osm.'1075679256', 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '432000', 'source_name' => 'archeoferroviaire', 'source_ref' => '579727eb1fd0a2ef1361d16c7fbd574b', 'near' => [-0.6672706, 48.5866638], 'radius_m' => 70,
+        'reason' => 'gare de Domfront : corde droite du tracé archeo à travers le changement de voie, remplacée par le dessin de 436000',
+        'source' => $dom, 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '432000', 'source_name' => 'ohm', 'source_ref' => '201186367', 'near' => [-0.6672706, 48.5866638], 'radius_m' => 70,
+        'reason' => 'gare de Domfront : corde droite du tracé OHM à travers le changement de voie, remplacée par le dessin de 436000',
+        'source' => 'https://www.openhistoricalmap.org/way/201186367', 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '437000', 'source_name' => 'osm', 'source_ref' => '230093155', 'near' => [-0.667405, 48.586495], 'radius_m' => 59,
+        'reason' => 'gare de Domfront : bout sud de la voie est (crochet), comme pour 436000 dont la ligne partage les voies',
+        'source' => $osm.'230093155', 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '437000', 'source_name' => 'osm', 'source_ref' => '1075679256', 'near' => [-0.667251, 48.586676], 'radius_m' => 40,
+        'reason' => 'gare de Domfront : bout nord de la voie ouest (crochet), comme pour 436000 dont la ligne partage les voies',
+        'source' => $osm.'1075679256', 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '437000', 'source_name' => 'archeoferroviaire', 'source_ref' => '4d518eaae7acda903aaa97ef1cc2a6b8', 'near' => [-0.6672706, 48.5866638], 'radius_m' => 70,
+        'reason' => 'gare de Domfront : corde droite du tracé archeo à travers le changement de voie, remplacée par le dessin de 436000',
+        'source' => $dom, 'reviewed_at' => $day],
+    ['kind' => 'trace', 'line' => '437000', 'source_name' => 'ohm', 'source_ref' => '201031326', 'near' => [-0.6672706, 48.5866638], 'radius_m' => 70,
+        'reason' => 'gare de Domfront : corde droite du tracé OHM à travers le changement de voie, remplacée par le dessin de 436000',
+        'source' => 'https://www.openhistoricalmap.org/way/201031326', 'reviewed_at' => $day],
 
     // Fragments isolés que la règle des fragments de moins de 60 m garde par prudence (SingleAxis::dropIsolatedFragments),
     // relus comme restes et retirés sur décision de Baptiste (réponse du 22/11/2026 : « Les retirer »).

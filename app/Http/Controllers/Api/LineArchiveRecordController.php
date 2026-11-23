@@ -54,7 +54,10 @@ class LineArchiveRecordController extends Controller
      * photographies de la Médiathèque SNCF et films numérisés, consultables sur archives.sncf.com), publié sur
      * ressources.data.sncf.com sous ODbL. Les notices sont importées par `vff:import-sncf-archives`, puis
      * rattachées par le **même score explicable** que les documents de Gallica (`GET /api/v1/lines/{line}/archives`),
-     * calculé sur le seul titre : `rail_route` (4), `route` (3) ou `two_places` (1, plus `only_line_places`),
+     * calculé sur le titre, ou sur la description quand le titre ne nomme aucune ligne (raison
+     * `read_in_description`, 0 point : une seule ligne décrite en voie ferrée « de X à Y » dès le début du texte,
+     * sans les mentions en passant « par », « via », « sur la ligne de ») : `rail_route` (4), `route` (3) ou
+     * `two_places` (1, plus `only_line_places`),
      * `ends` (2), `rail_word` (2) ou `rail_hint` (1), date `date_in_life` (2), `date_project` (1),
      * `date_after_closure` (1), `date_unknown` (0), `doc_type` (1). Seuil : 9 sur 11 ; un titre qui convient à
      * plus de deux lignes n'est rattaché à aucune.
@@ -64,7 +67,7 @@ class LineArchiveRecordController extends Controller
      * et d'Argentan à Granville » chaque trajet de la liste compte comme une ligne. Les notices des thèmes qui
      * portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de personnel) ne
      * sont jamais rattachées. Précision mesurée sur deux tirages de 40 notices relues à la main : 78 justes,
-     * 2 douteuses, aucune fausse.
+     * 2 douteuses, aucune fausse ; même mesure pour les notices rattachées par leur description (23/11/2026).
      *
      * Chaque notice : `source` (fonds, `sncf-archives`), `reference` (numéro du dossier, pas toujours unique),
      * `url` (notice et document sur archives.sncf.com, à donner au lecteur), `title`, `type` (`document` :

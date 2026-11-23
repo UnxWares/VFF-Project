@@ -305,7 +305,7 @@ class AccidentSearchTest extends TestCase
             ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'])->assertOk()->json('result.tools');
         $tools = array_column($list, null, 'name');
 
-        $this->assertSame(['lines', 'stations', 'materials', 'accidents'], $tools['search']['inputSchema']['properties']['kinds']['items']['enum']);
+        $this->assertSame(['lines', 'stations', 'materials', 'accidents', 'glossary'], $tools['search']['inputSchema']['properties']['kinds']['items']['enum']);
         $this->assertStringContainsString('accident', $tools['search']['description']);
     }
 }

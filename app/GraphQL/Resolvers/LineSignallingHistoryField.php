@@ -5,6 +5,7 @@ namespace App\GraphQL\Resolvers;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\Signalling\SignallingHistoryState;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
@@ -21,7 +22,7 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
  */
 final class LineSignallingHistoryField
 {
-    public function __construct(private readonly LineSignallingHistory $history) {}
+    public function __construct(private readonly LineSignallingHistory $history, private readonly SignallingDating $dating) {}
 
     /**
      * @param  array{era?: int|null}  $args
@@ -50,6 +51,18 @@ final class LineSignallingHistoryField
     {
         /** @var SignallingHistoryBatch $batch */
         $batch = BatchLoaderRegistry::instance($info->path, fn (): SignallingHistoryBatch => new SignallingHistoryBatch($this->history->correctionsOfLines(...)));
+
+        return $batch->load($line);
+    }
+
+    /**
+     * `Line.signalling_dating` : date connue de la mise en service du cantonnement (SignallingDating), mêmes valeurs
+     * que la clé `dating` de l'API REST et de l'outil MCP `signalling_history`.
+     */
+    public function dating(Line $line, array $args, GraphQLContext $context, ResolveInfo $info): SyncPromise
+    {
+        /** @var SignallingHistoryBatch $batch */
+        $batch = BatchLoaderRegistry::instance($info->path, fn (): SignallingHistoryBatch => new SignallingHistoryBatch($this->dating->forLines(...)));
 
         return $batch->load($line);
     }

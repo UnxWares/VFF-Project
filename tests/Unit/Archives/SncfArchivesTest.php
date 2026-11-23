@@ -38,7 +38,8 @@ class SncfArchivesTest extends TestCase
         $this->assertSame('12001', $record->reference);
         $this->assertSame('month', $record->date->precision);
         $this->assertSame('1983-05-01', $record->date->exact);
-        $this->assertStringNotContainsString('agent', serialize($record));
+        // La description n'est que lue pour juger le rattachement (SncfArchiveDescriptionsTest : jamais enregistrée).
+        $this->assertSame('Un agent nommé dans la description', $record->descriptionText);
     }
 
     /** @return iterable<string, array{array<string, mixed>, string, ?int, ?int, ?string, string}> */

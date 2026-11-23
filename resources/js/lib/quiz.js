@@ -7,6 +7,18 @@
 export const GAMES = ['lines', 'materials', 'facts'];
 export const LEVELS = ['easy', 'hard'];
 
+/** Sujets de questions de culture dont le texte du sujet est écrit dans la langue de la page (les autres : noms français). */
+const LOCALIZED_SUBJECTS = ['milestone', 'accident_year'];
+
+/**
+ * Langue du sujet d'une question de culture (attribut `lang` du texte).
+ * @param {string} topic
+ * @param {string} pageLang
+ */
+export function subjectLang(topic, pageLang) {
+    return LOCALIZED_SUBJECTS.includes(topic) ? pageLang : 'fr';
+}
+
 /** Marge autour du tracé dans le cadre SVG (unités du cadre de 1 000). */
 export const TRACE_MARGIN = 40;
 

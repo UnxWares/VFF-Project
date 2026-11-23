@@ -2,7 +2,6 @@
 
 namespace App\Mcp\Tools;
 
-use App\Mcp\Support\Lookup;
 use App\Mcp\Support\VffTool;
 use App\Services\Timetable\Timetables;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -43,7 +42,7 @@ class LineTimetableTool extends VffTool
 
     protected function answer(array $input, string $lang): Response
     {
-        $line = Lookup::line($input['line']);
+        $line = $this->line($input['line']);
         if ($line === null) {
             return $this->fail('line_not_found', ['query' => $input['line']], ['suggestions' => $this->suggestions($input['line'], 'lines')]);
         }

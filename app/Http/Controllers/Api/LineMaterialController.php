@@ -7,6 +7,7 @@ use App\Http\Requests\Api\ListLineMaterialsRequest;
 use App\Http\Resources\LineMaterialLinkResource;
 use App\Models\Line;
 use App\Services\Materials\LineMaterialEnd;
+use App\Services\Materials\LineMaterialFacts;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -61,6 +62,12 @@ class LineMaterialController extends Controller
      * encore. Les périodes ne reprennent aucune phrase ; `from_date` et `to_date` restent
      * réservés aux liens saisis dans VFF.
      *
+     * **Comme la fiche de la ligne** : `link_doubt` (série seulement citée, en essais, en
+     * présentation…), `earliest_on_line` (pas avant la première électrification connue pour une
+     * série électrique ; `conflict` signale une période sourcée plus ancienne, qui garde sa date),
+     * `family` (famille dont la série est une version) et `folded_into_versions` (famille que la
+     * fiche replie dans ses versions).
+     *
      * **Licences** : les phrases citées sont des extraits de Wikipédia (CC BY-SA 4.0) :
      * citez l'article avec le permalien `url`. Les fiches de matériel viennent de Wikidata
      * (CC0) ; la vignette (`material.thumb_url`) est un fichier Commons dont la licence est
@@ -89,6 +96,8 @@ class LineMaterialController extends Controller
             ->select('line_materials.*')
             ->get();
         $links = new Collection(LineMaterialEnd::sortLinks($links));
+        // Doute, borne d'électrification et famille comme sur la fiche, calculés sur tous les liens de la ligne.
+        $request->attributes->set(LineMaterialLinkResource::FACTS, LineMaterialFacts::forLine($line));
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],

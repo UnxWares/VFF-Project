@@ -23,8 +23,12 @@ use Illuminate\Support\Facades\DB;
  * StationDirectory, AccidentQuery, MaterialQuery), donc par la recherche commune App\Support\Search (mêmes
  * correspondances, même pertinence, noms approchés quand rien ne correspond mot pour mot). Lecture seule.
  *
+ * Glossaire : les termes de /glossary (GlossarySearch, la même recherche que la barre de l'en-tête), par leur nom dans
+ * la langue de la page ou dans une autre, leur sigle ou leur développé ; lus dans les fichiers de traduction, sans SQL.
+ * Pas de noms approchés ni de filtres.
+ *
  * Communes : celles qui ont une gare ou une ligne (CommuneRail), par leur nom, en dernier groupe ; elles ne changent
- * ni l'ordre ni le contenu des quatre autres groupes. Pas de noms approchés ni de filtres.
+ * ni l'ordre ni le contenu des autres groupes. Pas de noms approchés ni de filtres.
  *
  * Vue « tout » : les premiers résultats de chaque groupe (PREVIEW). Vue d'un type : ses résultats page par page
  * (PER_PAGE). Les filtres d'état (`open` en service, `closed` fermée) et de département ne valent que pour les
@@ -37,7 +41,7 @@ use Illuminate\Support\Facades\DB;
 final class SearchResultsPage
 {
     /** Types de résultats, dans l'ordre de la page. */
-    public const TYPES = ['line', 'station', 'accident', 'material', 'commune'];
+    public const TYPES = ['line', 'station', 'accident', 'material', 'glossary', 'commune'];
 
     /** Types qui ont les filtres d'état et de département. */
     public const FILTERABLE = ['line', 'station'];
@@ -46,6 +50,9 @@ final class SearchResultsPage
 
     /** Résultats par groupe dans la vue « tout ». */
     public const PREVIEW = 5;
+
+    /** Termes du glossaire lus au plus (il y en a quelques centaines : la requête la plus large les renvoie tous). */
+    private const GLOSSARY_MAX = 1000;
 
     /** Résultats par page dans la vue d'un type. */
     public const PER_PAGE = 20;
@@ -62,6 +69,7 @@ final class SearchResultsPage
         private readonly AccidentQuery $accidents,
         private readonly MaterialQuery $materials,
         private readonly CommuneRail $communes,
+        private readonly GlossarySearch $glossary,
     ) {}
 
     /**
@@ -90,7 +98,15 @@ final class SearchResultsPage
         $builders = [];
         $counts = [];
         $approximate = [];
+        // Le glossaire est lu en mémoire (aucun SQL) : tous ses termes trouvés, paginés plus bas.
+        $terms = $this->glossary->search($q, self::GLOSSARY_MAX);
         foreach (self::TYPES as $t) {
+            if ($t === 'glossary') {
+                $approximate[$t] = false;
+                $counts[$t] = count($terms);
+
+                continue;
+            }
             [$builders[$t], $approximate[$t]] = $this->query($t, $q, $search, $state, $dept);
             $counts[$t] = (clone $builders[$t])->count();
         }
@@ -103,8 +119,10 @@ final class SearchResultsPage
             $perPage = $type === '' ? self::PREVIEW : self::PER_PAGE;
             $last = max(1, (int) ceil($counts[$t] / $perPage));
             $current = min(max(1, $page), $last);
-            $rows = $this->ordered($t, $builders[$t], $q, $search, $approximate[$t])
-                ->offset(($current - 1) * $perPage)->limit($perPage)->get()->all();
+            $rows = $t === 'glossary'
+                ? array_slice($terms, ($current - 1) * $perPage, $perPage)
+                : $this->ordered($t, $builders[$t], $q, $search, $approximate[$t])
+                    ->offset(($current - 1) * $perPage)->limit($perPage)->get()->all();
             $groups[] = [
                 'type' => $t,
                 'total' => $counts[$t],
@@ -245,6 +263,21 @@ final class SearchResultsPage
                 'department_code' => $s->department_code,
                 'status' => $s->status,
             ], $rows);
+        }
+        if ($type === 'glossary') {
+            $locale = app()->getLocale();
+
+            /** @var list<array{slug: string, name: string, names: array<string, string>, abbr: ?string}> $rows */
+            return array_map(function (array $g) use ($mark, $locale): array {
+                $name = $g['names'][$locale] ?? $g['name'];
+
+                return [
+                    'slug' => $g['slug'],
+                    'name' => $name,
+                    'highlight' => $mark($name),
+                    'abbr' => $g['abbr'],
+                ];
+            }, $rows);
         }
         if ($type === 'commune') {
             return array_map(fn (object $c): array => (($row = CommuneRail::present($c)) + ['highlight' => $mark($row['name'])]), $rows);

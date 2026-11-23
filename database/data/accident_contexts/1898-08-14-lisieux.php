@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Élément de données utilisé par l\'import (date, 8 morts, commune de Lisieux) ; non relu.',
         ],
+        'kb-1898-08-16-l-e-bosch' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Verspreide berichten (Lisieux)',
+            'publisher' => 'L.E. Bosch & Zoon (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1898-08-16',
+            'locator' => 'rubrique « Verspreide berichten », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253161096:mpeg21:a00014:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 16 août : dimanche matin, un train déraille près de Lisieux, voitures de troisième classe brisées ; sept morts et 41 blessés, trois blessés proches de la mort.',
+            'facts' => ['date' => '1898-08-14', 'commune_insee' => '14366', 'deaths' => 7, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -105,6 +120,12 @@ return [
                 'en' => 'Uninjured passengers walked to Lisieux station to raise the alarm; doctors and soldiers of the 119th Infantry Regiment organised the rescue. Traffic resumed on one track at noon and on both tracks at 10 pm. The Minister of Public Works visited the site.',
                 'de' => 'Unverletzte Reisende gingen zu Fuß zum Bahnhof Lisieux, um Alarm zu schlagen; Ärzte und Soldaten des 119. Infanterieregiments organisierten die Hilfe. Der Verkehr lief mittags auf einem Gleis und um 22 Uhr auf beiden Gleisen wieder an. Der Minister für öffentliche Arbeiten kam an die Unglücksstelle.',
                 'sources' => ['wp-lisieux'],
+            ],
+            [
+                'fr' => 'Un journal néerlandais du 16 août 1898 annonce sept morts et 41 blessés pour le déraillement de dimanche matin près de Lisieux, bilan provisoire inférieur à celui de la fiche (8).',
+                'en' => 'A Dutch newspaper of 16 August 1898 reports seven dead and 41 injured in the derailment of Sunday morning near Lisieux, a provisional toll below the record\'s (8).',
+                'de' => 'Eine niederländische Zeitung vom 16. August 1898 meldet sieben Tote und 41 Verletzte bei der Entgleisung am Sonntagmorgen bei Lisieux, eine vorläufige Zahl unter der der Datenbank (8).',
+                'sources' => ['kb-1898-08-16-l-e-bosch'],
             ],
         ],
         'causes' => [

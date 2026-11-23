@@ -16,6 +16,7 @@ use App\Services\LineSheet;
 use App\Services\LineStats;
 use App\Services\Profiles\LineProfiles;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\Speed\LineSpeeds;
 use App\Services\Stories\EventStories;
 use App\Services\Structures\LineStructures;
@@ -169,7 +170,7 @@ class LineController extends Controller
      * (Inertia::defer, groupe DEFERRED_GROUP), que la page demande en une requête juste après s'être affichée.
      * Les réponses REST et GraphQL de la fiche ne changent pas (LineSheet::build sans `forPage`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, SignallingDating $signallingDating, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
         // Premier affichage : le haut de la fiche (LineSheet::PAGE_KEYS : en-tête, tracé, « Où et quand », « À propos »,
         // histoire, décennies, gares, chronologie). Fiche construite une fois, et seulement quand la réponse la demande :
@@ -201,11 +202,20 @@ class LineController extends Controller
             'portions_url' => fn () => LinePortionsController::url($line->slug, $core()['portions_version']),
             // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures) : en-tête.
             'companies' => fn () => CompanyFigures::forLine($line->id),
+            // Liste des gares : PK, commune et dates de chaque gare (LineSheet::pageStationDetails) ; leur position et
+            // leur état, lus par la carte du haut de la page, sont dans `stations` (LineSheet::PAGE_STATION_FIRST).
+            'station_details' => $defer(fn () => $sheet->pageStationDetails($line)),
             'accidents' => $defer(fn () => $accidents->forLine($line, app()->getLocale())),
             'level_crossings' => $defer(fn () => $crossings->forSheet($line)),
             'greenways' => $defer(fn () => $greenways->forSheet($line)),
             'signalling_history' => $defer(fn () => $signallingHistory->forSheet($line)),
+            // Dates lues dans un article que des documents contredisent, repliées sous la frise (API : `corrections`).
+            'signalling_corrections' => $defer(fn () => $signallingHistory->correctionsForSheet($line)),
+            // Ligne classique en service sans mise en service de cantonnement datée : mention et date de la dernière vérification.
+            'signalling_dating' => $defer(fn () => $signallingDating->forLine($line)),
             'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
+            // Sans profil : pourquoi (aucun tracé, tracé hors de France, pas encore calculé), dit dans la même section.
+            'profile_unavailable' => $defer(fn () => $profiles->unavailable($line)),
             // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
             'structures' => $defer(fn () => $structures->forSheet($line)),
             // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).

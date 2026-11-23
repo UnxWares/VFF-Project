@@ -110,6 +110,12 @@ d'erreur.
 - **Enveloppe** : chaque réponse réussie contient `vff_url` (lien de la fiche VFF à citer) et
   `attribution` (`notice` + `sources` : `provider`, `mention`, `open_licence`). Si la réponse a été
   raccourcie : `truncated` (liste => nombre d'éléments retirés) et `truncated_note`.
+- **Anciennes adresses** : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare fondue dans une
+  autre fiche ou d'un accident renommé ou fusionné (y compris dans les filtres `line` et `station` des outils de
+  liste) répond avec la fiche actuelle et le dit en tête de réponse : `redirected` est une liste d'objets
+  `kind` (`line`, `station`, `accident`), `requested` (slug donné), `current` (slug actuel), `reason` (`renamed`
+  ligne renommée, `merged` fiche fusionnée) et `note` (phrase dans la langue demandée). Reprenez `current` pour
+  les appels suivants. Sans ancienne adresse, la clé est absente.
 - **Erreurs** : `isError: true` et un JSON `{"error": "<code>", "message": "…"}` avec, selon le cas,
   `suggestions` (slugs proches), `candidates` (gares homonymes) ou `available_eras`. Les erreurs de
   validation (argument manquant, hors bornes, inconnu) sont des messages texte.
@@ -120,7 +126,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 
 | Outil | Rôle |
 |---|---|
-| `search` | Trouver une ligne, une gare, un matériel ou un accident par son nom (identifiants pour les autres outils). |
+| `search` | Trouver une ligne, une gare, un matériel, un accident ou un terme du glossaire par son nom (identifiants pour les autres outils). |
 | `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, gares, chronologie. |
 | `line_events` | Événements d'une ligne sur une période. |
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies et dates de desserte, sources. |
@@ -161,15 +167,25 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `station_accessibility` | Accessibilité et services d'une gare : accès des personnes à mobilité réduite, ascenseurs (état daté), boucle magnétique, bandes d'éveil, toilettes, assistance, guichet, vélos ; SNCF Gares & Connexions, ODbL. |
 | `station_timetable` | Desserte d'une gare un mardi type : trains par type et par sens, premières et dernières heures, destinations directes ; horaires théoriques SNCF et Transilien, ODbL. |
 | `line_timetable` | Trains de voyageurs par jour sur une ligne un mardi type, chacun compté une fois ; horaires théoriques SNCF et Transilien, ODbL. |
+| `preserved_rolling_stock` | Matériel roulant préservé : exemplaires d'une série ou lieux (musées, associations, lignes touristiques) avec numéro, état dit par la source, protection monument historique (Palissy) et sources. |
+| `rail_projects` | Projets ferroviaires pas encore en service (réouvertures, lignes nouvelles, LGV, RER, électrifications), chaque étape datée avec sa source ; une date prévue n'est jamais certaine. |
+| `station_events` | Chronologie d'une gare filtrée et paginée : ouvertures, fermetures, réouvertures, démolitions, dates relevées ou déduites, source et licence de chacune. |
+| `bibliography` | Bibliographie d'une ligne ou d'une gare : ouvrages et articles (notice de la BnF, référence de Wikipédia ou de Wikidata), raison du rattachement, paginée. |
+| `protected_heritage` | Patrimoine ferroviaire protégé de tout le réseau : bâtiments voyageurs et ouvrages d'art classés, inscrits ou labellisés, filtres, tri et pagination. |
+| `companies` | Compagnies de chemins de fer historiques : liste, ou fiche d'une compagnie avec ses lignes rattachées par un événement daté (paginées) et son réseau par décennie. |
+| `get_commune` | Le rail d'une commune (code INSEE ou nom) : gares, lignes, chronologie paginée, communes voisines. |
+| `department_history` | Le rail d'un département décennie par décennie (longueurs, gares, grandes dates, lignes paginées, communes, accidents), ou le tableau de tous les départements. |
+| `data_coverage` | Ce que sait l'encyclopédie : parts renseignées et précision des dates pour les lignes, gares, accidents, matériel et ères. |
+| `position_at_pk` | Où tombe un point kilométrique sur une ligne : gares qui l'encadrent, commune, point sur la carte. |
 
-### `search` : rechercher une ligne, une gare, un matériel ou un accident
+### `search` : rechercher une ligne, une gare, un matériel, un accident ou un terme du glossaire
 
 Point de départ : trouve les identifiants attendus par les autres outils.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
 | `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare, de matériel ou d'accident, commune ou date d'accident (`1891`, `07/2013`, `2013-07-12`). Casse et accents ignorés. |
-| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents` | non | Catégories cherchées (par défaut : les quatre). |
+| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents`, `glossary` | non | Catégories cherchées (par défaut : les cinq). |
 | `limit` | entier 1 à 20 | non | Résultats par catégorie (8 par défaut). |
 | `lang` | `fr`, `en`, `de` | non | Langue (fr par défaut). |
 
@@ -177,7 +193,12 @@ Renvoie `lines` (`slug`, `name`, `code`, `vff_url`), `stations` (`slug`, `name`,
 `department_code`, `lat`, `lng`, `vff_url`), `materials` (`slug`, `name`, `kind`, `builder`,
 `vff_url`), `accidents` (`slug`, `name` dans la langue demandée, `names` en `fr`, `en` et `de`, `date`
 et `date_precision`, `kind`, `commune`, `department_code`, `lat`, `lng` nuls sans position,
-`vff_url` ; le `slug` va à `get_accident`). Les accidents se trouvent par leur nom (dans les trois
+`vff_url` ; le `slug` va à `get_accident`), `glossary` (`slug`, `name` dans la langue demandée, `abbr`, `vff_url` vers la
+définition sur `/glossary`, par le nom, le sigle ou le développé du terme dans l'une des trois langues : `TVM 430`, `KVB`,
+`block automatique lumineux`, `overhead line`). Mots génériques facultatifs (`gare`, `station`, `Bahnhof`, `ligne`, `line`,
+`Strecke`, `accident`, `UIC` : `Paris Nord station`, `ligne 830 000`) ; noms allemands et anglais des villes (`Straßburg`,
+`Mülhausen`) ; l'ancien slug d'une gare fusionnée ou d'une ligne renommée trouve la fiche qui l'a remplacé, en premier ; une
+année à côté d'un lieu limite les accidents à cette année (`Lagny 1933`). Les accidents se trouvent par leur nom (dans les trois
 langues), leur commune ou leur date : une année (`1891`), un mois (`07/2013`, `2013-07`) ou un jour
 (`12/07/2013`, `2013-07-12`) ; un accident dont seule l'année ou le mois est connu ne répond pas à
 un jour précis. Seuls les accidents publiés sortent, jamais ceux que VFF ne montre pas. Tri par
@@ -240,7 +261,7 @@ jour ou mois donné ; `medium` année seule, date reprise d'une phrase voisine, 
 déduite de l'ouverture ; les faits douteux ne sont pas exposés), `origin` (`text`, `list`, `table`, `infobox`,
 `opening` : TVM d'une ligne à grande vitesse, en service dès l'ouverture), `scope` (`whole_line`, `section`,
 `unspecified`), `section` (`from`, `to` tels qu'écrits ; `location` : `stations` placée par ses gares
-d'extrémité, `article_pk` PK de l'article, `unlocated` non placée ; `pk_start_m`, `pk_end_m` de la portion
+d'extrémité, `landmarks` placée par au moins un point remarquable de la ligne (bifurcation, raccordement, origine, fin, frontière), `article_pk` PK de l'article, `unlocated` non placée ; `pk_start_m`, `pk_end_m` de la portion
 placée ; `from_station`, `to_station` avec `slug`, `name`, `pk_m`) et `source` (`title`, `url` permalien de la
 révision lue, `revision` ; pas de phrase de l'article, comme pour la description des lignes : l'API REST la
 donne). Relevé partiel : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. L'outil
@@ -1045,8 +1066,10 @@ seuil 9 sur 11), avec deux règles propres au fonds :
   une ligne (le document va aux deux lignes ; au-delà de deux, il est ambigu et ne va à aucune).
 
 Les notices des thèmes qui portent sur des personnes (fichiers des cheminots blessés et tués, contentieux, questions de
-personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise. Précision mesurée le
-22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse. Une liste vide ne
+personnel) ne sont jamais rattachées, et la description d'une notice n'est jamais reprise (elle est seulement lue, quand le titre ne nomme aucune ligne, pour
+juger le rattachement : raison `read_in_description`, 0 point). Précision mesurée le
+22/11/2026 sur deux tirages de 40 notices relues à la main : 78 justes, 2 douteuses, aucune fausse ; même résultat le
+23/11/2026 pour les notices rattachées par leur description. Une liste vide ne
 veut pas dire que les archives de la SNCF n'ont rien sur la ligne : le jeu de données n'en décrit qu'une partie.
 
 | Paramètre | Type | Obligatoire | Description |
@@ -1522,6 +1545,246 @@ Renvoie `total`, `has_more`, `railways[]` (`name`, `type`, `operator`, `gauge_mm
 {"type": "steam", "region": "Occitanie"}
 ```
 
+### `preserved_rolling_stock` : matériel roulant préservé
+
+Mêmes données que `GET /api/v1/materials/preserved` et `GET /api/v1/materials/{material}/preserved`, et la page
+`/materials/preserved` (service `PreservedRollingStock`, fichier versionné `database/data/preserved_rolling_stock.php`).
+La liste est celle des sources (Wikipédia, base Palissy, Wikidata), pas un inventaire : un exemplaire absent n'est
+pas démoli pour autant, et l'état est celui que rapporte la source à sa date de lecture (`coverage_note`).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `material` | texte | non | Slug d'une série (`241-p`) : ses exemplaires (`units`). Sans lui : les lieux et leurs pièces (`venues`). |
+| `venue_type` | texte | non | `museum`, `association`, `tourist_railway`, `site`. |
+| `venue` | texte | non | Slug d'un lieu (`cite-du-train`) ; pas avec `material`. |
+| `state` | texte | non | `running`, `exposed`, `restoration`, `stored` (état dit par la source ; sans filtre, les états inconnus sont gardés). |
+| `protected` | booléen | non | `true` : pièces classées ou inscrites monuments historiques (pas les déclassées) ; `false` : les autres. |
+| `limit`, `offset` | entiers | non | Pagination des exemplaires ou des lieux (20 par défaut, 50 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des textes générés. |
+
+Chaque exemplaire ou pièce : `number`, `venue` (`slug`, `name`, `type`, `commune`, `tourist_railway` avec l'adresse
+complète de la ligne touristique sur le site), `where`, `state` (null si la source ne le dit pas), `protection`
+(`kind`, `date`, `year`, `ref`, `url` de la notice Palissy) et `sources` (`key`, `label`, `licence`, `ref`, `url` de la
+version lue). Sans `material`, chaque lieu donne `count` et `pieces` (avec `series` et `title`), et la réponse ajoute
+`figures` (couverture : `units`, `series`, `venues`, `protected`, `with_place`, `others`). `get_material` donne
+`preserved_count`, le nombre d'exemplaires préservés de la série.
+
+```json
+{"material": "241-p"}
+{"venue_type": "museum", "state": "running", "limit": 5}
+```
+
+### `rail_projects` : projets ferroviaires et leurs étapes
+
+Mêmes données que `GET /api/v1/projects` et la page `/projects` (service `RailProjects`, catalogue versionné
+`database/data/projets_ferroviaires.php`) : projets pas encore en service. Une étape `done: false` est une date
+**prévue** par sa source, jamais certaine : « prévue en 2028 selon SNCF Réseau » (`planned_dates_note`). Un projet
+mis en service sort de la liste ; son histoire est alors dans `get_line` et `line_events`.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `state` | texte | non | `study`, `debate`, `dup`, `funding`, `works`, `suspended`. |
+| `kind` | texte | non | `reopening`, `new_line`, `lgv`, `rer`, `electrification`. |
+| `region` | texte | non | Nom exact de la région, tel que listé dans `regions` de la réponse. |
+| `line` | texte | non | Slug, ancien slug ou code à 6 chiffres d'une ligne : projets qui la concernent. Ligne inconnue : erreur `line_not_found`. |
+| `limit`, `offset` | entiers | non | Pagination (20 par défaut, 50 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des textes générés (le `summary` du catalogue reste en français). |
+
+Renvoie `filters`, `total`, `has_more`, `planned_dates_note`, `projects[]` (`id`, `name`, `kind`, `state`, `regions`,
+`porteurs`, `lines`, `summary`, `stages` avec `kind`, `date`, `precision`, `done`, `note`, `source` : `label`, `url`,
+`published` ; `next_stage`, `planned_commissioning`, `checked`), `regions`, `kinds`, `states` et `checked`.
+L'attribution cite le fournisseur reconnu par le domaine du lien de chaque étape (Journal officiel, SNCF…).
+
+```json
+{"kind": "reopening", "state": "works"}
+```
+
+### `station_events` : chronologie d'une gare
+
+Mêmes événements et mêmes filtres que `GET /api/v1/stations/{station}/events`, paginés par curseur. `get_station`
+donne la liste complète sans filtre ; cet outil sert aux longues chronologies et aux questions précises. Les faits
+d'une source à usage non commercial ne sont jamais servis.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | texte | oui | Slug de la gare (ou ancien slug d'une fiche fusionnée, signalé par `redirected`). |
+| `type` | texte | non | `opening`, `closure`, `closure_passenger`, `closure_freight`, `reopening`, `demolition`. |
+| `source` | texte | non | `wikidata`, `wikidata:qualifiers`, `wikipedia`, `ohm`, `osm`, `osm:note`, `correction`, `inferred:line_event`, `inferred:trace`. |
+| `inferred` | booléen | non | `false` : seulement les dates relevées dans une source ; `true` : seulement les dates déduites par VFF. |
+| `from`, `to` | texte | non | Année (`1930`) ou date (`1930-06-15`), bornes incluses. |
+| `order` | texte | non | `asc` (par défaut) ou `desc`. |
+| `limit`, `cursor` | entier, texte | non | 25 par défaut, 100 au plus ; repassez `next_cursor`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés, des dates rédigées et des notes. |
+
+Renvoie `station` (`slug`, `name`), `filters`, `events[]` (`id`, `type`, `label`, `date`, `date_precision`, `when`,
+`is_inferred`, `note`, `source`, `source_ref`, `source_url`, `provenance`), `count`, `has_more`, `next_cursor`.
+
+```json
+{"station": "brest", "inferred": false, "order": "desc"}
+```
+
+### `bibliography` : bibliographie d'une ligne ou d'une gare
+
+Mêmes données que `GET /api/v1/lines/{line}/bibliography` et `GET /api/v1/stations/{station}/bibliography` (service
+`SheetBibliography`, commande `vff:import-bibliography`). Seules les données de la notice sont servies, jamais le contenu
+d'un ouvrage. Rattachement prudent : jamais un ouvrage général sur les chemins de fer ; pour une gare, le titre doit nommer
+la gare et un nom porté par plusieurs gares n'est jamais rattaché. Une liste vide ne prouve pas qu'il n'existe rien.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | texte | l'un des deux | Slug, ancien slug ou code à 6 chiffres de la ligne. |
+| `station` | texte | l'un des deux | Slug (ou ancien slug d'une fiche fusionnée) de la gare. |
+| `limit`, `offset` | entiers | non | Pagination (20 par défaut, 60 au plus : une fiche sert 60 références au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line` ou `station`, `total` (références rattachées), `served` (références lisibles, 60 au plus), `offset`, `count`,
+`has_more` et `items[]` (`kind`, `title`, `authors`, `publisher`, `place`, `year`, `isbn`, `journal`, `url`, `source`,
+`match` : `basis`, `provider`, `score`, `reasons`, `origin_url` ; `fetched_on`, `provenance`). Les plus récents d'abord,
+sans date en dernier. Licences : notices de la BnF sous Licence Ouverte (fournisseur `gallica` du registre), à citer avec
+`fetched_on` ; Wikipédia (CC BY-SA 4.0) ; Wikidata (CC0).
+
+```json
+{"line": "rfn-722000"}
+{"station": "limoges-benedictins"}
+```
+
+### `protected_heritage` : patrimoine ferroviaire protégé de tout le réseau
+
+Mêmes données et mêmes filtres que `GET /api/v1/heritage` et la page `/heritage` (service `HeritageIndex`, tables
+`station_heritage`, `structures` et, quand elle existe, `structure_heritage` ; une table absente donne une part vide). Les objets
+seulement recensés à l'Inventaire général n'y sont pas : `station_heritage` donne le détail d'une gare, `line_structures`
+les ouvrages d'une ligne.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `protection` | texte | non | `classified`, `registered`, `acr`. |
+| `object` | texte | non | `building`, `works`, `viaduct`, `bridge`, `tunnel`. |
+| `era` | texte | non | `before_1850`, `1850_1899`, `1900_1944`, `1945_1999`, `from_2000`, `unknown`. |
+| `style`, `architect`, `region` | texte | non | Noms exacts, tels que listés dans `facets`. |
+| `department` | texte | non | Code INSEE du département (ajout du serveur MCP). |
+| `sort` | texte | non | `name` (défaut), `protection_date` (la plus récente d'abord), `built` (la plus ancienne d'abord). |
+| `limit`, `offset` | entiers | non | Pagination (20 par défaut, 50 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `filters`, `total`, `total_all`, `offset`, `count`, `has_more`, `items[]` (champs de REST : `id`, `object`, `name`,
+`title`, `protection`, `protection_date`, `scope`, `architects`, `built`, `era`, `style`, `commune`, `department`, `region`,
+`reference`, `image`, `station` ou `line`, `lat`, `lng`), `facets` (`facets.architects` : les 40 plus fréquents,
+`architects_total`) et `heritage_attribution`. L'attribution cite Mérimée (`pop`), Wikidata, l'IGN pour les ouvrages d'art
+et Commons pour les images.
+
+```json
+{"protection": "classified", "object": "viaduct"}
+{"region": "Nouvelle-Aquitaine", "sort": "built", "limit": 10}
+```
+
+### `companies` : compagnies de chemins de fer historiques
+
+Mêmes données que `GET /api/v1/companies` et `GET /api/v1/companies/{company}` (service `CompanyFigures`, cache calculé
+par `vff:compute-company-figures` ; sans calcul : erreur `figures_not_computed`). Une ligne n'est rattachée que par un
+événement daté de concession sourcé : une ligne absente n'est pas « sans compagnie ». Le tracé du réseau (`map`) n'est
+pas servi.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `company` | texte | non | Slug de la compagnie (`nord`, `plm`, `midi`…). Sans lui : la liste et `coverage`. Inconnu : erreur `company_not_found` avec `available`. |
+| `limit`, `offset` | entiers | non | Avec `company` : pagination des lignes rattachées (30 par défaut, 100 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue de `summary` et des textes des événements. |
+
+Sans `company` : `computed_at`, `current_year`, `companies[]` (champs de REST, sans `links`) et `coverage`. Avec
+`company` : `company`, `events`, `sources`, `predecessors`, `successors`, `decades`, `peak`, `first_year`, `lines`
+(paginées), `lines_total`, `lines_offset`, `lines_has_more`.
+
+```json
+{}
+{"company": "plm", "limit": 50}
+```
+
+### `get_commune` : le rail d'une commune
+
+Mêmes données que `GET /api/v1/communes/{insee}` et la page `/communes/{insee}-{nom}` (service `CommuneSheet`). Seules
+les communes qui ont une gare ou une ligne ont une fiche. Le serveur accepte aussi le nom de la commune : un nom porté par
+plusieurs communes donne l'erreur `commune_ambiguous` avec `candidates`. Un événement de gare de la chronologie (réouverture,
+fin d'un trafic, démolition) dont la seule source est à usage non commercial n'est pas servi ; les événements de ligne
+sont déjà lus sans ces sources.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `commune` | texte | oui | Code INSEE (`16015`, `2A004`), adresse de la page (`16015-angouleme`) ou nom (`Angoulême`). |
+| `department` | texte | non | Code INSEE du département, pour départager deux communes du même nom. |
+| `limit`, `offset` | entiers | non | Pagination de la chronologie (100 par défaut, 400 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des noms d'accident. |
+
+Renvoie `commune`, `current_era`, `counts`, `stations`, `lines`, `chronology` (paginée : `chronology_total`,
+`chronology_offset`, `chronology_has_more`) et `neighbors`, sans la carte.
+
+```json
+{"commune": "16015"}
+{"commune": "Saint-Sulpice", "department": "81"}
+```
+
+### `department_history` : le rail d'un département
+
+Mêmes données que `GET /api/v1/departments/{department}/history` et `GET /api/v1/stats/departments` (service
+`DepartmentFigures`, cache calculé par `vff:compute-department-figures` ; sans calcul : erreur `figures_not_computed`).
+Le cache ne garde pas la source de chaque date : le serveur ne sert une date de ligne (`opened`, `closed`, `electrified`,
+`milestones.first_opening`, `milestones.reopenings`) que si un événement d'une source servie de la même ligne et de même
+nature la donne ; au même jour elle reste, à la même année seulement elle prend la date et la précision de cet événement,
+sinon elle est nulle (`App\Mcp\Support\ServedLineDates`).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `department` | texte | non | Code INSEE (`16`, `2A`, `971`) ou nom (`Charente`). Sans lui : le tableau de tous les départements. |
+| `limit`, `offset` | entiers | non | Avec `department` : pagination des lignes (50 par défaut, 200 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des noms d'accident. |
+
+Sans `department` : `computed_at`, `reference_year`, `current_year`, `departments[]`. Avec : `department`, `computed_at`,
+`reference_year`, `current_year`, `closed_share`, `decades`, `milestones`, `lines` (paginées : `lines_total`,
+`lines_offset`, `lines_has_more`), `communes` (les 60 premières, `communes_total`) et `accidents`, sans la carte.
+
+```json
+{"department": "23"}
+{"department": "Charente", "limit": 20}
+```
+
+### `data_coverage` : ce que sait l'encyclopédie
+
+Mêmes mesures que `GET /api/v1/stats/coverage` et la page `/network/coverage` (service `CoverageFigures`, calcul gardé
+en cache). Des comptes calculés par VFF, aucune donnée de fiche.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `set` | texte | non | `lines`, `stations`, `accidents`, `materials` ou `eras` : cet ensemble seul. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `set`, `computed_at` et les ensembles (`metrics` : `key`, `unit`, `available`, `total`, `done`, `share`, `open`,
+`levels` ; `by_decade` ; `eras`).
+
+```json
+{"set": "lines"}
+```
+
+### `position_at_pk` : position d'un point kilométrique
+
+Mêmes données que `GET /api/v1/lines/{line}/at-pk` (service `LinePkPosition`) : l'inverse de `locate_on_line`. Les PK
+sont ceux des gares de la ligne à l'ère courante, sinon à la dernière ère où la ligne a des gares. Le point vient du
+profil en long quand son tracé est redistribuable, sinon il est placé en ligne droite entre les deux gares
+(`position_withheld` en dit la raison).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | texte | oui | Slug, ancien slug ou code à 6 chiffres de la ligne. |
+| `pk` | texte | l'un des deux | PK en kilomètres : `120`, `120,5` ou `120+500`. Illisible : erreur `invalid_pk`. |
+| `pk_m` | entier | l'un des deux | PK en mètres (0 à 5 000 000). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `pk_m`, `pk_label`, `in_range`, `bounds`, `at_station` ou `between`, `commune`, `lat`, `lng`,
+`position_method` (`profile`, `stations`, `station`) et `position_withheld`. PK hors de la ligne : erreur
+`pk_out_of_range` avec `bounds` ; ligne sans gare : `no_stops`.
+
+```json
+{"line": "rfn-570000", "pk": "120+500"}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -1703,9 +1966,14 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
 
 **Sources à usage non commercial.** Les faits d'une source à usage non commercial ne sortent jamais du serveur MCP : ni événement, ni lien, ni texte, ni géométrie, que la source soit
 nommée dans `source` ou seulement par le lien cité (`App\Mcp\Support\NonCommercialSources`, appliqué à
-`line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`). Restent servis les faits que VFF
+`line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`, `station_events`, `get_commune`,
+`department_history`). Une date de gare déduite d'un événement de ligne d'une telle source (`inferred:line_event`)
+ne l'est pas non plus : ni dans `station_events` et la chronologie de `get_station`, ni comme ouverture ou fermeture
+de la gare dans `get_station`, `list_stations` et `get_commune` (`App\Mcp\Support\ServedStationDates` : la date prend
+celle d'un événement servi de même nature et de même année, sinon elle est nulle). Restent servis les faits que VFF
 calcule à partir de ses tracés (état d'un tronçon à une ère, longueur, PK arrondi), sans coordonnée ; le fournisseur
-reste cité dans `attribution`. L'API REST, elle, sert ces événements avec la valeur `source` du fournisseur concerné (voir `/sources`).
+reste cité dans `attribution`. L'API REST, GraphQL et les données ouvertes appliquent la même règle des dates
+(`App\Support\RedistributableDates`) ; seul le site garde ces dates, avec leur source.
 
 **Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
 points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line` quand sa
@@ -1723,8 +1991,6 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 - **Détail par ligne d'une comparaison d'ères** et **tuiles** de comparaison : par l'API REST
   (`/api/v1/eras/{year}/compare/{other}/tiles/...`) ; `compare_eras` donne le résumé chiffré et
   `compare_line_eras` le détail d'une ligne.
-- **Chronologie seule d'une gare** (`/api/v1/stations/{slug}/events`) : `get_station` en donne
-  l'essentiel ; pas d'outil dédié paginé.
 - **Signalisation tranche par tranche**
   (`/api/v1/lines/{slug}/signalling`), **tronçons par ère** (`/api/v1/lines/{slug}/segments`) et
   **géométries** (GeoJSON, tuiles, archive GTFS, dont `line_stops` donne le lien) : disponibles par l'API REST, pas
@@ -1752,7 +2018,7 @@ Les instructions du serveur rappellent ces obligations aux assistants.
   `MediaResource`, `MaterialResource`, `MaterialDetailResource`, `AccidentResource`, `AccidentDetailResource`) ;
   `EraComparison` (comparaison d'ères). Présentation des accidents : `App\Mcp\Support\AccidentView`.
 - Tests : `VFF_TEST_DB=vff_xxx_test bin/php artisan test tests/Feature/Mcp tests/Unit/Mcp`.
-- `tools/list` tient en une seule page (`VffServer::$defaultPaginationLength` = 50) : le défaut du paquet (15) aurait
+- `tools/list` tient en une seule page (`VffServer::$defaultPaginationLength` = 80, 57 outils) : le défaut du paquet (15) aurait
   laissé des outils hors de la première page pour les clients qui ne suivent pas `nextCursor`.
 - Ajouter un outil : une classe dans `app/Mcp/Tools/` qui étend `App\Mcp\Support\VffTool`
   (`rules()`, `arguments()`, `answer()`), déclarée dans `VffServer::$tools`, avec sa description

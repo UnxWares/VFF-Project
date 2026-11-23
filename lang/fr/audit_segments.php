@@ -210,6 +210,8 @@ return [
         'no_track_nearby' => 'Tronçon en service sans voie réelle à moins de 50 m.',
         'distant_reference_only' => 'Ère passée : le tracé suit la voie OSM de la ligne, et seule la voie BD TOPO d’aujourd’hui, à plus de 15 m, pourrait le contredire.',
         'no_reference' => 'Aucune voie de référence à moins de 50 m.',
+        'underground' => 'Tronçon en souterrain : aucune voie n’y est relevée sur photographie aérienne, l’écart n’est pas mesuré.',
+        'underground_excluded' => 'Les points en tunnel ne comptent pas dans l’écart (voie non relevée d’avion).',
         'abroad' => 'Hors de France : pas de voie de référence.',
         'only_same_source' => 'Seule la source du tracé elle-même sert de référence.',
         'on_other_line_track' => 'Le tracé est posé sur la voie d’une autre ligne, alors que sa propre voie passe à côté.',

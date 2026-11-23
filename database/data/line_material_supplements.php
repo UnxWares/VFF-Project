@@ -118,5 +118,13 @@ return [
             'source' => 'https://fr.wikipedia.org/w/index.php?title=BB_67400&oldid=240659828',
             'reason' => '« Depuis 1996, ces deux liaisons étaient exclusivement assurées par des rames Corail » date le début de l\'exclusivité, pas l\'arrivée des Corail : l\'article BB 67400 les fait rouler sur Paris - Caen - Cherbourg avec les RTG jusqu\'en 1996',
         ],
+        [
+            'line' => '909000',
+            'material' => 'Q842202', // BB 25500
+            'start' => '1985-09-01',
+            'end' => null,
+            'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Grenoble_%C3%A0_Montm%C3%A9lian&oldid=239895345',
+            'reason' => '« sur Rives-Gières uniquement (depuis septembre 1985) » est antérieur de six ans à l\'électrification de Grenoble à Gières, mise en service en septembre 1991 (article de la ligne de Lyon à Grenoble, tableau de la chronologie de l\'électrification et infobox de l\'article de la ligne, concordants ; seule une phrase de l\'article de la ligne dit 1985) : « 1985 » est celle de l\'électrification de Lyon à Grenoble (18 février 1985), la locomotive ne roule pas sous caténaire à Gières avant septembre 1991',
+        ],
     ],
 ];

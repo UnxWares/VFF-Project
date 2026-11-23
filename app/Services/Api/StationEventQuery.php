@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Models\Station;
 use App\Models\StationEvent;
 use App\Rules\PartialDate;
+use App\Support\RedistributableDates;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 
@@ -52,7 +53,9 @@ final class StationEventQuery
      */
     public function apply(Builder $query, Station $station, array $filters): Builder
     {
-        $query->where('station_events.station_id', $station->id);
+        $query->where('station_events.station_id', $station->id)
+            // Hors du site : jamais un événement sans source redistribuable, ni une date déduite d'un tel événement de ligne.
+            ->whereRaw(app(RedistributableDates::class)->stationEventKept('station_events'));
 
         if (filled($filters['type'] ?? null)) {
             $query->where('station_events.type', $filters['type']);

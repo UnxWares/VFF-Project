@@ -157,5 +157,13 @@ return [
             'en' => 'The BEA-TT report and the Wikipedia article place the train\'s collision with the block of stone at 20:36.',
             'de' => 'Der BEA-TT-Bericht und der Wikipedia-Artikel nennen 20:36 Uhr für den Zusammenstoß des Zuges mit dem Steinblock.',
         ],
+        [
+            'field' => 'injuries',
+            'value' => 37,
+            'sources' => ['bea-rapport-2011', 'bea-page'],
+            'fr' => 'Le rapport du BEA-TT, source officielle, compte 37 blessés ; l\'article de Wikipédia et sa liste en comptent 36.',
+            'en' => 'The BEA-TT report, the official source, counts 37 injured; the Wikipedia article and its list count 36.',
+            'de' => 'Der BEA-TT-Bericht, die amtliche Quelle, zählt 37 Verletzte; der Wikipedia-Artikel und seine Liste zählen 36.',
+        ],
     ],
 ];

@@ -7,6 +7,7 @@ use App\Models\LineArchiveDocument;
 use App\Models\LineEvent;
 use App\Models\Media;
 use App\Services\Stories\EventStories;
+use App\Support\RedistributableDates;
 use GraphQL\Error\Error;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -57,6 +58,8 @@ final class LineEventStoryField
         $line = $root->relationLoaded('line') ? $root->line : Line::query()->find($root->line_id);
         // API : sans les images montrées avec une simple autorisation (EventStories::API_RIGHTS).
         $story = $line === null ? null : $this->stories->story($line, $root, true);
+        // Sources sans source redistribuable retirées ; sans aucune source servie, pas d'histoire hors du site.
+        $story = $story === null ? null : app(RedistributableDates::class)->story($story);
         if ($story === null) {
             return null;
         }

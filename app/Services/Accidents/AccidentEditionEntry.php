@@ -12,6 +12,7 @@ final readonly class AccidentEditionEntry
     /**
      * @param  'en'|'de'  $lang  édition de Wikipédia
      * @param  list<array{name: string, qualifier: ?string}>  $places  noms de lieux ; qualificatif = département ou précision (« Ardèche »)
+     * @param  'list'|'article'  $role  puce d'une liste d'accidents, ou article dédié à l'accident
      * @param  list<string>  $references  références citées par l'entrée, en clair court (« Semmens 1994 », « sudouest.fr »)
      */
     public function __construct(
@@ -23,6 +24,7 @@ final readonly class AccidentEditionEntry
         public string $title,
         public int $revision,
         public ?string $anchor,
+        public string $role = 'list',
     ) {}
 
     /** Permalien de la révision lue, avec l'ancre de la section. */

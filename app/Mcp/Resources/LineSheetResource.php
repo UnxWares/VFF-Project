@@ -5,6 +5,8 @@ namespace App\Mcp\Resources;
 use App\Mcp\Support\Attribution;
 use App\Mcp\Support\LineDossier;
 use App\Mcp\Support\Lookup;
+use App\Services\Signalling\SignallingDating;
+use App\Support\EventText;
 use Illuminate\Support\Facades\App;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -84,6 +86,20 @@ class LineSheetResource extends Resource implements HasUriTemplate
                 $out[] = '- '.$f['label'].' : '.$value.' ('.$f['note'].')';
             }
         }
+        $undated = ($l['signalling']['dating']['status'] ?? null) === SignallingDating::UNDATED;
+        if (! empty($l['signalling']['history']) || $undated) {
+            $out[] = '';
+            $out[] = '## '.$t('signalling_history');
+            foreach ($l['signalling']['history'] ?? [] as $f) {
+                $out[] = '- '.self::signallingFact($f);
+            }
+            if ($undated) {
+                // Ligne classique en service sans mise en service de cantonnement datée : mention calculée (SignallingDating).
+                $out[] = trans('signalling_history.dating.undated').' '.trans('signalling_history.dating.checked', [
+                    'date' => EventText::isoDate((string) $l['signalling']['dating']['checked_at'], 'day', App::getLocale()),
+                ]);
+            }
+        }
         if ($l['phases'] !== []) {
             $out[] = '';
             $out[] = '## '.$t('phases');
@@ -114,5 +130,46 @@ class LineSheetResource extends Resource implements HasUriTemplate
         $out[] = $t('sheet').' : '.$url;
 
         return implode("\n", $out)."\n";
+    }
+
+    /**
+     * Mise en service datée (LineSignallingHistory::forSheet), à la précision de sa date : rôle (cantonnement,
+     * signalisation en cabine, contrôle de vitesse, commande centralisée), système, portion et source.
+     *
+     * @param  array<string, mixed>  $f
+     */
+    public static function signallingFact(array $f): string
+    {
+        $locale = App::getLocale();
+        $role = match ($f['role'] ?? 'block') {
+            'cab' => 'cabin',
+            'speed_control' => 'protection',
+            'remote_control' => 'remote_control',
+            default => 'block',
+        };
+        $s = is_array($f['section'] ?? null) ? $f['section'] : null;
+        $pk = fn (int $m): string => intdiv($m, 1000).'+'.str_pad((string) ($m % 1000), 3, '0', STR_PAD_LEFT);
+        if (($f['scope'] ?? null) === 'whole_line') {
+            $portion = (string) trans('signalling_history.section.whole_line');
+        } elseif ($s !== null && ($s['from'] ?? null) !== null && ($s['to'] ?? null) !== null) {
+            $portion = (string) trans('signalling_history.section.between', ['from' => $s['from'], 'to' => $s['to']]);
+        } elseif ($s !== null && ($s['from'] ?? null) !== null) {
+            $portion = (string) trans('signalling_history.section.from', ['from' => $s['from']]);
+        } elseif ($s !== null && ($s['to'] ?? null) !== null) {
+            $portion = (string) trans('signalling_history.section.to', ['to' => $s['to']]);
+        } else {
+            $portion = (string) trans('signalling_history.section.unspecified');
+        }
+        if ($s !== null && isset($s['pk_start_m'], $s['pk_end_m'])) {
+            $portion .= ' ('.trans('signalling_history.section.pk', ['pk' => 'PK', 'from' => $pk((int) $s['pk_start_m']), 'to' => $pk((int) $s['pk_end_m'])]).')';
+        }
+        $source = $f['source'] ?? [];
+        $documents = array_map(fn (array $d): string => '['.$d['publisher'].']('.$d['url'].')', $source['documents'] ?? []);
+        $links = ($source['provider'] ?? null) === 'manual' && $documents !== []
+            ? implode(', ', $documents)
+            : '['.trans('signalling_history.source.link').']('.($source['url'] ?? '').')';
+
+        return '**'.EventText::isoDate((string) $f['date'], (string) $f['date_precision'], $locale).'** : '
+            .trans('lines.signalling.'.$role).' '.$f['system'].', '.$portion.' '.$links;
     }
 }

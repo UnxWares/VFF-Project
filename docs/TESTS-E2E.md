@@ -45,6 +45,17 @@ accident, `/api`, `/docs/api` (Scalar), connexion, 404. Scénarios : la carte `/
 change l'ère (`?era=`), la légende change le mode de coloration ; la recherche (Ctrl+K) trouve une ligne et un accident ;
 le mode sombre sur l'accueil et sur la fiche de ligne.
 
+## Nouveautés du 23/11/2026
+
+`tests/e2e/nouveautes.spec.js` : redirections 301 (fiche de gare fusionnée, ancienne adresse de ligne « archeo-… »), groupe
+replié « Cités, sans service attesté » d'une fiche de ligne, annuaire des gares et « Autour de moi » avec une fermeture en
+intervalle (« entre 1951 et 1960 »), quiz « Culture du rail » (une question de chaque famille tirée des données du jour,
+dates et systèmes selon la langue), glossaire (nouveaux termes, renvois, recherche, anglais et allemand).
+`tests/e2e/contributions.spec.js` : formulaires « Proposer un événement » et « Proposer une image » (refus sans compte,
+validation avant l'envoi, messages d'erreur, envoi réussi). Le membre est créé une seule fois par processus
+(`testMembre` de `fixtures.js`) : l'inscription est limitée à 10 par heure et par adresse, donc un serveur de mise au point
+qui rejoue la suite très souvent doit vider son cache (`artisan cache:clear`, puis rejouer E2eSeeder).
+
 ## Fichiers
 
 - `playwright.config.js` : adresse cible, projets (viewports), rapports.

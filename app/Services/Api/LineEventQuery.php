@@ -8,6 +8,7 @@ use App\Models\LineEvent;
 use App\Rules\PartialDate;
 use App\Services\LineDirectory;
 use App\Support\FrenchDepartments;
+use App\Support\RedistributableDates;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -83,7 +84,9 @@ final class LineEventQuery
      */
     public function apply(Builder $query, array $filters): Builder
     {
-        $query->select(self::COLUMNS);
+        $query->select(self::COLUMNS)
+            // Hors du site : jamais un événement sans source redistribuable (RedistributableDates).
+            ->whereRaw(app(RedistributableDates::class)->lineEventKept('line_events'));
 
         if (filled($filters['line'] ?? null)) {
             $query->whereIn('line_events.line_id', Line::query()->select('id')->where('slug', $filters['line']));

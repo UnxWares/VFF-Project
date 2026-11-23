@@ -46,6 +46,9 @@ class ImportAccidentsCommandTest extends TestCase
     /** Pages des listes de Wikipédia en anglais et en allemand (langue → titre → wikicode), vides sauf pour les tests qui les remplissent. */
     private array $editionPages = ['en' => [], 'de' => []];
 
+    /** Membres des catégories d'articles d'accidents des Wikipédia en anglais et en allemand (langue → catégorie → titres). */
+    private array $editionCategories = ['en' => [], 'de' => []];
+
     /** Blessés que donne l'article de Wikipédia (Wikidata en donne 14). */
     private int $articleInjuries = 18;
 
@@ -395,6 +398,43 @@ class ImportAccidentsCommandTest extends TestCase
         $this->assertSame(0, DB::table('accident_sources')->whereIn('provider', ['wikipedia-en', 'wikipedia-de'])->count());
     }
 
+    public function test_dedicated_english_and_german_articles_add_a_second_source_with_their_own_references(): void
+    {
+        $this->editionCategories['en'] = ['Category:Railway accidents and incidents in France' => ['Millas train-bus collision', 'Some person']];
+        $this->editionCategories['de'] = ['Kategorie:Eisenbahnunfall in Frankreich' => ['Eisenbahnunfall von Millas']];
+        $this->editionPages['en'] = [
+            'Millas train-bus collision' => "{{Infobox rail accident\n | date = {{start date|2017|12|14}}\n | location = [[Millas]], Pyrénées-Orientales\n | deaths = 6\n}}\n\nThe '''Millas train-bus collision'''.<ref>Presse</ref>\n",
+            'Some person' => "'''Some person''' was a person.\n",
+        ];
+        $this->editionPages['de'] = ['Eisenbahnunfall von Millas' => "Der '''Eisenbahnunfall von Millas''' ereignete sich am 14. Dezember 2017 bei [[Millas]].\n"];
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+
+        $this->assertSame(2, Accident::count(), 'un article ne crée aucune fiche');
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $en = $millas->sources()->where('provider', 'wikipedia-en')->firstOrFail();
+        $this->assertSame('article', $en->role);
+        $this->assertSame('CC BY-SA 4.0', $en->licence);
+        $this->assertStringStartsWith('https://en.wikipedia.org/w/index.php?title=Millas_train-bus_collision&oldid=', $en->url);
+        $this->assertEqualsCanonicalizing(['date' => '2017-12-14', 'commune_insee' => '66108', 'place' => 'Millas', 'referenced' => true], $en->facts);
+        $de = $millas->sources()->where('provider', 'wikipedia-de')->firstOrFail();
+        $this->assertSame('article', $de->role);
+        $this->assertFalse($de->facts['referenced'], 'sans référence propre : compte avec Wikipédia');
+        $this->assertSame('to_review', $millas->review_status->value);
+
+        // Rejoué hors ligne : rien ne change ; article retiré de la catégorie : source retirée.
+        $before = $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']);
+        $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame($before, $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']));
+        foreach ([...WikipediaEditionCollector::EN_DECADES, WikipediaEditionCollector::EN_FRANCE] as $title) {
+            $this->editionPages['en'][$title] = "== 2017 ==\n";
+        }
+        $this->editionPages['de'][WikipediaEditionCollector::DE_LIST] = "== 2010er ==\n";
+        $this->editionCategories = ['en' => [], 'de' => []];
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-editions'], '--refresh' => true])->assertSuccessful();
+        $this->assertSame(0, DB::table('accident_sources')->whereIn('provider', ['wikipedia-en', 'wikipedia-de'])->count());
+    }
+
     public function test_the_edition_lists_respect_dry_run(): void
     {
         $this->artisan('vff:import-accidents')->assertSuccessful();
@@ -550,6 +590,12 @@ class ImportAccidentsCommandTest extends TestCase
             }
             foreach (['en', 'de'] as $lang) {
                 if (str_starts_with($url, "https://{$lang}.wikipedia.org/w/api.php")) {
+                    if (($request['generator'] ?? null) === 'categorymembers') {
+                        return Http::response(['query' => ['pages' => array_map(
+                            fn (string $t): array => ['title' => $t, 'pageprops' => ['wikibase_item' => 'Q1']],
+                            $this->editionCategories[$lang][$request['gcmtitle']] ?? [],
+                        )]]);
+                    }
                     $pages = [];
                     foreach (explode('|', (string) ($request['titles'] ?? '')) as $title) {
                         if (isset($this->editionPages[$lang][$title])) {

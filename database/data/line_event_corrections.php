@@ -16,7 +16,10 @@
  *                  trains saisonniers maintenus) : il devient « other » (Événement), sans
  *                  effet sur la carte, et garde sa citation ;
  *   - relocate   : l'événement porte sur une autre portion (from / to) : portion corrigée,
- *                  à résoudre de nouveau.
+ *                  à résoudre de nouveau ;
+ *   - redate     : la DATE de l'événement d'une source est fausse (match = ancienne date ; date, precision =
+ *                  la bonne ; date_text remplace « depuis ... (d'après ...) » dans la description ; from / to /
+ *                  pk_start / pk_end corrigent aussi la portion).
  *
  * Champs : line (code SNCF ou id), action, type, date (AAAA-MM-JJ), precision
  * (day | month | year), from / to (lieux), pk_start / pk_end (m), match (source, type,

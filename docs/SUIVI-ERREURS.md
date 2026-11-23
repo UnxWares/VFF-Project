@@ -85,6 +85,8 @@ vff:notify-legal-change`).
 
 ## Ce qui reste pour l'hébergement
 
+Dans l'ordre, avec les commandes : `docs/MISE-EN-PRODUCTION.md` (étapes 10, 11 et 17).
+
 - Installer Kener et GlitchTip (ou Bugsink) sur l'infrastructure d'UnxWares (ressources, sauvegardes, accès).
 - Poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN`, `APP_VERSION` en production et configurer les moniteurs et alertes.
 - Choisir l'outil d'alerte (courriel, canal d'équipe auto-hébergé).

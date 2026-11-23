@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\StationCorrections;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -54,5 +55,39 @@ class StationDuplicatesCorrectionsTest extends TestCase
         $this->assertCount(1, $found);
         $this->assertSame('rfn-415000', $found[0]['line']);
         $this->assertStringContainsString('oldid=238645019', $found[0]['source_url']);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function section40bis(): array
+    {
+        return array_values(array_filter($this->corrections(), fn ($c) => str_contains((string) ($c['reason'] ?? ''), '') && (
+            ($c['action'] === 'merge' && ! in_array($c['station']['name'], ['Pleine-Fougères', 'Condé-sur-Vire'], true))
+            || ($c['action'] === 'kind' && ($c['kind'] ?? '') === 'excluded' && isset($c['quote']) && ($c['station']['osm'] ?? $c['station']['wikidata'] ?? '') !== '' && ! isset($c['station']['near']) && ($c['station']['wikidata'] ?? 'Q72573709') === 'Q72573709' && ! isset($c['station']['uic'])
+                && in_array($c['station']['name'], ['Bistrot de la gare', 'Le Club', 'Cinéma de la Gare', 'Maison des associations', 'Ancienne halle aux marchandises de la gare de Trévoux', 'Virville-Manneville', 'Galerie Villette', 'Hall 3 (Belcier)', 'Gare centre cote clairmarais', 'Ancien bâtiment de la gare de Choisy-le-Roi'], true))
+        )));
+    }
+
+    public function test_second_duplicates_review_writes_seventeen_merges_and_ten_exclusions(): void
+    {
+        $found = $this->section40bis();
+        $this->assertCount(17, array_filter($found, fn ($c) => $c['action'] === 'merge'));
+        $this->assertCount(10, array_filter($found, fn ($c) => $c['action'] === 'kind'));
+    }
+
+    public function test_second_duplicates_review_entries_are_valid_and_sourced(): void
+    {
+        foreach ($this->section40bis() as $c) {
+            $this->assertSame([], StationCorrections::validate($c), $c['station']['name']);
+            $this->assertNotSame('', trim((string) $c['reason']), $c['station']['name']);
+            $this->assertMatchesRegularExpression('#^https://(fr\.wikipedia\.org/w/index\.php\?title=.+&oldid=\d+|www\.wikidata\.org/wiki/Q\d+|www\.openstreetmap\.org/(node|way)/\d+)$#', (string) $c['source_url'], $c['station']['name']);
+        }
+    }
+
+    public function test_merges_name_two_different_stations_with_a_position_rule(): void
+    {
+        foreach (array_filter($this->section40bis(), fn ($c) => $c['action'] === 'merge') as $c) {
+            $this->assertContains($c['position'], ['kept', 'absorbed'], $c['station']['name']);
+            $this->assertNotSame($c['station'], $c['absorbed'], $c['station']['name']);
+        }
     }
 }

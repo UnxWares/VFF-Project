@@ -9,6 +9,65 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Dates sans source redistribuable (REST, GraphQL, MCP, données ouvertes) : une date de ligne ou de gare qui ne repose que
+  sur une source dont la réutilisation hors de VFF n'est pas permise n'est plus servie. Un tel événement de ligne ne figure plus
+  dans `GET /api/v1/events`, `GET /api/v1/lines/{line}/stories`, les GraphQL `lineEvents`, `Line.events`, `lineEvent(id:)`
+  (`null`), `Media.event` et `LineEvent.story`, ni dans la chronique, les phases et le compte d'événements de la fiche d'une
+  ligne (`GET /api/v1/lines/{line}`, GraphQL `sheet`) ; `GET /api/v1/events/{id}` répond 404. Un événement de gare déduit
+  d'un tel événement de ligne (`inferred:line_event`) ne figure plus dans `GET /api/v1/stations/{station}/events`, GraphQL
+  `Station.events` ni la chronologie de la fiche. L'ouverture et la fermeture d'une gare que seuls de tels événements donnent
+  (`opened_at`, `closed_at` de l'annuaire, de la fiche de la gare et des gares de la fiche d'une ligne, GraphQL `Station`,
+  `StationSheet`, `StationDirectoryItem`, `LineSheetStation`, MCP `list_stations`, `get_station`, `get_commune`) prennent la
+  date et la précision d'un événement servi de même nature et de même année, ou deviennent nulles avec leur précision et leur
+  borne (`opened_after`, `closed_after`) ; les tris `opened` et `closed` de l'annuaire suivent la date servie. Une borne de
+  desserte (`service_start`, `service_end`) dont l'événement n'est pas servi prend un événement servi équivalent ou devient
+  nulle ; les années de desserte, calculées par VFF, restent. Fiche d'un département (REST `GET /api/v1/departments/{code}/history`,
+  comme le MCP `department_history`) : mêmes dates de lignes que le MCP, et une fermeture ne prend plus qu'une fermeture servie
+  de même portée (totale, voyageurs ou fret). Fiche d'une commune (REST `GET /api/v1/communes/{insee}`) : mêmes dates de gares
+  que le MCP `get_commune`. Données ouvertes : une date de gare déduite d'un tel événement est retirée (comptée dans le
+  LISEZMOI). Aucun champ retiré : seules des valeurs deviennent nulles ou des éléments de liste disparaissent. Le site garde
+  toutes ses dates, avec leur source.
+
+- Gares, ouverture encadrée par une correction sourcée : une halte créée après sa ligne sans date connue (Compans, Renescure,
+  Saint-Étienne-du-Rouvray, Sainte-Colombe-Septveilles) n'a plus la date de sa ligne mais un intervalle, comme les ouvertures
+  de la règle G3 : `opened_precision` = `range`, `opened_at` = la borne haute (aujourd'hui sans borne haute connue) et
+  `opened_after` = l'année qui précède la borne basse (REST, GraphQL, MCP, annuaire, liste des gares d'une ligne). La
+  chronologie de la fiche en fait une seule entrée `range`. Ajouts : `opened_precision` et `opened_after` dans les propriétés
+  de `GET /api/v1/eras/{year}/stations.geojson` (`opened_year` y reste la borne haute d'une ouverture `range`), et la colonne
+  `opened_after` dans `gares.csv` des jeux ouverts. Une ouverture corrigée remplace désormais aussi sur la carte la date plus
+  ancienne d'une autre source. Étaples-Le Touquet, Rue et Neufchâtel-Hardelot ouvrent le 21/12/1847 (et non le 21/11).
+
+- Recherche (REST `GET /api/v1/search`, GraphQL `search`, MCP `search`, pages Gares et Accidents et leurs API de liste) : le
+  classement change pour quelques requêtes. La gare ouverte aux voyageurs d'une commune dont le nom commence par celui de la
+  commune vaut un nom exact (`strasbourg` donne Strasbourg-Ville avant l'ancienne gare Strasbourg) ; à pertinence égale, la gare
+  la plus fréquentée passe devant (Mulhouse-Ville avant Mulhouse-Dornach). Les mots génériques (`gare`, `station`, `Bahnhof`,
+  `ligne`, `line`, `Strecke`, `accident`, `UIC`, et `the`, `to`, `von`…) sont facultatifs : `Paris Nord station`, `ligne 830 000`
+  et `UIC 87686006` trouvent leur fiche, et un code de ligne ou UIC se reconnaît malgré eux. Les noms allemands et anglais des
+  villes valent le nom français (`Straßburg`, `Mülhausen`, `Diedenhofen`). Une année à côté d'autres mots limite les accidents à
+  cette année (`Lagny 1933`, `accident gare de Lyon 1988`), et l'ancien slug d'une gare fusionnée ou d'une ligne renommée trouve
+  la fiche actuelle, en premier. Aucun champ ne change.
+
+- MCP : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare fondue dans une autre fiche ou d'un accident
+  renommé ou fusionné (argument `line`, `station` ou `accident`, et filtres `line` et `station` de `network_events`, `media`,
+  `accidents`, `materials`, `level_crossings`) répond avec la fiche actuelle comme avant, et le dit désormais en tête de
+  réponse : `redirected`, liste de `kind`, `requested`, `current`, `reason` (`renamed` ou `merged`) et `note`. Les filtres
+  `line` et `station` de `network_events`, `media`, `accidents` et `materials` acceptent maintenant un ancien slug (ils
+  répondaient par une erreur de validation). Ajout seul ; la clé est absente sans ancienne adresse.
+
+- Matériel d'une ligne (fiche `materials`, REST `GET /api/v1/lines/{line}/materials`, GraphQL `LineMaterialLink`, MCP `line_materials`) :
+  une date sourcée ne se déplace plus. Une période datée par une source qui commence avant la première électrification connue dans VFF
+  garde sa date (BB 25500 sur Grenoble - Montmélian depuis septembre 1985, BB 22200 sur Paris - Brest en 1983) : la borne
+  `earliest_on_line` porte alors `conflict` = `true` (une électrification plus ancienne manque probablement dans VFF ; la borne n'est
+  pas une date sûre), et `start_bounded_by` ne s'applique plus qu'aux périodes sans source. Les périodes servies portent toutes une
+  source : aucune n'est déplacée. Ajout seul (`LineSheetMaterialBound.conflict`).
+
+- Matériel d'une ligne : l'API REST (`GET /api/v1/lines/{line}/materials`, chaque lien), GraphQL (`LineMaterialLink`) et l'outil MCP
+  `line_materials` (chaque série) donnent ce que la fiche de la ligne en dit : `link_doubt` (série seulement citée, en essais, en
+  présentation, en commande...), `earliest_on_line` (borne d'électrification, avec `conflict`), `family` (famille dont la série est une
+  version) et `folded_into_versions` (famille que la fiche ne montre pas parce qu'une de ses versions a circulé) ; MCP : `doubtful`
+  compte les séries douteuses. Calculés sur tous les liens de la série sur la ligne, quels que soient les filtres. Aucun lien n'est
+  retiré des listes. Sur la fiche, une famille qui a circulé reste montrée quand ses versions liées ne sont que douteuses. Ajout seul.
+
 - Médias (REST `media`, galeries `lines|stations|materials/{slug}/media`, GraphQL `Media.captions`, outil MCP `media`) : nouveau champ
   `captions` (objet avec les clés `fr`, `en` et `de` présentes seulement pour les langues écrites, ou `null`), la légende par langue d'une
   image proposée par un contributeur. `caption` reste la légende principale (le français, sinon la première langue donnée ; pour une image
@@ -37,7 +96,88 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y prend plus la valeur de cette source. L'API REST et GraphQL ne
   changent pas. Aucun champ n'est retiré.
 
+- Gares : l'ancien slug d'une fiche fondue dans une autre (deux fiches pour une même gare, action `merge` de
+  `database/data/gares_corrections.php`) répond `301` vers la même adresse sous le slug de la fiche gardée, sous-chemin et paramètres
+  gardés, pour toute route REST `GET` ou `HEAD` qui prend `{station}` (fiche, médias, fréquentation, horaires, chronologie...) ; GraphQL
+  `station(slug:)` et les outils MCP renvoient la fiche gardée (`slug` fait foi). Un envoi (`POST`) n'est jamais redirigé. Ajout seul.
+  `curl -sI https://vff-project.org/api/v1/stations/<ancien-slug>` : `HTTP/2 301`, `location: https://vff-project.org/api/v1/stations/<slug-actuel>`.
+  GraphQL : `{ station(slug: "<ancien-slug>") { slug name } }` répond la fiche sous son slug actuel.
+
+- Accidents : dans `review.verification.date.confirmed_by[]` et `place.confirmed_by[]` (REST ; `verification` en GraphQL, JSON), une source
+  `bea-tt` dont la page d'enquête a été relue à la main porte `report` : `title`, `url`, et `number` et `published` quand ils sont connus.
+  Le jour et la commune de cette page priment sur ceux du bilan des enquêtes, et une source primaire lève les notes d'import qu'elle
+  tranche sur la commune ou la date : des fiches passent à `ok` (`rule` = `primary_source`) et deux dates décalées d'un jour par le
+  bilan sont corrigées. Ajout seul. `curl -s https://vff-project.org/api/v1/accidents/<slug> | jq '.data.review.verification.date.confirmed_by[] | select(.report) | .report'`.
+  GraphQL : `{ accident(slug: "<slug>") { verification } }`, puis `verification.date.confirmed_by[].report` dans le JSON.
+
+- Accidents : nouvelle famille de sources `wikipedia-edition` dans `review.verification.families` (REST) et `verification.families`
+  (GraphQL) : les listes d'accidents et les articles dédiés de Wikipédia en anglais et en allemand, lus comme une source de plus à côté
+  des listes françaises (`vff:import-accidents --only=wikipedia-editions`). Un article ne crée jamais de fiche : il se rattache à la fiche
+  du même jour et de la même commune. La règle `wikipedia_editions` de `rule` (Wikipédia en français plus une édition qui cite sa propre
+  référence) passe ainsi sur 47 fiches au lieu de 34. Ajout seul : une valeur de plus dans une liste déjà ouverte.
+
+- Signalisation : `section.location` de l'historique (REST `GET /api/v1/lines/{line}/signalling-history`, GraphQL
+  `Line.signalling_history { section { location } }`, MCP `signalling_history`) prend la valeur `landmarks` : une portion dont une
+  extrémité au moins est un point remarquable de la ligne (bifurcation, raccordement, origine, fin, frontière), placé par la table relue
+  `database/data/line_landmarks.php`, avec la gare de l'autre bout s'il y en a une. Quatorze des quinze faits datés des lignes à grande
+  vitesse, jusque-là `unlocated`, sont placés. Une valeur de plus dans une liste déjà ouverte : un client qui n'attend que `stations`,
+  `article_pk` et `unlocated` doit la traiter comme une portion placée (`pk_start_m`, `pk_end_m`).
+  `curl -s https://vff-project.org/api/v1/lines/rfn-752000/signalling-history | jq '.history[] | select(.section.location == "landmarks")'`.
+  GraphQL : `{ line(slug: "rfn-752000") { signalling_history { system date section { from to location pk_start_m pk_end_m } } } }`.
+
+- Signalisation : la commande centralisée (`CC` : CCVU, CCR, PCD) devient un système à part, avec le rôle `remote_control` (hors
+  cantonnement : elle se combine à BAL, BAPR, block manuel ou téléphonique sans en remplacer aucun) et son propre groupe parmi les faits en
+  vigueur à une ère (`in_force`). Valeur de plus de `system` et de `role` dans REST, GraphQL (`SignallingEvent.system`, `.role`) et MCP
+  (`signalling_history`). 18 faits datés lus dans les articles de Wikipédia (Saumur - Thouars 1982, Epernay - Reims 1962,
+  LGV Sud-Est 2024...). Un client qui filtre sur `role=block` ne les voit pas, comme avant. Ajout seul.
+  `curl -s 'https://vff-project.org/api/v1/lines/rfn-752000/signalling-history?era=2030' | jq '.history[] | select(.system == "CC")'`.
+  GraphQL : `{ line(slug: "rfn-752000") { signalling_history { system role date } } }`.
+
+- Liens gare - ligne : `link_method` (REST `GET /api/v1/lines/{slug}`, `stations[]` ; GraphQL `LineSheetStation.link_method`) prend la
+  valeur `reviewed_link` pour un couple gare - ligne ajouté à la main d'après une source (`database/data/station_line_inclusions.php`). Le
+  lien compte comme un rattachement ferme (contrairement aux terminus nommés). Une valeur de plus dans une liste déjà ouverte ; ne vous en servez que pour l'afficher.
+
 ### Ajouts
+
+- Matériel roulant : chaque période de circulation (`periods[]` de `GET /api/v1/lines/{line}/materials` et de
+  `GET /api/v1/materials/{material}`, outils MCP `line_materials` et `get_material`, fiches web) porte `portion` : la portion de
+  la ligne parcourue, placée sur le tracé quand la source la nomme (titre de section, relation citée par l'article de la série,
+  portion écrite dans la phrase datée), avec `location` (`stations`, `landmarks`, ou `line` pour la ligne entière), `from` et `to`
+  (`id` et `name` de la gare, `id` nul pour un point remarquable), `pk_start_m` et `pk_end_m` (PK calés, en mètres). `null` quand
+  aucune portion n'est nommée ou qu'elle n'a pas pu être placée sûrement. GraphQL : `LineMaterialPeriod.portion`
+  (`LineMaterialPeriodPortion`, `LineMaterialPortionEnd`). `section` reste la portion telle que l'écrit le titre de section. Ajout seul.
+  `curl -s https://vff-project.org/api/v1/lines/<slug>/materials | jq '.data[].periods[] | select(.portion) | .portion'`.
+
+- Recherche : le glossaire dans GraphQL et sur la page `/search`. La requête GraphQL `search` renvoie `glossary`
+  (`SearchGlossaryTerm` : `slug`, `name(lang: "fr" | "en" | "de")`, `abbr` ; au plus `limit` termes, mêmes termes et même ordre
+  que `glossary` de `GET /api/v1/search`). La page `/search` a un groupe « Glossaire » (`type=glossary`) entre le matériel
+  roulant et les communes, avec le nom dans la langue de la page. Ajouts seuls.
+  `curl -s https://vff-project.org/graphql -H 'Content-Type: application/json' -d '{"query":"{ search(query: \"tvm 430\") { glossary { slug name abbr } } }"}'`.
+
+- Recherche : termes du glossaire. REST `GET /api/v1/search` renvoie `glossary` (5 termes au plus : `type`, `slug`, `name`,
+  `names` en `fr`, `en` et `de`, `abbr`), le serveur MCP accepte `glossary` dans `kinds` de `search` (cherché par défaut, avec
+  `vff_url` vers `/glossary#{slug}`). Trouvés par le nom, le sigle ou le développé dans l'une des trois langues (`TVM 430`,
+  `tvm430`, `KVB`, `block automatique lumineux`, `overhead line`, `Fahrleitung`). Ajout seul.
+
+- MCP : sept outils couvrent ce que REST était seul à servir. `bibliography` (REST `/lines/{line}/bibliography` et
+  `/stations/{station}/bibliography`, paginé par `limit` et `offset`), `protected_heritage` (REST `/heritage`, mêmes filtres
+  plus `department`, paginé, `facets.architects` limité aux 40 plus fréquents), `companies` (REST `/companies` et
+  `/companies/{company}`, lignes rattachées paginées, sans le tracé `map`), `get_commune` (REST `/communes/{insee}`, par code
+  INSEE ou par nom, erreur `commune_ambiguous` avec `candidates`, chronologie paginée), `department_history` (REST
+  `/departments/{department}/history` et `/stats/departments`, par code ou par nom, lignes paginées, 60 communes au plus),
+  `data_coverage` (REST `/stats/coverage`, filtre `set`) et `position_at_pk` (REST `/lines/{line}/at-pk`, `pk` ou `pk_m`).
+  Chaque réponse porte `vff_url`, `attribution` et, pour une ancienne adresse de ligne ou de gare, `redirected`. Comme pour les
+  autres outils, rien d'une source à usage non commercial n'est servi : dans `get_commune`, un événement de gare de cette seule
+  source est retiré de la chronologie ; dans `department_history`, une date de ligne de cette seule source est remplacée par la
+  date d'une source servie de la même année, ou nulle. `tools/list` donne désormais 57 outils, toujours sur une seule page.
+  Ajout seul ; REST et GraphQL ne changent pas.
+
+- MCP : trois outils, sur les mêmes services que l'API REST. `preserved_rolling_stock` (matériel préservé : exemplaires
+  d'une série ou lieux et leurs pièces, état dit par la source, protection monument historique de la base Palissy, sources
+  avec licence ; filtres `venue_type`, `venue`, `state`, `protected` ; `limit` et `offset`), `rail_projects` (projets
+  ferroviaires et leurs étapes datées et sourcées ; filtres `state`, `kind`, `region`, `line` ; `limit` et `offset`) et
+  `station_events` (chronologie d'une gare filtrée par type, source, date déduite ou relevée et période, paginée par
+  curseur). `get_material` ajoute `preserved_count`. `tools/list` tient en une page de 80 outils.
 
 - GraphQL : `EventContributionInput` (mutation `submitContribution`, `input.event`) reçoit `source_excerpt` (citation courte de la
   source, publiée avec l'événement à la place de sa référence), `corrects_event_id` et `correction_reason` : avec l'identifiant d'un

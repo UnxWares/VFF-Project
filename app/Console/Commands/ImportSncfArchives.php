@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Http;
  * locale (storage/app/data/archives-sncf/archives-sncf-sardo.json, dossier marqué `.nobackup`) ; `--download`
  * la remplace par l'export de ressources.data.sncf.com (une seule requête, User-Agent générique). Seuls le
  * titre, le type, le classement, la boîte, la date et le lien vers archives.sncf.com sont gardés : ni la
- * description, ni l'image, ni le document. N'écrit dans aucune table du moteur.
+ * description, ni l'image, ni le document. La description (champ du jeu entier, ODbL) n'est lue que pour les
+ * notices dont le titre ne nomme aucune ligne (SncfArchivesImporter), jamais enregistrée. N'écrit dans aucune table du moteur.
  *
  *   vff:import-sncf-archives --download --dry-run --report=storage/app/data/archives-sncf/candidats.csv
  *   vff:import-sncf-archives
@@ -70,8 +71,8 @@ class ImportSncfArchives extends Command
         $s = $result['stats'];
         $this->info(sprintf(
             'Notices : %d ; lues : %d (%d écartées : sans titre ni lien, type inconnu ou thème sur des personnes) ; '
-            .'jugées : %d ; retenues : %d sur %d ligne(s) ; ambiguës : %d.',
-            $s['rows'], $s['kept'], $s['excluded'], $s['judged'], $s['accepted'], $s['lines_with_records'], $s['ambiguous'],
+            .'jugées : %d ; retenues : %d (dont %d par la description) sur %d ligne(s) ; ambiguës : %d.',
+            $s['rows'], $s['kept'], $s['excluded'], $s['judged'], $s['accepted'], $s['by_description'], $s['lines_with_records'], $s['ambiguous'],
         ));
 
         if (($report = $this->option('report')) !== null) {
@@ -129,10 +130,10 @@ class ImportSncfArchives extends Command
 
             return;
         }
-        fputcsv($out, ['accepted', 'line', 'line_name', 'score', 'reasons', 'rejected', 'places', 'year', 'date', 'type', 'title', 'url'], escape: '');
+        fputcsv($out, ['accepted', 'line', 'line_name', 'score', 'reasons', 'rejected', 'places', 'read', 'year', 'date', 'type', 'title', 'url'], escape: '');
         foreach ($rows as $r) {
             fputcsv($out, CsvSafe::row([$r['accepted'] ? 'oui' : 'non', $r['line'], $r['line_name'], $r['score'], $r['reasons'], $r['rejected'],
-                $r['places'], $r['year'], $r['date'], $r['type'], $r['title'], $r['url']]), escape: '');
+                $r['places'], $r['read'], $r['year'], $r['date'], $r['type'], $r['title'], $r['url']]), escape: '');
         }
         fclose($out);
     }

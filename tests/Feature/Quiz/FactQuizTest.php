@@ -361,6 +361,20 @@ class FactQuizTest extends TestCase
         $this->get('/quiz?game=facts&level=hard&seed=abcd1234&v=x')->assertOk();
     }
 
+    public function test_the_pool_reads_the_catalogue_of_its_optional_tables_once(): void
+    {
+        Cache::forget(FactQuiz::POOL_KEY);
+        $checks = 0;
+        DB::listen(function ($query) use (&$checks): void {
+            $checks += (int) str_contains($query->sql, 'to_regclass');
+        });
+
+        (new FactPool)->build();
+
+        // Une seule lecture du catalogue pour les neuf familles qui dépendent d'une table facultative (neuf avant le 23/11).
+        $this->assertSame(1, $checks);
+    }
+
     public function test_a_missing_chronology_cache_gives_a_short_lived_pool_without_line_years(): void
     {
         Cache::forget(NetworkChronology::CACHE_KEY.':meta');

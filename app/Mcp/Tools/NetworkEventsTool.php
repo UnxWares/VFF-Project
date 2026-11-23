@@ -4,7 +4,6 @@ namespace App\Mcp\Tools;
 
 use App\Http\Resources\LineEventResource;
 use App\Mcp\Support\CursorPage;
-use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Support\VffTool;
 use App\Models\LineEvent;
 use App\Rules\PaginationCursor;
@@ -34,6 +33,9 @@ TXT)]
 #[IsOpenWorld(false)]
 class NetworkEventsTool extends VffTool
 {
+    /** Ancien slug dans `line` ou `station` : filtre sous le slug actuel, dit dans `redirected`. */
+    protected const SLUG_FILTERS = true;
+
     private const CURSOR_COLUMNS = ['line_events.event_date', 'line_events.id'];
 
     protected function rules(): array
@@ -64,8 +66,7 @@ class NetworkEventsTool extends VffTool
     {
         $filters = LineEventQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'lang'])));
         $page = app(LineEventQuery::class)->apply(LineEvent::query()->with('line:id,slug,code,name'), $filters)
-            // Jamais les faits d'une source non commerciale (archeoferroviaire) : NonCommercialSources.
-            ->whereRaw(app(NonCommercialSources::class)->sqlKept('line_events', 'line_events.source', 'line_events.source_url'))
+            // Jamais un fait sans source redistribuable (LineEventQuery, RedistributableDates).
             ->cursorPaginate((int) ($input['limit'] ?? 50), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
         $events = array_map(fn (array $e): array => ['when' => EventText::isoDate($e['date'], $e['date_precision'], $lang)] + $e,
             LineEventResource::collection($page->items())->resolve());

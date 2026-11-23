@@ -763,7 +763,9 @@ final class StationTimeline
      * Événements à rejouer par statusFromEvents() : une fermeture « après Y »
      * n'est pas une date (retirée) ; « dans les années 1980 » est appliquée au
      * 31/12/1989 (la gare est montrée ouverte en 1980, l'ère est rendue
-     * incertaine par unconfirmedNote()).
+     * incertaine par unconfirmedNote()). Une ouverture « après 1890 » (borne
+     * basse d'une ouverture encadrée, openingBounds()) est rejouée au 01/01/1891 :
+     * la gare n'est montrée qu'à partir de là, incertaine jusqu'à la borne haute.
      *
      * @param  array<int, array<string, mixed>>  $events
      * @return array<int, array<string, mixed>>
@@ -775,6 +777,9 @@ final class StationTimeline
             $precision = $e['precision'] ?? 'day';
             if ($precision === self::AFTER && in_array($e['type'], self::CLOSURES, true)) {
                 continue;
+            }
+            if ($precision === self::AFTER && $e['type'] === 'opening') {
+                $e['date'] = sprintf('%04d-01-01', (int) substr((string) $e['date'], 0, 4) + 1);
             }
             if ($precision === self::DECADE && in_array($e['type'], self::CLOSURES, true)) {
                 $e['date'] = sprintf('%04d-12-31', intdiv((int) substr((string) $e['date'], 0, 4), 10) * 10 + 9);
@@ -844,6 +849,8 @@ final class StationTimeline
                 continue;
             }
             $cover = match (true) {
+                // « Ouverte après 1890 » ne prouve la gare ouverte à aucune ère (borne basse seulement).
+                $type === 'opening' && $precision === self::AFTER => null,
                 in_array($type, ['opening', 'reopening'], true) => $firstFrom($y),
                 ! in_array($type, self::CLOSURES, true) => null,
                 $precision === self::AFTER => $firstFrom($y),
@@ -917,6 +924,85 @@ final class StationTimeline
             ! $passengerStatus && $passengerClosed => self::NOTE_UNDATED_FREIGHT,
             default => self::NOTE_UNDATED,
         };
+    }
+
+    // ── Ouvertures encadrées par une correction sourcée ─────────────────────
+    //
+    // Une halte créée après sa ligne sans date connue (Compans : accord pour une
+    // halte annoncé en 1891, halte photographiée avant 1907) a une date démontrée
+    // fausse (celle de la ligne) et aucune date de remplacement. Une correction
+    // sourcée l'encadre (StationCorrections, précision « range ») : deux événements
+    // d'ouverture, « après 1890 » (precision after, date au 31/12/1890) et « avant
+    // 1907 » (precision before, date au 31/12/1907), l'un ou l'autre seul. Même
+    // honnêteté que les fermetures en intervalle (resolveClosure) :
+    //   - la fiche : opened_precision = range, opened_at = la borne haute (sinon la
+    //     première fermeture datée, sinon aujourd'hui), provenance.opened_after =
+    //     l'année de la borne basse moins un an ; jamais une année seule ;
+    //   - les ères : absente jusqu'à la borne basse, montrée « incertaine » entre
+    //     les deux bornes (note boundedOpeningNote()), sûre à partir de la borne haute.
+
+    public const NOTE_OPENING_RANGE = 'Date d\'ouverture inconnue (entre :from et :to)';
+
+    public const NOTE_OPENING_NOT_BEFORE = 'Date d\'ouverture inconnue (pas avant :year)';
+
+    /**
+     * Bornes d'une ouverture encadrée : `after` (ouverte après cette année) et `before` (au plus tard à cette date,
+     * AAAA-MM-JJ), d'après les ouvertures « après » et « avant » d'une source ; null quand une ouverture datée (jour,
+     * mois, année) existe ou qu'aucune borne n'est donnée. Une correction sourcée prime : ses ouvertures seules comptent.
+     *
+     * @param  array<int, array<string, mixed>>  $events  type, date, precision, source, inferred
+     * @return array{after: ?int, before: ?string}|null
+     */
+    public static function openingBounds(array $events): ?array
+    {
+        $openings = array_values(array_filter($events, fn (array $e): bool => ($e['type'] ?? null) === 'opening' && ! ($e['inferred'] ?? false)));
+        $corrected = array_values(array_filter($openings, fn (array $e): bool => ($e['source'] ?? null) === self::CORRECTION));
+        $openings = $corrected !== [] ? $corrected : $openings;
+        $after = null;
+        $before = null;
+        foreach ($openings as $e) {
+            $date = substr((string) $e['date'], 0, 10);
+            $precision = $e['precision'] ?? 'day';
+            if ($precision === self::AFTER) {
+                $after = max($after ?? PHP_INT_MIN, (int) substr($date, 0, 4));
+            } elseif ($precision === self::BEFORE) {
+                $before = $before === null ? $date : min($before, $date);
+            } else {
+                return null; // ouverture datée : rien à encadrer
+            }
+        }
+
+        return $after === null && $before === null ? null : ['after' => $after, 'before' => $before];
+    }
+
+    /**
+     * Note d'une ère historique où la gare est montrée avant la borne haute de son ouverture encadrée (l'ère est alors
+     * « incertaine »), ou null : ouverture datée, ère courante, gare absente ou ère au-delà de la borne haute (état au
+     * 31/12 de l'année de l'ère).
+     *
+     * @param  array{after: ?int, before: ?string}|null  $bounds  openingBounds()
+     */
+    public static function boundedOpeningNote(?array $bounds, int $year, ?string $status, bool $isCurrent): ?string
+    {
+        if ($bounds === null || $bounds['after'] === null || $status === null || $isCurrent
+            || ($bounds['before'] !== null && $bounds['before'] <= sprintf('%04d-12-31', $year))) {
+            return null;
+        }
+
+        return $bounds['before'] === null
+            ? str_replace(':year', (string) ($bounds['after'] + 1), self::NOTE_OPENING_NOT_BEFORE)
+            : str_replace([':from', ':to'], [(string) ($bounds['after'] + 1), substr($bounds['before'], 0, 4)], self::NOTE_OPENING_RANGE);
+    }
+
+    /**
+     * Première année où la gare peut être desservie, en SQL ($s : alias de stations) : l'année de l'ouverture, ou la
+     * borne basse d'une ouverture encadrée (opened_after + 1 ; nulle sans borne basse, rien ne borne alors la desserte).
+     * Une borne haute n'est jamais une année d'ouverture (BuildStationEras::reconcileServiceYears, DataInvariants).
+     */
+    public static function openedYearFloorSql(string $s = 's'): string
+    {
+        return "(CASE WHEN {$s}.opened_precision = '".self::RANGE."' THEN NULLIF({$s}.provenance->>'opened_after', '')::int + 1"
+            ." ELSE EXTRACT(YEAR FROM {$s}.opened_at)::int END)";
     }
 
     // ── Règles G3 et G6 de l'audit des gares (désactivées par défaut) ────────

@@ -68,6 +68,7 @@ class ListStationsTool extends VffTool
         $filters = StationDirectoryQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'facets', 'lang'])));
         $page = $service->query($filters)
             ->cursorPaginate((int) ($input['limit'] ?? 25), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
+        // Dates sans source redistribuable : remplacées ou nulles, et tri sur la date servie (StationDirectoryQuery).
         $stations = array_map(fn (array $s): array => $s + ['vff_url' => self::url('/stations/'.$s['slug'])], $service->present($page->items()));
 
         return $this->respondPage(

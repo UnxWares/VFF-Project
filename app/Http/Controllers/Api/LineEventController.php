@@ -8,10 +8,12 @@ use App\Http\Resources\LineEventDetailResource;
 use App\Http\Resources\LineEventResource;
 use App\Models\LineEvent;
 use App\Services\Api\LineEventQuery;
+use App\Support\RedistributableDates;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 
 #[Group('Événements', 'Les événements datés du réseau : ouvertures, fermetures, électrifications, déposes… de toutes les lignes, et la chronologie des gares, avec la source et la licence de chaque événement.', weight: 5)]
@@ -164,6 +166,10 @@ class LineEventController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(LineEvent $event): JsonResponse
     {
+        // Événement sans source redistribuable : inconnu hors du site, comme un identifiant absent.
+        if (! app(RedistributableDates::class)->servesLineEvent($event->source, $event->source_url)) {
+            throw (new ModelNotFoundException)->setModel(LineEvent::class, [$event->getKey()]);
+        }
         $event->load('line:id,slug,code,name');
 
         return LineEventDetailResource::make($event)->response()->header('Cache-Control', 'public, max-age=300');

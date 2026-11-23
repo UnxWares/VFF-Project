@@ -275,6 +275,8 @@ final class MaterialExamples
                 'end_date' => '2007-11-01',
                 'end_precision' => 'month',
                 'section' => null,
+                'relation' => null,
+                'portion' => null,
                 'confidence' => 'high',
                 'origin' => 'line_article',
                 'source' => [

@@ -32,4 +32,12 @@ return array_map(fn (array $g) => [
         'la date de Wikidata (25 février 1848) porte une année fausse : la gare provisoire est établie en 1849 (première locomotive à Noyon le 30 janvier 1849), la section Compiègne - Noyon ouvre en février 1849'],
     ['Amélie-les-Bains', 'Q82925388', 'Gare d\'Amélie-les-Bains', 231707538, '1898-06-26', 'La gare d\'Amélie-les-Bains est mise en service le 26 juin 1898 par la Compagnie du Midi, lorsqu\'elle ouvre à l\'exploitation la dernière section de la ligne d\'Elne à Arles-sur-Tech, entre Céret et Arles-sur-Tech.',
         'la date de Wikidata (18 août 1889) est l\'ouverture d\'Elne à Céret : la gare est sur la dernière section, Céret - Arles-sur-Tech, ouverte le 26 juin 1898 (chronologie de la ligne)'],
+    // Chantier invariants-gares (23/11/2026, rapport storage/app/reports/agents/aprem-2111/invariants-gares.md) : gares
+    // relevées après les ouvertures de sections datées au jour (line_event_corrections_sections_dates.php).
+    ['Chamonix-Mont-Blanc', 'Q2250995', 'Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière)', 240212251, '1901-07-25',
+        'la section Le Fayet - Chamonix est inaugurée le 12 juillet 1901. Elle ouvre au public le 25 juillet ; un grand succès commercial s\'ensuit.',
+        'ouverture au public de la section du Fayet à Chamonix, dont la gare est le terminus ; le 12 juillet 1901 de l\'infobox de l\'article de la gare (oldid 232825289) est l\'inauguration (« La gare d\'origine, inaugurée le 12 juillet 1901 »), comme pour la gare des Houches, mise en service le 25 juillet 1901'],
+    ['Nuits-sous-Ravières', 'Q2360723', 'Ligne de Paris-Lyon à Marseille-Saint-Charles', 241214704, '1851-06-22',
+        'L\'inauguration de la section de ligne de Tonnerre à Dijon eut lieu le 1 juin 1851 et l\'ouverture au public le 22 juin 1851.',
+        'la gare est sur la section de Tonnerre à Dijon (PK 224,8) ; l\'article de la gare (oldid 240915301) : « La section de Tonnerre à Dijon de la ligne de Paris à Lyon est mise en service par la compagnie éponyme en juin 1851 ». Remplace l\'année 1849 de Wikidata (ouverture de Paris à Tonnerre, avant la gare)'],
 ]);

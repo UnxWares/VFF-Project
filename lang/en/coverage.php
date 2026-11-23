@@ -1,11 +1,11 @@
 <?php
 
-// "What the encyclopedia knows" (/network/coverage): page texts. The measures come from App\Services\CoverageFigures.
+// "What the encyclopaedia knows" (/network/coverage): page texts. The measures come from App\Services\CoverageFigures.
 return [
-    'meta_title' => 'What the encyclopedia knows',
-    'meta_description' => 'The state of the encyclopedia’s data, measured: opening and closing dates, precise routes, electrification, signalling, speeds, stations, photos, passenger numbers, reviewed accidents and rolling stock, in numbers and percentages.',
-    'hero_title' => 'What the encyclopedia knows',
-    'hero_subtitle' => 'What the encyclopedia really knows, and what it still does not: for each piece of information, how many lines, stations, accidents or rolling stock series are filled in, and how much comes from open sources.',
+    'meta_title' => 'What the encyclopaedia knows',
+    'meta_description' => 'The state of the encyclopaedia’s data, measured: opening and closing dates, precise routes, electrification, signalling, speeds, stations, photos, passenger numbers, reviewed accidents and rolling stock, in numbers and percentages.',
+    'hero_title' => 'What the encyclopaedia knows',
+    'hero_subtitle' => 'What the encyclopaedia really knows, and what it still does not: for each piece of information, how many lines, stations, accidents or rolling stock series are filled in, and how much comes from open sources.',
     'computed' => 'Calculated on :date',
     'back' => 'The network in figures',
     'contribute_link' => 'Contribute: complete a date, add a photo, review an accident',
@@ -50,7 +50,7 @@ return [
     's_reviewed' => 'Reviewed',
     's_to_review' => 'To check',
     'materials_title' => 'Rolling stock',
-    'materials_intro' => 'The series of locomotives, railcars, trainsets and carriages in the encyclopedia.',
+    'materials_intro' => 'The series of locomotives, railcars, trainsets and carriages in the encyclopaedia.',
     'materials_table' => 'Data coverage for rolling stock',
     'materials_by_decade' => 'Rolling stock series entering service, by decade',
     'materials_by_decade_table' => 'Series entering service by decade',
@@ -79,7 +79,7 @@ return [
     'today' => 'Today',
 
     'method_title' => 'How it is measured',
-    'method_text' => 'Each number is counted in the encyclopedia’s database by a command, then kept in cache: the page calculates nothing. A date is “filled in” when the encyclopedia knows one, with its precision; the share “from open sources” counts only data whose source has a written, proven open licence. A source that is not declared, or that is for non-commercial use, is never counted there.',
+    'method_text' => 'Each number is counted in the encyclopaedia’s database by a command, then kept in cache: the page calculates nothing. A date is “filled in” when the encyclopaedia knows one, with its precision; the share “from open sources” counts only data whose source has a written, proven open licence. A source that is not declared, or that is for non-commercial use, is never counted there.',
     'method_trace' => 'A route is called precise when it comes from a source within 3 m (IGN BD TOPO, OpenStreetMap) or has been realigned on the real track; the kilometres are those of the section audit.',
 
     'metrics' => [

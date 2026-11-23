@@ -71,6 +71,9 @@ return [
         'start_year' => 'Start year',
         'operator' => 'Operator',
         'website' => 'Official website',
+        'section' => 'Section operated',
+        'season' => 'Season',
+        'opened_on' => 'Opening',
     ],
     'src' => [
         'wp_list' => 'Wikipedia, list of heritage railways in France',
@@ -96,6 +99,25 @@ return [
         'lignes_oubliees' => 'lignes-oubliees.com',
         'vff' => 'VFF line page',
         'correction' => 'VFF correction',
+        'wp_revision' => 'Wikipedia (cited revision)',
+    ],
+    // Operating facts under the name (catalogue, article cited by detail_source).
+    'section' => 'Section operated: :from - :to',
+    'section_from' => 'Departure: :from',
+    'season' => 'Season: :season',
+    'opened_on' => 'Opened: :date',
+    // Saisons du catalogue (texte français), par clé seasonKey() de resources/js/lib/touristRailways.js.
+    'season_text' => [
+        'a_la_belle_saison' => 'in the summer season',
+        'd_avril_a_octobre' => 'April to October',
+        'd_avril_a_octobre_le_samedi_le_dimanche_et_certains_jours_feries' => 'April to October, on Saturdays, Sundays and some public holidays',
+        'd_avril_a_septembre' => 'April to September',
+        'de_debut_juin_a_fin_septembre_et_pendant_certaines_vacances_scolaires' => 'early June to late September and during some school holidays',
+        'de_fevrier_a_decembre' => 'February to December',
+        'de_la_mi_juin_a_la_mi_septembre' => 'mid-June to mid-September',
+        'du_1er_mai_au_31_octobre' => '1 May to 31 October',
+        'en_saison' => 'in season',
+        'pendant_la_saison_touristique' => 'during the tourist season',
     ],
     'colon' => ': ',
 

@@ -55,6 +55,8 @@ final readonly class AccidentClaim
         public ?float $lng,
         public ?int $deaths = null,
         public bool $deathsProvisional = false,
+        /** @var array{title: string, number?: string, url: string, published?: string}|null rapport ou page officielle du BEA-TT lus (BeaTtReportTable) */
+        public ?array $report = null,
     ) {}
 
     /**
@@ -75,6 +77,7 @@ final readonly class AccidentClaim
             'lng' => $this->lng !== null ? round($this->lng, 5) : null,
             'deaths' => $this->deaths,
             'deaths_provisional' => $this->deathsProvisional ? true : null,
+            'report' => $this->report,
             'retrieved_at' => $this->retrievedAt,
         ], fn ($v) => $v !== null);
     }

@@ -140,7 +140,7 @@ class PageQueryBudgetTest extends TestCase
         // LineStations::forLine (gares de la ligne puis terminus) : la liste, l'en-tête et la vue
         // « décennie par décennie » reprennent le même résultat (LineStations::byEraOf).
         $this->assertSame(1, $count("provenance->>'closed_after' AS closed_after"), 'requête des gares de la ligne');
-        $this->assertSame(1, $count('ST_Dump(ST_LineMerge(ST_Collect(geom)))'), 'requête des terminus');
+        $this->assertSame(1, $count('GROUP BY p HAVING count(*) <> 2'), 'requête des terminus');
     }
 
     public function test_station_sheet_stays_within_its_query_budget(): void
@@ -162,13 +162,38 @@ class PageQueryBudgetTest extends TestCase
     {
         [$queries, $props] = $this->deferredLoad('/lines/'.$this->line->slug, 'Lines/Show');
 
-        // Le haut de la fiche n'est pas reconstruit : ni gares de la ligne, ni calcul des phases.
-        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, "provenance->>'closed_after' AS closed_after")
-            || str_contains($sql, 'tmp_line_portions'))));
+        // Le haut de la fiche n'est pas reconstruit : ni calcul des phases, ni extrémités du tracé (en cache) ; les gares
+        // sont relues une fois, pour les détails de la liste (station_details : PK, commune, dates).
+        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'tmp_line_portions')
+            || str_contains($sql, 'GROUP BY p HAVING count(*) <> 2'))));
+        $this->assertCount(1, array_filter($queries, fn (string $sql): bool => str_contains($sql, "provenance->>'closed_after' AS closed_after")));
+        $this->assertSame([$this->origin->slug], array_column($props['station_details'], 'slug'));
         foreach (LineSheet::PAGE_KEYS as $key) {
             $this->assertArrayNotHasKey($key, $props, "{$key} : pas renvoyée par le chargement différé");
         }
-        $this->assertLessThanOrEqual(26, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 32 depuis le 23/11 au soir (storage/app/reports/agents/aprem-2111/budgets-suite.md) : les détails de la liste des
+        // gares (LineSheet::pageStationDetails) relisent les gares de la ligne, en cinq lectures indexées (70 ms sur
+        // Paris - Marseille), pour 75 Ko de moins au premier affichage ; une de plus pour le matériel (LineMaterialFacts).
+        // 33 avec les corrections sourcées de la signalisation, repliées sous la frise (LineSignallingHistory::correctionsForSheet :
+        // une lecture indexée par ligne). 34 avec le motif d'un profil absent (LineProfiles::unavailable : une requête,
+        // la ligne de test n'a pas de profil).
+        $this->assertLessThanOrEqual(34, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+    }
+
+    public function test_line_sheet_sends_first_only_what_the_map_reads_of_each_station(): void
+    {
+        $first = $this->get('/lines/'.$this->line->slug)->assertOk()->viewData('page');
+        [, $props] = $this->deferredLoad('/lines/'.$this->line->slug, 'Lines/Show');
+
+        // Premier affichage : position, nom, terminus et états (carte du tracé, « Où et quand ») ; PK, commune et dates de
+        // la liste des gares arrivent après coup (145 Ko de gares au premier affichage de Paris - Marseille, 70 Ko ainsi).
+        $this->assertNotEmpty($first['props']['stations']);
+        foreach ($first['props']['stations'] as $station) {
+            $this->assertSame(LineSheet::PAGE_STATION_FIRST, array_keys($station));
+        }
+        $this->assertSame(array_column($first['props']['stations'], 'slug'), array_column($props['station_details'], 'slug'));
+        $this->assertSame('0+000', $props['station_details'][0]['pk_label']);
+        $this->assertArrayNotHasKey('eras', $props['station_details'][0]);
     }
 
     public function test_station_sheet_loads_its_lower_sections_in_one_deferred_request(): void
@@ -178,6 +203,13 @@ class PageQueryBudgetTest extends TestCase
         $this->assertArrayHasKey('neighbors', $props);
         $this->assertArrayNotHasKey('chronology', $props);
         $this->assertLessThanOrEqual(6, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+    }
+
+    public function test_the_example_environment_does_not_record_every_page_for_the_inertia_devtools(): void
+    {
+        // Enregistrer chaque page sur disque coûtait 100 à 300 ms par page en local (mesures du 23/11/2026,
+        // storage/app/reports/agents/aprem-2111/budgets-pages.md) : désactivé par défaut dans l'environnement d'exemple.
+        $this->assertMatchesRegularExpression('/^INERTIA_DEVTOOLS_ENABLED=false$/m', (string) file_get_contents(base_path('.env.example')));
     }
 
     public function test_the_last_segment_update_is_read_through_an_index(): void
@@ -235,7 +267,10 @@ class PageQueryBudgetTest extends TestCase
         $expected['stations'] = $expected['stations']->map(
             fn (array $s): array => array_diff_key($s, array_flip(LineSheet::PAGE_STATION_OMITTED)),
         )->values();
-        // Premier affichage et props différées réunis : la fiche de l'API, valeur pour valeur.
+        // Premier affichage et props différées réunis : la fiche de l'API, valeur pour valeur (gares du premier
+        // affichage complétées de leurs détails, LineSheet::pageStationDetails).
+        $details = collect(app(LineSheet::class)->pageStationDetails($this->line->fresh()))->keyBy('slug');
+        $page['stations'] = $page['stations']->map(fn (array $s): array => [...$details[$s['slug']], ...$s]);
         $shown = [...array_diff_key($page, array_flip(LineSheet::PAGE_ADDED)), ...$later];
         $this->assertEquals(json_decode((string) json_encode($expected), true), json_decode((string) json_encode($shown), true));
         $this->assertSame(count($full['portions']), $page['portions_count']);

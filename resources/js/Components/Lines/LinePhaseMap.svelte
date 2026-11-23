@@ -2,12 +2,13 @@
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
     import { page, router } from '@inertiajs/svelte';
-    import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { hasPmtilesProtocol, loadMaplibre } from '$lib/loadMaplibre.js';
     import { loadLinePortions } from '$lib/linePortions.js';
     import { whenNear } from '$lib/whenNear.js';
     import { i18n } from '$lib/i18n.js';
-    import { MAP_MAX_ZOOM } from '$lib/basemap.js';
-    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
+    import { boldLabelFont, MAP_MAX_ZOOM } from '$lib/basemap.js';
+    import { followBasemapTheme, pageMapStyle } from '$lib/mapStyle.svelte.js';
+    import { isOfflineView, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { formatLocale, tieUnits } from '$lib/typo.js';
     import {
@@ -45,6 +46,9 @@
 
     let mapContainer = $state();
     let map = null;
+    // Carte dessinée sur le fond libre de VFF (lib/mapStyle.svelte.js) : ses couleurs suivent le thème.
+    let onBasemap = false;
+    followBasemapTheme(() => (onBasemap ? map : null));
     let loaded = $state(false);
     // Portions lues à part (géométrie : jamais rendue profondément réactive) ; `failed` : tracé introuvable.
     /** @type {Array<{ length_m: number, geometry: any }>} */
@@ -54,46 +58,8 @@
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
 
-    /** @returns {string | import('maplibre-gl').StyleSpecification} */
     // Fin du signal « carte sur fond neutre » (lib/offlineMap.svelte.js), appelée quand la carte disparaît.
     let releasePartialMap = null;
-
-    /**
-     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
-     * @returns {string | import('maplibre-gl').StyleSpecification}
-     */
-    function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
-        const key = import.meta.env.VITE_MAPTILER_KEY;
-        if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-        return {
-            version: 8,
-            sources: {
-                'osm-raster': {
-                    type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    maxzoom: 19,
-                    attribution:
-                        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                },
-            },
-            layers: [
-                {
-                    id: 'osm',
-                    type: 'raster',
-                    source: 'osm-raster',
-                    paint: {
-                        'raster-saturation': -0.6,
-                        'raster-opacity': 0.85,
-                        // Thème sombre : fond atténué (moins éblouissant), tracé et gares inchangés.
-                        'raster-brightness-max': theme.isDark ? 0.78 : 1,
-                    },
-                },
-            ],
-            glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-        };
-    }
 
     /** Statut d'une gare à la phase (état de station_eras ; aujourd'hui pour l'ère courante). */
     function statusOf(s) {
@@ -165,9 +131,19 @@
         portions = lineworks;
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        const mapBackground = pageMapStyle(offline, {
+            pmtiles: hasPmtilesProtocol(),
+            osmPaint: {
+                'raster-saturation': -0.6,
+                'raster-opacity': 0.85,
+                // Thème sombre : fond atténué (moins éblouissant), tracé et gares inchangés.
+                'raster-brightness-max': theme.isDark ? 0.78 : 1,
+            },
+        });
+        onBasemap = mapBackground.onBasemap;
         map = new maplibregl.Map({
             container: mapContainer,
-            style: buildStyle(offline),
+            style: mapBackground.style,
             center: [2.5, 47.0],
             zoom: 5.5,
             maxZoom: MAP_MAX_ZOOM,
@@ -289,8 +265,8 @@
                     'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
                     'text-radial-offset': 0.9,
                     'text-justify': 'auto',
-                    // OpenFreeMap sert Noto Sans (Open Sans → 404 sur les glyphes).
-                    'text-font': ['Noto Sans Bold'],
+                    // Noto Sans (Open Sans → 404 sur les glyphes) ; Medium sur le fond libre de VFF, qui n'a pas de Bold.
+                    'text-font': boldLabelFont(map.getStyle().glyphs),
                 },
                 paint: {
                     'text-color': '#1a1a1a',

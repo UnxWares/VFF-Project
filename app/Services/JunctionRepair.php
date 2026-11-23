@@ -48,6 +48,17 @@ use Illuminate\Support\Facades\DB;
  *      HOLE_MAX_M (ponts, passages à niveau : morceaux BD TOPO courts non
  *      rattachés, résidu OSM trop court jeté) sont reliées par le chemin le
  *      plus court sur les voies précises, s'il existe sans détour.
+ *   2 bis. Trou sur le dessin d'une autre ligne : deux extrémités libres de la
+ *      ligne, à moins de HOLE_MAX_M, posées toutes deux (HOLE_DRAWING_SNAP_M) sur
+ *      le dessin continu d'une même AUTRE ligne L (écartements et réseaux
+ *      compatibles) qui les relie sans détour et dans leur sens de marche : le
+ *      trou est comblé par le dessin de L entre les deux points, au bit près
+ *      (voie partagée, masquée ensuite par vff:build-shared-track), morceau par
+ *      morceau avec la provenance de L (une courbe estimée de L reste
+ *      « raccord-lisse »). Jamais une courbe propre à quelques mètres de celle
+ *      de L : en gare de Domfront, 432000 et 437000 roulent sur le changement
+ *      de voie de 436000 (deux voies OSM qui ne se touchent pas, refait par une
+ *      courbe estimée) et le croisaient à 7 m sans le toucher.
  *   3. Changement de voie : extrémités d'un saut (bout à bout) reliées par le
  *      chemin réel (aiguillage, communication) depuis l'une jusqu'à la portion
  *      d'en face ; le bout de celle-ci qui longe le chemin est retiré.
@@ -481,6 +492,9 @@ class JunctionRepair
     /** Géométrie lissée estimée (matched_source). */
     public const SMOOTHED = 'raccord-lisse';
 
+    /** Règle 2 bis : bout posé sur le dessin d'une autre ligne (m). */
+    public const HOLE_DRAWING_SNAP_M = 1.0;
+
     /** Points D (en arrière de la jonction) et J (sur la portion précise) essayés (m). */
     private const LEG_D_STEPS = [20, 30, 45, 60, 80, 100, 130, 160, 200, 250, 300, 400];
 
@@ -555,7 +569,7 @@ class JunctionRepair
      *
      * @return array<string, float|int> jog_removed, jog_restored, jog_smoothed (+ _m), hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
-     *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
+     *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), hole_on_drawing (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
      *                                  dangling_connector_removed (+ _m), long_gap_filled (+ _m),
      *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough,
      *                                  lateral_routed (+ _m), lateral_smoothed (+ _m), fused_relay (+ _m : somme des écarts recollés)
@@ -571,6 +585,7 @@ class JunctionRepair
             'stub_trimmed_m' => 0.0, 'remnant_removed_m' => 0.0, 'extended' => 0, 'extended_m' => 0.0, 'overshoot_trimmed_m' => 0.0,
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0, 'tee_smoothed' => 0, 'tee_smoothed_m' => 0.0,
             'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'drawing_joined' => 0, 'drawing_joined_m' => 0.0,
+            'hole_on_drawing' => 0, 'hole_on_drawing_m' => 0.0,
             'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
             'dangling_connector_removed' => 0, 'dangling_connector_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0,
@@ -595,6 +610,7 @@ class JunctionRepair
         }
 
         $this->fillHoles($stats, false);
+        $this->fillHolesOnOtherDrawing($stats);
         $this->reroute($jogs, $stats);
         $this->removeRemnants($stats);
         $stats['jog_restored'] = $this->restoreJogs($jogs);
@@ -2450,6 +2466,156 @@ class JunctionRepair
             $used[$i] = $used[$j] = true;
             $stats['hole_filled']++;
             $stats['hole_filled_m'] += $path['len'];
+        }
+    }
+
+    /**
+     * Règle 2 bis (cf. docblock) : paires de bouts libres de la ligne, de la plus proche à la plus éloignée, posés sur le
+     * dessin continu d'une même autre ligne L qui les relie sans détour, dans leur sens de marche ; le trou est comblé par
+     * ce dessin, au bit près, un ajout par morceau de L (provenance de L : voie précise, ou courbe estimée).
+     */
+    private function fillHolesOnOtherDrawing(array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $narrow = in_array($net, TraceConflation::JUNCTION_NARROW_NETWORKS, true);
+        $ends = $this->freeEnds();
+        $pairs = [];
+        foreach ($ends as $i => $a) {
+            foreach ($ends as $j => $b) {
+                if ($j <= $i || $a['sid'] === $b['sid'] || $a['conn'] || $b['conn']) {
+                    continue;
+                }
+                $d = hypot($b['x'] - $a['x'], $b['y'] - $a['y']);
+                if ($d > 0.5 && $d <= self::HOLE_MAX_M) {
+                    $pairs[] = [$d, $i, $j];
+                }
+            }
+        }
+        sort($pairs);
+        $used = [];
+        foreach ($pairs as [$d, $i, $j]) {
+            if (isset($used[$i]) || isset($used[$j])) {
+                continue;
+            }
+            $a = $ends[$i];
+            $b = $ends[$j];
+            $maxLen = self::DETOUR * $d + self::DETOUR_ADD_M;
+            // Dessin continu d'une autre ligne qui passe aux deux bouts : morceaux fusionnés autour du trou, portion entre
+            // les deux projections, orientée de a vers b.
+            $t = DB::selectOne(<<<'SQL'
+                WITH a AS (SELECT ST_SetSRID(ST_MakePoint(:ax, :ay), 2154) AS p), b AS (SELECT ST_SetSRID(ST_MakePoint(:bx, :by), 2154) AS p),
+                w AS (SELECT ST_Expand(ST_MakeLine(a.p, b.p), :reach) AS w FROM a, b),
+                o AS (
+                    SELECT rp.line_id, ST_Transform(d.geom, 2154) AS g
+                    FROM line_reference_parts rp, LATERAL ST_Dump(rp.geom) d, w
+                    WHERE rp.line_id <> :line AND rp.geom && ST_Transform(w.w, 4326)
+                ),
+                l AS (
+                    SELECT o.line_id FROM o, a, b GROUP BY o.line_id
+                    HAVING MIN(ST_Distance(o.g, a.p)) <= :snap AND MIN(ST_Distance(o.g, b.p)) <= :snap2
+                ),
+                -- Bouts des morceaux recollés au dixième de millimètre (l'arrondi des sommets laisse des écarts de l'ordre du nanomètre).
+                m AS (SELECT o.line_id, (ST_Dump(ST_LineMerge(ST_Collect(ST_SnapToGrid(o.g, 0.0001) ORDER BY ST_XMin(o.g), ST_YMin(o.g))))).geom AS g
+                      FROM o JOIN l USING (line_id) GROUP BY o.line_id),
+                s AS (
+                    SELECT m.line_id, ST_LineLocatePoint(m.g, a.p) AS fa, ST_LineLocatePoint(m.g, b.p) AS fb, m.g
+                    FROM m, a, b WHERE ST_DWithin(m.g, a.p, :snap3) AND ST_DWithin(m.g, b.p, :snap4)
+                ),
+                sub AS (
+                    SELECT s.line_id, CASE WHEN s.fa <= s.fb THEN ST_LineSubstring(s.g, s.fa, s.fb) ELSE ST_Reverse(ST_LineSubstring(s.g, s.fb, s.fa)) END AS g
+                    FROM s WHERE abs(s.fb - s.fa) > 0
+                )
+                SELECT sub.line_id, ST_AsText(sub.g) AS wkt, ST_Length(sub.g) AS len, ln.gauge_mm_default AS gauge, ln.network
+                FROM sub JOIN lines ln ON ln.id = sub.line_id
+                WHERE ST_Length(sub.g) <= :max
+                -- Le dessin le moins estimé d'abord (voie réelle plutôt que la courbe estimée d'une autre ligne), puis le plus court.
+                ORDER BY (SELECT COALESCE(SUM(ST_Length(ST_Intersection(sub.g, ST_Buffer(ST_Transform(rp.geom, 2154), 0.05)))), 0)
+                          FROM line_reference_parts rp WHERE rp.line_id = sub.line_id AND rp.matched_source = :smoothed
+                            AND rp.geom && ST_Transform(ST_Envelope(sub.g), 4326)),
+                         ST_Length(sub.g), sub.line_id LIMIT 1
+                SQL, ['ax' => $a['x'], 'ay' => $a['y'], 'bx' => $b['x'], 'by' => $b['y'], 'reach' => $maxLen / 2, 'line' => $this->lineId,
+                'max' => $maxLen, 'smoothed' => self::SMOOTHED] + array_fill_keys(['snap', 'snap2', 'snap3', 'snap4'], self::HOLE_DRAWING_SNAP_M));
+            if (! $t) {
+                continue;
+            }
+            // Partage de voie physiquement impossible (garde-fou de TraceConflation::junctionTrunk).
+            if (($this->gauge !== null && $t->gauge !== null && (int) $t->gauge !== $this->gauge)
+                || (($this->gauge === null || $t->gauge === null) && $narrow && $t->network === 'principal')) {
+                continue;
+            }
+            $sub = $this->parseWkt($t->wkt);
+            $slen = (float) $t->len;
+            // Dans le sens de marche des deux bouts : le dessin part de a dans le cap de a et arrive en b à rebours du cap de b.
+            $u0 = $this->unit($sub[0], $this->pointAlong($sub, min($slen, 15)));
+            $u1 = $this->unit($this->pointAlong($sub, max(0.0, $slen - 15)), end($sub));
+            if ($this->angDiff(atan2($u0[0], $u0[1]), $a['az']) > deg2rad(self::FACE_DEG)
+                || $this->angDiff(atan2($u1[0], $u1[1]) + M_PI, $b['az']) > deg2rad(self::FACE_DEG)) {
+                $this->debug && $this->log[] = ['hole_drawing' => [$a['sid'], $b['sid']], 'line' => (int) $t->line_id, 'skip' => 'cap'];
+
+                continue;
+            }
+            $coords = array_merge([[$a['x'], $a['y']]], $sub, [[$b['x'], $b['y']]]);
+            if ($this->doubles(['coords' => $coords, 'len' => $this->plen($coords)], [$a['sid'], $b['sid']])) {
+                continue;
+            }
+            $this->insertDrawing($coords, (int) $t->line_id, $a['sid']);
+            $this->debug && $this->log[] = ['hole_drawing' => [$a['sid'], $b['sid']], 'line' => (int) $t->line_id, 'len' => round($slen, 1)];
+            $used[$i] = $used[$j] = true;
+            $stats['hole_on_drawing']++;
+            $stats['hole_on_drawing_m'] += $slen;
+        }
+    }
+
+    /**
+     * Ajoute la portion $coords du dessin de la ligne $other, coupée aux bouts des morceaux de ce dessin : chaque ajout
+     * garde la provenance du morceau qu'il recouvre (courbe estimée « raccord-lisse », sinon la voie précise de l'autre
+     * ligne en matched_source) ; source et ids : ceux de la portion prolongée.
+     *
+     * @param  list<array{0: float, 1: float}>  $coords
+     */
+    private function insertDrawing(array $coords, int $other, int $fromSid): void
+    {
+        $from = DB::selectOne('SELECT p.source, p.source_trace_ids FROM jr_sub t JOIN line_reference_parts p ON p.id = t.part_id WHERE t.sid = ?', [$fromSid])
+            ?? DB::selectOne('SELECT added FROM jr_sub WHERE sid = ?', [$fromSid]);
+        if ($from && isset($from->added)) {
+            $m = json_decode($from->added, true);
+            $from = (object) ['source' => $m['source'], 'source_trace_ids' => json_encode($m['source_ids'])];
+        }
+        $rows = DB::select(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:wkt, 2154) AS g),
+            o AS (
+                SELECT rp.id, rp.source, rp.matched_source, rp.source_trace_ids, rp.matched_trace_ids, ST_Transform(d.geom, 2154) AS g
+                FROM line_reference_parts rp, LATERAL ST_Dump(rp.geom) d, c
+                WHERE rp.line_id = :other AND rp.geom && ST_Transform(ST_Expand(c.g, 2), 4326)
+            ),
+            f AS (
+                SELECT DISTINCT x.f FROM (
+                    SELECT ST_LineLocatePoint(c.g, e.p) AS f FROM o, c, LATERAL (VALUES (ST_StartPoint(o.g)), (ST_EndPoint(o.g))) e(p)
+                    WHERE ST_DWithin(c.g, e.p, 0.01)
+                    UNION SELECT 0 UNION SELECT 1
+                ) x
+            ),
+            iv AS (SELECT f AS fa, LEAD(f) OVER (ORDER BY f) AS fb FROM f)
+            SELECT ST_AsText(ST_LineSubstring(c.g, iv.fa, iv.fb)) AS wkt,
+                   (SELECT jsonb_build_object('source', o.source, 'matched', o.matched_source, 'ids', o.source_trace_ids, 'mids', o.matched_trace_ids)::text
+                    FROM o ORDER BY ST_Distance(o.g, ST_LineInterpolatePoint(c.g, (iv.fa + iv.fb) / 2)), o.id LIMIT 1) AS prov
+            FROM iv, c WHERE iv.fb IS NOT NULL AND (iv.fb - iv.fa) * ST_Length(c.g) > 0.05
+            ORDER BY iv.fa
+            SQL, ['wkt' => $this->wkt($coords), 'other' => $other]);
+        foreach ($rows as $r) {
+            $p = json_decode((string) $r->prov, true) ?: [];
+            $matched = $p['matched'] ?? null;
+            $precise = ['contrib', 'bdtopo', 'osm', 'fusion', 'ign-historique'];
+            // Morceau précis de l'autre ligne : sa voie (famille et ids) ; courbe estimée ou tracé grossier : courbe estimée.
+            [$m, $mids, $rank] = match (true) {
+                $matched === null && in_array($p['source'] ?? null, $precise, true) => [$p['source'], $p['ids'] ?? [], 3],
+                in_array($matched, $precise, true) => [$matched, $p['mids'] ?? [], 3],
+                default => [self::SMOOTHED, [], 4],
+            };
+            $meta = ['source' => $from->source ?? 'archeoferroviaire', 'source_ids' => $from ? json_decode($from->source_trace_ids, true) : [],
+                'matched' => $m, 'matched_ids' => $mids];
+            DB::insert('INSERT INTO jr_sub (part_id, sub, conn, rank, added, g) VALUES (NULL, 0, FALSE, ?, ?, ST_GeomFromText(?, 2154))',
+                [$rank, json_encode($meta), $r->wkt]);
         }
     }
 

@@ -29,9 +29,9 @@ Artisan::command('inspire', function () {
 | Tâches planifiées
 |--------------------------------------------------------------------------
 |
-| Déclenchées par `php artisan schedule:run` chaque minute (cron en production,
-| timer systemd utilisateur en développement : cf. docs/PLANIFICATION.md et
-| deploy/systemd/).
+| Déclenchées par `php artisan schedule:run` chaque minute (minuteur systemd en
+| production, deploy/systemd/production/ ; rien sur le poste de développement :
+| cf. docs/PLANIFICATION.md et docs/MISE-EN-PRODUCTION.md).
 |
 | Ère courante (« 2030 » = état du réseau au jour même) : recalcul des seules
 | lignes et gares dont un événement est daté depuis le dernier passage. Premier

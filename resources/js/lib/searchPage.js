@@ -4,7 +4,7 @@
 import { accidentDetail, communeDetail, stationDetail } from './siteSearch.js';
 
 /** Types de résultats, dans l'ordre de la page ('' = tout). */
-export const SEARCH_TYPES = ['', 'line', 'station', 'accident', 'material', 'commune'];
+export const SEARCH_TYPES = ['', 'line', 'station', 'accident', 'material', 'glossary', 'commune'];
 
 /** Types qui ont les filtres d'état et de département. */
 export const FILTERABLE_TYPES = ['line', 'station'];
@@ -70,9 +70,9 @@ export function splitAround(template, marker) {
 
 /**
  * Ligne de détail d'un résultat : état d'une ligne ; commune, département et statut d'une gare ; date, lieu et
- * nature d'un accident ; famille et constructeur d'un matériel ; département d'une commune. Parties séparées par « · ».
+ * nature d'un accident ; famille et constructeur d'un matériel ; sigle d'un terme du glossaire ; département d'une commune. Parties séparées par « · ».
  *
- * @param {'line'|'station'|'accident'|'material'|'commune'} type
+ * @param {'line'|'station'|'accident'|'material'|'glossary'|'commune'} type
  * @param {any} item résultat de son groupe (SearchResultsPage::present)
  * @param {(key: string, params?: object) => string} t
  * @param {string} [lang]
@@ -87,6 +87,19 @@ export function resultDetail(type, item, t, lang = 'fr') {
                 ? [accidentDetail(item, lang), item.kind ? t(`accidents.kinds.${item.kind}`) : null]
                 : type === 'commune'
                   ? [communeDetail(item)]
-                  : [item.kind ? t(`materials.types.${item.kind}`) : null, item.builder ?? null];
+                  : type === 'glossary'
+                    ? [item.abbr && item.abbr !== item.name ? item.abbr : null]
+                    : [item.kind ? t(`materials.types.${item.kind}`) : null, item.builder ?? null];
     return parts.filter(Boolean).join(' · ');
+}
+
+/**
+ * Adresse de la fiche d'un résultat de son groupe : `/lines/…`, `/stations/…`, `/communes/…` ; un terme du glossaire
+ * mène à son ancre dans la page `/glossary`.
+ *
+ * @param {string} type
+ * @param {string} slug
+ */
+export function resultHref(type, slug) {
+    return type === 'glossary' ? `/glossary#${slug}` : `/${type}s/${slug}`;
 }

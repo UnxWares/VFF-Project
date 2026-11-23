@@ -11,8 +11,23 @@ class PreservedRollingStockTest extends TestCase
     /** @return array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} */
     private static function data(): array
     {
+        return PreservedRollingStock::merge(self::base(), self::complement());
+    }
+
+    /** @return array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} */
+    private static function base(): array
+    {
         /** @var array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} $data */
         $data = require dirname(__DIR__, 3).'/database/data/preserved_rolling_stock.php';
+
+        return $data;
+    }
+
+    /** @return array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} */
+    private static function complement(): array
+    {
+        /** @var array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} $data */
+        $data = require dirname(__DIR__, 3).'/database/data/preserved_rolling_stock_complement.php';
 
         return $data;
     }
@@ -129,5 +144,134 @@ class PreservedRollingStockTest extends TestCase
         foreach ($without->forMaterial('241-p') as $unit) {
             $this->assertNull($unit['venue']['tourist_railway'] ?? null, 'sans la page des lignes touristiques, aucun lien');
         }
+    }
+
+    private static function numbers(array $data): array
+    {
+        $ids = [];
+        foreach ($data['units'] as $units) {
+            foreach ($units as $unit) {
+                $ids[preg_replace('/\W+/u', '', (string) $unit['number'])] = true;
+            }
+        }
+
+        return $ids;
+    }
+
+    public function test_the_complement_adds_or_completes_at_least_150_units_and_gives_new_series_their_first_unit(): void
+    {
+        $base = self::base();
+        $complement = self::complement();
+        $touched = 0;
+        $firstUnits = 0;
+        foreach ($complement['units'] as $slug => $units) {
+            if (! isset($base['units'][$slug])) {
+                $firstUnits++;
+            }
+            $touched += count($units);
+        }
+        $this->assertGreaterThanOrEqual(150, $touched);
+        $this->assertGreaterThanOrEqual(40, $firstUnits, 'des séries qui n\'avaient aucun exemplaire en reçoivent');
+        $this->assertGreaterThan(count(self::numbers($base)), count(self::numbers(self::data())));
+    }
+
+    public function test_the_complement_never_overwrites_a_known_fact_and_keeps_every_base_unit(): void
+    {
+        $base = self::base();
+        $merged = self::data();
+        foreach ($base['units'] as $slug => $units) {
+            $byId = [];
+            foreach ($merged['units'][$slug] as $unit) {
+                $byId[preg_replace('/\W+/u', '', (string) $unit['number'])] = $unit;
+            }
+            foreach ($units as $known) {
+                $after = $byId[preg_replace('/\W+/u', '', (string) $known['number'])] ?? $this->fail("{$slug} {$known['number']} perdu");
+                foreach (['venue', 'where', 'state', 'mh'] as $field) {
+                    if ($known[$field] !== null) {
+                        $this->assertSame($known[$field], $after[$field], "{$slug} {$known['number']} {$field}");
+                    }
+                }
+                foreach ($known['src'] as $src) {
+                    $this->assertContains($src, $after['src']);
+                }
+            }
+        }
+        $this->assertSame(count($base['others']), count($merged['others']));
+    }
+
+    public function test_merge_adds_a_new_unit_fills_only_the_gaps_and_does_not_replace_a_venue(): void
+    {
+        $venue = ['name' => 'A', 'type' => 'museum', 'commune' => null, 'tourist_railway' => null];
+        $base = ['venues' => ['a' => $venue], 'others' => [], 'units' => ['s' => [
+            ['number' => 'BB 1', 'venue' => 'a', 'where' => null, 'state' => null, 'mh' => null, 'src' => [['wikidata', 'Q1']]],
+        ]]];
+        $extra = ['venues' => ['a' => ['name' => 'Autre'] + $venue, 'b' => $venue], 'others' => [], 'units' => ['s' => [
+            ['number' => 'BB1', 'venue' => 'b', 'where' => 'x', 'state' => 'running', 'mh' => null, 'src' => [['wikipedia', 'T', 1]]],
+            ['number' => 'BB 2', 'venue' => 'b', 'where' => null, 'state' => null, 'mh' => null, 'src' => [['wikipedia', 'T', 1]]],
+        ], 't' => [
+            ['number' => 'CC 1', 'venue' => null, 'where' => null, 'state' => null, 'mh' => null, 'src' => [['wikipedia', 'T', 1]]],
+        ]]];
+        $out = PreservedRollingStock::merge($base, $extra);
+
+        $this->assertSame('A', $out['venues']['a']['name']);
+        $this->assertArrayHasKey('b', $out['venues']);
+        $this->assertCount(2, $out['units']['s']);
+        $this->assertSame('a', $out['units']['s'][0]['venue'], 'le lieu connu reste');
+        $this->assertSame('running', $out['units']['s'][0]['state']);
+        $this->assertSame('x', $out['units']['s'][0]['where']);
+        $this->assertCount(2, $out['units']['s'][0]['src']);
+        $this->assertSame('BB 2', $out['units']['s'][1]['number']);
+        $this->assertCount(1, $out['units']['t']);
+    }
+
+    public function test_complement_facts_follow_the_same_rules_as_the_base(): void
+    {
+        $complement = self::complement();
+        foreach ($complement['units'] as $slug => $units) {
+            foreach ($units as $unit) {
+                $label = $slug.' '.$unit['number'];
+                $this->assertNotEmpty($unit['src'], $label);
+                $this->assertContains($unit['state'], [null, ...PreservedRollingStock::STATES], $label);
+                if ($unit['venue'] !== null) {
+                    $this->assertArrayHasKey($unit['venue'], self::data()['venues'], $label);
+                }
+                if ($unit['mh'] !== null) {
+                    $this->assertContains($unit['mh']['kind'], ['classified', 'listed', 'declassified'], $label);
+                    $this->assertMatchesRegularExpression('/^P[AM]\d{8}$/', (string) $unit['mh']['ref'], $label);
+                    $this->assertContains(['palissy', $unit['mh']['ref']], $unit['src'], "{$label} : la protection cite sa notice");
+                }
+                $this->assertStringNotContainsString('—', json_encode($unit, JSON_UNESCAPED_UNICODE), $label);
+                $this->assertStringNotContainsString('--', json_encode($unit, JSON_UNESCAPED_UNICODE), $label);
+            }
+        }
+    }
+
+    /** Exemplaires du complément vérifiés à la main sur les deux articles Wikipédia (23/11/2026). */
+    public function test_complement_units_checked_by_hand(): void
+    {
+        $service = new PreservedRollingStock(null, self::data());
+        $find = function (string $slug, string $number) use ($service): array {
+            foreach ($service->forMaterial($slug) as $unit) {
+                if ($unit['number'] === $number) {
+                    return $unit;
+                }
+            }
+            $this->fail("{$slug} {$number} absent");
+        };
+
+        $this->assertSame('Cité du train', $find('bb-63000', 'BB 63013')['venue']['name']);
+        $u = $find('bb-63000', 'BB 63069');
+        $this->assertSame('running', $u['state']);
+        $this->assertStringContainsString('Cotentin', $u['venue']['name']);
+        $this->assertStringContainsString('Cathare', $find('bb-63000', 'BB 63165')['venue']['name']);
+        $this->assertSame('running', $find('bb-63000', 'BB 63165')['state']);
+        $this->assertSame('Cité du train', $find('cc-65000', 'CC 65001')['venue']['name']);
+        $this->assertSame('Cité du train', $find('231-h-1-a-30', '231 H 8')['venue']['name']);
+        $this->assertSame('Cité du train', $find('bb-12000', 'BB 12125')['venue']['name']);
+        $this->assertStringContainsString('AJECTA', $find('bb-12000', 'BB 12114')['venue']['name']);
+        $u = $find('x-2800', 'X 2816');
+        $this->assertSame('running', $u['state']);
+        $this->assertStringContainsString('Haut-Doubs', $u['venue']['name']);
+        $this->assertStringContainsString('Wikipédia', $u['sources'][0]['label']);
     }
 }

@@ -16,10 +16,12 @@ final class Lookup
 {
     /**
      * Ligne par slug (« rfn-420000 »), ancien slug d'une ligne renommée (la ligne revient sous son slug actuel),
-     * code (« 420000 », « 420 000 ») ou slug du code.
+     * code (« 420000 », « 420 000 ») ou slug du code. $redirectedFrom reçoit l'ancien slug quand la ligne a été
+     * trouvée par lui (null sinon) : l'outil le dit dans sa réponse (VffTool::line).
      */
-    public static function line(string $query): ?Line
+    public static function line(string $query, ?string &$redirectedFrom = null): ?Line
     {
+        $redirectedFrom = null;
         $q = trim($query);
         if ($q === '') {
             return null;
@@ -30,7 +32,10 @@ final class Lookup
         }
         $current = Line::redirectSlugFor($q);
         if ($current !== null) {
-            return Line::where('slug', $current)->first();
+            $line = Line::where('slug', $current)->first();
+            $redirectedFrom = $line !== null ? $q : null;
+
+            return $line;
         }
         $digits = str_replace(' ', '', $q);
         if (preg_match('/^\d{6}$/', $digits) === 1) {
@@ -41,16 +46,26 @@ final class Lookup
         return null;
     }
 
-    /** Gare par slug, ou ancien slug (fiche fusionnée dans une autre : la gare revient sous son slug actuel). */
-    public static function station(string $query): ?Station
+    /**
+     * Gare par slug, ou ancien slug (fiche fusionnée dans une autre : la gare revient sous son slug actuel).
+     * $redirectedFrom reçoit l'ancien slug quand la gare a été trouvée par lui (null sinon).
+     */
+    public static function station(string $query, ?string &$redirectedFrom = null): ?Station
     {
+        $redirectedFrom = null;
         $q = trim($query);
         if ($q === '') {
             return null;
         }
+        $station = Station::where('slug', $q)->first();
+        if ($station !== null) {
+            return $station;
+        }
+        $current = Station::redirectSlugFor($q);
+        $station = $current !== null ? Station::where('slug', $current)->first() : null;
+        $redirectedFrom = $station !== null ? $q : null;
 
-        return Station::where('slug', $q)->first()
-            ?? (($current = Station::redirectSlugFor($q)) !== null ? Station::where('slug', $current)->first() : null);
+        return $station;
     }
 
     /**

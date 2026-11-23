@@ -44,6 +44,8 @@ final class StationMerger
         ['accident_lines', 'section_to_station_id', null, ''],
         ['line_signalling_events', 'from_station_id', null, ''],
         ['line_signalling_events', 'to_station_id', null, ''],
+        ['line_material_periods', 'from_station_id', null, ''],
+        ['line_material_periods', 'to_station_id', null, ''],
         ['bibliography_links', 'station_id', ['entry_id'], ''],
         ['argentanwebferro_photos', 'station_id', null, ''],
         ['station_heritage', 'station_id', ['ref'], ''],

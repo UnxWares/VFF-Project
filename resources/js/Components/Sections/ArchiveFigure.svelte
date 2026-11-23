@@ -22,7 +22,7 @@
             ? $i18n.t('home.archives.decade', { decade: decadeOf(media.year, $i18n.language) })
             : String(media.year),
     );
-    // RGAA 1.9 : la figure reprend sa légende (role="group" admis par le RGAA, + aria-label) ; l'alt reste court (1.3.9).
+    // RGAA 1.9 : la figure reprend sa légende (aria-label sur le figure) ; l'alt reste court (1.3.9).
     const legend = $derived(
         figureLabel([
             yearText,
@@ -35,7 +35,7 @@
     );
 </script>
 
-<figure class="vff-figure archive" role="group" aria-label={legend}>
+<figure class="vff-figure archive" aria-label={legend}>
     <img
         src={commonsSrc(media.thumb_url)}
         srcset={media.display_url

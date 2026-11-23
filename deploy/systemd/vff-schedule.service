@@ -1,6 +1,7 @@
 # Planificateur Laravel de VFF (développement, Podman rootless) : un passage de
 # « artisan schedule:run », lancé par vff-schedule.timer.
-# NON ACTIVÉ par défaut : procédure dans docs/PLANIFICATION.md.
+# NON ACTIVÉ : aucune tâche planifiée permanente sur le poste de développement (décision du 20/10/2026) ;
+# la production utilise deploy/systemd/production/ (docs/MISE-EN-PRODUCTION.md).
 # Adapter WorkingDirectory si le dépôt n'est pas à cet emplacement.
 [Unit]
 Description=VFF - planificateur Laravel (schedule:run)
@@ -8,9 +9,9 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=/mnt/Unified_Datas/BaptGosse/Documents/VFF/Projects/VFF-Project
+WorkingDirectory=/mnt/Unified_Datas/BaptGosse/Pro/UnxWares/Projects/VFF/VFF-Project
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
-ExecStart=/mnt/Unified_Datas/BaptGosse/Documents/VFF/Projects/VFF-Project/bin/php artisan schedule:run --no-interaction
+ExecStart=/mnt/Unified_Datas/BaptGosse/Pro/UnxWares/Projects/VFF/VFF-Project/bin/php artisan schedule:run --no-interaction
 # Machine de bureau : priorité basse, sans dépasser le plafond CPU de user.slice.
 Nice=10
 IOSchedulingClass=idle

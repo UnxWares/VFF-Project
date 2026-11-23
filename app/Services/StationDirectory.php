@@ -8,6 +8,7 @@ use App\Services\Heritage\StationHeritage;
 use App\Support\FrenchDepartments;
 use App\Support\Search\SearchFields;
 use App\Support\Search\SearchQuery;
+use App\Support\Search\SearchText;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -84,8 +85,9 @@ final class StationDirectory
     }
 
     /**
-     * Tri par pertinence de la recherche `q` : rang du nom (SearchQuery), gares ouvertes aux voyageurs, les plus
-     * desservies, puis ordre alphabétique.
+     * Tri par pertinence de la recherche `q`, comme la recherche de l'en-tête (CatalogSearch) : rang du nom
+     * (SearchQuery), la gare ouverte aux voyageurs de la commune cherchée au rang d'un nom exact, gares ouvertes aux
+     * voyageurs, les plus fréquentées, les plus desservies, puis ordre alphabétique.
      */
     public function orderByRelevance(Builder $builder, string $q, bool $approximate): Builder
     {
@@ -94,9 +96,17 @@ final class StationDirectory
         if ($search->digits() !== null) {
             $builder->orderByRaw('CASE WHEN s.uic_code = ? THEN 0 ELSE 1 END', [$search->digits()]);
         }
+        if (! $approximate && ! $search->isEmpty()) {
+            [$city, $cityBind] = $search->citySql($nameKey, SearchText::sqlKeyFormula('s.city', 'unaccent'));
+            [$rank, $rankBind] = $search->rankSql($nameKey, $allKey);
+            $builder->orderByRaw("CASE WHEN s.status = 'active' AND {$city} THEN 0 ELSE {$rank} END", [...$cityBind, ...$rankBind]);
+        } else {
+            $search->orderByRelevance($builder, $nameKey, $allKey, $approximate);
+        }
 
-        return $search->orderByRelevance($builder, $nameKey, $allKey, $approximate)
+        return $builder
             ->orderByRaw("CASE WHEN s.status = 'active' THEN 0 ELSE 1 END")
+            ->orderByRaw(SearchFields::stationAttendance('s.').' DESC NULLS LAST')
             ->orderByRaw('(SELECT COUNT(*) FROM station_lines sl WHERE sl.station_id = s.id) DESC');
     }
 

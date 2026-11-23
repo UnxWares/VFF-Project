@@ -7,7 +7,7 @@ use Closure;
 use GraphQL\Deferred;
 
 /**
- * Chargement groupé de `Line.signalling_history` et `Line.signalling_corrections` : les lignes demandées pendant la résolution d'une liste sont
+ * Chargement groupé de `Line.signalling_history`, `Line.signalling_corrections` et `Line.signalling_dating` : les lignes demandées pendant la résolution d'une liste sont
  * notées, puis leurs faits lus en une seule requête au premier besoin (`publicFactsOfLines` ou `correctionsOfLines` de LineSignallingHistory).
  * Une instance par champ et par requête GraphQL (BatchLoaderRegistry).
  */
@@ -16,10 +16,10 @@ final class SignallingHistoryBatch
     /** @var array<int, true> lignes demandées, pas encore lues */
     private array $pending = [];
 
-    /** @var array<int, list<array<string, mixed>>> */
+    /** @var array<int, array<mixed>> */
     private array $loaded = [];
 
-    /** @param Closure(list<int>): array<int, list<array<string, mixed>>> $loader lit les lignes données en une requête */
+    /** @param Closure(list<int>): array<int, array<mixed>> $loader lit les lignes données en une requête */
     public function __construct(private readonly Closure $loader) {}
 
     public function load(Line $line): Deferred

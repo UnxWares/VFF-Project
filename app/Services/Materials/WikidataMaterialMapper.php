@@ -163,7 +163,7 @@ final readonly class WikidataMaterialMapper
             }
             if (($row = MaterialDateSupplements::for($qid, $property)) !== null) {
                 $values[$property] = $row['value'];
-                $filled[$property] = array_filter(['source' => 'wikipedia', 'ref' => $row['source'], 'revid' => $row['revid'], 'quote' => $row['quote'], 'basis' => $row['basis']], fn (mixed $v): bool => $v !== null);
+                $filled[$property] = array_filter(['source' => 'wikipedia', 'ref' => $row['source'], 'revid' => $row['revid'], 'quote' => $row['quote'], 'basis' => $row['basis'], 'lang' => $row['lang'] ?? null], fn (mixed $v): bool => $v !== null);
             } elseif ($candidates[$property] !== null && $infobox !== null) {
                 [$value, $entry] = $candidates[$property];
                 $values[$property] = $value;

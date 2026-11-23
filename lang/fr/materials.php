@@ -125,6 +125,8 @@ return [
         'start' => "début\u{a0}: :date",
         'end' => "fin\u{a0}: :date",
         'section' => 'entre :from et :to',
+        'portion' => 'de :from à :to',
+        'on_portions' => "Sur une portion de la ligne\u{a0}: :portions",
         'label' => 'Circulation sur la ligne',
         'source' => 'source',
         'note' => 'Les années de circulation viennent des articles Wikipédia de la ligne et des séries, ou de Wikidata. Une fin absente ne veut pas dire que la série circule encore. La source de chaque période figure sur la fiche de la série.',
@@ -132,6 +134,7 @@ return [
     'earliest' => [
         'electrification' => "Sur la ligne au plus tôt à l’électrification\u{a0}: :date",
         'section' => "Sur la ligne au plus tôt à la première électrification d’une portion\u{a0}: :date (:section)",
+        'conflict' => "Une source date sa circulation ici avant la première électrification connue dans VFF (:date)\u{a0}: une électrification plus ancienne manque probablement.",
     ],
     'doubt' => [
         'title' => 'Cités, sans service attesté (:count)',

@@ -2,6 +2,8 @@
 
 namespace App\Mcp\Support;
 
+use App\Models\Line;
+use App\Models\Station;
 use App\Services\CatalogSearch;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
@@ -20,11 +22,25 @@ use Laravel\Mcp\Server\Tool;
  *     plafonnée en taille (ResponseBudget), sans aucune phrase citée d'une source (WikipediaExcerpts,
  *     décision Q22) ;
  *   - erreurs métier (objet introuvable…) : réponse d'erreur JSON avec un code stable, le message
- *     dans la langue demandée et, s'il y a lieu, des suggestions.
+ *     dans la langue demandée et, s'il y a lieu, des suggestions ;
+ *   - ancienne adresse (ligne renommée, gare ou accident fusionné) : la réponse est celle de la fiche
+ *     actuelle, et le bloc `redirected` en tête de réponse le dit (ancien et nouveau slug, raison).
  */
 abstract class VffTool extends Tool
 {
     public const LANGS = ['fr', 'en', 'de'];
+
+    /** Types d'objet dont une ancienne adresse mène à la fiche actuelle, et la raison dite à l'appelant. */
+    private const REDIRECT_REASONS = ['line' => 'renamed', 'station' => 'merged', 'accident' => 'merged'];
+
+    /**
+     * Vrai pour un outil de liste dont les filtres `line` et `station` sont des slugs : un ancien slug y est ramené au
+     * slug actuel avant la validation (dont la règle `exists` refuserait l'ancien), et noté pour le bloc `redirected`.
+     */
+    protected const SLUG_FILTERS = false;
+
+    /** @var list<array{kind: string, requested: string, current: string}> anciennes adresses suivies pendant l'appel */
+    private array $redirects = [];
 
     public function __construct(protected readonly Attribution $attribution) {}
 
@@ -64,12 +80,16 @@ abstract class VffTool extends Tool
         $lang = in_array($all['lang'] ?? null, self::LANGS, true) ? $all['lang'] : 'fr';
         $previous = App::getLocale();
         App::setLocale($lang);
+        $this->redirects = [];
         try {
             $unknown = array_diff(array_keys($all), [...array_keys($this->rules()), 'lang']);
             if ($unknown !== []) {
                 throw ValidationException::withMessages([
                     'arguments' => trans('mcp.errors.unknown_arguments', ['names' => implode(', ', $unknown)]),
                 ]);
+            }
+            if (static::SLUG_FILTERS) {
+                $request->merge($this->currentSlugs(array_intersect_key($all, array_flip(['line', 'station']))));
             }
             $input = $request->validate($this->rules() + ['lang' => ['sometimes', 'string', 'in:'.implode(',', self::LANGS)]]);
 
@@ -152,7 +172,74 @@ abstract class VffTool extends Tool
         }
         $payload['attribution'] = $attribution;
 
-        return $payload;
+        return $this->redirects === [] ? $payload : ['redirected' => $this->redirectNotices()] + $payload;
+    }
+
+    /**
+     * Ligne demandée (slug, ancien slug, code) : une ligne trouvée par un ancien slug est notée pour le bloc
+     * `redirected` de la réponse.
+     */
+    protected function line(string $query): ?Line
+    {
+        $line = Lookup::line($query, $from);
+        if ($line !== null && $from !== null) {
+            $this->noteRedirect('line', $from, $line->slug);
+        }
+
+        return $line;
+    }
+
+    /** Gare demandée (slug ou ancien slug d'une fiche fusionnée), notée comme line(). */
+    protected function station(string $query): ?Station
+    {
+        $station = Lookup::station($query, $from);
+        if ($station !== null && $from !== null) {
+            $this->noteRedirect('station', $from, $station->slug);
+        }
+
+        return $station;
+    }
+
+    /**
+     * Filtres `line` et `station` d'un outil de liste (SLUG_FILTERS) ramenés au slug actuel (ancien slug d'une ligne renommée ou
+     * d'une gare fusionnée), chaque remplacement noté pour le bloc `redirected`.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    private function currentSlugs(array $filters): array
+    {
+        foreach (['line' => Line::redirectSlugFor(...), 'station' => Station::redirectSlugFor(...)] as $key => $resolve) {
+            $requested = $filters[$key] ?? null;
+            if (is_string($requested) && $requested !== '' && ($current = $resolve($requested)) !== null) {
+                $this->noteRedirect($key, $requested, $current);
+                $filters[$key] = $current;
+            }
+        }
+
+        return $filters;
+    }
+
+    /** Ancienne adresse suivie : `kind` line, station ou accident, slug demandé et slug actuel. */
+    protected function noteRedirect(string $kind, string $requested, string $current): void
+    {
+        if ($requested !== $current) {
+            $this->redirects[] = ['kind' => $kind, 'requested' => $requested, 'current' => $current];
+        }
+    }
+
+    /**
+     * Bloc `redirected` : pour chaque ancienne adresse suivie, le slug demandé, le slug actuel, la raison (`renamed`
+     * ligne renommée, `merged` fiche fondue dans une autre) et une phrase à dire à l'utilisateur.
+     *
+     * @return list<array{kind: string, requested: string, current: string, reason: string, note: string}>
+     */
+    private function redirectNotices(): array
+    {
+        return array_map(fn (array $r): array => $r + [
+            'reason' => self::REDIRECT_REASONS[$r['kind']] ?? 'merged',
+            'note' => (string) trans('mcp.redirected.'.$r['kind'], ['requested' => $r['requested'], 'current' => $r['current']]),
+        ], $this->redirects);
     }
 
     private static function maxBytes(): int

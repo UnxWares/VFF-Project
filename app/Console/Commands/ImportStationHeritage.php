@@ -96,7 +96,7 @@ class ImportStationHeritage extends Command
     /**
      * @param  iterable<object>  $stations
      * @param  list<array<string, mixed>>  $rows
-     * @param  array{rows: list<array<string, mixed>>, unmatched: list<array<string, mixed>>, methods: array<string, int>}  $result
+     * @param  array{rows: list<array<string, mixed>>, unmatched: list<array<string, mixed>>, methods: array<string, int>, scored?: list<array<string, mixed>>}  $result
      */
     private function report(iterable $stations, array $rows, array $result): void
     {
@@ -136,6 +136,9 @@ class ImportStationHeritage extends Command
         foreach ($perStatus as $status => [$total, $with]) {
             $this->line(sprintf('  %-13s %5d gares, %4d protégées', $status, $total, $with));
         }
+        foreach ($result['scored'] ?? [] as $sc) {
+            $this->line(sprintf('  par points : %s (%s, %s) -> %s, %d points : %s', $sc['record']['title'], $sc['record']['commune'], $sc['record']['ref'], $sc['station']->slug, $sc['score'], implode(', ', $sc['reasons'])));
+        }
         $this->line(sprintf('Notices Mérimée sans gare de VFF : %d.', count($result['unmatched'])));
         foreach ($result['unmatched'] as $u) {
             $this->warn(sprintf('  %s : %s (%s, %s) [%s]', $u['why'], $u['title'], $u['commune'], $u['ref'], $u['element']));
@@ -166,6 +169,8 @@ class ImportStationHeritage extends Command
                     implode('; ', array_column($r['architects'] ?? [], 'name')), $r['built_from'], $r['style'], $r['image_file'], $r['match_method'], $r['match_distance_m']], $rows));
             $this->csv($dir.'/non-rattachees.csv', ['reference', 'titre', 'commune', 'departement', 'element', 'raison'],
                 array_map(fn (array $u) => [$u['ref'], $u['title'], $u['commune'], $u['department'], $u['element'], $u['why']], $result['unmatched']));
+            $this->csv($dir.'/rattachees-par-points.csv', ['reference', 'titre', 'commune', 'element', 'gare', 'points', 'explication'],
+                array_map(fn (array $sc) => [$sc['record']['ref'], $sc['record']['title'], $sc['record']['commune'], $sc['record']['element'], $sc['station']->slug, $sc['score'], implode(', ', $sc['reasons'])], $result['scored'] ?? []));
             $this->line("Rapports : {$dir}");
         }
     }

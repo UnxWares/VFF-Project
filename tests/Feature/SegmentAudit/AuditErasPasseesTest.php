@@ -104,7 +104,10 @@ class AuditErasPasseesTest extends TestCase
         $this->auditEvent($this->audited, 'heritage_start', '2013-04-17', 'manual');
         $open = $this->auditSegment($this->audited, $this->e1970, self::TRACK, 'in_service', 'freight');
 
-        $this->assertNull(self::verdict($this->audit($open, $this->e1970), 'manual'));
+        // Elle ne dit rien d'une fermeture, mais sa fin des voyageurs de 1960 confirme le fret seul du tronçon (R6, règles .9).
+        $verdict = self::verdict($this->audit($open, $this->e1970), 'manual');
+        $this->assertTrue($verdict['agrees']);
+        $this->assertSame(['class' => 'open', 'traffic' => 'freight'], $verdict['expected']);
     }
 
     public function test_heritage_start_does_not_hide_an_earlier_full_closure(): void

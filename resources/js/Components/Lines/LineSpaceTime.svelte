@@ -127,7 +127,9 @@
     }
 
     /** Texte lu pour une bande : date, changement, puis l'état de la ligne d'un bout à l'autre. */
-    function rowLabel(p, bands) {
+    // Nom accessible : il reprend le texte visible de la ligne (RGAA 6.1, étiquette dans le nom) ; le mois abrégé
+    // affiché (« oct. 1847 ») n'étant pas dans la date en toutes lettres, il est ajouté devant.
+    function rowLabel(p, bands, shown) {
         const state = bands
             .map((b) =>
                 t('lines.spacetime.state_part', {
@@ -137,7 +139,11 @@
                 }),
             )
             .join(', ');
-        return `${fullDate(p)}${colon(lang)}${tieUnits(headline(p))}. ${t('lines.spacetime.state', { list: state })}`;
+        const full = fullDate(p);
+        const date = full.toLowerCase().includes(String(shown).toLowerCase())
+            ? full
+            : `${shown} (${full})`;
+        return `${date}${colon(lang)}${tieUnits(headline(p))}. ${t('lines.spacetime.state', { list: state })}`;
     }
 
     // Navigation au clavier dans la liste (même usage que le sélecteur de phases à côté de la carte).
@@ -272,7 +278,7 @@
                             tabindex={selected === i ? 0 : -1}
                             class={['row', { active: selected === i }]}
                             bind:this={buttons[i]}
-                            aria-label={rowLabel(p, rows[i] ?? [])}
+                            aria-label={rowLabel(p, rows[i] ?? [], shortDates[i])}
                             onclick={(e) => {
                                 selected = i;
                                 pointAt(e, i);

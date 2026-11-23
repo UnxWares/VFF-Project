@@ -78,8 +78,9 @@ class CommuneSheetTest extends TestCase
             // Ouverte en 1839 et « fermée » en 1985 sur la section, mais en service aujourd'hui : pas de fermeture sur la ligne.
             ->where('lines.0.closed', null)
             ->where('neighbors.0.slug', '99101-voisineville')
-            ->where('map.stations.0.slug', 'paris-saint-lazare')
-            ->has('map.lines')
+            // Carte (24 Ko sur Lyon) : après le premier affichage.
+            ->missing('map')
+            ->loadDeferredProps(fn (Assert $reload) => $reload->where('map.stations.0.slug', 'paris-saint-lazare')->has('map.lines'))
             ->where('chronology', function (Collection $entries): bool {
                 $entries = $entries->all();
                 $kinds = array_column($entries, 'kind');

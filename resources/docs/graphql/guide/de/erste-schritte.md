@@ -8,7 +8,7 @@ Die Abfragen sind benannt und beziehen ihre Werte aus Variablen, wo sie welche h
 
 ## 1. Eine Strecke und ihre Segmente zu einem Datum
 
-Die Segmente (`segments`) einer Strecke in einer Epoche: Zustand, Verkehr, Elektrifizierung, Geschwindigkeit, Kilometerpunkte und Herkunft jedes Segments. Ohne `era` liefert die Abfrage alle Epochen.
+Die Segmente (`segments`) einer Strecke in einer Epoche: Zustand, Verkehr, Elektrifizierung, Geschwindigkeit, Streckenkilometer und Herkunft jedes Segments. Ohne `era` liefert die Abfrage alle Epochen.
 
 {{query:01-line-at-date}}
 
@@ -20,7 +20,7 @@ Variablen:
 
 ## 2. Die Bahnhöfe einer Strecke in einer Epoche
 
-`stops` listet die Bahnhöfe in Fahrtreihenfolge auf, mit ihrem Kilometerpunkt (`pk_label`) und ihrem Zustand in der angefragten Epoche (`effective_status`). Ohne `era` gilt heute.
+`stops` listet die Bahnhöfe in Fahrtreihenfolge auf, mit ihrem Streckenkilometer (`pk_label`) und ihrem Zustand in der angefragten Epoche (`effective_status`). Ohne `era` gilt heute.
 
 {{query:02-line-stations}}
 
@@ -87,6 +87,6 @@ Jedes Ereignis behält seine Quelle (`source_url`) und deren Lizenz (`provenance
 ## Weiterführend
 
 - Das vollständige Datenblatt einer Strecke oder eines Bahnhofs, wie auf der Website, steht in `Line.sheet` und `Station.sheet`; die Berechnung kann einige Sekunden dauern, fragen Sie jeweils nur eines ab.
-- `Line.pk(lat:, lng:)` wandelt Koordinaten in einen Kilometerpunkt auf der Strecke um; `route(from:, to:, era:)` berechnet eine Route zu einem Datum.
+- `Line.pk(lat:, lng:)` wandelt Koordinaten in einen Streckenkilometer auf der Strecke um; `route(from:, to:, era:)` berechnet eine Route zu einem Datum.
 - Die Verzeichnisse `lineDirectory` und `stationDirectory` übernehmen Filter und Sortierung der Seiten /lines und /stations.
 - Jede Abfrage und jeder Typ hat in der Referenz eine eigene Seite mit Argumenten, verschachtelten Typen und veralteten Feldern.

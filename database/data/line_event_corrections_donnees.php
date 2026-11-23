@@ -1534,4 +1534,65 @@ return [
         'quote' => '1 mai 1857 : ouverture de la section Laval - Rennes de la ligne Paris-Montparnasse - Brest.',
         'reason' => 'ouverture de Laval à Rennes (donc de Laval à Vitré) en mai 1857 (article de la ligne de Paris-Montparnasse à Brest, oldid 239547071 : « puis enfin Rennes en mai 1857 » ; mois seul, l\'article de la gare donne aussi le 15/04/1857 pour une première voie)',
     ],
+
+    // Quatrième contrôle à la main des audits (storage/app/reports/agents/aprem-2111/relecture-audits.md) : six
+    // « dépose » lues dans le texte des articles qui disent la dépose d'UNE des deux voies d'une ligne à double
+    // voie, la ligne restant en service. L'import les range en dépose de la portion : l'audit des tronçons
+    // contredisait les tronçons en service (611000 Limoges - Périgueux en 1990, « dépose » de 1962) et la
+    // chronologie de la ligne annonçait une voie disparue. Chaque citation dit « la deuxième voie », « une des
+    // deux voies » ou « mise à voie unique » ; la dépose de la voie entière reste portée par les autres sources.
+    [
+        'line' => '611000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1962-01-01', 'from' => 'Nexon'],
+        'label' => 'Dépose de la deuxième voie entre Nexon et Périgueux (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Limoges-B%C3%A9n%C3%A9dictins_%C3%A0_P%C3%A9rigueux&oldid=234971310',
+        'quote' => 'En 1962, la deuxième voie a été déposée entre Nexon et Périgueux.',
+        'reason' => 'dépose d\'une seule des deux voies ; Limoges - Périgueux est restée en service',
+    ],
+    [
+        'line' => '775000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1995-01-01', 'from' => 'Lozanne'],
+        'label' => 'Dépose de la seconde voie entre Lozanne et Paray-le-Monial (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paray-le-Monial_%C3%A0_Givors-Canal&oldid=237061238',
+        'quote' => 'En 1995, la seconde voie est déposée entre Lozanne et Paray-le-Monial',
+        'reason' => 'dépose d\'une seule des deux voies ; la ligne reste en service',
+    ],
+    [
+        'line' => '908000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1959-01-01', 'from' => 'Romans'],
+        'label' => 'Mise à voie unique entre Romans et Moirans, dépose de la deuxième voie (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=241124486',
+        'quote' => 'En 1959, la portion de ligne de Romans à Moirans est, à nouveau, mise à voie unique, avec dépose de la deuxième voie.',
+        'reason' => 'dépose d\'une seule des deux voies ; Romans - Moirans reste en service',
+    ],
+    [
+        'line' => '789000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1941-01-01'],
+        'label' => 'Dépose d\'une des deux voies (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_La_Fert%C3%A9-Hauterive_%C3%A0_Gannat&oldid=239286827',
+        'quote' => 'La ligne était posée en double voie (une voie fut déposée en 1941).',
+        'reason' => 'dépose d\'une seule des deux voies d\'une ligne posée à double voie',
+    ],
+    [
+        'line' => '015000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1942-01-01'],
+        'label' => 'Dépose d\'une des deux voies par l\'Occupant, 1942 - 1943 (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Jessains_%C3%A0_Sorcy&oldid=224485726',
+        'quote' => 'Néanmoins, cette période fut également celle de la dépose d\'une des deux voies de la ligne par l\'Occupant (1942-1943).',
+        'reason' => 'dépose d\'une seule des deux voies ; la ligne reste en service',
+    ],
+    [
+        'line' => '062000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'dismantling', 'date' => '1944-01-01'],
+        'label' => 'Remise à voie unique, démontage d\'une voie par l\'armée allemande en 1944 (la ligne reste en service)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Arches_%C3%A0_Saint-Di%C3%A9&oldid=228117866',
+        'quote' => 'La ligne a été remise à voie unique au cours de la Seconde Guerre mondiale, l\'armée allemande ayant procédé au démontage lors de sa retraite en 1944.',
+        'reason' => 'remise à voie unique : une seule voie démontée, la ligne reste en service',
+    ],
 ];

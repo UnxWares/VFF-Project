@@ -56,7 +56,7 @@ return [
         'portions' => [
             'whole' => 'Ganze Strecke',
             'places' => 'Zwischen zwei Bahnhöfen oder Orten',
-            'pk' => 'Zwischen zwei Kilometerpunkten',
+            'pk' => 'Zwischen zwei Streckenkilometern',
         ],
         'from' => 'Von',
         'to' => 'Bis',
@@ -97,15 +97,15 @@ return [
         'errors' => [
             'places' => 'Geben Sie beide Enden des Abschnitts an.',
             'places_same' => 'Die beiden Enden müssen verschieden sein.',
-            'pk' => 'Geben Sie beide Kilometerpunkte an.',
-            'pk_order' => 'Der End-Kilometerpunkt muss größer sein als der Anfangs-Kilometerpunkt.',
+            'pk' => 'Geben Sie beide Streckenkilometer an.',
+            'pk_order' => 'Der Endkilometer muss größer sein als der Anfangskilometer.',
             'description_other' => 'Beschreiben Sie das Ereignis bei der Art „Sonstiges“ in einem Satz.',
             'source_title' => 'Geben Sie Titel oder Fundstelle der Quelle an, mindestens drei Zeichen.',
             'source_url' => 'Geben Sie die Adresse der Quelle an, mit http:// oder https://.',
             'source_license' => 'Wählen Sie die Lizenz des Dokuments.',
             'excerpt_length' => 'Das Zitat hat höchstens :max Zeichen.',
             'reason' => 'Erklären Sie in :min bis :max Zeichen, was falsch ist.',
-            'corrected_missing' => 'Dieses Ereignis kann nicht korrigiert werden: Es existiert auf dieser Strecke nicht mehr, oder es ist ein Unfall oder eine bereits korrigierte Tatsache.',
+            'corrected_missing' => 'Dieses Ereignis kann nicht korrigiert werden: Es existiert auf dieser Strecke nicht mehr, oder es ist ein Unfall oder ein bereits korrigiertes Ereignis.',
         ],
     ],
 

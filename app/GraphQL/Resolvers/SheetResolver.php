@@ -8,6 +8,7 @@ use App\Models\Line;
 use App\Models\Station;
 use App\Services\LineSheet;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\StationSheet;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,7 @@ final class SheetResolver
         private readonly LineSheet $lines,
         private readonly StationSheet $stations,
         private readonly LineSignallingHistory $signallingHistory,
+        private readonly SignallingDating $dating,
     ) {}
 
     /**
@@ -31,13 +33,13 @@ final class SheetResolver
     public function line(Line $line, array $args): array
     {
         // Même contenu que GET /api/v1/lines/{line} : l'historique daté de la signalisation compris.
-        return LineSheetResource::make($this->lines->build($line) + ['signalling_history' => $this->signallingHistory->facts($line)])
+        return LineSheetResource::make($this->lines->build($line) + ['signalling_history' => $this->signallingHistory->facts($line), 'signalling_dating' => $this->dating->forLine($line)])
             ->resolve(new Request(['geometry' => (bool) ($args['geometry'] ?? false)]));
     }
 
     /** @return array<string, mixed> */
     public function station(Station $station): array
     {
-        return StationSheetResource::make($this->stations->page($station, withRaw: true))->resolve(new Request);
+        return StationSheetResource::make($this->stations->page($station, withRaw: true, offSite: true))->resolve(new Request);
     }
 }

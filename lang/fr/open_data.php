@@ -21,7 +21,7 @@ return [
 
     'thematic' => [
         'title' => 'Jeux thématiques',
-        'intro' => 'Toutes les décennies réunies, un fichier CSV par jeu.',
+        'intro' => 'Toutes les décennies réunies, un fichier CSV par jeu. Chaque jeu contient dictionnaire.csv : description de chaque champ (français, anglais, allemand), sa source et sa licence.',
     ],
     'network' => [
         'title' => 'Réseau par décennie',
@@ -33,6 +33,12 @@ return [
         'events' => ['title' => 'Événements datés', 'text' => 'Ouvertures, fermetures, électrifications et autres dates des lignes, avec la portion et la source.'],
         'accidents' => ['title' => 'Accidents', 'text' => 'Accidents publiés sur VFF : date, lieu, nature, bilan et sources.'],
         'materials' => ['title' => 'Matériel roulant', 'text' => 'Séries de matériel : constructeur, exploitants, années de service et caractéristiques.'],
+        'signalling' => ['title' => 'Signalisation et protection', 'text' => 'Mises en service datées du cantonnement, de la cabine, du KVB et de la commande centralisée, et état en vigueur à chaque décennie.'],
+        'preserved' => ['title' => 'Matériel préservé', 'text' => 'Exemplaires conservés : numéro, lieu, état et protection au titre des monuments historiques, avec les lieux de conservation.'],
+        'projects' => ['title' => 'Projets de lignes', 'text' => 'Réouvertures, lignes nouvelles et électrifications à venir, avec leurs étapes datées et le lien vers la source de chaque date.'],
+        'infrastructure' => ['title' => 'Infrastructure SNCF', 'text' => 'Voies, liaison radio sol-train, quais et cantonnement actuel de SNCF Réseau, rattachés aux lignes et aux gares.'],
+        'profiles' => ['title' => 'Profils en long', 'text' => 'Altitudes mesurées le long des lignes, déclivité maximale et déclivités publiées par SNCF Réseau et Wikipédia.'],
+        'redirects' => ['title' => 'Redirections d’adresses', 'text' => 'Anciennes adresses de gares fusionnées et de lignes renommées, avec l’adresse actuelle.'],
     ],
 
     'cols' => [
@@ -84,6 +90,19 @@ return [
             'accidents_name' => 'Noms d’accidents',
             'accidents_sources' => 'Sources citées d’accidents',
             'materials' => 'Séries de matériel',
+            'signalling_events' => 'Faits de signalisation datés',
+            'preserved_units' => 'Exemplaires de matériel préservé',
+            'projects_stages' => 'Étapes de projets',
+            'infrastructure_voies_csv' => 'Portions de voies SNCF',
+            'infrastructure_radio_csv' => 'Portions radio SNCF',
+            'infrastructure_platforms' => 'Quais',
+            'infrastructure_block' => 'Portions de cantonnement',
+            'accidents_references' => 'Références d’accidents',
+            'redirects_stations' => 'Redirections de gares',
+            'redirects_lines' => 'Redirections de lignes',
+            'profiles_measures' => 'Profils en long mesurés',
+            'profiles_points' => 'Points de profils en long',
+            'profiles_grades' => 'Déclivités sourcées',
             'other' => 'Champ :field',
         ],
     ],

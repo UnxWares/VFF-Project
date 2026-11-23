@@ -9,6 +9,7 @@ use App\Models\Material;
 use App\Models\Station;
 use App\Services\OpenData\OpenDataCatalogue;
 use App\Services\OpenData\OpenDataRights;
+use App\Services\OpenData\OpenDataSuiteExporter;
 use App\Support\SourceRights;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,6 +83,9 @@ class ExportOpenDataTest extends TestCase
             ['accident_id' => $accident->id, 'provider' => 'wikipedia', 'role' => 'primary', 'title' => 'Article', 'url' => 'https://fr.wikipedia.org/w/index.php?oldid=2', 'licence' => 'CC BY-SA 4.0', 'retrieved_at' => now()],
             ['accident_id' => $accident->id, 'provider' => 'delpher', 'role' => 'secondary', 'title' => 'Journal', 'url' => 'https://www.delpher.nl/x', 'licence' => '?', 'retrieved_at' => now()],
         ]);
+        // Fichiers versionnés vides : le test ne dépend pas des données réelles du dépôt.
+        $this->app->bind(OpenDataSuiteExporter::class, fn ($app, array $p): OpenDataSuiteExporter => new OpenDataSuiteExporter(
+            $p['rights'], $p['today'], ['venues' => [], 'units' => [], 'others' => []], [], [], [], []));
         Material::factory()->create(['slug' => 'bb-9999', 'name' => 'BB 9999', 'source' => 'wikidata', 'wikidata_id' => 'Q1',
             'provenance' => ['name' => ['source' => 'wikidata'], 'builder' => ['source' => 'wikidata']]]);
     }
@@ -161,6 +165,24 @@ class ExportOpenDataTest extends TestCase
         $this->assertSame(['osm', 'replaced', 'osm', '48.5001', '2.0201', ''], [$stations['Bravo']['name_source'], $stations['Bravo']['geometry_status'],
             $stations['Bravo']['geometry_source'], $stations['Bravo']['lat'], $stations['Bravo']['lon'], $stations['Bravo']['opened_on']]);
         $this->assertArrayNotHasKey('Nom non libre', $stations);
+    }
+
+    public function test_a_station_date_inferred_from_a_withheld_event_never_enters(): void
+    {
+        // Date « déduite par VFF » (fournisseur libre en apparence) d'un seul événement de ligne non libre.
+        // (Le 01/03/1875 est confirmé par Wikipédia : une autre date.)
+        $station = $this->station('Charlie', ['name' => 'sncf', 'geom' => 'sncf', 'opened_at' => 'inferred:line_event'], 48.5, 2.01);
+        $station->update(['opened_at' => '1876-05-01']);
+        $this->event($this->rfn, 'opening', '1876-05-01', self::NOT_OPEN, null);
+        $eventId = (int) DB::table('line_events')->where('source', self::NOT_OPEN)->where('event_date', '1876-05-01')->value('id');
+        DB::table('station_events')->insert(['station_id' => $station->id, 'type' => 'opening', 'event_date' => '1876-05-01',
+            'date_precision' => 'day', 'source' => 'inferred:line_event', 'source_ref' => 'line_event:'.$eventId, 'is_inferred' => true,
+            'created_at' => now(), 'updated_at' => now()]);
+
+        $this->export();
+        $stations = array_column($this->csv('reseau-1930/gares.csv'), null, 'name');
+        $this->assertSame(['', '', ''], [$stations['Charlie']['opened_on'], $stations['Charlie']['opened_precision'], $stations['Charlie']['opened_source']]);
+        $this->assertSame('1875-03-01', $stations['Gare Alpha']['opened_on']);
     }
 
     public function test_events_accidents_and_materials_keep_only_open_sources_and_no_text(): void
@@ -259,8 +281,8 @@ class ExportOpenDataTest extends TestCase
         $this->assertStringContainsString('### Preamble', $licence, 'texte officiel de l\'ODbL joint');
 
         $catalogue = OpenDataCatalogue::read($this->out);
-        $this->assertSame(['evenements', 'accidents', 'materiel', 'reseau-1930'], array_column($catalogue, 'id'));
-        $network = $catalogue[3];
+        $this->assertSame(['evenements', 'accidents', 'materiel', 'signalisation', 'materiel-preserve', 'projets', 'infrastructure-sncf', 'profils', 'redirections', 'reseau-1930'], array_column($catalogue, 'id'));
+        $network = $catalogue[9];
         $this->assertSame(['ODbL-1.0', true, '2026-11-23'], [$network['licence'], $network['commercial_reuse'], $network['generated_on']]);
         $this->assertSame(1, $network['withheld']['sections.geometry']['removed'][OpenDataRights::NOT_OPEN]);
         $this->assertFileExists($this->out.'/reseau-1930.zip');
@@ -298,10 +320,10 @@ class ExportOpenDataTest extends TestCase
         config(['open_data.root' => $this->out]);
 
         $this->get('/open-data')->assertOk()->assertInertia(fn ($page) => $page->component('OpenData')
-            ->has('datasets', 4)
-            ->where('datasets.3.id', 'reseau-1930')
-            ->where('datasets.3.archive.url', '/downloads/open-data/reseau-1930.zip')
-            ->where('datasets.3.files.0.url', '/downloads/open-data/reseau-1930/LICENCE.txt')
+            ->has('datasets', 10)
+            ->where('datasets.9.id', 'reseau-1930')
+            ->where('datasets.9.archive.url', '/downloads/open-data/reseau-1930.zip')
+            ->where('datasets.9.files.0.url', '/downloads/open-data/reseau-1930/LICENCE.txt')
             ->where('licence.code', 'ODbL-1.0')
             ->where('withheld', fn ($w): bool => $w['sections.geometry'] === ['removed' => 1, 'replaced' => 1])
             ->has('credits'));

@@ -2,6 +2,8 @@
 # Vérification après déploiement des processus de production (docs/DEPLOIEMENT-SERVICES.md).
 # Lecture seule : ne modifie rien. À lancer sur le serveur.
 #   HEALTH_TOKEN=... REVERB_APP_KEY=... deploy/bin/verify-production.sh [https://vff-project.org]
+# SC2015 : ok() et ko() renvoient toujours 0. SC2016 : le code PHP entre apostrophes ne doit pas être développé.
+# shellcheck disable=SC2015,SC2016
 set -uo pipefail
 
 base="${1:-https://vff-project.org}"

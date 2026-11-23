@@ -92,12 +92,19 @@ class FicheInvariantsTest extends TestCase
         }
     }
 
-    /** Applique $check à la fiche de chaque ligne du réseau de test (props Inertia). */
+    /**
+     * Applique $check à la fiche de chaque ligne du réseau de test (props Inertia), telle que la page l'affiche une
+     * fois ses props différées reçues : chaque gare de `stations` complétée par ses détails de `station_details`
+     * (PK, commune, dates ; même `slug`), comme le fait la liste des gares (withStationDetails).
+     */
     private function eachSheet(callable $check): void
     {
         foreach ($this->slugs as $slug) {
-            $this->get('/lines/'.$slug)->assertOk()->assertInertia(function (Assert $page) use ($check, $slug) {
+            $this->getWithDeferredProps('/lines/'.$slug)->assertOk()->assertInertia(function (Assert $page) use ($check, $slug) {
                 $props = $page->toArray()['props'];
+                $details = array_column($props['station_details'], null, 'slug');
+                $this->assertSame(array_column($props['stations'], 'slug'), array_keys($details), "{$slug} : mêmes gares dans les détails");
+                $props['stations'] = array_map(fn (array $s): array => [...$details[$s['slug']], ...$s], $props['stations']);
                 // Garde-fou : des listes vides rendraient les invariants vrais sans rien vérifier.
                 foreach (['stations', 'phases', 'decades'] as $key) {
                     $this->assertNotEmpty($props[$key], "{$slug} : {$key} vides");

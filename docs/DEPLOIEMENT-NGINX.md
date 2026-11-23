@@ -3,7 +3,8 @@
 La configuration de référence du site `vff-project.org` est versionnée dans `deploy/nginx/`. Elle sert
 les pages par PHP-FPM, envoie elle-même les fichiers statiques et l'archive PMTiles du fond de carte, et
 pose pour ces fichiers les mêmes en-têtes de sécurité que Laravel (`SecurityHeaders`) pour ses réponses.
-Elle n'est déployée par personne : c'est un modèle à copier sur le serveur et à adapter.
+Elle n'est déployée par personne : c'est un modèle, posé sur le serveur par l'étape 14 du parcours
+`docs/MISE-EN-PRODUCTION.md` (`deploy/bin/mise-en-production.sh --appliquer --etape nginx`).
 
 ## Fichiers
 
@@ -15,6 +16,8 @@ Elle n'est déployée par personne : c'est un modèle à copier sur le serveur e
 | `deploy/nginx/snippets/vff-tls.conf`         | Protocoles et chiffrements TLS                                                         |
 | `deploy/nginx/snippets/vff-reverb.conf`      | Proxy WebSocket vers Laravel Reverb (temps réel, inclus seulement s'il est activé)     |
 | `deploy/nginx/optional/brotli.conf.example`  | Compression brotli, si le module est installé                                          |
+| `deploy/nginx/optional/suivi.conf.example`   | Sites de Kener (`status.`) et de GlitchTip (`erreurs.`), sur la machine de chacun      |
+| `deploy/php-fpm/vff.conf`                    | Pool PHP-FPM du socket `vff_php` (compte `vff`, limites de dépôt, sans journal d'accès) |
 
 Installation : `vff-project.org.conf` dans `/etc/nginx/conf.d/`, `snippets/` dans `/etc/nginx/snippets/`,
 puis `nginx -t` et rechargement. Le fichier contient des directives du contexte `http` (`map`,
@@ -24,18 +27,22 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
 ## Ce qu'il faut adapter
 
 1. **Racine du dépôt** : `/srv/vff` (`root /srv/vff/public` et l'`alias` de `/_basemap/`).
-2. **Socket PHP-FPM** : `upstream vff_php`, `unix:/run/php/php8.5-fpm-vff.sock`.
+2. **Socket PHP-FPM** : `upstream vff_php`, `unix:/run/php/php8.5-fpm-vff.sock`, celui du pool
+   `deploy/php-fpm/vff.conf` (à poser dans `/etc/php/8.5/fpm/pool.d/`).
 3. **Certificats** : `/etc/letsencrypt/live/vff-project.org/` (le certificat doit couvrir `www.` si le bloc
    de redirection `www` est gardé), et le dossier du défi ACME (`/var/www/acme`).
 4. **Archive PMTiles** : l'`alias` doit être le dossier `VFF_BASEMAP_DIRECTORY` (par défaut
    `storage/app/data/pmtiles/`), avec la barre finale.
 5. **`.env` de production** : `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/` (sinon les 6 Go passent par PHP),
-   `VFF_BASEMAP_ONLINE=true` si le fond libre doit servir la carte en ligne, et **`CSP_ENFORCE=true`** (politique
+   `VFF_BASEMAP_ONLINE=true` (fond libre en ligne pour toutes les cartes, décision du 23/11/2026), et **`CSP_ENFORCE=true`** (politique
    de sécurité du contenu bloquante dès la mise en ligne, décision du 22/11/2026 ; `docs/SECURITE-CSP.md`), puis
    `php artisan config:cache`. Vérifier : `curl -sI https://vff-project.org/ | grep -i content-security` doit
    montrer `Content-Security-Policy:` et non `Content-Security-Policy-Report-Only:`.
-6. **php.ini** : `upload_max_filesize = 11M` et `post_max_size = 12M` (dépôts d'image de 10 Mo au plus).
-7. **Résolveur DNS** de `vff-tls.conf` (agrafage OCSP) : mettre celui du serveur.
+6. **PHP** : `upload_max_filesize = 11M` et `post_max_size = 12M` (dépôts d'image de 10 Mo au plus), posés par le
+   pool `deploy/php-fpm/vff.conf`.
+7. **Agrafage OCSP** : désactivé dans `vff-tls.conf` (`ssl_stapling off`). Let's Encrypt a retiré l'adresse OCSP de
+   ses certificats en 2025 ; le remettre, avec un `resolver` du serveur, seulement pour une autorité qui publie encore
+   un répondeur.
 8. **Derrière un répartiteur ou un CDN** : `$remote_addr` serait celle du relais. Ajouter `set_real_ip_from`
    et `real_ip_header` (module realip), et déclarer le relais comme proxy de confiance dans Laravel.
 9. **Vignettes de Commons** : `VFF_COMMONS_PROXY=true` et `VFF_COMMONS_PROXY_ACCEL_REDIRECT=/_commons/`, et
@@ -258,8 +265,8 @@ podman run --rm --network=none \
   docker.io/library/nginx:1.30-alpine nginx -t
 ```
 
-Résultat attendu : `syntax is ok` et `test is successful`, avec l'avertissement `ssl_stapling ignored`
-(certificat factice, sans serveur OCSP). Un essai avec un faux `public/` a aussi vérifié les en-têtes, les
+Résultat attendu : `syntax is ok` et `test is successful` (plus d'avertissement `ssl_stapling` depuis que l'agrafage
+OCSP est désactivé). Un essai avec un faux `public/` a aussi vérifié les en-têtes, les
 caches, les redirections 301 et les journaux (adresse tronquée, `/up` absent, requête retirée du chemin).
 Les chemins PHP-FPM et PMTiles n'ont pas pu être essayés sans serveur PHP : à contrôler au déploiement.
 

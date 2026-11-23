@@ -263,7 +263,7 @@ class StationController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(Station $station, StationSheet $sheet): JsonResponse
     {
-        return StationSheetResource::make($sheet->page($station, withRaw: true))->response()->header('Cache-Control', 'public, max-age=300');
+        return StationSheetResource::make($sheet->page($station, withRaw: true, offSite: true))->response()->header('Cache-Control', 'public, max-age=300');
     }
 
     /**

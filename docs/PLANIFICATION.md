@@ -2,7 +2,7 @@
 
 Les tâches sont déclarées dans `routes/console.php` (planificateur Laravel). Le
 planificateur ne tourne pas tout seul : `php artisan schedule:run` doit être lancé
-régulièrement (cron en production, timer systemd utilisateur en développement).
+régulièrement (minuteur systemd en production, `deploy/systemd/production/` ; rien sur le poste de développement).
 `php artisan schedule:list` affiche les tâches et leur prochaine échéance.
 
 ## Ère courante quotidienne : `vff:refresh-current-era`
@@ -99,14 +99,10 @@ quand `APP_ENV=production`). Surveiller dans le moniteur : `checks.scheduler.sta
 ## Production : à poser chez UnxWares (installation non faite)
 
 Une seule entrée, qui lance `schedule:run` chaque minute pour l'utilisateur de l'application, avec
-`APP_ENV=production`, `CACHE_STORE=redis` (Valkey, verrous et `onOneServer`) et `HEALTH_TOKEN` renseigné.
-Au choix, cron :
-
-```cron
-* * * * * cd /srv/vff && php artisan schedule:run >> /dev/null 2>&1
-```
-
-ou un service et un minuteur systemd (fichiers prêts dans `deploy/systemd/production/`, durcis, pose détaillée dans `docs/DEPLOIEMENT-SERVICES.md`) :
+`APP_ENV=production`, `CACHE_STORE=redis` (Valkey, verrous et `onOneServer`) et `HEALTH_TOKEN` renseigné : le
+service et le minuteur systemd de `deploy/systemd/production/` (durcis), posés par l'étape 11 du parcours
+`docs/MISE-EN-PRODUCTION.md`. Jamais un cron en plus : chaque tâche tournerait deux fois (le script de mise en
+production le signale). Forme abrégée des deux unités :
 
 ```ini
 # vff-schedule.service
@@ -135,7 +131,8 @@ WantedBy=timers.target
 ```
 
 `systemctl enable --now vff-schedule.timer`, puis `journalctl -u vff-schedule.service` et
-`storage/logs/schedule.log`. Un travailleur de file (`queue:work`) est à part (voir `docs/SUIVI-ERREURS.md`).
+`storage/logs/schedule.log`. Un travailleur de file (`queue:work`) est à part (`vff-queue.service`,
+`docs/DEPLOIEMENT-SERVICES.md`).
 Pour qu'une reconstruction complète ne croise jamais le recalcul quotidien, la lancer sous le verrou commun :
 
 ```bash
@@ -150,7 +147,8 @@ contrôle reste `degraded`, ce qui est voulu). Sur le poste de développement, r
 
 ## Développement : timer systemd utilisateur (Podman rootless)
 
-Fichiers fournis, **non activés** : `deploy/systemd/vff-schedule.service` (un passage de
+Décision du 20/10/2026 : aucune tâche planifiée permanente sur le poste de développement ; le recalcul quotidien
+tourne en production. Fichiers fournis pour mémoire, **non activés** : `deploy/systemd/vff-schedule.service` (un passage de
 `bin/php artisan schedule:run`) et `deploy/systemd/vff-schedule.timer` (minute 30 de
 chaque heure, de 4 h 30 à 23 h 30). Adapter `WorkingDirectory` et `ExecStart` si le
 dépôt n'est pas au même emplacement. La base (`vff-db`) et Valkey (`vff-valkey`) doivent

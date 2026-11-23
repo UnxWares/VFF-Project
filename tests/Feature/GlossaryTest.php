@@ -65,11 +65,27 @@ class GlossaryTest extends TestCase
         $this->assertSame([], array_filter(array_keys($dictionary), fn (string $k) => str_starts_with($k, 'glossary_terms.')));
     }
 
-    public function test_the_glossary_has_between_sixty_and_one_hundred_twenty_terms(): void
+    public function test_the_notions_shown_by_the_site_are_all_defined_with_an_example(): void
+    {
+        $registry = $this->registry()['terms'];
+        $needed = ['tvm', 'tvm-300', 'tvm-430', 'ertms-niveau-1', 'ertms-niveau-2', 'kvb', 'bapr', 'bmu', 'prci', 'poste-d-aiguillage',
+            'bifurcation', 'bifurcation-lgv', 'gare-de-bifurcation', 'raccordement', 'circuit-de-voie', 'voie-partagee', 'embarcadere',
+            'declassement', 'depose', 'desaffectation', 'fermeture-voyageurs', 'fermeture-fret', 'suspension-de-service', 'autorail',
+            'element-automoteur', 'rame-a-turbine-a-gaz', 'bimode', 'famille-et-version', 'serie', 'materiel-preserve', 'profil-en-long',
+            'declivite', 'pk', 'voie-unique', 'double-voie', 'electrification-1500', 'electrification-25000', 'halte'];
+        foreach ($needed as $slug) {
+            $this->assertArrayHasKey($slug, $registry, "{$slug} manque au glossaire");
+        }
+        foreach (['tvm-300', 'tvm-430', 'ertms-niveau-1', 'ertms-niveau-2', 'bifurcation-lgv', 'embarcadere', 'materiel-preserve'] as $slug) {
+            $this->assertArrayHasKey('example', $registry[$slug], "{$slug} : exemple");
+        }
+    }
+
+    public function test_the_glossary_has_between_sixty_and_one_hundred_sixty_terms(): void
     {
         $count = count($this->registry()['terms']);
         $this->assertGreaterThanOrEqual(60, $count);
-        $this->assertLessThanOrEqual(120, $count);
+        $this->assertLessThanOrEqual(160, $count);
     }
 
     #[DataProvider('locales')]
@@ -155,6 +171,28 @@ class GlossaryTest extends TestCase
         $this->assertStringContainsString('Linienzugbeeinflussung (LZB)', $kvb['definition']);
         $this->assertStringContainsString('nicht', $kvb['definition']);
         $this->assertNull(Glossary::find('inconnu', 'fr'));
+    }
+
+    public function test_the_signalling_and_rolling_stock_dates_follow_their_sources(): void
+    {
+        foreach (['fr', 'en', 'de'] as $locale) {
+            $tvm300 = Glossary::find('tvm-300', $locale);
+            $tvm430 = Glossary::find('tvm-430', $locale);
+            $rtg = Glossary::find('rame-a-turbine-a-gaz', $locale);
+            $this->assertNotNull($tvm300);
+            $this->assertNotNull($tvm430);
+            $this->assertNotNull($rtg);
+            // TVM 300 : LGV Atlantique (24/09/1989) et nord de la LGV Rhône-Alpes (13/12/1992), pas « 1981 = TVM 300 ».
+            $this->assertMatchesRegularExpression('/1989/', $tvm300['definition']);
+            $this->assertMatchesRegularExpression('/1992/', $tvm300['definition']);
+            $this->assertMatchesRegularExpression('/260/', $tvm300['definition']);
+            $this->assertDoesNotMatchRegularExpression('/300 km\/h/', $tvm300['definition']);
+            // TVM 430 : première section de la LGV Nord le 23/05/1993.
+            $this->assertMatchesRegularExpression('/23(\.|\s)\s?(mai|May|Mai)/u', $tvm430['definition']);
+            $this->assertStringContainsString('1993', $tvm430['definition']);
+            // RTG : dernier service en décembre 2004.
+            $this->assertStringContainsString('2004', $rtg['definition']);
+        }
     }
 
     public function test_the_glossary_is_in_the_sitemap(): void

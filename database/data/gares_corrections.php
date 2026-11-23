@@ -3832,11 +3832,11 @@ return [
         'station' => ['name' => 'Aime-La Plagne', 'uic' => '87741769'],
         'action' => 'add',
         'type' => 'opening',
-        'date' => '1913-10-20',
+        'date' => '1913-11-20',
         'precision' => 'day',
-        'source_url' => $wp('Gare d\'Aime-La Plagne', 234915287),
-        'quote' => 'La gare a été inaugurée le 20 octobre 1913, en même temps que la portion de ligne allant de Moûtiers à Bourg-Saint-Maurice.',
-        'reason' => 'article de la gare (oldid 234915287) ; article de la ligne « Ligne de Saint-Pierre-d\'Albigny à Bourg-Saint-Maurice » (oldid 238227992) : « La section de ligne de Moûtiers à Bourg-Saint-Maurice est mise en service en 1913 ». Remplace année 1893 de Wikidata (section Albertville - Moûtiers, hors de la gare).',
+        'source_url' => $wp('Gare de Bourg-Saint-Maurice', 240157164),
+        'quote' => 'La gare de Bourg-Saint-Maurice est mise en service le 20 novembre 1913 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lors de l\'ouverture à l\'exploitation de la section de Moûtiers à Bourg-Saint-Maurice',
+        'reason' => 'mise en service de la section de Moûtiers à Bourg-Saint-Maurice, où est la gare : article de la gare de Bourg-Saint-Maurice (oldid 240157164, d\'après Penna, La Tarentaise Autrefois, 2005, p. 118 et 127 ; inauguration le 28 juin 1914), article de la gare de Landry (oldid 230267366) et chronologie de l\'article de la ligne (oldid 238227992, « 20 novembre 1913 : de Moûtiers à Bourg-Saint-Maurice »). L\'article de la gare d\'Aime-La Plagne (oldid 234915287, « inaugurée le 20 octobre 1913, en même temps que la portion de ligne ») est seul à donner le 20 octobre, un mois avant l\'ouverture de la section. Remplace année 1893 de Wikidata (section Albertville - Moûtiers, hors de la gare).',
     ],
     // Vincey (id 15033)
     [
@@ -5018,6 +5018,92 @@ return [
         'reason' => 'une seule gare de Condé-sur-Vire au schéma de la ligne de Saint-Lô à Guilberville, au PK 11,650 de la fiche SNCF 87447177 comme de la liste lignes-oubliees : l\'ancienne gare rasée d\'OSM (n14143415501, à 169 m) est la même gare ; aucune coordonnée sourcée ne départage les positions, celle de la SNCF est gardée',
     ],
 
+    // ── 40 bis. Doublons de fiches de gares, deuxième relecture (23/11/2026, rapport storage/app/reports/agents/aprem-2111/doublons-2.md) ──
+    // Dix-sept fusions (« merge », rejouées par vff:consolidate-stations) : une seule gare au schéma ou à l'article, deux fiches (SNCF
+    // contre nœud OSM, bâtiment du cadastre ou second élément Wikidata sans article). Chaque raison dit quelle position est gardée.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], $g[1] => $g[2]],
+        'action' => 'merge',
+        'absorbed' => ['name' => $g[3], $g[4] => $g[5]],
+        'position' => $g[6],
+        'source_url' => $g[7],
+        'quote' => $g[8],
+        'reason' => $g[9],
+    ], [
+        ['Saint-Gérand', 'uic', '87476564', 'Saint-Gérand', 'osm', 'n14039112297', 'kept', $wp('Gare de Saint-Gérand', 235456841),
+            'La gare de Saint-Gérand est une ancienne gare ferroviaire française de la ligne de Saint-Brieuc à Pontivy',
+            'une seule gare de Saint-Gérand (article de la gare : infobox 48,116492 N, 2,882484 O ; schéma de la ligne de Saint-Brieuc à Pontivy, oldid 239795109 : PK 537,128) : la fiche SNCF 87476564 est à 9 m de ces coordonnées, le nœud OSM n14039112297 (à 307 m) est la même gare, position SNCF gardée'],
+        ['Banyuls-dels-Aspres', 'uic', '87784322', 'Banyuls-dels-Aspres', 'osm', 'n1101773632', 'absorbed', $wp('Gare de Banyuls-dels-Aspres', 217349138),
+            'Établie à 72 mètres d\'altitude, la gare de Banyuls-dels-Aspres est située au point kilométrique (PK) 491,054 de la ligne d\'Elne à Arles-sur-Tech',
+            'une seule gare de Banyuls-dels-Aspres (article de la gare : PK 491,054, infobox 42,557511 N, 2,869618 E) : le nœud OSM n1101773632 est à 2 m de ces coordonnées et au PK 490,993, le point SNCF 87784322 à 782 m (PK 490,277) ; position du nœud OSM'],
+        ['Tôt', 'wikidata', 'Q3126265', 'Tôt', 'osm', 'n1825991359', 'absorbed', $wp('Halte du Tôt', 183076551),
+            'la halte du Tôt était située au point kilométrique (PK) 354,300 de la ligne de Carentan à Carteret, entre les gares de Barneville et de Carteret.',
+            'une seule halte du Tôt sur la ligne de Carentan à Carteret (PK 354,300) : le nœud OSM n1825991359 (Train touristique du Cotentin) est au PK 354,164, les coordonnées de l\'article (portées par l\'élément Wikidata) au PK 353,648 et à 902 m de lui ; position du nœud OSM, confiance moyenne'],
+        ['Marigny-lès-Usages', 'uic', '87543702', 'Ancienne gare Marigny les Usages', 'osm', 'n6286442726', 'kept', $wp('Ligne des Aubrais - Orléans à Malesherbes', 239167115),
+            'Marigny-les-Usages',
+            'une seule gare de Marigny-les-Usages au schéma de la ligne des Aubrais - Orléans à Malesherbes (PK 126,466, celui de la fiche SNCF 87543702) : le nœud OSM n6286442726 « Ancienne gare Marigny les Usages » (opérateur : la mairie, à 210 m) est l\'ancien bâtiment de cette gare ; aucune coordonnée sourcée, position SNCF gardée'],
+        ['Jullianges', 'uic', '87726620', 'Jullianges', 'osm', 'n13934883233', 'kept', $wp('Ligne de Bonson à Sembadel', 235341794),
+            'Jullianges',
+            'une seule gare de Jullianges au schéma de la ligne de Bonson à Sembadel (PK 58,240, celui de la fiche SNCF 87726620) ; l\'article de la commune (oldid 240386160) montre « l\'ancienne gare de Jullianges, située sur le chemin de fer du Haut Forez » : le nœud OSM n13934883233 du Haut-Forez (à 211 m) et les nœuds OHM de la même fiche sont la même gare ; aucune coordonnée sourcée, position SNCF gardée'],
+        ['Aunay-Tréon', 'uic', '87393678', 'Aunay - Tréon', 'osm', 'n816855158', 'kept', $wp('Ligne de Chartres à Dreux', 241466880),
+            'Aunay - Tréon',
+            'une seule gare d\'Aunay - Tréon au schéma de la ligne de Chartres à Dreux (PK 34,682, celui de la fiche SNCF 87393678, 172 m après l\'embranchement du silo du PK 34,510) : le bâtiment du cadastre 2010 n816855158 (à 447 m, projeté au PK 34,187, avant l\'embranchement) n\'est pas à l\'emplacement de la gare, position SNCF gardée'],
+        ['Issigeac', 'wikidata', 'Q139796738', 'Issigeac', 'osm', 'n13828769041', 'absorbed', 'https://www.wikidata.org/wiki/Q139796738',
+            'ancienne gare de Dordogne',
+            'le nœud OSM n13828769041 porte wikidata=Q139796738 : c\'est le même élément que la fiche Wikidata d\'Issigeac. Les coordonnées de cet élément (44,770379 N, 0,562508 E) sont identiques à celles de Conne-Saint Cernin (Q139796677, 1 m) et à 5,5 km du nœud OSM : coordonnées recopiées par erreur, position du nœud OSM'],
+        ['Esternay', 'uic', '87116483', 'Esternay', 'osm', 'n2422110816', 'kept', $wp('Gare d\'Esternay', 240824878),
+            'La gare était une étoile ferroviaire avec le passage de la ligne de Mézy à Romilly-sur-Seine aujourd\'hui fermée et désaffectée et l\'embranchement de la ligne de Longueville à Esternay.',
+            'une seule gare d\'Esternay, étoile des lignes de Gretz-Armainvilliers à Sézanne (PK 115,500), de Mézy à Romilly-sur-Seine et de Longueville à Esternay (article de la gare, infobox 48,730968 N, 3,561819 E ; articles des deux autres lignes, oldid 238323255 et 240817135) : le point SNCF 87116483 est à 21 m de ces coordonnées, la halte OSM n2422110816 (disused:railway=halt, à 219 m) est la même gare, position SNCF gardée'],
+        ['Échiré', 'uic', '87485680', 'Échiré - Saint-Gelais', 'osm', 'w74192930', 'kept', $wp('Schéma de la ligne de Chartres à Bordeaux-Saint-Jean', 234064576),
+            'Échiré',
+            'une seule gare d\'Échiré (Échiré - Saint-Gelais) au schéma de la ligne de Chartres à Bordeaux-Saint-Jean (PK 405,566, celui de la fiche SNCF 87485680) ; l\'article de la gare de Cherveux (oldid 170615044) la nomme « Échiré - Saint-Gelais » : le bâtiment du cadastre 2010 w74192930 (à 201 m) est la même gare ; aucune coordonnée sourcée, position SNCF gardée'],
+        ['Brens-Virignin', 'uic', '87741561', 'Brens - Virignin', 'wikidata', 'Q114571608', 'kept', $wp('Ligne de Pressins à Virieu-le-Grand', 240450400),
+            'Brens - Virignin',
+            'une seule gare de Brens - Virignin au schéma de la ligne de Pressins à Virieu-le-Grand (PK 100,404, celui de la fiche SNCF 87741561) : l\'élément Wikidata Q114571608 (ancienne gare, sans article, même nom, même ligne, même ouverture le 10/09/1884) est la même gare ; ses coordonnées sont à 1,92 km du PK 100,404 (PK déduit 98,658), position SNCF gardée'],
+        ['Ribaute-les-Lieuran', 'uic', '87781690', 'Ribaute-lès-Lieuran', 'wikidata', 'Q18745427', 'kept', $wp('Gare de Ribaute-lès-Lieuran', 141414748),
+            'la gare de Ribaute-lès-Lieuran est située au point kilométrique (PK) 441,328 de la ligne de Béziers à Neussargues',
+            'une seule gare de Ribaute-lès-Lieuran, au PK 441,328 de la ligne de Béziers à Neussargues, celui de la fiche SNCF 87781690 : les coordonnées de l\'article (43,415413 N, 3,242454 E, portées par l\'élément Wikidata Q18745427) sont à 1,95 km de ce PK ; position SNCF gardée'],
+        ['Gallician', 'uic', '87775890', 'Gallician', 'wikidata', 'Q139770172', 'absorbed', $wp('Ligne d\'Arles à Lunel', 239493121),
+            'Gallician',
+            'une seule gare de Gallician au schéma de la ligne d\'Arles à Lunel (PK 28,53x) : l\'élément Wikidata Q139770172 (ancienne gare ouverte le 27/01/1868, comme la fiche SNCF 87775890, 1868) est la même gare ; ses coordonnées donnent le PK 28,680 (écart 150 m avec le schéma) contre le PK 26,525 du point SNCF (2,03 km), position de l\'élément Wikidata, confiance moyenne'],
+        ['La Burbanche', 'uic', '87743765', 'La Burbanche', 'wikidata', 'Q114571626', 'kept', $wp('Schéma de la ligne de Lyon-Perrache à Genève (frontière)', 240566134),
+            'La Burbanche',
+            'une seule gare de La Burbanche au schéma de la ligne de Lyon-Perrache à Genève (PK 76,254, celui de la fiche SNCF 87743765) : l\'élément Wikidata Q114571626 (ancienne gare, sans article, même nom, même ouverture en 1856) est la même gare ; ses coordonnées sont à 3,34 km du PK 76,254 (PK déduit 79,589), position SNCF gardée'],
+        ['Thoiras-Lasalle', 'osm', 'n12036270086', 'Thoiras - Lasalle', 'wikidata', 'Q111694089', 'kept', $wp('Ligne de Lézan à Saint-Jean-du-Gard', 211474255),
+            'Thoiras - Lasalle',
+            'une seule gare de Thoiras - Lasalle au schéma de la ligne de Lézan à Saint-Jean-du-Gard (PK 704,1xx, celui du nœud OSM n12036270086) : l\'élément Wikidata Q111694089 (même ouverture le 26/05/1909) est la même gare ; ses coordonnées donnent le PK 706,143, celui de Massiès (706,0xx), position du nœud OSM gardée'],
+        ['Toucy-Ville', 'uic', '87684852', 'Toucy-Ville', 'osm', 'n13092272140', 'absorbed', $wp('Ligne de Triguères à Surgy', 240386952),
+            'Toucy-Ville',
+            'une seule gare de Toucy-Ville au schéma de la ligne de Triguères à Surgy (PK 178,349, celui de la fiche SNCF 87684852) : le point SNCF (commune de Dracy) est à 3,4 km du nœud OSM n13092272140 et du bâtiment w218930994 de la gare du chemin de fer touristique de l\'AATY, à Toucy même ; l\'écart avec Toucy-Moulins (PK 182,133, 3,78 km) vaut 3,6 km entre les nœuds OSM contre 3,0 km entre les points SNCF : position des objets OSM'],
+        ['Toucy-Moulins', 'uic', '87684860', 'Toucy-Moulins', 'osm', 'n1037302403', 'absorbed', $wp('Ligne de Triguères à Surgy', 240386952),
+            'Toucy-Moulins',
+            'une seule gare de Toucy-Moulins au schéma de la ligne de Triguères à Surgy (PK 182,133, celui de la fiche SNCF 87684860) : le nœud OSM n1037302403 (AATY, à 3,95 km du point SNCF) est la même gare ; sa distance à Toucy-Ville (3,6 km) est celle de l\'écart de PK (3,78 km), pas celle des points SNCF (3,0 km) : position du nœud OSM'],
+        ['Martel', 'uic', '87594713', 'Hall des voyageurs', 'osm', 'w1544567915', 'kept', $wp('Gare de Martel', 241160307),
+            'qui a installé son « hall voyageurs » dans l\'ancienne halle aux marchandises',
+            'le « hall des voyageurs » du chemin de fer touristique du Haut Quercy est dans l\'ancienne halle aux marchandises de la gare de Martel (article de la gare, infobox 44,933411 N, 1,608479 E, à 11 m du point SNCF 87594713) : le chemin OSM w1544567915 (à 72 m) n\'est pas une autre gare, position SNCF gardée'],
+    ]),
+    // Dix enregistrements qui ne sont pas une gare distincte : établissement ou bâtiment annexe d\'une gare qui a déjà sa fiche (commerce, cinéma, passerelle,
+    // halle, salle des voyageurs du bâtiment, ancien bâtiment) ou nœud OSM aux étiquettes d\'une autre gare. Tags OSM relus par l\'API le 23/11/2026.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], $g[1] => $g[2]],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $g[3],
+        'quote' => $g[4],
+        'reason' => $g[5],
+    ], [
+        ['Bistrot de la gare', 'osm', 'n4924654037', $osm('n4924654037'), 'amenity=restaurant, craft=caterer, disused:railway=station', 'restaurant installé dans le bâtiment de la gare de Saint-Pal-de-Mons - Saint-Romain-Lachalm (étiquettes amenity=restaurant, craft=caterer, old_name ; à 12 m de la fiche de la gare) : un commerce, pas une gare'],
+        ['Le Club', 'osm', 'w219131099', $osm('w219131099'), 'amenity=cinema, disused:name=Gare d\'Isigny-sur-Mer, disused:wikidata=Q84182784', 'cinéma dans l\'ancien bâtiment de la gare d\'Isigny-sur-Mer (disused:wikidata=Q84182784 est la fiche de la gare, à 11 m) : un cinéma, pas une gare'],
+        ['Cinéma de la Gare', 'osm', 'w280966911', $osm('w280966911'), 'amenity=cinema', 'cinéma de Courseulles-sur-Mer (étiquette amenity=cinema, à 54 m de la fiche de la gare) : le nom contient « Gare », l\'objet est un cinéma'],
+        ['Maison des associations', 'osm', 'w228140932', $osm('w228140932'), 'amenity=community_centre, alt_name=La Gare, disused:railway=station', 'maison des associations de Douvres-la-Délivrande dans l\'ancien bâtiment de la gare (amenity=community_centre, alt_name=La Gare, à 75 m de la fiche de la gare de Douvres-la-Délivrande) : le bâtiment réaffecté, pas une autre gare'],
+        ['Ancienne halle aux marchandises de la gare de Trévoux', 'osm', 'w554527145', $osm('w554527145'), 'Ancienne halle aux marchandises de la gare de Trévoux', 'halle aux marchandises de la gare de Trévoux (nom de l\'objet, à 77 m de la fiche de la gare) : un bâtiment annexe, pas une gare'],
+        ['Virville-Manneville', 'osm', 'n1281386660', $osm('n1281386660'), 'disused:railway=station, uic_ref=87413336, railway:position:exact=207.488', 'nœud OSM aux étiquettes de la gare de Virville - Manneville (UIC 87413336, PK 207,488 de la ligne de Paris-Saint-Lazare au Havre, article oldid 237268978) mais posé à 49,2509 N, 0,2186 E, sur la ligne de Lisieux à Trouville - Deauville à 19 m de la halte de Fierville-les-Parcs (PK 202,766, schéma oldid 235342270) : une position fausse, la gare a sa fiche (19223) et la halte aussi (19285)'],
+        ['Galerie Villette', 'osm', 'w1039333290', $osm('w1039333290'), 'building=train_station, name=Galerie Villette, operator=SNCF', 'galerie de circulation de la gare de Lyon-Part-Dieu (galeries Villette et Béraudier, bâtiments building=train_station nommés comme des galeries, à 160 m de la fiche de la gare) : une partie de la gare, pas une gare distincte'],
+        ['Hall 3 (Belcier)', 'osm', 'w934979720', $osm('w934979720'), 'building=train_station, name=Hall 3 (Belcier)', 'hall 3 du côté Belcier de la gare de Bordeaux-Saint-Jean (bâtiment building=train_station nommé comme un hall, à 170 m de la fiche de la gare) : une partie de la gare, pas une gare distincte'],
+        ['Gare centre cote clairmarais', 'osm', 'w87848565', $osm('w87848565'), 'building=train_station, name=Gare centre cote clairmarais', 'bâtiment du côté Clairmarais de la gare de Reims (building=train_station, cadastre 2010, à 101 m de la fiche de la gare de Reims) : une partie de la gare, pas une gare distincte'],
+        ['Ancien bâtiment de la gare de Choisy-le-Roi', 'wikidata', 'Q72573709', $wp('Gare de Choisy-le-Roi', 238875780), 'Ancien bâtiment de la gare.', 'élément Wikidata « ancien bâtiment d\'une gare dans le Val-de-Marne » : l\'ancien bâtiment de la gare de Choisy-le-Roi, reconverti en studio de danse (section Patrimoine ferroviaire de l\'article de la gare), à 146 m de la fiche de la gare : un bâtiment patrimonial, pas une gare distincte'],
+    ]),
+
     // ── 41. Ouvertures des gares encore ouvertes datées à l'année par Wikidata ou déduites de la ligne, cinquième relecture contre
     // l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 42 gares des 120 suivantes par fréquentation
     // (de Montchanin 0,39 M à Vernaison 0,18 M ; audit-gares-5, 23/11/2026, rapport
@@ -5705,6 +5791,7237 @@ return [
         'source_url' => $wp('Ligne de Limoges-Bénédictins à Périgueux', 234971310),
         'quote' => 'La ligne a été mise en service le 26 août 1861.',
         'reason' => 'article de la ligne « Ligne de Limoges-Bénédictins à Périgueux » (oldid 234971310) : « La ligne a été mise en service le 26 août 1861. ». Remplace le 30/05/1892 déduit de la ligne du Quéroy-Pranzac à Thiviers : Thiviers est l\'une des neuf gares d\'origine de la ligne de Limoges à Périgueux (« Aux neuf gares d\'origine comprises entre Limoges et Périgueux (Beynac, Nexon, Lafarge, Bussière-Galant, La Coquille, Thiviers... »). Confiance moyenne.',
+    ],
+
+    // ── 43. Ouvertures des gares FERMÉES aux voyageurs, datées à l'année par Wikidata ou déduites de la ligne, première relecture contre
+    // l'article Wikipédia de la gare (révision citée) et, au besoin, celui de la ligne : les audits précédents n'avaient relu que les gares
+    // encore ouvertes. 120 gares relues (les 84 dont l'article de la gare contredit la date de la base, puis 36 qui la confirment à l'année) ;
+    // 59 corrigées, 41 confirmées, 20 à décider (article lié à un réseau et non à la gare, dates contradictoires dans l'article, date
+    // approximative ; rapport storage/app/reports/agents/aprem-2111/ouvertures-gares-fermees.md). Règle du déménagement (section 37) : une gare
+    // remplacée par une nouvelle garde la date de la première (Saint-Germain-en-Laye-Bel-Air - Fourqueux, Ravezies). Une halte ouverte après
+    // la ligne prend sa propre date, non celle de la ligne (Cognin, Plan-Plascassier, Pont-d'Espenel, Achicourt).
+
+    // Versailles-Matelots (id 16083)
+    [
+        'station' => ['name' => 'Versailles-Matelots', 'uic' => '87393132'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1871-05-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Versailles-Matelots', 232708478),
+        'quote' => 'Cela permet l\'ouverture de la gare à l\'exploitation le 12 mai 1871',
+        'reason' => 'article de la gare (oldid 232708478) : « Cela permet l\'ouverture de la gare à l\'exploitation le 12 mai 1871 ». Précise ou corrige la date de la base (1883-01-01, wikidata).',
+    ],
+
+    // Le Havre-Graville (id 16218)
+    [
+        'station' => ['name' => 'Le Havre-Graville', 'uic' => '87413203'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Havre-Graville', 230878443),
+        'quote' => 'La gare est mise en service en 1882.',
+        'reason' => 'article de la gare (oldid 230878443) : « La gare est mise en service en 1882. ». Remplace l\'année 1847 de Wikidata (ouverture de la ligne de Paris au Havre, qui n\'avait pas cette gare).',
+    ],
+
+    // Couliboeuf (id 16268)
+    [
+        'station' => ['name' => 'Couliboeuf', 'uic' => '87444232'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-02-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne du Mans à Mézidon', 239514750),
+        'quote' => 'Le 1er février 1859 entre Argentan et Mézidon, avec embranchement entre la gare de Coulibœuf et la gare de Falaise',
+        'reason' => 'article de la ligne « Ligne du Mans à Mézidon » (oldid 239514750) : « Le 1er février 1859 entre Argentan et Mézidon, avec embranchement entre la gare de Coulibœuf et la gare de Falaise ». Précise ou corrige la date de la base (1859-01-01, wikidata). L\'infobox de l\'article de la gare (oldid 208419078) donne aussi le 1 février 1859.',
+    ],
+
+    // Myennes (id 17471)
+    [
+        'station' => ['name' => 'Myennes', 'uic' => '87696138'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Myennes', 240518059),
+        'quote' => 'La gare de Myennes est ajoutée, en 1864, sur la ligne ouverte le 21 septembre 1861',
+        'reason' => 'article de la gare (oldid 240518059) : « La gare de Myennes est ajoutée, en 1864, sur la ligne ouverte le 21 septembre 1861 ». Remplace le 21/09/1861 déduit de la ligne : la gare n\'existait pas à l\'ouverture de la ligne.',
+    ],
+
+    // Manduel-Redessan (id 18164)
+    [
+        'station' => ['name' => 'Manduel-Redessan', 'uic' => '87775064'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-08-19',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Manduel - Redessan', 218055638),
+        'quote' => 'la station de Manduel est officiellement mise en service par la Compagnie des mines de la Grand\'Combe et des chemins de fer du Gard lorsqu\'elle ouvre à l\'exploitation la ligne d\'Alais à Beaucaire via Nîmes, le 19 août 1840',
+        'reason' => 'article de la gare (oldid 218055638) : « la station de Manduel est officiellement mise en service par la Compagnie des mines de la Grand\'Combe et des chemins de fer du Gard lorsqu\'elle ouvre à l\'exploitation la ligne d\'Alais à Beaucaire via Nîmes, le 19 août 1840 ». Remplace l\'année 1839 de Wikidata (premier train de la foire de Beaucaire le 15/07/1839, avant la mise en service).',
+    ],
+
+    // Ste-Menehould (id 18560)
+    [
+        'station' => ['name' => 'Ste-Menehould', 'uic' => '87174870'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-07-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sainte-Menehould', 229581713),
+        'quote' => 'La station de Sainte-Menehould est mise en service le 23 juillet 1867 par la Compagnie des chemins de fer de l\'Est lorsqu\'elle ouvre à l\'exploitation la section de Châlons à Sainte-Menehould.',
+        'reason' => 'article de la gare (oldid 229581713) : « La station de Sainte-Menehould est mise en service le 23 juillet 1867 par la Compagnie des chemins de fer de l\'Est lorsqu\'elle ouvre à l\'exploitation la section de Châlons à Sainte-Menehould. ». Précise ou corrige la date de la base (1867-01-01, wikidata).',
+    ],
+
+    // Voellerdingen (id 18781)
+    [
+        'station' => ['name' => 'Voellerdingen', 'uic' => '87215640'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-05-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Vœllerdingen', 188424218),
+        'quote' => 'La gare de Vœllerdingen est mise en service lors de l\'ouverture de la section de voie ferrée de Mommenheim à Kalhausen, le 1 mai 1895.',
+        'reason' => 'article de la gare (oldid 188424218) : « La gare de Vœllerdingen est mise en service lors de l\'ouverture de la section de voie ferrée de Mommenheim à Kalhausen, le 1 mai 1895. ». Précise ou corrige la date de la base (1895-01-01, wikidata).',
+    ],
+
+    // St-Ouen-Garibaldi (id 18798)
+    [
+        'station' => ['name' => 'St-Ouen-Garibaldi', 'uic' => '87271254'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1972-05-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Ouen-Garibaldi', 224691760),
+        'quote' => 'La nouvelle gare est ouverte le 28 mai 1972 dans les chemins de fer et devient le terminus de dix aller-retour quotidiens',
+        'reason' => 'article de la gare (oldid 224691760) : « La nouvelle gare est ouverte le 28 mai 1972 dans les chemins de fer et devient le terminus de dix aller-retour quotidiens ». Remplace le 1874 déduit de la ligne (la ligne de La Plaine à Ermont - Eaubonne est inaugurée en 1908, la gare est créée en 1972).',
+    ],
+
+    // Achicourt (id 19041)
+    [
+        'station' => ['name' => 'Achicourt', 'uic' => '87342154'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1910-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Achicourt', 238683027),
+        'quote' => 'il est complété par une halte voyageurs en 1910',
+        'reason' => 'article de la gare (oldid 238683027) : « il est complété par une halte voyageurs en 1910 ». Remplace le 1876 de Wikidata (simple poste de bifurcation, sans voyageurs).',
+    ],
+
+    // St-Germain-en-Laye-Bel-Air-Fourqueux (id 19086)
+    [
+        'station' => ['name' => 'St-Germain-en-Laye-Bel-Air-Fourqueux', 'uic' => '87366922'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Germain-en-Laye-Bel-Air - Fourqueux', 238757435),
+        'quote' => 'la gare de Fourqueux ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 238757435) : « la gare de Fourqueux ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne). Première gare du lieu (règle du déménagement) : la gare actuelle de 2004 est une nouvelle gare.',
+    ],
+
+    // St-Germain-en-Laye-Grande-Ceinture (id 19108)
+    [
+        'station' => ['name' => 'St-Germain-en-Laye-Grande-Ceinture', 'uic' => '87382804'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Germain-en-Laye-Grande-Ceinture', 240770886),
+        'quote' => 'la gare de Saint-Germain-en-Laye-Grande-Ceinture ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 240770886) : « la gare de Saint-Germain-en-Laye-Grande-Ceinture ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // Poissy-Grande-Ceinture (id 19111)
+    [
+        'station' => ['name' => 'Poissy-Grande-Ceinture', 'uic' => '87386565'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Poissy-Grande-Ceinture', 235033809),
+        'quote' => 'La « gare de Poissy (grande ceinture) » est officiellement mise en service le 4 septembre 1882',
+        'reason' => 'article de la gare (oldid 235033809) : « La « gare de Poissy (grande ceinture) » est officiellement mise en service le 4 septembre 1882 ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // St-Cyr-Grande-Ceinture (id 19140)
+    [
+        'station' => ['name' => 'St-Cyr-Grande-Ceinture', 'uic' => '87393850'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Cyr-Grande-Ceinture', 219957684),
+        'quote' => 'La gare de Saint-Cyr-Grande-Ceinture ouvre au trafic des voyageurs le 4 septembre 1882 lors de l\'inauguration, sur la ligne de Grande ceinture, du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 219957684) : « La gare de Saint-Cyr-Grande-Ceinture ouvre au trafic des voyageurs le 4 septembre 1882 lors de l\'inauguration, sur la ligne de Grande ceinture, du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // Toutainville (id 19267)
+    [
+        'station' => ['name' => 'Toutainville', 'uic' => '87415497'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1889-06-08',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Toutainville', 166062174),
+        'quote' => 'Elle a été ouverte le 8 juin 1889 par la Compagnie des chemins de fer de l\'Ouest.',
+        'reason' => 'article de la gare (oldid 166062174) : « Elle a été ouverte le 8 juin 1889 par la Compagnie des chemins de fer de l\'Ouest. ». Précise ou corrige la date de la base (1867-01-01, déduite de la ligne).',
+    ],
+
+    // Messei (id 19355)
+    [
+        'station' => ['name' => 'Messei', 'uic' => '87448100'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-07-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Argentan à Granville', 240174253),
+        'quote' => '2 juillet 1866 : Argentan à Flers (embranchement de la ligne du Mans à Mézidon)',
+        'reason' => 'article de la ligne « Ligne d\'Argentan à Granville » (oldid 240174253) : « 2 juillet 1866 : Argentan à Flers (embranchement de la ligne du Mans à Mézidon) ». Précise ou corrige la date de la base (1874-05-18, déduite de la ligne). Messei est sur la section d\'Argentan à Flers ; l\'infobox de l\'article de la gare (oldid 232257623) donne 1866.',
+    ],
+
+    // St-Julien (Côtes-d'Armor) (id 19389)
+    [
+        'station' => ['name' => 'St-Julien (Côtes-d\'Armor)', 'uic' => '87473314'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Julien (Côtes-d\'Armor)', 236325504),
+        'quote' => 'La compagnie ouvre une halte à côté du passage à niveau n° 8 en 1873',
+        'reason' => 'article de la gare (oldid 236325504) : « La compagnie ouvre une halte à côté du passage à niveau n° 8 en 1873 ». Remplace l\'année 1872 de Wikidata (la section de la ligne ouvre le 20/11/1871 sans halte).',
+    ],
+
+    // Lambel-Camors (id 19404)
+    [
+        'station' => ['name' => 'Lambel-Camors', 'uic' => '87476515'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1899-05-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lambel - Camors', 235362694),
+        'quote' => 'La halte de Lambel - Camors est mise en service le 29 mai 1899 par la Compagnie du chemin de fer de Paris à Orléans (PO)',
+        'reason' => 'article de la gare (oldid 235362694) : « La halte de Lambel - Camors est mise en service le 29 mai 1899 par la Compagnie du chemin de fer de Paris à Orléans (PO) ». Précise ou corrige la date de la base (1898-01-01, wikidata).',
+    ],
+
+    // Angers-St-Serge (id 19450)
+    [
+        'station' => ['name' => 'Angers-St-Serge', 'uic' => '87484022'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Angers-Saint-Serge', 231419269),
+        'quote' => 'La gare est ouverte en 1878.',
+        'reason' => 'article de la gare (oldid 231419269) : « La gare est ouverte en 1878. ». Précise ou corrige la date de la base (1863-01-01, wikidata).',
+    ],
+
+    // Croix-d'Hins (id 19736)
+    [
+        'station' => ['name' => 'Croix-d\'Hins', 'uic' => '87582437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-05-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Croix-d\'Hins', 240588260),
+        'quote' => 'Elle ouvrit le 7 mai 1841.',
+        'reason' => 'article de la gare (oldid 240588260) : « Elle ouvrit le 7 mai 1841. ». Remplace le 07/07/1841 de Wikidata.',
+    ],
+
+    // Auzits-Aussibals (id 19918)
+    [
+        'station' => ['name' => 'Auzits-Aussibals', 'uic' => '87613240'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Auzits-Aussibal', 238728008),
+        'quote' => 'En 1875, le conseil général se satisfait d\'avoir obtenu la construction de la station, ou gare, d\'Aussibal ouverte uniquement au service des voyageurs.',
+        'reason' => 'article de la gare (oldid 238728008) : « En 1875, le conseil général se satisfait d\'avoir obtenu la construction de la station, ou gare, d\'Aussibal ouverte uniquement au service des voyageurs. ». Remplace le 30/08/1858 déduit de la ligne : la ligne s\'ouvre sans station à Aussibal. Confiance moyenne : l\'article date l\'obtention de la station en 1875, l\'infobox donne 1875.',
+    ],
+
+    // Sincey-lès-Rouvray (id 20211)
+    [
+        'station' => ['name' => 'Sincey-lès-Rouvray', 'uic' => '87694430'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-08-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sincey-lès-Rouvray', 232110226),
+        'quote' => 'La gare de Sincey est mise en service le 23 août 1882 dans les chemins de fer par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 232110226) : « La gare de Sincey est mise en service le 23 août 1882 dans les chemins de fer par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Précise ou corrige la date de la base (1876-01-01, wikidata).',
+    ],
+
+    // Chatelay-Chissey (id 20330)
+    [
+        'station' => ['name' => 'Chatelay-Chissey', 'uic' => '87718858'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Chatelay - Chissey', 222067327),
+        'quote' => 'Elle est mise en service en 1867 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 222067327) : « Elle est mise en service en 1867 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Précise ou corrige la date de la base (1870-12-31, déduite de la ligne).',
+    ],
+
+    // Cognin (id 20495)
+    [
+        'station' => ['name' => 'Cognin', 'uic' => '87741405'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cognin', 235031390),
+        'quote' => 'le projet d\'une halte ferroviaire aboutit en 1951',
+        'reason' => 'article de la gare (oldid 235031390) : « le projet d\'une halte ferroviaire aboutit en 1951 ». Remplace le 1884 déduit de la ligne (inaugurée en 1884 sans arrêt à Cognin).',
+    ],
+
+    // La Calade-Éguilles (id 20612)
+    [
+        'station' => ['name' => 'La Calade-Éguilles', 'uic' => '87751396'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-05-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Calade - Éguilles', 235032396),
+        'quote' => 'Ouverte le 11 mai 1872 avec la ligne de Aix-en-Provence à Pertuis',
+        'reason' => 'article de la gare (oldid 235032396) : « Ouverte le 11 mai 1872 avec la ligne de Aix-en-Provence à Pertuis ». Précise ou corrige la date de la base (1870-01-31, déduite de la ligne).',
+    ],
+
+    // Ste-Anastasie-Garage (id 20648)
+    [
+        'station' => ['name' => 'Ste-Anastasie-Garage', 'uic' => '87755710'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1880-11-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sainte-Anastasie-sur-Issole', 206880925),
+        'quote' => 'met en service la station de Sainte-Anastasie lors de l\'ouverture de la section de Carnoules à Trets le 29 novembre 1880',
+        'reason' => 'article de la gare (oldid 206880925) : « met en service la station de Sainte-Anastasie lors de l\'ouverture de la section de Carnoules à Trets le 29 novembre 1880 ». Précise ou corrige la date de la base (1880-01-01, wikidata).',
+    ],
+
+    // Ners (id 20823)
+    [
+        'station' => ['name' => 'Ners', 'uic' => '87775338'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Ners', 235033496),
+        'quote' => 'La gare est mise en service en 1841 par la Compagnie des Mines de la Grand\'Combe et des chemins de fer du Gard.',
+        'reason' => 'article de la gare (oldid 235033496) : « La gare est mise en service en 1841 par la Compagnie des Mines de la Grand\'Combe et des chemins de fer du Gard. ». Remplace le 19/08/1840 déduit de la ligne : la gare est construite entre 1839 et 1841 et mise en service en 1841.',
+    ],
+
+    // Rotangy (id 21061)
+    [
+        'station' => ['name' => 'Rotangy', 'wikidata' => 'Q60851449'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-04-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rotangy', 239716639),
+        'quote' => 'Il sera ouvert le 15 avril 1876.',
+        'reason' => 'article de la gare (oldid 239716639) : « Il sera ouvert le 15 avril 1876. ». Précise ou corrige la date de la base (1874-01-01, déduite de la ligne). Confiance moyenne : la phrase parle de la ligne de Beauvais à Amiens ; l\'infobox de la gare donne 1876.',
+    ],
+
+    // Les tramways départementaux de Vesoul (id 21123)
+    [
+        'station' => ['name' => 'Les tramways départementaux de Vesoul', 'wikidata' => 'Q16638604'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1910-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare des chemins de fer vicinaux de Vesoul', 240982502),
+        'quote' => 'Inauguré en 1910, la gare (généralement nommée « gare du Tacot ») a fonctionné, dans le cadre du service ferroviaire précité, de 1910 à 1938.',
+        'reason' => 'article de la gare (oldid 240982502) : « Inauguré en 1910, la gare (généralement nommée « gare du Tacot ») a fonctionné, dans le cadre du service ferroviaire précité, de 1910 à 1938. ». Gare des chemins de fer vicinaux (voie métrique), distincte de la gare de Vesoul : remplace le 1858 déduit des lignes de la gare de Vesoul.',
+    ],
+
+    // Reuilly (id 21140)
+    [
+        'station' => ['name' => 'Reuilly', 'uic' => '8711401'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-09-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Reuilly (Paris)', 239997910),
+        'quote' => 'La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859.',
+        'reason' => 'article de la gare (oldid 239997910) : « La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859. ». Remplace le 17/08/1853 déduit de la Petite Ceinture.',
+    ],
+
+    // Ravezies (id 21148)
+    [
+        'station' => ['name' => 'Ravezies', 'uic' => '8723531'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Ravezies', 240915040),
+        'quote' => 'La gare est mise en service en 1868 sous le nom de Bordeaux-Saint-Louis en même temps que la ligne du Médoc',
+        'reason' => 'article de la gare (oldid 240915040) : « La gare est mise en service en 1868 sous le nom de Bordeaux-Saint-Louis en même temps que la ligne du Médoc ». Précise ou corrige la date de la base (1968-01-01, wikidata). Première gare du lieu (règle du déménagement) : le 1968 de Wikidata est le déplacement de la gare (22/04/1968).',
+    ],
+
+    // Saint-Sylvestre-Cappel (id 21159)
+    [
+        'station' => ['name' => 'Saint-Sylvestre-Cappel', 'wikidata' => 'Q60846721'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Wervicq (id 21173)
+    [
+        'station' => ['name' => 'Wervicq', 'wikidata' => 'Q56884205'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Wervicq-Sud', 235035066),
+        'quote' => 'La gare de Wervicq-Sud est mise en service en 1897 lors de l\'ouverture de la section Frelinghien - Halluin de la ligne de tramway à écartement métrique d\'Armentières à Halluin',
+        'reason' => 'article de la gare (oldid 235035066) : « La gare de Wervicq-Sud est mise en service en 1897 lors de l\'ouverture de la section Frelinghien - Halluin de la ligne de tramway à écartement métrique d\'Armentières à Halluin ». Précise ou corrige la date de la base (1895-01-01, déduite de la ligne).',
+    ],
+
+    // Winnezeele (id 21206)
+    [
+        'station' => ['name' => 'Winnezeele', 'wikidata' => 'Q60846727'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Étretat (id 21226)
+    [
+        'station' => ['name' => 'Étretat', 'wikidata' => 'Q113835961'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-06-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Étretat', 240098795),
+        'quote' => 'elle a été mise en service le 22 juin 1895, son terminus étant la gare d\'Étretat qui ouvrit à cette même occasion',
+        'reason' => 'article de la gare (oldid 240098795) : « elle a été mise en service le 22 juin 1895, son terminus étant la gare d\'Étretat qui ouvrit à cette même occasion ». Précise ou corrige la date de la base (1895-01-01, déduite de la ligne).',
+    ],
+
+    // Jallieu (id 21292)
+    [
+        'station' => ['name' => 'Jallieu', 'wikidata' => 'Q28041425'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1899-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Jallieu', 172660849),
+        'quote' => 'La gare ouvre en 1899, est fermée aux voyageurs en 1931',
+        'reason' => 'article de la gare (oldid 172660849) : « La gare ouvre en 1899, est fermée aux voyageurs en 1931 ». Gare des chemins de fer de l\'Est de Lyon (CFEL) : remplace le 1881 déduit d\'une autre ligne.',
+    ],
+
+    // Courcelles-Ceinture (id 21294)
+    [
+        'station' => ['name' => 'Courcelles-Ceinture', 'wikidata' => 'Q21427130'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-03-25',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Courcelles-Ceinture', 202583562),
+        'quote' => 'La gare de Courcelles-Ceinture est ouverte aux voyageurs le 25 mars 1869 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 202583562) : « La gare de Courcelles-Ceinture est ouverte aux voyageurs le 25 mars 1869 dans les chemins de fer ». Précise ou corrige la date de la base (1854-05-02, déduite de la ligne).',
+    ],
+
+    // La Cantraie (id 21378)
+    [
+        'station' => ['name' => 'La Cantraie', 'wikidata' => 'Q19406991'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1903-01-24',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Cantraie', 166058710),
+        'quote' => 'L\'arrêt de La Cantraie est ouvert en 1903 par approbation « à titre précaire » le 24 janvier 1903 du ministre des Travaux Publics.',
+        'reason' => 'article de la gare (oldid 166058710) : « L\'arrêt de La Cantraie est ouvert en 1903 par approbation « à titre précaire » le 24 janvier 1903 du ministre des Travaux Publics. ». Remplace le 23/12/1877 déduit de la ligne (arrêt créé 26 ans après).',
+    ],
+
+    // Boulogne – Aéroglisseurs (id 21386)
+    [
+        'station' => ['name' => 'Boulogne – Aéroglisseurs', 'uic' => '8731755'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1970-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Boulogne-Aéroglisseurs', 241115734),
+        'quote' => 'La gare de Boulogne-Aéroglisseurs est ouverte en 1970',
+        'reason' => 'article de la gare (oldid 241115734) : « La gare de Boulogne-Aéroglisseurs est ouverte en 1970 ». Précise ou corrige la date de la base (1968-01-01, wikidata).',
+    ],
+
+    // Ancienne gare (id 21391)
+    [
+        'station' => ['name' => 'Ancienne gare', 'wikidata' => 'Q1991017'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-01-24',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pierrefonds', 235033780),
+        'quote' => 'La nouvelle gare de « Pierrefonds-les-Bains » est inaugurée le 24 janvier 1884 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 235033780) : « La nouvelle gare de « Pierrefonds-les-Bains » est inaugurée le 24 janvier 1884 dans les chemins de fer ». Précise ou corrige la date de la base (1884-01-01, wikidata).',
+    ],
+
+    // Killem (id 21438)
+    [
+        'station' => ['name' => 'Killem', 'wikidata' => 'Q60846737'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Mandres-les-Roses (id 21472)
+    [
+        'station' => ['name' => 'Mandres-les-Roses', 'wikidata' => 'Q96483432'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Mandres', 238222513),
+        'quote' => 'La gare est ouverte pour le transport de voyageurs en 1876',
+        'reason' => 'article de la gare (oldid 238222513) : « La gare est ouverte pour le transport de voyageurs en 1876 ». Remplace le 31/12/1880 déduit de la ligne.',
+    ],
+
+    // Nantes-État (id 21486)
+    [
+        'station' => ['name' => 'Nantes-État', 'uic' => '8748102'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-04-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Nantes-État', 235033466),
+        'quote' => 'exploitée à partir du 15 avril 1876 par la Compagnie des chemins de fer nantais',
+        'reason' => 'article de la gare (oldid 235033466) : « exploitée à partir du 15 avril 1876 par la Compagnie des chemins de fer nantais ». Remplace l\'année 1887 d\'OSM.',
+    ],
+
+    // Le Plan-Plascassier (id 21497)
+    [
+        'station' => ['name' => 'Le Plan-Plascassier', 'wikidata' => 'Q78149772'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1892-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Plan-Plascassier', 240746165),
+        'quote' => 'La « halte du Plan-de-Grasse » est ouverte en 1892 par la Compagnie du PLM.',
+        'reason' => 'article de la gare (oldid 240746165) : « La « halte du Plan-de-Grasse » est ouverte en 1892 par la Compagnie du PLM. ». Remplace le 13/11/1871 déduit de la ligne : il n\'y avait pas de halte à la mise en service.',
+    ],
+
+    // Cepoy (id 21503)
+    [
+        'station' => ['name' => 'Cepoy', 'wikidata' => 'Q115271714'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cepoy', 200697080),
+        'quote' => 'En 1887, la gare de Cepoy est en cours de construction par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 200697080) : « En 1887, la gare de Cepoy est en cours de construction par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Titre de section « Station PLM (1888-1937) » et infobox « vers 1888 ». Remplace le 14/08/1860 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // La Bourse (id 21552)
+    [
+        'station' => ['name' => 'La Bourse', 'wikidata' => 'Q27786387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de la Bourse', 203976606),
+        'quote' => 'Elle est achevée en 1857',
+        'reason' => 'article de la gare (oldid 203976606) : « Elle est achevée en 1857 ». Remplace le 17/08/1851 déduit de la ligne (la station est créée après la ligne, section inaugurée le 06/04/1853).',
+    ],
+
+    // Rexpoëde (id 21564)
+    [
+        'station' => ['name' => 'Rexpoëde', 'wikidata' => 'Q60846734'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Bel-Air (id 21576)
+    [
+        'station' => ['name' => 'Bel-Air', 'wikidata' => 'Q131343811'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-09-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Bel-Air (Paris)', 239900483),
+        'quote' => 'La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859.',
+        'reason' => 'article de la gare (oldid 239900483) : « La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859. ». Remplace le 17/08/1853 déduit de la Petite Ceinture.',
+    ],
+
+    // Le Thillot (id 21619)
+    [
+        'station' => ['name' => 'Le Thillot', 'uic' => '8714454'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1879-11-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare du Thillot', 176707893),
+        'quote' => 'Mise en service en 1879 par la Compagnie des chemins de fer de l\'Est',
+        'reason' => 'article de la gare (oldid 176707893) : « Mise en service en 1879 par la Compagnie des chemins de fer de l\'Est ». Précise ou corrige la date de la base (1879-01-01, wikidata). L\'infobox donne le 7 novembre 1879, date de la section de Remiremont à Saint-Maurice-sur-Moselle de la ligne d\'Épinal à Bussang (oldid 219647311). Confiance moyenne.',
+    ],
+
+    // Tocqueville - Gouberville (id 21631)
+    [
+        'station' => ['name' => 'Tocqueville - Gouberville', 'wikidata' => 'Q2689720'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1911-07-08',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Tocqueville - Gouberville', 202420186),
+        'quote' => 'La gare de Tocqueville - Gouberville est mise en service le 8 juillet 1911 par la Compagnie des chemins de fer de la Manche (CFM)',
+        'reason' => 'article de la gare (oldid 202420186) : « La gare de Tocqueville - Gouberville est mise en service le 8 juillet 1911 par la Compagnie des chemins de fer de la Manche (CFM) ». Précise ou corrige la date de la base (1886-01-01, wikidata).',
+    ],
+
+    // Boulevard Ornano (id 21731)
+    [
+        'station' => ['name' => 'Boulevard Ornano', 'wikidata' => 'Q16508091'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du boulevard Ornano', 241230868),
+        'quote' => 'La gare est ouverte aux voyageurs en 1869.',
+        'reason' => 'article de la gare (oldid 241230868) : « La gare est ouverte aux voyageurs en 1869. ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Grenelle-Ceinture (id 21809)
+    [
+        'station' => ['name' => 'Grenelle-Ceinture', 'wikidata' => 'Q16508000'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Grenelle-Ceinture', 235031977),
+        'quote' => 'La gare de Grenelle-Ceinture est mise en service en 1867.',
+        'reason' => 'article de la gare (oldid 235031977) : « La gare de Grenelle-Ceinture est mise en service en 1867. ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Avenue de Saint-Ouen (id 21878)
+    [
+        'station' => ['name' => 'Avenue de Saint-Ouen', 'wikidata' => 'Q16507976'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-11-16',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de l\'avenue de Saint-Ouen', 228129603),
+        'quote' => 'La gare est ouverte aux voyageurs le 16 novembre 1863 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 228129603) : « La gare est ouverte aux voyageurs le 16 novembre 1863 dans les chemins de fer ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Herzeele (id 21907)
+    [
+        'station' => ['name' => 'Herzeele', 'wikidata' => 'Q60846730'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Pont-d'Espenel (id 21911)
+    [
+        'station' => ['name' => 'Pont-d\'Espenel', 'wikidata' => 'Q71561821'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1898-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Pont-d\'Espenel', 229517806),
+        'quote' => 'annonce dans le journal officiel, du 28 novembre 1898, l\'ouverture « de la halte du Pont-d\'Espenel (Drôme) au service des voyageurs',
+        'reason' => 'article de la gare (oldid 229517806) : « annonce dans le journal officiel, du 28 novembre 1898, l\'ouverture « de la halte du Pont-d\'Espenel (Drôme) au service des voyageurs ». Remplace le 01/09/1885 déduit de la ligne (section de Crest à Die) : la halte ouvre 13 ans plus tard.',
+    ],
+
+    // La Tâche (id 21920)
+    [
+        'station' => ['name' => 'La Tâche', 'wikidata' => 'Q107142614'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1909-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de La Tâche', 241339803),
+        'quote' => 'les CFD autorisent par délibération, le 29 mars 1908 la construction d\'une halte à l\'emplacement de La Tâche',
+        'reason' => 'article de la gare (oldid 241339803) : « les CFD autorisent par délibération, le 29 mars 1908 la construction d\'une halte à l\'emplacement de La Tâche ». L\'infobox donne 1909. Remplace le 1896 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Bambecque (id 21921)
+    [
+        'station' => ['name' => 'Bambecque', 'wikidata' => 'Q60846732'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Brézilhou (id 21932)
+    [
+        'station' => ['name' => 'Brézilhou', 'wikidata' => 'Q86724318'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1938-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Halte de Brézilhou', 224625189),
+        'quote' => 'Cette halte a été mise en service vers 1938 lorsque la SNCF a repris la ligne.',
+        'reason' => 'article de la gare (oldid 224625189) : « Cette halte a été mise en service vers 1938 lorsque la SNCF a repris la ligne. ». Date approximative (« vers »). Remplace le 01/07/1878 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Massia (id 21943)
+    [
+        'station' => ['name' => 'Massia', 'wikidata' => 'Q86724368'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1956-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Halte de Massia', 209241219),
+        'quote' => 'Cette halte a été mise en service vers 1956 lorsque la SNCF a repris la ligne.',
+        'reason' => 'article de la gare (oldid 209241219) : « Cette halte a été mise en service vers 1956 lorsque la SNCF a repris la ligne. ». Date approximative (« vers »). Remplace le 01/07/1878 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Limours-État (id 21965)
+    [
+        'station' => ['name' => 'Limours-État', 'wikidata' => 'Q107205111'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1930-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Limours-État', 204050069),
+        'quote' => 'mais ouverte seulement en 1930',
+        'reason' => 'article de la gare (oldid 204050069) : « mais ouverte seulement en 1930 ». Remplace l\'année 1922 de Wikidata (gare achevée en 1922, premiers trains en 1930).',
+    ],
+
+    // ── 44. Fermetures des gares fermées dont la date de fermeture était déduite de la ligne (audit-fermetures-2, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-fermetures-2.md). Les gares y ont souvent fermé avant la ligne (fermeture voyageurs du
+    // 15/05/1939, du 28/09/1969, de 1980 pour la desserte par autocars), la date déduite étant celle du déclassement, de la fin du fret
+    // ou de la fermeture totale. Seules les gares dont l'article (de la gare ou de la ligne, révision citée) dit la fermeture sont corrigées ;
+    // les autres restent à décider ou sans source (voir le CSV du rapport).
+
+    // Aire-sur-l'Adour (id 17277)
+    [
+        'station' => ['name' => 'Aire-sur-l\'Adour', 'wikidata' => 'Q115386235'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-10-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aire-sur-l\'Adour', 220918422),
+        'quote' => 'et est fermée aux voyageurs en 1970',
+        'reason' => 'article de la gare (oldid 220918422) : « et est fermée aux voyageurs en 1970 » ; Infobox : fermeture voyageurs le 12/10/1970 ; 2014 deduit de la ligne.',
+    ],
+
+    // Joudreville (id 18695)
+    [
+        'station' => ['name' => 'Joudreville', 'wikidata' => 'Q123498378'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Joudreville', 209684329),
+        'quote' => 'La SNCF met fin aux trains de voyageurs sur la ligne le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 209684329) : « La SNCF met fin aux trains de voyageurs sur la ligne le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1986 etait deduit de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Landres (id 18697)
+    [
+        'station' => ['name' => 'Landres', 'wikidata' => 'Q123498388'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Landres', 209700791),
+        'quote' => 'Les trains de voyageurs cessent de desservir la ligne le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 209700791) : « Les trains de voyageurs cessent de desservir la ligne le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1973 etait deduit de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Aumetz (id 18735)
+    [
+        'station' => ['name' => 'Aumetz', 'wikidata' => 'Q123498291'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-05-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aumetz', 230742995),
+        'quote' => 'la ligne ferme aux trains de passagers le 5 mai 1948',
+        'reason' => 'article de la gare (oldid 230742995) : « la ligne ferme aux trains de passagers le 5 mai 1948 » ; Fermeture voyageurs du 05/05/1948 ; 2005 deduit de la ligne.',
+    ],
+
+    // Roisel (id 18946)
+    [
+        'station' => ['name' => 'Roisel', 'wikidata' => 'Q2566610'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Roisel', 212959250),
+        'quote' => 'Le trafic voyageurs a été reporté sur la route le 1 avril 1970.',
+        'reason' => 'article de la gare (oldid 212959250) : « Le trafic voyageurs a été reporté sur la route le 1 avril 1970. » ; Trafic voyageurs reporte sur la route le 01/04/1970 ; 2010 deduit de la ligne.',
+    ],
+
+    // Mortagne-au-Perche (id 19316)
+    [
+        'station' => ['name' => 'Mortagne-au-Perche', 'wikidata' => 'Q109945175'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1953-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Mortagne-au-Perche', 234442336),
+        'quote' => 'La gare fermera au service voyageurs en 1953.',
+        'reason' => 'article de la gare (oldid 234442336) : « La gare fermera au service voyageurs en 1953. » ; Infobox : fermeture voyageurs 1953 (ligne d\'Alencon a Conde fermee aux voyageurs en 1935) ; 1989 deduit de la ligne.',
+    ],
+
+    // Gaël (id 19379)
+    [
+        'station' => ['name' => 'Gaël', 'wikidata' => 'Q26021574'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-03-06',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Gaël', 229514833),
+        'quote' => 'Elle est fermée au service des voyageurs le 6 mars 1972.',
+        'reason' => 'article de la gare (oldid 229514833) : « Elle est fermée au service des voyageurs le 6 mars 1972. » ; Fermeture voyageurs du 06/03/1972 (toute la ligne) ; 2018 deduit de la ligne (fret rouvert en 2009).',
+    ],
+
+    // Airvault-Ville (id 19528)
+    [
+        'station' => ['name' => 'Airvault-Ville', 'wikidata' => 'Q82784422'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Airvault-Ville', 188243396),
+        'quote' => 'Elle est fermée par la Société nationale des chemins de fer français (SNCF) lorsqu\'elle transfère sur route, en 1980, les dernières circulations omnibus du service des voyageurs.',
+        'reason' => 'article de la gare (oldid 188243396) : « Elle est fermée par la Société nationale des chemins de fer français (SNCF) lorsqu\'elle transfère sur route, en 1980, les dernières circulations omnibus du service des voyageurs. » ; Fermee aux voyageurs en 1980 (transfert sur route) ; 2015 deduit de la ligne.',
+    ],
+
+    // Gourge (id 19530)
+    [
+        'station' => ['name' => 'Gourge', 'wikidata' => 'Q83144554'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Chartres à Bordeaux-Saint-Jean', 241089765),
+        'quote' => 'de Thouars à Parthenay et Niort au 27 septembre 1980',
+        'reason' => 'article de la ligne (oldid 241089765) : « de Thouars à Parthenay et Niort au 27 septembre 1980 » ; Fermeture voyageurs de la section Thouars - Parthenay - Niort le 27/09/1980 (article de la ligne ; la gare : « fermee au service des voyageurs en 1980 ») ; 2015 est la fermeture a toutes les circulations.',
+    ],
+
+    // St-André-de-Lidon (id 19595)
+    [
+        'station' => ['name' => 'St-André-de-Lidon', 'wikidata' => 'Q24575294'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-André-de-Lidon', 220862797),
+        'quote' => 'La gare, comme l\'ensemble de la ligne, est fermée au service des voyageurs 15 05 1939.',
+        'reason' => 'article de la gare (oldid 220862797) : « La gare, comme l\'ensemble de la ligne, est fermée au service des voyageurs 15 05 1939. » ; Fermeture voyageurs du 15/05/1939 ; 2000 deduit de la ligne.',
+    ],
+
+    // Chauvigny (id 19689)
+    [
+        'station' => ['name' => 'Chauvigny', 'wikidata' => 'Q28040128'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Chauvigny', 150577964),
+        'quote' => 'Elle est fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 150577964) : « Elle est fermée au service des voyageurs en 1940 » ; Fermee aux voyageurs en 1940 ; 1989 deduit de la ligne.',
+    ],
+
+    // Concremiers (id 19853)
+    [
+        'station' => ['name' => 'Concremiers', 'wikidata' => 'Q28040130'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Concremiers', 228675721),
+        'quote' => 'Elle est fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 228675721) : « Elle est fermée au service des voyageurs en 1940 » ; Fermee aux voyageurs en 1940 ; 1973 deduit de la ligne.',
+    ],
+
+    // Ingrandes-Mérigny (id 19854)
+    [
+        'station' => ['name' => 'Ingrandes-Mérigny', 'wikidata' => 'Q3095792'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Ingrandes - Mérigny', 229526879),
+        'quote' => 'Elle est officiellement fermée au service des voyageurs le 27 mai 1940',
+        'reason' => 'article de la gare (oldid 229526879) : « Elle est officiellement fermée au service des voyageurs le 27 mai 1940 » ; Fermeture voyageurs du 27/05/1940 ; 1973 deduit de la ligne.',
+    ],
+
+    // St-Hilaire (Indre) (id 19855)
+    [
+        'station' => ['name' => 'St-Hilaire (Indre)', 'wikidata' => 'Q15948845'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1933-03-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Hilaire (Indre)', 228675946),
+        'quote' => 'Infobox, fermeture : 1 mars 1933 (voyageurs)',
+        'reason' => 'article de la gare (oldid 228675946) : Infobox, fermeture : 1 mars 1933 (voyageurs). Infobox : fermeture voyageurs le 01/03/1933 ; 1993 est le declassement de la ligne.',
+    ],
+
+    // Liglet (id 19856)
+    [
+        'station' => ['name' => 'Liglet', 'wikidata' => 'Q26714973'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1933-03-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Liglet', 235032634),
+        'quote' => 'La gare est fermée, comme la ligne, au service des voyageurs le 1 mars 1933.',
+        'reason' => 'article de la gare (oldid 235032634) : « La gare est fermée, comme la ligne, au service des voyageurs le 1 mars 1933. » ; Fermeture voyageurs du 01/03/1933 ; 1993 est le declassement de la ligne.',
+    ],
+
+    // St-Denis-de-Jouhet (id 19867)
+    [
+        'station' => ['name' => 'St-Denis-de-Jouhet', 'wikidata' => 'Q16638591'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Denis-de-Jouhet', 228675941),
+        'quote' => 'La gare, comme la ligne, est fermée au service des voyageurs le 1 juillet 1939.',
+        'reason' => 'article de la gare (oldid 228675941) : « La gare, comme la ligne, est fermée au service des voyageurs le 1 juillet 1939. » ; Fermeture voyageurs du 01/07/1939 ; 1995 est le declassement de la section.',
+    ],
+
+    // Larnagol-Calvignac (id 19937)
+    [
+        'station' => ['name' => 'Larnagol-Calvignac', 'wikidata' => 'Q113462421'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Calvignac', 236444829),
+        'quote' => 'Infobox, fermeture : 28 septembre 1980 (voyageurs)',
+        'reason' => 'article de la gare (oldid 236444829) : Infobox, fermeture : 28 septembre 1980 (voyageurs). Infobox : fermeture voyageurs le 28/09/1980 (ligne de Cahors a Capdenac) ; 2011 deduit de la ligne.',
+    ],
+
+    // Montbrun (id 19939)
+    [
+        'station' => ['name' => 'Montbrun', 'wikidata' => 'Q113458917'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montbrun', 237108391),
+        'quote' => 'Infobox, fermeture : 28 septembre 1980 (voyageurs)',
+        'reason' => 'article de la gare (oldid 237108391) : Infobox, fermeture : 28 septembre 1980 (voyageurs). Infobox : fermeture voyageurs le 28/09/1980 (ligne de Cahors a Capdenac) ; 2011 deduit de la ligne.',
+    ],
+
+    // Noyant-d'Allier (id 20006)
+    [
+        'station' => ['name' => 'Noyant-d\'Allier', 'wikidata' => 'Q16508055'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Noyant-d\'Allier', 235033632),
+        'quote' => 'La gare de Noyant-d\'Allier est fermée au service des voyageurs en 1972, lors de la fermeture de la section de Commentry à Moulins.',
+        'reason' => 'article de la gare (oldid 235033632) : « La gare de Noyant-d\'Allier est fermée au service des voyageurs en 1972, lors de la fermeture de la section de Commentry à Moulins. » ; Fermee aux voyageurs en 1972 avec la section Commentry - Moulins ; 1999 deduit de la ligne.',
+    ],
+
+    // Champtercier (id 20617)
+    [
+        'station' => ['name' => 'Champtercier', 'wikidata' => 'Q20971045'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-03-06',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Champtercier', 200688849),
+        'quote' => 'Elle est fermée le 6 mars 1972 avec la fin du trafic omnibus',
+        'reason' => 'article de la gare (oldid 200688849) : « Elle est fermée le 6 mars 1972 avec la fin du trafic omnibus » ; Fin du trafic omnibus le 06/03/1972 ; la ligne ferme totalement le 22/05/1991, 1988 non retrouve.',
+    ],
+
+    // Draguignan (id 20655)
+    [
+        'station' => ['name' => 'Draguignan', 'wikidata' => 'Q30739585'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1981-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Anciennes gares ferroviaires de Draguignan', 206881532),
+        'quote' => 'En 1981, la gare de Draguignan est fermée au trafic ferroviaire',
+        'reason' => 'article de la gare (oldid 206881532) : « En 1981, la gare de Draguignan est fermée au trafic ferroviaire » ; Fermee au trafic ferroviaire en 1981 (devient un point de vente) ; 1992 deduit de la ligne.',
+    ],
+
+    // Céret (id 20911)
+    [
+        'station' => ['name' => 'Céret', 'wikidata' => 'Q81720221'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Céret', 235031546),
+        'quote' => 'fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 235031546) : « fermée au service des voyageurs en 1940 » ; Infobox : fermeture voyageurs le 23/05/1940 ; 2014 deduit de la ligne.',
+    ],
+
+    // Drincham (id 21202)
+    [
+        'station' => ['name' => 'Drincham', 'wikidata' => 'Q60847117'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Drincham', 231973436),
+        'quote' => 'Elle est fermée en 1951 lors de la suppression de la ligne.',
+        'reason' => 'article de la gare (oldid 231973436) : « Elle est fermée en 1951 lors de la suppression de la ligne. » ; Fermee avec la ligne en 1951 ; 1944 deduit de la ligne.',
+    ],
+
+    // Ouzouer - Dampierre (id 21222)
+    [
+        'station' => ['name' => 'Ouzouer - Dampierre', 'wikidata' => 'Q61896217'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Ouzouer - Dampierre', 235030574),
+        'quote' => 'la suppression du trafic voyageur intervient le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 235030574) : « la suppression du trafic voyageur intervient le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1954 deduit de la ligne.',
+    ],
+
+    // Saint-Aigny - Le Blanc (id 21258)
+    [
+        'station' => ['name' => 'Saint-Aigny - Le Blanc', 'wikidata' => 'Q28040132'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Aigny - Le Blanc', 238289077),
+        'quote' => 'Elle est officiellement fermée au service des voyageurs le 27 mai 1940',
+        'reason' => 'article de la gare (oldid 238289077) : « Elle est officiellement fermée au service des voyageurs le 27 mai 1940 » ; Fermeture voyageurs du 27/05/1940 ; 1994 deduit de la ligne.',
+    ],
+
+    // Rosteig (id 21268)
+    [
+        'station' => ['name' => 'Rosteig', 'wikidata' => 'Q22340663'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rosteig', 235034165),
+        'quote' => 'Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969.',
+        'reason' => 'article de la gare (oldid 235034165) : « Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969. » ; Fermeture voyageurs du 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Saint-Louis-lès-Bitche (id 21291)
+    [
+        'station' => ['name' => 'Saint-Louis-lès-Bitche', 'wikidata' => 'Q22341813'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Louis-lès-Bitche', 229519298),
+        'quote' => 'Infobox, fermeture : 28 septembre 1969 (voyageurs)',
+        'reason' => 'article de la gare (oldid 229519298) : Infobox, fermeture : 28 septembre 1969 (voyageurs). Infobox : fermeture voyageurs le 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Montmorency (id 21441)
+    [
+        'station' => ['name' => 'Montmorency', 'wikidata' => 'Q16508052'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1954-06-30',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montmorency', 212402047),
+        'quote' => 'elle est fermée en 1954',
+        'reason' => 'article de la gare (oldid 212402047) : « elle est fermée en 1954 » ; Infobox : fermeture voyageurs le 30/06/1954 ; 1947 non retrouve dans l\'article.',
+    ],
+
+    // Soucht (id 21448)
+    [
+        'station' => ['name' => 'Soucht', 'wikidata' => 'Q22343124'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Soucht', 216787616),
+        'quote' => 'Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969.',
+        'reason' => 'article de la gare (oldid 216787616) : « Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969. » ; Fermeture voyageurs du 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Pouligny-Saint-Pierre (id 21673)
+    [
+        'station' => ['name' => 'Pouligny-Saint-Pierre', 'wikidata' => 'Q3097334'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-06-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pouligny-Saint-Pierre', 228675912),
+        'quote' => 'Elle est fermée au service voyageurs, le 27 juin 1940.',
+        'reason' => 'article de la gare (oldid 228675912) : « Elle est fermée au service voyageurs, le 27 juin 1940. » ; Fermeture voyageurs du 27/06/1940 ; 1970 est le declassement de la ligne.',
+    ],
+
+    // Cogolin La Foux (id 21677)
+    [
+        'station' => ['name' => 'Cogolin La Foux', 'wikidata' => 'Q108154002'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1948-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cogolin La Foux', 239464028),
+        'quote' => 'fut officiellement fermée en 1948',
+        'reason' => 'article de la gare (oldid 239464028) : « fut officiellement fermée en 1948 » ; Fermeture officielle de la ligne en 1948 (infobox 1948) ; 1949 deduit de la ligne.',
+    ],
+
+    // Pitgam (id 21714)
+    [
+        'station' => ['name' => 'Pitgam', 'wikidata' => 'Q56753715'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Pitgam', 217416935),
+        'quote' => 'Elle est fermée en 1951 lors de la suppression de la ligne.',
+        'reason' => 'article de la gare (oldid 217416935) : « Elle est fermée en 1951 lors de la suppression de la ligne. » ; Fermee avec la ligne en 1951 ; 1944 deduit de la ligne.',
+    ],
+
+    // Audun-le-Tiche-Mont (id 21825)
+    [
+        'station' => ['name' => 'Audun-le-Tiche-Mont', 'wikidata' => 'Q123498162'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-05-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Audun-le-Tiche-Mont', 230682739),
+        'quote' => 'La SNCF supprime le trafic des passagers sur la ligne de Fontoy à Audun-le-Tiche le 5 mai 1948.',
+        'reason' => 'article de la gare (oldid 230682739) : « La SNCF supprime le trafic des passagers sur la ligne de Fontoy à Audun-le-Tiche le 5 mai 1948. » ; Fermeture voyageurs du 05/05/1948 ; 2009 deduit de la ligne.',
+    ],
+
+    // Régneville-sur-Mer (id 21884)
+    [
+        'station' => ['name' => 'Régneville-sur-Mer', 'wikidata' => 'Q65157674'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1942-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Regnéville', 239621002),
+        'quote' => 'Infobox, fermeture : 1942',
+        'reason' => 'article de la gare (oldid 239621002) : Infobox, fermeture : 1942. Infobox : fermeture 1942 ; 1939 deduit de la ligne.',
+    ],
+
+    // Anderny (id 21941)
+    [
+        'station' => ['name' => 'Anderny', 'wikidata' => 'Q123497996'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Anderny', 238957889),
+        'quote' => 'La SNCF cesse de desservir la ligne par des trains de voyageurs le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 238957889) : « La SNCF cesse de desservir la ligne par des trains de voyageurs le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 (fiche de la gare) ; 1973 etait une date deduite de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Belvianes (id 21946)
+    [
+        'station' => ['name' => 'Belvianes', 'wikidata' => 'Q81075822'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-04-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Belvianes', 228481627),
+        'quote' => 'La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 04 1939.',
+        'reason' => 'article de la gare (oldid 228481627) : « La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 04 1939. » ; Fermeture voyageurs du 18/04/1939 (infobox) ; 1956 deduit de la ligne.',
+    ],
+
+    // Amélie-les-Bains (id 21950)
+    [
+        'station' => ['name' => 'Amélie-les-Bains', 'wikidata' => 'Q82925388'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Amélie-les-Bains', 231707538),
+        'quote' => 'fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 231707538) : « fermée au service des voyageurs en 1940 » ; Infobox : fermeture voyageurs le 23/05/1940 ; 1972 est la fermeture du troncon Amelie-les-Bains - Ceret (fret).',
+    ],
+
+    // Saint-Tropez (id 21979)
+    [
+        'station' => ['name' => 'Saint-Tropez', 'wikidata' => 'Q104162986'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1949-06-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Tropez', 221816503),
+        'quote' => 'jusqu\'à sa fermeture le 4 06 1949',
+        'reason' => 'article de la gare (oldid 221816503) : « jusqu\'à sa fermeture le 4 06 1949 » ; Jour precise : 04/06/1949 (l\'annee 1949 etait deduite de la ligne).',
+    ],
+
+    // ── 45. Ouvertures de 150 gares encore ouvertes de 0,148 M à 0,05 M de voyageurs (maximum depuis 2019), que les passes précédentes n'avaient
+    // pas lues, relues contre l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 20 corrigées
+    // (audit-gares-6, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/audit-gares-6.md). Les 3 cas douteux restent à décider
+    // (Sainte-Colombe-Septveilles, Montaudran, Neufchâteau).
+
+    // Bagneaux-sur-Loing (id 17419)
+    [
+        'station' => ['name' => 'Bagneaux-sur-Loing', 'uic' => '87684191'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1916-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Bagneaux-sur-Loing', 231119820),
+        'quote' => 'Mise en service en 1916 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare « Gare de Bagneaux-sur-Loing » (oldid 231119820) : la halte date de 1916 (le texte précise qu\'il n\'existait pas d\'arrêt à Bagneaux à l\'ouverture de la ligne). Remplace le 14/08/1860 déduit de la ligne.',
+    ],
+
+    // St-Roch (Somme) (id 15742)
+    [
+        'station' => ['name' => 'St-Roch (Somme)', 'uic' => '87313080'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Roch (Somme)', 241300034),
+        'quote' => 'mise en service = 1875 (marchandises), 1876 (voyageurs)',
+        'reason' => 'article de la gare « Gare de Saint-Roch (Somme) » (oldid 241300034) : infobox : 1875 pour les marchandises, 1876 pour les voyageurs ; la gare n\'a pas été ouverte avec la ligne de 1847. Remplace l\'année 1847 de Wikidata.',
+    ],
+
+    // Pauillac (id 16849)
+    [
+        'station' => ['name' => 'Pauillac', 'uic' => '87581256'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1870-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Pauillac', 241414232),
+        'quote' => 'mise en service = 1870 dans les chemins de fer',
+        'reason' => 'article de la gare « Gare de Pauillac » (oldid 241414232) : infobox : 1870, ouverture de la gare avec l\'extension jusqu\'à Pauillac de la ligne du Médoc. Remplace l\'année 1868 déduite de la ligne.',
+    ],
+
+    // Artix (id 17297)
+    [
+        'station' => ['name' => 'Artix', 'uic' => '87672212'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Artix', 238760141),
+        'quote' => 'La gare d’Artix est mise en service en 1863 par la Compagnie des chemins de fer du Midi, lors de l’ouverture de la section de ligne entre Pau et Puyoô.',
+        'reason' => 'article de la gare « Gare d\'Artix » (oldid 238760141) : mise en service en 1863 avec la section Pau - Puyoô. Remplace l\'année 1867 déduite de la ligne.',
+    ],
+
+    // Puyoô (id 17301)
+    [
+        'station' => ['name' => 'Puyoô', 'uic' => '87672279'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Artix', 238760141),
+        'quote' => 'La gare d’Artix est mise en service en 1863 par la Compagnie des chemins de fer du Midi, lors de l’ouverture de la section de ligne entre Pau et Puyoô.',
+        'reason' => 'article de la gare d\'Artix (oldid 238760141) : la section de ligne entre Pau et Puyoô est ouverte en 1863, Puyoô en est le terminus ; l\'article de Puyoô (oldid 239298922) dit seulement « La gare a été construite en 1862 ». Remplace l\'année 1867 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // Meroux : non corrigé. Seule l'infobox de « Gare de Belfort - Montbéliard TGV » (oldid 240819248) donne le 8 décembre 2018 ;
+    // la ligne de Belfort à Delle a rouvert au service voyageurs le 09/12/2018, date gardée (une seule source contre la chronologie).
+
+    // Pléchâtel (id 16319)
+    [
+        'station' => ['name' => 'Pléchâtel', 'uic' => '87471177'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-11-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Pléchâtel', 240863371),
+        'quote' => 'La gare de Pléchâtel est mise en service en novembre 1864, par la compagnie des chemins de fer de l\'Ouest, soit deux ans après l\'inauguration de la ligne.',
+        'reason' => 'article de la gare « Gare de Pléchâtel » (oldid 240863371) : mise en service en novembre 1864, deux ans après l\'ouverture de la ligne (infobox : 1864). Remplace l\'année 1862 de Wikidata.',
+    ],
+
+    // Guéthary (id 17324)
+    [
+        'station' => ['name' => 'Guéthary', 'uic' => '87673459'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Guéthary', 238892606),
+        'quote' => 'La gare a été inaugurée en 1884, vingt ans après la mise en service du tronçon Bayonne – Irun (1864)',
+        'reason' => 'article de la gare « Gare de Guéthary » (oldid 238892606) : gare inaugurée en 1884, vingt ans après le tronçon Bayonne - Irun. Remplace le 21/04/1864 déduit de la ligne.',
+    ],
+
+    // Margaux (id 16847)
+    [
+        'station' => ['name' => 'Margaux', 'uic' => '87581215'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Margaux', 223773147),
+        'quote' => 'La gare a été mise en service en même temps que la première partie de la ligne du Médoc, en 1868.',
+        'reason' => 'article de la gare « Gare de Margaux » (oldid 223773147) : mise en service avec la première partie de la ligne du Médoc, en 1868 (le Verdon n\'est atteint qu\'en 1875). Remplace le 01/03/1884 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Noeux-les-Mines (id 15883)
+    [
+        'station' => ['name' => 'Noeux-les-Mines', 'uic' => '87342139'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1861-10-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Nœux-les-Mines', 238682988),
+        'quote' => 'mise en service = 15 octobre 1861 dans les chemins de fer',
+        'reason' => 'article de la gare « Gare de Nœux-les-Mines » (oldid 238682988) : infobox et section Histoire : la station est mise en service le 15 octobre 1861 lors de l\'ouverture de la section Lens - Béthune. Précise l\'année 1861 de Wikidata au jour.',
+    ],
+
+    // Lutzelbourg (id 15447)
+    [
+        'station' => ['name' => 'Lutzelbourg', 'uic' => '87215160'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1851-05-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Lutzelbourg', 241364369),
+        'quote' => 'mise en service (avec un bâtiment voyageurs provisoire) par la Compagnie du chemin de fer de Paris à Strasbourg en mai 1851',
+        'reason' => 'article de la gare « Gare de Lutzelbourg » (oldid 241364369) : mise en service en mai 1851 lors de l\'inauguration de la section Strasbourg - Sarrebourg. Précise l\'année 1851 de Wikidata au mois.',
+    ],
+
+    // Retiers (id 16330)
+    [
+        'station' => ['name' => 'Retiers', 'uic' => '87471359'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Retiers', 236827897),
+        'quote' => 'La gare de Retiers est ouverte lors de la mise en service de la ligne en décembre 1881.',
+        'reason' => 'article de la gare « Gare de Retiers » (oldid 236827897) : ouverture avec la ligne en décembre 1881. Précise l\'année 1881 de Wikidata au mois.',
+    ],
+
+    // Mende (id 18232)
+    [
+        'station' => ['name' => 'Mende', 'uic' => '87783605'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-05-03',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Mende', 235795184),
+        'quote' => 'La gare de Mende est mise en service le 3 mai 1884, lors de l\'ouverture de la section du Monastier à Mende.',
+        'reason' => 'article de la gare « Gare de Mende » (oldid 235795184) : infobox et section Histoire : le 3 mai 1884. Précise l\'année 1884 de Wikidata au jour.',
+    ],
+
+    // Morez (id 17584)
+    [
+        'station' => ['name' => 'Morez', 'uic' => '87715441'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1900-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Morez', 234924903),
+        'quote' => 'La gare était, à son ouverture le 12 août 1900 dans les chemins de fer, le terminus de la ligne venant d\'Andelot.',
+        'reason' => 'article de la gare « Gare de Morez » (oldid 234924903) : infobox et section Histoire : le 12 août 1900. Précise l\'année 1900 de Wikidata au jour.',
+    ],
+
+    // Delle (id 15248)
+    [
+        'station' => ['name' => 'Delle', 'uic' => '87184440'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-06-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Delle', 232254189),
+        'quote' => 'Le chemin de fer arrive à Delle le 29 juin 1868',
+        'reason' => 'article de la gare « Gare de Delle » (oldid 232254189) : le chemin de fer arrive à Delle le 29 juin 1868, avec l\'inauguration de la ligne de Montbéliard à Delle. Précise l\'année 1868 de Wikidata au jour.',
+    ],
+
+    // Saujon (id 16611)
+    [
+        'station' => ['name' => 'Saujon', 'uic' => '87491811'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-08-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saujon', 222377940),
+        'quote' => 'lors de l\'inauguration de sa ligne de Pons à Royan le 28 août 1875',
+        'reason' => 'article de la gare « Gare de Saujon » (oldid 222377940) : mise en service lors de l\'inauguration de la ligne de Pons à Royan le 28 août 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Istres (id 17997)
+    [
+        'station' => ['name' => 'Istres', 'uic' => '87753418'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Istres', 240315247),
+        'quote' => 'La ligne est mise en service en 1882.',
+        'reason' => 'article de la gare « Gare d\'Istres » (oldid 240315247) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l\'année 1875 de Wikidata (décret de concession). Confiance moyenne : l\'article ne date pas l\'arrêt d\'Istres seul.',
+    ],
+
+    // Port-de-Bouc (id 18001)
+    [
+        'station' => ['name' => 'Port-de-Bouc', 'uic' => '87753459'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Port-de-Bouc', 238957960),
+        'quote' => 'La ligne est mise en service en 1882.',
+        'reason' => 'article de la gare « Gare de Port-de-Bouc » (oldid 238957960) : la ligne Miramas - Istres - Port-de-Bouc, concédée en 1875, est mise en service en 1882. Remplace l\'année 1875 de Wikidata (décret de concession). Confiance moyenne : l\'article ne date pas l\'arrêt de Port-de-Bouc seul.',
+    ],
+
+    // Oyonnax (id 17878)
+    [
+        'station' => ['name' => 'Oyonnax', 'uic' => '87743534'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1885-05-16',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Andelot-en-Montagne à La Cluse', 241260215),
+        'quote' => 'd\'Oyonnax à La Cluse : 16 mai 1885',
+        'reason' => 'article de la ligne « Ligne d\'Andelot-en-Montagne à La Cluse » (oldid 241260215) : section d\'Oyonnax à La Cluse ouverte le 16 mai 1885 (article de la gare, oldid 241399044 : construction du 28 mars 1883 au 16 mai 1885, inauguration le 17 mai). Précise l\'année 1885 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Pont-St-Vincent (id 14987)
+    [
+        'station' => ['name' => 'Pont-St-Vincent', 'uic' => '87141523'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-11-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pont-Saint-Vincent', 241364429),
+        'quote' => 'L\'histoire de la gare de Pont-Saint-Vincent débute le 11 novembre 1872, avec l\'ouverture de la première partie de la',
+        'reason' => 'article de la gare « Gare de Pont-Saint-Vincent » (oldid 241364429) : ouverture de la première partie de la ligne de Jarville-la-Malgrange à Vézelise le 11 novembre 1872. Remplace le 18/11/1872 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // ── 46. Rattachements à Wikidata (23/11/2026, rapport storage/app/reports/agents/aprem-2111/wikidata-gares.md) ──────────────────────────────────
+    // Gares de VFF sans élément Wikidata dont l'élément existe : même UIC (P722, sur 7 chiffres, sans la clé), même nom et à moins de 300 m
+    // de la position VFF (les douze gares sans UIC : même nom, élément seul de ce nom à moins de 300 m, aucune autre fiche du même nom).
+    // Éléments lus sur l'API Wikidata le 23/11/2026 (wbgetentities, requêtes SPARQL bornées). Les éléments de classe « gare de marchandises »
+    // (Q55493) rejoignent les fiches de gares fret seul ou plus desservies créées de la même liste SNCF (même UIC, même point). Écartés : les
+    // fiches des fusions en attente, les homonymes à moins de 300 m, les éléments de tramway ou de métro. Appliqué par vff:consolidate-stations
+    // (action « link » : le Q-id est posé sur l'objet source de la gare, sans jamais remplacer celui qu'un objet porte déjà).
+
+    // Paris-La Villette-Hébert (id 14870)
+    [
+        'station' => ['name' => 'Paris-La Villette-Hébert', 'uic' => '87113134'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758491',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758491',
+        'quote' => 'P722 = 8711313',
+        'reason' => 'élément Wikidata Q120758491 (gare de marchandises) : UIC 87113134 (P722 8711313) identique, nom « Paris-La Villette-Hébert » et à 20 m de la position VFF.',
+    ],
+
+    // Artonges (id 14886)
+    [
+        'station' => ['name' => 'Artonges', 'uic' => '87115378'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758185',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758185',
+        'quote' => 'P722 = 8711537',
+        'reason' => 'élément Wikidata Q120758185 (gare de marchandises) : UIC 87115378 (P722 8711537) identique, nom « Artonges » et à 0 m de la position VFF.',
+    ],
+
+    // St-Mesmin (id 14937)
+    [
+        'station' => ['name' => 'St-Mesmin', 'uic' => '87118091'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757178',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757178',
+        'quote' => 'P722 = 8711809',
+        'reason' => 'élément Wikidata Q120757178 (gare de marchandises) : UIC 87118091 (P722 8711809) identique, nom « Saint-Mesmin » et à 25 m de la position VFF.',
+    ],
+
+    // Crancey (id 14940)
+    [
+        'station' => ['name' => 'Crancey', 'uic' => '87118166'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757176',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757176',
+        'quote' => 'P722 = 8711816',
+        'reason' => 'élément Wikidata Q120757176 (gare de marchandises) : UIC 87118166 (P722 8711816) identique, nom « Crancey » et à 25 m de la position VFF.',
+    ],
+
+    // Jessains (id 14943)
+    [
+        'station' => ['name' => 'Jessains', 'uic' => '87118273'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757181',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757181',
+        'quote' => 'P722 = 8711827',
+        'reason' => 'élément Wikidata Q120757181 (gare de marchandises) : UIC 87118273 (P722 8711827) identique, nom « Jessains » et à 25 m de la position VFF.',
+    ],
+
+    // Clairvaux (id 14945)
+    [
+        'station' => ['name' => 'Clairvaux', 'uic' => '87118315'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757167',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757167',
+        'quote' => 'P722 = 8711831',
+        'reason' => 'élément Wikidata Q120757167 (gare de marchandises) : UIC 87118315 (P722 8711831) identique, nom « Clairvaux » et à 25 m de la position VFF.',
+    ],
+
+    // Bouilly-Roncenay (id 14946)
+    [
+        'station' => ['name' => 'Bouilly-Roncenay', 'uic' => '87118356'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757174',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757174',
+        'quote' => 'P722 = 8711835',
+        'reason' => 'élément Wikidata Q120757174 (gare de marchandises) : UIC 87118356 (P722 8711835) identique, nom « Bouilly - Roncenay » et à 0 m de la position VFF.',
+    ],
+
+    // Buchères-Verrières (id 14947)
+    [
+        'station' => ['name' => 'Buchères-Verrières', 'uic' => '87118430'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757185',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757185',
+        'quote' => 'P722 = 8711843',
+        'reason' => 'élément Wikidata Q120757185 (gare de marchandises) : UIC 87118430 (P722 8711843) identique, nom « Buchères - Verrières » et à 0 m de la position VFF.',
+    ],
+
+    // Bar-sur-Seine (id 14948)
+    [
+        'station' => ['name' => 'Bar-sur-Seine', 'uic' => '87118497'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757175',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757175',
+        'quote' => 'P722 = 8711849',
+        'reason' => 'élément Wikidata Q120757175 (gare de marchandises) : UIC 87118497 (P722 8711849) identique, nom « Bar-sur-Seine » et à 0 m de la position VFF.',
+    ],
+
+    // Polisot (id 14949)
+    [
+        'station' => ['name' => 'Polisot', 'uic' => '87118505'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757168',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757168',
+        'quote' => 'P722 = 8711850',
+        'reason' => 'élément Wikidata Q120757168 (gare de marchandises) : UIC 87118505 (P722 8711850) identique, nom « Polisot » et à 0 m de la position VFF.',
+    ],
+
+    // Charmont (id 14950)
+    [
+        'station' => ['name' => 'Charmont', 'uic' => '87118554'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757183',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757183',
+        'quote' => 'P722 = 8711855',
+        'reason' => 'élément Wikidata Q120757183 (gare de marchandises) : UIC 87118554 (P722 8711855) identique, nom « Charmont » et à 177 m de la position VFF.',
+    ],
+
+    // Arcis-sur-Aube (id 14951)
+    [
+        'station' => ['name' => 'Arcis-sur-Aube', 'uic' => '87118588'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757170',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757170',
+        'quote' => 'P722 = 8711858',
+        'reason' => 'élément Wikidata Q120757170 (gare de marchandises) : UIC 87118588 (P722 8711858) identique, nom « Arcis-sur-Aube » et à 176 m de la position VFF.',
+    ],
+
+    // Chavanges (id 14953)
+    [
+        'station' => ['name' => 'Chavanges', 'uic' => '87118786'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757172',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757172',
+        'quote' => 'P722 = 8711878',
+        'reason' => 'élément Wikidata Q120757172 (gare de marchandises) : UIC 87118786 (P722 8711878) identique, nom « Chavanges » et à 0 m de la position VFF.',
+    ],
+
+    // Estissac (id 14954)
+    [
+        'station' => ['name' => 'Estissac', 'uic' => '87118810'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757187',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757187',
+        'quote' => 'P722 = 8711881',
+        'reason' => 'élément Wikidata Q120757187 (gare de marchandises) : UIC 87118810 (P722 8711881) identique, nom « Estissac » et à 0 m de la position VFF.',
+    ],
+
+    // Coussey (id 14975)
+    [
+        'station' => ['name' => 'Coussey', 'uic' => '87141341'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756954',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756954',
+        'quote' => 'P722 = 8714134',
+        'reason' => 'élément Wikidata Q120756954 (gare de marchandises) : UIC 87141341 (P722 8714134) identique, nom « Coussey » et à 0 m de la position VFF.',
+    ],
+
+    // Rolampont (id 15005)
+    [
+        'station' => ['name' => 'Rolampont', 'uic' => '87142075'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757252',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757252',
+        'quote' => 'P722 = 8714207',
+        'reason' => 'élément Wikidata Q120757252 (gare de marchandises) : UIC 87142075 (P722 8714207) identique, nom « Rolampont » et à 78 m de la position VFF.',
+    ],
+
+    // Rimaucourt (id 15014)
+    [
+        'station' => ['name' => 'Rimaucourt', 'uic' => '87142299'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757250',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757250',
+        'quote' => 'P722 = 8714229',
+        'reason' => 'élément Wikidata Q120757250 (gare de marchandises) : UIC 87142299 (P722 8714229) identique, nom « Rimaucourt » et à 0 m de la position VFF.',
+    ],
+
+    // Manois (id 15015)
+    [
+        'station' => ['name' => 'Manois', 'uic' => '87142307'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757257',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757257',
+        'quote' => 'P722 = 8714230',
+        'reason' => 'élément Wikidata Q120757257 (gare de marchandises) : UIC 87142307 (P722 8714230) identique, nom « Manois » et à 0 m de la position VFF.',
+    ],
+
+    // Vaux-sous-Aubigny (id 15024)
+    [
+        'station' => ['name' => 'Vaux-sous-Aubigny', 'uic' => '87142620'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757254',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757254',
+        'quote' => 'P722 = 8714262',
+        'reason' => 'élément Wikidata Q120757254 (gare de marchandises) : UIC 87142620 (P722 8714262) identique, nom « Vaux-sous-Aubigny » et à 0 m de la position VFF.',
+    ],
+
+    // Gironcourt-Houécourt (id 15054)
+    [
+        'station' => ['name' => 'Gironcourt-Houécourt', 'uic' => '87144352'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757037',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757037',
+        'quote' => 'P722 = 8714435',
+        'reason' => 'élément Wikidata Q120757037 (gare de marchandises) : UIC 87144352 (P722 8714435) identique, nom « Gironcourt - Houécourt » et à 0 m de la position VFF.',
+    ],
+
+    // Châtenois-Dolaincourt (id 15055)
+    [
+        'station' => ['name' => 'Châtenois-Dolaincourt', 'uic' => '87144360'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757032',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757032',
+        'quote' => 'P722 = 8714436',
+        'reason' => 'élément Wikidata Q120757032 (gare de marchandises) : UIC 87144360 (P722 8714436) identique, nom « Châtenois - Dolaincourt » et à 0 m de la position VFF.',
+    ],
+
+    // Messempré (id 15132)
+    [
+        'station' => ['name' => 'Messempré', 'uic' => '87172486'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757243',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757243',
+        'quote' => 'P722 = 8717248',
+        'reason' => 'élément Wikidata Q120757243 (gare de marchandises) : UIC 87172486 (P722 8717248) identique, nom « Messempré » et à 0 m de la position VFF.',
+    ],
+
+    // Tournes (id 15133)
+    [
+        'station' => ['name' => 'Tournes', 'uic' => '87172502'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q117311407',
+        'source_url' => 'https://www.wikidata.org/wiki/Q117311407',
+        'quote' => 'P722 = 8717250',
+        'reason' => 'élément Wikidata Q117311407 (gare de marchandises) : UIC 87172502 (P722 8717250) identique, nom « Tournes » et à 0 m de la position VFF.',
+    ],
+
+    // Vouziers (id 15135)
+    [
+        'station' => ['name' => 'Vouziers', 'uic' => '87172593'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107472266',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107472266',
+        'quote' => 'P722 = 8717259',
+        'reason' => 'élément Wikidata Q107472266 (gare de marchandises) : UIC 87172593 (P722 8717259) identique, nom « Vouziers » et à 0 m de la position VFF.',
+    ],
+
+    // Stenay (id 15138)
+    [
+        'station' => ['name' => 'Stenay', 'uic' => '87172775'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757205',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757205',
+        'quote' => 'P722 = 8717277',
+        'reason' => 'élément Wikidata Q120757205 (gare de marchandises) : UIC 87172775 (P722 8717277) identique, nom « Stenay » et à 0 m de la position VFF.',
+    ],
+
+    // Oiry (id 15142)
+    [
+        'station' => ['name' => 'Oiry', 'uic' => '87174102'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758244',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758244',
+        'quote' => 'P722 = 8717410',
+        'reason' => 'élément Wikidata Q120758244 (gare de marchandises) : UIC 87174102 (P722 8717410) identique, nom « Oiry » et à 4 m de la position VFF.',
+    ],
+
+    // Mailly-le-Camp (id 15153)
+    [
+        'station' => ['name' => 'Mailly-le-Camp', 'uic' => '87174573'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757180',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757180',
+        'quote' => 'P722 = 8717457',
+        'reason' => 'élément Wikidata Q120757180 (gare de marchandises) : UIC 87174573 (P722 8717457) identique, nom « Mailly-le-Camp » et à 179 m de la position VFF.',
+    ],
+
+    // Ancerville-Guë (id 15166)
+    [
+        'station' => ['name' => 'Ancerville-Guë', 'uic' => '87175166'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757391',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757391',
+        'quote' => 'P722 = 8717516',
+        'reason' => 'élément Wikidata Q120757391 (gare de marchandises) : UIC 87175166 (P722 8717516) identique, nom « Ancerville-Guë » et à 0 m de la position VFF.',
+    ],
+
+    // Sorcy (id 15169)
+    [
+        'station' => ['name' => 'Sorcy', 'uic' => '87175281'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108740428',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108740428',
+        'quote' => 'P722 = 8717528',
+        'reason' => 'élément Wikidata Q108740428 (gare de marchandises) : UIC 87175281 (P722 8717528) identique, nom « Sorcy » et à 102 m de la position VFF.',
+    ],
+
+    // Ligny (id 15170)
+    [
+        'station' => ['name' => 'Ligny', 'uic' => '87175323'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757392',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757392',
+        'quote' => 'P722 = 8717532',
+        'reason' => 'élément Wikidata Q120757392 (gare de marchandises) : UIC 87175323 (P722 8717532) identique, nom « Ligny » et à 0 m de la position VFF.',
+    ],
+
+    // Dugny (id 15172)
+    [
+        'station' => ['name' => 'Dugny', 'uic' => '87175661'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757390',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757390',
+        'quote' => 'P722 = 8717566',
+        'reason' => 'élément Wikidata Q120757390 (gare de marchandises) : UIC 87175661 (P722 8717566) identique, nom « Dugny » et à 0 m de la position VFF.',
+    ],
+
+    // Baleycourt (id 15173)
+    [
+        'station' => ['name' => 'Baleycourt', 'uic' => '87175760'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757203',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757203',
+        'quote' => 'P722 = 8717576',
+        'reason' => 'élément Wikidata Q120757203 (gare de marchandises) : UIC 87175760 (P722 8717576) identique, nom « Baleycourt » et à 0 m de la position VFF.',
+    ],
+
+    // Buzy (Meuse) (id 15176)
+    [
+        'station' => ['name' => 'Buzy (Meuse)', 'uic' => '87175802'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757394',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757394',
+        'quote' => 'P722 = 8717580',
+        'reason' => 'élément Wikidata Q120757394 (gare de marchandises) : UIC 87175802 (P722 8717580) identique, nom « Buzy (Meuse) » et à 0 m de la position VFF.',
+    ],
+
+    // St-Germain-sur-Meuse (id 15178)
+    [
+        'station' => ['name' => 'St-Germain-sur-Meuse', 'uic' => '87175836'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757393',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757393',
+        'quote' => 'P722 = 8717583',
+        'reason' => 'élément Wikidata Q120757393 (gare de marchandises) : UIC 87175836 (P722 8717583) identique, nom « Saint-Germain-sur-Meuse » et à 0 m de la position VFF.',
+    ],
+
+    // Mulhouse-Nord (id 15189)
+    [
+        'station' => ['name' => 'Mulhouse-Nord', 'uic' => '87182006'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17628881',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17628881',
+        'quote' => 'P722 = 8718200',
+        'reason' => 'élément Wikidata Q17628881 (Q519608) : UIC 87182006 (P722 8718200) identique, nom « gare de Mulhouse-Nord » et à 87 m de la position VFF.',
+    ],
+
+    // Florange (id 15273)
+    [
+        'station' => ['name' => 'Florange', 'uic' => '87191247'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756860',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756860',
+        'quote' => 'P722 = 8719124',
+        'reason' => 'élément Wikidata Q120756860 (gare de marchandises) : UIC 87191247 (P722 8719124) identique, nom « Florange » et à 22 m de la position VFF.',
+    ],
+
+    // Batilly (id 15308)
+    [
+        'station' => ['name' => 'Batilly', 'uic' => '87192617'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757388',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757388',
+        'quote' => 'P722 = 8719261',
+        'reason' => 'élément Wikidata Q120757388 (gare de marchandises) : UIC 87192617 (P722 8719261) identique, nom « Batilly » et à 0 m de la position VFF.',
+    ],
+
+    // Jeandelize (id 15311)
+    [
+        'station' => ['name' => 'Jeandelize', 'uic' => '87192708'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757159',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757159',
+        'quote' => 'P722 = 8719270',
+        'reason' => 'élément Wikidata Q120757159 (gare de marchandises) : UIC 87192708 (P722 8719270) identique, nom « Jeandelize » et à 0 m de la position VFF.',
+    ],
+
+    // Cocheren (id 15316)
+    [
+        'station' => ['name' => 'Cocheren', 'uic' => '87193227'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756895',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756895',
+        'quote' => 'P722 = 8719322',
+        'reason' => 'élément Wikidata Q120756895 (gare de marchandises) : UIC 87193227 (P722 8719322) identique, nom « Cocheren » et à 19 m de la position VFF.',
+    ],
+
+    // Bitche-Camp (id 15335)
+    [
+        'station' => ['name' => 'Bitche-Camp', 'uic' => '87193839'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756856',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756856',
+        'quote' => 'P722 = 8719383',
+        'reason' => 'élément Wikidata Q120756856 (gare de marchandises) : UIC 87193839 (P722 8719383) identique, nom « Bitche-Camp » et à 0 m de la position VFF.',
+    ],
+
+    // Schiltigheim (id 15365)
+    [
+        'station' => ['name' => 'Schiltigheim', 'uic' => '87212290'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17628898',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17628898',
+        'quote' => 'P722 = 8721229',
+        'reason' => 'élément Wikidata Q17628898 (gare de marchandises) : UIC 87212290 (P722 8721229) identique, nom « Schiltigheim » et à 169 m de la position VFF.',
+    ],
+
+    // Ciry-Sermoise (id 15498)
+    [
+        'station' => ['name' => 'Ciry-Sermoise', 'uic' => '87271866'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758138',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758138',
+        'quote' => 'P722 = 8727186',
+        'reason' => 'élément Wikidata Q120758138 (gare de marchandises) : UIC 87271866 (P722 8727186) identique, nom « Ciry - Sermoise » et à 0 m de la position VFF.',
+    ],
+
+    // Dunkerque-Port-Est (id 15593)
+    [
+        'station' => ['name' => 'Dunkerque-Port-Est', 'uic' => '87281204'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769303',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769303',
+        'quote' => 'P722 = 8728120',
+        'reason' => 'élément Wikidata Q120769303 (plusieurs classes) : UIC 87281204 (P722 8728120) identique, nom « Dunkerque-Port-Est » et à 1 m de la position VFF.',
+    ],
+
+    // Lomme (MIN) (id 15674)
+    [
+        'station' => ['name' => 'Lomme (MIN)', 'uic' => '87287417'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769291',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769291',
+        'quote' => 'P722 = 8728741',
+        'reason' => 'élément Wikidata Q120769291 (gare de marchandises) : UIC 87287417 (P722 8728741) identique, nom « Lomme (MIN) » et à 3 m de la position VFF.',
+    ],
+
+    // Feignies (id 15678)
+    [
+        'station' => ['name' => 'Feignies', 'uic' => '87295030'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q15279077',
+        'source_url' => 'https://www.wikidata.org/wiki/Q15279077',
+        'quote' => 'P722 = 8729503',
+        'reason' => 'élément Wikidata Q15279077 (plusieurs classes) : UIC 87295030 (P722 8729503) identique, nom « Feignies » et à 27 m de la position VFF.',
+    ],
+
+    // Douzies (id 15684)
+    [
+        'station' => ['name' => 'Douzies', 'uic' => '87295238'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769287',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769287',
+        'quote' => 'P722 = 8729523',
+        'reason' => 'élément Wikidata Q120769287 (gare de marchandises) : UIC 87295238 (P722 8729523) identique, nom « Douzies » et à 12 m de la position VFF.',
+    ],
+
+    // Athies-sous-Laon (id 15710)
+    [
+        'station' => ['name' => 'Athies-sous-Laon', 'uic' => '87296327'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758155',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758155',
+        'quote' => 'P722 = 8729632',
+        'reason' => 'élément Wikidata Q120758155 (gare de marchandises) : UIC 87296327 (P722 8729632) identique, nom « Athies-sous-Laon » et à 0 m de la position VFF.',
+    ],
+
+    // Clermont-les-Fermes (id 15711)
+    [
+        'station' => ['name' => 'Clermont-les-Fermes', 'uic' => '87296376'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758126',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758126',
+        'quote' => 'P722 = 8729637',
+        'reason' => 'élément Wikidata Q120758126 (gare de marchandises) : UIC 87296376 (P722 8729637) identique, nom « Clermont-les-Fermes » et à 0 m de la position VFF.',
+    ],
+
+    // Montcornet (id 15712)
+    [
+        'station' => ['name' => 'Montcornet', 'uic' => '87296384'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758119',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758119',
+        'quote' => 'P722 = 8729638',
+        'reason' => 'élément Wikidata Q120758119 (gare de marchandises) : UIC 87296384 (P722 8729638) identique, nom « Montcornet » et à 0 m de la position VFF.',
+    ],
+
+    // Origny-Ste-Benoite (id 15717)
+    [
+        'station' => ['name' => 'Origny-Ste-Benoite', 'uic' => '87296467'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758112',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758112',
+        'quote' => 'P722 = 8729646',
+        'reason' => 'élément Wikidata Q120758112 (gare de marchandises) : UIC 87296467 (P722 8729646) identique, nom « Origny-Sainte-Benoite » et à 0 m de la position VFF.',
+    ],
+
+    // Chivres-en-Laonnois (id 15728)
+    [
+        'station' => ['name' => 'Chivres-en-Laonnois', 'uic' => '87297192'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758150',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758150',
+        'quote' => 'P722 = 8729719',
+        'reason' => 'élément Wikidata Q120758150 (gare de marchandises) : UIC 87297192 (P722 8729719) identique, nom « Chivres-en-Laonnois » et à 0 m de la position VFF.',
+    ],
+
+    // Saleux (id 15737)
+    [
+        'station' => ['name' => 'Saleux', 'uic' => '87313015'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109581650',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109581650',
+        'quote' => 'P722 = 8731301',
+        'reason' => 'élément Wikidata Q109581650 (gare de marchandises) : UIC 87313015 (P722 8731301) identique, nom « Saleux » et à 8 m de la position VFF.',
+    ],
+
+    // Montières (id 15748)
+    [
+        'station' => ['name' => 'Montières', 'uic' => '87313197'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q18380201',
+        'source_url' => 'https://www.wikidata.org/wiki/Q18380201',
+        'quote' => 'P722 = 8731319',
+        'reason' => 'élément Wikidata Q18380201 (gare de marchandises) : UIC 87313197 (P722 8731319) identique, nom « Montières » et à 15 m de la position VFF.',
+    ],
+
+    // Bacouël (id 15802)
+    [
+        'station' => ['name' => 'Bacouël', 'uic' => '87315010'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109581289',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109581289',
+        'quote' => 'P722 = 8731501',
+        'reason' => 'élément Wikidata Q109581289 (gare de marchandises) : UIC 87315010 (P722 8731501) identique, nom « Bacouel » et à 0 m de la position VFF.',
+    ],
+
+    // Épehy (id 15943)
+    [
+        'station' => ['name' => 'Épehy', 'uic' => '87345363'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757433',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757433',
+        'quote' => 'P722 = 8734536',
+        'reason' => 'élément Wikidata Q120757433 (gare de marchandises) : UIC 87345363 (P722 8734536) identique, nom « Épehy » et à 0 m de la position VFF.',
+    ],
+
+    // St-Sébastien-Frêne-Rond (id 15965)
+    [
+        'station' => ['name' => 'St-Sébastien-Frêne-Rond', 'uic' => '87354597'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2675849',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2675849',
+        'quote' => 'P722 = 8735459',
+        'reason' => 'élément Wikidata Q2675849 (gare ferroviaire) : UIC 87354597 (P722 8735459) identique, nom « Saint-Sébastien-Frêne-Rond » et à 53 m de la position VFF.',
+    ],
+
+    // Paris-Batignolles (id 15966)
+    [
+        'station' => ['name' => 'Paris-Batignolles', 'uic' => '87381004'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107000687',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107000687',
+        'quote' => 'P722 = 8738100',
+        'reason' => 'élément Wikidata Q107000687 (gare de marchandises) : UIC 87381004 (P722 8738100) identique, nom « Paris-Batignolles » et à 11 m de la position VFF.',
+    ],
+
+    // St-Aubin-du-Vieil-Évreux (id 16061)
+    [
+        'station' => ['name' => 'St-Aubin-du-Vieil-Évreux', 'uic' => '87387126'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757380',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757380',
+        'quote' => 'P722 = 8738712',
+        'reason' => 'élément Wikidata Q120757380 (gare de marchandises) : UIC 87387126 (P722 8738712) identique, nom « Saint-Aubin-du-Vieil-Évreux » et à 15 m de la position VFF.',
+    ],
+
+    // Breteuil (id 16066)
+    [
+        'station' => ['name' => 'Breteuil', 'uic' => '87387241'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836193',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836193',
+        'quote' => 'P722 = 8738724',
+        'reason' => 'élément Wikidata Q114836193 (gare de marchandises) : UIC 87387241 (P722 8738724) identique, nom « Breteuil » et à 0 m de la position VFF.',
+    ],
+
+    // St-André-de-l\'Eure (id 16067)
+    [
+        'station' => ['name' => 'St-André-de-l\'Eure', 'uic' => '87387308'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836178',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836178',
+        'quote' => 'P722 = 8738730',
+        'reason' => 'élément Wikidata Q114836178 (gare de marchandises) : UIC 87387308 (P722 8738730) identique, nom « Saint-André-de-l\'Eure » et à 0 m de la position VFF.',
+    ],
+
+    // Garnay (id 16125)
+    [
+        'station' => ['name' => 'Garnay', 'uic' => '87393660'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756792',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756792',
+        'quote' => 'P722 = 8739366',
+        'reason' => 'élément Wikidata Q120756792 (gare de marchandises) : UIC 87393660 (P722 8739366) identique, nom « Garnay » et à 0 m de la position VFF.',
+    ],
+
+    // Beaulieu-Le Coudray (id 16147)
+    [
+        'station' => ['name' => 'Beaulieu-Le Coudray', 'uic' => '87394387'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108112580',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108112580',
+        'quote' => 'P722 = 8739438',
+        'reason' => 'élément Wikidata Q108112580 (gare de marchandises) : UIC 87394387 (P722 8739438) identique, nom « Beaulieu-Le Coudray » et à 6 m de la position VFF.',
+    ],
+
+    // St-Sauveur-Châteauneuf (id 16155)
+    [
+        'station' => ['name' => 'St-Sauveur-Châteauneuf', 'uic' => '87394569'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108130605',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108130605',
+        'quote' => 'P722 = 8739456',
+        'reason' => 'élément Wikidata Q108130605 (gare de marchandises) : UIC 87394569 (P722 8739456) identique, nom « Saint-Sauveur - Châteauneuf » et à 15 m de la position VFF.',
+    ],
+
+    // Coltainville (id 16156)
+    [
+        'station' => ['name' => 'Coltainville', 'uic' => '87394866'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756842',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756842',
+        'quote' => 'P722 = 8739486',
+        'reason' => 'élément Wikidata Q120756842 (gare de marchandises) : UIC 87394866 (P722 8739486) identique, nom « Coltainville » et à 0 m de la position VFF.',
+    ],
+
+    // La Chartre-sur-le-Loir (id 16187)
+    [
+        'station' => ['name' => 'La Chartre-sur-le-Loir', 'uic' => '87396671'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757429',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757429',
+        'quote' => 'P722 = 8739667',
+        'reason' => 'élément Wikidata Q120757429 (gare de marchandises) : UIC 87396671 (P722 8739667) identique, nom « La Chartre-sur-le-Loir » et à 164 m de la position VFF.',
+    ],
+
+    // Grand-Quevilly (id 16194)
+    [
+        'station' => ['name' => 'Grand-Quevilly', 'uic' => '87411108'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119079',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119079',
+        'quote' => 'P722 = 8741110',
+        'reason' => 'élément Wikidata Q115119079 (gare de marchandises) : UIC 87411108 (P722 8741110) identique, nom « Grand-Quevilly » et à 33 m de la position VFF.',
+    ],
+
+    // Petit-Couronne (id 16195)
+    [
+        'station' => ['name' => 'Petit-Couronne', 'uic' => '87411116'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119133',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119133',
+        'quote' => 'P722 = 8741111',
+        'reason' => 'élément Wikidata Q115119133 (gare de marchandises) : UIC 87411116 (P722 8741111) identique, nom « Petit-Couronne » et à 0 m de la position VFF.',
+    ],
+
+    // St-Pierre-lès-Elbeuf (id 16196)
+    [
+        'station' => ['name' => 'St-Pierre-lès-Elbeuf', 'uic' => '87411132'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119193',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119193',
+        'quote' => 'P722 = 8741113',
+        'reason' => 'élément Wikidata Q115119193 (gare de marchandises) : UIC 87411132 (P722 8741113) identique, nom « Saint-Pierre-lès-Elbeuf » et à 0 m de la position VFF.',
+    ],
+
+    // St-Ouen-du-Breuil (id 16214)
+    [
+        'station' => ['name' => 'St-Ouen-du-Breuil', 'uic' => '87411728'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757422',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757422',
+        'quote' => 'P722 = 8741172',
+        'reason' => 'élément Wikidata Q120757422 (gare de marchandises) : UIC 87411728 (P722 8741172) identique, nom « Saint-Ouen-du-Breuil » et à 1 m de la position VFF.',
+    ],
+
+    // Rouxmesnil (id 16234)
+    [
+        'station' => ['name' => 'Rouxmesnil', 'uic' => '87415034'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757415',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757415',
+        'quote' => 'P722 = 8741503',
+        'reason' => 'élément Wikidata Q120757415 (gare de marchandises) : UIC 87415034 (P722 8741503) identique, nom « Rouxmesnil » et à 71 m de la position VFF.',
+    ],
+
+    // Étrépagny (id 16249)
+    [
+        'station' => ['name' => 'Étrépagny', 'uic' => '87415828'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836112',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836112',
+        'quote' => 'P722 = 8741582',
+        'reason' => 'élément Wikidata Q114836112 (gare de marchandises) : UIC 87415828 (P722 8741582) identique, nom « Étrépagny » et à 0 m de la position VFF.',
+    ],
+
+    // Vendeuvre-Jort (id 16267)
+    [
+        'station' => ['name' => 'Vendeuvre-Jort', 'uic' => '87444224'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757403',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757403',
+        'quote' => 'P722 = 8744422',
+        'reason' => 'élément Wikidata Q120757403 (gare de marchandises) : UIC 87444224 (P722 8744422) identique, nom « Vendeuvre - Jort » et à 9 m de la position VFF.',
+    ],
+
+    // Montabard (id 16278)
+    [
+        'station' => ['name' => 'Montabard', 'uic' => '87444521'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757396',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757396',
+        'quote' => 'P722 = 8744452',
+        'reason' => 'élément Wikidata Q120757396 (gare de marchandises) : UIC 87444521 (P722 8744452) identique, nom « Montabard » et à 17 m de la position VFF.',
+    ],
+
+    // Zu-Rhein (id 16341)
+    [
+        'station' => ['name' => 'Zu-Rhein', 'uic' => '87472639'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758352',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758352',
+        'quote' => 'P722 = 8747263',
+        'reason' => 'élément Wikidata Q120758352 (gare de marchandises) : UIC 87472639 (P722 8747263) identique, nom « Zu-Rhein » et à 0 m de la position VFF.',
+    ],
+
+    // Montreuil-Belfroi (id 16505)
+    [
+        'station' => ['name' => 'Montreuil-Belfroi', 'uic' => '87484030'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757425',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757425',
+        'quote' => 'P722 = 8748403',
+        'reason' => 'élément Wikidata Q120757425 (gare de marchandises) : UIC 87484030 (P722 8748403) identique, nom « Montreuil-Belfroi » et à 0 m de la position VFF.',
+    ],
+
+    // Gennes-Longuefuye (id 16522)
+    [
+        'station' => ['name' => 'Gennes-Longuefuye', 'uic' => '87484667'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757195',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757195',
+        'quote' => 'P722 = 8748466',
+        'reason' => 'élément Wikidata Q120757195 (gare de marchandises) : UIC 87484667 (P722 8748466) identique, nom « Gennes - Longuefuye » et à 0 m de la position VFF.',
+    ],
+
+    // La Rochelle-Pallice (id 16524)
+    [
+        'station' => ['name' => 'La Rochelle-Pallice', 'uic' => '87485011'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769315',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769315',
+        'quote' => 'P722 = 8748501',
+        'reason' => 'élément Wikidata Q120769315 (gare de marchandises) : UIC 87485011 (P722 8748501) identique, nom « La Rochelle-Pallice » et à 1 m de la position VFF.',
+    ],
+
+    // Luché (id 16571)
+    [
+        'station' => ['name' => 'Luché', 'uic' => '87487256'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757247',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757247',
+        'quote' => 'P722 = 8748725',
+        'reason' => 'élément Wikidata Q120757247 (gare de marchandises) : UIC 87487256 (P722 8748725) identique, nom « Luché » et à 151 m de la position VFF.',
+    ],
+
+    // Janville (id 16629)
+    [
+        'station' => ['name' => 'Janville', 'uic' => '87543108'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756849',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756849',
+        'quote' => 'P722 = 8754310',
+        'reason' => 'élément Wikidata Q120756849 (gare de marchandises) : UIC 87543108 (P722 8754310) identique, nom « Janville » et à 0 m de la position VFF.',
+    ],
+
+    // Fains-la-Folie (id 16638)
+    [
+        'station' => ['name' => 'Fains-la-Folie', 'uic' => '87543306'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756806',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756806',
+        'quote' => 'P722 = 8754330',
+        'reason' => 'élément Wikidata Q120756806 (gare de marchandises) : UIC 87543306 (P722 8754330) identique, nom « Gare de Fains-la-Folie » et à 1 m de la position VFF.',
+    ],
+
+    // Orgères (id 16639)
+    [
+        'station' => ['name' => 'Orgères', 'uic' => '87543314'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756850',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756850',
+        'quote' => 'P722 = 8754331',
+        'reason' => 'élément Wikidata Q120756850 (gare de marchandises) : UIC 87543314 (P722 8754331) identique, nom « Orgères-en-Beauce » et à 0 m de la position VFF.',
+    ],
+
+    // Gommiers (id 16640)
+    [
+        'station' => ['name' => 'Gommiers', 'uic' => '87543322'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757383',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757383',
+        'quote' => 'P722 = 8754332',
+        'reason' => 'élément Wikidata Q120757383 (gare de marchandises) : UIC 87543322 (P722 8754332) identique, nom « Gommiers » et à 0 m de la position VFF.',
+    ],
+
+    // Bricy-Boulay (id 16642)
+    [
+        'station' => ['name' => 'Bricy-Boulay', 'uic' => '87543348'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757377',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757377',
+        'quote' => 'P722 = 8754334',
+        'reason' => 'élément Wikidata Q120757377 (gare de marchandises) : UIC 87543348 (P722 8754334) identique, nom « Bricy - Boulay » et à 0 m de la position VFF.',
+    ],
+
+    // Sully-sur-Loire (id 16648)
+    [
+        'station' => ['name' => 'Sully-sur-Loire', 'uic' => '87543538'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757374',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757374',
+        'quote' => 'P722 = 8754353',
+        'reason' => 'élément Wikidata Q120757374 (gare de marchandises) : UIC 87543538 (P722 8754353) identique, nom « Sully-sur-Loire » et à 0 m de la position VFF.',
+    ],
+
+    // Engenville (id 16649)
+    [
+        'station' => ['name' => 'Engenville', 'uic' => '87543686'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107649264',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107649264',
+        'quote' => 'P722 = 8754368',
+        'reason' => 'élément Wikidata Q107649264 (gare de marchandises) : UIC 87543686 (P722 8754368) identique, nom « Engenville » et à 9 m de la position VFF.',
+    ],
+
+    // Neuville-aux-Bois (id 16650)
+    [
+        'station' => ['name' => 'Neuville-aux-Bois', 'uic' => '87543728'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757376',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757376',
+        'quote' => 'P722 = 8754372',
+        'reason' => 'élément Wikidata Q120757376 (gare de marchandises) : UIC 87543728 (P722 8754372) identique, nom « Neuville-aux-Bois » et à 0 m de la position VFF.',
+    ],
+
+    // Fossé-Marolles (id 16749)
+    [
+        'station' => ['name' => 'Fossé-Marolles', 'uic' => '87574400'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756912',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756912',
+        'quote' => 'P722 = 8757440',
+        'reason' => 'élément Wikidata Q120756912 (gare de marchandises) : UIC 87574400 (P722 8757440) identique, nom « Fossé-Marolles » et à 77 m de la position VFF.',
+    ],
+
+    // Selommes (id 16764)
+    [
+        'station' => ['name' => 'Selommes', 'uic' => '87574715'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756908',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756908',
+        'quote' => 'P722 = 8757471',
+        'reason' => 'élément Wikidata Q120756908 (gare de marchandises) : UIC 87574715 (P722 8757471) identique, nom « Selommes » et à 78 m de la position VFF.',
+    ],
+
+    // Moulins-sur-Yèvre (id 16830)
+    [
+        'station' => ['name' => 'Moulins-sur-Yèvre', 'uic' => '87576413'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757428',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757428',
+        'quote' => 'P722 = 8757641',
+        'reason' => 'élément Wikidata Q120757428 (gare de marchandises) : UIC 87576413 (P722 8757641) identique, nom « Moulins-sur-Yèvre » et à 0 m de la position VFF.',
+    ],
+
+    // Asnières-lès-Bourges (id 16835)
+    [
+        'station' => ['name' => 'Asnières-lès-Bourges', 'uic' => '87576504'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757284',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757284',
+        'quote' => 'P722 = 8757650',
+        'reason' => 'élément Wikidata Q120757284 (gare de marchandises) : UIC 87576504 (P722 8757650) identique, nom « Asnières-lès-Bourges » et à 0 m de la position VFF.',
+    ],
+
+    // Aubigny-sur-Nère (id 16836)
+    [
+        'station' => ['name' => 'Aubigny-sur-Nère', 'uic' => '87576579'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757373',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757373',
+        'quote' => 'P722 = 8757657',
+        'reason' => 'élément Wikidata Q120757373 (gare de marchandises) : UIC 87576579 (P722 8757657) identique, nom « Aubigny-sur-Nère » et à 0 m de la position VFF.',
+    ],
+
+    // Le Bec-d\'Ambès (id 16866)
+    [
+        'station' => ['name' => 'Le Bec-d\'Ambès', 'uic' => '87581884'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758258',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758258',
+        'quote' => 'P722 = 8758188',
+        'reason' => 'élément Wikidata Q120758258 (gare de marchandises) : UIC 87581884 (P722 8758188) identique, nom « Le Bec-d\'Ambès » et à 0 m de la position VFF.',
+    ],
+
+    // Solférino (id 16872)
+    [
+        'station' => ['name' => 'Solférino', 'uic' => '87582577'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16764804',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16764804',
+        'quote' => 'P722 = 8758257',
+        'reason' => 'élément Wikidata Q16764804 (gare ferroviaire) : UIC 87582577 (P722 8758257) identique, nom « Solférino » et à 4 m de la position VFF.',
+    ],
+
+    // Charmant (id 16896)
+    [
+        'station' => ['name' => 'Charmant', 'uic' => '87583658'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757398',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757398',
+        'quote' => 'P722 = 8758365',
+        'reason' => 'élément Wikidata Q120757398 (gare de marchandises) : UIC 87583658 (P722 8758365) identique, nom « Charmant » et à 0 m de la position VFF.',
+    ],
+
+    // Colayrac (id 16927)
+    [
+        'station' => ['name' => 'Colayrac', 'uic' => '87586149'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756938',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756938',
+        'quote' => 'P722 = 8758614',
+        'reason' => 'élément Wikidata Q120756938 (gare de marchandises) : UIC 87586149 (P722 8758614) identique, nom « Colayrac » et à 0 m de la position VFF.',
+    ],
+
+    // Ste-Christie (id 16931)
+    [
+        'station' => ['name' => 'Ste-Christie', 'uic' => '87586362'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757191',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757191',
+        'quote' => 'P722 = 8758636',
+        'reason' => 'élément Wikidata Q120757191 (gare de marchandises) : UIC 87586362 (P722 8758636) identique, nom « Sainte-Christie » et à 0 m de la position VFF.',
+    ],
+
+    // Lasserre (id 16943)
+    [
+        'station' => ['name' => 'Lasserre', 'uic' => '87586750'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756946',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756946',
+        'quote' => 'P722 = 8758675',
+        'reason' => 'élément Wikidata Q120756946 (gare de marchandises) : UIC 87586750 (P722 8758675) identique, nom « Lasserre » et à 0 m de la position VFF.',
+    ],
+
+    // Limoges-Puy-Imbert (id 16953)
+    [
+        'station' => ['name' => 'Limoges-Puy-Imbert', 'uic' => '87592014'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757259',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757259',
+        'quote' => 'P722 = 8759201',
+        'reason' => 'élément Wikidata Q120757259 (gare de marchandises) : UIC 87592014 (P722 8759201) identique, nom « Limoges-Puy-Imbert » et à 147 m de la position VFF.',
+    ],
+
+    // Bessines (id 16985)
+    [
+        'station' => ['name' => 'Bessines', 'uic' => '87592626'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757260',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757260',
+        'quote' => 'P722 = 8759262',
+        'reason' => 'élément Wikidata Q120757260 (gare de marchandises) : UIC 87592626 (P722 8759262) identique, nom « Bessines » et à 0 m de la position VFF.',
+    ],
+
+    // Buzançais (id 17080)
+    [
+        'station' => ['name' => 'Buzançais', 'uic' => '87597377'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756899',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756899',
+        'quote' => 'P722 = 8759737',
+        'reason' => 'élément Wikidata Q120756899 (gare de marchandises) : UIC 87597377 (P722 8759737) identique, nom « Buzançais » et à 195 m de la position VFF.',
+    ],
+
+    // Clion-sur-Indre (id 17081)
+    [
+        'station' => ['name' => 'Clion-sur-Indre', 'uic' => '87597401'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756900',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756900',
+        'quote' => 'P722 = 8759740',
+        'reason' => 'élément Wikidata Q120756900 (gare de marchandises) : UIC 87597401 (P722 8759740) identique, nom « Clion-sur-Indre » et à 0 m de la position VFF.',
+    ],
+
+    // Châtillon-sur-Indre (id 17082)
+    [
+        'station' => ['name' => 'Châtillon-sur-Indre', 'uic' => '87597419'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q117476852',
+        'source_url' => 'https://www.wikidata.org/wiki/Q117476852',
+        'quote' => 'P722 = 8759741',
+        'reason' => 'élément Wikidata Q117476852 (gare de marchandises) : UIC 87597419 (P722 8759741) identique, nom « Châtillon-sur-Indre » et à 89 m de la position VFF.',
+    ],
+
+    // Fléré-la-Rivière (id 17083)
+    [
+        'station' => ['name' => 'Fléré-la-Rivière', 'uic' => '87597427'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756903',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756903',
+        'quote' => 'P722 = 8759742',
+        'reason' => 'élément Wikidata Q120756903 (gare de marchandises) : UIC 87597427 (P722 8759742) identique, nom « Fléré-la-Rivière » et à 0 m de la position VFF.',
+    ],
+
+    // Empalot (id 17098)
+    [
+        'station' => ['name' => 'Empalot', 'uic' => '87611020'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769307',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769307',
+        'quote' => 'P722 = 8761102',
+        'reason' => 'élément Wikidata Q120769307 (gare de marchandises) : UIC 87611020 (P722 8761102) identique, nom « Empalot » et à 4 m de la position VFF.',
+    ],
+
+    // Montluçon-Eau (id 17238)
+    [
+        'station' => ['name' => 'Montluçon-Eau', 'uic' => '87641019'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758196',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758196',
+        'quote' => 'P722 = 8764101',
+        'reason' => 'élément Wikidata Q120758196 (gare de marchandises) : UIC 87641019 (P722 8764101) identique, nom « Montluçon-Eau » et à 0 m de la position VFF.',
+    ],
+
+    // Archignat (id 17247)
+    [
+        'station' => ['name' => 'Archignat', 'uic' => '87641225'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758208',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758208',
+        'quote' => 'P722 = 8764122',
+        'reason' => 'élément Wikidata Q120758208 (gare de marchandises) : UIC 87641225 (P722 8764122) identique, nom « Archignat » et à 0 m de la position VFF.',
+    ],
+
+    // Grenade-sur-l\'Adour (id 17276)
+    [
+        'station' => ['name' => 'Grenade-sur-l\'Adour', 'uic' => '87671024'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757419',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757419',
+        'quote' => 'P722 = 8767102',
+        'reason' => 'élément Wikidata Q120757419 (gare de marchandises) : UIC 87671024 (P722 8767102) identique, nom « Grenade-sur-l\'Adour » et à 0 m de la position VFF.',
+    ],
+
+    // Roquefort (Landes) (id 17281)
+    [
+        'station' => ['name' => 'Roquefort (Landes)', 'uic' => '87671263'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757411',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757411',
+        'quote' => 'P722 = 8767126',
+        'reason' => 'élément Wikidata Q120757411 (gare de marchandises) : UIC 87671263 (P722 8767126) identique, nom « Roquefort » et à 0 m de la position VFF.',
+    ],
+
+    // Labarthe-Avezac (id 17285)
+    [
+        'station' => ['name' => 'Labarthe-Avezac', 'uic' => '87671404'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757389',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757389',
+        'quote' => 'P722 = 8767140',
+        'reason' => 'élément Wikidata Q120757389 (gare de marchandises) : UIC 87671404 (P722 8767140) identique, nom « Labarthe - Avezac » et à 0 m de la position VFF.',
+    ],
+
+    // Maubourguet (id 17289)
+    [
+        'station' => ['name' => 'Maubourguet', 'uic' => '87671651'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108730260',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108730260',
+        'quote' => 'P722 = 8767165',
+        'reason' => 'élément Wikidata Q108730260 (gare de marchandises) : UIC 87671651 (P722 8767165) identique, nom « Maubourguet » et à 0 m de la position VFF.',
+    ],
+
+    // Mauco-Benquet (id 17290)
+    [
+        'station' => ['name' => 'Mauco-Benquet', 'uic' => '87671867'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757413',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757413',
+        'quote' => 'P722 = 8767186',
+        'reason' => 'élément Wikidata Q120757413 (gare de marchandises) : UIC 87671867 (P722 8767186) identique, nom « Mauco - Benquet » et à 0 m de la position VFF.',
+    ],
+
+    // Hagetmau (id 17291)
+    [
+        'station' => ['name' => 'Hagetmau', 'uic' => '87671891'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757412',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757412',
+        'quote' => 'P722 = 8767189',
+        'reason' => 'élément Wikidata Q120757412 (gare de marchandises) : UIC 87671891 (P722 8767189) identique, nom « Hagetmau » et à 0 m de la position VFF.',
+    ],
+
+    // Lescar (id 17296)
+    [
+        'station' => ['name' => 'Lescar', 'uic' => '87672170'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757406',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757406',
+        'quote' => 'P722 = 8767217',
+        'reason' => 'élément Wikidata Q120757406 (gare de marchandises) : UIC 87672170 (P722 8767217) identique, nom « Lescar » et à 78 m de la position VFF.',
+    ],
+
+    // Lacq (id 17298)
+    [
+        'station' => ['name' => 'Lacq', 'uic' => '87672220'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757408',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757408',
+        'quote' => 'P722 = 8767222',
+        'reason' => 'élément Wikidata Q120757408 (gare de marchandises) : UIC 87672220 (P722 8767222) identique, nom « Lacq » et à 71 m de la position VFF.',
+    ],
+
+    // Baigts-de-Béarn (id 17300)
+    [
+        'station' => ['name' => 'Baigts-de-Béarn', 'uic' => '87672261'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757409',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757409',
+        'quote' => 'P722 = 8767226',
+        'reason' => 'élément Wikidata Q120757409 (gare de marchandises) : UIC 87672261 (P722 8767226) identique, nom « Baigts-de-Béarn » et à 70 m de la position VFF.',
+    ],
+
+    // Mignères-Gondréville (id 17429)
+    [
+        'station' => ['name' => 'Mignères-Gondréville', 'uic' => '87684563'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107646786',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107646786',
+        'quote' => 'P722 = 8768456',
+        'reason' => 'élément Wikidata Q107646786 (gare de marchandises) : UIC 87684563 (P722 8768456) identique, nom « Mignères - Gondreville » et à 16 m de la position VFF.',
+    ],
+
+    // Tavaux-Solvay (id 17550)
+    [
+        'station' => ['name' => 'Tavaux-Solvay', 'uic' => '87713487'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q111792835',
+        'source_url' => 'https://www.wikidata.org/wiki/Q111792835',
+        'quote' => 'P722 = 8771348',
+        'reason' => 'élément Wikidata Q111792835 (gare de marchandises) : UIC 87713487 (P722 8771348) identique, nom « Tavaux-Solvay » et à 0 m de la position VFF.',
+    ],
+
+    // Dijon-Porte-d\'Ouche-Perrigny (id 17572)
+    [
+        'station' => ['name' => 'Dijon-Porte-d\'Ouche-Perrigny', 'uic' => '87713867'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769257',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769257',
+        'quote' => 'P722 = 8771386',
+        'reason' => 'élément Wikidata Q120769257 (gare de marchandises) : UIC 87713867 (P722 8771386) identique, nom « Dijon-Porte-d\'Ouche-Perrigny » et à 35 m de la position VFF.',
+    ],
+
+    // Ste-Colombe-les-Vienne-St-Romain-en-Gal (id 17671)
+    [
+        'station' => ['name' => 'Ste-Colombe-les-Vienne-St-Romain-en-Gal', 'uic' => '87722322'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758321',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758321',
+        'quote' => 'P722 = 8772232',
+        'reason' => 'élément Wikidata Q120758321 (gare de marchandises) : UIC 87722322 (P722 8772232) identique, nom « Sainte-Colombe-lès-Vienne-Saint-Romain-en-Gal » et à 0 m de la position VFF.',
+    ],
+
+    // Vénissieux-Nord (id 17689)
+    [
+        'station' => ['name' => 'Vénissieux-Nord', 'uic' => '87723304'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q105422211',
+        'source_url' => 'https://www.wikidata.org/wiki/Q105422211',
+        'quote' => 'P722 = 8772330',
+        'reason' => 'élément Wikidata Q105422211 (gare de marchandises) : UIC 87723304 (P722 8772330) identique, nom « Vénissieux-Nord » et à 51 m de la position VFF.',
+    ],
+
+    // Port-Édouard-Herriot (id 17773)
+    [
+        'station' => ['name' => 'Port-Édouard-Herriot', 'uic' => '87729202'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q105384286',
+        'source_url' => 'https://www.wikidata.org/wiki/Q105384286',
+        'quote' => 'P722 = 8772920',
+        'reason' => 'élément Wikidata Q105384286 (gare de marchandises) : UIC 87729202 (P722 8772920) identique, nom « Port-Édouard-Herriot » et à 120 m de la position VFF.',
+    ],
+
+    // Lempdes (Haute-Loire) (id 17830)
+    [
+        'station' => ['name' => 'Lempdes (Haute-Loire)', 'uic' => '87734855'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757246',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757246',
+        'quote' => 'P722 = 8773485',
+        'reason' => 'élément Wikidata Q120757246 (gare de marchandises) : UIC 87734855 (P722 8773485) identique, nom « Lempdes » et à 226 m de la position VFF.',
+    ],
+
+    // Port-St-Louis-du-Rhône (id 18018)
+    [
+        'station' => ['name' => 'Port-St-Louis-du-Rhône', 'uic' => '87753855'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769320',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769320',
+        'quote' => 'P722 = 8775385',
+        'reason' => 'élément Wikidata Q120769320 (gare de marchandises) : UIC 87753855 (P722 8775385) identique, nom « Port-Saint-Louis-du-Rhône » et à 0 m de la position VFF.',
+    ],
+
+    // Portes (id 18091)
+    [
+        'station' => ['name' => 'Portes', 'uic' => '87761205'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757399',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757399',
+        'quote' => 'P722 = 8776120',
+        'reason' => 'élément Wikidata Q120757399 (gare de marchandises) : UIC 87761205 (P722 8776120) identique, nom « Portes-Lès-Valence » et à 127 m de la position VFF.',
+    ],
+
+    // Manthes-Lapeyrouse (id 18095)
+    [
+        'station' => ['name' => 'Manthes-Lapeyrouse', 'uic' => '87761320'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757402',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757402',
+        'quote' => 'P722 = 8776132',
+        'reason' => 'élément Wikidata Q120757402 (gare de marchandises) : UIC 87761320 (P722 8776132) identique, nom « Manthes - Lapeyrouse » et à 0 m de la position VFF.',
+    ],
+
+    // Alixan-Châteauneuf-d\'Isère (id 18099)
+    [
+        'station' => ['name' => 'Alixan-Châteauneuf-d\'Isère', 'uic' => '87761619'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757400',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757400',
+        'quote' => 'P722 = 8776161',
+        'reason' => 'élément Wikidata Q120757400 (gare de marchandises) : UIC 87761619 (P722 8776161) identique, nom « Alixan - Châteauneuf-d\'Isère » et à 0 m de la position VFF.',
+    ],
+
+    // Avignon-Fontcouverte (id 18133)
+    [
+        'station' => ['name' => 'Avignon-Fontcouverte', 'uic' => '87765024'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757041',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757041',
+        'quote' => 'P722 = 8776502',
+        'reason' => 'élément Wikidata Q120757041 (gare de marchandises) : UIC 87765024 (P722 8776502) identique, nom « Avignon-Fontcouverte » et à 0 m de la position VFF.',
+    ],
+
+    // Cavaillon (MIN) (id 18147)
+    [
+        'station' => ['name' => 'Cavaillon (MIN)', 'uic' => '87765537'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757148',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757148',
+        'quote' => 'P722 = 8776553',
+        'reason' => 'élément Wikidata Q120757148 (gare de marchandises) : UIC 87765537 (P722 8776553) identique, nom « Cavaillon (MIN) » et à 0 m de la position VFF.',
+    ],
+
+    // Florensac (id 18204)
+    [
+        'station' => ['name' => 'Florensac', 'uic' => '87781328'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757432',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757432',
+        'quote' => 'P722 = 8778132',
+        'reason' => 'élément Wikidata Q120757432 (gare de marchandises) : UIC 87781328 (P722 8778132) identique, nom « Florensac » et à 0 m de la position VFF.',
+    ],
+
+    // Lézignan-la-Cèbe (id 18205)
+    [
+        'station' => ['name' => 'Lézignan-la-Cèbe', 'uic' => '87781369'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109559191',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109559191',
+        'quote' => 'P722 = 8778136',
+        'reason' => 'élément Wikidata Q109559191 (gare de marchandises) : UIC 87781369 (P722 8778136) identique, nom « Lézignan-la-Cèbe » et à 0 m de la position VFF.',
+    ],
+
+    // Dienville (id 18361)
+    [
+        'station' => ['name' => 'Dienville', 'uic' => '87118760'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757190',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757190',
+        'quote' => 'P722 = 8711876',
+        'reason' => 'élément Wikidata Q120757190 (gare de marchandises) : UIC 87118760 (P722 8711876) identique, nom « Dienville » et à 0 m de la position VFF.',
+    ],
+
+    // Braine (id 18493)
+    [
+        'station' => ['name' => 'Braine', 'uic' => '87171496'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758176',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758176',
+        'quote' => 'P722 = 8717149',
+        'reason' => 'élément Wikidata Q120758176 (gare de marchandises) : UIC 87171496 (P722 8717149) identique, nom « Braine » et à 0 m de la position VFF.',
+    ],
+
+    // Autet (id 18660)
+    [
+        'station' => ['name' => 'Autet', 'uic' => '87185538'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757199',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757199',
+        'quote' => 'P722 = 8718553',
+        'reason' => 'élément Wikidata Q120757199 (gare de marchandises) : UIC 87185538 (P722 8718553) identique, nom « Autet » et à 0 m de la position VFF.',
+    ],
+
+    // Villersexel (id 18667)
+    [
+        'station' => ['name' => 'Villersexel', 'uic' => '87185835'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q24046086',
+        'source_url' => 'https://www.wikidata.org/wiki/Q24046086',
+        'quote' => 'P722 = 8718583',
+        'reason' => 'élément Wikidata Q24046086 (gare ferroviaire) : UIC 87185835 (P722 8718583) identique, nom « Villersexel » et à 78 m de la position VFF.',
+    ],
+
+    // Marquaix-Hamelet (id 18988)
+    [
+        'station' => ['name' => 'Marquaix-Hamelet', 'uic' => '87316265'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141863881',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141863881',
+        'quote' => 'P722 = 8731626',
+        'reason' => 'élément Wikidata Q141863881 (gare ferroviaire) : UIC 87316265 (P722 8731626) identique, nom « Gare de Marquaix-Hamelet » et à 0 m de la position VFF.',
+    ],
+
+    // Éragny-Bazincourt (id 19089)
+    [
+        'station' => ['name' => 'Éragny-Bazincourt', 'uic' => '87381251'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3095876',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3095876',
+        'quote' => 'P722 = 8738125',
+        'reason' => 'élément Wikidata Q3095876 (gare ferroviaire) : UIC 87381251 (P722 8738125) identique, nom « Éragny - Bazincourt » et à 85 m de la position VFF.',
+    ],
+
+    // Mondoubleau (id 19191)
+    [
+        'station' => ['name' => 'Mondoubleau', 'uic' => '87396747'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756921',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756921',
+        'quote' => 'P722 = 8739674',
+        'reason' => 'élément Wikidata Q120756921 (gare de marchandises) : UIC 87396747 (P722 8739674) identique, nom « Mondoubleau » et à 165 m de la position VFF.',
+    ],
+
+    // Colleville-Ste-Hélène (id 19231)
+    [
+        'station' => ['name' => 'Colleville-Ste-Hélène', 'uic' => '87413617'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757417',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757417',
+        'quote' => 'P722 = 8741361',
+        'reason' => 'élément Wikidata Q120757417 (gare de marchandises) : UIC 87413617 (P722 8741361) identique, nom « Colleville-Sainte-Hélène » et à 0 m de la position VFF.',
+    ],
+
+    // Mesnières-en-Bray (id 19244)
+    [
+        'station' => ['name' => 'Mesnières-en-Bray', 'uic' => '87415083'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q20971050',
+        'source_url' => 'https://www.wikidata.org/wiki/Q20971050',
+        'quote' => 'P722 = 8741508',
+        'reason' => 'élément Wikidata Q20971050 (gare ferroviaire) : UIC 87415083 (P722 8741508) identique, nom « Mesnières-en-Bray » et à 49 m de la position VFF.',
+    ],
+
+    // St-Mesmin-le-Vieux (id 19533)
+    [
+        'station' => ['name' => 'St-Mesmin-le-Vieux', 'uic' => '87487298'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q62017327',
+        'source_url' => 'https://www.wikidata.org/wiki/Q62017327',
+        'quote' => 'P722 = 8748729',
+        'reason' => 'élément Wikidata Q62017327 (gare ferroviaire) : UIC 87487298 (P722 8748729) identique, nom « Saint-Mesmin-le-Vieux » et à 91 m de la position VFF.',
+    ],
+
+    // Gontaud-Fauguerolles (id 19776)
+    [
+        'station' => ['name' => 'Gontaud-Fauguerolles', 'uic' => '87586578'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2471354',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2471354',
+        'quote' => 'P722 = 8758657',
+        'reason' => 'élément Wikidata Q2471354 (gare ferroviaire) : UIC 87586578 (P722 8758657) identique, nom « Gontaud - Fauguerolles » et à 9 m de la position VFF.',
+    ],
+
+    // Porta (id 19896)
+    [
+        'station' => ['name' => 'Porta', 'uic' => '87611491'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q97365959',
+        'source_url' => 'https://www.wikidata.org/wiki/Q97365959',
+        'quote' => 'P722 = 8761149',
+        'reason' => 'élément Wikidata Q97365959 (gare ferroviaire) : UIC 87611491 (P722 8761149) identique, nom « Porta » et à 71 m de la position VFF.',
+    ],
+
+    // Bayonne-Allées-Marines (id 20118)
+    [
+        'station' => ['name' => 'Bayonne-Allées-Marines', 'uic' => '87673012'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757404',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757404',
+        'quote' => 'P722 = 8767301',
+        'reason' => 'élément Wikidata Q120757404 (gare de marchandises) : UIC 87673012 (P722 8767301) identique, nom « Bayonne-Allées-Marines » et à 0 m de la position VFF.',
+    ],
+
+    // Lapalisse-St-Prix (id 20447)
+    [
+        'station' => ['name' => 'Lapalisse-St-Prix', 'uic' => '87732610'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3096851',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3096851',
+        'quote' => 'P722 = 8773261',
+        'reason' => 'élément Wikidata Q3096851 (gare ferroviaire) : UIC 87732610 (P722 8773261) identique, nom « Lapalisse - Saint-Prix » et à 232 m de la position VFF.',
+    ],
+
+    // Chassal (id 20532)
+    [
+        'station' => ['name' => 'Chassal', 'uic' => '87743609'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q55964538',
+        'source_url' => 'https://www.wikidata.org/wiki/Q55964538',
+        'quote' => 'P722 = 8774360',
+        'reason' => 'élément Wikidata Q55964538 (gare de marchandises) : UIC 87743609 (P722 8774360) identique, nom « Chassal » et à 7 m de la position VFF.',
+    ],
+
+    // Aramon (id 20796)
+    [
+        'station' => ['name' => 'Aramon', 'uic' => '87765883'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758323',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758323',
+        'quote' => 'P722 = 8776588',
+        'reason' => 'élément Wikidata Q120758323 (gare de marchandises) : UIC 87765883 (P722 8776588) identique, nom « Aramon » et à 36 m de la position VFF.',
+    ],
+
+    // Sedan-Balan (id 22052)
+    [
+        'station' => ['name' => 'Sedan-Balan', 'near' => [4.954710, 49.696963, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q113350170',
+        'source_url' => 'https://www.wikidata.org/wiki/Q113350170',
+        'quote' => 'libellé « Sedan Balan »',
+        'reason' => 'élément Wikidata Q113350170 (gare ferroviaire) : nom « Sedan Balan » identique, élément seul de ce nom à 10 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Sorlin-Vertrieu (id 22616)
+    [
+        'station' => ['name' => 'Saint-Sorlin-Vertrieu', 'near' => [5.368744, 45.884715, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114571651',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114571651',
+        'quote' => 'libellé « Saint-Sorlin - Vertrieu »',
+        'reason' => 'élément Wikidata Q114571651 (gare ferroviaire) : nom « Saint-Sorlin - Vertrieu » identique, élément seul de ce nom à 97 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Remise à Jorelle (id 22674)
+    [
+        'station' => ['name' => 'Remise à Jorelle', 'uic' => '87988709'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3424532',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3424532',
+        'quote' => 'P722 = 8798870',
+        'reason' => 'élément Wikidata Q3424532 (plusieurs classes) : UIC 87988709 (P722 8798870) identique, nom « La Remise à Jorelle » et à 39 m de la position VFF.',
+    ],
+
+    // Saint-Just-en-Chevalet (id 22865)
+    [
+        'station' => ['name' => 'Saint-Just-en-Chevalet', 'near' => [3.843895, 45.908885, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141875604',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141875604',
+        'quote' => 'libellé « Gare de Saint-Just-en-Chevalet »',
+        'reason' => 'élément Wikidata Q141875604 (gare ferroviaire) : nom « Gare de Saint-Just-en-Chevalet » identique, élément seul de ce nom à 8 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Ribérac (id 23027)
+    [
+        'station' => ['name' => 'Ribérac', 'near' => [0.332605, 45.256306, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106291626',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106291626',
+        'quote' => 'libellé « Ribérac »',
+        'reason' => 'élément Wikidata Q106291626 (gare ferroviaire) : nom « Ribérac » identique, élément seul de ce nom à 2 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Faulx (id 23184)
+    [
+        'station' => ['name' => 'Faulx', 'near' => [6.195324, 48.789244, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106938310',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106938310',
+        'quote' => 'libellé « Faulx »',
+        'reason' => 'élément Wikidata Q106938310 (gare ferroviaire) : nom « Faulx » identique, élément seul de ce nom à 25 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Vic-Fezensac (id 23256)
+    [
+        'station' => ['name' => 'Vic-Fezensac', 'near' => [0.303856, 43.767079, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q123498144',
+        'source_url' => 'https://www.wikidata.org/wiki/Q123498144',
+        'quote' => 'libellé « Vic-Fezensac »',
+        'reason' => 'élément Wikidata Q123498144 (gare ferroviaire) : nom « Vic-Fezensac » identique, élément seul de ce nom à 263 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Paul-Trois-Châteaux (id 23323)
+    [
+        'station' => ['name' => 'Saint-Paul-Trois-Châteaux', 'near' => [4.762248, 44.345776, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142167269',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142167269',
+        'quote' => 'libellé « Saint-Paul-Trois-Châteaux »',
+        'reason' => 'élément Wikidata Q142167269 (gare ferroviaire abandonnée) : nom « Saint-Paul-Trois-Châteaux » identique, élément seul de ce nom à 152 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Montségur (id 23324)
+    [
+        'station' => ['name' => 'Montségur', 'near' => [4.848281, 44.360329, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142167049',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142167049',
+        'quote' => 'libellé « Montségur »',
+        'reason' => 'élément Wikidata Q142167049 (gare ferroviaire abandonnée) : nom « Montségur » identique, élément seul de ce nom à 56 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Venterol-Rousset (id 23327)
+    [
+        'station' => ['name' => 'Venterol-Rousset', 'near' => [5.084568, 44.395117, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142166610',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142166610',
+        'quote' => 'libellé « Venterol - Rousset »',
+        'reason' => 'élément Wikidata Q142166610 (gare ferroviaire abandonnée) : nom « Venterol - Rousset » identique, élément seul de ce nom à 41 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Pleurtuit (id 23508)
+    [
+        'station' => ['name' => 'Pleurtuit', 'near' => [-2.063427, 48.579381, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106362275',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106362275',
+        'quote' => 'libellé « Pleurtuit »',
+        'reason' => 'élément Wikidata Q106362275 (gare ferroviaire) : nom « Pleurtuit » identique, élément seul de ce nom à 71 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Flines-lez-Raches (id 24702)
+    [
+        'station' => ['name' => 'Flines-lez-Raches', 'near' => [3.185312, 50.428072, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q57262541',
+        'source_url' => 'https://www.wikidata.org/wiki/Q57262541',
+        'quote' => 'libellé « Flines-lez-Raches »',
+        'reason' => 'élément Wikidata Q57262541 (gare ferroviaire) : nom « Flines-lez-Raches » identique, élément seul de ce nom à 18 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Germain-des-Près (id 24723)
+    [
+        'station' => ['name' => 'Saint-Germain-des-Près', 'near' => [0.998347, 45.347926, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141874741',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141874741',
+        'quote' => 'libellé « Gare de Saint-Germain-des-Prés »',
+        'reason' => 'élément Wikidata Q141874741 (gare ferroviaire) : nom « Gare de Saint-Germain-des-Prés » identique, élément seul de ce nom à 41 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // ── 47. Relecture de 127 ouvertures « confirmées » à la passe 6 parce que l'article de la gare ne donnait pas de date, recoupées avec le
+    // texte détaillé de l'article de la ligne, puis 120 gares encore ouvertes de 0,048 M à 0,018 M de voyageurs (maximum depuis 2019) que les
+    // passes précédentes n'avaient pas lues : 30 ouvertures corrigées (audit-gares-7, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-gares-7.md). Une date qui change l'existant repose sur la chronologie détaillée de l'article de
+    // la ligne (section nommant la gare ou la contenant) ou sur l'article de la gare quand il dit la gare créée après la ligne ; une infobox
+    // seule ne contredit jamais la date de la section de la ligne (Meroux, e364bf26) et une inauguration n'est pas une ouverture au public.
+    // Les 39 cas douteux restent à décider (liste dans le CSV du rapport).
+
+    // Gannat (id 17785)
+    [
+        'station' => ['name' => 'Gannat', 'uic' => '87732404'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-05-07',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '7 mai 1855 dans les chemins de fer : Saint-Germain-des-Fossés – Gannat – Clermont-Ferrand',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : la section Saint-Germain-des-Fossés - Gannat - Clermont-Ferrand est mise en service le 7 mai 1855 ; l\'article de la gare (oldid 231518020) dit qu\'elle a été construite pour cette liaison, et le 1871 de Wikidata est l\'arrivée de la ligne de Commentry. Remplace l\'année 1871 de Wikidata.',
+    ],
+
+    // Brassac-les-Mines-Ste-Florine (id 17807)
+    [
+        'station' => ['name' => 'Brassac-les-Mines-Ste-Florine', 'uic' => '87734244'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-09-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '3 septembre 1855 dans les chemins de fer : Issoire – Brassac-les-Mines',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : Brassac-les-Mines est le terminus de la section Issoire - Brassac-les-Mines mise en service le 3 septembre 1855 (la suite vers Arvant ne l\'est que le 8 mai 1856). Remplace l\'année 1856 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Estrées-St-Denis (id 15764)
+    [
+        'station' => ['name' => 'Estrées-St-Denis', 'uic' => '87313387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1880-05-12',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Ormoy-Villers à Boves', 240747767),
+        'quote' => 'Cette gare située sur la ligne de Rochy-Condé à Soissons avait déjà été mise en service le 12 mai 1880',
+        'reason' => 'article de la ligne « Ligne d\'Ormoy-Villers à Boves » (oldid 240747767) : l\'article de la ligne d\'Ormoy-Villers à Boves dit la gare d\'Estrées-Saint-Denis déjà en service le 12 mai 1880, ce que confirme la chronologie de la ligne de Rochy-Condé à Soissons (section du Bois-de-Lihus à Estrées-Saint-Denis et à Compiègne le 12 mai 1880). Précise l\'année 1880 de Wikidata au jour.',
+    ],
+
+    // Vallorcine (id 17936)
+    [
+        'station' => ['name' => 'Vallorcine', 'uic' => '87746875'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1908-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière)', 240212251),
+        'quote' => 'La section Argentière – Le Châtelard est enfin ouverte le 1 juillet 1908.',
+        'reason' => 'article de la ligne « Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière) » (oldid 240212251) : les sections jusqu\'à Argentière et Vallorcine ouvrent en 1906 et 1908, Vallorcine dans la section Argentière - Le Châtelard ouverte le 1er juillet 1908. Remplace l\'année 1901 (ouverture du Fayet à Chamonix) déduite de la ligne.',
+    ],
+
+    // La Crau (id 18036)
+    [
+        'station' => ['name' => 'La Crau', 'uic' => '87755611'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-12-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Pauline-Hyères aux Salins-d\'Hyères', 235223327),
+        'quote' => 'Elle est ouverte à l\'exploitation le 6 décembre 1875 dans les chemins de fer de La Pauline à Hyères',
+        'reason' => 'article de la ligne « Ligne de La Pauline-Hyères aux Salins-d\'Hyères » (oldid 235223327) : chronologie de la ligne de La Pauline à Hyères, qui dessert La Crau : ouverte à l\'exploitation le 6 décembre 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Vayres (id 16921)
+    [
+        'station' => ['name' => 'Vayres', 'uic' => '87584714'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section de Libourne à Bordeaux, où se trouve Vayres, est mise en service avec l\'ensemble de la section jusqu\'à Angoulême le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Bassens (id 16863)
+    [
+        'station' => ['name' => 'Bassens', 'uic' => '87581850'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section de Libourne à Bordeaux, où se trouve Bassens, est mise en service avec l\'ensemble de la section jusqu\'à Angoulême le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Arches (id 15057)
+    [
+        'station' => ['name' => 'Arches', 'uic' => '87144410'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-11-10',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinal à Bussang', 219647311),
+        'quote' => 'd\'Épinal à Remiremont le 10 novembre 1864 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne d\'Épinal à Bussang » (oldid 219647311) : la section d\'Épinal à Remiremont, où se trouve Arches, est ouverte le 10 novembre 1864. Précise l\'année 1864 de Wikidata au jour.',
+    ],
+
+    // Brebières-Sud (id 15926)
+    [
+        'station' => ['name' => 'Brebières-Sud', 'uic' => '87345108'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Brebières, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Marseille-en-Beauvaisis (id 15790)
+    [
+        'station' => ['name' => 'Marseille-en-Beauvaisis', 'uic' => '87313726'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinay - Villetaneuse au Tréport - Mers', 241187520),
+        'quote' => 'de Beauvais à Abancourt et de Persan - Beaumont à Méru, le 1er juillet 1875 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne d\'Épinay - Villetaneuse au Tréport - Mers » (oldid 241187520) : la section de Beauvais à Abancourt, où se trouve Marseille-en-Beauvaisis, est mise en service le 1er juillet 1875. Précise l\'année 1875 de Wikidata au jour.',
+    ],
+
+    // Monestier-de-Clermont (id 17958)
+    [
+        'station' => ['name' => 'Monestier-de-Clermont', 'uic' => '87747592'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-07-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble)', 241143131),
+        'quote' => 'De Vif à Veynes (bifurcation du Poteau-Saint-Luc) le 27 juillet 1878',
+        'reason' => 'article de la ligne « Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble) » (oldid 241143131) : Monestier-de-Clermont est entre Vif et Veynes, section mise en service le 27 juillet 1878 (Grenoble - Vif le 11 décembre 1876, d\'où le 1876 de Wikidata). Remplace l\'année 1876 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Régny (id 17626)
+    [
+        'station' => ['name' => 'Régny', 'uic' => '87721050'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne du Coteau à Saint-Germain-au-Mont-d\'Or', 241352718),
+        'quote' => 'La ligne est partiellement mise en service en 1866. La dernière section, comprise entre Amplepuis et Tarare, l\'est pour sa part le 19 octobre 1868',
+        'reason' => 'article de la ligne « Ligne du Coteau à Saint-Germain-au-Mont-d\'Or » (oldid 241352718) : mise en service partielle en 1866, la dernière section d\'Amplepuis à Tarare seule en 1868 ; Régny, entre Le Coteau et Amplepuis, est donc dans la partie de 1866 (jour inconnu). Remplace l\'année 1833 de Wikidata, antérieure à la ligne. Confiance moyenne.',
+    ],
+
+    // St-Junien (id 16991)
+    [
+        'station' => ['name' => 'St-Junien', 'uic' => '87592709'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-04-26',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Limoges-Bénédictins à Angoulême', 241341612),
+        'quote' => 'mise en service le 26 avril 1875 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne de Limoges-Bénédictins à Angoulême » (oldid 241341612) : mise en service le 26 avril 1875 de Limoges à Angoulême, dont Saint-Junien est une gare intermédiaire. Remplace l\'année 1911 déduite d\'OpenHistoricalMap. Confiance moyenne.',
+    ],
+
+    // Selles-sur-Cher (id 16838)
+    [
+        'station' => ['name' => 'Selles-sur-Cher', 'uic' => '87576868'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-10-18',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Vierzon à Saint-Pierre-des-Corps', 236330049),
+        'quote' => 'mise en service le 18 octobre 1869 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne de Vierzon à Saint-Pierre-des-Corps » (oldid 236330049) : construite en 1860 et mise en service le 18 octobre 1869. Précise l\'année 1869 déduite de la ligne au jour.',
+    ],
+
+    // St-Aigulin-La Roche-Chalais (id 16918)
+    [
+        'station' => ['name' => 'St-Aigulin-La Roche-Chalais', 'uic' => '87584540'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 'mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : la section d\'Angoulême à Bordeaux, où se trouve Saint-Aigulin - La Roche-Chalais, est mise en service avec l\'ensemble le 20 septembre 1852. Précise l\'année 1852 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Lauterbourg (id 15380)
+    [
+        'station' => ['name' => 'Lauterbourg', 'uic' => '87212464'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-07-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Strasbourg à Lauterbourg', 238408373),
+        'quote' => 'dans son intégralité le 25 juillet 1876',
+        'reason' => 'article de la ligne « Ligne de Strasbourg à Lauterbourg » (oldid 238408373) : ouverte dans son intégralité le 25 juillet 1876, Lauterbourg en étant le terminus (l\'article de la gare, oldid 239140948 ou voisin, donne la même date). Remplace l\'année 1874 de Wikidata.',
+    ],
+
+    // Ascq (id 15659)
+    [
+        'station' => ['name' => 'Ascq', 'uic' => '87286864'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1865-12-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Fives à Baisieux', 240286308),
+        'quote' => 'La mise en service le 1 décembre 1865',
+        'reason' => 'article de la ligne « Ligne de Fives à Baisieux » (oldid 240286308) : mise en service le 1er décembre 1865, avec deux stations en France, Ascq et Baisieux ; l\'article de la gare dit 1865. Précise l\'année 1865 de Wikidata au jour.',
+    ],
+
+    // Corbehem (id 15927)
+    [
+        'station' => ['name' => 'Corbehem', 'uic' => '87345116'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Corbehem, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Pont-de-la-Deûle (id 15933)
+    [
+        'station' => ['name' => 'Pont-de-la-Deûle', 'uic' => '87345207'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Nord à Lille', 241487697),
+        'quote' => '1 avril 1846 dans les chemins de fer : ouverture des tronçons Arras – Lille et Arras – Valenciennes.',
+        'reason' => 'article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : le tronçon Arras - Lille, où se trouve Pont-de-la-Deûle, ouvre le 1er avril 1846. Précise l\'année 1846 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Ste-Anne (id 16423)
+    [
+        'station' => ['name' => 'Ste-Anne', 'uic' => '87476648'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1862-09-26',
+        'precision' => 'day',
+        'source_url' => $wp('Gare Sainte-Anne (Morbihan)', 230077628),
+        'quote' => 'La gare Sainte-Anne est mise en service à l\'occasion de l\'ouverture de la ligne Rennes - Redon et du tronçon, à voie unique, jusqu\'à Lorient de la ligne Savenay - Landerneau, le 26 septembre 1862.',
+        'reason' => 'article de la gare « Gare Sainte-Anne (Morbihan) » (oldid 230077628) : infobox et section Histoire : mise en service le 26 septembre 1862. Précise l\'année 1862 de Wikidata au jour.',
+    ],
+
+    // Argentière (id 17934)
+    [
+        'station' => ['name' => 'Argentière', 'uic' => '87746859'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1906-07-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière)', 240212251),
+        'quote' => 'La section entre Chamonix et Argentière ouvre au public le 25 juillet 1906.',
+        'reason' => 'article de la ligne « Ligne de Saint-Gervais-les-Bains-Le Fayet à Vallorcine (frontière) » (oldid 240212251) : la section Chamonix - Argentière, terminus alors, ouvre au public le 25 juillet 1906. Précise l\'année 1906 de Wikidata au jour.',
+    ],
+
+    // Oderen (id 15222)
+    [
+        'station' => ['name' => 'Oderen', 'uic' => '87182634'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1905-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lutterbach à Kruth', 235373537),
+        'quote' => 'La section de Wesserling à Kruth est mise en service le 2 janvier 1905',
+        'reason' => 'article de la ligne « Ligne de Lutterbach à Kruth » (oldid 235373537) : Oderen est entre Wesserling et Kruth, section mise en service le 2 janvier 1905 (Thann - Wesserling le 25 novembre 1863, d\'où le 1863 de Wikidata). Remplace l\'année 1863 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Fellering (id 15221)
+    [
+        'station' => ['name' => 'Fellering', 'uic' => '87182626'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1905-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lutterbach à Kruth', 235373537),
+        'quote' => 'La section de Wesserling à Kruth est mise en service le 2 janvier 1905',
+        'reason' => 'article de la ligne « Ligne de Lutterbach à Kruth » (oldid 235373537) : Fellering est entre Wesserling et Kruth, section mise en service le 2 janvier 1905 (Thann - Wesserling le 25 novembre 1863, d\'où le 1863 de Wikidata). Remplace l\'année 1863 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Corps-Nuds (id 16327)
+    [
+        'station' => ['name' => 'Corps-Nuds', 'uic' => '87471326'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 231122716) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // Vern (id 16307)
+    [
+        'station' => ['name' => 'Vern', 'uic' => '87471029'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 238687587) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // Casino-Lacroix-Laval (id 15344)
+    [
+        'station' => ['name' => 'Casino-Lacroix-Laval', 'uic' => '87208553'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1997-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Casino-Lacroix-Laval', 241156062),
+        'quote' => 'Cette halte a été créée en 1997 à la demande du directeur du Casino Le Lyon vert',
+        'reason' => 'article de la gare « Gare de Casino-Lacroix-Laval » (oldid 241156062) : section Histoire : la halte a été créée en 1997 à la demande du casino, elle n\'existait donc pas à l\'ouverture de la ligne. Remplace l\'année 1882 d\'OpenHistoricalMap (ligne de Lyon à Montbrison).',
+    ],
+
+    // Port-Brillet (id 16454)
+    [
+        'station' => ['name' => 'Port-Brillet', 'uic' => '87478750'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-05-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Paris-Montparnasse à Brest', 239547071),
+        'quote' => 'puis enfin Rennes en mai 1857',
+        'reason' => 'article de la ligne « Ligne de Paris-Montparnasse à Brest » (oldid 239547071) : Laval - Rennes, où se trouve Port-Brillet, est ouverte en mai 1857 (Chartres en 1849, Guingamp en septembre 1863). Remplace la fourchette 1860 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // Olonne-sur-Mer (id 16561)
+    [
+        'station' => ['name' => 'Olonne-sur-Mer', 'uic' => '87486431'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-12-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'est mise en service le 30 décembre 1866 dans les chemins de fer',
+        'reason' => 'article de la ligne « Ligne des Sables-d\'Olonne à Tours » (oldid 239596144) : la section Les Sables-d\'Olonne - La Roche-sur-Yon, où se trouve Olonne-sur-Mer, est mise en service le 30 décembre 1866 ; l\'article de la gare dit 1866. Précise l\'année 1866 de Wikidata au jour.',
+    ],
+
+    // Longuerue-Vieux-Manoir (id 16210)
+    [
+        'station' => ['name' => 'Longuerue-Vieux-Manoir', 'uic' => '87411447'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1874-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Longuerue - Vieux-Manoir', 235032722),
+        'quote' => 'celle-ci n\'a construit la gare de Longuerue-Vieux-Manoir qu\'en 1874',
+        'reason' => 'article de la gare « Gare de Longuerue - Vieux-Manoir » (oldid 235032722) : section Histoire : la ligne est ouverte dès 1867 mais la gare n\'est construite qu\'en 1874. Remplace l\'année 1867 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // St-Armel (id 16326)
+    [
+        'station' => ['name' => 'St-Armel', 'uic' => '87471318'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Châteaubriant à Rennes', 234893924),
+        'quote' => 'Elle a été ouverte à l\'exploitation par l\'État le 28 décembre 1881.',
+        'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 238686402) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // ── 48. Ouvertures « à décider » des audits de gares, tranchées avec la règle stricte (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-a-decider.md) : une date qui change l'existant repose sur la chronologie détaillée de l'article
+    // de la ligne ou sur deux sources concordantes, une infobox seule ne contredit pas la section de la ligne, une inauguration n'est pas une
+    // ouverture au public, une halte créée après la ligne a sa propre date sourcée. Les gares de Pontoise à Gisors (mise en service de la
+    // section le 4 octobre 1868), du Theil et de Champagné (section de Chartres au Mans, 1 juin 1854), Logelbach, Breitenbach et Muhlbach
+    // (sections de la ligne de Colmar à Metzeral), Rang-du-Fliers, Pontarlier, Avesnes, Alès, La Grand-Combe et Longueil-Sainte-Marie reçoivent
+    // la date de leur section, Cap-d'Ail et Èze une date qui n'est plus antérieure à leur ligne.
+
+    // Boissy-l'Aillerie (id 15978)
+    [
+        'station' => ['name' => 'Boissy-l\'Aillerie', 'uic' => '87381152'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Montgeroult-Courcelles (id 15979)
+    [
+        'station' => ['name' => 'Montgeroult-Courcelles', 'uic' => '87381160'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Santeuil-Le Perchay (id 15981)
+    [
+        'station' => ['name' => 'Santeuil-Le Perchay', 'uic' => '87381186'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Chars (id 15982)
+    [
+        'station' => ['name' => 'Chars', 'uic' => '87381194'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Lavilletertre (id 15983)
+    [
+        'station' => ['name' => 'Lavilletertre', 'uic' => '87381202'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Liancourt-St-Pierre (id 15984)
+    [
+        'station' => ['name' => 'Liancourt-St-Pierre', 'uic' => '87381210'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Chaumont-en-Vexin (id 15985)
+    [
+        'station' => ['name' => 'Chaumont-en-Vexin', 'uic' => '87381228'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Trie-Château (id 15986)
+    [
+        'station' => ['name' => 'Trie-Château', 'uic' => '87381236'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Le même article dit une halte prévue à Trie-Château pour les voyageurs dans le récit de cette mise en service. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Le Theil-La Rouge (id 16175)
+    [
+        'station' => ['name' => 'Le Theil-La Rouge', 'uic' => '87396333'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Mars-la-Brière', 240063538),
+        'quote' => 'lorsqu\'elle ouvre à l\'exploitation la section de Chartres au Mans de sa ligne de Paris-Montparnasse à Brest',
+        'reason' => 'article de la gare « Gare de Saint-Mars-la-Brière » (oldid 240063538) : la section de Chartres au Mans est ouverte le 1 juin 1854 ; les articles « Gare de La Ferté-Bernard » (oldid 230876421), « Gare de Sceaux - Boëssé » (oldid 223032459) et « Gare du Mans » (oldid 238252707) donnent le même jour pour les gares entre Nogent-le-Rotrou et Le Mans, et « Histoire de Nogent-le-Rotrou » (oldid 239795400) : Nogent reliée au Mans le 1 juin 1854. Le Theil-La Rouge est sur cette section. L\'article de la gare dit « mai 1857 » (recopie de l\'ouverture de la ligne jusqu\'à Rennes). Précise l\'année 1854 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Champagné (id 16169)
+    [
+        'station' => ['name' => 'Champagné', 'uic' => '87396275'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Mars-la-Brière', 240063538),
+        'quote' => 'lorsqu\'elle ouvre à l\'exploitation la section de Chartres au Mans de sa ligne de Paris-Montparnasse à Brest',
+        'reason' => 'article de la gare « Gare de Saint-Mars-la-Brière » (oldid 240063538) : la section de Chartres au Mans est ouverte le 1 juin 1854 ; les articles « Gare de La Ferté-Bernard » (oldid 230876421), « Gare de Sceaux - Boëssé » (oldid 223032459) et « Gare du Mans » (oldid 238252707) donnent le même jour pour les gares entre Nogent-le-Rotrou et Le Mans, et « Histoire de Nogent-le-Rotrou » (oldid 239795400) : Nogent reliée au Mans le 1 juin 1854. Champagné est sur cette section. L\'article de la gare dit « mai 1857 » (recopie de l\'ouverture de la ligne jusqu\'à Rennes). Précise l\'année 1854 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Logelbach (id 15205)
+    [
+        'station' => ['name' => 'Logelbach', 'uic' => '87182345'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-12-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La section de Colmar à Munster est ouverte le 3 décembre 1868 par la Compagnie des chemins de fer de l\'Est.',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster, où se trouve Logelbach, est ouverte le 3 décembre 1868 ; l\'article de la gare (oldid 241597894) dit 1867 « lors de l\'ouverture de la ligne », ce qui ne peut pas être antérieur à la section. Remplace l\'année 1867 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Breitenbach (id 15224)
+    [
+        'station' => ['name' => 'Breitenbach', 'uic' => '87182659'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1893-11-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La ligne est prolongée jusqu\'à Metzeral par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL) le 1er novembre 1893',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster est ouverte le 3 décembre 1868, la ligne n\'est prolongée au-delà de Munster jusqu\'à Metzeral que le 1er novembre 1893 ; Breitenbach est après Munster (l\'article de la gare, oldid 241597867, la place entre Luttenbach-près-Munster et Metzeral et dit 1868 « lors de l\'ouverture de la ligne de Colmar à Munster »). Remplace l\'année 1868 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Muhlbach-sur-Munster (id 15231)
+    [
+        'station' => ['name' => 'Muhlbach-sur-Munster', 'uic' => '87182733'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1893-11-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La ligne est prolongée jusqu\'à Metzeral par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL) le 1er novembre 1893',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster est ouverte le 3 décembre 1868, la ligne n\'est prolongée au-delà de Munster jusqu\'à Metzeral que le 1er novembre 1893 ; Muhlbach-sur-Munster est après Munster (l\'article de la gare, oldid 241597911, la place entre Luttenbach-près-Munster et Metzeral et dit 1868 « lors de l\'ouverture de la ligne de Colmar à Munster »). Remplace l\'année 1868 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Rang-du-Fliers-Verton (id 15821)
+    [
+        'station' => ['name' => 'Rang-du-Fliers-Verton', 'uic' => '87317057'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Longueau à Boulogne-Ville', 235223334),
+        'quote' => '21 décembre 1847 dans les chemins de fer : ouverture d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la ligne « Ligne de Longueau à Boulogne-Ville » (oldid 235223334) : la section d\'Abbeville à Neufchâtel, où se trouve Rang-du-Fliers, est ouverte le 21 décembre 1847 ; la base portait le 11 novembre 1847 (OpenHistoricalMap), sans source. Remplace le 11 novembre 1847.',
+    ],
+
+    // Cap-d'Ail (id 18050)
+    [
+        'station' => ['name' => 'Cap-d\'Ail', 'uic' => '87756395'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cap-d\'Ail', 228568248),
+        'quote' => 'La gare est construite en 1881 pour la Compagnie Paris-Lyon-Méditerranée',
+        'reason' => 'article de la gare « Gare de Cap-d\'Ail » (oldid 228568248) : section Histoire : la gare est construite en 1881 pour le PLM ; la section de Nice à Monaco de la ligne est ouverte le 9 octobre 1868 (article de la ligne, oldid 240736526), le 1866 de Wikidata est donc antérieur à la ligne elle-même. Remplace l\'année 1866 de Wikidata. Confiance moyenne (« construite » et non « ouverte »).',
+    ],
+
+    // Èze (id 18049)
+    [
+        'station' => ['name' => 'Èze', 'uic' => '87756387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-09',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Marseille-Saint-Charles à Vintimille (frontière)', 240736526),
+        'quote' => 'Le 9 octobre 1868, ouverture de la ligne entre Nice et Monaco.',
+        'reason' => 'article de la ligne « Ligne de Marseille-Saint-Charles à Vintimille (frontière) » (oldid 240736526) : la section de Nice à Monaco, où se trouve Èze-sur-Mer, est ouverte le 9 octobre 1868 ; l\'article de la gare (oldid 228568278) dit « mise en service en 1866 », antérieur à la ligne, comme le 1866 de Wikidata (construction vraisemblable des ouvrages). Remplace l\'année 1866 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Pontarlier (id 17573)
+    [
+        'station' => ['name' => 'Pontarlier', 'uic' => '87715003'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1860-07-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Frasne à Verrières-de-Joux (frontière)', 235342104),
+        'quote' => '24 juillet 1860, mise en service de Pontarlier aux Verrières et à la frontière suisse',
+        'reason' => 'article de la ligne « Ligne de Frasne à Verrières-de-Joux (frontière) » (oldid 235342104) : chronologie détaillée, Pontarlier aux Verrières mise en service le 24 juillet 1860 (référence Palau citée) ; l\'infobox de la gare donne le 25 et OpenStreetMap le 17 : une infobox seule ne contredit pas la chronologie de la ligne. Remplace le 17 juillet 1860 d\'OpenStreetMap.',
+    ],
+
+    // Avesnes (id 15694)
+    [
+        'station' => ['name' => 'Avesnes', 'uic' => '87295733'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-10-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Fives à Hirson', 240286509),
+        'quote' => 'd\'Aulnoye à Hirson, le 30 octobre 1869',
+        'reason' => 'article de la ligne « Ligne de Fives à Hirson » (oldid 240286509) : chronologie des ouvertures, d\'Aulnoye à Hirson le 30 octobre 1869 (Avesnes-sur-Helpe est sur cette section, entre Aulnoye-Aymeries et Fourmies), de Valenciennes à Aulnoye le 1 septembre 1872 ; l\'article de la gare dit « ouverte en 1872 » pour la ligne de Lille à Thionville (autre section). Remplace l\'année 1872 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Alès (id 18179)
+    [
+        'station' => ['name' => 'Alès', 'uic' => '87775288'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-08-19',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '19 août 1840 dans les chemins de fer : Alès – Nîmes',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : chronologie, Alès - Nîmes le 19 août 1840 ; l\'article « Gare de Nîmes » (oldid 239952199) dit la ligne d\'Alais à Beaucaire ouverte en totalité le 19 août 1840 ; l\'article de la gare d\'Alès (oldid 238810237) et Wikidata disent 1840. Précise l\'année 1840 de Wikidata au jour.',
+    ],
+
+    // Grand'Combe-La Pise (id 18178)
+    [
+        'station' => ['name' => 'Grand\'Combe-La Pise', 'uic' => '87775254'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => 'janvier 1841 dans les chemins de fer : Alès – La Levade',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : chronologie, Alès - La Levade (La Grand-Combe) en janvier 1841, et « dès 1841 » dans l\'introduction ; le texte de l\'article de la gare dit 1841, l\'infobox et Wikidata 1840 (l\'année de la section Alès - Nîmes, qui ne dessert pas La Grand-Combe). Remplace l\'année 1840 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Longueil-Ste-Marie (id 15537)
+    [
+        'station' => ['name' => 'Longueil-Ste-Marie', 'uic' => '87276303'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-10-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Creil à Jeumont', 236310314),
+        'quote' => 'Le 20 octobre 1847, de Creil à Compiègne via Pont-Sainte-Maxence',
+        'reason' => 'article de la ligne « Ligne de Creil à Jeumont » (oldid 236310314) : chronologie des mises en service, de Creil à Compiègne via Pont-Sainte-Maxence le 20 octobre 1847 ; l\'article de la gare (oldid 241485293) dit que la gare s\'appelait d\'abord Verberie jusqu\'à l\'ouverture de la ligne d\'Ormoy-Villers à Boves en 1882 : elle est donc plus ancienne que cette ligne, 1882 de Wikidata étant la date de cette ligne. Remplace l\'année 1882 de Wikidata. Confiance moyenne.',
+    ],
+
+    // ── 49. Fermetures voyageurs ou de service relues sur les articles de ligne (audit-fermetures-3, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-fermetures-3.md). Les 42 gares « sans source datée » de la passe 2 et 140 gares de plus de
+    // lignes fermées entre 1938 et 1990 dont la fermeture voyageurs était déduite de la ligne ont été confrontées à la chronologie par sections
+    // de leur ligne (Wikipédia, révision citée) : seules les dates qui changent l'existant ou le précisent sont corrigées ici (fermeture
+    // voyageurs, fin de l'exploitation, jour à la place de l'année) ; les autres sont confirmées ou restent à décider dans le CSV du rapport.
+
+    // Péronne-la-Chapelette (id 15799)
+    [
+        'station' => ['name' => 'Péronne-la-Chapelette', 'wikidata' => 'Q3097360'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Just-en-Chaussée à Douai', 241007487),
+        'quote' => 'le service voyageurs est également supprimé le 1 avril 1970 entre Montdidier et Cambrai',
+        'reason' => 'section Montdidier - Cambrai dont fait partie la halte de Péronne-la-Chapelette ; la date déduite (24/02/1975) était celle de la fin de la desserte marchandises de la section ; l\'article de la gare ne date pas la fermeture. Confiance moyenne : la halte n\'est pas citée nommément. (oldid 241007487)',
+    ],
+
+    // Beaune-la-Rolande (id 16652)
+    [
+        'station' => ['name' => 'Beaune-la-Rolande', 'wikidata' => 'Q16507923'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Étampes à Beaune-la-Rolande', 239193697),
+        'quote' => 'La ligne est fermée au trafic voyageurs le 15 05 1939 de Pithiviers à Beaune-la-Rolande',
+        'reason' => 'article de la ligne d\'Étampes à Beaune-la-Rolande : voyageurs fermés le 15/05/1939 de Pithiviers à Beaune-la-Rolande, et l\'article de la ligne d\'Auxy - Juranville à Bourges (oldid 240777187) donne 1939 pour Beaune-la-Rolande à Bourges (Auxy - Beaune fermée en 1932) : la dernière desserte voyageurs de la gare est de 1939. 1992 déduit de la ligne (fin du fret Pithiviers - Beaune). (oldid 239193697)',
+    ],
+
+    // Le Bouchet (id 16794)
+    [
+        'station' => ['name' => 'Le Bouchet', 'wikidata' => 'Q19407025'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // La Bourdigalière (id 21281)
+    [
+        'station' => ['name' => 'La Bourdigalière', 'wikidata' => 'Q19406990'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Berthegon (id 21288)
+    [
+        'station' => ['name' => 'Berthegon', 'wikidata' => 'Q19406977'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Cernay-Doussay (id 21485)
+    [
+        'station' => ['name' => 'Cernay-Doussay', 'wikidata' => 'Q19544659'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Monts-sur-Guesnes (id 21547)
+    [
+        'station' => ['name' => 'Monts-sur-Guesnes', 'wikidata' => 'Q19407001'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Bray-Dunes (id 18838)
+    [
+        'station' => ['name' => 'Bray-Dunes', 'wikidata' => 'Q1935964'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1994-08-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Dunkerque-Locale à Bray-Dunes', 235337718),
+        'quote' => 'dernières circulations le dimanche 28/08',
+        'reason' => 'article de la ligne de Dunkerque-Locale à Bray-Dunes : seuls des trains des dimanches d\'été circulaient les dernières années, la dernière année étant 1994 avec des dernières circulations le 28/08 ; en 1995 le service est assuré par autocars. Précise l\'année 1994 déduite au jour (arrêt du service des trains, pas un arrêté de fermeture). (oldid 235337718)',
+    ],
+
+    // La Haye-du-Puits (id 19333)
+    [
+        'station' => ['name' => 'La Haye-du-Puits', 'wikidata' => 'Q3096789'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1976-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Carentan à Carteret', 239830382),
+        'quote' => 'Elle a été fermée au service des voyageurs dans le courant de l\'été 1976',
+        'reason' => 'article de la ligne de Carentan à Carteret : voyageurs fermés dans le courant de l\'été 1976 (jour non donné) ; le 01/08/1976 déduit est la fin du fret Baupte - La Haye-du-Puits. La ligne de Coutances à Sottevast (oldid 240949203) est fermée aux voyageurs au printemps 1970 : 1976 est la dernière desserte. La fin du fret de la gare (24/01/1988, La Haye-du-Puits - Sottevast) reste celle de la fermeture déduite. (oldid 239830382)',
+    ],
+
+    // Domfront (Orne) (id 19361)
+    [
+        'station' => ['name' => 'Domfront (Orne)', 'wikidata' => 'Q3096379'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Chapelle-Anthenaise à Flers', 237590911),
+        'quote' => 'La ligne est fermée en 1970 en totalité aux voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne de La Chapelle-Anthenaise à Flers : fermée en totalité aux voyageurs le 31/05/1970 ; la ligne d\'Alençon à Domfront perd ses voyageurs le 15/05/1938 et celle de Domfront à Pontaubault le 18/07/1939 (rouverte de 1940 à 1946). Fin du fret Flers - Domfront le 01/10/1990 ; la date de fermeture 2000 déduite de la ligne n\'est pas confirmée. (oldid 237590911)',
+    ],
+
+    // Maxonchamp (id 21269)
+    [
+        'station' => ['name' => 'Maxonchamp', 'wikidata' => 'Q3097003'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1989-05-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinal à Bussang', 219647311),
+        'quote' => 'La fin de l\'exploitation de la ligne entre Remiremont et Bussang a eu lieu le 28 mai 1989',
+        'reason' => 'article de la ligne d\'Épinal à Bussang : fin de l\'exploitation de Remiremont à Bussang le 28/05/1989 ; le 15/11/1993 déduit est le déclassement de la section, pas l\'arrêt du service. (oldid 219647311)',
+    ],
+
+    // Barjols-Tavernes (id 21355)
+    [
+        'station' => ['name' => 'Barjols-Tavernes', 'wikidata' => 'Q48759889'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1950-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'définitivement fermée le 2 janvier 1950',
+        'reason' => 'article de la ligne Central-Var : limitée à Meyrargues - Tanneron dès 1945, puis définitivement fermée le 02/01/1950. Précise l\'année 1950 déduite au jour. (oldid 229972705)',
+    ],
+
+    // Eauze (id 20061)
+    [
+        'station' => ['name' => 'Eauze', 'wikidata' => 'Q123498148'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-06-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Port-Sainte-Marie à Riscle', 239005015),
+        'quote' => 'La ligne est fermée au transport des voyageurs le 27 juin 1940.',
+        'reason' => 'article de la ligne de Port-Sainte-Marie à Riscle : voyageurs fermés le 27/06/1940 ; la ligne d\'Eauze à Auch (oldid 236368945) est fermée aux voyageurs le 15/05/1939. Dernières circulations de la section Eauze - Riscle fin 2007, la gare restant ouverte administrativement. (oldid 239005015)',
+    ],
+
+    // Montpellier - Chaptal (id 21812)
+    [
+        'station' => ['name' => 'Montpellier - Chaptal', 'wikidata' => 'Q136008508'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-02-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Montpellier à Rabieux', 239000949),
+        'quote' => 'Le 1 février 1948 le service voyageur est supprimé.',
+        'reason' => 'article de la ligne de Montpellier à Rabieux : service voyageurs suspendu le 01/01/1933, rétabli le 26/08/1939, supprimé définitivement le 01/02/1948 ; la gare reste un dépôt jusqu\'en 1961. 1953 déduit de la ligne (fin du fret de sections). (oldid 239000949)',
+    ],
+
+    // Orbe (id 19669)
+    [
+        'station' => ['name' => 'Orbe', 'wikidata' => 'Q65137503'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Pas-de-Jeu (id 19667)
+    [
+        'station' => ['name' => 'Pas-de-Jeu', 'wikidata' => 'Q65137493'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Basses-Sammarcolles (id 19649)
+    [
+        'station' => ['name' => 'Basses-Sammarcolles', 'uic' => '87571729'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Beuxes (id 19648)
+    [
+        'station' => ['name' => 'Beuxes', 'uic' => '87571711'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // La Roche-Clermault (id 19647)
+    [
+        'station' => ['name' => 'La Roche-Clermault', 'uic' => '87571703'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // ── 50. Positions des gares dont les sources de position s'écartent le plus (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/positions-gares.md) : 150 gares, position établie par au moins deux familles de sources
+    // indépendantes à moins de 70 m (BD TOPO équipement de transport, OSM, liste SNCF, coordonnées de l'article Wikipédia ou de
+    // Wikidata comptées pour une seule famille), posée sur le bâtiment voyageurs ou le milieu des quais ; l'élément fautif est dit dans « reason ». ──
+    // 001. Luxembourg (id 20994)
+    [
+        'station' => ['name' => 'Luxembourg', 'uic' => '8775861'],
+        'action' => 'position',
+        'lng' => 2.3402953,
+        'lat' => 48.8467395,
+        'source_url' => $wp('Gare du Luxembourg', 241230867),
+        'quote' => 'Gare du Luxembourg : latitude = 48.846751, longitude = 2.340281',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Luxembourg » (oldid 241230867) à 2 m, Wikidata Q1772325 à 8 m, BD TOPO EQ_RESEA0000000000140328 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 145 m',
+    ],
+    // 002. Nouvel-Avricourt (id 18766)
+    [
+        'station' => ['name' => 'Nouvel-Avricourt', 'uic' => '87215111'],
+        'action' => 'position',
+        'lng' => 6.8217182,
+        'lat' => 48.6512847,
+        'source_url' => $wp('Gare de Nouvel-Avricourt', 232258083),
+        'quote' => 'Gare de Nouvel-Avricourt : latitude = 48.651300, longitude = 6.821824',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nouvel-Avricourt » (oldid 232258083) à 8 m, OSM w1375605685 à 0 m ; à 27 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 191 m ; à signaler à la source : liste SNCF UIC 87215111 (point géocodé) à 191 m, Wikidata Q17462003 (P625) à 550 m',
+    ],
+    // 003. Trélazé (id 16507)
+    [
+        'station' => ['name' => 'Trélazé', 'uic' => '87484063'],
+        'action' => 'position',
+        'lng' => -0.4696274,
+        'lat' => 47.4528445,
+        'source_url' => $wp('Gare de Trélazé', 240684443),
+        'quote' => 'Gare de Trélazé : latitude = 47.452861, longitude = -0.469642',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Trélazé » (oldid 240684443) à 2 m, BD TOPO EQ_RESEA0000002201647093 à 46 m, OSM n6271161685 à 39 m, liste SNCF 87701532 à 14 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 78 m ; à signaler à la source : Wikidata Q16508084 (P625) à 391 m',
+    ],
+    // 004. Boulogne-sur-Gesse (id 21208)
+    [
+        'station' => ['name' => 'Boulogne-sur-Gesse', 'wikidata' => 'Q56310932'],
+        'action' => 'position',
+        'lng' => 0.6536905,
+        'lat' => 43.2876995,
+        'source_url' => $wp('Gare de Boulogne-sur-Gesse', 188119490),
+        'quote' => 'Gare de Boulogne-sur-Gesse : latitude = 43.287680, longitude = 0.653700',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Boulogne-sur-Gesse » (oldid 188119490) à 2 m, OHM w198652897 à 2 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (wikidata) à 186 m ; à signaler à la source : Wikidata Q56310932 (P625) à 445 m',
+    ],
+    // 005. Avesnes (id 15694)
+    [
+        'station' => ['name' => 'Avesnes', 'uic' => '87295733'],
+        'action' => 'position',
+        'lng' => 3.933017,
+        'lat' => 50.1269589,
+        'source_url' => $wp('Gare d\'Avesnes', 230178819),
+        'quote' => 'Gare d\'Avesnes : latitude = 50.126890, longitude = 3.933131',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Avesnes » (oldid 230178819) à 11 m, Wikidata Q3095711 à 11 m, BD TOPO EQ_RESEA0000000056480976 à 14 m, OSM n10186929392 à 0 m, liste SNCF 87295733 à 25 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 75 m',
+    ],
+    // 006. Thuès (id 18266)
+    [
+        'station' => ['name' => 'Thuès', 'uic' => '87784751'],
+        'action' => 'position',
+        'lng' => 2.2274117,
+        'lat' => 42.5237564,
+        'source_url' => $wp('Gare de Thuès-Carença', 241417690),
+        'quote' => 'Gare de Thuès-Carença : latitude = 42.523733, longitude = 2.227429',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Thuès-Carença » (oldid 241417690) à 3 m, Wikidata Q2402394 à 3 m, BD TOPO EQ_RESEA0000000038468513 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 391 m ; à signaler à la source : OSM n939389867 à 394 m, liste SNCF UIC 87784751 (point géocodé) à 391 m, liste SNCF UIC 87784751 (point géocodé) à 394 m',
+    ],
+    // 007. Domfront (id 16164)
+    [
+        'station' => ['name' => 'Domfront', 'uic' => '87396200'],
+        'action' => 'position',
+        'lng' => 0.0262364,
+        'lat' => 48.107709,
+        'source_url' => $wp('Gare de Domfront (Sarthe)', 221752572),
+        'quote' => 'Gare de Domfront (Sarthe) : latitude = 48.107624, longitude = 0.026275',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Domfront (Sarthe) » (oldid 221752572) à 10 m, OSM n4224368144 à 0 m, liste SNCF 87396200 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 77 m ; à signaler à la source : Wikidata Q3096385 (P625) à 404 m',
+    ],
+    // 008. Talence-Médoquine (id 19732)
+    [
+        'station' => ['name' => 'Talence-Médoquine', 'uic' => '87581504'],
+        'action' => 'position',
+        'lng' => -0.600976,
+        'lat' => 44.816282,
+        'source_url' => $wp('Gare de Talence-Médoquine', 236100858),
+        'quote' => 'Gare de Talence-Médoquine : latitude = 44.816156, longitude = -0.601154',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Talence-Médoquine » (oldid 236100858) à 20 m, Wikidata Q3097820 à 17 m, liste SNCF 87748350 à 36 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 186 m ; à signaler à la source : liste SNCF UIC 87581504 (point géocodé) à 186 m',
+    ],
+    // 009. Noisy-le-Grand - Mont d’Est (id 20987)
+    [
+        'station' => ['name' => 'Noisy-le-Grand - Mont d’Est', 'uic' => '8775833'],
+        'action' => 'position',
+        'lng' => 2.5513294,
+        'lat' => 48.8407157,
+        'source_url' => $osm('w261942460'),
+        'quote' => 'Noisy-le-Grand - Mont d\'Est (osm) : lat = 48.8407834, lon = 2.5513489',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : Wikidata Q1841795 à 33 m, BD TOPO EQ_RESEA0000000324016295 à 1 m, OSM w261942460 à 8 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 261 m ; à signaler à la source : OSM n239822735 à 261 m, coordonnées de l\'article « Gare de Noisy-le-Grand-Mont d\'Est » à 240 m',
+    ],
+    // 010. Picquigny (id 15744)
+    [
+        'station' => ['name' => 'Picquigny', 'uic' => '87313106'],
+        'action' => 'position',
+        'lng' => 2.143258,
+        'lat' => 49.9461258,
+        'source_url' => $wp('Gare de Picquigny', 240528899),
+        'quote' => 'Gare de Picquigny : latitude = 49.946259, longitude = 2.142949',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Picquigny » (oldid 240528899) à 27 m, OSM n5583988491 à 0 m, liste SNCF 87313106 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 84 m ; à signaler à la source : Wikidata Q2268433 (P625) à 193 m',
+    ],
+    // 011. St-Laurent-de-la-Prée (id 16528)
+    [
+        'station' => ['name' => 'St-Laurent-de-la-Prée', 'uic' => '87485136'],
+        'action' => 'position',
+        'lng' => -1.0268753,
+        'lat' => 45.9925893,
+        'source_url' => $osm('n9964832833'),
+        'quote' => 'Saint-Laurent-de-la-Prée - Fouras (osm) : lat = 45.9925893, lon = -1.0268753',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM n9964832833 à 0 m, liste SNCF 87485136 à 63 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 87 m ; à signaler à la source : Wikidata Q2285744 (P625) à 180 m, coordonnées de l\'article « Gare de Saint-Laurent - Fouras » à 180 m',
+    ],
+    // 012. Sathonay-Rillieux (id 17706)
+    [
+        'station' => ['name' => 'Sathonay-Rillieux', 'uic' => '87723700'],
+        'action' => 'position',
+        'lng' => 4.8752648,
+        'lat' => 45.8202291,
+        'source_url' => $wp('Gare de Sathonay - Rillieux', 239259404),
+        'quote' => 'Gare de Sathonay - Rillieux : latitude = 45.819887, longitude = 4.874797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sathonay - Rillieux » (oldid 239259404) à 53 m, Wikidata Q3097685 à 53 m, BD TOPO EQ_RESEA0000000013173220 à 3 m, OSM n4290859477 à 26 m, liste SNCF 87723700 à 5 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 102 m',
+    ],
+    // 013. La Chapelle-St-Ursin-Morthomiers (id 16821)
+    [
+        'station' => ['name' => 'La Chapelle-St-Ursin-Morthomiers', 'uic' => '87576264'],
+        'action' => 'position',
+        'lng' => 2.3024705,
+        'lat' => 47.0493611,
+        'source_url' => $wp('Gare de La Chapelle-Saint-Ursin - Morthomiers', 214539582),
+        'quote' => 'Gare de La Chapelle-Saint-Ursin - Morthomiers : latitude = 47.049179, longitude = 2.302376',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de La Chapelle-Saint-Ursin - Morthomiers » (oldid 214539582) à 21 m, Wikidata Q24936334 à 21 m, BD TOPO EQ_RESEA0000000016698893 à 0 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 281 m ; à signaler à la source : liste SNCF UIC 87576264 (point géocodé) à 281 m',
+    ],
+    // 014. Saint-Benoit (id 21048)
+    [
+        'station' => ['name' => 'Saint-Benoit', 'wikidata' => 'Q120159350'],
+        'action' => 'position',
+        'lng' => 6.7284166,
+        'lat' => 43.959873,
+        'source_url' => $osm('w197346620'),
+        'quote' => 'Saint-Benoît (osm) : lat = 43.9598730, lon = 6.7284166',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : Wikidata Q120159350 à 8 m, OSM w197346620 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 258 m ; à signaler à la source : OSM n5812149404 à 258 m',
+    ],
+    // 015. Valenciennes (id 15910)
+    [
+        'station' => ['name' => 'Valenciennes', 'uic' => '87343004'],
+        'action' => 'position',
+        'lng' => 3.5171895,
+        'lat' => 50.3632612,
+        'source_url' => $wp('Gare de Valenciennes', 241339108),
+        'quote' => 'Gare de Valenciennes : latitude = 50.363574, longitude = 3.516697',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Valenciennes » (oldid 241339108) à 49 m, Wikidata Q1887294 à 19 m, BD TOPO EQ_RESEA0000000056480422 à 5 m, OSM n1648968005 à 42 m, liste SNCF 87343004 à 5 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 97 m',
+    ],
+    // 016. Schwindratzheim (id 15354)
+    [
+        'station' => ['name' => 'Schwindratzheim', 'uic' => '87212159'],
+        'action' => 'position',
+        'lng' => 7.6005468,
+        'lat' => 48.7536468,
+        'source_url' => $osm('n3507536495'),
+        'quote' => 'Schwindratzheim (osm) : lat = 48.7536468, lon = 7.6005468',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000048606778 à 13 m, OSM n3507536495 à 0 m, liste SNCF 87212159 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 79 m ; à signaler à la source : Wikidata Q2743043 (P625) à 157 m, coordonnées de l\'article « Gare de Schwindratzheim » à 157 m',
+    ],
+    // 017. St-Aubin-St-Luperce (id 16140)
+    [
+        'station' => ['name' => 'St-Aubin-St-Luperce', 'uic' => '87394213'],
+        'action' => 'position',
+        'lng' => 1.3318523,
+        'lat' => 48.4476356,
+        'source_url' => $wp('Gare de Saint-Aubin - Saint-Luperce', 223001821),
+        'quote' => 'Gare de Saint-Aubin - Saint-Luperce : latitude = 48.447769, longitude = 1.331899',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Aubin - Saint-Luperce » (oldid 223001821) à 15 m, BD TOPO EQ_RESEA0000000015531748 à 16 m, OSM n385361577 à 0 m, liste SNCF 87394213 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 87 m ; à signaler à la source : Wikidata Q3097495 (P625) à 314 m',
+    ],
+    // 018. Valence-d'Agen (id 17155)
+    [
+        'station' => ['name' => 'Valence-d\'Agen', 'uic' => '87611863'],
+        'action' => 'position',
+        'lng' => 0.8915703,
+        'lat' => 44.1116786,
+        'source_url' => $wp('Gare de Valence-d\'Agen', 237210627),
+        'quote' => 'Gare de Valence-d\'Agen : latitude = 44.111783, longitude = 0.891622',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Valence-d\'Agen » (oldid 237210627) à 12 m, BD TOPO EQ_RESEA0000000025667293 à 3 m, OSM n13289730198 à 14 m, liste SNCF 87611863 à 6 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 82 m',
+    ],
+    // 019. Couhé-Vérac (id 16790)
+    [
+        'station' => ['name' => 'Couhé-Vérac', 'uic' => '87575340'],
+        'action' => 'position',
+        'lng' => 0.2452569,
+        'lat' => 46.308189,
+        'source_url' => $wp('Gare de Couhé-Vérac', 208460033),
+        'quote' => 'Gare de Couhé-Vérac : latitude = 46.308531, longitude = 0.245141',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Couhé-Vérac » (oldid 208460033) à 39 m, Wikidata Q2082613 à 39 m, BD TOPO EQ_RESEA0000000054254002 à 0 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 157 m ; à signaler à la source : liste SNCF UIC 87575340 (point géocodé) à 157 m',
+    ],
+    // 020. Val d'Europe (id 20954)
+    [
+        'station' => ['name' => 'Val d\'Europe', 'uic' => '8773006'],
+        'action' => 'position',
+        'lng' => 2.7738015,
+        'lat' => 48.8556361,
+        'source_url' => $wp('Gare du Val d\'Europe', 240400832),
+        'quote' => 'Gare du Val d\'Europe : latitude = 48.855385, longitude = 2.773383',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Val d\'Europe » (oldid 240400832) à 41 m, BD TOPO EQ_RESEA0000000001726061 à 7 m, OSM w116188676 à 7 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 122 m',
+    ],
+    // 021. Vienne (id 17679)
+    [
+        'station' => ['name' => 'Vienne', 'uic' => '87722587'],
+        'action' => 'position',
+        'lng' => 4.8742834,
+        'lat' => 45.5211236,
+        'source_url' => $wp('Gare de Vienne', 239233480),
+        'quote' => 'Gare de Vienne : latitude = 45.521330, longitude = 4.874582',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vienne » (oldid 239233480) à 33 m, Wikidata Q2744807 à 33 m, BD TOPO EQ_RESEA0000000007458985 à 4 m, OSM w116990333 à 4 m, liste SNCF 87722587 à 11 m ; à 15 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 149 m ; à signaler à la source : OSM n7647450474 à 210 m',
+    ],
+    // 022. Saint-Jean-de-Maurienne (id 17865)
+    [
+        'station' => ['name' => 'Saint-Jean-de-Maurienne', 'uic' => '87742320'],
+        'action' => 'position',
+        'lng' => 6.3535198,
+        'lat' => 45.2781926,
+        'source_url' => $wp('Gare de Saint-Jean-de-Maurienne - Vallée de l\'Arvan', 238203540),
+        'quote' => 'Gare de Saint-Jean-de-Maurienne - Vallée de l\'Arvan : latitude = 45.277701, longitude = 6.354755',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Jean-de-Maurienne - Vallée de l\'Arvan » (oldid 238203540) à 111 m, Wikidata Q3097549 à 111 m, BD TOPO EQ_RESEA0000000012530596 à 4 m, OSM n9911267224 à 50 m, liste SNCF 87742320 à 118 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 72 m',
+    ],
+    // 023. Conflans-Fin-d'Oise (id 15992)
+    [
+        'station' => ['name' => 'Conflans-Fin-d\'Oise', 'uic' => '87381459'],
+        'action' => 'position',
+        'lng' => 2.0746389,
+        'lat' => 48.989243,
+        'source_url' => $osm('w421970873'),
+        'quote' => 'Gare de Conflans Fin d\'Oise (osm) : lat = 48.9892313, lon = 2.0746257',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000004792747 à 2 m, OSM w421970873 à 2 m, liste SNCF 87381459 à 7 m ; à 18 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 112 m ; à signaler à la source : OSM n4637346463 à 302 m, OSM w421970879 à 306 m, Wikidata Q2532157 (P625) à 164 m, coordonnées de l\'article « Gare de Conflans-Fin-d\'Oise » à 180 m, BD TOPO EQ_RESEA0000000004792748 à 317 m',
+    ],
+    // 024. Chenonceaux-Chisseaux (id 16754)
+    [
+        'station' => ['name' => 'Chenonceaux-Chisseaux', 'uic' => '87574491'],
+        'action' => 'position',
+        'lng' => 1.0649685,
+        'lat' => 47.3307366,
+        'source_url' => $wp('Gare de Chenonceaux', 237635303),
+        'quote' => 'Gare de Chenonceaux : latitude = 47.330640, longitude = 1.065860',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chenonceaux » (oldid 237635303) à 68 m, BD TOPO EQ_RESEA0000000031057363 à 21 m, OSM n5111215481 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 170 m ; à signaler à la source : liste SNCF UIC 87574491 (point géocodé) à 170 m',
+    ],
+    // 025. Port-St-Père-St-Mars (id 16468)
+    [
+        'station' => ['name' => 'Port-St-Père-St-Mars', 'uic' => '87481218'],
+        'action' => 'position',
+        'lng' => -1.7394251,
+        'lat' => 47.1165631,
+        'source_url' => $wp('Gare de Port-Saint-Père - Saint-Mars', 195976729),
+        'quote' => 'Gare de Port-Saint-Père - Saint-Mars : latitude = 47.116531, longitude = -1.739524',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Port-Saint-Père - Saint-Mars » (oldid 195976729) à 8 m, Wikidata Q3097322 à 12 m, liste SNCF 87481218 à 12 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 153 m ; à signaler à la source : liste SNCF UIC 87481218 (point géocodé) à 153 m',
+    ],
+    // 026. Auber (id 20936)
+    [
+        'station' => ['name' => 'Auber', 'uic' => '8775859'],
+        'action' => 'position',
+        'lng' => 2.3298611,
+        'lat' => 48.8723994,
+        'source_url' => $osm('w680119434'),
+        'quote' => 'Auber (osm) : lat = 48.8722248, lon = 2.3297922',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000000140137 à 1 m, OSM w680119434 à 20 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 99 m ; à signaler à la source : BD TOPO EQ_RESEA0000000000140114 à 285 m, BD TOPO EQ_RESEA0000000000140116 à 676 m',
+    ],
+    // 027. Luant (id 17073)
+    [
+        'station' => ['name' => 'Luant', 'uic' => '87597096'],
+        'action' => 'position',
+        'lng' => 1.5901218,
+        'lat' => 46.7357607,
+        'source_url' => $wp('Gare de Luant', 235032795),
+        'quote' => 'Gare de Luant : latitude = 46.735293, longitude = 1.589707',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Luant » (oldid 235032795) à 61 m, Wikidata Q1970651 à 61 m, OSM n11367547333 à 0 m, liste SNCF 87597096 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 97 m',
+    ],
+    // 028. Modane (id 17863)
+    [
+        'station' => ['name' => 'Modane', 'uic' => '87742007'],
+        'action' => 'position',
+        'lng' => 6.6589843,
+        'lat' => 45.1934693,
+        'source_url' => $wp('Gare de Modane', 241197921),
+        'quote' => 'Gare de Modane : latitude = 45.192774, longitude = 6.658348',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Modane » (oldid 241197921) à 92 m, Wikidata Q2767199 à 92 m, BD TOPO EQ_RESEA0000000012530544 à 1 m, OSM n11599419549 à 16 m, liste SNCF 87742007 à 66 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 153 m ; à signaler à la source : liste SNCF UIC 87742007 (point géocodé) à 153 m',
+    ],
+    // 029. Bonnières (id 16252)
+    [
+        'station' => ['name' => 'Bonnières', 'uic' => '87415893'],
+        'action' => 'position',
+        'lng' => 1.5815366,
+        'lat' => 49.0386579,
+        'source_url' => $wp('Gare de Bonnières', 237096135),
+        'quote' => 'Gare de Bonnières : latitude = 49.038745, longitude = 1.581472',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bonnières » (oldid 237096135) à 11 m, Wikidata Q1826419 à 11 m, BD TOPO EQ_RESEA0000000004792704 à 2 m, OSM n537989902 à 13 m, liste SNCF 87415893 à 51 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 80 m',
+    ],
+    // 030. St-Agne (id 17115)
+    [
+        'station' => ['name' => 'St-Agne', 'uic' => '87611301'],
+        'action' => 'position',
+        'lng' => 1.4502026,
+        'lat' => 43.5797073,
+        'source_url' => $wp('Gare de Toulouse-Saint-Agne', 237624152),
+        'quote' => 'Gare de Toulouse-Saint-Agne : latitude = 43.579644, longitude = 1.450290',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Saint-Agne » (oldid 237624152) à 10 m, Wikidata Q2179915 à 6 m, BD TOPO EQ_RESEA0000000073015890 à 4 m, OSM n6121253683 à 12 m, liste SNCF 87611301 à 4 m, OHM n2093430383 à 43 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 84 m',
+    ],
+    // 031. Pringy (id 17910)
+    [
+        'station' => ['name' => 'Pringy', 'uic' => '87746206'],
+        'action' => 'position',
+        'lng' => 6.1234176,
+        'lat' => 45.9395669,
+        'source_url' => $wp('Gare de Pringy', 240867816),
+        'quote' => 'Gare de Pringy : latitude = 45.939536, longitude = 6.123413',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pringy » (oldid 240867816) à 3 m, BD TOPO EQ_RESEA0000000067337301 à 8 m, OSM n7093491696 à 0 m, liste SNCF 87746206 à 10 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 10 m ; à signaler à la source : Wikidata Q2448329 (P625) à 8 905 m',
+    ],
+    // 032. Aigueperse (id 17799)
+    [
+        'station' => ['name' => 'Aigueperse', 'uic' => '87734129'],
+        'action' => 'position',
+        'lng' => 3.1981096,
+        'lat' => 46.0148696,
+        'source_url' => $wp('Gare d\'Aigueperse', 240422105),
+        'quote' => 'Gare d\'Aigueperse : latitude = 46.014720, longitude = 3.198060',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Aigueperse » (oldid 240422105) à 17 m, OSM n7316888307 à 0 m, liste SNCF 87734129 à 16 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : Wikidata Q3095589 (P625) à 7 401 m',
+    ],
+    // 033. Leffrinckoucke (id 15608)
+    [
+        'station' => ['name' => 'Leffrinckoucke', 'uic' => '87281626'],
+        'action' => 'position',
+        'lng' => 2.4334045,
+        'lat' => 51.0508772,
+        'source_url' => $wp('Gare de Leffrinckoucke', 210978984),
+        'quote' => 'Gare de Leffrinckoucke : latitude = 51.050876, longitude = 2.433434',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Leffrinckoucke » (oldid 210978984) à 2 m, liste SNCF 87281626 à 2 m ; à 19 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 2 m ; à signaler à la source : Wikidata Q2476004 (P625) à 6 290 m',
+    ],
+    // 034. La Wantzenau (id 15367)
+    [
+        'station' => ['name' => 'La Wantzenau', 'uic' => '87212316'],
+        'action' => 'position',
+        'lng' => 7.8249589,
+        'lat' => 48.6653542,
+        'source_url' => $wp('Gare de La Wantzenau', 241525137),
+        'quote' => 'Gare de La Wantzenau : latitude = 48.665330, longitude = 7.824930',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de La Wantzenau » (oldid 241525137) à 3 m, OSM n3502488423 à 0 m, liste SNCF 87212316 à 9 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 9 m ; à signaler à la source : Wikidata Q3096820 (P625) à 2 726 m',
+    ],
+    // 035. Sanatorium-de-Zuydcoote (id 18857)
+    [
+        'station' => ['name' => 'Sanatorium-de-Zuydcoote', 'uic' => '87287060'],
+        'action' => 'position',
+        'lng' => 2.4816978,
+        'lat' => 51.0627488,
+        'source_url' => $wp('Gare du sanatorium-maritime-de-Zuydcoote', 235035430),
+        'quote' => 'Gare du sanatorium-maritime-de-Zuydcoote : latitude = 51.062716, longitude = 2.481374',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du sanatorium-maritime-de-Zuydcoote » (oldid 235035430) à 23 m, liste SNCF 87287060 à 23 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 23 m ; à signaler à la source : Wikidata Q16964691 (P625) à 2 667 m',
+    ],
+    // 036. Orval-Hyenville (id 19344)
+    [
+        'station' => ['name' => 'Orval-Hyenville', 'uic' => '87447508'],
+        'action' => 'position',
+        'lng' => -1.4614691,
+        'lat' => 48.993946,
+        'source_url' => $wp('Gare d\'Orval - Hyenville', 234730951),
+        'quote' => 'Gare d\'Orval - Hyenville : latitude = 48.994105, longitude = -1.461424',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Orval - Hyenville » (oldid 234730951) à 18 m, Wikidata Q106807941 à 6 m, liste SNCF 87447508 à 4 m, galerie de photographies 02d38ae9774a145c3bfd5f27fe99f6403cfb33c6 à 4 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 4 m ; à signaler à la source : Wikidata Q2690852 (P625) à 2 397 m',
+    ],
+    // 037. Rive-de-Gier (id 17748)
+    [
+        'station' => ['name' => 'Rive-de-Gier', 'uic' => '87726331'],
+        'action' => 'position',
+        'lng' => 4.606608,
+        'lat' => 45.524354,
+        'source_url' => $wp('Gare de Rive-de-Gier', 230263028),
+        'quote' => 'Gare de Rive-de-Gier : latitude = 45.524256, longitude = 4.606197',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rive-de-Gier » (oldid 230263028) à 34 m, Wikidata Q14918105 à 34 m, BD TOPO EQ_RESEA0000000011980786 à 2 m, OSM n6568598621 à 3 m, liste SNCF 87726331 à 5 m, OHM n2126014065 à 2 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 3 m ; à signaler à la source : liste SNCF UIC 87726331 (point géocodé) à 223 m',
+    ],
+    // 038. Zuydcoote (id 18856)
+    [
+        'station' => ['name' => 'Zuydcoote', 'uic' => '87287052'],
+        'action' => 'position',
+        'lng' => 2.4891294,
+        'lat' => 51.064673,
+        'source_url' => $wp('Gare de Zuydcoote', 186522274),
+        'quote' => 'Gare de Zuydcoote : latitude = 51.064728, longitude = 2.489540',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Zuydcoote » (oldid 186522274) à 29 m, liste SNCF 87287052 à 29 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 29 m ; à signaler à la source : Wikidata Q17091774 (P625) à 2 107 m',
+    ],
+    // 039. Sancourt (id 19076)
+    [
+        'station' => ['name' => 'Sancourt', 'uic' => '87345470'],
+        'action' => 'position',
+        'lng' => 3.2045522,
+        'lat' => 50.2308275,
+        'source_url' => $wp('Gare de Sancourt', 232678150),
+        'quote' => 'Gare de Sancourt : latitude = 50.230889, longitude = 3.204443',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sancourt » (oldid 232678150) à 10 m, liste SNCF 87345470 à 10 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 10 m ; à signaler à la source : Wikidata Q2098900 (P625) à 2 065 m',
+    ],
+    // 040. Beaucaire (id 18162)
+    [
+        'station' => ['name' => 'Beaucaire', 'uic' => '87775023'],
+        'action' => 'position',
+        'lng' => 4.6470865,
+        'lat' => 43.80209,
+        'source_url' => $wp('Gare de Beaucaire', 235030712),
+        'quote' => 'Gare de Beaucaire : latitude = 43.802238, longitude = 4.647075',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Beaucaire » (oldid 235030712) à 16 m, Wikidata Q3095929 à 16 m, BD TOPO EQ_RESEA0000000095074230 à 14 m, OSM n7270737080 à 15 m, liste SNCF 87775023 à 24 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 24 m',
+    ],
+    // 041. Torfou (id 16565)
+    [
+        'station' => ['name' => 'Torfou', 'uic' => '87486894'],
+        'action' => 'position',
+        'lng' => -1.0937304,
+        'lat' => 47.0328413,
+        'source_url' => $wp('Gare de Torfou - Le Longeron - Tiffauges', 238676082),
+        'quote' => 'Gare de Torfou - Le Longeron - Tiffauges : latitude = 47.032811, longitude = -1.093896',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Torfou - Le Longeron - Tiffauges » (oldid 238676082) à 13 m, Wikidata Q3097881 à 13 m, BD TOPO EQ_RESEA0000000011163550 à 6 m, OSM n5809575640 à 0 m, liste SNCF 87486894 à 6 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 6 m ; à signaler à la source : liste SNCF UIC 87486894 (point géocodé) à 1 793 m',
+    ],
+    // 042. Rion-des-Landes (id 20120)
+    [
+        'station' => ['name' => 'Rion-des-Landes', 'uic' => '87673111'],
+        'action' => 'position',
+        'lng' => -0.917656,
+        'lat' => 43.9179593,
+        'source_url' => $wp('Gare de Rion-des-Landes', 217417111),
+        'quote' => 'Gare de Rion-des-Landes : latitude = 43.917858, longitude = -0.917690',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rion-des-Landes » (oldid 217417111) à 12 m, liste SNCF 87673111 à 12 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 12 m ; à signaler à la source : Wikidata Q2335619 (P625) à 1 673 m',
+    ],
+    // 043. Bayonne (id 17312)
+    [
+        'station' => ['name' => 'Bayonne', 'uic' => '87673004'],
+        'action' => 'position',
+        'lng' => -1.470448,
+        'lat' => 43.4967666,
+        'source_url' => $wp('Gare de Bayonne', 241041694),
+        'quote' => 'Gare de Bayonne : latitude = 43.497162, longitude = -1.470004',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bayonne » (oldid 241041694) à 57 m, Wikidata Q3095942 à 57 m, BD TOPO EQ_RESEA0000000025032523 à 25 m, OSM n8312617455 à 27 m, liste SNCF 87673004 à 12 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 27 m',
+    ],
+    // 044. Les Cabrils (id 18208)
+    [
+        'station' => ['name' => 'Les Cabrils', 'uic' => '87781559'],
+        'action' => 'position',
+        'lng' => 3.1860246,
+        'lat' => 43.7799932,
+        'source_url' => $wp('Gare des Cabrils', 239471104),
+        'quote' => 'Gare des Cabrils : latitude = 43.779684, longitude = 3.186088',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare des Cabrils » (oldid 239471104) à 35 m, OSM n444383478 à 0 m, liste SNCF 87781559 à 32 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781559 (point géocodé) à 1 517 m, Wikidata Q3098145 (P625) à 237 m',
+    ],
+    // 045. St-Georges-de-Luzençon (id 18225)
+    [
+        'station' => ['name' => 'St-Georges-de-Luzençon', 'uic' => '87783423'],
+        'action' => 'position',
+        'lng' => 2.983784,
+        'lat' => 44.066553,
+        'source_url' => $wp('Gare de Saint-Georges-de-Luzençon', 237112307),
+        'quote' => 'Gare de Saint-Georges-de-Luzençon : latitude = 44.065949, longitude = 2.983582',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Georges-de-Luzençon » (oldid 237112307) à 69 m, Wikidata Q3097526 à 69 m, BD TOPO EQ_RESEA0000000105039825 à 75 m, OSM w79060234 à 0 m, liste SNCF 87783423 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783423 (point géocodé) à 1 515 m',
+    ],
+    // 046. St-Chély-d'Apcher (id 18217)
+    [
+        'station' => ['name' => 'St-Chély-d\'Apcher', 'uic' => '87783241'],
+        'action' => 'position',
+        'lng' => 3.2708923,
+        'lat' => 44.8017727,
+        'source_url' => $wp('Gare de Saint-Chély-d\'Apcher', 237168694),
+        'quote' => 'Gare de Saint-Chély-d\'Apcher : latitude = 44.801697, longitude = 3.270942',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Chély-d\'Apcher » (oldid 237168694) à 9 m, Wikidata Q3097505 à 9 m, BD TOPO EQ_RESEA0000000099382990 à 1 m, OSM n13196321018 à 18 m, liste SNCF 87783241 à 16 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 18 m ; à signaler à la source : liste SNCF UIC 87783241 (point géocodé) à 1 489 m',
+    ],
+    // 047. Aumont-Aubrac (id 18218)
+    [
+        'station' => ['name' => 'Aumont-Aubrac', 'uic' => '87783266'],
+        'action' => 'position',
+        'lng' => 3.2835587,
+        'lat' => 44.7182521,
+        'source_url' => $wp('Gare d\'Aumont-Aubrac', 237140349),
+        'quote' => 'Gare d\'Aumont-Aubrac : latitude = 44.718275, longitude = 3.283415',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Aumont-Aubrac » (oldid 237140349) à 12 m, Wikidata Q2281625 à 12 m, BD TOPO EQ_RESEA0000000099383008 à 18 m, OSM n493923803 à 0 m, liste SNCF 87783266 à 9 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783266 (point géocodé) à 1 470 m',
+    ],
+    // 048. Arcomie (id 20892)
+    [
+        'station' => ['name' => 'Arcomie', 'uic' => '87783233'],
+        'action' => 'position',
+        'lng' => 3.2510152,
+        'lat' => 44.8656189,
+        'source_url' => $wp('Gare d\'Arcomie', 202102229),
+        'quote' => 'Gare d\'Arcomie : latitude = 44.865793, longitude = 3.251148',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Arcomie » (oldid 202102229) à 22 m, Wikidata Q3095659 à 23 m, OSM n836413089 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783233 (point géocodé) à 1 458 m',
+    ],
+    // 049. Lunas (id 18209)
+    [
+        'station' => ['name' => 'Lunas', 'uic' => '87781575'],
+        'action' => 'position',
+        'lng' => 3.1949198,
+        'lat' => 43.7095711,
+        'source_url' => $wp('Gare de Lunas', 237057808),
+        'quote' => 'Gare de Lunas : latitude = 43.709250, longitude = 3.194754',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lunas » (oldid 237057808) à 38 m, Wikidata Q3096920 à 38 m, OSM n444372348 à 0 m, liste SNCF 87781575 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781575 (point géocodé) à 1 473 m',
+    ],
+    // 050. Les Cauquillous (id 15861)
+    [
+        'station' => ['name' => 'Les Cauquillous', 'uic' => '87328021'],
+        'action' => 'position',
+        'lng' => 1.7546857,
+        'lat' => 43.7339939,
+        'source_url' => $osm('n774095189'),
+        'quote' => 'Les Cauquillous (osm) : lat = 43.7339939, lon = 1.7546857',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM n774095189 à 0 m, liste SNCF 87328021 à 18 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 18 m ; à signaler à la source : Wikidata Q1814219 (P625) à 1 487 m, coordonnées de l\'article « Gare des Cauquillous » à 1 487 m',
+    ],
+    // 051. Vendôme-Villiers-sur-Loir (id 16705)
+    [
+        'station' => ['name' => 'Vendôme-Villiers-sur-Loir', 'uic' => '87571216'],
+        'action' => 'position',
+        'lng' => 1.0210058,
+        'lat' => 47.8219983,
+        'source_url' => $wp('Gare de Vendôme - Villiers-sur-Loir TGV', 237321482),
+        'quote' => 'Gare de Vendôme - Villiers-sur-Loir TGV : latitude = 47.821991, longitude = 1.020781',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vendôme - Villiers-sur-Loir TGV » (oldid 237321482) à 17 m, Wikidata Q3089660 à 14 m, BD TOPO EQ_RESEA0000000016081820 à 7 m, OSM w30662829 à 0 m, liste SNCF 87571216 à 12 m ; à 11 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87571216 (point géocodé) à 1 465 m',
+    ],
+    // 052. Millau (id 18215)
+    [
+        'station' => ['name' => 'Millau', 'uic' => '87783001'],
+        'action' => 'position',
+        'lng' => 3.074634,
+        'lat' => 44.1023694,
+        'source_url' => $wp('Gare de Millau', 237112766),
+        'quote' => 'Gare de Millau : latitude = 44.102400, longitude = 3.074366',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Millau » (oldid 237112766) à 22 m, Wikidata Q3097038 à 22 m, BD TOPO EQ_RESEA0000000060437440 à 10 m, OSM n10936292223 à 18 m, liste SNCF 87783001 à 6 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 18 m ; à signaler à la source : liste SNCF UIC 87783001 (point géocodé) à 1 457 m',
+    ],
+    // 053. Garabit (id 20890)
+    [
+        'station' => ['name' => 'Garabit', 'uic' => '87783217'],
+        'action' => 'position',
+        'lng' => 3.1792159,
+        'lat' => 44.9708448,
+        'source_url' => $wp('Gare de Garabit', 229440607),
+        'quote' => 'Gare de Garabit : latitude = 44.971113, longitude = 3.178908',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Garabit » (oldid 229440607) à 38 m, Wikidata Q3096516 à 37 m, OSM n957041359 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783217 (point géocodé) à 1 407 m',
+    ],
+    // 054. Marvejols (id 18219)
+    [
+        'station' => ['name' => 'Marvejols', 'uic' => '87783282'],
+        'action' => 'position',
+        'lng' => 3.2810964,
+        'lat' => 44.5446591,
+        'source_url' => $wp('Gare de Marvejols', 237140265),
+        'quote' => 'Gare de Marvejols : latitude = 44.544674, longitude = 3.281013',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Marvejols » (oldid 237140265) à 7 m, Wikidata Q3096989 à 7 m, BD TOPO EQ_RESEA0000000099383059 à 8 m, OSM n369691089 à 0 m, liste SNCF 87783282 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783282 (point géocodé) à 1 441 m',
+    ],
+    // 055. Joncels (id 20870)
+    [
+        'station' => ['name' => 'Joncels', 'uic' => '87781567'],
+        'action' => 'position',
+        'lng' => 3.1957172,
+        'lat' => 43.7369741,
+        'source_url' => $wp('Gare de Joncels', 235032236),
+        'quote' => 'Gare de Joncels : latitude = 43.737293, longitude = 3.195740',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Joncels » (oldid 235032236) à 36 m, Wikidata Q18745263 à 36 m, OSM n444383349 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781567 (point géocodé) à 1 406 m',
+    ],
+    // 056. Givors (id 17672)
+    [
+        'station' => ['name' => 'Givors', 'uic' => '87722405'],
+        'action' => 'position',
+        'lng' => 4.7661847,
+        'lat' => 45.5850206,
+        'source_url' => $wp('Gare de Givors-Ville', 239233402),
+        'quote' => 'Gare de Givors-Ville : latitude = 45.585232, longitude = 4.765786',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Givors-Ville » (oldid 239233402) à 39 m, Wikidata Q2788094 à 39 m, BD TOPO EQ_RESEA0000000013173363 à 5 m, OSM n4290854884 à 40 m, liste SNCF 87722405 à 11 m, OHM n2126047310 à 12 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 40 m ; à signaler à la source : liste SNCF UIC 87722405 (point géocodé) à 234 m',
+    ],
+    // 057. St-Rome-de-Cernon (id 18226)
+    [
+        'station' => ['name' => 'St-Rome-de-Cernon', 'uic' => '87783431'],
+        'action' => 'position',
+        'lng' => 2.9673586,
+        'lat' => 44.0139911,
+        'source_url' => $wp('Gare de Saint-Rome-de-Cernon', 237086586),
+        'quote' => 'Gare de Saint-Rome-de-Cernon : latitude = 44.013980, longitude = 2.967376',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Rome-de-Cernon » (oldid 237086586) à 2 m, Wikidata Q3097612 à 2 m, BD TOPO EQ_RESEA0000000060437452 à 13 m, OSM n348356697 à 0 m, liste SNCF 87783431 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783431 (point géocodé) à 1 415 m',
+    ],
+    // 058. Montpaon (id 18206)
+    [
+        'station' => ['name' => 'Montpaon', 'uic' => '87781534'],
+        'action' => 'position',
+        'lng' => 3.1097091,
+        'lat' => 43.8685341,
+        'source_url' => $wp('Gare de Montpaon', 237084998),
+        'quote' => 'Gare de Montpaon : latitude = 43.868525, longitude = 3.109723',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montpaon » (oldid 237084998) à 2 m, Wikidata Q3097085 à 2 m, OSM n11134203425 à 0 m, liste SNCF 87781534 à 2 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781534 (point géocodé) à 1 399 m',
+    ],
+    // 059. Ceilhes-Roqueredonde (id 18207)
+    [
+        'station' => ['name' => 'Ceilhes-Roqueredonde', 'uic' => '87781542'],
+        'action' => 'position',
+        'lng' => 3.1551959,
+        'lat' => 43.8123578,
+        'source_url' => $wp('Gare de Ceilhes - Roqueredonde', 237084222),
+        'quote' => 'Gare de Ceilhes - Roqueredonde : latitude = 43.812253, longitude = 3.155148',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Ceilhes - Roqueredonde » (oldid 237084222) à 12 m, Wikidata Q3096153 à 12 m, OSM n444383654 à 0 m, liste SNCF 87781542 à 11 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781542 (point géocodé) à 1 378 m',
+    ],
+    // 060. Le Bousquet-d'Orb (id 18210)
+    [
+        'station' => ['name' => 'Le Bousquet-d\'Orb', 'uic' => '87781583'],
+        'action' => 'position',
+        'lng' => 3.1690801,
+        'lat' => 43.6912698,
+        'source_url' => $wp('Gare du Bousquet-d\'Orb', 238475411),
+        'quote' => 'Gare du Bousquet-d\'Orb : latitude = 43.691198, longitude = 3.168932',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Bousquet-d\'Orb » (oldid 238475411) à 14 m, Wikidata Q3098175 à 14 m, OSM n444366495 à 0 m, liste SNCF 87781583 à 13 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87781583 (point géocodé) à 1 355 m',
+    ],
+    // 061. Blécourt (id 19077)
+    [
+        'station' => ['name' => 'Blécourt', 'uic' => '87345488'],
+        'action' => 'position',
+        'lng' => 3.2002424,
+        'lat' => 50.2122167,
+        'source_url' => $wp('Gare de Blécourt', 228219187),
+        'quote' => 'Gare de Blécourt : latitude = 50.212029, longitude = 3.200206',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Blécourt » (oldid 228219187) à 21 m, liste SNCF 87345488 à 21 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 21 m ; à signaler à la source : Wikidata Q934732 (P625) à 1 364 m',
+    ],
+    // 062. St-Flour-Chaudes-Aigues (id 18216)
+    [
+        'station' => ['name' => 'St-Flour-Chaudes-Aigues', 'uic' => '87783175'],
+        'action' => 'position',
+        'lng' => 3.1062173,
+        'lat' => 45.0350199,
+        'source_url' => $wp('Gare de Saint-Flour - Chaudes-Aigues', 237168682),
+        'quote' => 'Gare de Saint-Flour - Chaudes-Aigues : latitude = 45.034700, longitude = 3.106210',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Flour - Chaudes-Aigues » (oldid 237168682) à 36 m, Wikidata Q3097518 à 36 m, BD TOPO EQ_RESEA0000000108010160 à 12 m, OSM n957040374 à 0 m, liste SNCF 87783175 à 5 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783175 (point géocodé) à 1 343 m',
+    ],
+    // 063. Calais-Marée (id 19022)
+    [
+        'station' => ['name' => 'Calais-Marée', 'uic' => '87317289'],
+        'action' => 'position',
+        'lng' => 1.8506675,
+        'lat' => 50.9535294,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&OUTPUTFORMAT=application/json&CQL_FILTER=cleabs%3D%27EQ_RESEA0000000045722284%27',
+        'quote' => 'Gare de Calais-Ville (bdtopo) : lat = 50.9535294, lon = 1.8506675',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000045722284 à 0 m, liste SNCF 87317289 à 68 m ; à 39 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 68 m ; à signaler à la source : Wikidata Q15971875 (P625) à 1 361 m, coordonnées de l\'article « Gare de Calais-Maritime » à 1 361 m',
+    ],
+    // 064. Cahors (id 17165)
+    [
+        'station' => ['name' => 'Cahors', 'uic' => '87613000'],
+        'action' => 'position',
+        'lng' => 1.4332726,
+        'lat' => 44.4492353,
+        'source_url' => $wp('Gare de Cahors', 240125009),
+        'quote' => 'Gare de Cahors : latitude = 44.449212, longitude = 1.433004',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cahors » (oldid 240125009) à 21 m, Wikidata Q2361230 à 19 m, BD TOPO EQ_RESEA0000000015023003 à 15 m, OSM n388185240 à 14 m, liste SNCF 87613000 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 14 m',
+    ],
+    // 065. Breteil (id 16315)
+    [
+        'station' => ['name' => 'Breteil', 'uic' => '87471102'],
+        'action' => 'position',
+        'lng' => -1.8972095,
+        'lat' => 48.1405713,
+        'source_url' => $wp('Gare de Breteil', 223670566),
+        'quote' => 'Gare de Breteil : latitude = 48.140526, longitude = -1.897384',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Breteil » (oldid 223670566) à 14 m, Wikidata Q2847254 à 14 m, BD TOPO EQ_RESEA0000000046889514 à 19 m, OSM n3467544494 à 0 m, liste SNCF 87471102 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87471102 (point géocodé) à 1 256 m',
+    ],
+    // 066. Campagnac-St-Geniez (id 18223)
+    [
+        'station' => ['name' => 'Campagnac-St-Geniez', 'uic' => '87783340'],
+        'action' => 'position',
+        'lng' => 3.0663959,
+        'lat' => 44.4219997,
+        'source_url' => $wp('Gare de Campagnac - Saint-Geniez', 237133501),
+        'quote' => 'Gare de Campagnac - Saint-Geniez : latitude = 44.421964, longitude = 3.066336',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Campagnac - Saint-Geniez » (oldid 237133501) à 6 m, Wikidata Q3096117 à 6 m, OSM n1027947109 à 0 m, liste SNCF 87783340 à 5 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783340 (point géocodé) à 1 255 m',
+    ],
+    // 067. Chirac (id 18220)
+    [
+        'station' => ['name' => 'Chirac', 'uic' => '87783290'],
+        'action' => 'position',
+        'lng' => 3.2637499,
+        'lat' => 44.5244688,
+        'source_url' => $wp('Gare de Chirac', 240497721),
+        'quote' => 'Gare de Chirac : latitude = 44.524577, longitude = 3.263797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chirac » (oldid 240497721) à 13 m, Wikidata Q3096221 à 13 m, BD TOPO EQ_RESEA0000000099383073 à 26 m, OSM n799573565 à 0 m, liste SNCF 87783290 à 22 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783290 (point géocodé) à 1 223 m',
+    ],
+    // 068. Croix-l'Allumette (id 15587)
+    [
+        'station' => ['name' => 'Croix-l\'Allumette', 'uic' => '87281055'],
+        'action' => 'position',
+        'lng' => 3.1512449,
+        'lat' => 50.6868931,
+        'source_url' => $wp('Gare de Croix-L\'Allumette', 233760511),
+        'quote' => 'Gare de Croix-L\'Allumette : latitude = 50.686904, longitude = 3.151387',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Croix-L\'Allumette » (oldid 233760511) à 10 m, OSM n7042284669 à 0 m, liste SNCF 87281055 à 60 m, OHM n2090840305 à 5 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 60 m ; à signaler à la source : Wikidata Q3096324 (P625) à 1 287 m',
+    ],
+    // 069. Banassac-La Canourgue (id 18222)
+    [
+        'station' => ['name' => 'Banassac-La Canourgue', 'uic' => '87783324'],
+        'action' => 'position',
+        'lng' => 3.195884,
+        'lat' => 44.4475487,
+        'source_url' => $wp('Gare de Banassac - La Canourgue', 237138170),
+        'quote' => 'Gare de Banassac - La Canourgue : latitude = 44.447516, longitude = 3.196146',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Banassac - La Canourgue » (oldid 237138170) à 21 m, Wikidata Q2410794 à 21 m, BD TOPO EQ_RESEA0000000099383114 à 17 m, OSM n3470966794 à 0 m, liste SNCF 87783324 à 24 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783324 (point géocodé) à 1 198 m',
+    ],
+    // 070. Plouaret-Trégor (id 16355)
+    [
+        'station' => ['name' => 'Plouaret-Trégor', 'uic' => '87473181'],
+        'action' => 'position',
+        'lng' => -3.4667489,
+        'lat' => 48.6062088,
+        'source_url' => $wp('Gare de Plouaret-Trégor', 230643854),
+        'quote' => 'Gare de Plouaret-Trégor : latitude = 48.606232, longitude = -3.466863',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Plouaret-Trégor » (oldid 230643854) à 9 m, Wikidata Q2434830 à 9 m, BD TOPO EQ_RESEA0000000076159641 à 20 m, OSM n4294306010 à 0 m, liste SNCF 87473181 à 10 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87473181 (point géocodé) à 1 196 m',
+    ],
+    // 071. Prades-Molitg-les-Bains (id 18258)
+    [
+        'station' => ['name' => 'Prades-Molitg-les-Bains', 'uic' => '87784637'],
+        'action' => 'position',
+        'lng' => 2.4292664,
+        'lat' => 42.6171455,
+        'source_url' => $wp('Gare de Prades - Molitg-les-Bains', 238792145),
+        'quote' => 'Gare de Prades - Molitg-les-Bains : latitude = 42.617059, longitude = 2.429304',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Prades - Molitg-les-Bains » (oldid 238792145) à 10 m, BD TOPO EQ_RESEA0000000038468434 à 1 m, OSM w30473927 à 0 m, liste SNCF 87784637 à 13 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784637 (point géocodé) à 709 m, Wikidata Q1897049 (P625) à 541 m',
+    ],
+    // 072. Cherbourg-en-Cotentin (id 16289)
+    [
+        'station' => ['name' => 'Cherbourg-en-Cotentin', 'uic' => '87444877'],
+        'action' => 'position',
+        'lng' => -1.6210672,
+        'lat' => 49.6333468,
+        'source_url' => $osm('w112095036'),
+        'quote' => 'Cherbourg-en-Cotentin (osm) : lat = 49.6333468, lon = -1.6210672',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : Wikidata Q2677692 à 23 m, BD TOPO EQ_RESEA0000000024230403 à 28 m, OSM w112095036 à 0 m, liste SNCF 87444877 à 37 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87444877 (point géocodé) à 1 037 m',
+    ],
+    // 073. Massy-TGV (id 16127)
+    [
+        'station' => ['name' => 'Massy-TGV', 'uic' => '87393702'],
+        'action' => 'position',
+        'lng' => 2.2613784,
+        'lat' => 48.7258466,
+        'source_url' => $wp('Gare de Massy TGV', 236089855),
+        'quote' => 'Gare de Massy TGV : latitude = 48.725840, longitude = 2.261345',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Massy TGV » (oldid 236089855) à 3 m, Wikidata Q801170 à 36 m, BD TOPO EQ_RESEA0000000003089599 à 19 m, OSM n3530841971 à 3 m, liste SNCF 87393702 à 13 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 3 m ; à signaler à la source : liste SNCF UIC 87393702 (point géocodé) à 1 007 m',
+    ],
+    // 074. Venaco (id 20726)
+    [
+        'station' => ['name' => 'Venaco', 'uic' => '87762161'],
+        'action' => 'position',
+        'lng' => 9.1749801,
+        'lat' => 42.2332163,
+        'source_url' => $wp('Gare de Venaco', 229547644),
+        'quote' => 'Gare de Venaco : latitude = 42.233654, longitude = 9.175246',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Venaco » (oldid 229547644) à 53 m, Wikidata Q3097946 à 53 m, BD TOPO EQ_RESEA0000000109751229 à 2 m, OSM n270887644 à 10 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 10 m',
+    ],
+    // 075. Gorges (id 16479)
+    [
+        'station' => ['name' => 'Gorges', 'uic' => '87481432'],
+        'action' => 'position',
+        'lng' => -1.3061145,
+        'lat' => 47.100327,
+        'source_url' => $wp('Gare de Gorges', 238076645),
+        'quote' => 'Gare de Gorges : latitude = 47.100110, longitude = -1.305892',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Gorges » (oldid 238076645) à 29 m, BD TOPO EQ_RESEA0000000060253139 à 40 m, OSM n3287430375 à 0 m, liste SNCF 87481432 à 8 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 8 m ; à signaler à la source : Wikidata Q3096555 (P625) à 1 026 m',
+    ],
+    // 076. Pouxeux (id 15058)
+    [
+        'station' => ['name' => 'Pouxeux', 'uic' => '87144428'],
+        'action' => 'position',
+        'lng' => 6.5694811,
+        'lat' => 48.108776,
+        'source_url' => $wp('Gare de Pouxeux', 241364438),
+        'quote' => 'Gare de Pouxeux : latitude = 48.108790, longitude = 6.569473',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pouxeux » (oldid 241364438) à 2 m, Wikidata Q1938345 à 6 m, OSM n8171965480 à 0 m, liste SNCF 87144428 à 17 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 17 m ; à signaler à la source : liste SNCF UIC 87144428 (point géocodé) à 1 012 m',
+    ],
+    // 077. Liévin CEN (id 21189)
+    [
+        'station' => ['name' => 'Liévin CEN', 'wikidata' => 'Q61741595'],
+        'action' => 'position',
+        'lng' => 2.772826,
+        'lat' => 50.4202114,
+        'source_url' => $wp('Gare de Liévin (CEN)', 238683057),
+        'quote' => 'Gare de Liévin (CEN) : latitude = 50.420126, longitude = 2.772860',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Liévin (CEN) » (oldid 238683057) à 10 m, Wikidata Q61741595 à 10 m, OHM n2093639580 à 10 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (wikidata) à 10 m',
+    ],
+    // 078. Bessèges (id 20831)
+    [
+        'station' => ['name' => 'Bessèges', 'uic' => '87775494'],
+        'action' => 'position',
+        'lng' => 4.1005901,
+        'lat' => 44.2884691,
+        'source_url' => $wp('Gare de Bessèges', 235030861),
+        'quote' => 'Gare de Bessèges : latitude = 44.288351, longitude = 4.100489',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bessèges » (oldid 235030861) à 15 m, Wikidata Q641621 à 44 m, OSM n1601214589 à 0 m ; à 16 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87775494 (point géocodé) à 922 m',
+    ],
+    // 079. Albertville (id 17854)
+    [
+        'station' => ['name' => 'Albertville', 'uic' => '87741645'],
+        'action' => 'position',
+        'lng' => 6.3832429,
+        'lat' => 45.6731918,
+        'source_url' => $wp('Gare d\'Albertville', 232703134),
+        'quote' => 'Gare d\'Albertville : latitude = 45.673282, longitude = 6.383208',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Albertville » (oldid 232703134) à 10 m, BD TOPO EQ_RESEA0000000012530160 à 25 m, OSM n3080728368 à 0 m, liste SNCF 87741645 à 25 m ; à 9 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87741645 (point géocodé) à 958 m',
+    ],
+    // 080. Esches (id 15506)
+    [
+        'station' => ['name' => 'Esches', 'uic' => '87272096'],
+        'action' => 'position',
+        'lng' => 2.1708179,
+        'lat' => 49.2125135,
+        'source_url' => $wp('Gare d\'Esches', 228946770),
+        'quote' => 'Gare d\'Esches : latitude = 49.212534, longitude = 2.170768',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Esches » (oldid 228946770) à 4 m, OSM n2279594708 à 0 m, liste SNCF 87272096 à 17 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 17 m ; à signaler à la source : Wikidata Q2007719 (P625) à 928 m',
+    ],
+    // 081. Dommartin-Lissieu (id 17656)
+    [
+        'station' => ['name' => 'Dommartin-Lissieu', 'uic' => '87721738'],
+        'action' => 'position',
+        'lng' => 4.7344912,
+        'lat' => 45.8397827,
+        'source_url' => $wp('Gare de Dommartin - Lissieu', 241156143),
+        'quote' => 'Gare de Dommartin - Lissieu : latitude = 45.839739, longitude = 4.734408',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dommartin - Lissieu » (oldid 241156143) à 8 m, Wikidata Q3096384 à 8 m, BD TOPO EQ_RESEA0000000013173217 à 12 m, OSM w322836835 à 0 m, liste SNCF 87721738 à 40 m, OHM n2137237657 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 40 m',
+    ],
+    // 082. Heugnes (id 19702)
+    [
+        'station' => ['name' => 'Heugnes', 'uic' => '87576397'],
+        'action' => 'position',
+        'lng' => 1.4138362,
+        'lat' => 47.0147438,
+        'source_url' => $wp('Gare d\'Heugnes', 232043846),
+        'quote' => 'Gare d\'Heugnes : latitude = 47.014694, longitude = 1.413875',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Heugnes » (oldid 232043846) à 6 m, Wikidata Q2788535 à 13 m, OSM n1960034853 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 15 m ; à signaler à la source : liste SNCF UIC 87576397 (point géocodé) à 868 m',
+    ],
+    // 083. Le Monastier (id 18221)
+    [
+        'station' => ['name' => 'Le Monastier', 'uic' => '87783308'],
+        'action' => 'position',
+        'lng' => 3.2521133,
+        'lat' => 44.508993,
+        'source_url' => $wp('Gare du Monastier', 236369378),
+        'quote' => 'Gare du Monastier : latitude = 44.508946, longitude = 3.252054',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Monastier » (oldid 236369378) à 7 m, Wikidata Q3098214 à 7 m, OSM n470273463 à 0 m, liste SNCF 87783308 à 5 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783308 (point géocodé) à 872 m',
+    ],
+    // 084. Chef-du-Pont-Ste-Mère (id 19329)
+    [
+        'station' => ['name' => 'Chef-du-Pont-Ste-Mère', 'uic' => '87447250'],
+        'action' => 'position',
+        'lng' => -1.3442307,
+        'lat' => 49.3845555,
+        'source_url' => $wp('Gare de Chef-du-Pont - Sainte-Mère', 231489952),
+        'quote' => 'Gare de Chef-du-Pont - Sainte-Mère : latitude = 49.384494, longitude = -1.344192',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chef-du-Pont - Sainte-Mère » (oldid 231489952) à 7 m, Wikidata Q3096211 à 7 m, OSM n1935227822 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87447250 (point géocodé) à 851 m',
+    ],
+    // 085. Carentan (id 16295)
+    [
+        'station' => ['name' => 'Carentan', 'uic' => '87447243'],
+        'action' => 'position',
+        'lng' => -1.2449307,
+        'lat' => 49.3023893,
+        'source_url' => $wp('Gare de Carentan', 235836451),
+        'quote' => 'Gare de Carentan : latitude = 49.302276, longitude = -1.244986',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Carentan » (oldid 235836451) à 13 m, Wikidata Q1842714 à 13 m, BD TOPO EQ_RESEA0000000024230734 à 1 m, OSM w198292010 à 0 m, liste SNCF 87447243 à 10 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87447243 (point géocodé) à 841 m',
+    ],
+    // 086. Valognes (id 16296)
+    [
+        'station' => ['name' => 'Valognes', 'uic' => '87447284'],
+        'action' => 'position',
+        'lng' => -1.4800289,
+        'lat' => 49.5052265,
+        'source_url' => $wp('Gare de Valognes', 235347517),
+        'quote' => 'Gare de Valognes : latitude = 49.505250, longitude = -1.480001',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Valognes » (oldid 235347517) à 3 m, Wikidata Q771166 à 3 m, BD TOPO EQ_RESEA0000000111641570 à 17 m, OSM w226306303 à 0 m, liste SNCF 87447284 à 28 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87447284 (point géocodé) à 830 m',
+    ],
+    // 087. Sévérac-le-Château (id 18224)
+    [
+        'station' => ['name' => 'Sévérac-le-Château', 'uic' => '87783365'],
+        'action' => 'position',
+        'lng' => 3.0569861,
+        'lat' => 44.3246336,
+        'source_url' => $wp('Gare de Sévérac-le-Château', 240368598),
+        'quote' => 'Gare de Sévérac-le-Château : latitude = 44.324645, longitude = 3.056842',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sévérac-le-Château » (oldid 240368598) à 12 m, Wikidata Q2191151 à 9 m, BD TOPO EQ_RESEA0000000060437412 à 7 m, OSM n11134203424 à 0 m, liste SNCF 87783365 à 4 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783365 (point géocodé) à 673 m',
+    ],
+    // 088. Arles (id 18012)
+    [
+        'station' => ['name' => 'Arles', 'uic' => '87753657'],
+        'action' => 'position',
+        'lng' => 4.6320536,
+        'lat' => 43.6847247,
+        'source_url' => $wp('Gare d\'Arles', 235030325),
+        'quote' => 'Gare d\'Arles : latitude = 43.684812, longitude = 4.631861',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Arles » (oldid 235030325) à 18 m, Wikidata Q1897505 à 9 m, BD TOPO EQ_RESEA0000000040208115 à 3 m, OSM n10933963119 à 24 m, liste SNCF 87753657 à 14 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 24 m ; à signaler à la source : liste SNCF UIC 87753657 (point géocodé) à 351 m',
+    ],
+    // 089. Neussargues (id 17272)
+    [
+        'station' => ['name' => 'Neussargues', 'uic' => '87645507'],
+        'action' => 'position',
+        'lng' => 2.979191,
+        'lat' => 45.1254454,
+        'source_url' => $wp('Gare de Neussargues', 237602788),
+        'quote' => 'Gare de Neussargues : latitude = 45.125444, longitude = 2.979222',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Neussargues » (oldid 237602788) à 2 m, Wikidata Q2156841 à 2 m, BD TOPO EQ_RESEA0000000108010122 à 1 m, OSM n9956762221 à 13 m, liste SNCF 87645507 à 16 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 13 m ; à signaler à la source : liste SNCF UIC 87645507 (point géocodé) à 542 m',
+    ],
+    // 090. Tournemire-Roquefort (id 18227)
+    [
+        'station' => ['name' => 'Tournemire-Roquefort', 'uic' => '87783456'],
+        'action' => 'position',
+        'lng' => 3.0166443,
+        'lat' => 43.970018,
+        'source_url' => $wp('Gare de Tournemire - Roquefort', 237085613),
+        'quote' => 'Gare de Tournemire - Roquefort : latitude = 43.969722, longitude = 3.016667',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Tournemire - Roquefort » (oldid 237085613) à 33 m, Wikidata Q3097889 à 33 m, BD TOPO EQ_RESEA0000000060437456 à 8 m, OSM n9689376063 à 0 m, liste SNCF 87783456 à 24 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783456 (point géocodé) à 750 m',
+    ],
+    // 091. Vendenheim (id 15350)
+    [
+        'station' => ['name' => 'Vendenheim', 'uic' => '87212118'],
+        'action' => 'position',
+        'lng' => 7.7181672,
+        'lat' => 48.6657397,
+        'source_url' => $wp('Gare de Vendenheim', 241462022),
+        'quote' => 'Gare de Vendenheim : latitude = 48.665998, longitude = 7.718044',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vendenheim » (oldid 241462022) à 30 m, Wikidata Q2190004 à 30 m, BD TOPO EQ_RESEA0000000048606824 à 15 m, OSM n9315748060 à 0 m, liste SNCF 87212118 à 38 m, OHM n2178212619 à 39 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87212118 (point géocodé) à 750 m',
+    ],
+    // 092. Marseille-St-Charles (id 17963)
+    [
+        'station' => ['name' => 'Marseille-St-Charles', 'uic' => '87751008'],
+        'action' => 'position',
+        'lng' => 5.3806611,
+        'lat' => 43.3031977,
+        'source_url' => $osm('n4290857022'),
+        'quote' => 'Marseille Saint-Charles (osm) : lat = 43.3032635, lon = 5.3811927',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : Wikidata Q371217 à 40 m, BD TOPO EQ_RESEA0000000040208439 à 26 m, OSM n4290857022 à 44 m, liste SNCF 87751008 à 63 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 44 m ; à signaler à la source : liste SNCF UIC 87751008 (point géocodé) à 369 m',
+    ],
+    // 093. St-Gilles (id 15188)
+    [
+        'station' => ['name' => 'St-Gilles', 'uic' => '87181552'],
+        'action' => 'position',
+        'lng' => 7.2610708,
+        'lat' => 48.0759067,
+        'source_url' => $osm('n9200872122'),
+        'quote' => 'Saint-Gilles Lycée Haut-Rhin (osm) : lat = 48.0759067, lon = 7.2610708',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000047868991 à 6 m, OSM n9200872122 à 0 m, liste SNCF 87181552 à 14 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 14 m ; à signaler à la source : Wikidata Q3097534 (P625) à 728 m, coordonnées de l\'article « Gare de Saint-Gilles » à 730 m',
+    ],
+    // 094. St-Féliu-d'Avall (id 18253)
+    [
+        'station' => ['name' => 'St-Féliu-d\'Avall', 'uic' => '87784520'],
+        'action' => 'position',
+        'lng' => 2.7378292,
+        'lat' => 42.6773175,
+        'source_url' => $wp('Gare de Saint-Féliu-d\'Avall', 238862967),
+        'quote' => 'Gare de Saint-Féliu-d\'Avall : latitude = 42.677385, longitude = 2.737735',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Féliu-d\'Avall » (oldid 238862967) à 11 m, Wikidata Q1937209 à 11 m, BD TOPO EQ_RESEA0000000038468404 à 25 m, OSM n9288070933 à 0 m, liste SNCF 87784520 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784520 (point géocodé) à 706 m',
+    ],
+    // 095. Rungis-la-Fraternelle (id 16693)
+    [
+        'station' => ['name' => 'Rungis-la-Fraternelle', 'uic' => '87546291'],
+        'action' => 'position',
+        'lng' => 2.3527966,
+        'lat' => 48.740342,
+        'source_url' => $wp('Gare de Rungis - La Fraternelle', 237812606),
+        'quote' => 'Gare de Rungis - La Fraternelle : latitude = 48.740444, longitude = 2.352790',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rungis - La Fraternelle » (oldid 237812606) à 11 m, Wikidata Q2784751 à 23 m, BD TOPO EQ_RESEA0000000004264410 à 1 m, OSM n3531066587 à 18 m, liste SNCF 87546291 à 14 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 18 m ; à signaler à la source : liste SNCF UIC 87546291 (point géocodé) à 691 m',
+    ],
+    // 096. Villers-Cotterêts (id 15493)
+    [
+        'station' => ['name' => 'Villers-Cotterêts', 'uic' => '87271734'],
+        'action' => 'position',
+        'lng' => 3.0938506,
+        'lat' => 49.250125,
+        'source_url' => $wp('Gare de Villers-Cotterêts', 237134346),
+        'quote' => 'Gare de Villers-Cotterêts : latitude = 49.250107, longitude = 3.093957',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villers-Cotterêts » (oldid 237134346) à 8 m, Wikidata Q2234195 à 8 m, BD TOPO EQ_RESEA0000000063661208 à 12 m, OSM n9805769321 à 0 m, liste SNCF 87271734 à 19 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87271734 (point géocodé) à 686 m',
+    ],
+    // 097. Argy (id 19707)
+    [
+        'station' => ['name' => 'Argy', 'uic' => '87576595'],
+        'action' => 'position',
+        'lng' => 1.4411659,
+        'lat' => 46.9388304,
+        'source_url' => $wp('Gare d\'Argy', 231251196),
+        'quote' => 'Gare d\'Argy : latitude = 46.938812, longitude = 1.440952',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Argy » (oldid 231251196) à 16 m, Wikidata Q3095664 à 16 m, OSM n1954826502 à 0 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87576595 (point géocodé) à 702 m',
+    ],
+    // 098. Ille-sur-Têt (id 18255)
+    [
+        'station' => ['name' => 'Ille-sur-Têt', 'uic' => '87784561'],
+        'action' => 'position',
+        'lng' => 2.6243485,
+        'lat' => 42.6683785,
+        'source_url' => $wp('Gare d\'Ille-sur-Têt', 238988818),
+        'quote' => 'Gare d\'Ille-sur-Têt : latitude = 42.668301, longitude = 2.624401',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Ille-sur-Têt » (oldid 238988818) à 10 m, Wikidata Q3095787 à 10 m, BD TOPO EQ_RESEA0000000038468405 à 2 m, OSM n13246593429 à 17 m, liste SNCF 87784561 à 16 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 17 m ; à signaler à la source : liste SNCF UIC 87784561 (point géocodé) à 684 m',
+    ],
+    // 099. Bures-sur-Yvette (id 21006)
+    [
+        'station' => ['name' => 'Bures-sur-Yvette', 'uic' => '8775885'],
+        'action' => 'position',
+        'lng' => 2.1634155,
+        'lat' => 48.6958563,
+        'source_url' => $wp('Gare de Bures-sur-Yvette', 237898559),
+        'quote' => 'Gare de Bures-sur-Yvette : latitude = 48.695784, longitude = 2.163042',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bures-sur-Yvette » (oldid 237898559) à 29 m, Wikidata Q3096100 à 28 m, BD TOPO EQ_RESEA0000000003089644 à 30 m, OSM n5838690264 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m',
+    ],
+    // 100. Millas (id 18254)
+    [
+        'station' => ['name' => 'Millas', 'uic' => '87784546'],
+        'action' => 'position',
+        'lng' => 2.693772,
+        'lat' => 42.6889497,
+        'source_url' => $wp('Gare de Millas', 239510075),
+        'quote' => 'Gare de Millas : latitude = 42.689002, longitude = 2.693307',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Millas » (oldid 239510075) à 38 m, Wikidata Q2609571 à 38 m, BD TOPO EQ_RESEA0000000038468401 à 12 m, OSM n9286224580 à 0 m, liste SNCF 87784546 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784546 (point géocodé) à 658 m',
+    ],
+    // 101. Fraisses-Unieux (id 17759)
+    [
+        'station' => ['name' => 'Fraisses-Unieux', 'uic' => '87726737'],
+        'action' => 'position',
+        'lng' => 4.2611918,
+        'lat' => 45.3947974,
+        'source_url' => $wp('Gare de Fraisses - Unieux', 238735800),
+        'quote' => 'Gare de Fraisses - Unieux : latitude = 45.394771, longitude = 4.261145',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Fraisses - Unieux » (oldid 238735800) à 5 m, BD TOPO EQ_RESEA0000000011980844 à 2 m, OSM n9974582845 à 0 m, liste SNCF 87726737 à 35 m, OHM n2125383399 à 23 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 35 m ; à signaler à la source : Wikidata Q3096467 (P625) à 665 m',
+    ],
+    // 102. Pont-à-Vendin (id 15939)
+    [
+        'station' => ['name' => 'Pont-à-Vendin', 'uic' => '87345264'],
+        'action' => 'position',
+        'lng' => 2.8752081,
+        'lat' => 50.4714065,
+        'source_url' => $wp('Gare de Pont-à-Vendin', 238682997),
+        'quote' => 'Gare de Pont-à-Vendin : latitude = 50.471384, longitude = 2.875150',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pont-à-Vendin » (oldid 238682997) à 5 m, Wikidata Q3097306 à 5 m, OSM n917150916 à 0 m, liste SNCF 87345264 à 3 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87345264 (point géocodé) à 688 m',
+    ],
+    // 103. Ria (id 18259)
+    [
+        'station' => ['name' => 'Ria', 'uic' => '87784660'],
+        'action' => 'position',
+        'lng' => 2.390617,
+        'lat' => 42.6035315,
+        'source_url' => $wp('Gare de Ria', 240706620),
+        'quote' => 'Gare de Ria : latitude = 42.603422, longitude = 2.390676',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Ria » (oldid 240706620) à 13 m, Wikidata Q2455646 à 13 m, BD TOPO EQ_RESEA0000000038468443 à 18 m, OSM w303986587 à 0 m, liste SNCF 87784660 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784660 (point géocodé) à 683 m',
+    ],
+    // 104. Donges-Bonne Nouvelle (id 16493)
+    [
+        'station' => ['name' => 'Donges-Bonne Nouvelle', 'uic' => '87481721'],
+        'action' => 'position',
+        'lng' => -2.073832,
+        'lat' => 47.3147972,
+        'source_url' => $wp('Gare de Donges', 235031656),
+        'quote' => 'Gare de Donges : latitude = 47.315000, longitude = -2.073570',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Donges » (oldid 235031656) à 30 m, Wikidata Q3052088 à 53 m, BD TOPO EQ_RESEA0000000028743715 à 30 m, OSM n10003047039 à 0 m, liste SNCF 87481721 à 40 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 40 m ; à signaler à la source : OSM n3486337397 à 698 m',
+    ],
+    // 105. Écueillé (id 19701)
+    [
+        'station' => ['name' => 'Écueillé', 'uic' => '87576389'],
+        'action' => 'position',
+        'lng' => 1.3575749,
+        'lat' => 47.079997,
+        'source_url' => $wp('Gare d\'Écueillé', 233821975),
+        'quote' => 'Gare d\'Écueillé : latitude = 47.079885, longitude = 1.357495',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Écueillé » (oldid 233821975) à 14 m, Wikidata Q3095868 à 4 m, OSM n1041358793 à 0 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87576389 (point géocodé) à 671 m',
+    ],
+    // 106. Cases-de-Pène (id 18250)
+    [
+        'station' => ['name' => 'Cases-de-Pène', 'uic' => '87784488'],
+        'action' => 'position',
+        'lng' => 2.7931033,
+        'lat' => 42.7790421,
+        'source_url' => $wp('Gare de Cases-de-Pène', 228759389),
+        'quote' => 'Gare de Cases-de-Pène : latitude = 42.779042, longitude = 2.793103',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cases-de-Pène » (oldid 228759389) à 0 m, Wikidata Q28710784 à 15 m, OSM n283613546 à 0 m, liste SNCF 87784488 à 7 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 7 m ; à signaler à la source : OSM n13235136106 à 669 m',
+    ],
+    // 107. Port-Vendres (id 18243)
+    [
+        'station' => ['name' => 'Port-Vendres', 'uic' => '87784264'],
+        'action' => 'position',
+        'lng' => 3.1025761,
+        'lat' => 42.5136077,
+        'source_url' => $wp('Gare de Port-Vendres-Ville', 238784803),
+        'quote' => 'Gare de Port-Vendres-Ville : latitude = 42.513490, longitude = 3.102698',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Port-Vendres-Ville » (oldid 238784803) à 16 m, BD TOPO EQ_RESEA0000000038468531 à 22 m, OSM n5669448842 à 17 m, liste SNCF 87784264 à 27 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 27 m ; à signaler à la source : Wikidata Q2212891 (P625) à 645 m',
+    ],
+    // 108. Lison (id 16294)
+    [
+        'station' => ['name' => 'Lison', 'uic' => '87447219'],
+        'action' => 'position',
+        'lng' => -1.0503463,
+        'lat' => 49.2269115,
+        'source_url' => $wp('Gare de Lison', 235032670),
+        'quote' => 'Gare de Lison : latitude = 49.226992, longitude = -1.050403',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lison » (oldid 235032670) à 10 m, Wikidata Q3096895 à 10 m, BD TOPO EQ_RESEA0000000013905698 à 10 m, OSM n8862955467 à 3 m, liste SNCF 87447219 à 9 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 3 m ; à signaler à la source : liste SNCF UIC 87447219 (point géocodé) à 656 m',
+    ],
+    // 109. Marquixanes (id 18257)
+    [
+        'station' => ['name' => 'Marquixanes', 'uic' => '87784629'],
+        'action' => 'position',
+        'lng' => 2.4858285,
+        'lat' => 42.6427724,
+        'source_url' => $wp('Gare de Marquixanes', 237173086),
+        'quote' => 'Gare de Marquixanes : latitude = 42.642797, longitude = 2.485838',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Marquixanes » (oldid 237173086) à 3 m, Wikidata Q2437638 à 3 m, BD TOPO EQ_RESEA0000000312707556 à 33 m, OSM n9737372885 à 0 m, liste SNCF 87784629 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784629 (point géocodé) à 654 m',
+    ],
+    // 110. Le Molay-Littry (id 16262)
+    [
+        'station' => ['name' => 'Le Molay-Littry', 'uic' => '87444083'],
+        'action' => 'position',
+        'lng' => -0.8815611,
+        'lat' => 49.249198,
+        'source_url' => $wp('Gare du Molay-Littry', 230463410),
+        'quote' => 'Gare du Molay-Littry : latitude = 49.249223, longitude = -0.881640',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Molay-Littry » (oldid 230463410) à 6 m, Wikidata Q3098213 à 6 m, OSM n4966009012 à 0 m, liste SNCF 87444083 à 45 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87444083 (point géocodé) à 643 m',
+    ],
+    // 111. Louvroil (id 15686)
+    [
+        'station' => ['name' => 'Louvroil', 'uic' => '87295535'],
+        'action' => 'position',
+        'lng' => 3.9534722,
+        'lat' => 50.2684622,
+        'source_url' => $wp('Gare de Louvroil', 230178885),
+        'quote' => 'Gare de Louvroil : latitude = 50.268263, longitude = 3.953404',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Louvroil » (oldid 230178885) à 23 m, OSM n497011328 à 0 m, liste SNCF 87295535 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87295535 (point géocodé) à 155 m, Wikidata Q2286058 (P625) à 780 m',
+    ],
+    // 112. Vinça (id 18256)
+    [
+        'station' => ['name' => 'Vinça', 'uic' => '87784611'],
+        'action' => 'position',
+        'lng' => 2.5276073,
+        'lat' => 42.6481528,
+        'source_url' => $wp('Gare de Vinça', 238993360),
+        'quote' => 'Gare de Vinça : latitude = 42.648107, longitude = 2.527661',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vinça » (oldid 238993360) à 7 m, Wikidata Q3098022 à 7 m, BD TOPO EQ_RESEA0000000038468418 à 6 m, OSM n9737457187 à 0 m, liste SNCF 87784611 à 2 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87784611 (point géocodé) à 619 m',
+    ],
+    // 113. Audrieu (id 16260)
+    [
+        'station' => ['name' => 'Audrieu', 'uic' => '87444059'],
+        'action' => 'position',
+        'lng' => -0.5960849,
+        'lat' => 49.2162658,
+        'source_url' => $wp('Gare d\'Audrieu', 222034733),
+        'quote' => 'Gare d\'Audrieu : latitude = 49.216110, longitude = -0.595833',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Audrieu » (oldid 222034733) à 25 m, Wikidata Q2353104 à 36 m, BD TOPO EQ_RESEA0000000013905718 à 27 m, OSM n3467066693 à 0 m, liste SNCF 87444059 à 16 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87444059 (point géocodé) à 617 m',
+    ],
+    // 114. Bayeux (id 16261)
+    [
+        'station' => ['name' => 'Bayeux', 'uic' => '87444067'],
+        'action' => 'position',
+        'lng' => -0.6981168,
+        'lat' => 49.269709,
+        'source_url' => $wp('Gare de Bayeux', 231517308),
+        'quote' => 'Gare de Bayeux : latitude = 49.269599, longitude = -0.697923',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bayeux » (oldid 231517308) à 19 m, Wikidata Q2189086 à 5 m, BD TOPO EQ_RESEA0000000230021759 à 2 m, OSM n5598395305 à 18 m, liste SNCF 87444067 à 15 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 18 m ; à signaler à la source : liste SNCF UIC 87444067 (point géocodé) à 615 m',
+    ],
+    // 115. Jacques-Monod-La Demi-Lieue (id 16229)
+    [
+        'station' => ['name' => 'Jacques-Monod-La Demi-Lieue', 'uic' => '87413716'],
+        'action' => 'position',
+        'lng' => 0.1860692,
+        'lat' => 49.5269739,
+        'source_url' => $wp('Gare de Jacques-Monod-la-Demi-Lieue', 239757209),
+        'quote' => 'Gare de Jacques-Monod-la-Demi-Lieue : latitude = 49.526984, longitude = 0.186118',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Jacques-Monod-la-Demi-Lieue » (oldid 239757209) à 4 m, OSM n13746107567 à 0 m, liste SNCF 87413716 à 17 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 17 m ; à signaler à la source : Wikidata Q24733 (P625) à 629 m',
+    ],
+    // 116. Auneau (id 16683)
+    [
+        'station' => ['name' => 'Auneau', 'uic' => '87545657'],
+        'action' => 'position',
+        'lng' => 1.7800726,
+        'lat' => 48.4458848,
+        'source_url' => $wp('Gare d\'Auneau', 224032507),
+        'quote' => 'Gare d\'Auneau : latitude = 48.446136, longitude = 1.779880',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Auneau » (oldid 224032507) à 31 m, Wikidata Q3095696 à 31 m, BD TOPO EQ_RESEA0000000015531735 à 29 m, OSM n11014390349 à 0 m, liste SNCF 87545657 à 10 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87545657 (point géocodé) à 588 m',
+    ],
+    // 117. Bretteville-Norrey (id 16259)
+    [
+        'station' => ['name' => 'Bretteville-Norrey', 'uic' => '87444042'],
+        'action' => 'position',
+        'lng' => -0.5127472,
+        'lat' => 49.2034044,
+        'source_url' => $osm('n2015018013'),
+        'quote' => 'Bretteville-Norrey (osm) : lat = 49.2034044, lon = -0.5127472',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000093934171 à 4 m, OSM n2015018013 à 0 m, liste SNCF 87444042 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87444042 (point géocodé) à 598 m',
+    ],
+    // 118. Rixheim (id 15193)
+    [
+        'station' => ['name' => 'Rixheim', 'uic' => '87182071'],
+        'action' => 'position',
+        'lng' => 7.4063103,
+        'lat' => 47.7488047,
+        'source_url' => $wp('Gare de Rixheim', 241597928),
+        'quote' => 'Gare de Rixheim : latitude = 47.748745, longitude = 7.406178',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rixheim » (oldid 241597928) à 12 m, Wikidata Q3097424 à 12 m, BD TOPO EQ_RESEA0000000243551220 à 30 m, OSM n8040307079 à 0 m, liste SNCF 87182071 à 19 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87182071 (point géocodé) à 575 m',
+    ],
+    // 119. St-Valéry-Canal (id 19026)
+    [
+        'station' => ['name' => 'St-Valéry-Canal', 'uic' => '87317420'],
+        'action' => 'position',
+        'lng' => 1.6512097,
+        'lat' => 50.1768039,
+        'source_url' => $wp('Gare de Saint-Valery-Canal', 214492738),
+        'quote' => 'Gare de Saint-Valery-Canal : latitude = 50.176763, longitude = 1.651292',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Valery-Canal » (oldid 214492738) à 7 m, Wikidata Q3097629 à 6 m, OSM n624294567 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87317420 (point géocodé) à 564 m',
+    ],
+    // 120. Sallaumines (id 15934)
+    [
+        'station' => ['name' => 'Sallaumines', 'uic' => '87345215'],
+        'action' => 'position',
+        'lng' => 2.8556244,
+        'lat' => 50.4223061,
+        'source_url' => $wp('Gare de Sallaumines', 238683013),
+        'quote' => 'Gare de Sallaumines : latitude = 50.422294, longitude = 2.855602',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sallaumines » (oldid 238683013) à 2 m, Wikidata Q3097654 à 2 m, OSM n2275683991 à 0 m, liste SNCF 87345215 à 4 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87345215 (point géocodé) à 551 m',
+    ],
+    // 121. La Valbonne (id 17704)
+    [
+        'station' => ['name' => 'La Valbonne', 'uic' => '87723577'],
+        'action' => 'position',
+        'lng' => 5.1250781,
+        'lat' => 45.8491508,
+        'source_url' => $osm('n12696444032'),
+        'quote' => 'La Valbonne (osm) : lat = 45.8491508, lon = 5.1250781',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM n12696444032 à 0 m, liste SNCF 87723577 à 62 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 62 m ; à signaler à la source : Wikidata Q2104220 (P625) à 492 m, coordonnées de l\'article « Gare de La Valbonne » à 478 m',
+    ],
+    // 122. Pierrefitte-Stains (id 15464)
+    [
+        'station' => ['name' => 'Pierrefitte-Stains', 'uic' => '87271163'],
+        'action' => 'position',
+        'lng' => 2.3721153,
+        'lat' => 48.9640182,
+        'source_url' => $wp('Gare de Pierrefitte - Stains', 241499178),
+        'quote' => 'Gare de Pierrefitte - Stains : latitude = 48.963873, longitude = 2.372285',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pierrefitte - Stains » (oldid 241499178) à 20 m, Wikidata Q2260729 à 47 m, OSM w81186848 à 0 m, liste SNCF 87271163 à 20 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 20 m ; à signaler à la source : OSM n3580040424 à 319 m, OSM w539918270 à 546 m',
+    ],
+    // 123. Demi-Lune (la Pomme) (id 22212)
+    [
+        'station' => ['name' => 'Demi-Lune (la Pomme)', 'osm' => 'n4268976565'],
+        'action' => 'position',
+        'lng' => 4.7793351,
+        'lat' => 45.7597277,
+        'source_url' => $osm('n4268976565'),
+        'quote' => 'Ancienne gare de La Demi-Lune (la Pomme) (osm) : lat = 45.7597277, lon = 4.7793351',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM n4268976565 à 0 m, OHM n2136332778 à 10 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : OSM n13366977630 à 418 m, BD TOPO EQ_RESEA0000000013173283 à 666 m',
+    ],
+    // 124. Beuvry (Pas-de-Calais) (id 15898)
+    [
+        'station' => ['name' => 'Beuvry (Pas-de-Calais)', 'uic' => '87342402'],
+        'action' => 'position',
+        'lng' => 2.6927634,
+        'lat' => 50.5355169,
+        'source_url' => $wp('Gare de Beuvry (Pas-de-Calais)', 238682907),
+        'quote' => 'Gare de Beuvry (Pas-de-Calais) : latitude = 50.535775, longitude = 2.691692',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Beuvry (Pas-de-Calais) » (oldid 238682907) à 81 m, Wikidata Q3095981 à 81 m, OSM n2275685055 à 0 m, liste SNCF 87342402 à 27 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m',
+    ],
+    // 125. Sermaise (id 16681)
+    [
+        'station' => ['name' => 'Sermaise', 'uic' => '87545517'],
+        'action' => 'position',
+        'lng' => 2.0688306,
+        'lat' => 48.5354133,
+        'source_url' => $wp('Gare de Sermaise', 237812932),
+        'quote' => 'Gare de Sermaise : latitude = 48.535418, longitude = 2.068843',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sermaise » (oldid 237812932) à 1 m, BD TOPO EQ_RESEA0000000003089919 à 5 m, OSM n6094930528 à 11 m, liste SNCF 87545517 à 11 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 11 m ; à signaler à la source : Wikidata Q2390290 (P625) à 510 m',
+    ],
+    // 126. Meudon (id 16080)
+    [
+        'station' => ['name' => 'Meudon', 'uic' => '87393108'],
+        'action' => 'position',
+        'lng' => 2.2409131,
+        'lat' => 48.8149007,
+        'source_url' => $wp('Gare de Meudon', 222335141),
+        'quote' => 'Gare de Meudon : latitude = 48.814915, longitude = 2.240945',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Meudon » (oldid 222335141) à 3 m, Wikidata Q2848177 à 3 m, BD TOPO EQ_RESEA0000000000389062 à 1 m, OSM n4325154503 à 20 m, liste SNCF 87393108 à 11 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 11 m',
+    ],
+    // 127. Labège-Innopole (id 17162)
+    [
+        'station' => ['name' => 'Labège-Innopole', 'uic' => '87612002'],
+        'action' => 'position',
+        'lng' => 1.5128101,
+        'lat' => 43.5474999,
+        'source_url' => $osm('n6132447177'),
+        'quote' => 'Labège-Innopole (osm) : lat = 43.5474999, lon = 1.5128101',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : Wikidata Q3096827 à 9 m, OSM n6132447177 à 0 m, liste SNCF 87612002 à 21 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87612002 (point géocodé) à 471 m',
+    ],
+    // 128. L'Arinella (id 20740)
+    [
+        'station' => ['name' => 'L\'Arinella', 'uic' => '87762328'],
+        'action' => 'position',
+        'lng' => 9.4439485,
+        'lat' => 42.6707068,
+        'source_url' => $wp('Gare de Sole-Meo', 239579671),
+        'quote' => 'Gare de Sole-Meo : latitude = 42.670748, longitude = 9.443953',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sole-Meo » (oldid 239579671) à 5 m, Wikidata Q3097756 à 5 m, liste SNCF 87762328 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 9 m ; à signaler à la source : OSM n339833263 à 268 m',
+    ],
+    // 129. Étrembières-Salève (id 20567)
+    [
+        'station' => ['name' => 'Étrembières-Salève', 'uic' => '87745489'],
+        'action' => 'position',
+        'lng' => 6.228611,
+        'lat' => 46.1823496,
+        'source_url' => $osm('n6138246607'),
+        'quote' => 'Étrembières (osm) : lat = 46.1823496, lon = 6.2286110',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM n6138246607 à 0 m, liste SNCF 87745489 à 8 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 8 m ; à signaler à la source : OSM n5858559820 à 472 m',
+    ],
+    // 130. Chauny (id 15720)
+    [
+        'station' => ['name' => 'Chauny', 'uic' => '87296616'],
+        'action' => 'position',
+        'lng' => 3.2236417,
+        'lat' => 49.6111381,
+        'source_url' => $wp('Gare de Chauny', 241488757),
+        'quote' => 'Gare de Chauny : latitude = 49.611148, longitude = 3.223532',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chauny » (oldid 241488757) à 8 m, Wikidata Q2184682 à 8 m, BD TOPO EQ_RESEA0000000063660550 à 9 m, OSM w142993913 à 0 m, liste SNCF 87296616 à 9 m ; à 18 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87296616 (point géocodé) à 470 m',
+    ],
+    // 131. Langres (id 15006)
+    [
+        'station' => ['name' => 'Langres', 'uic' => '87142091'],
+        'action' => 'position',
+        'lng' => 5.3444225,
+        'lat' => 47.8769645,
+        'source_url' => $wp('Gare de Langres', 241449894),
+        'quote' => 'Gare de Langres : latitude = 47.877076, longitude = 5.344605',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Langres » (oldid 241449894) à 18 m, Wikidata Q2268586 à 18 m, BD TOPO EQ_RESEA0000000066666753 à 9 m, OSM n2516923028 à 0 m, liste SNCF 87142091 à 2 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87142091 (point géocodé) à 463 m',
+    ],
+    // 132. Castelnau-d'Estrétefonds (id 17140)
+    [
+        'station' => ['name' => 'Castelnau-d\'Estrétefonds', 'uic' => '87611665'],
+        'action' => 'position',
+        'lng' => 1.3416175,
+        'lat' => 43.7861011,
+        'source_url' => $wp('Gare de Castelnau-d\'Estrétefonds', 235031180),
+        'quote' => 'Gare de Castelnau-d\'Estrétefonds : latitude = 43.786155, longitude = 1.341725',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Castelnau-d\'Estrétefonds » (oldid 235031180) à 11 m, Wikidata Q2204610 à 40 m, BD TOPO EQ_RESEA0000000073015809 à 12 m, OSM n8334192489 à 0 m, liste SNCF 87611665 à 16 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87611665 (point géocodé) à 425 m',
+    ],
+    // 133. Montaudran (id 17163)
+    [
+        'station' => ['name' => 'Montaudran', 'uic' => '87612010'],
+        'action' => 'position',
+        'lng' => 1.4800914,
+        'lat' => 43.5736441,
+        'source_url' => $wp('Gare de Toulouse-Montaudran', 241315438),
+        'quote' => 'Gare de Toulouse-Montaudran : latitude = 43.573752, longitude = 1.479944',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Montaudran » (oldid 241315438) à 17 m, OSM n3474055993 à 0 m, liste SNCF 87612010 à 35 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87612010 (point géocodé) à 427 m',
+    ],
+    // 134. GR 20 Dolce-Vita (id 18793)
+    [
+        'station' => ['name' => 'GR 20 Dolce-Vita', 'uic' => '87242453'],
+        'action' => 'position',
+        'lng' => 8.7926998,
+        'lat' => 42.5561016,
+        'source_url' => $wp('Gare de Dolce Vita GR 20 (Calvi)', 229548175),
+        'quote' => 'Gare de Dolce Vita GR 20 (Calvi) : latitude = 42.556126, longitude = 8.792727',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dolce Vita GR 20 (Calvi) » (oldid 229548175) à 4 m, Wikidata Q3096373 à 4 m, OSM n1071697178 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87242453 (point géocodé) à 461 m',
+    ],
+    // 135. Béziers (id 18195)
+    [
+        'station' => ['name' => 'Béziers', 'uic' => '87781005'],
+        'action' => 'position',
+        'lng' => 3.2188947,
+        'lat' => 43.3362879,
+        'source_url' => $wp('Gare de Béziers', 239949498),
+        'quote' => 'Gare de Béziers : latitude = 43.336108, longitude = 3.218669',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Béziers » (oldid 239949498) à 27 m, Wikidata Q2801649 à 27 m, BD TOPO EQ_RESEA0000000044347552 à 7 m, OSM n10933961551 à 23 m, liste SNCF 87781005 à 5 m ; à 16 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 23 m ; à signaler à la source : liste SNCF UIC 87781005 (point géocodé) à 368 m',
+    ],
+    // 136. La Bâthie (id 17855)
+    [
+        'station' => ['name' => 'La Bâthie', 'uic' => '87741678'],
+        'action' => 'position',
+        'lng' => 6.4452457,
+        'lat' => 45.6302923,
+        'source_url' => $osm('w223051272'),
+        'quote' => 'La Bâthie (osm) : lat = 45.6302923, lon = 6.4452457',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : OSM w223051272 à 0 m, liste SNCF 87741678 à 18 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 18 m ; à signaler à la source : Wikidata Q57468981 (P625) à 442 m, coordonnées de l\'article « Gare de La Bâthie » à 442 m',
+    ],
+    // 137. Chignin-les-Marches (id 20488)
+    [
+        'station' => ['name' => 'Chignin-les-Marches', 'uic' => '87741173'],
+        'action' => 'position',
+        'lng' => 6.003431,
+        'lat' => 45.5160966,
+        'source_url' => $wp('Gare de Chignin - Les Marches', 240674166),
+        'quote' => 'Gare de Chignin - Les Marches : latitude = 45.515956, longitude = 6.003831',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chignin - Les Marches » (oldid 240674166) à 35 m, liste SNCF 87741173 à 35 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 35 m ; à signaler à la source : Wikidata Q47095408 (P625) à 434 m',
+    ],
+    // 138. St-Genouph (id 16731)
+    [
+        'station' => ['name' => 'St-Genouph', 'uic' => '87571851'],
+        'action' => 'position',
+        'lng' => 0.5969637,
+        'lat' => 47.3709212,
+        'source_url' => $osm('n11611830640'),
+        'quote' => 'Saint-Genouph (osm) : lat = 47.3709212, lon = 0.5969637',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000031057615 à 54 m, OSM n11611830640 à 0 m, liste SNCF 87571851 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 1 m ; à signaler à la source : Wikidata Q3097524 (P625) à 449 m, coordonnées de l\'article « Gare de Saint-Genouph » à 449 m',
+    ],
+    // 139. Ponte-Leccia (id 20721)
+    [
+        'station' => ['name' => 'Ponte-Leccia', 'uic' => '87762112'],
+        'action' => 'position',
+        'lng' => 9.2039301,
+        'lat' => 42.4654468,
+        'source_url' => $wp('Gare de Ponte-Leccia', 229547544),
+        'quote' => 'Gare de Ponte-Leccia : latitude = 42.465336, longitude = 9.203887',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Ponte-Leccia » (oldid 229547544) à 13 m, Wikidata Q3097316 à 13 m, BD TOPO EQ_RESEA0000000109751140 à 13 m, OSM n304724561 à 0 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87762112 (point géocodé) à 437 m',
+    ],
+    // 140. St-Affrique (id 20898)
+    [
+        'station' => ['name' => 'St-Affrique', 'uic' => '87783480'],
+        'action' => 'position',
+        'lng' => 2.8914911,
+        'lat' => 43.9543613,
+        'source_url' => $wp('Gare de Saint-Affrique', 238467420),
+        'quote' => 'Gare de Saint-Affrique : latitude = 43.954392, longitude = 2.891489',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Affrique » (oldid 238467420) à 3 m, Wikidata Q140783756 à 7 m, OSM w66298039 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87783480 (point géocodé) à 444 m',
+    ],
+    // 141. Le Méridien (id 17648)
+    [
+        'station' => ['name' => 'Le Méridien', 'uic' => '87721522'],
+        'action' => 'position',
+        'lng' => 4.7484432,
+        'lat' => 45.7684995,
+        'source_url' => $wp('Gare du Méridien', 241156052),
+        'quote' => 'Gare du Méridien : latitude = 45.768499, longitude = 4.748443',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Méridien » (oldid 241156052) à 0 m, OSM w321447107 à 0 m, liste SNCF 87721522 à 48 m, OHM n2136000299 à 19 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 48 m ; à signaler à la source : Wikidata Q2672930 (P625) à 498 m',
+    ],
+    // 142. Labège-Village (id 17164)
+    [
+        'station' => ['name' => 'Labège-Village', 'uic' => '87612028'],
+        'action' => 'position',
+        'lng' => 1.5328211,
+        'lat' => 43.5305699,
+        'source_url' => $wp('Halte de Labège-Village', 230132231),
+        'quote' => 'Halte de Labège-Village : latitude = 43.530601, longitude = 1.532784',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Halte de Labège-Village » (oldid 230132231) à 5 m, Wikidata Q3126240 à 5 m, OSM n6131099113 à 0 m, liste SNCF 87612028 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : liste SNCF UIC 87612028 (point géocodé) à 435 m',
+    ],
+    // 143. Rosa Parks (id 17273)
+    [
+        'station' => ['name' => 'Rosa Parks', 'uic' => '87654798'],
+        'action' => 'position',
+        'lng' => 2.3741066,
+        'lat' => 48.8962224,
+        'source_url' => $wp('Gare Rosa-Parks', 241524861),
+        'quote' => 'Gare Rosa-Parks : latitude = 48.896466, longitude = 2.374100',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare Rosa-Parks » (oldid 241524861) à 27 m, Wikidata Q3095535 à 27 m, BD TOPO EQ_RESEA0000000296796753 à 26 m, OSM n3884781096 à 30 m, liste SNCF 87654798 à 25 m ; à 9 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 30 m ; à signaler à la source : liste SNCF UIC 87654798 (point géocodé) à 423 m',
+    ],
+    // 144. Puyssegur (id 21804)
+    [
+        'station' => ['name' => 'Puyssegur', 'wikidata' => 'Q60847796'],
+        'action' => 'position',
+        'lng' => 1.0863598,
+        'lat' => 43.7404333,
+        'source_url' => $wp('Gare de Puysségur', 188279933),
+        'quote' => 'Gare de Puysségur : latitude = 43.740360, longitude = 1.086420',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Puysségur » (oldid 188279933) à 9 m, OSM w1391766361 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : Wikidata Q60847796 (P625) à 437 m',
+    ],
+    // 145. Montaigut (id 21203)
+    [
+        'station' => ['name' => 'Montaigut', 'wikidata' => 'Q60847730'],
+        'action' => 'position',
+        'lng' => 1.2310826,
+        'lat' => 43.6932283,
+        'source_url' => $wp('Gare de Montaigut (Haute-Garonne)', 205932339),
+        'quote' => 'Gare de Montaigut (Haute-Garonne) : latitude = 43.693239, longitude = 1.231121',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montaigut (Haute-Garonne) » (oldid 205932339) à 3 m, OSM w1531638096 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : Wikidata Q60847730 (P625) à 437 m',
+    ],
+    // 146. Cadours (id 21239)
+    [
+        'station' => ['name' => 'Cadours', 'wikidata' => 'Q60847631'],
+        'action' => 'position',
+        'lng' => 1.053202,
+        'lat' => 43.7299091,
+        'source_url' => $wp('Gare de Cadours', 220006537),
+        'quote' => 'Gare de Cadours : latitude = 43.729920, longitude = 1.053210',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cadours » (oldid 220006537) à 1 m, OSM w72039088 à 0 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : Wikidata Q60847631 (P625) à 435 m',
+    ],
+    // 147. Mondonville (id 21566)
+    [
+        'station' => ['name' => 'Mondonville', 'wikidata' => 'Q60847696'],
+        'action' => 'position',
+        'lng' => 1.2836945,
+        'lat' => 43.6709898,
+        'source_url' => $wp('Gare de Mondonville', 239737173),
+        'quote' => 'Gare de Mondonville : latitude = 43.671000, longitude = 1.283670',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Mondonville » (oldid 239737173) à 2 m, OSM w87248997 à 0 m ; à 11 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 0 m ; à signaler à la source : Wikidata Q60847696 (P625) à 433 m',
+    ],
+    // 148. Escalquens (id 17144)
+    [
+        'station' => ['name' => 'Escalquens', 'uic' => '87611707'],
+        'action' => 'position',
+        'lng' => 1.5424088,
+        'lat' => 43.5171276,
+        'source_url' => $wp('Gare d\'Escalquens', 240892378),
+        'quote' => 'Gare d\'Escalquens : latitude = 43.517094, longitude = 1.542265',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Escalquens » (oldid 240892378) à 12 m, Wikidata Q3095745 à 12 m, BD TOPO EQ_RESEA0000000328806209 à 1 m, OSM n6131085779 à 12 m, liste SNCF 87611707 à 11 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (osm) à 12 m ; à signaler à la source : liste SNCF UIC 87611707 (point géocodé) à 433 m',
+    ],
+    // 149. Lamonzie-St-Martin (id 16909)
+    [
+        'station' => ['name' => 'Lamonzie-St-Martin', 'uic' => '87584243'],
+        'action' => 'position',
+        'lng' => 0.3802809,
+        'lat' => 44.8434582,
+        'source_url' => $wp('Gare de Lamonzie-Saint-Martin', 223772849),
+        'quote' => 'Gare de Lamonzie-Saint-Martin : latitude = 44.843427, longitude = 0.380301',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lamonzie-Saint-Martin » (oldid 223772849) à 4 m, Wikidata Q3096840 à 4 m, OSM n3435151446 à 0 m, liste SNCF 87584243 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 17 m ; à signaler à la source : liste SNCF UIC 87584243 (point géocodé) à 444 m',
+    ],
+    // 150. Nurieux (id 17876)
+    [
+        'station' => ['name' => 'Nurieux', 'uic' => '87743351'],
+        'action' => 'position',
+        'lng' => 5.5327024,
+        'lat' => 46.1842257,
+        'source_url' => $wp('Gare de Nurieux', 241398998),
+        'quote' => 'Gare de Nurieux : latitude = 46.184106, longitude = 5.532671',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nurieux » (oldid 241398998) à 14 m, BD TOPO EQ_RESEA0000000008682113 à 40 m, OSM n2494019283 à 4 m, liste SNCF 87743351 à 59 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 59 m ; à signaler à la source : Wikidata Q2945500 (P625) à 373 m',
+    ],
+
+    // ── 51. Rattachements à Wikidata, deuxième passe, et deux positions fausses de la liste SNCF (23/11/2026, rapport storage/app/reports/agents/aprem-2111/wikidata-gares-2.md) ──────
+    // 17 rattachements (action « link ») : les huit candidats « nom et distance » que la première passe avait laissés (même nom, un seul élément et une
+    // seule fiche à moins de 300 m, ligne et PK de l'article ou de l'élément identiques à ceux de la fiche) et les neuf éléments de même UIC à 300 m ou
+    // plus de la fiche (faisceaux de marchandises, où la liste SNCF et Wikidata ne posent pas le point au même endroit : même UIC et même nom, une seule
+    // fiche, aucune autre gare de même nom). Appliqués par vff:consolidate-stations. Puis 2 corrections de position (liste SNCF fausse : Rédange, posée sur une autre ligne à 12 km de la
+    // commune que dit l'article ; Honfleur, bâtiment OSM de l'ancienne gare) : le plus souvent Wikidata est fautif et rien n'est changé chez nous (voir le rapport).
+
+    // Rochechouart (id 19807)
+    [
+        'station' => ['name' => 'Rochechouart', 'uic' => '87592857'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141873884',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141873884',
+        'quote' => 'Gare de Rochechouart',
+        'reason' => 'élément Wikidata Q141873884 : article « Gare de Rochechouart » (oldid 238824788) : ligne de Saillat-sur-Vienne à Bussière-Galant, PK 453,725, comme la fiche ; coordonnées de l\'article et de l\'élément à 205 m du point VFF.',
+    ],
+
+    // Lahonce (id 20131)
+    [
+        'station' => ['name' => 'Lahonce', 'uic' => '87673814'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142182717',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142182717',
+        'quote' => 'Lahonce',
+        'reason' => 'élément Wikidata Q142182717 : élément « Lahonce » (gare désaffectée) : ligne de Toulouse à Bayonne, comme la fiche ; seule gare de ce nom, à 240 m du point VFF.',
+    ],
+
+    // Pont-les-Brie (id 18966)
+    [
+        'station' => ['name' => 'Pont-les-Brie', 'uic' => '87315242'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141804024',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141804024',
+        'quote' => 'Gare de Pont-les-Brie',
+        'reason' => 'élément Wikidata Q141804024 : élément « Gare de Pont-les-Brie » : commune Villers-Carbonnel et ligne de Saint-Just-en-Chaussée à Douai, comme la fiche ; à 0 m du point VFF.',
+    ],
+
+    // Ste-Feyre (id 19873)
+    [
+        'station' => ['name' => 'Ste-Feyre', 'uic' => '87597690'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141873880',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141873880',
+        'quote' => 'Gare de Sainte-Feyre',
+        'reason' => 'élément Wikidata Q141873880 : article « Gare de Sainte-Feyre » (oldid 238055007) : ligne de Montluçon à Saint-Sulpice-Laurière, PK 398,855, comme la fiche ; à 27 m du point VFF.',
+    ],
+
+    // Chepoix (id 18977)
+    [
+        'station' => ['name' => 'Chepoix', 'uic' => '87316117'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2356489',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2356489',
+        'quote' => 'Chepoix',
+        'reason' => 'élément Wikidata Q2356489 : article « Gare de Chepoix » (oldid 225457339) : ligne de Paris-Nord à Lille, PK 92,6, comme la fiche ; à 12 m du point VFF.',
+    ],
+
+    // Marguerittes (id 20827)
+    [
+        'station' => ['name' => 'Marguerittes', 'uic' => '87775429'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q113649031',
+        'source_url' => 'https://www.wikidata.org/wiki/Q113649031',
+        'quote' => 'Gare de Marguerittes',
+        'reason' => 'élément Wikidata Q113649031 : élément « Gare de Marguerittes » (seul de ce nom, commune de Marguerittes), à 40 m du point VFF ; son UIC Wikidata (P722 8774570) n\'est pas celui de la fiche (8777542) : erreur de saisie probable de Wikidata, à signaler.',
+    ],
+
+    // Vix (Vendée) (id 19484)
+    [
+        'station' => ['name' => 'Vix (Vendée)', 'uic' => '87485086'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141874931',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141874931',
+        'quote' => 'Gare de Vix',
+        'reason' => 'élément Wikidata Q141874931 : article « Gare de Vix » (oldid 239269843) : ligne de Nantes-Orléans à Saintes, PK 141,348, comme la fiche, commune du Gué-de-Velluire ; à 162 m du point VFF.',
+    ],
+
+    // Villechaud (id 20192)
+    [
+        'station' => ['name' => 'Villechaud', 'uic' => '87691311'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q123498032',
+        'source_url' => 'https://www.wikidata.org/wiki/Q123498032',
+        'quote' => 'Gare de Villechaud',
+        'reason' => 'élément Wikidata Q123498032 : article « Gare de Villechaud » (oldid 213895944) : halte de la ligne de Moret - Veneux-les-Sablons à Lyon-Perrache, PK 200,345, comme la fiche, commune de Cosne-Cours-sur-Loire ; à 46 m du point VFF.',
+    ],
+
+    // Lille-Délivrance (id 15613)
+    [
+        'station' => ['name' => 'Lille-Délivrance', 'uic' => '87286013'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q19407022',
+        'source_url' => 'https://www.wikidata.org/wiki/Q19407022',
+        'quote' => 'gare de triage de Lille-Délivrance',
+        'reason' => 'élément Wikidata Q19407022 : gare de triage de Lomme (article oldid 236352705, ligne d\'Haubourdin à Saint-André) : même UIC, le point de l\'élément est au milieu du faisceau, celui de la liste SNCF à 1 231 m.',
+    ],
+
+    // Strasbourg-Cronenbourg (id 15346)
+    [
+        'station' => ['name' => 'Strasbourg-Cronenbourg', 'uic' => '87212050'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16508061',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16508061',
+        'quote' => 'Strasbourg-Cronenbourg',
+        'reason' => 'élément Wikidata Q16508061 : gare aux marchandises de Strasbourg-Cronenbourg (article oldid 235034564) : même UIC, faisceau de plus d\'un kilomètre ; points à 785 m l\'un de l\'autre.',
+    ],
+
+    // Strasbourg-Neudorf (id 15347)
+    [
+        'station' => ['name' => 'Strasbourg-Neudorf', 'uic' => '87212068'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17355275',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17355275',
+        'quote' => 'Strasbourg-Neudorf',
+        'reason' => 'élément Wikidata Q17355275 : gare de Strasbourg-Neudorf (article oldid 240408199) : même UIC, faisceau de marchandises ; points à 677 m l\'un de l\'autre.',
+    ],
+
+    // Rungis (MIN) (id 16689)
+    [
+        'station' => ['name' => 'Rungis (MIN)', 'uic' => '87546002'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q99709927',
+        'source_url' => 'https://www.wikidata.org/wiki/Q99709927',
+        'quote' => 'Rungis MIN',
+        'reason' => 'élément Wikidata Q99709927 : gare de Rungis MIN (article oldid 241269139) : même UIC, embranchement du marché d\'intérêt national de Rungis ; points à 766 m l\'un de l\'autre.',
+    ],
+
+    // Gravenchon-Port-Jérome (id 16226)
+    [
+        'station' => ['name' => 'Gravenchon-Port-Jérome', 'uic' => '87413484'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16964674',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16964674',
+        'quote' => 'Gravenchon-Port-Jérôme',
+        'reason' => 'élément Wikidata Q16964674 : gare de Gravenchon-Port-Jérôme (article oldid 239668426) : même UIC, PK 221,081 comme la fiche ; points à 670 m l\'un de l\'autre (écart de position à instruire).',
+    ],
+
+    // Bassens-Appontements (id 16864)
+    [
+        'station' => ['name' => 'Bassens-Appontements', 'uic' => '87581868'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758290',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758290',
+        'quote' => 'Bassens-Appontements',
+        'reason' => 'élément Wikidata Q120758290 : élément « Bassens-Appontements » : même UIC, même nom, voies du port de Bassens ; points à 929 m l\'un de l\'autre.',
+    ],
+
+    // Marseille-Maritime-Canet (id 20630)
+    [
+        'station' => ['name' => 'Marseille-Maritime-Canet', 'uic' => '87752717'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q18613203',
+        'source_url' => 'https://www.wikidata.org/wiki/Q18613203',
+        'quote' => 'Marseille-Canet',
+        'reason' => 'élément Wikidata Q18613203 : gare de Marseille-Canet (article oldid 235032998) : ligne de Marseille-Arenc à Marseille-Canet, comme la fiche, même UIC ; points à 981 m l\'un de l\'autre (faisceau).',
+    ],
+
+    // Trèbes (id 17194)
+    [
+        'station' => ['name' => 'Trèbes', 'uic' => '87615062'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757987',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757987',
+        'quote' => 'Trèbes',
+        'reason' => 'élément Wikidata Q120757987 : élément « gare de Trèbes » (le seul de Wikidata pour cette gare), même UIC et même nom ; points à 424 m l\'un de l\'autre.',
+    ],
+
+    // Grandpuits-Bagneux (id 14868)
+    [
+        'station' => ['name' => 'Grandpuits-Bagneux', 'uic' => '87112086'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3096570',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3096570',
+        'quote' => 'Grandpuits-Bagneux',
+        'reason' => 'élément Wikidata Q3096570 : même UIC et même nom ; la fiche voisine « Grandpuits » (Q3096569, PK 64,828) est une autre gare : l\'élément Q3096570 a pour lien Wikipédia une redirection vers l\'article de Grandpuits, ses coordonnées sont à 2 678 m du point VFF (PK 62,480). Confiance moyenne.',
+    ],
+
+    // Rédange (Moselle) : position
+    [
+        'station' => ['name' => 'Rédange (Moselle)', 'uic' => '87194548'],
+        'action' => 'position',
+        'lng' => 5.919448,
+        'lat' => 49.491016,
+        'source_url' => $wp('Gare de Rédange (France)', 223006410),
+        'quote' => 'située sur le territoire de la commune de Rédange',
+        'reason' => 'position SNCF posée à Boulange sur la ligne de Fontoy à Audun-le-Tiche (PK 4,570), à 12 257 m de la gare ; l\'article place la gare de Rédange sur la ligne d\'Audun-le-Tiche à Hussigny-Godbrange, PK 4,6, à un kilomètre d\'Audun-le-Tiche ; coordonnées de l\'article, de l\'élément Wikidata Q106074182 et de la commune de Rédange (point à 14 m d\'une voie de la référence VFF) (oldid 223006410).',
+    ],
+
+    // Honfleur : position
+    [
+        'station' => ['name' => 'Honfleur', 'uic' => '87444430'],
+        'action' => 'position',
+        'lng' => 0.237902,
+        'lat' => 49.418882,
+        'source_url' => $osm('w196859679'),
+        'quote' => 'name=Honfleur, building=train_station, amenity=bus_station',
+        'reason' => 'ancienne gare de Honfleur (bâtiment OSM, devenu gare routière) à 278 m du point de l\'article (Gare de Honfleur, oldid 235032148, 49,417362 N, 0,241028 E) et de Wikidata, alors que le point de la liste SNCF est à 1 950 m dans une autre partie de la ville ; la gare terminus en impasse était au PK 232,2xx de la ligne de Pont-l\'Évêque à Honfleur, au bord du bassin.',
+    ],
+    // ── 52. Positions des gares à écart fort, deuxième passe (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/positions-gares-2.md) : 132 gares dont deux familles de sources indépendantes concordent à
+    // moins de 70 m (BD TOPO équipement de transport, OSM, liste SNCF, coordonnées de l'article Wikipédia ou de Wikidata comptées pour
+    // une seule famille) sans que le point de VFF le soit : point posé sur le bâtiment voyageurs ou le milieu des quais, gares fermées
+    // retenues seulement si les coordonnées de leur article concordent ; l'élément fautif est dit dans « reason ». ──
+    // 001. St-Jory (id 17139)
+    [
+        'station' => ['name' => 'St-Jory', 'uic' => '87611657'],
+        'action' => 'position',
+        'lng' => 1.3714555,
+        'lat' => 43.738333,
+        'source_url' => $wp('Gare de Saint-Jory', 230132195),
+        'quote' => 'Gare de Saint-Jory : latitude = 43.738322, longitude = 1.371455',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Jory » (oldid 230132195) à 1 m, Wikidata Q2245340 à 35 m, BD TOPO EQ_RESEA0000000073015814 à 1 m, OSM n6121347106 à 0 m, liste SNCF 87611657 à 14 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 393 m ; à signaler à la source : liste SNCF UIC 87611657 (point géocodé) à 393 m',
+    ],
+    // 002. St-Pourçain-sur-Sioule (id 17488)
+    [
+        'station' => ['name' => 'St-Pourçain-sur-Sioule', 'uic' => '87696393'],
+        'action' => 'position',
+        'lng' => 3.2990703,
+        'lat' => 46.3048976,
+        'source_url' => $wp('Gare de Saint-Pourçain-sur-Sioule (PLM)', 218767200),
+        'quote' => 'Gare de Saint-Pourçain-sur-Sioule (PLM) : latitude = 46.304963, longitude = 3.298742',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Pourçain-sur-Sioule (PLM) » (oldid 218767200) à 26 m, OSM n12092151869 à 0 m, liste SNCF 87696393 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 15 m ; à signaler à la source : Wikidata Q104440477 (P625) à 412 m',
+    ],
+    // 003. Riom-ès-Montagnes (id 20045)
+    [
+        'station' => ['name' => 'Riom-ès-Montagnes', 'uic' => '87645663'],
+        'action' => 'position',
+        'lng' => 2.6581846,
+        'lat' => 45.2848871,
+        'source_url' => $wp('Gare de Riom-ès-Montagnes', 235034081),
+        'quote' => 'Gare de Riom-ès-Montagnes : latitude = 45.284925, longitude = 2.658159',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Riom-ès-Montagnes » (oldid 235034081) à 5 m, OSM n4312035239 à 0 m, liste SNCF 87645663 à 23 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 23 m ; à signaler à la source : Wikidata Q112264716 (P625) à 410 m',
+    ],
+    // 004. Route-de-Launaguet (id 19908)
+    [
+        'station' => ['name' => 'Route-de-Launaguet', 'uic' => '87611954'],
+        'action' => 'position',
+        'lng' => 1.4394567,
+        'lat' => 43.6353195,
+        'source_url' => $wp('Gare de Route-de-Launaguet', 239341230),
+        'quote' => 'Gare de Route-de-Launaguet : latitude = 43.634864, longitude = 1.439974',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Route-de-Launaguet » (oldid 239341230) à 66 m, Wikidata Q3097450 à 56 m, OSM n6132914348 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 366 m ; à signaler à la source : liste SNCF UIC 87611954 (point géocodé) à 366 m',
+    ],
+    // 005. Étang (id 17442)
+    [
+        'station' => ['name' => 'Étang', 'uic' => '87694141'],
+        'action' => 'position',
+        'lng' => 4.1837726,
+        'lat' => 46.8679115,
+        'source_url' => $wp('Gare d\'Étang-sur-Arroux', 229551659),
+        'quote' => 'Gare d\'Étang-sur-Arroux : latitude = 46.867917, longitude = 4.183797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Étang-sur-Arroux » (oldid 229551659) à 2 m, Wikidata Q3095878 à 2 m, BD TOPO EQ_RESEA0000000034924717 à 4 m, OSM n5147424230 à 0 m, liste SNCF 87694141 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 12 m',
+    ],
+    // 006. Francheville (id 17684)
+    [
+        'station' => ['name' => 'Francheville', 'uic' => '87722702'],
+        'action' => 'position',
+        'lng' => 4.7696253,
+        'lat' => 45.7337104,
+        'source_url' => $osm('n12918785199'),
+        'quote' => 'Francheville (osm) : lat = 45.7337104, lon = 4.7696253',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : Wikidata Q1852144 à 8 m, BD TOPO EQ_RESEA0000000013173307 à 42 m, OSM n12918785199 à 0 m, liste SNCF 87722702 à 21 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 231 m ; à signaler à la source : liste SNCF UIC 87722702 (point géocodé) à 231 m; coordonnées de l\'article « Gare de Francheville » à 123 m',
+    ],
+    // 007. Caen (id 16258)
+    [
+        'station' => ['name' => 'Caen', 'uic' => '87444000'],
+        'action' => 'position',
+        'lng' => -0.3475451,
+        'lat' => 49.1764236,
+        'source_url' => $wp('Gare de Caen', 239088037),
+        'quote' => 'Gare de Caen : latitude = 49.176677, longitude = -0.347890',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Caen » (oldid 239088037) à 38 m, Wikidata Q3096112 à 12 m, BD TOPO EQ_RESEA0000000013905757 à 0 m, OSM w155643737 à 6 m, OSM n5598384401 à 38 m, OSM w1284903801 à 58 m, liste SNCF 87444000 à 9 m ; à 12 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 394 m ; à signaler à la source : liste SNCF UIC 87444000 (point géocodé) à 394 m',
+    ],
+    // 008. Lacourtensourt (id 17124)
+    [
+        'station' => ['name' => 'Lacourtensourt', 'uic' => '87611434'],
+        'action' => 'position',
+        'lng' => 1.4138442,
+        'lat' => 43.6638849,
+        'source_url' => $wp('Gare de Lacourtensourt', 240466491),
+        'quote' => 'Gare de Lacourtensourt : latitude = 43.663907, longitude = 1.413887',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lacourtensourt » (oldid 240466491) à 4 m, Wikidata Q2484686 à 4 m, BD TOPO EQ_RESEA0000000073015832 à 8 m, OSM n1099956456 à 0 m, liste SNCF 87611434 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 405 m ; à signaler à la source : liste SNCF UIC 87611434 (point géocodé) à 405 m',
+    ],
+    // 009. Lalande-Église (id 19907)
+    [
+        'station' => ['name' => 'Lalande-Église', 'uic' => '87611947'],
+        'action' => 'position',
+        'lng' => 1.4285908,
+        'lat' => 43.645975,
+        'source_url' => $wp('Gare de Toulouse-Lalande-Église', 229472763),
+        'quote' => 'Gare de Toulouse-Lalande-Église : latitude = 43.645957, longitude = 1.428531',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Lalande-Église » (oldid 229472763) à 5 m, Wikidata Q3097893 à 8 m, OSM n6121301599 à 0 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 403 m ; à signaler à la source : liste SNCF UIC 87611947 (point géocodé) à 403 m',
+    ],
+    // 010. Barbentane-Rognonas (id 18138)
+    [
+        'station' => ['name' => 'Barbentane-Rognonas', 'uic' => '87765305'],
+        'action' => 'position',
+        'lng' => 4.7821619,
+        'lat' => 43.8956033,
+        'source_url' => $wp('Gare de Barbentane - Rognonas', 232234716),
+        'quote' => 'Gare de Barbentane - Rognonas : latitude = 43.895886, longitude = 4.782113',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Barbentane - Rognonas » (oldid 232234716) à 32 m, BD TOPO EQ_RESEA0000000351043170 à 32 m, liste SNCF 87765305 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : Wikidata Q97293084 (P625) à 401 m',
+    ],
+    // 011. Vitrolles-Aéroport-Marseille-Provence (id 16257)
+    [
+        'station' => ['name' => 'Vitrolles-Aéroport-Marseille-Provence', 'uic' => '87439554'],
+        'action' => 'position',
+        'lng' => 5.2371148,
+        'lat' => 43.4412293,
+        'source_url' => $wp('Gare de Vitrolles-Aéroport-Marseille-Provence', 240400749),
+        'quote' => 'Gare de Vitrolles-Aéroport-Marseille-Provence : latitude = 43.441734, longitude = 5.237266',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vitrolles-Aéroport-Marseille-Provence » (oldid 240400749) à 57 m, BD TOPO EQ_RESEA0000000223365206 à 45 m, OSM n10782525261 à 0 m, liste SNCF 87439554 à 56 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 259 m ; à signaler à la source : liste SNCF UIC 87439554 (point géocodé) à 259 m; Wikidata Q2462992 (P625) à 142 m',
+    ],
+    // 012. Toulouse-Matabiau (id 17097)
+    [
+        'station' => ['name' => 'Toulouse-Matabiau', 'uic' => '87611004'],
+        'action' => 'position',
+        'lng' => 1.4535872,
+        'lat' => 43.611408,
+        'source_url' => $wp('Gare de Toulouse-Matabiau', 238641166),
+        'quote' => 'Gare de Toulouse-Matabiau : latitude = 43.611322, longitude = 1.454112',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Matabiau » (oldid 238641166) à 43 m, Wikidata Q373449 à 33 m, OSM w76327514 à 0 m, OSM n6132514816 à 50 m, liste SNCF 87611004 à 23 m ; à 9 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 365 m ; à signaler à la source : liste SNCF UIC 87611004 (point géocodé) à 365 m; BD TOPO EQ_RESEA0000000073024100 à 154 m',
+    ],
+    // 013. Villenouvelle (id 17234)
+    [
+        'station' => ['name' => 'Villenouvelle', 'uic' => '87618215'],
+        'action' => 'position',
+        'lng' => 1.6609684,
+        'lat' => 43.4330477,
+        'source_url' => $wp('Gare de Villenouvelle', 236372990),
+        'quote' => 'Gare de Villenouvelle : latitude = 43.433199, longitude = 1.660671',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villenouvelle » (oldid 236372990) à 29 m, Wikidata Q3098002 à 29 m, BD TOPO EQ_RESEA0000000073015933 à 41 m, OSM n9017592165 à 0 m, liste SNCF 87618215 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 388 m ; à signaler à la source : liste SNCF UIC 87618215 (point géocodé) à 388 m',
+    ],
+    // 014. Lézignan (Aude) (id 17195)
+    [
+        'station' => ['name' => 'Lézignan (Aude)', 'uic' => '87615112'],
+        'action' => 'position',
+        'lng' => 2.769403,
+        'lat' => 43.2000239,
+        'source_url' => $wp('Gare de Lézignan-Corbières', 237028873),
+        'quote' => 'Gare de Lézignan-Corbières : latitude = 43.199925, longitude = 2.769409',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lézignan-Corbières » (oldid 237028873) à 11 m, Wikidata Q2280048 à 11 m, BD TOPO EQ_RESEA0000000079950099 à 0 m, OSM n5551929712 à 14 m, liste SNCF 87615112 à 46 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 352 m ; à signaler à la source : liste SNCF UIC 87615112 (point géocodé) à 352 m',
+    ],
+    // 015. Purretone (id 19037)
+    [
+        'station' => ['name' => 'Purretone', 'uic' => '87328112'],
+        'action' => 'position',
+        'lng' => 9.441595,
+        'lat' => 42.5847234,
+        'source_url' => $wp('Gare de Purettone', 228313400),
+        'quote' => 'Gare de Purettone : latitude = 42.584815, longitude = 9.441575',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Purettone » (oldid 228313400) à 10 m, Wikidata Q3097355 à 10 m, OSM n1147250694 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 382 m ; à signaler à la source : liste SNCF UIC 87328112 (point géocodé) à 382 m',
+    ],
+    // 016. Bassanese (id 20739)
+    [
+        'station' => ['name' => 'Bassanese', 'uic' => '87762310'],
+        'action' => 'position',
+        'lng' => 9.4453579,
+        'lat' => 42.6810175,
+        'source_url' => $wp('Gare de Bassanese', 232153391),
+        'quote' => 'Gare de Bassanese : latitude = 42.681035, longitude = 9.445359',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bassanese » (oldid 232153391) à 2 m, Wikidata Q3095910 à 2 m, OSM n1082965060 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 386 m ; à signaler à la source : liste SNCF UIC 87762310 (point géocodé) à 386 m',
+    ],
+    // 017. Meroux (id 15245)
+    [
+        'station' => ['name' => 'Meroux', 'uic' => '87184408'],
+        'action' => 'position',
+        'lng' => 6.8980328,
+        'lat' => 47.5860474,
+        'source_url' => $wp('Gare de Belfort - Montbéliard TGV', 240819248),
+        'quote' => 'Gare de Belfort - Montbéliard TGV : latitude = 47.585800, longitude = 6.897500',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Belfort - Montbéliard TGV » (oldid 240819248) à 49 m, Wikidata Q111792777 à 26 m, OSM n6150411032 à 0 m ; à 33 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 349 m ; à signaler à la source : liste SNCF UIC 87184408 (point géocodé) à 349 m; liste SNCF UIC 87184408 (point géocodé) à 96 m',
+    ],
+    // 018. Aiserey (id 17561)
+    [
+        'station' => ['name' => 'Aiserey', 'uic' => '87713636'],
+        'action' => 'position',
+        'lng' => 5.158236,
+        'lat' => 47.1705304,
+        'source_url' => $wp('Gare d\'Aiserey', 229488762),
+        'quote' => 'Gare d\'Aiserey : latitude = 47.170564, longitude = 5.158231',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Aiserey » (oldid 229488762) à 4 m, OSM n8330424520 à 0 m, liste SNCF 87713636 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 55 m ; à signaler à la source : Wikidata Q24238527 (P625) à 359 m',
+    ],
+    // 019. Coursan (id 18199)
+    [
+        'station' => ['name' => 'Coursan', 'uic' => '87781161'],
+        'action' => 'position',
+        'lng' => 3.0510465,
+        'lat' => 43.23369,
+        'source_url' => $wp('Gare de Coursan', 237050211),
+        'quote' => 'Gare de Coursan : latitude = 43.233742, longitude = 3.050923',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Coursan » (oldid 237050211) à 12 m, Wikidata Q3096305 à 12 m, BD TOPO EQ_RESEA0000000079950042 à 17 m, OSM w149152887 à 0 m, OSM n10935382415 à 12 m, liste SNCF 87781161 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 383 m ; à signaler à la source : liste SNCF UIC 87781161 (point géocodé) à 383 m',
+    ],
+    // 020. Flavy-le-Martel (id 15722)
+    [
+        'station' => ['name' => 'Flavy-le-Martel', 'uic' => '87296871'],
+        'action' => 'position',
+        'lng' => 3.1903856,
+        'lat' => 49.718741,
+        'source_url' => $wp('Gare de Flavy-le-Martel', 229196152),
+        'quote' => 'Gare de Flavy-le-Martel : latitude = 49.718702, longitude = 3.190532',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Flavy-le-Martel » (oldid 229196152) à 11 m, BD TOPO EQ_RESEA0000000063660498 à 16 m, OSM n2013322131 à 0 m, liste SNCF 87296871 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 36 m ; à signaler à la source : Wikidata Q2390007 (P625) à 415 m',
+    ],
+    // 021. Belfort (id 15238)
+    [
+        'station' => ['name' => 'Belfort', 'uic' => '87184002'],
+        'action' => 'position',
+        'lng' => 6.8538114,
+        'lat' => 47.6335567,
+        'source_url' => $wp('Gare de Belfort', 241217828),
+        'quote' => 'Gare de Belfort : latitude = 47.633556, longitude = 6.853833',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Belfort » (oldid 241217828) à 2 m, Wikidata Q2748765 à 32 m, BD TOPO EQ_RESEA0000000039583088 à 0 m, OSM n2501252269 à 4 m, OSM w79763133 à 9 m, liste SNCF 87184002 à 32 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 365 m ; à signaler à la source : liste SNCF UIC 87184002 (point géocodé) à 365 m',
+    ],
+    // 022. Neufchâtel-Hardelot (id 15824)
+    [
+        'station' => ['name' => 'Neufchâtel-Hardelot', 'uic' => '87317099'],
+        'action' => 'position',
+        'lng' => 1.6432527,
+        'lat' => 50.6235901,
+        'source_url' => $wp('Gare de Neufchâtel-Hardelot', 238682987),
+        'quote' => 'Gare de Neufchâtel-Hardelot : latitude = 50.623689, longitude = 1.643268',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Neufchâtel-Hardelot » (oldid 238682987) à 11 m, Wikidata Q3097187 à 11 m, OSM n8330295303 à 0 m, liste SNCF 87317099 à 11 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 363 m ; à signaler à la source : liste SNCF UIC 87317099 (point géocodé) à 363 m',
+    ],
+    // 023. Hesdigneul (id 15825)
+    [
+        'station' => ['name' => 'Hesdigneul', 'uic' => '87317107'],
+        'action' => 'position',
+        'lng' => 1.6671067,
+        'lat' => 50.6610274,
+        'source_url' => $wp('Gare d\'Hesdigneul', 238682953),
+        'quote' => 'Gare d\'Hesdigneul : latitude = 50.660944, longitude = 1.666948',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Hesdigneul » (oldid 238682953) à 15 m, Wikidata Q1889111 à 15 m, OSM n2060688728 à 0 m, liste SNCF 87317107 à 12 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 368 m ; à signaler à la source : liste SNCF UIC 87317107 (point géocodé) à 368 m',
+    ],
+    // 024. Le Pecq (id 19110)
+    [
+        'station' => ['name' => 'Le Pecq', 'uic' => '87382846'],
+        'action' => 'position',
+        'lng' => 2.12221,
+        'lat' => 48.8983114,
+        'source_url' => $wp('Gare du Vésinet - Le Pecq', 239577403),
+        'quote' => 'Gare du Vésinet - Le Pecq : latitude = 48.898209, longitude = 2.122083',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Vésinet - Le Pecq » (oldid 239577403) à 15 m, Wikidata Q2334089 à 34 m, BD TOPO EQ_RESEA0000000004793060 à 0 m, OSM w26202504 à 2 m, OSM n286909340 à 21 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 361 m ; à signaler à la source : liste SNCF UIC 87382846 (point géocodé) à 361 m',
+    ],
+    // 025. Agde (id 18202)
+    [
+        'station' => ['name' => 'Agde', 'uic' => '87781278'],
+        'action' => 'position',
+        'lng' => 3.4661986,
+        'lat' => 43.3172855,
+        'source_url' => $wp('Gare d\'Agde', 239949432),
+        'quote' => 'Gare d\'Agde : latitude = 43.317424, longitude = 3.466125',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Agde » (oldid 239949432) à 17 m, BD TOPO EQ_RESEA0000000044347562 à 0 m, OSM w72614628 à 1 m, OSM n6219752308 à 20 m, liste SNCF 87781278 à 1 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 369 m ; à signaler à la source : liste SNCF UIC 87781278 (point géocodé) à 369 m; Wikidata Q2028453 (P625) à 78 m',
+    ],
+    // 026. Marseillan-Plage (id 18203)
+    [
+        'station' => ['name' => 'Marseillan-Plage', 'uic' => '87781294'],
+        'action' => 'position',
+        'lng' => 3.5355675,
+        'lat' => 43.318105,
+        'source_url' => $wp('Gare de Marseillan-Plage', 241267734),
+        'quote' => 'Gare de Marseillan-Plage : latitude = 43.318185, longitude = 3.535492',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Marseillan-Plage » (oldid 241267734) à 11 m, Wikidata Q2125963 à 11 m, OSM w275835513 à 0 m, OSM n10931276738 à 9 m, liste SNCF 87781294 à 11 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 368 m ; à signaler à la source : liste SNCF UIC 87781294 (point géocodé) à 368 m',
+    ],
+    // 027. Chasse-sur-Rhône (id 17677)
+    [
+        'station' => ['name' => 'Chasse-sur-Rhône', 'uic' => '87722561'],
+        'action' => 'position',
+        'lng' => 4.7951897,
+        'lat' => 45.582534,
+        'source_url' => $wp('Gare de Chasse-sur-Rhône', 240699392),
+        'quote' => 'Gare de Chasse-sur-Rhône : latitude = 45.582478, longitude = 4.794975',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chasse-sur-Rhône » (oldid 240699392) à 18 m, BD TOPO EQ_RESEA0000000007458963 à 28 m, OSM n4290854865 à 0 m, liste SNCF 87722561 à 33 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87722561 (point géocodé) à 130 m; Wikidata Q3096199 (P625) à 457 m',
+    ],
+    // 028. Bram (id 17193)
+    [
+        'station' => ['name' => 'Bram', 'uic' => '87615054'],
+        'action' => 'position',
+        'lng' => 2.1193388,
+        'lat' => 43.2438288,
+        'source_url' => $wp('Gare de Bram', 237055673),
+        'quote' => 'Gare de Bram : latitude = 43.244020, longitude = 2.119303',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bram » (oldid 237055673) à 21 m, Wikidata Q3096058 à 21 m, BD TOPO EQ_RESEA0000000079950062 à 0 m, OSM w235786363 à 0 m, OSM n8320872726 à 20 m, liste SNCF 87615054 à 34 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 364 m ; à signaler à la source : liste SNCF UIC 87615054 (point géocodé) à 364 m',
+    ],
+    // 029. Frénouville-Cagny (id 16263)
+    [
+        'station' => ['name' => 'Frénouville-Cagny', 'uic' => '87444182'],
+        'action' => 'position',
+        'lng' => -0.2603789,
+        'lat' => 49.1412513,
+        'source_url' => $wp('Gare de Frénouville - Cagny', 222035102),
+        'quote' => 'Gare de Frénouville - Cagny : latitude = 49.141056, longitude = -0.260278',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Frénouville - Cagny » (oldid 222035102) à 23 m, Wikidata Q2739456 à 23 m, BD TOPO EQ_RESEA0000000013905788 à 14 m, OSM n3467074093 à 0 m, liste SNCF 87444182 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 361 m ; à signaler à la source : liste SNCF UIC 87444182 (point géocodé) à 361 m',
+    ],
+    // 030. Bibliothèque-François-Mitterrand (id 15863)
+    [
+        'station' => ['name' => 'Bibliothèque-François-Mitterrand', 'uic' => '87328328'],
+        'action' => 'position',
+        'lng' => 2.3770491,
+        'lat' => 48.8297207,
+        'source_url' => $wp('Gare de la Bibliothèque François-Mitterrand', 240490056),
+        'quote' => 'Gare de la Bibliothèque François-Mitterrand : latitude = 48.829810, longitude = 2.376820',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de la Bibliothèque François-Mitterrand » (oldid 240490056) à 19 m, Wikidata Q2856214 à 19 m, OSM n3325110405 à 0 m, liste SNCF 87328328 à 20 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 338 m ; à signaler à la source : liste SNCF UIC 87328328 (point géocodé) à 338 m; BD TOPO EQ_RESEA0000000000140445 à 201 m',
+    ],
+    // 031. Lupino (id 20737)
+    [
+        'station' => ['name' => 'Lupino', 'uic' => '87762294'],
+        'action' => 'position',
+        'lng' => 9.4446096,
+        'lat' => 42.687742,
+        'source_url' => $wp('Gare de Lupino', 229547279),
+        'quote' => 'Gare de Lupino : latitude = 42.687728, longitude = 9.444628',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lupino » (oldid 229547279) à 2 m, Wikidata Q3096924 à 2 m, OSM n1077534336 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 358 m ; à signaler à la source : liste SNCF UIC 87762294 (point géocodé) à 358 m',
+    ],
+    // 032. Le Quesnoy (id 15698)
+    [
+        'station' => ['name' => 'Le Quesnoy', 'uic' => '87295857'],
+        'action' => 'position',
+        'lng' => 3.6457346,
+        'lat' => 50.2503881,
+        'source_url' => $wp('Gare du Quesnoy', 230179985),
+        'quote' => 'Gare du Quesnoy : latitude = 50.250286, longitude = 3.645829',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Quesnoy » (oldid 230179985) à 13 m, Wikidata Q2014463 à 13 m, OSM n990218728 à 0 m, liste SNCF 87295857 à 25 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 352 m ; à signaler à la source : liste SNCF UIC 87295857 (point géocodé) à 352 m',
+    ],
+    // 033. Castelnaudary (id 17192)
+    [
+        'station' => ['name' => 'Castelnaudary', 'uic' => '87615039'],
+        'action' => 'position',
+        'lng' => 1.9502625,
+        'lat' => 43.3122563,
+        'source_url' => $wp('Gare de Castelnaudary', 239126331),
+        'quote' => 'Gare de Castelnaudary : latitude = 43.312108, longitude = 1.950204',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Castelnaudary » (oldid 239126331) à 17 m, Wikidata Q677714 à 17 m, BD TOPO EQ_RESEA0000000079949988 à 0 m, OSM w210612602 à 14 m, OSM n10935370465 à 20 m, liste SNCF 87615039 à 11 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 343 m ; à signaler à la source : liste SNCF UIC 87615039 (point géocodé) à 343 m',
+    ],
+    // 034. Machecoul (id 16474)
+    [
+        'station' => ['name' => 'Machecoul', 'uic' => '87481366'],
+        'action' => 'position',
+        'lng' => -1.822656,
+        'lat' => 46.9906236,
+        'source_url' => $wp('Gare de Machecoul', 235032873),
+        'quote' => 'Gare de Machecoul : latitude = 46.990514, longitude = -1.822720',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Machecoul » (oldid 235032873) à 13 m, BD TOPO EQ_RESEA0000000028743927 à 1 m, OSM w72116114 à 0 m, OSM n471556177 à 1 m, liste SNCF 87481366 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 351 m ; à signaler à la source : liste SNCF UIC 87481366 (point géocodé) à 351 m',
+    ],
+    // 035. Beuvrages (id 15913)
+    [
+        'station' => ['name' => 'Beuvrages', 'uic' => '87343160'],
+        'action' => 'position',
+        'lng' => 3.5066087,
+        'lat' => 50.3894218,
+        'source_url' => $osm('n2084195352'),
+        'quote' => 'Beuvrages (osm) : lat = 50.3894218, lon = 3.5066087',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n2084195352 à 0 m, liste SNCF 87343160 à 34 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 211 m ; à signaler à la source : liste SNCF UIC 87343160 (point géocodé) à 211 m; Wikidata Q2336942 (P625) à 174 m; coordonnées de l\'article « Gare de Beuvrages » à 174 m',
+    ],
+    // 036. Bastia (id 20919)
+    [
+        'station' => ['name' => 'Bastia', 'uic' => '87860825'],
+        'action' => 'position',
+        'lng' => 9.4474604,
+        'lat' => 42.7022222,
+        'source_url' => $wp('Gare de Bastia', 235030698),
+        'quote' => 'Gare de Bastia : latitude = 42.702029, longitude = 9.447662',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bastia » (oldid 235030698) à 27 m, Wikidata Q967842 à 27 m, BD TOPO EQ_RESEA0000000109751046 à 0 m, OSM w122463715 à 4 m, OSM n339868252 à 24 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 347 m ; à signaler à la source : liste SNCF UIC 87860825 (point géocodé) à 347 m',
+    ],
+    // 037. Servon (id 16337)
+    [
+        'station' => ['name' => 'Servon', 'uic' => '87471532'],
+        'action' => 'position',
+        'lng' => -1.4667392,
+        'lat' => 48.1122165,
+        'source_url' => $wp('Gare de Servon', 238798219),
+        'quote' => 'Gare de Servon : latitude = 48.112236, longitude = -1.466134',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Servon » (oldid 238798219) à 45 m, Wikidata Q2913679 à 45 m, OSM n2486683556 à 0 m, liste SNCF 87471532 à 3 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 345 m ; à signaler à la source : liste SNCF UIC 87471532 (point géocodé) à 345 m; BD TOPO EQ_RESEA0000000069840632 à 129 m',
+    ],
+    // 038. Villefranche-de-Lauragais (id 17191)
+    [
+        'station' => ['name' => 'Villefranche-de-Lauragais', 'uic' => '87615013'],
+        'action' => 'position',
+        'lng' => 1.7147131,
+        'lat' => 43.3985001,
+        'source_url' => $wp('Gare de Villefranche-de-Lauragais', 231016248),
+        'quote' => 'Gare de Villefranche-de-Lauragais : latitude = 43.398427, longitude = 1.714573',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villefranche-de-Lauragais » (oldid 231016248) à 14 m, Wikidata Q3097993 à 14 m, BD TOPO EQ_RESEA0000000073015941 à 0 m, OSM w340194457 à 2 m, OSM n10935373810 à 19 m, liste SNCF 87615013 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 338 m ; à signaler à la source : liste SNCF UIC 87615013 (point géocodé) à 338 m',
+    ],
+    // 039. Dunkerque (id 15585)
+    [
+        'station' => ['name' => 'Dunkerque', 'uic' => '87281006'],
+        'action' => 'position',
+        'lng' => 2.3688667,
+        'lat' => 51.0304876,
+        'source_url' => $wp('Gare de Dunkerque', 234757520),
+        'quote' => 'Gare de Dunkerque : latitude = 51.030513, longitude = 2.368604',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dunkerque » (oldid 234757520) à 19 m, Wikidata Q2474563 à 14 m, BD TOPO EQ_RESEA0000000056479897 à 0 m, OSM w76424230 à 4 m, OSM n312805118 à 24 m, liste SNCF 87281006 à 7 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 204 m ; à signaler à la source : liste SNCF UIC 87281006 (point géocodé) à 204 m',
+    ],
+    // 040. Francardo (id 20712)
+    [
+        'station' => ['name' => 'Francardo', 'uic' => '87762021'],
+        'action' => 'position',
+        'lng' => 9.1930748,
+        'lat' => 42.4040942,
+        'source_url' => $wp('Gare de Francardo', 241221171),
+        'quote' => 'Gare de Francardo : latitude = 42.404384, longitude = 9.193228',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Francardo » (oldid 241221171) à 35 m, Wikidata Q3096469 à 35 m, BD TOPO EQ_RESEA0000000109751159 à 11 m, OSM n1675895231 à 0 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 346 m ; à signaler à la source : liste SNCF UIC 87762021 (point géocodé) à 346 m',
+    ],
+    // 041. Nissan (id 20853)
+    [
+        'station' => ['name' => 'Nissan', 'uic' => '87781179'],
+        'action' => 'position',
+        'lng' => 3.116708,
+        'lat' => 43.2955523,
+        'source_url' => $wp('Gare de Nissan', 195507629),
+        'quote' => 'Gare de Nissan : latitude = 43.295573, longitude = 3.116670',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nissan » (oldid 195507629) à 4 m, Wikidata Q3097209 à 4 m, OSM n61082768 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 345 m ; à signaler à la source : liste SNCF UIC 87781179 (point géocodé) à 345 m',
+    ],
+    // 042. Larzalier (id 20901)
+    [
+        'station' => ['name' => 'Larzalier', 'uic' => '87783662'],
+        'action' => 'position',
+        'lng' => 3.6905509,
+        'lat' => 44.5636745,
+        'source_url' => $wp('Halte de Larzalier', 170235631),
+        'quote' => 'Halte de Larzalier : latitude = 44.563740, longitude = 3.690391',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Halte de Larzalier » (oldid 170235631) à 15 m, Wikidata Q3126241 à 13 m, OSM n7837346383 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 332 m ; à signaler à la source : liste SNCF UIC 87783662 (point géocodé) à 332 m',
+    ],
+    // 043. Loison-sous-Lens (id 15936)
+    [
+        'station' => ['name' => 'Loison-sous-Lens', 'uic' => '87345231'],
+        'action' => 'position',
+        'lng' => 2.859252,
+        'lat' => 50.4403353,
+        'source_url' => $wp('Gare de Loison-sous-Lens', 238682969),
+        'quote' => 'Gare de Loison-sous-Lens : latitude = 50.440179, longitude = 2.859182',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Loison-sous-Lens » (oldid 238682969) à 18 m, Wikidata Q3096897 à 18 m, OSM n917150714 à 0 m, liste SNCF 87345231 à 16 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 342 m ; à signaler à la source : liste SNCF UIC 87345231 (point géocodé) à 342 m',
+    ],
+    // 044. Challans (id 16475)
+    [
+        'station' => ['name' => 'Challans', 'uic' => '87481390'],
+        'action' => 'position',
+        'lng' => -1.8718034,
+        'lat' => 46.8439651,
+        'source_url' => $wp('Gare de Challans', 235031219),
+        'quote' => 'Gare de Challans : latitude = 46.843881, longitude = -1.871732',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Challans » (oldid 235031219) à 11 m, BD TOPO EQ_RESEA0000000017254920 à 0 m, OSM w72365886 à 1 m, liste SNCF 87481390 à 6 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 342 m ; à signaler à la source : liste SNCF UIC 87481390 (point géocodé) à 342 m; Wikidata Q3096175 (P625) à 71 m',
+    ],
+    // 045. Baroncourt (id 15309)
+    [
+        'station' => ['name' => 'Baroncourt', 'uic' => '87192658'],
+        'action' => 'position',
+        'lng' => 5.6996564,
+        'lat' => 49.2845666,
+        'source_url' => $wp('Gare de Baroncourt', 241364260),
+        'quote' => 'Gare de Baroncourt : latitude = 49.284326, longitude = 5.699810',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Baroncourt » (oldid 241364260) à 29 m, Wikidata Q2309377 à 29 m, OSM n5275084635 à 0 m, liste SNCF 87192658 à 7 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 340 m ; à signaler à la source : liste SNCF UIC 87192658 (point géocodé) à 340 m',
+    ],
+    // 046. Pont-de-Briques (id 15826)
+    [
+        'station' => ['name' => 'Pont-de-Briques', 'uic' => '87317115'],
+        'action' => 'position',
+        'lng' => 1.6268843,
+        'lat' => 50.6827538,
+        'source_url' => $wp('Gare de Pont-de-Briques', 238682999),
+        'quote' => 'Gare de Pont-de-Briques : latitude = 50.682681, longitude = 1.627065',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pont-de-Briques » (oldid 238682999) à 15 m, Wikidata Q2372306 à 15 m, OSM n9980338118 à 0 m, liste SNCF 87317115 à 9 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 331 m ; à signaler à la source : liste SNCF UIC 87317115 (point géocodé) à 331 m',
+    ],
+    // 047. Carcassonne (id 17208)
+    [
+        'station' => ['name' => 'Carcassonne', 'uic' => '87615286'],
+        'action' => 'position',
+        'lng' => 2.3517549,
+        'lat' => 43.2181177,
+        'source_url' => $wp('Gare de Carcassonne', 237494196),
+        'quote' => 'Gare de Carcassonne : latitude = 43.218182, longitude = 2.351826',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Carcassonne » (oldid 237494196) à 9 m, Wikidata Q2130184 à 17 m, BD TOPO EQ_RESEA0000000079950078 à 0 m, OSM w26758308 à 9 m, OSM n6980560663 à 11 m, liste SNCF 87615286 à 11 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 324 m ; à signaler à la source : liste SNCF UIC 87615286 (point géocodé) à 324 m',
+    ],
+    // 048. Dieppe (id 16233)
+    [
+        'station' => ['name' => 'Dieppe', 'uic' => '87415018'],
+        'action' => 'position',
+        'lng' => 1.0810838,
+        'lat' => 49.9213952,
+        'source_url' => $wp('Gare de Dieppe', 238465412),
+        'quote' => 'Gare de Dieppe : latitude = 49.921213, longitude = 1.081128',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dieppe » (oldid 238465412) à 21 m, Wikidata Q962179 à 2 m, BD TOPO EQ_RESEA0000000059008612 à 0 m, OSM n13325173629 à 5 m, liste SNCF 87415018 à 44 m ; à 33 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 294 m ; à signaler à la source : liste SNCF UIC 87415018 (point géocodé) à 294 m',
+    ],
+    // 049. Anse (id 17634)
+    [
+        'station' => ['name' => 'Anse', 'uic' => '87721324'],
+        'action' => 'position',
+        'lng' => 4.7198564,
+        'lat' => 45.9393585,
+        'source_url' => $wp('Gare d\'Anse', 238104738),
+        'quote' => 'Gare d\'Anse : latitude = 45.939359, longitude = 4.719870',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Anse » (oldid 238104738) à 1 m, Wikidata Q124054742 à 15 m, BD TOPO EQ_RESEA0000000013173188 à 1 m, OSM n2530903036 à 0 m, liste SNCF 87721324 à 8 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 111 m ; à signaler à la source : OSM n2122065171 à 445 m; liste SNCF UIC 87721324 (point géocodé) à 111 m',
+    ],
+    // 050. Avignonet (id 17229)
+    [
+        'station' => ['name' => 'Avignonet', 'uic' => '87616011'],
+        'action' => 'position',
+        'lng' => 1.7877815,
+        'lat' => 43.363906,
+        'source_url' => $wp('Gare d\'Avignonet', 235030384),
+        'quote' => 'Gare d\'Avignonet : latitude = 43.363811, longitude = 1.787722',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Avignonet » (oldid 235030384) à 12 m, Wikidata Q3095707 à 12 m, BD TOPO EQ_RESEA0000000073015956 à 0 m, OSM n8047068205 à 3 m, liste SNCF 87616011 à 42 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 333 m ; à signaler à la source : liste SNCF UIC 87616011 (point géocodé) à 333 m',
+    ],
+    // 051. Moult-Argences (id 16264)
+    [
+        'station' => ['name' => 'Moult-Argences', 'uic' => '87444190'],
+        'action' => 'position',
+        'lng' => -0.1864231,
+        'lat' => 49.1112103,
+        'source_url' => $wp('Gare de Moult - Argences', 235033345),
+        'quote' => 'Gare de Moult - Argences : latitude = 49.111111, longitude = -0.186111',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Moult - Argences » (oldid 235033345) à 25 m, Wikidata Q2662313 à 25 m, BD TOPO EQ_RESEA0000000292710014 à 19 m, OSM n3467078193 à 0 m, liste SNCF 87444190 à 3 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 332 m ; à signaler à la source : liste SNCF UIC 87444190 (point géocodé) à 332 m',
+    ],
+    // 052. Borgo (id 20706)
+    [
+        'station' => ['name' => 'Borgo', 'uic' => '87761965'],
+        'action' => 'position',
+        'lng' => 9.4466014,
+        'lat' => 42.5628157,
+        'source_url' => $wp('Gare de Borgo', 232274803),
+        'quote' => 'Gare de Borgo : latitude = 42.562704, longitude = 9.446695',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Borgo » (oldid 232274803) à 15 m, Wikidata Q3096026 à 15 m, BD TOPO EQ_RESEA0000000109751068 à 0 m, OSM n1079566904 à 13 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 339 m ; à signaler à la source : liste SNCF UIC 87761965 (point géocodé) à 339 m',
+    ],
+    // 053. Issy-Val-de-Seine (id 16095)
+    [
+        'station' => ['name' => 'Issy-Val-de-Seine', 'uic' => '87393306'],
+        'action' => 'position',
+        'lng' => 2.2635066,
+        'lat' => 48.8295978,
+        'source_url' => $wp('Gare d\'Issy-Val de Seine', 238773162),
+        'quote' => 'Gare d\'Issy-Val de Seine : latitude = 48.829706, longitude = 2.263036',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Issy-Val de Seine » (oldid 238773162) à 36 m, Wikidata Q3065321 à 56 m, BD TOPO EQ_RESEA0000000000389017 à 0 m, OSM w122669550 à 0 m, OSM n2367372622 à 15 m, OSM w1206925678 à 25 m, liste SNCF 87393306 à 8 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 54 m ; à signaler à la source : OSM w639123064 à 273 m',
+    ],
+    // 054. Baziège (id 17145)
+    [
+        'station' => ['name' => 'Baziège', 'uic' => '87611723'],
+        'action' => 'position',
+        'lng' => 1.6206625,
+        'lat' => 43.4534658,
+        'source_url' => $wp('Gare de Baziège', 236372987),
+        'quote' => 'Gare de Baziège : latitude = 43.453496, longitude = 1.620601',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Baziège » (oldid 236372987) à 6 m, Wikidata Q3095928 à 6 m, BD TOPO EQ_RESEA0000000073015928 à 9 m, OSM n6131000048 à 0 m, liste SNCF 87611723 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 323 m ; à signaler à la source : liste SNCF UIC 87611723 (point géocodé) à 323 m',
+    ],
+    // 055. Valmont (id 19232)
+    [
+        'station' => ['name' => 'Valmont', 'uic' => '87413625'],
+        'action' => 'position',
+        'lng' => 0.5120483,
+        'lat' => 49.7447254,
+        'source_url' => $wp('Gare de Valmont', 182760775),
+        'quote' => 'Gare de Valmont : latitude = 49.744665, longitude = 0.511920',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Valmont » (oldid 182760775) à 11 m, Wikidata Q16508092 à 10 m, OSM n13852152225 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 322 m ; à signaler à la source : liste SNCF UIC 87413625 (point géocodé) à 322 m',
+    ],
+    // 056. Mulhouse-Musées (Tram/Train) (id 16617)
+    [
+        'station' => ['name' => 'Mulhouse-Musées (Tram/Train)', 'uic' => '87534339'],
+        'action' => 'position',
+        'lng' => 7.2984724,
+        'lat' => 47.7501301,
+        'source_url' => $osm('n13397838495'),
+        'quote' => 'Mulhouse-Musées (Tram/Train) (osm) : lat = 47.7501301, lon = 7.2984724',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n13397838495 à 0 m, liste SNCF 87534339 à 16 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : liste SNCF UIC 87534339 (point géocodé) à 308 m',
+    ],
+    // 057. Pontarlier (id 17573)
+    [
+        'station' => ['name' => 'Pontarlier', 'uic' => '87715003'],
+        'action' => 'position',
+        'lng' => 6.3532393,
+        'lat' => 46.9009373,
+        'source_url' => $wp('Gare de Pontarlier', 241516191),
+        'quote' => 'Gare de Pontarlier : latitude = 46.900806, longitude = 6.353400',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pontarlier » (oldid 241516191) à 19 m, Wikidata Q2317658 à 22 m, BD TOPO EQ_RESEA0000000014611312 à 0 m, OSM n4236961491 à 12 m, liste SNCF 87715003 à 22 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 331 m ; à signaler à la source : liste SNCF UIC 87715003 (point géocodé) à 331 m',
+    ],
+    // 058. Villefranche-Vernet-les-Bains (id 18260)
+    [
+        'station' => ['name' => 'Villefranche-Vernet-les-Bains', 'uic' => '87784686'],
+        'action' => 'position',
+        'lng' => 2.3703279,
+        'lat' => 42.5917365,
+        'source_url' => $wp('Gare de Villefranche - Vernet-les-Bains', 237051147),
+        'quote' => 'Gare de Villefranche - Vernet-les-Bains : latitude = 42.591626, longitude = 2.369803',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villefranche - Vernet-les-Bains » (oldid 237051147) à 45 m, Wikidata Q2672817 à 44 m, BD TOPO EQ_RESEA0000000038468451 à 0 m, OSM w129111949 à 1 m, liste SNCF 87784686 à 30 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 282 m ; à signaler à la source : liste SNCF UIC 87784686 (point géocodé) à 282 m',
+    ],
+    // 059. Monte-Carlo-Country-Club (id 15871)
+    [
+        'station' => ['name' => 'Monte-Carlo-Country-Club', 'uic' => '87338590'],
+        'action' => 'position',
+        'lng' => 7.4485727,
+        'lat' => 43.7545718,
+        'source_url' => $wp('Halte de Monte-Carlo-Country-Club', 230268010),
+        'quote' => 'Halte de Monte-Carlo-Country-Club : latitude = 43.754518, longitude = 7.448479',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Halte de Monte-Carlo-Country-Club » (oldid 230268010) à 10 m, OSM n1871958568 à 0 m, liste SNCF 87338590 à 36 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 280 m ; à signaler à la source : liste SNCF UIC 87338590 (point géocodé) à 280 m; Wikidata Q3126243 (P625) à 178 m',
+    ],
+    // 060. Parthenay (id 16569)
+    [
+        'station' => ['name' => 'Parthenay', 'uic' => '87487173'],
+        'action' => 'position',
+        'lng' => -0.2405459,
+        'lat' => 46.6482549,
+        'source_url' => $wp('Gare de Parthenay', 232432482),
+        'quote' => 'Gare de Parthenay : latitude = 46.648327, longitude = -0.240323',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Parthenay » (oldid 232432482) à 19 m, Wikidata Q3097255 à 14 m, BD TOPO EQ_RESEA0000002492687698 à 2 m, OSM w64333843 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 103 m ; à signaler à la source : liste SNCF UIC 87487173 (point géocodé) à 103 m; BD TOPO EQ_RESEA0000000357541012 à 79 m',
+    ],
+    // 061. Sisteron (id 17966)
+    [
+        'station' => ['name' => 'Sisteron', 'uic' => '87751206'],
+        'action' => 'position',
+        'lng' => 5.9465884,
+        'lat' => 44.1902021,
+        'source_url' => $wp('Gare de Sisteron', 241120135),
+        'quote' => 'Gare de Sisteron : latitude = 44.190278, longitude = 5.946667',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sisteron » (oldid 241120135) à 11 m, BD TOPO EQ_RESEA0000000037296824 à 0 m, OSM w90951470 à 0 m, OSM n13695345689 à 11 m, liste SNCF 87751206 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : Wikidata Q3097754 (P625) à 300 m',
+    ],
+    // 062. Sarrance (id 17310)
+    [
+        'station' => ['name' => 'Sarrance', 'uic' => '87672766'],
+        'action' => 'position',
+        'lng' => -0.599732,
+        'lat' => 43.0500759,
+        'source_url' => $wp('Gare de Sarrance', 241304002),
+        'quote' => 'Gare de Sarrance : latitude = 43.050033, longitude = -0.599509',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sarrance » (oldid 241304002) à 19 m, OSM w785708425 à 0 m, OSM n4352121707 à 45 m, liste SNCF 87672766 à 56 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 58 m ; à signaler à la source : Wikidata Q24053005 (P625) à 253 m',
+    ],
+    // 063. St-Pierre-le-Moûtier (id 17481)
+    [
+        'station' => ['name' => 'St-Pierre-le-Moûtier', 'uic' => '87696294'],
+        'action' => 'position',
+        'lng' => 3.11169,
+        'lat' => 46.7932085,
+        'source_url' => $wp('Gare de Saint-Pierre-le-Moûtier', 241379030),
+        'quote' => 'Gare de Saint-Pierre-le-Moûtier : latitude = 46.793273, longitude = 3.111521',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Pierre-le-Moûtier » (oldid 241379030) à 15 m, Wikidata Q3097600 à 15 m, OSM n13249955459 à 0 m, liste SNCF 87696294 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 304 m ; à signaler à la source : liste SNCF UIC 87696294 (point géocodé) à 304 m',
+    ],
+    // 064. Montlaur (id 17233)
+    [
+        'station' => ['name' => 'Montlaur', 'uic' => '87618207'],
+        'action' => 'position',
+        'lng' => 1.577786,
+        'lat' => 43.4751566,
+        'source_url' => $wp('Gare de Montlaur', 237086446),
+        'quote' => 'Gare de Montlaur : latitude = 43.475199, longitude = 1.577706',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montlaur » (oldid 237086446) à 8 m, Wikidata Q3097081 à 8 m, BD TOPO EQ_RESEA0000000073015920 à 14 m, OSM n6131017371 à 0 m, liste SNCF 87618207 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 303 m ; à signaler à la source : liste SNCF UIC 87618207 (point géocodé) à 303 m',
+    ],
+    // 065. Calais-Ville (id 15838)
+    [
+        'station' => ['name' => 'Calais-Ville', 'uic' => '87317263'],
+        'action' => 'position',
+        'lng' => 1.8506311,
+        'lat' => 50.953516,
+        'source_url' => $wp('Gare de Calais-Ville', 240407615),
+        'quote' => 'Gare de Calais-Ville : latitude = 50.953354, longitude = 1.850531',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Calais-Ville » (oldid 240407615) à 19 m, Wikidata Q2107509 à 21 m, BD TOPO EQ_RESEA0000000045722284 à 0 m, OSM w104564659 à 9 m, OSM n9183304884 à 24 m, liste SNCF 87317263 à 14 m ; à 15 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 287 m ; à signaler à la source : liste SNCF UIC 87317263 (point géocodé) à 287 m',
+    ],
+    // 066. Oullins (id 17664)
+    [
+        'station' => ['name' => 'Oullins', 'uic' => '87722207'],
+        'action' => 'position',
+        'lng' => 4.8135605,
+        'lat' => 45.7166326,
+        'source_url' => $osm('n12533949884'),
+        'quote' => 'Oullins (osm) : lat = 45.7166841, lon = 4.8133829',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000002200468922 à 0 m, OSM n12533949884 à 15 m, liste SNCF 87722207 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 205 m ; à signaler à la source : liste SNCF UIC 87722207 (point géocodé) à 205 m; Wikidata Q1920677 (P625) à 93 m; coordonnées de l\'article « Gare d\'Oullins » à 93 m',
+    ],
+    // 067. Bessay (id 17485)
+    [
+        'station' => ['name' => 'Bessay', 'uic' => '87696336'],
+        'action' => 'position',
+        'lng' => 3.3605136,
+        'lat' => 46.4436154,
+        'source_url' => $osm('n298540544'),
+        'quote' => 'Bessay (osm) : lat = 46.4436154, lon = 3.3605136',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n298540544 à 0 m, liste SNCF 87696336 à 11 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 228 m ; à signaler à la source : liste SNCF UIC 87696336 (point géocodé) à 228 m; Wikidata Q3095977 (P625) à 71 m; coordonnées de l\'article « Gare de Bessay-sur-Allier » à 71 m',
+    ],
+    // 068. Rang-du-Fliers-Verton (id 15821)
+    [
+        'station' => ['name' => 'Rang-du-Fliers-Verton', 'uic' => '87317057'],
+        'action' => 'position',
+        'lng' => 1.648182,
+        'lat' => 50.4157699,
+        'source_url' => $wp('Gare de Rang-du-Fliers - Verton', 240132233),
+        'quote' => 'Gare de Rang-du-Fliers - Verton : latitude = 50.415714, longitude = 1.648310',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rang-du-Fliers - Verton » (oldid 240132233) à 11 m, Wikidata Q540880 à 11 m, BD TOPO EQ_RESEA0000000045722712 à 0 m, OSM n8869974525 à 3 m, liste SNCF 87317057 à 10 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 288 m ; à signaler à la source : liste SNCF UIC 87317057 (point géocodé) à 288 m',
+    ],
+    // 069. Rueil-Malmaison (id 16020)
+    [
+        'station' => ['name' => 'Rueil-Malmaison', 'uic' => '87382119'],
+        'action' => 'position',
+        'lng' => 2.170595,
+        'lat' => 48.8872866,
+        'source_url' => $wp('Gare de Rueil-Malmaison', 237605861),
+        'quote' => 'Gare de Rueil-Malmaison : latitude = 48.887272, longitude = 2.171385',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rueil-Malmaison » (oldid 237605861) à 58 m, Wikidata Q640806 à 58 m, BD TOPO EQ_RESEA0000000000388981 à 0 m, OSM n6275466434 à 67 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 340 m ; à signaler à la source : liste SNCF UIC 87382119 (point géocodé) à 340 m',
+    ],
+    // 070. Menton-Garavan (id 18054)
+    [
+        'station' => ['name' => 'Menton-Garavan', 'uic' => '87756494'],
+        'action' => 'position',
+        'lng' => 7.5172775,
+        'lat' => 43.7851875,
+        'source_url' => $wp('Gare de Menton-Garavan', 241180929),
+        'quote' => 'Gare de Menton-Garavan : latitude = 43.785306, longitude = 7.517335',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Menton-Garavan » (oldid 241180929) à 14 m, Wikidata Q3097023 à 34 m, BD TOPO EQ_RESEA0000000073938773 à 1 m, OSM w137795298 à 0 m, OSM n1697333877 à 11 m, liste SNCF 87756494 à 2 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 258 m ; à signaler à la source : liste SNCF UIC 87756494 (point géocodé) à 258 m',
+    ],
+    // 071. Ste-Lizaigne (id 17069)
+    [
+        'station' => ['name' => 'Ste-Lizaigne', 'uic' => '87597054'],
+        'action' => 'position',
+        'lng' => 2.0301466,
+        'lat' => 47.0028432,
+        'source_url' => $wp('Gare de Sainte-Lizaigne', 224104247),
+        'quote' => 'Gare de Sainte-Lizaigne : latitude = 47.002575, longitude = 2.029983',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sainte-Lizaigne » (oldid 224104247) à 32 m, Wikidata Q521647 à 39 m, OSM n10564877994 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 218 m ; à signaler à la source : liste SNCF UIC 87597054 (point géocodé) à 218 m; liste SNCF UIC 87597054 (point géocodé) à 71 m',
+    ],
+    // 072. Argelès-sur-Mer (id 18241)
+    [
+        'station' => ['name' => 'Argelès-sur-Mer', 'uic' => '87784231'],
+        'action' => 'position',
+        'lng' => 3.0222027,
+        'lat' => 42.5439666,
+        'source_url' => $wp('Gare d\'Argelès-sur-Mer', 239116083),
+        'quote' => 'Gare d\'Argelès-sur-Mer : latitude = 42.543906, longitude = 3.021945',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Argelès-sur-Mer » (oldid 239116083) à 22 m, BD TOPO EQ_RESEA0000000038468489 à 0 m, OSM w62896937 à 2 m, OSM n1356834411 à 22 m, liste SNCF 87784231 à 12 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 47 m ; à signaler à la source : Wikidata Q3033406 (P625) à 278 m',
+    ],
+    // 073. St-Chéron (id 16680)
+    [
+        'station' => ['name' => 'St-Chéron', 'uic' => '87545509'],
+        'action' => 'position',
+        'lng' => 2.1256612,
+        'lat' => 48.5512045,
+        'source_url' => $wp('Gare de Saint-Chéron', 237812914),
+        'quote' => 'Gare de Saint-Chéron : latitude = 48.551158, longitude = 2.125612',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Chéron » (oldid 237812914) à 6 m, BD TOPO EQ_RESEA0000000003089870 à 0 m, OSM w80481421 à 2 m, OSM n3484326012 à 12 m, liste SNCF 87545509 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 14 m ; à signaler à la source : Wikidata Q2530265 (P625) à 289 m',
+    ],
+    // 074. Lardy (id 16659)
+    [
+        'station' => ['name' => 'Lardy', 'uic' => '87545160'],
+        'action' => 'position',
+        'lng' => 2.2557543,
+        'lat' => 48.520657,
+        'source_url' => $wp('Gare de Lardy', 237786597),
+        'quote' => 'Gare de Lardy : latitude = 48.520612, longitude = 2.255712',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lardy » (oldid 237786597) à 6 m, BD TOPO EQ_RESEA0000000003089929 à 0 m, OSM w103209149 à 3 m, OSM n3484287064 à 20 m, liste SNCF 87545160 à 2 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 187 m ; à signaler à la source : liste SNCF UIC 87545160 (point géocodé) à 187 m; Wikidata Q1822085 (P625) à 464 m',
+    ],
+    // 075. Grandvilliers (id 15791)
+    [
+        'station' => ['name' => 'Grandvilliers', 'uic' => '87313734'],
+        'action' => 'position',
+        'lng' => 1.9385527,
+        'lat' => 49.659328,
+        'source_url' => $wp('Gare de Grandvilliers', 235031961),
+        'quote' => 'Gare de Grandvilliers : latitude = 49.659321, longitude = 1.938448',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Grandvilliers » (oldid 235031961) à 8 m, BD TOPO EQ_RESEA0000000039107007 à 0 m, OSM n1322229563 à 7 m, liste SNCF 87313734 à 7 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 123 m ; à signaler à la source : liste SNCF UIC 87313734 (point géocodé) à 123 m; Wikidata Q2211930 (P625) à 318 m',
+    ],
+    // 076. Reuilly (id 17068)
+    [
+        'station' => ['name' => 'Reuilly', 'uic' => '87597039'],
+        'action' => 'position',
+        'lng' => 2.047429,
+        'lat' => 47.0858319,
+        'source_url' => $wp('Gare de Reuilly (Indre)', 228675923),
+        'quote' => 'Gare de Reuilly (Indre) : latitude = 47.085889, longitude = 2.047414',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Reuilly (Indre) » (oldid 228675923) à 6 m, Wikidata Q2230843 à 17 m, OSM n9252914544 à 0 m, liste SNCF 87597039 à 52 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 226 m ; à signaler à la source : liste SNCF UIC 87597039 (point géocodé) à 226 m',
+    ],
+    // 077. Dannes-Camiers (id 15823)
+    [
+        'station' => ['name' => 'Dannes-Camiers', 'uic' => '87317081'],
+        'action' => 'position',
+        'lng' => 1.6146399,
+        'lat' => 50.5759249,
+        'source_url' => $wp('Gare de Dannes - Camiers', 238682938),
+        'quote' => 'Gare de Dannes - Camiers : latitude = 50.575968, longitude = 1.614868',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dannes - Camiers » (oldid 238682938) à 17 m, Wikidata Q2515351 à 17 m, OSM n2060697978 à 0 m, liste SNCF 87317081 à 13 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 273 m ; à signaler à la source : liste SNCF UIC 87317081 (point géocodé) à 273 m',
+    ],
+    // 078. Besançon-Franche-Comté-TGV (id 15735)
+    [
+        'station' => ['name' => 'Besançon-Franche-Comté-TGV', 'uic' => '87300863'],
+        'action' => 'position',
+        'lng' => 5.953283,
+        'lat' => 47.3073618,
+        'source_url' => $wp('Gare de Besançon Franche-Comté TGV', 235030858),
+        'quote' => 'Gare de Besançon Franche-Comté TGV : latitude = 47.307863, longitude = 5.953202',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Besançon Franche-Comté TGV » (oldid 235030858) à 56 m, BD TOPO EQ_RESEA0000000292426513 à 0 m, OSM n2502268299 à 11 m, liste SNCF 87300863 à 7 m ; à 26 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 270 m ; à signaler à la source : liste SNCF UIC 87300863 (point géocodé) à 270 m; Wikidata Q599069 (P625) à 379 m',
+    ],
+    // 079. Ste-Pazanne (id 16469)
+    [
+        'station' => ['name' => 'Ste-Pazanne', 'uic' => '87481226'],
+        'action' => 'position',
+        'lng' => -1.8137414,
+        'lat' => 47.1054367,
+        'source_url' => $wp('Gare de Sainte-Pazanne', 237406960),
+        'quote' => 'Gare de Sainte-Pazanne : latitude = 47.105422, longitude = -1.813797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sainte-Pazanne » (oldid 237406960) à 5 m, BD TOPO EQ_RESEA0000000028743925 à 0 m, OSM w71978723 à 0 m, OSM n8348905143 à 17 m, liste SNCF 87481226 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 274 m ; à signaler à la source : liste SNCF UIC 87481226 (point géocodé) à 274 m; Wikidata Q3097650 (P625) à 72 m',
+    ],
+    // 080. Saincaize (id 17480)
+    [
+        'station' => ['name' => 'Saincaize', 'uic' => '87696260'],
+        'action' => 'position',
+        'lng' => 3.0717117,
+        'lat' => 46.9314208,
+        'source_url' => $wp('Gare de Saincaize', 229552494),
+        'quote' => 'Gare de Saincaize : latitude = 46.931431, longitude = 3.071739',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saincaize » (oldid 229552494) à 2 m, BD TOPO EQ_RESEA0000000230304329 à 15 m, OSM n9952793416 à 0 m, liste SNCF 87696260 à 12 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 180 m ; à signaler à la source : liste SNCF UIC 87696260 (point géocodé) à 180 m; Wikidata Q967434 (P625) à 96 m',
+    ],
+    // 081. Furiani (id 20713)
+    [
+        'station' => ['name' => 'Furiani', 'uic' => '87762039'],
+        'action' => 'position',
+        'lng' => 9.4410823,
+        'lat' => 42.651541,
+        'source_url' => $wp('Gare de Furiani', 229547373),
+        'quote' => 'Gare de Furiani : latitude = 42.651532, longitude = 9.441285',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Furiani » (oldid 229547373) à 17 m, Wikidata Q3096500 à 17 m, BD TOPO EQ_RESEA0000000109751049 à 0 m, OSM w266246685 à 1 m, OSM n1081003204 à 9 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 275 m ; à signaler à la source : liste SNCF UIC 87762039 (point géocodé) à 275 m',
+    ],
+    // 082. Pierre-Bénite (id 17665)
+    [
+        'station' => ['name' => 'Pierre-Bénite', 'uic' => '87722231'],
+        'action' => 'position',
+        'lng' => 4.8245211,
+        'lat' => 45.7066782,
+        'source_url' => $wp('Gare de Pierre-Bénite', 239239722),
+        'quote' => 'Gare de Pierre-Bénite : latitude = 45.706845, longitude = 4.824352',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pierre-Bénite » (oldid 239239722) à 23 m, Wikidata Q2076776 à 23 m, BD TOPO EQ_RESEA0000000013173324 à 32 m, OSM w237415558 à 0 m, liste SNCF 87722231 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 252 m ; à signaler à la source : liste SNCF UIC 87722231 (point géocodé) à 252 m',
+    ],
+    // 083. Irigny-Yvours (id 17666)
+    [
+        'station' => ['name' => 'Irigny-Yvours', 'uic' => '87722249'],
+        'action' => 'position',
+        'lng' => 4.8322476,
+        'lat' => 45.68951,
+        'source_url' => $wp('Gare d\'Irigny-Yvours', 241247137),
+        'quote' => 'Gare d\'Irigny-Yvours : latitude = 45.689300, longitude = 4.832070',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Irigny-Yvours » (oldid 241247137) à 27 m, BD TOPO EQ_RESEA0000002204336393 à 16 m, OSM n6576013600 à 0 m, liste SNCF 87722249 à 57 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 215 m ; à signaler à la source : liste SNCF UIC 87722249 (point géocodé) à 215 m; Wikidata Q71559362 (P625) à 413 m',
+    ],
+    // 084. Blainville-Damelevières (id 14969)
+    [
+        'station' => ['name' => 'Blainville-Damelevières', 'uic' => '87141135'],
+        'action' => 'position',
+        'lng' => 6.3869497,
+        'lat' => 48.5648056,
+        'source_url' => $osm('w247619149'),
+        'quote' => 'Blainville-Damelevières (osm) : lat = 48.5647935, lon = 6.3869351',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000053672894 à 0 m, OSM w247619149 à 2 m, liste SNCF 87141135 à 18 m ; à 13 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 270 m ; à signaler à la source : liste SNCF UIC 87141135 (point géocodé) à 270 m; Wikidata Q2110347 (P625) à 77 m; coordonnées de l\'article « Gare de Blainville - Damelevières » à 77 m',
+    ],
+    // 085. Lorraine-Louvigny-TGV (id 15007)
+    [
+        'station' => ['name' => 'Lorraine-Louvigny-TGV', 'uic' => '87142109'],
+        'action' => 'position',
+        'lng' => 6.1698053,
+        'lat' => 48.9477589,
+        'source_url' => $wp('Gare de Lorraine TGV', 241441393),
+        'quote' => 'Gare de Lorraine TGV : latitude = 48.947500, longitude = 6.169722',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lorraine TGV » (oldid 241441393) à 29 m, Wikidata Q801121 à 29 m, BD TOPO EQ_RESEA0000000222558940 à 0 m, OSM n4043327190 à 2 m, liste SNCF 87142109 à 3 m ; à 16 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 256 m ; à signaler à la source : liste SNCF UIC 87142109 (point géocodé) à 256 m',
+    ],
+    // 086. Berre (id 17994)
+    [
+        'station' => ['name' => 'Berre', 'uic' => '87753228'],
+        'action' => 'position',
+        'lng' => 5.1789222,
+        'lat' => 43.5010572,
+        'source_url' => $wp('Gare de Berre', 200542195),
+        'quote' => 'Gare de Berre : latitude = 43.500821, longitude = 5.178860',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Berre » (oldid 200542195) à 27 m, Wikidata Q2310408 à 27 m, BD TOPO EQ_RESEA0000000359067837 à 22 m, OSM n9861996669 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 264 m ; à signaler à la source : liste SNCF UIC 87753228 (point géocodé) à 264 m',
+    ],
+    // 087. Chamousset (id 17841)
+    [
+        'station' => ['name' => 'Chamousset', 'uic' => '87741231'],
+        'action' => 'position',
+        'lng' => 6.2069967,
+        'lat' => 45.5575711,
+        'source_url' => $wp('Gare de Chamousset', 238611288),
+        'quote' => 'Gare de Chamousset : latitude = 45.557568, longitude = 6.206405',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chamousset » (oldid 238611288) à 46 m, Wikidata Q2033374 à 46 m, OSM n2426817185 à 0 m, liste SNCF 87741231 à 20 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 263 m ; à signaler à la source : liste SNCF UIC 87741231 (point géocodé) à 263 m',
+    ],
+    // 088. Banyuls-sur-Mer (id 18244)
+    [
+        'station' => ['name' => 'Banyuls-sur-Mer', 'uic' => '87784298'],
+        'action' => 'position',
+        'lng' => 3.1250406,
+        'lat' => 42.4829522,
+        'source_url' => $wp('Gare de Banyuls-sur-Mer', 238522929),
+        'quote' => 'Gare de Banyuls-sur-Mer : latitude = 42.483000, longitude = 3.124870',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Banyuls-sur-Mer » (oldid 238522929) à 15 m, BD TOPO EQ_RESEA0000000038468566 à 0 m, OSM w64527087 à 1 m, OSM n11611812802 à 15 m, liste SNCF 87784298 à 1 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : Wikidata Q2243839 (P625) à 248 m',
+    ],
+    // 089. St-Étienne-Châteaucreux (id 17737)
+    [
+        'station' => ['name' => 'St-Étienne-Châteaucreux', 'uic' => '87726000'],
+        'action' => 'position',
+        'lng' => 4.3994379,
+        'lat' => 45.4433504,
+        'source_url' => $wp('Gare de Saint-Étienne-Châteaucreux', 239671917),
+        'quote' => 'Gare de Saint-Étienne-Châteaucreux : latitude = 45.443561, longitude = 4.399495',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Étienne-Châteaucreux » (oldid 239671917) à 24 m, Wikidata Q2486002 à 2 m, OSM w63322681 à 0 m, OSM n2010251922 à 32 m, liste SNCF 87726000 à 22 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 242 m ; à signaler à la source : liste SNCF UIC 87726000 (point géocodé) à 242 m',
+    ],
+    // 090. Jarville-la-Malgrange (id 14958)
+    [
+        'station' => ['name' => 'Jarville-la-Malgrange', 'uic' => '87141010'],
+        'action' => 'position',
+        'lng' => 6.2025503,
+        'lat' => 48.6700029,
+        'source_url' => $wp('Gare de Jarville-la-Malgrange', 241364347),
+        'quote' => 'Gare de Jarville-la-Malgrange : latitude = 48.670088, longitude = 6.202555',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Jarville-la-Malgrange » (oldid 241364347) à 9 m, Wikidata Q3096650 à 9 m, BD TOPO EQ_RESEA0000000323767085 à 8 m, OSM n5275245001 à 0 m, liste SNCF 87141010 à 19 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 251 m ; à signaler à la source : liste SNCF UIC 87141010 (point géocodé) à 251 m',
+    ],
+    // 091. Igny (id 16115)
+    [
+        'station' => ['name' => 'Igny', 'uic' => '87393561'],
+        'action' => 'position',
+        'lng' => 2.2311538,
+        'lat' => 48.7399635,
+        'source_url' => $wp('Gare d\'Igny', 241614204),
+        'quote' => 'Gare d\'Igny : latitude = 48.739959, longitude = 2.231169',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Igny » (oldid 241614204) à 1 m, Wikidata Q3095782 à 24 m, BD TOPO EQ_RESEA0000000003089586 à 0 m, OSM w94720323 à 1 m, OSM n3491814693 à 15 m, liste SNCF 87393561 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 248 m ; à signaler à la source : liste SNCF UIC 87393561 (point géocodé) à 248 m',
+    ],
+    // 092. Chambéry-Challes-les-Eaux (id 17833)
+    [
+        'station' => ['name' => 'Chambéry-Challes-les-Eaux', 'uic' => '87741009'],
+        'action' => 'position',
+        'lng' => 5.9194845,
+        'lat' => 45.5713779,
+        'source_url' => $wp('Gare de Chambéry - Challes-les-Eaux', 239802480),
+        'quote' => 'Gare de Chambéry - Challes-les-Eaux : latitude = 45.571496, longitude = 5.919372',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chambéry - Challes-les-Eaux » (oldid 239802480) à 16 m, Wikidata Q3096183 à 16 m, BD TOPO EQ_RESEA0000000012530364 à 0 m, OSM n5066478129 à 32 m, OSM w628078376 à 42 m, liste SNCF 87741009 à 10 m ; à 18 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 219 m ; à signaler à la source : liste SNCF UIC 87741009 (point géocodé) à 219 m',
+    ],
+    // 093. Trois-Chênes (id 15240)
+    [
+        'station' => ['name' => 'Trois-Chênes', 'uic' => '87184242'],
+        'action' => 'position',
+        'lng' => 6.8461892,
+        'lat' => 47.6481304,
+        'source_url' => $wp('Gare des Trois-Chênes', 241217838),
+        'quote' => 'Gare des Trois-Chênes : latitude = 47.648089, longitude = 6.846206',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare des Trois-Chênes » (oldid 241217838) à 5 m, Wikidata Q2302057 à 55 m, BD TOPO EQ_RESEA0000000039583082 à 27 m, OSM n4264432717 à 0 m, liste SNCF 87184242 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 202 m ; à signaler à la source : liste SNCF UIC 87184242 (point géocodé) à 202 m',
+    ],
+    // 094. Martigues (id 18005)
+    [
+        'station' => ['name' => 'Martigues', 'uic' => '87753509'],
+        'action' => 'position',
+        'lng' => 5.0257618,
+        'lat' => 43.3928736,
+        'source_url' => $wp('Gare de Martigues', 228570467),
+        'quote' => 'Gare de Martigues : latitude = 43.392889, longitude = 5.025607',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Martigues » (oldid 228570467) à 13 m, Wikidata Q2203403 à 13 m, BD TOPO EQ_RESEA0000000040208387 à 0 m, OSM n11225690169 à 13 m, liste SNCF 87753509 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 250 m ; à signaler à la source : liste SNCF UIC 87753509 (point géocodé) à 250 m',
+    ],
+    // 095. Penne (id 16934)
+    [
+        'station' => ['name' => 'Penne', 'uic' => '87586438'],
+        'action' => 'position',
+        'lng' => 0.8031899,
+        'lat' => 44.3799401,
+        'source_url' => $wp('Gare de Penne', 241545918),
+        'quote' => 'Gare de Penne : latitude = 44.380000, longitude = 0.803018',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Penne » (oldid 241545918) à 15 m, Wikidata Q1844121 à 15 m, BD TOPO EQ_RESEA0000000092614579 à 0 m, OSM w344539959 à 1 m, OSM n1091270222 à 17 m, liste SNCF 87586438 à 18 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 254 m ; à signaler à la source : liste SNCF UIC 87586438 (point géocodé) à 254 m',
+    ],
+    // 096. Pontgouin (id 16142)
+    [
+        'station' => ['name' => 'Pontgouin', 'uic' => '87394247'],
+        'action' => 'position',
+        'lng' => 1.1414367,
+        'lat' => 48.4778778,
+        'source_url' => $wp('Gare de Pontgouin', 240353022),
+        'quote' => 'Gare de Pontgouin : latitude = 48.477930, longitude = 1.141478',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pontgouin » (oldid 240353022) à 7 m, BD TOPO EQ_RESEA0000000015531725 à 8 m, OSM w374775449 à 0 m, OSM n11008724629 à 11 m, liste SNCF 87394247 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 111 m ; à signaler à la source : liste SNCF UIC 87394247 (point géocodé) à 111 m; Wikidata Q1828187 (P625) à 146 m',
+    ],
+    // 097. Lucciana (id 20667)
+    [
+        'station' => ['name' => 'Lucciana', 'uic' => '87761171'],
+        'action' => 'position',
+        'lng' => 9.4486466,
+        'lat' => 42.544884,
+        'source_url' => $wp('Gare de Lucciana', 231813126),
+        'quote' => 'Gare de Lucciana : latitude = 42.544916, longitude = 9.448642',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lucciana » (oldid 231813126) à 4 m, Wikidata Q3096913 à 4 m, OSM n1079566886 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 247 m ; à signaler à la source : liste SNCF UIC 87761171 (point géocodé) à 247 m',
+    ],
+    // 098. Javel (id 16077)
+    [
+        'station' => ['name' => 'Javel', 'uic' => '87393066'],
+        'action' => 'position',
+        'lng' => 2.2768987,
+        'lat' => 48.8462953,
+        'source_url' => $wp('Gare de Javel', 240490054),
+        'quote' => 'Gare de Javel : latitude = 48.846352, longitude = 2.276959',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Javel » (oldid 240490054) à 8 m, Wikidata Q800968 à 30 m, BD TOPO EQ_RESEA0000000000140338 à 0 m, OSM w230096533 à 1 m, OSM n2489972624 à 31 m, liste SNCF 87393066 à 8 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 8 m ; à signaler à la source : OSM w1190204104 à 250 m',
+    ],
+    // 099. St-Chamas (id 17993)
+    [
+        'station' => ['name' => 'St-Chamas', 'uic' => '87753202'],
+        'action' => 'position',
+        'lng' => 5.0401037,
+        'lat' => 43.5511053,
+        'source_url' => $wp('Gare de Saint-Chamas', 240149665),
+        'quote' => 'Gare de Saint-Chamas : latitude = 43.551189, longitude = 5.040322',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Chamas » (oldid 240149665) à 20 m, Wikidata Q2476213 à 20 m, OSM n9788837500 à 0 m, liste SNCF 87753202 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 250 m ; à signaler à la source : liste SNCF UIC 87753202 (point géocodé) à 250 m',
+    ],
+    // 100. Cevins (id 20505)
+    [
+        'station' => ['name' => 'Cevins', 'uic' => '87741686'],
+        'action' => 'position',
+        'lng' => 6.4479851,
+        'lat' => 45.5957788,
+        'source_url' => $wp('Gare de Cevins', 240649233),
+        'quote' => 'Gare de Cevins : latitude = 45.595793, longitude = 6.448112',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cevins » (oldid 240649233) à 10 m, Wikidata Q19851228 à 10 m, OSM w223051250 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 236 m ; à signaler à la source : liste SNCF UIC 87741686 (point géocodé) à 236 m',
+    ],
+    // 101. Chauvigny (id 19689)
+    [
+        'station' => ['name' => 'Chauvigny', 'uic' => '87575738'],
+        'action' => 'position',
+        'lng' => 0.6334707,
+        'lat' => 46.5716506,
+        'source_url' => $wp('Gare de Chauvigny', 150577964),
+        'quote' => 'Gare de Chauvigny : latitude = 46.571306, longitude = 0.634065',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chauvigny » (oldid 150577964) à 59 m, Wikidata Q28040128 à 59 m, liste SNCF 87575738 à 0 m ; à 20 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n4161623563 à 203 m; OSM w415086355 à 232 m',
+    ],
+    // 102. Champdeniers-St-Christophe (id 19505)
+    [
+        'station' => ['name' => 'Champdeniers-St-Christophe', 'uic' => '87485706'],
+        'action' => 'position',
+        'lng' => -0.3693106,
+        'lat' => 46.4653749,
+        'source_url' => $wp('Gare de Champdeniers - Saint-Christophe', 170614997),
+        'quote' => 'Gare de Champdeniers - Saint-Christophe : latitude = 46.465377, longitude = -0.369127',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Champdeniers - Saint-Christophe » (oldid 170614997) à 14 m, Wikidata Q86724865 à 14 m, OSM w74562567 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 216 m ; à signaler à la source : liste SNCF UIC 87485706 (point géocodé) à 216 m',
+    ],
+    // 103. St-Loup-Lamairé (id 19529)
+    [
+        'station' => ['name' => 'St-Loup-Lamairé', 'uic' => '87487157'],
+        'action' => 'position',
+        'lng' => -0.1688602,
+        'lat' => 46.7805226,
+        'source_url' => $wp('Gare de Saint-Loup-Lamairé', 166560863),
+        'quote' => 'Gare de Saint-Loup-Lamairé : latitude = 46.780511, longitude = -0.168841',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Loup-Lamairé » (oldid 166560863) à 2 m, Wikidata Q83111519 à 2 m, OSM n237274777 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 215 m ; à signaler à la source : liste SNCF UIC 87487157 (point géocodé) à 215 m',
+    ],
+    // 104. Boulevard-Masséna (id 19635)
+    [
+        'station' => ['name' => 'Boulevard-Masséna', 'uic' => '87547323'],
+        'action' => 'position',
+        'lng' => 2.3798739,
+        'lat' => 48.8254916,
+        'source_url' => $wp('Gare du boulevard Masséna', 235252232),
+        'quote' => 'Gare du boulevard Masséna : latitude = 48.825532, longitude = 2.379978',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du boulevard Masséna » (oldid 235252232) à 9 m, Wikidata Q3098250 à 9 m, OSM w79084348 à 0 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 208 m ; à signaler à la source : liste SNCF UIC 87547323 (point géocodé) à 208 m',
+    ],
+    // 105. Draguignan (id 20655)
+    [
+        'station' => ['name' => 'Draguignan', 'uic' => '87755850'],
+        'action' => 'position',
+        'lng' => 6.4641864,
+        'lat' => 43.53448,
+        'source_url' => $wp('Anciennes gares ferroviaires de Draguignan', 206881532),
+        'quote' => 'Anciennes gares ferroviaires de Draguignan : latitude = 43.534338, longitude = 6.463990',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Anciennes gares ferroviaires de Draguignan » (oldid 206881532) à 22 m, Wikidata Q30739585 à 22 m, OSM w1465083287 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 201 m ; à signaler à la source : liste SNCF UIC 87755850 (point géocodé) à 201 m',
+    ],
+    // 106. Balme-Araches (id 20586)
+    [
+        'station' => ['name' => 'Balme-Araches', 'uic' => '87746396'],
+        'action' => 'position',
+        'lng' => 6.6084877,
+        'lat' => 46.0391386,
+        'source_url' => $wp('Gare de Balme-Arâches', 197253080),
+        'quote' => 'Gare de Balme-Arâches : latitude = 46.039140, longitude = 6.608470',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Balme-Arâches » (oldid 197253080) à 1 m, Wikidata Q3126229 à 13 m, OSM n10154240707 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 195 m ; à signaler à la source : liste SNCF UIC 87746396 (point géocodé) à 195 m',
+    ],
+    // 107. Faugères (id 20871)
+    [
+        'station' => ['name' => 'Faugères', 'uic' => '87781641'],
+        'action' => 'position',
+        'lng' => 3.1797156,
+        'lat' => 43.5580178,
+        'source_url' => $wp('Gare de Faugères', 233460022),
+        'quote' => 'Gare de Faugères : latitude = 43.558032, longitude = 3.179698',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Faugères » (oldid 233460022) à 2 m, Wikidata Q16746564 à 2 m, OSM n444314708 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 199 m ; à signaler à la source : liste SNCF UIC 87781641 (point géocodé) à 199 m',
+    ],
+    // 108. Lestelle (id 17107)
+    [
+        'station' => ['name' => 'Lestelle', 'uic' => '87611111'],
+        'action' => 'position',
+        'lng' => 0.9134886,
+        'lat' => 43.1190417,
+        'source_url' => $wp('Gare de Lestelle', 241087122),
+        'quote' => 'Gare de Lestelle : latitude = 43.118866, longitude = 0.913163',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lestelle » (oldid 241087122) à 33 m, Wikidata Q2045945 à 21 m, BD TOPO EQ_RESEA0000000073015986 à 34 m, OSM n8519453919 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 198 m ; à signaler à la source : liste SNCF UIC 87611111 (point géocodé) à 198 m',
+    ],
+    // 109. St-Hilaire-la-Gravelle (id 19658)
+    [
+        'station' => ['name' => 'St-Hilaire-la-Gravelle', 'uic' => '87574525'],
+        'action' => 'position',
+        'lng' => 1.2056829,
+        'lat' => 47.9247607,
+        'source_url' => $wp('Gare de Saint-Hilaire-la-Gravelle', 182447334),
+        'quote' => 'Gare de Saint-Hilaire-la-Gravelle : latitude = 47.924777, longitude = 1.205679',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Hilaire-la-Gravelle » (oldid 182447334) à 2 m, Wikidata Q84321640 à 2 m, OSM n321236630 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 194 m ; à signaler à la source : liste SNCF UIC 87574525 (point géocodé) à 194 m',
+    ],
+    // 110. Cherveux (id 19504)
+    [
+        'station' => ['name' => 'Cherveux', 'uic' => '87485698'],
+        'action' => 'position',
+        'lng' => -0.3787057,
+        'lat' => 46.4293856,
+        'source_url' => $wp('Gare de Cherveux', 170615044),
+        'quote' => 'Gare de Cherveux : latitude = 46.429399, longitude = -0.378833',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cherveux » (oldid 170615044) à 10 m, Wikidata Q86724874 à 10 m, OSM w73506403 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 194 m ; à signaler à la source : liste SNCF UIC 87485698 (point géocodé) à 194 m',
+    ],
+    // 111. Brunstatt (id 18601)
+    [
+        'station' => ['name' => 'Brunstatt', 'uic' => '87181032'],
+        'action' => 'position',
+        'lng' => 7.3141345,
+        'lat' => 47.7191238,
+        'source_url' => $wp('Gare de Brunstatt', 235031062),
+        'quote' => 'Gare de Brunstatt : latitude = 47.719111, longitude = 7.314194',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Brunstatt » (oldid 235031062) à 5 m, Wikidata Q2004140 à 5 m, OSM n1808407121 à 0 m, OSM n271404770 à 4 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 189 m ; à signaler à la source : liste SNCF UIC 87181032 (point géocodé) à 189 m',
+    ],
+    // 112. Golfech (id 17231)
+    [
+        'station' => ['name' => 'Golfech', 'uic' => '87618082'],
+        'action' => 'position',
+        'lng' => 0.8537273,
+        'lat' => 44.1161978,
+        'source_url' => $wp('Gare de Golfech', 236418456),
+        'quote' => 'Gare de Golfech : latitude = 44.116239, longitude = 0.853462',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Golfech » (oldid 236418456) à 22 m, OSM n9353112090 à 0 m, liste SNCF 87618082 à 7 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 7 m ; à signaler à la source : Wikidata Q3096560 (P625) à 194 m',
+    ],
+    // 113. Labarthe-Inard (id 17108)
+    [
+        'station' => ['name' => 'Labarthe-Inard', 'uic' => '87611129'],
+        'action' => 'position',
+        'lng' => 0.852773,
+        'lat' => 43.1051866,
+        'source_url' => $wp('Gare de Labarthe-Inard', 235032512),
+        'quote' => 'Gare de Labarthe-Inard : latitude = 43.105049, longitude = 0.852759',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Labarthe-Inard » (oldid 235032512) à 15 m, Wikidata Q2482854 à 57 m, BD TOPO EQ_RESEA0000000073015988 à 41 m, OSM w522970439 à 0 m, OSM n8519453918 à 30 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 153 m ; à signaler à la source : liste SNCF UIC 87611129 (point géocodé) à 153 m',
+    ],
+    // 114. Montierchaume (id 17072)
+    [
+        'station' => ['name' => 'Montierchaume', 'uic' => '87597088'],
+        'action' => 'position',
+        'lng' => 1.7939094,
+        'lat' => 46.8500886,
+        'source_url' => $wp('Gare de Montierchaume', 229536453),
+        'quote' => 'Gare de Montierchaume : latitude = 46.850290, longitude = 1.793837',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montierchaume » (oldid 229536453) à 23 m, Wikidata Q1821267 à 23 m, OSM n1998963440 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 170 m ; à signaler à la source : liste SNCF UIC 87597088 (point géocodé) à 170 m; BD TOPO EQ_RESEA0000000104608975 à 154 m',
+    ],
+    // 115. Guitres (id 19589)
+    [
+        'station' => ['name' => 'Guitres', 'uic' => '87491795'],
+        'action' => 'position',
+        'lng' => -0.1973202,
+        'lat' => 45.0379431,
+        'source_url' => $wp('Gare de Guîtres', 239288271),
+        'quote' => 'Gare de Guîtres : latitude = 45.038017, longitude = -0.197424',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Guîtres » (oldid 239288271) à 12 m, Wikidata Q18285038 à 10 m, liste SNCF 87491795 à 0 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n1811724301 à 168 m',
+    ],
+    // 116. Brion-près-Thouet (id 19545)
+    [
+        'station' => ['name' => 'Brion-près-Thouet', 'uic' => '87487611'],
+        'action' => 'position',
+        'lng' => -0.1850595,
+        'lat' => 47.0485363,
+        'source_url' => $wp('Gare de Brion-près-Thouet', 184079464),
+        'quote' => 'Gare de Brion-près-Thouet : latitude = 47.048611, longitude = -0.185018',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Brion-près-Thouet » (oldid 184079464) à 9 m, Wikidata Q3096069 à 23 m, OSM n1057034487 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 159 m ; à signaler à la source : liste SNCF UIC 87487611 (point géocodé) à 159 m',
+    ],
+    // 117. Pas-de-Jeu (id 19667)
+    [
+        'station' => ['name' => 'Pas-de-Jeu', 'uic' => '87575209'],
+        'action' => 'position',
+        'lng' => -0.0518514,
+        'lat' => 46.9739602,
+        'source_url' => $wp('Gare de Pas-de-Jeu', 200618470),
+        'quote' => 'Gare de Pas-de-Jeu : latitude = 46.974080, longitude = -0.051787',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pas-de-Jeu » (oldid 200618470) à 14 m, Wikidata Q65137493 à 14 m, OSM n237220268 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 159 m ; à signaler à la source : liste SNCF UIC 87575209 (point géocodé) à 159 m',
+    ],
+    // 118. Nonant-le-Pin (id 16282)
+    [
+        'station' => ['name' => 'Nonant-le-Pin', 'uic' => '87444570'],
+        'action' => 'position',
+        'lng' => 0.2194656,
+        'lat' => 48.7037802,
+        'source_url' => $wp('Gare de Nonant-le-Pin', 233579109),
+        'quote' => 'Gare de Nonant-le-Pin : latitude = 48.703900, longitude = 0.219734',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nonant-le-Pin » (oldid 233579109) à 24 m, Wikidata Q3097216 à 24 m, OSM n2351574809 à 0 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 156 m ; à signaler à la source : liste SNCF UIC 87444570 (point géocodé) à 156 m',
+    ],
+    // 119. Crissé (id 16166)
+    [
+        'station' => ['name' => 'Crissé', 'uic' => '87396226'],
+        'action' => 'position',
+        'lng' => -0.0661279,
+        'lat' => 48.16831,
+        'source_url' => $wp('Gare de Crissé', 235031531),
+        'quote' => 'Gare de Crissé : latitude = 48.168425, longitude = -0.066175',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Crissé » (oldid 235031531) à 13 m, Wikidata Q2332424 à 13 m, OSM n4225160996 à 0 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 141 m ; à signaler à la source : liste SNCF UIC 87396226 (point géocodé) à 141 m',
+    ],
+    // 120. Axat (Aude) (id 20912)
+    [
+        'station' => ['name' => 'Axat (Aude)', 'uic' => '87784421'],
+        'action' => 'position',
+        'lng' => 2.2288788,
+        'lat' => 42.8034639,
+        'source_url' => $wp('Gare d\'Axat', 238872420),
+        'quote' => 'Gare d\'Axat : latitude = 42.803441, longitude = 2.228458',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Axat » (oldid 238872420) à 34 m, Wikidata Q81074887 à 47 m, OSM w502083789 à 0 m, OSM n791751572 à 34 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 145 m ; à signaler à la source : liste SNCF UIC 87784421 (point géocodé) à 145 m',
+    ],
+    // 121. Villeneuve-d'Aveyron (id 19947)
+    [
+        'station' => ['name' => 'Villeneuve-d\'Aveyron', 'uic' => '87613885'],
+        'action' => 'position',
+        'lng' => 2.0662801,
+        'lat' => 44.4292081,
+        'source_url' => $wp('Gare de Villeneuve-d\'Aveyron', 184298943),
+        'quote' => 'Gare de Villeneuve-d\'Aveyron : latitude = 44.428803, longitude = 2.065802',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villeneuve-d\'Aveyron » (oldid 184298943) à 59 m, Wikidata Q18380053 à 59 m, liste SNCF 87613885 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n942950524 à 143 m',
+    ],
+    // 122. Saumur-Rive-Gauche (id 19549)
+    [
+        'station' => ['name' => 'Saumur-Rive-Gauche', 'uic' => '87487694'],
+        'action' => 'position',
+        'lng' => -0.0813289,
+        'lat' => 47.2521519,
+        'source_url' => $wp('Gare de Saumur-Rive-Gauche', 240869936),
+        'quote' => 'Gare de Saumur-Rive-Gauche : latitude = 47.252106, longitude = -0.081272',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saumur-Rive-Gauche » (oldid 240869936) à 7 m, Wikidata Q33239401 à 7 m, OSM n4795434803 à 0 m ; à 26 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 142 m ; à signaler à la source : liste SNCF UIC 87487694 (point géocodé) à 142 m',
+    ],
+    // 123. Taillebourg (id 16585)
+    [
+        'station' => ['name' => 'Taillebourg', 'uic' => '87491043'],
+        'action' => 'position',
+        'lng' => -0.6449191,
+        'lat' => 45.8306912,
+        'source_url' => $wp('Gare de Taillebourg', 235034646),
+        'quote' => 'Gare de Taillebourg : latitude = 45.830694, longitude = -0.644972',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Taillebourg » (oldid 235034646) à 4 m, Wikidata Q2741695 à 45 m, OSM n2941437688 à 0 m, OSM n2941437687 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 138 m ; à signaler à la source : liste SNCF UIC 87491043 (point géocodé) à 138 m',
+    ],
+    // 124. Medan (id 19112)
+    [
+        'station' => ['name' => 'Medan', 'uic' => '87386631'],
+        'action' => 'position',
+        'lng' => 1.9962853,
+        'lat' => 48.9559277,
+        'source_url' => $wp('Gare de Médan', 235062839),
+        'quote' => 'Gare de Médan : latitude = 48.955828, longitude = 1.996338',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Médan » (oldid 235062839) à 12 m, Wikidata Q1859160 à 12 m, OSM n4813183870 à 0 m, OSM n7151049227 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 126 m ; à signaler à la source : liste SNCF UIC 87386631 (point géocodé) à 126 m',
+    ],
+    // 125. Le Merlerault (id 16283)
+    [
+        'station' => ['name' => 'Le Merlerault', 'uic' => '87444588'],
+        'action' => 'position',
+        'lng' => 0.2832062,
+        'lat' => 48.7024952,
+        'source_url' => $wp('Gare du Merlerault', 235035350),
+        'quote' => 'Gare du Merlerault : latitude = 48.702353, longitude = 0.283262',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Merlerault » (oldid 235035350) à 16 m, Wikidata Q679334 à 16 m, OSM n715499838 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87444588 (point géocodé) à 130 m',
+    ],
+    // 126. Coulonges-Thouarsais (id 19531)
+    [
+        'station' => ['name' => 'Coulonges-Thouarsais', 'uic' => '87487215'],
+        'action' => 'position',
+        'lng' => -0.2868611,
+        'lat' => 46.9199705,
+        'source_url' => $wp('Gare de Coulonges-Thouarsais', 200618444),
+        'quote' => 'Gare de Coulonges-Thouarsais : latitude = 46.920176, longitude = -0.286947',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Coulonges-Thouarsais » (oldid 200618444) à 24 m, Wikidata Q65137638 à 18 m, OSM n6961521914 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 123 m ; à signaler à la source : liste SNCF UIC 87487215 (point géocodé) à 123 m',
+    ],
+    // 127. St-Martin-Bellevue (id 20582)
+    [
+        'station' => ['name' => 'St-Martin-Bellevue', 'uic' => '87746222'],
+        'action' => 'position',
+        'lng' => 6.1576294,
+        'lat' => 45.9680931,
+        'source_url' => $wp('Gare de Saint-Martin-Bellevue', 240467072),
+        'quote' => 'Gare de Saint-Martin-Bellevue : latitude = 45.968050, longitude = 6.157520',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Martin-Bellevue » (oldid 240467072) à 10 m, Wikidata Q48755661 à 3 m, liste SNCF 87746222 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n9388719206 à 131 m',
+    ],
+    // 128. Caligny (id 19365)
+    [
+        'station' => ['name' => 'Caligny', 'uic' => '87448308'],
+        'action' => 'position',
+        'lng' => -0.592214,
+        'lat' => 48.8093955,
+        'source_url' => $wp('Gare de Caligny', 193682961),
+        'quote' => 'Gare de Caligny : latitude = 48.809379, longitude = -0.592253',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Caligny » (oldid 193682961) à 3 m, Wikidata Q2338110 à 3 m, OSM w269265431 à 0 m ; à 11 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 127 m ; à signaler à la source : liste SNCF UIC 87448308 (point géocodé) à 127 m',
+    ],
+    // 129. Noirterre (id 19532)
+    [
+        'station' => ['name' => 'Noirterre', 'uic' => '87487231'],
+        'action' => 'position',
+        'lng' => -0.3937466,
+        'lat' => 46.8698456,
+        'source_url' => $wp('Gare de Noirterre', 188444554),
+        'quote' => 'Gare de Noirterre : latitude = 46.869669, longitude = -0.393641',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Noirterre » (oldid 188444554) à 21 m, Wikidata Q62003870 à 17 m, OSM n1057034219 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87487231 (point géocodé) à 130 m',
+    ],
+    // 130. Lambel-Camors (id 19404)
+    [
+        'station' => ['name' => 'Lambel-Camors', 'uic' => '87476515'],
+        'action' => 'position',
+        'lng' => -3.033573,
+        'lat' => 47.8328203,
+        'source_url' => $wp('Gare de Lambel - Camors', 235362694),
+        'quote' => 'Gare de Lambel - Camors : latitude = 47.832935, longitude = -3.033901',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lambel - Camors » (oldid 235362694) à 28 m, Wikidata Q2690083 à 28 m, OSM n9947518377 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 101 m ; à signaler à la source : liste SNCF UIC 87476515 (point géocodé) à 101 m',
+    ],
+    // 131. Barisey-la-Côte (id 18393)
+    [
+        'station' => ['name' => 'Barisey-la-Côte', 'uic' => '87141754'],
+        'action' => 'position',
+        'lng' => 5.8407267,
+        'lat' => 48.5346387,
+        'source_url' => $wp('Gare de Barisey-la-Côte', 221966902),
+        'quote' => 'Gare de Barisey-la-Côte : latitude = 48.534652, longitude = 5.840724',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Barisey-la-Côte » (oldid 221966902) à 1 m, Wikidata Q86682860 à 1 m, OSM n2458397366 à 0 m, OSM n2458397367 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 124 m ; à signaler à la source : liste SNCF UIC 87141754 (point géocodé) à 124 m',
+    ],
+    // 132. Petit-Coeur-La Léchère-les-Bains (id 20506)
+    [
+        'station' => ['name' => 'Petit-Coeur-La Léchère-les-Bains', 'uic' => '87741702'],
+        'action' => 'position',
+        'lng' => 6.484428,
+        'lat' => 45.520817,
+        'source_url' => $wp('Gare de Petit-Cœur-La Léchère-les-Bains', 238060740),
+        'quote' => 'Gare de Petit-Cœur-La Léchère-les-Bains : latitude = 45.520730, longitude = 6.484690',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Petit-Cœur-La Léchère-les-Bains » (oldid 238060740) à 23 m, Wikidata Q111598627 à 23 m, OSM w190312564 à 0 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 105 m ; à signaler à la source : liste SNCF UIC 87741702 (point géocodé) à 105 m',
+    ],
+
+    // ── 53. Fiches mêlées à une station de tramway (gares-melees, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/gares-melees.md) ──
+    // Éléments Wikidata de station de tramway rattachés à une gare ferroviaire (dates d'ouverture du tramway, positions) : l'élément est
+    // détaché de la gare (unlink, lu au rattachement par vff:consolidate-stations) ; l'UIC, les sources SNCF et les médias de la gare restent.
+
+    // Meyzieu : Q28495871 (frwiki « Gare de Meyzieu », image « La Soie tram 3.jpg », UIC 8779235 différent de 87729350, point à 275 m de la gare du
+    // chemin de fer de l'Est de Lyon) est la station du tramway T3, ouverte le 05/12/2006 ; la fiche de la gare CFEL (fermée aux voyageurs le
+    // 31/12/1947) prenait cette date comme ouverture (ouverture 2006 après fermeture 1947).
+    [
+        'station' => ['name' => 'Meyzieu', 'uic' => '87729350'],
+        'action' => 'unlink',
+        'source' => 'wikidata',
+        'ref' => 'Q28495871',
+        'source_url' => 'https://www.wikidata.org/wiki/Q28495871',
+        'quote' => 'Meyzieu, gare ferroviaire française, ouverte le 5 décembre 2006, image La Soie tram 3.jpg',
+        'reason' => 'Q28495871 est la station du tramway T3 de Meyzieu (ouverture 05/12/2006, UIC 8779235, point à 275 m de la gare du CFEL), pas la gare ferroviaire de l\'UIC 87729350',
+    ],
+    // L'élément détaché devient sa propre fiche : station de tramway, hors du réseau ferré.
+    [
+        'station' => ['name' => 'Meyzieu', 'wikidata' => 'Q28495871'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://www.wikidata.org/wiki/Q28495871',
+        'quote' => 'image La Soie tram 3.jpg, ouverture le 5 décembre 2006',
+        'reason' => 'station de tramway (T3), hors du réseau ferré ; fiche née du détachement de l\'élément de la gare ferroviaire de Meyzieu',
+    ],
+
+    // Les Côteaux (UIC 87382515) : l'élément Q21856015 décrit à la fois l'ancienne gare (fermée en 1993) et la station du tramway T2 au même
+    // endroit ; son ouverture du 02/07/1997 est celle du tramway T2, après la fermeture de la gare du 21/05/1993. Même élément et même site : seule
+    // la date est neutralisée (le lien, l'UIC et les médias restent).
+    [
+        'station' => ['name' => 'Les Côteaux', 'uic' => '87382515'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1997-07-02'],
+        'source_url' => 'https://www.wikidata.org/wiki/Q21856015',
+        'quote' => 'ancienne gare française, station de la ligne T2 du tramway d\'Île-de-France',
+        'reason' => '02/07/1997 est l\'ouverture de la station du tramway T2, postérieure à la fermeture de la gare ferroviaire (21/05/1993)',
+    ],
+
+    // Porte de Vincennes : fiche née du seul élément Q76233926 (« station du tramway d\'Île-de-France », lignes T3a et T3b), sans UIC ni autre
+    // source ; ses dates 1854 et 1934 étaient déduites d'une ligne ferroviaire voisine.
+    [
+        'station' => ['name' => 'Porte de Vincennes', 'wikidata' => 'Q76233926'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://www.wikidata.org/wiki/Q76233926',
+        'quote' => 'station du tramway d\'Île-de-France',
+        'reason' => 'station des lignes de tramway T3a et T3b, seule source de la fiche, hors du réseau ferré',
+    ],
+
+    // ── 54. Ouvertures encadrées et coquille du 21 novembre 1847 (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/ouvertures-bornees.md). Quatre haltes créées après leur ligne, sans date connue
+    // (rapport gares-a-decider.md) : la date de la base (celle de la ligne, ou de Wikidata) est démontrée fausse ou non
+    // attestée, aucune source ne la remplace ; une ouverture encadrée (precision range : « after » = ouverte après cette
+    // année, « date » = au plus tard ce jour, null sans borne haute) la remplace sans inventer de date. Étaples, Rue et
+    // Neufchâtel-Hardelot : la section d'Abbeville à Neufchâtel ouvre le 21 décembre 1847 (et non le 21 novembre).
+
+    // Compans (id 15504)
+    [
+        'station' => ['name' => 'Compans', 'uic' => '87272047'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1890,
+        'date' => '1907-12-31',
+        'source_url' => $wp('Gare de Compans', 235031417),
+        'quote' => 'Le 1er mars 1891 la Petite Gazette de Dammartin annonce un accord entre la compagnie du Nord et la municipalité pour l\'ouverture prochaine d\'une halte près du village. Au début des années 1900 (avant 1907), le conseiller municipal Decoudun [...] édite une carte postale présentant la halte de Compans',
+        'reason' => 'article de la gare « Gare de Compans » (oldid 235031417, d\'après Plancke, Histoire du chemin de fer de Seine-et-Marne, p. 421 et 429) : aucune halte à la mise en service de la section le 31 août 1861, ouverture prochaine annoncée le 1er mars 1891, halte en service sur une carte postale d\'avant 1907. Ouverture entre 1891 et 1907, jour inconnu ; remplace le 31 août 1861 déduit de la ligne.',
+    ],
+
+    // Renescure (id 15602)
+    [
+        'station' => ['name' => 'Renescure', 'uic' => '87281451'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1888,
+        'date' => null,
+        'source_url' => $wp('Gare de Renescure', 235034049),
+        'quote' => 'lors de sa séance du 22 août 1889 le Conseil général adopte le vœu, présenté par messieurs Degroote et Deschodt, demandant à la Compagnie d\'ouvrir rapidement la halte, qu\'elle à l\'intention d\'établir, à l\'exploitation',
+        'reason' => 'article de la gare « Gare de Renescure » (oldid 235034049) : halte demandée dès 1873, refusée par la Compagnie du Nord en 1884, encore à ouvrir le 22 août 1889 ; aucune source ne date son ouverture. Ouverture pas avant 1889, sans borne haute (halte desservie aujourd\'hui) ; remplace le 1er septembre 1848 déduit de la ligne de Lille aux Fontinettes.',
+    ],
+
+    // St-Étienne-du-Rouvray (id 16201)
+    [
+        'station' => ['name' => 'St-Étienne-du-Rouvray', 'uic' => '87411215'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1875,
+        'date' => '1911-12-31',
+        'source_url' => $wp('Gare de Saint-Étienne-du-Rouvray', 233612313),
+        'quote' => 'la Compagnie de l\'Ouest a été autorisée à créer une gare de voyageurs et de marchandises à Saint-Étienne-du-Rouvray, par décret des 5 mai et 17 juillet 1876 [...] l\'établissement est désigné en 1911 comme gare de secours',
+        'reason' => 'article de la gare « Gare de Saint-Étienne-du-Rouvray » (oldid 233612313, d\'après la Collection des lois de Duvergier, 1876, et un rapport au Sénat) : la gare est créée après les décrets de 1876 qui l\'autorisent, et elle existe en 1911, désignée gare de secours. Ouverture entre 1876 et 1911, jour inconnu ; remplace le 9 mai 1843 déduit de la ligne de Paris-Saint-Lazare au Havre.',
+    ],
+
+    // Ste-Colombe-Septveilles (id 14902)
+    [
+        'station' => ['name' => 'Ste-Colombe-Septveilles', 'uic' => '87116178'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1857,
+        'date' => '1868-12-31',
+        'source_url' => $wp('Gare de Sainte-Colombe-Septveilles', 230108728),
+        'quote' => 'La halte n\'est qu\'une maison de garde-barrière lors de la mise en service de l\'embranchement de Longueville à Provins par la compagnie des chemins de fer de l\'Est le 11 décembre 1858. En 1868, la halte était l\'une des moins fréquentées de tout le réseau de l\'Est avec seulement 504 billets vendus dans l\'année.',
+        'reason' => 'article de la gare « Gare de Sainte-Colombe-Septveilles » (oldid 230108728, d\'après Plancke, p. 313, et Histoire du chemin de fer de Seine-et-Marne, tome I, p. 41) : simple maison de garde-barrière à la mise en service de l\'embranchement le 11 décembre 1858, halte en service en 1868 (504 billets). Ouverture entre 1858 et 1868, jour inconnu ; remplace l\'année 1858 de Wikidata.',
+    ],
+    [
+        'station' => ['name' => 'Ste-Colombe-Septveilles', 'uic' => '87116178'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1858-01-01'],
+        'source_url' => $wp('Gare de Sainte-Colombe-Septveilles', 230108728),
+        'quote' => 'La halte n\'est qu\'une maison de garde-barrière lors de la mise en service de l\'embranchement de Longueville à Provins par la compagnie des chemins de fer de l\'Est le 11 décembre 1858.',
+        'reason' => 'l\'année 1858 de Wikidata est celle de la mise en service de l\'embranchement, où l\'article ne montre qu\'une maison de garde-barrière : elle ne date pas la halte, encadrée entre 1858 et 1868 par la correction ci-dessus.',
+    ],
+
+    // Étaples-Le Touquet (id 15822)
+    [
+        'station' => ['name' => 'Étaples-Le Touquet', 'uic' => '87317065'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Longueau à Boulogne-Ville', 235223334),
+        'quote' => '21 décembre 1847 dans les chemins de fer : ouverture d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la ligne « Ligne de Longueau à Boulogne-Ville » (oldid 235223334, chronologie et section Histoire) : la section d\'Abbeville à Neufchâtel, où se trouve Étaples, est ouverte le 21 décembre 1847 ; même jour dans les articles « Gare d\'Abbeville » (oldid 239672829, d\'après l\'Atlas de Joanne), « Gare de Noyelles-sur-Mer » (oldid 241493567) et le texte des articles de Rue et de Neufchâtel-Hardelot. Le 21 novembre 1847 de l\'article de la gare (oldid 240483736) est une coquille, comme celui de Rang-du-Fliers. Remplace le 21 novembre 1847.',
+    ],
+
+    // Neufchâtel-Hardelot (id 15824)
+    [
+        'station' => ['name' => 'Neufchâtel-Hardelot', 'uic' => '87317099'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Neufchâtel-Hardelot', 238682987),
+        'quote' => 'La « station de Neufchâtel » est mise en service le 21 décembre 1847 par la Compagnie du chemin de fer d\'Amiens à Boulogne lorsqu\'elle ouvre à l\'exploitation la section d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la gare « Gare de Neufchâtel-Hardelot » (oldid 238682987), section Histoire : mise en service le 21 décembre 1847 avec la section d\'Abbeville à Neufchâtel ; même jour dans l\'article de la ligne de Longueau à Boulogne-Ville (oldid 235223334). Le 21 novembre 1847 de l\'infobox est une coquille. Remplace le 21 novembre 1847.',
+    ],
+
+    // Rue (id 15844)
+    [
+        'station' => ['name' => 'Rue', 'uic' => '87317404'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rue', 240454995),
+        'quote' => 'La « station de Rue » est mise en service le 21 décembre 1847',
+        'reason' => 'article de la gare « Gare de Rue » (oldid 240454995), section Histoire, d\'après Palau, Le rail en France : mise en service le 21 décembre 1847 ; même jour pour la section d\'Abbeville à Neufchâtel dans l\'article de la ligne de Longueau à Boulogne-Ville (oldid 235223334). Le 21 novembre 1847 de l\'infobox est une coquille. Remplace le 21 novembre 1847.',
     ],
 
 ];

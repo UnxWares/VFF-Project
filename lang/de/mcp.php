@@ -32,8 +32,11 @@ return [
         'invalid_period' => 'Ungültiger Zeitraum: Geben Sie entweder `year` oder `decade` (Vielfaches von 10) an, innerhalb der Chronologie (1827 bis heute).',
         'unknown_arguments' => 'Unbekannte Argumente: :names.',
         'line_not_found' => 'Strecke nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search (Vorschläge anbei).',
-        'no_geometry' => 'Die Trasse von „:line“ existiert für die Epoche :year nicht: kein Kilometerpunkt.',
+        'no_geometry' => 'Die Trasse von „:line“ existiert für die Epoche :year nicht: kein Streckenkilometer.',
         'profile_not_computed' => 'Das Längsprofil von „:line“ ist noch nicht berechnet.',
+        'profile_unavailable_no_trace' => 'Kein Längsprofil möglich: Von „:line“ ist kein Streckenverlauf bekannt.',
+        'profile_unavailable_outside_france' => 'Kein Längsprofil möglich: Der Verlauf von „:line“ liegt vollständig außerhalb Frankreichs, wo das IGN keine Höhen liefert.',
+        'profile_unavailable_not_computed' => 'Das Längsprofil von „:line“ kann berechnet werden, ist es aber noch nicht.',
         'audit_not_computed' => 'Die Prüfung der Abschnitte von „:line“ ist für :year noch nicht berechnet.',
         'station_not_found' => 'Bahnhof nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug search (Vorschläge anbei).',
         'material_not_found' => 'Fahrzeugbaureihe nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search oder materials (Vorschläge anbei).',
@@ -52,15 +55,36 @@ return [
         'invalid_uri' => 'Ungültige Ressourcenadresse: erwartet vff://{lang}/lines/{slug}, lang = fr, en oder de.',
         'event_not_on_line' => 'Das Ereignis :event gehört nicht zur Strecke :line. Verwenden Sie eine ID aus line_events oder aus line_stories ohne `event`.',
         'no_story' => 'Das Ereignis :event hat keine Geschichte: weniger als 3 Bilder und Dokumente, die höchstens 5 Jahre entfernt datiert sind (davon 2 Bilder), oder ein Ereignistyp ohne Geschichte.',
+        'figures_not_computed' => 'Diese Zahlen sind auf diesem Server noch nicht berechnet: Versuchen Sie es später erneut.',
+        'company_not_found' => 'Gesellschaft nicht gefunden: „:query“. Die verfügbaren Adressen stehen in `available` (Werkzeug companies ohne Argument).',
+        'commune_not_found' => 'Gemeinde nicht gefunden oder ohne Bahn: „:query“. Geben Sie ihren INSEE-Code (z. B. 16015) oder ihren genauen Namen an; nur Gemeinden mit einem Bahnhof oder einer Strecke haben ein Blatt.',
+        'commune_ambiguous' => 'Mehrere Gemeinden passen zu „:query“: Geben Sie `department` an oder übergeben Sie den INSEE-Code einer der Kandidatinnen.',
+        'department_not_found' => 'Département nicht gefunden oder ohne Bahn: „:query“. Geben Sie seinen INSEE-Code (z. B. 16, 2A, 971) oder seinen Namen an (siehe list_departments).',
+        'invalid_pk' => 'Ungültiger Streckenkilometer: „:pk“. Geben Sie Kilometer (120, 120,5 oder 120+500) oder `pk_m` in Metern an.',
+        'no_stops' => 'Die Strecke „:line“ hat keinen nach Streckenkilometer verorteten Bahnhof: keine Position möglich.',
+        'pk_out_of_range' => 'Der Streckenkilometer :pk liegt außerhalb der Strecke, die von :from bis :to reicht (siehe `bounds`).',
     ],
 
     'truncated' => 'Antwort gekürzt, um unter der Höchstgröße zu bleiben: Grenzen Sie die Anfrage ein (Zeitraum, Typen, Limit).',
     'truncated_page' => 'Seite gekürzt, um unter der Höchstgröße zu bleiben: next_cursor setzt beim ersten nicht gelieferten Element fort, es geht nichts verloren.',
+    'redirected' => [
+        'line' => 'Die Kennung „:requested“ ist die alte Adresse einer umbenannten Strecke: Diese Antwort ist ihr aktuelles Datenblatt, „:current“. Verwenden Sie künftig „:current“ und sagen Sie es dem Nutzer, wenn er die alte Kennung angegeben hat.',
+        'station' => 'Die Kennung „:requested“ ist die alte Adresse eines Bahnhofs, der mit einem anderen Eintrag zusammengeführt wurde (derselbe Bahnhof): Diese Antwort ist der aktuelle Eintrag, „:current“. Verwenden Sie künftig „:current“.',
+        'accident' => 'Die Kennung „:requested“ ist die alte Adresse eines umbenannten oder zusammengeführten Unfalleintrags (derselbe Unfall): Diese Antwort ist der aktuelle Eintrag, „:current“. Verwenden Sie künftig „:current“.',
+    ],
     'between' => 'zwischen :from und :to (keine Quelle datiert diese Änderung)',
     'today' => 'heute',
     'dates' => [
         'unknown_after' => 'Datum unbekannt, nach :year (keine Quelle nennt es)',
         'unknown' => 'Datum unbekannt (keine Quelle nennt es)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'Ein Schritt mit `done` = false ist ein von seiner Quelle GEPLANTES Datum, nie sicher: Schreiben Sie „geplant für <Datum> laut <source.label>“. Ein in Betrieb genommenes Projekt verlässt diese Liste.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'Liste der Fahrzeuge, die Quellen als erhalten nennen, kein Inventar: Ein fehlendes Fahrzeug ist nicht unbedingt verschrottet, und der Zustand ist der, den die Quelle zum Zeitpunkt der Lektüre angab.',
     ],
 
     'accidents' => [
@@ -96,6 +120,7 @@ return [
         'max_speed' => 'Höchstgeschwindigkeit',
         'electrification' => 'Elektrifizierung',
         'signalling' => 'Signalisierung',
+        'signalling_history' => 'Signalisierung und Zugbeeinflussung im Lauf der Zeit',
         'phases' => 'Phasen',
         'chronology' => 'Chronik',
         'source' => 'Quelle',

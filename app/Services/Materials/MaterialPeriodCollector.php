@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\DB;
  *   4. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision ;
  *   5. phrases relues à la main (LineMaterialSupplements), qui retirent aussi les périodes qu'une autre source contredit.
  *
+ * Chaque période est placée sur la portion de la ligne que la source nomme, quand elle en nomme une : titre de
+ * section, relation citée (ses arrêts et ses lignes), ou portion écrite dans la phrase datée
+ * (MaterialPeriodPortion : gares d'extrémité et PK calés, colonnes `section_location`, `from_station_id`,
+ * `to_station_id`, `located_pk_start_m`, `located_pk_end_m`). La portion n'entre pas dans l'empreinte.
+ *
  * Une phrase qui nomme une version d'une famille de séries (« Omneo Premium » sous un lien vers Regio 2N) date
  * cette version, pas la famille (MaterialFamilies, comme les liens).
  *
@@ -55,6 +60,7 @@ final class MaterialPeriodCollector
         private readonly MaterialPeriodExtractor $extractor,
         private readonly ?WikidataMaterialSource $wikidata = null,
         private readonly ?LineMaterialSupplements $supplements = null,
+        private readonly MaterialPeriodPortion $portions = new MaterialPeriodPortion,
     ) {}
 
     /**
@@ -66,9 +72,15 @@ final class MaterialPeriodCollector
     {
         $links = [];
         $routed = [];
+        // Lignes de chaque relation citée (même série, même article, même libellé) : elles disent où la relation
+        // quitte une ligne (MaterialPeriodPortion).
+        $relationLines = [];
         foreach (LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->orderBy('id')->get(['id', 'line_id', 'material_id', 'evidence']) as $link) {
             $links["{$link->line_id}:{$link->material_id}"] ??= (int) $link->id;
             foreach ($link->evidence ?? [] as $evidence) {
+                if (isset($evidence['route']['label'])) {
+                    $relationLines[self::relationKey((int) $link->material_id, $evidence)][(int) $link->line_id] = true;
+                }
                 if (isset($evidence['route'], $evidence['period']) && is_array($evidence['period'])) {
                     $routed[] = [$link, $evidence];
                 }
@@ -138,6 +150,7 @@ final class MaterialPeriodCollector
             }
             $lineIds = array_merge(...array_map(fn (string $code): array => $idsByCode[$code] ?? [], $itinerary['lines']));
             [$first, $last] = [$itinerary['stops'][0], $itinerary['stops'][count($itinerary['stops']) - 1]];
+            $stops = array_map(fn (string $name): array => ['id' => null, 'name' => $name], $itinerary['stops']);
             $relation = ['label' => RelationRouter::readable($first).' - '.RelationRouter::readable($last), 'from' => ['id' => null, 'name' => $first], 'to' => ['id' => null, 'name' => $last]];
             $stats['line_articles']++;
             foreach ($page['sections'] ?? [] as $section) {
@@ -154,7 +167,7 @@ final class MaterialPeriodCollector
                 foreach ($facts as $fact) {
                     foreach ($families->attribute([(int) $fact['id']], (string) $fact['excerpt']) as $materialId) {
                         foreach ($lineIds as $lineId) {
-                            $candidates[] = ['line_id' => $lineId, 'material_id' => $materialId, 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation] + $fact;
+                            $candidates[] = ['line_id' => $lineId, 'material_id' => $materialId, 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation, 'stops' => $stops, 'relation_lines' => $lineIds] + $fact;
                         }
                     }
                 }
@@ -203,6 +216,8 @@ final class MaterialPeriodCollector
                 'line_id' => (int) $link->line_id, 'material_id' => (int) $link->material_id, 'origin' => MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE,
                 'page' => ['title' => $evidence['article'], 'revid' => $evidence['revid']], 'heading' => (string) ($evidence['section'] ?? ''),
                 'relation' => array_intersect_key($route, array_flip(['label', 'from', 'to', 'service'])),
+                'stops' => self::stops($route),
+                'relation_lines' => array_keys($relationLines[self::relationKey((int) $link->material_id, $evidence)] ?? []),
             ] + $evidence['period'];
         }
 
@@ -368,6 +383,8 @@ final class MaterialPeriodCollector
             $confidence = 'low';
         }
         [$sectionFrom, $sectionTo] = $c['origin'] === MaterialPeriodExtractor::MODE_LINE_ARTICLE ? self::sectionOf((string) $c['heading']) : [null, null];
+        $portion = $c['origin'] === 'wikidata' ? null
+            : $this->portions->locate((int) $c['line_id'], $sectionFrom, $sectionTo, $c['stops'] ?? null, $c['relation_lines'] ?? null, isset($c['excerpt']) ? (string) $c['excerpt'] : null);
 
         $values = [
             'line_material_id' => $linkId,
@@ -380,6 +397,11 @@ final class MaterialPeriodCollector
             'confidence' => $confidence,
             'origin' => $c['origin'],
             'relation' => $c['relation'] ?? null,
+            'section_location' => $portion['location'] ?? null,
+            'from_station_id' => $portion['from_station_id'] ?? null,
+            'to_station_id' => $portion['to_station_id'] ?? null,
+            'located_pk_start_m' => $portion['pk_start_m'] ?? null,
+            'located_pk_end_m' => $portion['pk_end_m'] ?? null,
         ];
         if ($c['origin'] === 'wikidata') {
             $values += [
@@ -403,6 +425,35 @@ final class MaterialPeriodCollector
         $values['fingerprint'] = sha1(implode('|', [$linkId, $values['start_date'], $values['end_date'], $sectionFrom, $sectionTo, ...(isset($c['relation']['label']) ? [$c['relation']['label']] : [])]));
 
         return $values;
+    }
+
+    /**
+     * Clé d'une relation citée : la même relation (série, article, révision, libellé) rattache plusieurs lignes.
+     *
+     * @param  array<string, mixed>  $evidence
+     */
+    private static function relationKey(int $materialId, array $evidence): string
+    {
+        return implode('|', [$materialId, $evidence['article'] ?? '', $evidence['revid'] ?? '', $evidence['route']['label'] ?? '']);
+    }
+
+    /**
+     * Arrêts d'une relation citée (`route.stops`, sinon ses extrémités), dans l'ordre, ou null.
+     *
+     * @param  array<string, mixed>  $route
+     * @return list<array{id: ?int, name: string}>|null
+     */
+    private static function stops(array $route): ?array
+    {
+        $stops = [];
+        foreach ($route['stops'] ?? [$route['from'] ?? null, $route['to'] ?? null] as $stop) {
+            if (! is_array($stop) || ! isset($stop['name'])) {
+                return null;
+            }
+            $stops[] = ['id' => isset($stop['id']) ? (int) $stop['id'] : null, 'name' => (string) $stop['name']];
+        }
+
+        return count($stops) >= 2 ? $stops : null;
     }
 
     /**

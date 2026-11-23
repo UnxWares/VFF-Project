@@ -20,7 +20,7 @@ return [
 
     'thematic' => [
         'title' => 'Thematic datasets',
-        'intro' => 'All decades together, one CSV file per dataset.',
+        'intro' => 'All decades together, one CSV file per dataset. Every dataset contains dictionnaire.csv: a description of each field (French, English, German), its source and its licence.',
     ],
     'network' => [
         'title' => 'Network by decade',
@@ -32,6 +32,12 @@ return [
         'events' => ['title' => 'Dated events', 'text' => 'Openings, closures, electrifications and other line dates, with the portion and the source.'],
         'accidents' => ['title' => 'Accidents', 'text' => 'Accidents published on VFF: date, place, kind, toll and sources.'],
         'materials' => ['title' => 'Rolling stock', 'text' => 'Rolling stock series: builder, operators, years in service and characteristics.'],
+        'signalling' => ['title' => 'Signalling and train protection', 'text' => 'Dated commissioning of block, cab signalling, KVB and centralised control, and the state in force in each decade.'],
+        'preserved' => ['title' => 'Preserved stock', 'text' => 'Preserved units: number, place, state and listed-heritage protection, with the places of preservation.'],
+        'projects' => ['title' => 'Line projects', 'text' => 'Upcoming reopenings, new lines and electrifications, with their dated stages and a link to the source of each date.'],
+        'infrastructure' => ['title' => 'SNCF infrastructure', 'text' => 'Tracks, ground-train radio, platforms and current block of SNCF Réseau, linked to lines and stations.'],
+        'profiles' => ['title' => 'Long profiles', 'text' => 'Altitudes measured along the lines, maximum gradient and gradients published by SNCF Réseau and Wikipedia.'],
+        'redirects' => ['title' => 'Address redirects', 'text' => 'Former addresses of merged stations and renamed lines, with the current address.'],
     ],
 
     'cols' => [
@@ -83,6 +89,19 @@ return [
             'accidents_name' => 'Accident names',
             'accidents_sources' => 'Cited accident sources',
             'materials' => 'Rolling stock series',
+            'signalling_events' => 'Dated signalling facts',
+            'preserved_units' => 'Preserved rolling stock units',
+            'projects_stages' => 'Project stages',
+            'infrastructure_voies_csv' => 'SNCF track portions',
+            'infrastructure_radio_csv' => 'SNCF radio portions',
+            'infrastructure_platforms' => 'Platforms',
+            'infrastructure_block' => 'Block portions',
+            'accidents_references' => 'Accident references',
+            'redirects_stations' => 'Station redirects',
+            'redirects_lines' => 'Line redirects',
+            'profiles_measures' => 'Measured long profiles',
+            'profiles_points' => 'Long profile points',
+            'profiles_grades' => 'Sourced gradients',
             'other' => 'Field :field',
         ],
     ],

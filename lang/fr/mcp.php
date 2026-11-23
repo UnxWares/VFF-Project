@@ -35,6 +35,9 @@ return [
         'line_not_found' => 'Ligne introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'no_geometry' => 'Le tracé de « :line » n’existe pas pour l’ère :year : pas de point kilométrique.',
         'profile_not_computed' => 'Le profil en long de « :line » n’est pas encore calculé.',
+        'profile_unavailable_no_trace' => 'Profil en long impossible : aucun tracé de « :line » n’est connu.',
+        'profile_unavailable_outside_france' => 'Profil en long impossible : le tracé de « :line » est entièrement hors de France, où l’IGN ne donne pas d’altitude.',
+        'profile_unavailable_not_computed' => 'Le profil en long de « :line » peut être calculé, il ne l’est pas encore.',
         'audit_not_computed' => 'L’audit des tronçons de « :line » n’est pas encore calculé pour :year.',
         'station_not_found' => 'Gare introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'material_not_found' => 'Série de matériel introuvable : « :query ». Cherchez son identifiant avec l’outil search ou materials (suggestions jointes).',
@@ -53,15 +56,36 @@ return [
         'invalid_uri' => 'Adresse de ressource invalide : attendu vff://{lang}/lines/{slug}, lang = fr, en ou de.',
         'event_not_on_line' => 'L’événement :event n’appartient pas à la ligne :line. Prenez un identifiant donné par line_events ou par line_stories sans `event`.',
         'no_story' => 'L’événement :event n’a pas d’histoire : moins de 3 images et documents datés à 5 ans près (dont 2 images), ou type d’événement sans histoire.',
+        'figures_not_computed' => 'Ces chiffres ne sont pas encore calculés sur ce serveur : réessayez plus tard.',
+        'company_not_found' => 'Compagnie introuvable : « :query ». Les adresses disponibles sont dans `available` (outil companies sans argument).',
+        'commune_not_found' => 'Commune introuvable ou sans rail : « :query ». Donnez son code INSEE (ex. 16015) ou son nom exact ; seules les communes qui ont une gare ou une ligne ont une fiche.',
+        'commune_ambiguous' => 'Plusieurs communes correspondent à « :query » : précisez `department` ou passez le code INSEE d’une des candidates.',
+        'department_not_found' => 'Département introuvable ou sans rail : « :query ». Donnez son code INSEE (ex. 16, 2A, 971) ou son nom (voir list_departments).',
+        'invalid_pk' => 'PK invalide : « :pk ». Donnez des kilomètres (120, 120,5 ou 120+500) ou `pk_m` en mètres.',
+        'no_stops' => 'La ligne « :line » n’a aucune gare placée par PK : pas de position possible.',
+        'pk_out_of_range' => 'Le PK :pk est hors de la ligne, qui va de :from à :to (voir `bounds`).',
     ],
 
     'truncated' => 'Réponse raccourcie pour rester sous la taille maximale : affinez la demande (période, types, limite).',
     'truncated_page' => 'Page raccourcie pour rester sous la taille maximale : next_cursor reprend au premier élément non renvoyé, rien n\'est perdu.',
+    'redirected' => [
+        'line' => 'L’identifiant « :requested » est l’ancienne adresse d’une ligne renommée : la réponse est celle de sa fiche actuelle, « :current ». Utilisez désormais « :current » et dites-le à l’utilisateur s’il a donné l’ancien.',
+        'station' => 'L’identifiant « :requested » est l’ancienne adresse d’une gare fondue dans une autre fiche (même gare) : la réponse est celle de la fiche actuelle, « :current ». Utilisez désormais « :current ».',
+        'accident' => 'L’identifiant « :requested » est l’ancienne adresse d’une fiche d’accident renommée ou fusionnée (même accident) : la réponse est celle de la fiche actuelle, « :current ». Utilisez désormais « :current ».',
+    ],
     'between' => 'entre :from et :to (aucune source ne date ce changement)',
     'today' => 'aujourd’hui',
     'dates' => [
         'unknown_after' => 'date inconnue, après :year (aucune source ne la date)',
         'unknown' => 'date inconnue (aucune source ne la date)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'Une étape dont `done` vaut false est une date PRÉVUE par sa source, jamais certaine : écrivez « prévue en <date> selon <source.label> ». Un projet mis en service sort de cette liste.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'Liste des exemplaires que des sources disent conservés, pas un inventaire : un exemplaire absent n’est pas démoli pour autant, et l’état est celui que rapporte la source à sa date de lecture.',
     ],
 
     'accidents' => [
@@ -97,6 +121,7 @@ return [
         'max_speed' => 'Vitesse maximale',
         'electrification' => 'Électrification',
         'signalling' => 'Signalisation',
+        'signalling_history' => 'Signalisation et protection au fil du temps',
         'phases' => 'Phases',
         'chronology' => 'Chronologie',
         'source' => 'source',

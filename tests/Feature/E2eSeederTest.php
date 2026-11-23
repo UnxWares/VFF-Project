@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\Lines\LineSlugRedirects;
 use Database\Seeders\E2eSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -24,10 +25,24 @@ class E2eSeederTest extends TestCase
         }
     }
 
+    public function test_seeds_the_data_of_the_23_november_end_to_end_tests(): void
+    {
+        $this->seed(E2eSeeder::class);
+
+        // Ancienne adresse de ligne : l'entrée « archeo-… » du fichier versionné doit encore exister et viser la ligne du jeu.
+        $this->assertSame(E2eSeeder::NEUTRAL_LINE, (new LineSlugRedirects)->target('archeo-'.E2eSeeder::NEUTRAL_LINE));
+        $this->get('/lines/archeo-'.E2eSeeder::NEUTRAL_LINE)->assertRedirect('/lines/'.E2eSeeder::NEUTRAL_LINE)->assertStatus(301);
+        $this->get('/stations/'.E2eSeeder::MERGED_STATION_OLD_SLUG)->assertRedirect('/stations/'.E2eSeeder::STATION)->assertStatus(301);
+        $this->get('/stations?q=andelot')->assertOk();
+        $this->assertSame('range', DB::table('stations')->where('slug', E2eSeeder::CLOSED_RANGE_STATION)->value('closed_precision'));
+        $this->assertSame(2, DB::table('line_materials')->where('confidence', 'low')->count());
+        $this->get('/quiz')->assertOk();
+    }
+
     public function test_seeder_can_be_replayed_without_duplicates(): void
     {
         $this->seed(E2eSeeder::class);
-        $counts = fn () => collect(['lines', 'stations', 'accidents', 'accident_lines', 'line_segments', 'line_stops', 'station_eras', 'eras'])
+        $counts = fn () => collect(['lines', 'stations', 'accidents', 'accident_lines', 'line_segments', 'line_stops', 'station_eras', 'eras', 'station_redirects', 'materials', 'line_materials', 'line_signalling_events', 'accident_sources', 'station_events', 'station_attendances'])
             ->mapWithKeys(fn (string $t) => [$t => DB::table($t)->count()])->all();
         $first = $counts();
 

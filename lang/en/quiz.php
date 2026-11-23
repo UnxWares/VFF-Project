@@ -24,7 +24,7 @@ return [
         'materials' => 'Recognise the rolling stock',
         'materials_text' => 'A photo from Wikimedia Commons and four series of the same type.',
         'facts' => 'Railway knowledge',
-        'facts_text' => 'Text questions on sourced facts: when a line opened, its company, the longest tunnel, a station\'s architect, the busiest station, the first series in service. At the easy level the wrong answers are far from the right one and the most specialised questions are left out.',
+        'facts_text' => 'Text questions on sourced facts: when a line opened, its company, the longest tunnel, a station\'s architect and opening, the signalling system of a high-speed line, electrification, a line\'s rolling stock, old accidents, the busiest station, the first series in service. At the easy level the wrong answers are far from the right one and the most specialised questions are left out.',
         'unavailable' => 'Not enough verified data for this game yet.',
     ],
     'levels' => [
@@ -123,6 +123,11 @@ return [
             'heritage_year' => 'In which year was this station, or part of its buildings, protected as a historic monument?',
             'attendance' => 'Which of these stations had the most passengers in :year?',
             'first_series' => 'Which of these series (:type) entered service first?',
+            'station_opening_year' => 'In which year did this station open?',
+            'cab_signalling' => 'Which cab signalling system equips this high-speed line?',
+            'electrification_date' => 'On what date was this line electrified?',
+            'line_material' => 'Which of these rolling stock series is cited as running on this line?',
+            'accident_year' => 'In which year did this accident happen?',
         ],
         'reveal' => [
             'opening_year' => '“:line” opened in :year.',
@@ -136,6 +141,17 @@ return [
             'longest_viaduct' => ':name is the longest of these viaducts, at :length m. The others: :others.',
             'attendance' => ':name is the busiest of these stations in :year, with :count passengers. The others: :others.',
             'first_series' => 'The :name series entered service first, in :year. The others: :others.',
+            'station_opening_year' => '“:station” station opened on :date.',
+            'cab_signalling' => '“:line” is equipped with :system, since its first section opened on :date.',
+            'electrification_date' => '“:line” was electrified on :date.',
+            'line_material' => 'The :series series is cited among the rolling stock of “:line” by the encyclopaedia\'s sources. No source links the other series offered to this line: :others.',
+            'accident_year' => ':accident, on :date.',
+        ],
+        'cab' => [
+            'tvm_300' => 'TVM 300',
+            'tvm_430' => 'TVM 430',
+            'etcs_l1' => 'ETCS Level 1',
+            'etcs_l2' => 'ETCS Level 2',
         ],
         'protection' => [
             'registered' => 'listing',

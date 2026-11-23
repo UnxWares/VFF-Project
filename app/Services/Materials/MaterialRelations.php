@@ -25,6 +25,13 @@ use Illuminate\Support\Facades\DB;
  *      un nom de ligne « de X à Y » (« la ligne de Nantes-Orléans à Saintes ») et une ligne citée pour ses
  *      travaux (« l'électrification de la ligne Paris-Le Mans ») ne sont pas relus ainsi.
  *
+ * Jamais lue dans un nom de compagnie, de réseau ou d'administration (« Compagnie du chemin de fer de Paris à
+ * Orléans », « Chemins de fer de Paris à Lyon et à la Méditerranée », « Compagnie Paris - Orléans », « réseau
+ * Paris - Orléans », « Paris - Orléans (PO) ») : un lien vers l'article d'une compagnie (ORGANISATION_TARGET)
+ * est mis à part comme texte sans gare, et une suite de lieux précédée d'un mot de compagnie, de réseau ou de
+ * chemin de fer (ORGANISATION_BEFORE, ORGANISATION_WORD) ou suivie d'un sigle de compagnie (ORGANISATION_AFTER) est écartée, comptée
+ * dans `organisations`.
+ *
  * Libellé (`route.label`) : les arrêts tels que la phrase les nomme quand elle désigne une ville (« Paris »
  * plutôt que la gare choisie par le plus court chemin), sinon le nom de la gare en base rendu lisible
  * (RelationRouter::readable : « Saint-Malo », sans « (IE) » ni « n° 2 ») ; `from`, `to` et `stops` gardent
@@ -72,8 +79,20 @@ final class MaterialRelations
      */
     private const SUCCESSOR = '/\bremplac(?:é|ée|és|ées)\s+(?:\S+\s+){0,2}?par\s+(?:des|les|la|le|une|un|l[’\'])?\s*(?:\'{2,3})?\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u';
 
+    /** Titre d'article d'une compagnie, d'un réseau ou d'une administration (jamais une gare). */
+    private const ORGANISATION_TARGET = '/^(?:compagnies?|soci[ée]t[ée]s?|administrations?|r[ée]seaux?|grands?\s+r[ée]seaux?|chemins?\s+de\s+fer|direction)\b/iu';
+
+    /** Fin du texte qui précède une suite de lieux : mot de compagnie, de réseau ou de chemins de fer, avec son article (« Compagnie du chemin de fer de », « Chemins de fer de » ; « le chemin de fer Mamers - Saint-Calais » est une ligne). */
+    private const ORGANISATION_BEFORE = '/(?:\b(?:compagnies?|cie|soci[ée]t[ée]s?)\s+(?:du|des|de\s+la|de)\s+chemins?\s+de\s+fer\s+(?:de\s+|d[’\'])?|\b(?:compagnies?|cie|soci[ée]t[ée]s?|administrations?|r[ée]seaux?|(?<!dans\sles\s)chemins\s+de\s+fer|direction|r[ée]gie)\s+(?:(?:de\s+la|de\s+l[’\']|du|des|de|d[’\']|la|le|les|l[’\']|aux?)\s*)?)$/iu';
+
+    /** Mot de compagnie ou de réseau qui ouvre une suite de lieux (« Compagnie Paris - Orléans », « Réseau Paris - Orléans »). */
+    private const ORGANISATION_WORD = '/^(?:compagnies?|cie|soci[ée]t[ée]s?|administrations?|r[ée]seaux?)\s/iu';
+
+    /** Début du texte qui suit une suite de lieux : sigle de compagnie entre parenthèses (« Paris - Orléans (PO) »). */
+    private const ORGANISATION_AFTER = '/^\s*\(\s*(?:PO|PLM|PO-Midi|AL|[ÉE]tat)\s*\)/u';
+
     /** @var array<string, int> */
-    private array $stats = ['itineraries' => 0, 'itineraries_partial' => 0, 'pairs' => 0, 'pairs_ambiguous' => 0, 'pairs_without_path' => 0, 'stops_unresolved' => 0];
+    private array $stats = ['itineraries' => 0, 'itineraries_partial' => 0, 'pairs' => 0, 'pairs_ambiguous' => 0, 'pairs_without_path' => 0, 'stops_unresolved' => 0, 'organisations' => 0];
 
     /**
      * @param  array<string, array{lines: list<int>, stops: list<string>, source: string}>  $itineraries  titre normalisé → lignes de VFF
@@ -244,6 +263,12 @@ final class MaterialRelations
             if ($name === null && ! str_contains($target, ':') && $this->router->isStationName($target)) {
                 $name = $target;
             }
+            if ($name === null && preg_match(self::ORGANISATION_TARGET, $target) === 1) {
+                // Compagnie, réseau : texte sans gare, que les suites de lieux ne traversent pas.
+                $places[] = ['name' => $target, 'label' => $label];
+
+                return "\u{E012}".(count($places) - 1)."\u{E013}";
+            }
             if ($name === null) {
                 return $m[0];
             }
@@ -252,7 +277,7 @@ final class MaterialRelations
             return "\u{E010}".(count($places) - 1)."\u{E011}";
         }, $sentence);
         $text = WikipediaMaterialSections::plain($marked);
-        $readable = fn (string $s): string => (string) preg_replace_callback('/\x{E010}(\d+)\x{E011}/u', fn (array $m): string => $places[(int) $m[1]]['label'] ?? '', $s);
+        $readable = fn (string $s): string => (string) preg_replace_callback('/[\x{E010}\x{E012}](\d+)[\x{E011}\x{E013}]/u', fn (array $m): string => $places[(int) $m[1]]['label'] ?? '', $s);
         $quote = $readable($text);
         if (WikipediaMaterialSections::isProspective($quote)) {
             return [];
@@ -285,6 +310,11 @@ final class MaterialRelations
         $midService = $material['from'] !== null && $material['to'] !== null && $year === intdiv($material['from'] + min($material['to'], $now), 2);
         $lastEra = $midService ? ($this->router->eraYear(min((int) $material['to'], $now)) ?? $eraYear) : $eraYear;
         foreach ($chains as [$chain, $offset, $pieces]) {
+            if (self::isOrganisation($text, $offset, $chain)) {
+                $this->stats['organisations']++;
+
+                continue;
+            }
             // Arrêt absent du graphe de l'ère (gare ouverte depuis, comme Lyon-Part-Dieu en 1983) : la phrase parle
             // d'une époque où il existe.
             // « Lille-Flandres - Lens via Don-Sainghin », « Chambéry - Lyon (par Ambérieu-en-Bugey) » : arrêts
@@ -363,6 +393,16 @@ final class MaterialRelations
         }
 
         return $out;
+    }
+
+    /** La suite de lieux est-elle le nom d'une compagnie ou d'un réseau (voir ORGANISATION_BEFORE et ORGANISATION_AFTER) ? */
+    private static function isOrganisation(string $text, int $offset, string $chain): bool
+    {
+        $before = substr($text, max(0, $offset - 80), min(80, $offset));
+
+        // Le premier mot de la suite peut être le mot de compagnie lui-même (« Compagnie Paris - Orléans »).
+        return preg_match(self::ORGANISATION_BEFORE, $before) === 1 || preg_match(self::ORGANISATION_WORD, $chain) === 1
+            || preg_match(self::ORGANISATION_AFTER, substr($text, $offset + strlen($chain), 20)) === 1;
     }
 
     /**

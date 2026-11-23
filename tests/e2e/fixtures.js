@@ -105,3 +105,38 @@ export async function verifier(page, espion, { chemin, statut = 200, titre, cle,
     expect(espion.reseau, `requêtes échouées de ${chemin}`).toEqual([]);
     expect(http, `réponses HTTP en erreur de ${chemin}`).toEqual([]);
 }
+
+/** Mot de passe jetable des comptes de la suite (la base de test est vidée à chaque exécution de la CI). */
+const MOT_DE_PASSE = 'Mot-de-passe-e2e-42';
+
+/**
+ * Test d'un membre connecté : un compte est créé une seule fois par processus de test (la route d'inscription est
+ * limitée à 10 par heure et par adresse), puis la session est reprise par chaque test. Adresse unique ; le compte
+ * n'existe que dans la base de la suite.
+ */
+export const testMembre = test.extend({
+    sessionMembre: [
+        async ({ browser }, use, workerInfo) => {
+            const baseURL = workerInfo.project.use.baseURL;
+            const contexte = await browser.newContext({ baseURL, locale: 'fr-FR' });
+            const page = await contexte.newPage();
+            await page.goto('/register');
+            await page.locator('#name').fill('Contributrice de test');
+            await page
+                .locator('#email')
+                .fill(`e2e-${workerInfo.project.name}-${Date.now()}@example.org`);
+            await page.locator('#password').fill(MOT_DE_PASSE);
+            await page.locator('#password_confirmation').fill(MOT_DE_PASSE);
+            await page.locator('#accept_terms').check();
+            await page.locator('form.auth-form button[type=submit]').click();
+            await page.waitForURL((url) => url.pathname === '/');
+            const etat = await contexte.storageState();
+            await contexte.close();
+            await use(etat);
+        },
+        { scope: 'worker' },
+    ],
+    storageState: async ({ sessionMembre }, use) => {
+        await use(sessionMembre);
+    },
+});

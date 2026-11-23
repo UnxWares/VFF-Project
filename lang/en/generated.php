@@ -23,6 +23,8 @@ return [
         'undated_before' => 'Undated closure (before :year)',
         'undated_after' => 'Undated closure (after :year)',
         'closure_decade' => 'Closure in the :decade',
+        'opening_range' => 'Opening date unknown (between :from and :to)',
+        'opening_not_before' => 'Opening date unknown (not before :year)',
         'line_opening' => 'Opening of the line :line',
         'trace_opening' => 'Opening of the route serving the station',
         'line_service_end' => 'End of service by the line :line',

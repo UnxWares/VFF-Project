@@ -3,11 +3,16 @@
 namespace App\Services\Archives\Sncf;
 
 use App\Services\Archives\ArchiveDate;
+use Illuminate\Support\Str;
 
 /**
  * Lecture d'une notice de l'export JSON du jeu de données « Archives SNCF » (archives-sncf-sardo,
  * ressources.data.sncf.com, ODbL). Seuls le titre, le type, le classement, le service versant, la boîte, le
  * titulaire des droits, la date et le lien sont repris ; la description et les mots-clés ne le sont pas.
+ *
+ * La description (champ du jeu entier sous ODbL, réutilisable) n'est LUE que pour juger le rattachement
+ * (`descriptionText`, en mémoire) : elle n'est ni enregistrée ni servie, car celle des dossiers de contentieux ou
+ * de personnel nomme des agents.
  *
  * Notices écartées (null) : sans titre ou sans lien vers archives.sncf.com, d'un type inconnu, ou classées dans
  * un thème qui porte sur des personnes (EXCLUDED_THEMES : fichiers des cheminots blessés et tués, contentieux,
@@ -60,6 +65,7 @@ final class SardoParser
             reference: self::clean($row['ndeg_dossier'] ?? null),
             title: $title,
             matchText: self::listedLines(self::withoutCompanies($title)),
+            descriptionText: self::descriptionText($row['description'] ?? null),
             docType: $type,
             theme: $theme,
             subTheme: self::clean($row['sous_theme'] ?? null),
@@ -68,6 +74,75 @@ final class SardoParser
             rights: self::clean($row['droits'] ?? null),
             date: self::date($row),
         );
+    }
+
+    /**
+     * Description d'un dossier qui dénonce des personnes ou des litiges (contentieux, blessés, tués, victimes) :
+     * les lignes y sont citées au passage, jamais le sujet ; elle n'est pas lue.
+     */
+    private const PERSONAL_DESCRIPTION = '/\b(contentieux|bless[ée]s?|tu[ée]s?|victimes?|demandeurs?|plaignants?|d[ée]c[ée]d[ée]s?)\b/iu';
+
+    /** Une description plus longue est un index ou un inventaire de sujets (« Fiches documentaires ») : pas lue. */
+    public const MAX_DESCRIPTION_LENGTH = 1500;
+
+    /**
+     * Mention en passant d'une ligne dans une description : « par la ligne de X à Y », « via la ligne de X à Y »,
+     * « sur la ligne de X à Y », « sous le chemin de fer de X à Y »… La ligne n'y est qu'un lieu de la scène, ou
+     * l'un d'une liste (« installations sinistrées sur les lignes de : Paris à Creil, Lille à Béthune… ») ; la
+     * mention est retirée jusqu'à la fin de la proposition (. ; : ou parenthèse).
+     */
+    private const PASSING_MENTION = '/\b(?:par|via|sur|sous|avec|vers|depuis|empruntant|franchissant|traversant|croisant|coupant|longeant|desservant)\s+(?:(?:la|le|les|l[\'’]|une|cette|ces|des|de\s+la)\s*)?(?:lignes?|chemins?\s+de\s+fer|voies?\s+ferr[ée]es?)\b[^.;()\[\]]*/iu';
+
+    /**
+     * Texte de la description sur lequel le rattachement est jugé, ou null s'il n'y en a pas : balises, entités et
+     * espaces retirés, mentions en passant retirées (PASSING_MENTION), noms de compagnies retirés, mot « ligne »
+     * répété dans les listes. Null aussi pour la description d'un dossier de personnes ou de litiges, et pour une description de plus de
+     * MAX_DESCRIPTION_LENGTH caractères (index, inventaire de sujets).
+     */
+    public static function descriptionText(mixed $description): ?string
+    {
+        $text = self::clean(is_string($description) ? html_entity_decode(strip_tags(str_replace('_x000D_', ' ', $description))) : null);
+        if ($text === null || mb_strlen($text) > self::MAX_DESCRIPTION_LENGTH || preg_match(self::PERSONAL_DESCRIPTION, $text) === 1) {
+            return null;
+        }
+        $text = (string) preg_replace(self::PASSING_MENTION, ' ', $text);
+
+        return self::listedLines(self::withoutCompanies($text));
+    }
+
+    /**
+     * Nombre de lignes distinctes que le texte décrit par un trajet (« ligne de X à Y », « ligne X à Y », « lignes
+     * de X à Y et de Z à W »), qu'elles soient dans VFF ou non : deux lignes qui ont les mêmes premiers mots à leurs
+     * deux bouts (« Rodez à Albi » et « Rodez à Albi-ville ») comptent pour une. Sert à juger une description : celle
+     * qui décrit plus de lignes que le comparateur n'en reconnaît parle aussi d'autres lignes, absentes de VFF
+     * (le pont de la Doller de « Ligne de Pfetterhouse à Dannemarie [Ligne 94] Ligne de Sewen à Cernay »).
+     */
+    public static function statedLines(string $text): int
+    {
+        $place = '\p{Lu}[\p{L}\'’]*(?:[\s\-]+(?:(?:de|du|des|la|le|les|sur|en|sous)[\s\-]+)?\p{Lu}[\p{L}\'’]*)*';
+        $open = '(?:\([^)]*\)\s*)?';
+        $found = preg_match_all('/\b[Ll]ignes?[\s\-]+(?:(?:de|du|des|d[\'’])\s*)?'.$open.'(?:(?:le|la|les|l[\'’])\s*)?('.$place.')\s+(?:à|au|aux)\s+'.$open.'(?:(?:le|la|les|l[\'’])\s*)?('.$place.')/u', $text, $m, PREG_SET_ORDER);
+        $pairs = [];
+        foreach ($found === false ? [] : $m as $statement) {
+            $pairs[self::firstWords($statement[1]).'>'.self::firstWords($statement[2])] = true;
+        }
+
+        return count($pairs);
+    }
+
+    /** Premier mot d'un nom de lieu en minuscules sans accents (deux si le premier est « Saint »), pour comparer. */
+    private static function firstWords(string $place): string
+    {
+        $words = preg_split('/[^a-z0-9]+/', strtolower(Str::ascii($place)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $first = array_shift($words) ?? '';
+        if (in_array($first, ['le', 'la', 'les', 'l'], true) && $words !== []) {
+            $first = array_shift($words);
+        }
+        if (in_array($first, ['saint', 'sainte', 'st', 'ste'], true) && $words !== []) {
+            $first = 'saint '.array_shift($words);
+        }
+
+        return $first;
     }
 
     /** Titre où chaque nom de compagnie est remplacé par le mot « compagnie » (ses lieux ne comptent pas). */

@@ -223,6 +223,17 @@ final class LineSignallingHistory
         }, $this->facts($line));
     }
 
+    /**
+     * Corrections repliées sous la frise de la fiche ligne : même contenu que `corrections`, sans la citation du
+     * document (le lien vers chaque document suffit, comme pour les faits).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function correctionsForSheet(Line $line): array
+    {
+        return array_map(fn (array $c): array => array_diff_key($c, ['quote' => true]), $this->corrections($line));
+    }
+
     /** @return array{provider: ?string, name: ?string, license: ?string, license_status: ?string} */
     public function provenance(): array
     {

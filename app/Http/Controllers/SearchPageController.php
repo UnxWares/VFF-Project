@@ -14,10 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Page de résultats de la recherche (/search?q=…), atteinte par Entrée dans la recherche de l'en-tête et de
- * l'accueil, ou par « Voir tous les résultats » : lignes, gares, accidents et matériel roulant (SearchResultsPage).
+ * l'accueil, ou par « Voir tous les résultats » : lignes, gares, accidents, matériel roulant, termes du glossaire et communes (SearchResultsPage).
  *
  * Paramètres (une valeur inconnue est ignorée, comme dans les annuaires) : `q`, `type` (line, station, accident,
- * material ; tout sinon), `state` (open, closed) et `dept` (code de département) pour les lignes et les gares,
+ * material, glossary, commune ; tout sinon), `state` (open, closed) et `dept` (code de département) pour les lignes et les gares,
  * `page`. Une requête qui est une position sur une ligne (« 570000 PK 120 ») ajoute `positions` en tête de la vue « tout ». Les pages de résultats ne sont pas indexées (`X-Robots-Tag: noindex`) : leur adresse se partage, mais
  * leur contenu est déjà celui des fiches.
  */

@@ -154,8 +154,11 @@ d'incident) : c'est la bonne source pour la page publique.
 
 ## Mise en route
 
-1. Installer Kener (avec son Redis) et GlitchTip (avec PostgreSQL) sur l'infrastructure d'UnxWares, derrière le même
-   nginx, sur `status.` et `erreurs.vff-project.org` (modèles : `deploy/nginx/`).
+Ces points sont l'étape 17 du parcours `docs/MISE-EN-PRODUCTION.md`, qui donne les commandes exactes.
+
+1. Installer GlitchTip (avec PostgreSQL) sur le serveur de VFF, sur `erreurs.vff-project.org`, et Kener (avec une
+   instance Valkey à lui) sur une autre machine, sur `status.vff-project.org` (blocs nginx des deux :
+   `deploy/nginx/optional/suivi.conf.example`).
 2. Générer `HEALTH_TOKEN`, le poser côté VFF et côté Kener.
 3. Créer les moniteurs du tableau, le canal d'alerte par courriel et la création automatique d'incident sur la
    santé détaillée et le site.

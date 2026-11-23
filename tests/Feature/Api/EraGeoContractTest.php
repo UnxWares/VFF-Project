@@ -80,8 +80,10 @@ class EraGeoContractTest extends TestCase
         $this->assertSame('87000000', $features['gare-active']['properties']['uic']);
         $this->assertSame([
             'slug', 'name', 'type', 'status', 'sources_status', 'service', 'city', 'department_code', 'uic',
-            'opened_year', 'closed_year', 'closed_at', 'closed_precision', 'closed_after', 'note',
+            'opened_year', 'opened_precision', 'opened_after', 'closed_year', 'closed_at', 'closed_precision', 'closed_after', 'note',
         ], array_keys($features['gare-active']['properties']));
+        // Ouverture bornée (« entre 1891 et 1907 ») : ajoutée le 23/11/2026 ; une ouverture datée n'a pas de borne basse.
+        $this->assertNull($features['gare-active']['properties']['opened_after']);
         // Date de fermeture retenue (StationTimeline::resolveClosure), la même que la fiche gare et la fiche ligne.
         $this->assertSame(1938, (int) substr((string) $features['gare-declassified']['properties']['closed_at'], 0, 4));
         $this->assertNull($features['gare-active']['properties']['closed_at']);

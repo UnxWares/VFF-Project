@@ -137,13 +137,14 @@ class StationOpeningRangeTest extends TestCase
         $this->assertSame('range', $stations[$this->bounded->slug]['opened_precision']);
         $this->assertNull($stations[$this->sourced->slug]['opened_after']);
 
-        // Les props de la page : le composant écrit « entre 1955 et 1970 » avec ces trois champs.
-        $this->get("/lines/{$this->line->slug}")->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('stations.0.slug', $this->bounded->slug)
-            ->where('stations.0.opened_at', '1970-12-31')
-            ->where('stations.0.opened_precision', 'range')
-            ->where('stations.0.opened_after', 1954)
-            ->where('stations.1.opened_after', null));
+        // Les props de la page (détails de la liste des gares, reçus après le premier affichage) : le composant écrit
+        // « entre 1955 et 1970 » avec ces trois champs.
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('station_details.0.slug', $this->bounded->slug)
+            ->where('station_details.0.opened_at', '1970-12-31')
+            ->where('station_details.0.opened_precision', 'range')
+            ->where('station_details.0.opened_after', 1954)
+            ->where('station_details.1.opened_after', null));
     }
 
     public function test_graphql_serves_opened_after_on_the_station_and_its_sheet(): void

@@ -3,10 +3,10 @@
     import { onDestroy, onMount } from 'svelte';
     import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { hasPmtilesProtocol, loadMaplibre } from '$lib/loadMaplibre.js';
     import { MAP_MAX_ZOOM } from '$lib/basemap.js';
-    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
-    import { theme } from '$lib/stores/theme.svelte.js';
+    import { followBasemapTheme, pageMapStyle } from '$lib/mapStyle.svelte.js';
+    import { isOfflineView, reportPartialMap } from '$lib/offlineMap.svelte.js';
 
     /**
      * Mini-carte du lieu d'un accident. Position précise (coordonnées de la source, passage à
@@ -22,34 +22,12 @@
 
     let mapContainer = $state();
     let map = null;
+    // Carte dessinée sur le fond libre de VFF (lib/mapStyle.svelte.js) : ses couleurs suivent le thème.
+    let onBasemap = false;
+    followBasemapTheme(() => (onBasemap ? map : null));
 
-    /** @returns {string | import('maplibre-gl').StyleSpecification} */
     // Fin du signal « carte sur fond neutre » (lib/offlineMap.svelte.js), appelée quand la carte disparaît.
     let releasePartialMap = null;
-
-    /**
-     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
-     * @returns {string | import('maplibre-gl').StyleSpecification}
-     */
-    function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
-        const key = import.meta.env.VITE_MAPTILER_KEY;
-        if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-        return {
-            version: 8,
-            sources: {
-                'osm-raster': {
-                    type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    maxzoom: 19,
-                    attribution:
-                        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                },
-            },
-            layers: [{ id: 'osm', type: 'raster', source: 'osm-raster' }],
-        };
-    }
 
     /** Polygone circulaire (64 sommets) de rayon donné autour d'un point, en WGS 84. */
     function circle(centerLng, centerLat, radiusM) {
@@ -77,9 +55,11 @@
         const vague = precision === 'commune';
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        const mapBackground = pageMapStyle(offline, { pmtiles: hasPmtilesProtocol() });
+        onBasemap = mapBackground.onBasemap;
         map = new maplibregl.Map({
             container: mapContainer,
-            style: buildStyle(offline),
+            style: mapBackground.style,
             center: [lng, lat],
             zoom: vague ? 11 : 13.5,
             maxZoom: MAP_MAX_ZOOM,

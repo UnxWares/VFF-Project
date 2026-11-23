@@ -32,6 +32,9 @@ return [
         'undated_before' => 'Fermeture non datée (avant :year)',
         'undated_after' => 'Fermeture non datée (après :year)',
         'closure_decade' => 'Fermeture dans les années :decade',
+        // Ouverture encadrée par une correction sourcée (StationTimeline::boundedOpeningNote)
+        'opening_range' => 'Date d\'ouverture inconnue (entre :from et :to)',
+        'opening_not_before' => 'Date d\'ouverture inconnue (pas avant :year)',
         // station_events.note (dates déduites des lignes et des tracés)
         'line_opening' => 'Ouverture de la :line',
         'trace_opening' => 'Ouverture du tracé desservant la gare',

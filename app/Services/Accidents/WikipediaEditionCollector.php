@@ -9,7 +9,10 @@ namespace App\Services\Accidents;
  * à recouper (AccidentImporter::attachEditions).
  *
  *   - anglais : « List of rail accidents (… ) » par décennie et « List of rail accidents in France » ;
- *   - allemand : « Liste schwerer Unfälle im Schienenverkehr ».
+ *   - allemand : « Liste schwerer Unfälle im Schienenverkehr » ;
+ *   - articles dédiés à un accident en France des catégories de ces deux éditions (ARTICLE_CATEGORIES). Aucune liste
+ *     d'accidents en France n'existe en italien, en espagnol ni en néerlandais (recherche du 23/11/2026) : les
+ *     quelques articles de ces éditions reprennent ceux-ci ou Wikidata.
  *
  * Le lien de la source est le permalien de la révision lue, avec l'ancre de la section. Aucun texte n'est gardé.
  */
@@ -36,7 +39,19 @@ final class WikipediaEditionCollector
     /** Faux si une page demandée manquait (hors ligne) : les sources absentes ne sont alors pas retirées. */
     public bool $complete = true;
 
-    public function __construct(private readonly WikipediaEditionListReader $reader) {}
+    /** @var array<'en'|'de', list<string>> catégories des articles dédiés à un accident en France (espace principal) */
+    public const ARTICLE_CATEGORIES = [
+        'en' => [
+            'Category:Railway accidents and incidents in France', 'Category:Derailments in France', 'Category:Level crossing incidents in France',
+            'Category:Train collisions in France', 'Category:Accidents and incidents involving SNCF', 'Category:Railway accident deaths in France',
+        ],
+        'de' => ['Kategorie:Eisenbahnunfall in Frankreich', 'Kategorie:Eisenbahnunfall in Paris'],
+    ];
+
+    public function __construct(
+        private readonly WikipediaEditionListReader $reader,
+        private readonly WikipediaEditionArticleReader $articleReader = new WikipediaEditionArticleReader,
+    ) {}
 
     /** @return list<AccidentEditionEntry> */
     public function collect(AccidentSourceClient $client): array
@@ -58,6 +73,41 @@ final class WikipediaEditionCollector
             $out = [...$out, ...$this->entries('de', $de[self::DE_LIST], $this->reader->readGerman($de[self::DE_LIST]['content']))];
         }
 
+        return [...$out, ...$this->articles($client)];
+    }
+
+    /**
+     * Articles dédiés à un accident en France (catégories de Wikipédia en anglais et en allemand) : leur date et leur lieu,
+     * comme une entrée de liste. Un article sans date au jour ou sans lieu lisible n'est pas rapproché.
+     *
+     * @return list<AccidentEditionEntry>
+     */
+    private function articles(AccidentSourceClient $client): array
+    {
+        $out = [];
+        foreach (self::ARTICLE_CATEGORIES as $lang => $categories) {
+            $titles = [];
+            foreach ($categories as $category) {
+                $titles = [...$titles, ...array_keys($client->categoryItems($lang, $category))];
+            }
+            $titles = array_values(array_unique(array_filter($titles, fn (string $t): bool => $t !== self::EN_FRANCE)));
+            sort($titles);
+            $pages = $client->articleTexts($lang, $titles);
+            if (count($pages) < count($titles)) {
+                $this->complete = false;
+            }
+            foreach ($titles as $title) {
+                if (! isset($pages[$title])) {
+                    continue;
+                }
+                $page = $pages[$title];
+                $read = $lang === 'de' ? $this->articleReader->readGerman($page['title'], $page['content']) : $this->articleReader->readEnglish($page['content']);
+                if ($read !== null) {
+                    $out = [...$out, ...$this->entries($lang, $page, [$read], 'article')];
+                }
+            }
+        }
+
         return $out;
     }
 
@@ -65,12 +115,13 @@ final class WikipediaEditionCollector
      * @param  'en'|'de'  $lang
      * @param  array{title: string, revid: int, content: string}  $page
      * @param  list<array{date: string, places: list<array{name: string, qualifier: ?string}>, referenced: bool, references: list<string>, anchor: ?string}>  $read
+     * @param  'list'|'article'  $role
      * @return list<AccidentEditionEntry>
      */
-    private function entries(string $lang, array $page, array $read): array
+    private function entries(string $lang, array $page, array $read, string $role = 'list'): array
     {
         return array_map(fn (array $e): AccidentEditionEntry => new AccidentEditionEntry(
-            $lang, $e['date'], $e['places'], $e['referenced'], $e['references'], $page['title'], $page['revid'], $e['anchor'],
+            $lang, $e['date'], $e['places'], $e['referenced'], $e['references'], $page['title'], $page['revid'], $e['anchor'], $role,
         ), $read);
     }
 }

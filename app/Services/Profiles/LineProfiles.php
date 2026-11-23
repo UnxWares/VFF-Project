@@ -31,6 +31,49 @@ final readonly class LineProfiles
     }
 
     /**
+     * Pourquoi la ligne n'a pas de profil (section « Profil en long » de la fiche, erreur 404 de
+     * l'API, outil MCP) : null quand elle en a un. Mêmes règles que LineProfileBuilder::compute(),
+     * en une requête et sans appeler l'IGN : `no_trace` (ni tracé de référence ni tronçon hors voies
+     * de service), `outside_france` (aucun point du tracé, pris tous les 100 m comme le profil, dans
+     * une commune française : ni la BD TOPO ni le RGE ALTI n'y donnent d'altitude), `not_computed`
+     * (calcul possible, pas encore fait).
+     *
+     * @return array{reason: 'no_trace'|'outside_france'|'not_computed'}|null
+     */
+    public function unavailable(Line $line): ?array
+    {
+        $row = DB::selectOne(
+            <<<'SQL'
+            WITH parts AS (
+                SELECT (ST_Dump(geom)).geom AS g FROM line_reference_parts WHERE line_id = :a
+                UNION ALL
+                SELECT geom FROM line_segments
+                WHERE line_id = :b AND status <> 'service_track'
+                  AND NOT EXISTS (SELECT 1 FROM line_reference_parts WHERE line_id = :c)
+            )
+            SELECT EXISTS (SELECT 1 FROM line_profiles WHERE line_id = :d) AS has_profile,
+                   EXISTS (SELECT 1 FROM parts) AS has_trace,
+                   EXISTS (
+                       SELECT 1 FROM parts p
+                       CROSS JOIN LATERAL (
+                           SELECT (ST_DumpPoints(ST_LineInterpolatePoints(
+                               p.g, LEAST(1.0, 100.0 / GREATEST(ST_Length(p.g::geography), 100.0)), true))).geom AS pt
+                       ) s
+                       WHERE EXISTS (SELECT 1 FROM commune_contours c WHERE ST_Intersects(c.geom, s.pt))
+                   ) AS in_france
+            SQL,
+            ['a' => $line->id, 'b' => $line->id, 'c' => $line->id, 'd' => $line->id],
+        );
+
+        return match (true) {
+            (bool) $row->has_profile => null,
+            ! $row->has_trace => ['reason' => 'no_trace'],
+            ! $row->in_france => ['reason' => 'outside_france'],
+            default => ['reason' => 'not_computed'],
+        };
+    }
+
+    /**
      * Méthode des dénivelés cumulés, rendue avec chaque profil : hystérésis (une variation de moins
      * de `threshold_m` n'est pas comptée), après une moyenne glissante de `terrain_smoothing_m`
      * appliquée aux seules altitudes du terrain (ProfileStats::TERRAIN_SMOOTHING_M).

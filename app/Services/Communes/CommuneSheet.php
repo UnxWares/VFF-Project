@@ -54,7 +54,7 @@ final class CommuneSheet
     ];
 
     /** Événements de gare repris (ouverture et fermeture viennent de la fiche de la gare). */
-    private const STATION_EVENTS = ['reopening', 'closure_passenger', 'closure_freight', 'demolition'];
+    public const STATION_EVENTS = ['reopening', 'closure_passenger', 'closure_freight', 'demolition'];
 
     /** Ordre d'entrées de même date : la vie du lieu se lit de l'ouverture à la fermeture. */
     private const ORDER = [

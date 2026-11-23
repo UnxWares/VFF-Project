@@ -1057,9 +1057,12 @@ class DataInvariants
      */
     private function stationsLineServiceOutsideStationLife(): array
     {
-        return $this->violations(<<<'SQL'
+        // Ouverture encadrée (précision range) : comparée à sa borne basse, jamais à la borne haute (opened_at).
+        $floor = StationTimeline::openedYearFloorSql('s');
+
+        return $this->violations(<<<SQL
             SELECT s.id, s.name, l.code, l.name AS line, sl.first_year, sl.last_year, s.opened_at, s.closed_at, x.stop_year,
-                   CASE WHEN s.opened_at IS NOT NULL AND sl.first_year < EXTRACT(YEAR FROM s.opened_at) THEN 'desservie avant l''ouverture de la gare'
+                   CASE WHEN s.opened_at IS NOT NULL AND sl.first_year < {$floor} THEN 'desservie avant l''ouverture de la gare'
                         WHEN s.closed_at IS NOT NULL AND s.closed_at <= CURRENT_DATE AND (sl.last_year IS NULL OR sl.last_year > EXTRACT(YEAR FROM s.closed_at)) THEN 'desservie après la fermeture de la gare'
                         WHEN sl.last_year < sl.first_year AND sl.years_source IS DISTINCT FROM 'never_served' THEN 'fin avant le début'
                         ELSE 'arrêt sur la carte hors de la période de desserte' END AS why,
@@ -1073,7 +1076,7 @@ class DataInvariants
                   AND ((sl.last_year IS NOT NULL AND sl.last_year <= e.year) OR (sl.first_year IS NOT NULL AND sl.first_year > e.year AND NOT e.is_current))
                 LIMIT 1) x ON TRUE
             WHERE COALESCE(s.provenance->>'kind', '') = ''
-              AND ((s.opened_at IS NOT NULL AND sl.first_year < EXTRACT(YEAR FROM s.opened_at))
+              AND ((s.opened_at IS NOT NULL AND sl.first_year < {$floor})
                 OR (s.closed_at IS NOT NULL AND s.closed_at <= CURRENT_DATE AND (sl.last_year IS NULL OR sl.last_year > EXTRACT(YEAR FROM s.closed_at)))
                 OR (sl.last_year < sl.first_year AND sl.years_source IS DISTINCT FROM 'never_served')
                 OR x.stop_year IS NOT NULL)

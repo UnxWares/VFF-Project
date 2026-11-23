@@ -34,6 +34,9 @@ TXT)]
 #[IsOpenWorld(false)]
 class MediaTool extends VffTool
 {
+    /** Ancien slug dans `line` ou `station` : filtre sous le slug actuel, dit dans `redirected`. */
+    protected const SLUG_FILTERS = true;
+
     protected function rules(): array
     {
         return MediaQuery::rules() + [

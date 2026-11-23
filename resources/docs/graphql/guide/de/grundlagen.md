@@ -85,7 +85,7 @@ Das Netz wird in **Jahrzehnt-Epochen** von 1830 bis 2030 beschrieben. Jede Epoch
 
 Ereignisdaten bleiben exakt: `LineEvent.event_date` wird zusammen mit `date_precision` gelesen (`day`: TT.MM.JJJJ, `month`: MM.JJJJ, `year`: JJJJ).
 
-Entfernungen und Kilometerpunkte (PK) in **Metern** (`pk_m: 373450` = PK 373+450), Geschwindigkeiten in km/h, Spannungen in Volt, Spurweiten in Millimetern, Höhen in Metern über NGF, WGS-84-Koordinaten in Dezimalgrad.
+Entfernungen und Streckenkilometer (PK) in **Metern** (`pk_m: 373450` = PK 373+450), Geschwindigkeiten in km/h, Spannungen in Volt, Spurweiten in Millimetern, Höhen in Metern über NGF, WGS-84-Koordinaten in Dezimalgrad.
 
 ## Paginierung
 

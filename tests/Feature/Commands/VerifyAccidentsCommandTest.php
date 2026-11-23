@@ -7,6 +7,7 @@ use App\Models\Accident;
 use App\Models\AccidentLine;
 use App\Models\User;
 use App\Models\WebhookDelivery;
+use App\Services\Accidents\BeaTtReportTable;
 use App\Services\Webhooks\WebhookSignature;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -58,6 +59,72 @@ class VerifyAccidentsCommandTest extends TestCase
         $this->assertSame('bea-tt', $confirmed['provider']);
         $this->assertSame($a->sources()->first()->retrieved_at->toIso8601String(), $confirmed['retrieved_at'], 'la date de lecture de la source est gardée');
         $this->assertNotNull($a->verified_at);
+    }
+
+    public function test_a_bea_tt_page_read_by_hand_gives_the_commune_the_bilan_title_does_not_and_settles_the_import_doubt(): void
+    {
+        $url = 'https://www.bea-tt.developpement-durable.gouv.fr/saint-feliu-66-02-03-2010-accident-r1.html';
+        $this->app->instance(BeaTtReportTable::class, new BeaTtReportTable([$url => [
+            'slug' => '2010-03-02-saint-feliu-d-avall', 'commune_insee' => '66200', 'place' => 'Saint-Féliu-d\'Avall (66)',
+            'report' => ['title' => 'Rapport d\'enquête sur la collision du 02/03/2010', 'number' => 'BEATT-2010-01', 'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/rapport-a1.html', 'published' => '2011-01-05'],
+        ]]));
+        // L'intitulé du bilan ne nomme aucune commune lisible : sans la table, le lieu ne serait pas confirmé.
+        $read = $this->accident('2010-03-02-saint-feliu-d-avall', '2010-03-02', '66200', 'commune');
+        $this->source($read, 'bea-tt', 'report', 'bea-read', ['date' => '2010-03-02', 'mode' => 'F'], 'Collision en gare', $url);
+        $read->update(['review_notes' => [['code' => 'commune_ambiguous', 'detail' => 'Saint Féliu : deux communes'], ['code' => 'location_commune_only', 'detail' => 'x']]]);
+        $unread = $this->accident('2010-03-03-saint-feliu-d-avall', '2010-03-03', '66200', 'commune');
+        $this->source($unread, 'bea-tt', 'report', 'bea-unread', ['date' => '2010-03-03', 'mode' => 'F'], 'Collision en gare', 'https://www.bea-tt.developpement-durable.gouv.fr/autre-r2.html');
+
+        $this->artisan('vff:verify-accidents')->assertSuccessful();
+
+        $read->refresh();
+        $this->assertSame('ok', $read->review_status->value);
+        $this->assertSame('primary_source', $read->verification['rule']);
+        $this->assertSame(['location_commune_only'], array_column($read->review_notes, 'code'), 'le doute d\'import est retiré, la précision du lieu reste');
+        $confirmed = $read->verification['place']['confirmed_by'][0];
+        $this->assertSame('66200', $confirmed['commune_insee']);
+        $this->assertSame('BEATT-2010-01', $confirmed['report']['number']);
+        $this->assertSame('https://www.bea-tt.developpement-durable.gouv.fr/rapport-a1.html', $confirmed['report']['url']);
+        $this->assertSame('to_review', $unread->refresh()->review_status->value, 'une rangée du bilan non relue ne confirme pas le lieu');
+    }
+
+    public function test_the_day_of_the_bea_tt_page_contradicts_a_fiche_that_follows_the_bilan_and_never_corrects_it_silently(): void
+    {
+        $url = 'https://www.bea-tt.developpement-durable.gouv.fr/saint-feliu-66-01-12-2015-deraillement-r3.html';
+        $this->app->instance(BeaTtReportTable::class, new BeaTtReportTable([$url => [
+            'slug' => '2015-12-02-saint-feliu-d-avall', 'commune_insee' => '66200', 'date' => '2015-12-01', 'place' => 'Saint-Féliu-d\'Avall (66)',
+            'report' => ['title' => 'Rapport sur le déraillement du 1/12/2015', 'number' => 'BEATT-2015-017', 'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/rapport-a3.html'],
+        ]]));
+        $a = $this->accident('2015-12-02-saint-feliu-d-avall', '2015-12-02', '66200', 'commune');
+        $this->source($a, 'bea-tt', 'report', 'bea-shifted', ['date' => '2015-12-02', 'mode' => 'F'], 'Déraillement', $url);
+
+        $this->artisan('vff:verify-accidents')->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('to_review', $a->review_status->value);
+        $this->assertSame('2015-12-02', $a->occurred_on->toDateString(), 'la date de la fiche n\'est pas changée par la vérification');
+        $this->assertContains('verification_conflict', array_column($a->review_notes, 'code'));
+        $this->assertSame('2015-12-01', $a->verification['date']['disagreeing'][0]['date']);
+        $this->assertNull($a->verification['rule'] ?? null);
+    }
+
+    public function test_a_toll_note_still_blocks_a_fiche_the_bea_tt_page_confirms(): void
+    {
+        $url = 'https://www.bea-tt.developpement-durable.gouv.fr/saint-feliu-66-04-05-2011-collision-r4.html';
+        $this->app->instance(BeaTtReportTable::class, new BeaTtReportTable([$url => [
+            'slug' => '2011-05-04-saint-feliu-d-avall', 'commune_insee' => '66200', 'place' => 'Saint-Féliu-d\'Avall (66)',
+            'report' => ['title' => 'Rapport', 'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/rapport-a4.html'],
+        ]]));
+        $a = $this->accident('2011-05-04-saint-feliu-d-avall', '2011-05-04', '66200', 'commune');
+        $this->source($a, 'bea-tt', 'report', 'bea-toll', ['date' => '2011-05-04', 'mode' => 'F'], 'Collision', $url);
+        $a->update(['review_notes' => [['code' => 'toll_mismatch', 'detail' => 'blessés : Wikidata 20, Wikipédia 16'], ['code' => 'date_mismatch', 'detail' => 'x']]]);
+
+        $this->artisan('vff:verify-accidents')->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('primary_source', $a->verification['rule']);
+        $this->assertSame('to_review', $a->review_status->value);
+        $this->assertSame(['toll_mismatch', 'date_mismatch'], array_column($a->review_notes, 'code'), 'le jour que Wikidata donne autrement reste écrit');
     }
 
     public function test_a_list_alone_plus_a_referenced_english_or_german_entry_confirms_with_its_own_rule(): void

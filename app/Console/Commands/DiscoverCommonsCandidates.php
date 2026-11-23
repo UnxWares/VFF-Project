@@ -43,6 +43,8 @@ class DiscoverCommonsCandidates extends Command
         {--min-images=0 : Couverture d\'abord : ne lit pas les catégories d\'une fiche dont la P18 donne déjà ce nombre d\'images acceptables}
         {--max-per-subject=10 : Fichiers max retenus par fiche}
         {--geo : Gares seulement : pour celles sans candidat, fichiers géolocalisés à moins de 250 m dont le titre parle de gare et nomme le lieu}
+        {--search : Gares seulement : recherche en texte intégral dans les fichiers Commons (nom de la gare + gare ou halte), titre et catégories qui nomment la gare et la commune, position à moins de 500 m si elle est connue ; règle de lieu : jamais un autre pays ni un autre département, coordonnées à moins de 2 km ou commune et département nommés}
+        {--interval-ms=250 : Pause minimale entre deux requêtes (ms)}
         {--skip-name-search : Gares sans Wikidata : ne cherche pas de catégorie par le nom}
         {--only= : Slug(s) à traiter, séparés par des virgules}';
 
@@ -78,14 +80,15 @@ class DiscoverCommonsCandidates extends Command
             return self::INVALID;
         }
         $this->maxPer = max(1, (int) $this->option('max-per-subject'));
-        $path = (string) ($this->option('out') ?: storage_path("app/sources/commons-candidates/{$this->subject}".($this->option('geo') ? 's-geo' : 's').'.jsonl'));
+        $suffix = $this->option('search') ? 's-search' : ($this->option('geo') ? 's-geo' : 's');
+        $path = (string) ($this->option('out') ?: storage_path("app/sources/commons-candidates/{$this->subject}{$suffix}.jsonl"));
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0775, true);
         }
         $done = $this->doneSlugs($path);
-        if ($this->option('geo')) {
+        if ($this->option('geo') || $this->option('search')) {
             if ($this->subject !== 'station') {
-                $this->error('--geo ne vaut que pour les gares.');
+                $this->error('--geo et --search ne valent que pour les gares.');
 
                 return self::INVALID;
             }
@@ -101,11 +104,11 @@ class DiscoverCommonsCandidates extends Command
             return self::SUCCESS;
         }
 
-        $this->client = new CommonsClient;
+        $this->client = new CommonsClient(max(250, (int) $this->option('interval-ms')));
         $this->out = fopen($path, 'ab');
-        if ($this->option('geo')) {
+        if ($this->option('geo') || $this->option('search')) {
             foreach ($records as $r) {
-                $this->safely(fn () => $this->processGeoStation($r), [$r]);
+                $this->safely(fn () => $this->option('search') ? $this->processSearchStation($r) : $this->processGeoStation($r), [$r]);
             }
             fclose($this->out);
             ksort($this->stats);
@@ -320,6 +323,41 @@ class DiscoverCommonsCandidates extends Command
                 if (CommonsCoverage::mentionsPlace($meta, $r['name'], $city)) {
                     $files[$pageId] = ['page' => $page, 'via' => 'geosearch', 'category' => null];
                 }
+            }
+        }
+        $this->emit($r, null, $files, null);
+    }
+
+    /**
+     * Recherche en texte intégral : « nom de la gare » avec gare ou halte. Un fichier est retenu si son titre
+     * parle de gare et nomme le lieu (mot distinctif du nom de la gare), si ses catégories ou son titre
+     * nomment aussi la commune, et si sa position, quand elle est connue, est à moins de 500 m.
+     *
+     * @param  array<string, mixed>  $r
+     */
+    private function processSearchStation(array $r): void
+    {
+        $row = DB::table('stations')->where('id', $r['id'])->first(['city', 'department_code']);
+        $city = (string) ($row->city ?? '');
+        $department = $row->department_code ?? null;
+        $name = trim(preg_replace('/\s*\([^)]*\)\s*$/u', '', (string) $r['name']) ?? (string) $r['name']);
+        $name = str_replace('"', '', preg_replace(['/\bSt-/u', '/\bSte-/u'], ['Saint-', 'Sainte-'], $name) ?? $name);
+        $files = [];
+        if (mb_strlen($name) >= 3) {
+            $found = $this->client->searchFiles('"'.$name.'" (gare OR halte OR station OR bahnhof)', 20);
+            foreach ($found as $pageId => $page) {
+                $meta = CommonsMetadata::normalize($page);
+                $title = (string) ($meta['file_title'] ?? $page['title']);
+                if (! CommonsCoverage::titleIsRailway($title) || ! CommonsCoverage::titleNamesStation($meta, $name)) {
+                    continue;
+                }
+                if (! CommonsCoverage::mentionsCity($meta, $city, $name)) {
+                    continue;
+                }
+                if (CommonsCoverage::placeReject($meta, $name, $city, $department, $r['lat'], $r['lon']) !== null) {
+                    continue;
+                }
+                $files[$pageId] = ['page' => $page, 'via' => 'search', 'category' => null];
             }
         }
         $this->emit($r, null, $files, null);

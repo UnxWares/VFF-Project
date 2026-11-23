@@ -29,6 +29,12 @@ final class Attribution
         return $this->rights->providerFor($table, $source, $url);
     }
 
+    /** Fournisseur dont un domaine déclaré héberge ce lien (source citée par son adresse seule), null sinon. */
+    public function providerForUrl(?string $url): ?string
+    {
+        return $this->rights->providerForUrl($url);
+    }
+
     /**
      * @param  iterable<?string>  $providers  fournisseurs des données renvoyées (doublons et null ignorés)
      * @return array{notice: string, sources: list<array{provider: string, mention: string, open_licence: bool}>}
