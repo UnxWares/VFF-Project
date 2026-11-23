@@ -48,7 +48,17 @@ le mode sombre sur l'accueil et sur la fiche de ligne.
 ## Fichiers
 
 - `playwright.config.js` : adresse cible, projets (viewports), rapports.
-- `tests/e2e/fixtures.js` : espion console et réseau, langue, thème, axe-core, liste des défauts connus.
+- `tests/e2e/fixtures.js` : espion console et réseau, langue, thème, axe-core, liste des défauts connus, relais
+  externes simulés.
+- `tests/e2e/vue-aerienne.jpg` : image servie à la place des vues aériennes de l'IGN.
+
+## Services externes
+
+La suite vérifie nos pages, pas les services tiers. Le relais `/media/aerial/{gare}/{période}.jpg` lit le WMS de l'IGN
+à la première demande : depuis un runner de CI, l'IGN répond parfois 503, et une période sans couverture au point de
+la gare du jeu minimal répond 404 (série 45148007135 du 23/11/2026, fiche gare en échec). La fixture `relaisSimules`
+répond donc à sa place avec `vue-aerienne.jpg`, pour chaque page et contre n'importe quel serveur ; le relais lui-même
+est couvert par `tests/Feature/Media/AerialImageRelayTest.php`.
 - `tests/e2e/fumee.spec.js` : les pages et les scénarios.
 
 ## Défauts connus
