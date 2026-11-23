@@ -190,4 +190,51 @@ return [
         'quote' => 'Le tronçon de Troo à Sougé (6 km) est inauguré en juin 2026.',
         'reason' => 'réouverture d\'un tronçon de la ligne ouverte le 20 novembre 1881 (même article) : la gare de Troo date de 1881',
     ],
+
+    // Gares fréquentées en 2020 absentes de l'ère 2020 (chantier « gares-2020 », 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-2020.md).
+
+    // 544000 Saintes - Royan : la fermeture aux voyageurs du 15/05/1939 est celle de la ligne Pons - Saujon - La Tremblade ;
+    // lue pour toute la ligne, elle mettait Saintes - Royan au fret seul de 1940 à 2020 (Royan, Saujon : 158 081 et 29 426
+    // voyageurs SNCF en 2020, desserte TER).
+    [
+        'line' => '544000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure_passenger', 'date' => '1939-05-15'],
+        'label' => 'Fermeture aux voyageurs de la ligne Pons - Saujon - La Tremblade',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saintes_%C3%A0_Royan&oldid=241024740',
+        'quote' => 'La crise économique de l\'entre-deux-guerres a pour conséquence la fermeture au trafic voyageurs de la ligne reliant Pons, Saujon et La Tremblade, le 15 mai 1939.',
+        'reason' => 'fermeture d\'une autre ligne (Pons - Saujon - La Tremblade) ; Saintes - Royan garde ses voyageurs (TER Nouvelle-Aquitaine, même article)',
+    ],
+
+    // 944000 Cannes-la-Bocca - Grasse : la réouverture de 2005 porte sur toute la ligne, mais la fermeture de la section
+    // Cannes-la-Bocca - Ranguin du 26/11/1995, plus précise, l'emportait sur elle : section au fret seul de 2000 à 2020
+    // (haltes du Bosquet et de La Frayère, 52 529 et 45 627 voyageurs SNCF en 2020). Réouverture posée sur la section.
+    [
+        'line' => '944000',
+        'action' => 'add',
+        'type' => 'reopening_passenger',
+        'date' => '2005-03-26',
+        'precision' => 'day',
+        'from' => 'Cannes-la-Bocca',
+        'to' => 'Ranguin',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Cannes-la-Bocca_%C3%A0_Grasse&oldid=237782258',
+        'quote' => 'Dix ans plus tard, en 2005, elle est rouverte à ce trafic, cette fois sur la totalité de son parcours',
+        'reason' => 'réouverture aux voyageurs de toute la ligne le 26/03/2005 (même article), section Cannes-la-Bocca - Ranguin comprise',
+    ],
+
+    // 960000 Tangentielle Nord : aucune date, la ligne manquait à toutes les ères historiques (gares du T11 Express absentes de
+    // l'ère 2020). Premier tronçon Épinay-sur-Seine - Le Bourget ouvert le 01/07/2017.
+    [
+        'line' => '960000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2017-07-01',
+        'precision' => 'day',
+        'from' => 'Épinay-sur-Seine',
+        'to' => 'Le Bourget',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Dugny_-_La_Courneuve&oldid=236142240',
+        'quote' => 'ouverte en même temps que le premier tronçon de la ligne 11 du tramway d\'Île-de-France, le 1er juillet 2017',
+        'reason' => 'mise en service du tram-train T11 Express sur la Tangentielle Nord (premier tronçon, d\'Épinay-sur-Seine au Bourget)',
+    ],
 ];

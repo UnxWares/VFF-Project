@@ -3590,4 +3590,45 @@ return [
         'quote' => 'l\'entrée en vigueur du service d\'été 1949, qui voit la suppression définitive des trains de voyageurs entre Senlis et Crépy-en-Valois',
         'reason' => 'le 15/05/1939 est une suppression temporaire (service repris fin septembre 1939, puis de nouveau supprimé en juillet 1940 et rétabli après la guerre) ; la fermeture définitive aux voyageurs date du service d\'été 1949 (article de la ligne ; article de la commune, oldid 241056468 : « fermée définitivement au service voyageurs en été 1949 »), jour non trouvé',
     ],
+
+    // ── 35. Gares fréquentées en 2020 absentes de l'ère 2020 (gares-2020, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-2020.md).
+
+    // Chilly-Mazarin et Gravigny-Balizy : Wikidata (P1619) donne le 10/12/2023, mise en service du tram-train T12 qui y remplace
+    // la branche C8 du RER C. Les deux gares sont créées avec l'ouverture de la Grande Ceinture aux voyageurs, le 01/05/1883 :
+    // avec la date de 2023, elles manquaient à toutes les ères historiques (1 027 095 et 489 424 voyageurs SNCF en 2019).
+    ...array_merge(...array_map(fn (array $g) => [
+        [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '2023-12-10'],
+            'source_url' => 'https://www.wikidata.org/w/index.php?title='.$g[2].'&oldid='.$g[3],
+            'reason' => 'P1619 du 10/12/2023 : mise en service du tram-train T12 dans une gare de 1883, pas l\'ouverture de la gare',
+        ],
+        [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'add',
+            'type' => 'opening',
+            'date' => '1883-05-01',
+            'precision' => 'day',
+            'source_url' => $wp('Gare de '.$g[0], $g[4]),
+            'quote' => 'Le 1er mai 1883, le trafic de la ligne de Grande Ceinture ouvre aux voyageurs [...] La gare de '.$g[0].' est créée à cette occasion.',
+            'reason' => 'gare créée à l\'ouverture de la Grande Ceinture aux voyageurs ; desservie par le RER C puis, depuis le 09/12/2023, par le tram-train T12',
+        ],
+    ], [
+        ['Chilly-Mazarin', '87393637', 'Q2330216', 2570057942, 241589862],
+        ['Gravigny-Balizy', '87393645', 'Q2093838', 2546291953, 241589768],
+    ])),
+    // Dugny - La Courneuve : gare de la Tangentielle Nord (tram-train T11) sans aucune date, donc absente de toutes les ères
+    // historiques. L'ancienne gare de la Grande Ceinture, fermée le 15/05/1939, n'est pas cette fiche (position du T11).
+    [
+        'station' => ['name' => 'Dugny-La Courneuve TT', 'uic' => '87697342'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2017-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Dugny - La Courneuve', 236142240),
+        'quote' => 'ouverte en même temps que le premier tronçon de la ligne 11 du tramway d\'Île-de-France, le 1er juillet 2017',
+        'reason' => 'gare du tram-train T11 Express (Tangentielle Nord), ouverte avec la ligne le 01/07/2017',
+    ],
 ];
