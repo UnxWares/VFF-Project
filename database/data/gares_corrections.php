@@ -5501,4 +5501,181 @@ return [
         'quote' => 's rentable sans prolongement, et préférèrent attendre l\'achèvement de la section de Libourne à Bordeaux pour équiper et mettre en service l\'ensemble le 20 septembre 1852',
         'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : « mettre en service l\'ensemble le 20 septembre 1852 ». Précise l\'année 1852 de Wikidata au jour (section Libourne - Bordeaux). Confiance moyenne.',
     ],
+
+    // ── 42. Ouvertures des grandes gares encore ouvertes (maximum de fréquentation depuis 2019 de 0,15 M à 53,9 M de voyageurs) que les cinq
+    // premières relectures n'avaient pas lues : leur ouverture venait d'OpenStreetMap, d'OpenHistoricalMap, de la ligne ou de Wikidata à
+    // l'année. 62 gares relues contre l'article de la gare (révision citée) et la chronologie de l'article de la ligne ; 14 corrigées
+    // (audit-grandes-gares, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/audit-grandes-gares.md). Lorsque la gare actuelle
+    // remplace une première gare ou une gare provisoire de la ville, la fiche garde la date de la première gare (règle du déménagement,
+    // section 37) : Nantes (gare provisoire de 1851), Lyon-Perrache, Viroflay-Rive-Gauche. Les 6 cas douteux restent à décider (Marseille-Blancarde,
+    // Alès, La Fère, Cap-d'Ail, Veauche, Remise à Jorelle).
+
+    // Nantes (id 16456)
+    [
+        'station' => ['name' => 'Nantes', 'uic' => '87481002'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1851-08-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Tours à Saint-Nazaire', 235999065),
+        'quote' => 'L\'exploitation de la section d\'Angers à Nantes a débuté le 21 août 1851 pour le service des marchandises et le 25 août 1851 pour le service des voyageurs.',
+        'reason' => 'article de la ligne « Ligne de Tours à Saint-Nazaire » (oldid 235999065) : « L\'exploitation de la section d\'Angers à Nantes a débuté le 21 août 1851 pour le service des marchandises et le 25 août 1851 pour le service des voyageurs. ». Remplace le 18/09/1989 d\'OpenStreetMap (nouveau bâtiment voyageurs) : la gare actuelle remplace la gare provisoire de 1851 puis la gare de Nantes-Orléans de 1853 (règle du déménagement, première gare de la ville). Gare de Nantes, oldid 241317487 : « Le 21 août 1851, mise en service de la ligne d\'Angers à Nantes ».',
+    ],
+
+    // Toulouse-Matabiau (id 17097)
+    [
+        'station' => ['name' => 'Toulouse-Matabiau', 'uic' => '87611004'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-08-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bordeaux-Saint-Jean à Sète-Ville', 234926948),
+        'quote' => '30 août 1856 : ouverture de Valence-d\'Agen à Toulouse.',
+        'reason' => 'article de la ligne « Ligne de Bordeaux-Saint-Jean à Sète-Ville » (oldid 234926948) : « 30 août 1856 : ouverture de Valence-d\'Agen à Toulouse. ». Remplace le 16/10/1856 d\'OpenHistoricalMap (« La gare primitive est inaugurée le 16 octobre 1856 » dans l\'article de la gare, oldid 238641166, dont l\'infobox donne la mise en service le 30 août 1856). Confiance moyenne.',
+    ],
+
+    // Lyon-Perrache (id 17663)
+    [
+        'station' => ['name' => 'Lyon-Perrache', 'uic' => '87722025'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-11-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lyon-Perrache', 241464982),
+        'quote' => 'la gare de Perrache est mise en service le 10 novembre 1856, lorsque cette compagnie prolonge sa ligne depuis la gare de Vaise',
+        'reason' => 'article de la gare (oldid 241464982) : « la gare de Perrache est mise en service le 10 novembre 1856, lorsque cette compagnie prolonge sa ligne depuis la gare de Vaise ». Remplace le 24/11/1857 d\'OpenHistoricalMap (la gare est inaugurée début juin 1857 ; l\'article de la ligne de Moret à Lyon-Perrache date le tracé définitif du Coteau à Lyon-Perrache du 24 novembre 1857).',
+    ],
+
+    // St-Étienne-Châteaucreux (id 17737)
+    [
+        'station' => ['name' => 'St-Étienne-Châteaucreux', 'uic' => '87726000'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-12-14',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Étienne-Châteaucreux', 239671917),
+        'quote' => 'La gare est ouverte au service des voyageurs le 14 décembre 1857.',
+        'reason' => 'article de la gare (oldid 239671917) : « La gare est ouverte au service des voyageurs le 14 décembre 1857. ». Remplace le 20/11/1857 d\'OpenHistoricalMap (premier bâtiment en bois de 1857, bâtiment en dur de 1882 à 1884).',
+    ],
+
+    // Viroflay-Rive-Gauche (id 16088)
+    [
+        'station' => ['name' => 'Viroflay-Rive-Gauche', 'uic' => '87393215'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-09-10',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Viroflay-Rive-Gauche', 232545789),
+        'quote' => 'Elle est mise en service le 10 septembre 1840 avec l\'ouverture de la voie entre la gare de Paris-Montparnasse et la gare de Versailles-Rive-Gauche',
+        'reason' => 'article de la gare (oldid 232545789) : « Elle est mise en service le 10 septembre 1840 avec l\'ouverture de la voie entre la gare de Paris-Montparnasse et la gare de Versailles-Rive-Gauche ». Remplace le 27/11/1979 d\'OpenStreetMap, qui est la reconstruction de la gare pour la Transversale Rive Gauche (plaque de 1979). L\'article de la ligne des Invalides à Versailles-Rive-Gauche date la ligne du 10/09/1840. Confiance moyenne.',
+    ],
+
+    // Montereau (id 17379)
+    [
+        'station' => ['name' => 'Montereau', 'uic' => '87682302'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montereau', 240764099),
+        'quote' => 'La gare de Montereau est mise en service le 12 août 1849, avec l\'ouverture au trafic de la section de Paris à Tonnerre par l\'État',
+        'reason' => 'article de la gare (oldid 240764099) : « La gare de Montereau est mise en service le 12 août 1849, avec l\'ouverture au trafic de la section de Paris à Tonnerre par l\'État ». Remplace le 01/10/1888 d\'OpenHistoricalMap. L\'article de la ligne de Paris-Lyon à Marseille-Saint-Charles (oldid 241214704) cite une mise en service provisoire de Melun - Montereau le 3 janvier 1849 et l\'ouverture de Paris à Tonnerre le 12 août 1849.',
+    ],
+
+    // Bellegarde (id 17888)
+    [
+        'station' => ['name' => 'Bellegarde', 'uic' => '87745000'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1858-03-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Bellegarde', 241398952),
+        'quote' => 'La section Seyssel-Genève est ouverte le 18 mars 1858 avec un point d\'arrêt dans ce qui deviendra, le 6 décembre suivant, la toute nouvelle commune de Bellegarde',
+        'reason' => 'article de la gare (oldid 241398952) : « La section Seyssel-Genève est ouverte le 18 mars 1858 avec un point d\'arrêt dans ce qui deviendra, le 6 décembre suivant, la toute nouvelle commune de Bellegarde ». Remplace le 21/05/2010 d\'OpenStreetMap (inauguration du pôle multimodal). L\'article de la ligne de Lyon-Perrache à Genève (oldid 240596388) : « L\'ouverture de la section de ligne entre Seyssel et Genève a lieu le 18 mars 1858 ».',
+    ],
+
+    // Stains-Cerisaie TT (id 17512)
+    [
+        'station' => ['name' => 'Stains-Cerisaie TT', 'uic' => '87697334'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2017-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Stains-La Cerisaie', 238954803),
+        'quote' => 'La gare est desservie depuis le 1 juillet 2017 par le T11',
+        'reason' => 'article de la gare (oldid 238954803) : « La gare est desservie depuis le 1 juillet 2017 par le T11 ». Précise le mois de Wikidata (juillet 2017) au jour : infobox de l\'article de la gare, « mise en service 1 juillet 2017 ».',
+    ],
+
+    // Rumilly (id 17909)
+    [
+        'station' => ['name' => 'Rumilly', 'uic' => '87746149'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-07-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rumilly', 240914363),
+        'quote' => 'Le 5 juillet 1866, la ligne entre Aix-les-Bains et Annecy, est mise en service par la compagnie du PLM.',
+        'reason' => 'article de la gare (oldid 240914363) : « Le 5 juillet 1866, la ligne entre Aix-les-Bains et Annecy, est mise en service par la compagnie du PLM. ». Précise l\'année 1866 de Wikidata au jour (même date dans la section 41 pour les gares voisines de la ligne d\'Aix-les-Bains à Annecy).',
+    ],
+
+    // Chauny (id 15720)
+    [
+        'station' => ['name' => 'Chauny', 'uic' => '87296616'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-10-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Creil à Jeumont', 236310314),
+        'quote' => 'Le 21 octobre 1849, de Noyon à Chauny',
+        'reason' => 'article de la ligne « Ligne de Creil à Jeumont » (oldid 236310314) : « Le 21 octobre 1849, de Noyon à Chauny ». Précise l\'année 1849 de Wikidata au jour (section Noyon - Chauny, dont Chauny est le terminus ; l\'article de la gare dit « ouverte en 1849, en même temps que la portion de la ligne de Creil à Jeumont qui la dessert alors »).',
+    ],
+
+    // Livry-sur-Seine (id 17380)
+    [
+        'station' => ['name' => 'Livry-sur-Seine', 'uic' => '87682401'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Corbeil-Essonnes à Montereau', 241117450),
+        'quote' => 'Elle a été mise en service le 1 juin 1897 et inaugurée le 27 juin 1897.',
+        'reason' => 'article de la ligne « Ligne de Corbeil-Essonnes à Montereau » (oldid 241117450) : « Elle a été mise en service le 1 juin 1897 et inaugurée le 27 juin 1897. ». Précise l\'année 1897 de la ligne au jour (même date que Villabé, section 41). Confiance moyenne : l\'article de la gare ne donne aucune date.',
+    ],
+
+    // Le Grand-Lemps (id 17941)
+    [
+        'station' => ['name' => 'Le Grand-Lemps', 'uic' => '87747220'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1860-12-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble)', 241143131),
+        'quote' => 'Du Grand-Lemps à Rives le 24 décembre 1860.',
+        'reason' => 'article de la ligne « Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble) » (oldid 241143131) : « Du Grand-Lemps à Rives le 24 décembre 1860. ». Remplace le 02/01/1861 déduit de la ligne : le Grand-Lemps est le terminus de la section ouverte le 24/12/1860 vers Rives. Confiance moyenne : l\'article de la gare ne donne aucune date.',
+    ],
+
+    // St-Sulpice-Izon (id 16922)
+    [
+        'station' => ['name' => 'St-Sulpice-Izon', 'uic' => '87584722'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 's rentable sans prolongement, et préférèrent attendre l\'achèvement de la section de Libourne à Bordeaux pour équiper et mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : « s rentable sans prolongement, et préférèrent attendre l\'achèvement de la section de Libourne à Bordeaux pour équiper et mettre en service l\'ensemble le 20 septembre 1852 ». Précise l\'année 1852 de Wikidata au jour (section Libourne - Bordeaux, comme Saint-Loubès, section 41). Confiance moyenne : l\'article de la gare ne donne aucune date.',
+    ],
+
+    // Thiviers (id 17037)
+    [
+        'station' => ['name' => 'Thiviers', 'uic' => '87595124'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1861-08-26',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Limoges-Bénédictins à Périgueux', 234971310),
+        'quote' => 'La ligne a été mise en service le 26 août 1861.',
+        'reason' => 'article de la ligne « Ligne de Limoges-Bénédictins à Périgueux » (oldid 234971310) : « La ligne a été mise en service le 26 août 1861. ». Remplace le 30/05/1892 déduit de la ligne du Quéroy-Pranzac à Thiviers : Thiviers est l\'une des neuf gares d\'origine de la ligne de Limoges à Périgueux (« Aux neuf gares d\'origine comprises entre Limoges et Périgueux (Beynac, Nexon, Lafarge, Bussière-Galant, La Coquille, Thiviers... »). Confiance moyenne.',
+    ],
+
 ];
