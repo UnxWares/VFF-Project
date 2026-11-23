@@ -31,6 +31,7 @@ class ScheduleTest extends TestCase
             'vff:prune-error-reports' => ['55 5 * * *', 'model:prune', true],
             'vff:commons-cache-prune' => ['20 * * * *', 'vff:commons-cache-prune', true],
             'vff:commons-allowlist' => ['*/10 * * * *', 'vff:commons-allowlist --refresh', true],
+            'vff:refresh-stale-figures' => ['*/10 * * * *', 'vff:refresh-stale-figures', true],
             'sanctum:prune-expired' => ['5 4 * * *', 'sanctum:prune-expired --hours=24', true],
             'auth:clear-resets' => ['10 4 * * *', 'auth:clear-resets', true],
             'queue:prune-failed' => ['15 4 * * *', 'queue:prune-failed --hours=720', true],

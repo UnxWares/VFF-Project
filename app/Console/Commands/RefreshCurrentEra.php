@@ -131,6 +131,9 @@ class RefreshCurrentEra extends Command
         app(NetworkFigures::class)->refresh();
         // Chronologie (/chronology, /api/v1/chronology, et « Ce jour-là » qui la lit) : elle s'arrête au jour du calcul.
         app(NetworkChronology::class)->refresh();
+        // Chiffres des départements, des compagnies et de la couverture (rangés sans expiration) : recalculés s'ils
+        // sont périmés, sans attendre que les données se calment (ce passage vient de les changer).
+        $this->call('vff:refresh-stale-figures', ['--now' => true]);
         // Webhooks `current_era.refreshed` (abonnés de l'API).
         CurrentEraRefreshed::dispatch((int) $era->year, $today, count($lineIds), count($stationIds));
         $this->info('✓ Ère courante recalculée au '.$today.'.');

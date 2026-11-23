@@ -47,6 +47,15 @@ Schedule::command('vff:refresh-current-era')
     // Pas de runInBackground : avec bin/php, le conteneur s'arrête à la fin de schedule:run.
     ->withoutOverlapping(180);
 
+// Chiffres rangés sans expiration (départements, compagnies, couverture) : recalculés dès que les données ont
+// changé et se sont calmées depuis 10 minutes (une application en base les change en continu). Les pages
+// lisent la dernière valeur en attendant. Production seulement.
+Schedule::command('vff:refresh-stale-figures')
+    ->name('vff:refresh-stale-figures')
+    ->everyTenMinutes()
+    ->environments(['production'])
+    ->withoutOverlapping(60);
+
 /*
 | Engagements de la politique de confidentialité (production seulement : aucune tâche planifiée
 | sur les postes de développement).

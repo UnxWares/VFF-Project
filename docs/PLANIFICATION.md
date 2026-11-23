@@ -56,6 +56,7 @@ la commande l'affiche et recommande `vff:rebuild-history --from=build-era-segmen
 | `auth:clear-resets`              | 4 h 10                | production       | jetons de réinitialisation de mot de passe périmés                                    |
 | `queue:prune-failed`             | 4 h 15                | production       | travaux échoués depuis plus de 30 jours                                               |
 | `vff:refresh-current-era`        | 4 h 30, puis chaque heure jusqu'à 23 h 30 | partout (rien ne tourne sans `schedule:run`) | recalcul de l'ère courante, voir plus haut |
+| `vff:refresh-stale-figures`      | toutes les 10 minutes | production       | recalcule départements, compagnies et couverture si les données ont changé et se sont calmées depuis 10 min ; en fin de `vff:refresh-current-era` aussi (sans attendre) |
 | `vff:prune-inactive-accounts`    | 5 h 15                | production       | comptes inutilisés depuis 3 ans                                                       |
 | `vff:remind-expiring-api-tokens` | 5 h 30                | production       | rappel 30 jours avant l'échéance d'un jeton                                           |
 | `vff:prune-audit-events`         | 5 h 45                | production       | journal d'audit, 12 mois                                                              |

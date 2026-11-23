@@ -9,8 +9,8 @@ use Illuminate\Console\Command;
 /**
  * Calcule les fiches par département (/departments, /departments/{code}-{nom}, `GET /api/v1/departments/{code}/history`,
  * `GET /api/v1/stats/departments`) et les range dans le cache, sans expiration. Lecture seule en base (quelques
- * minutes, requêtes de 30 secondes au plus) ; à lancer à la main après un rejeu de la carte historique ou un import
- * d'événements : aucune planification.
+ * minutes, requêtes de 30 secondes au plus) . Recalculées aussi par `vff:refresh-stale-figures` quand les données ont changé ;
+ * cette commande force un calcul (ou limite à quelques départements avec --only).
  *
  *   php artisan vff:compute-department-figures
  *   php artisan vff:compute-department-figures --only=16,23      (seulement ces départements)

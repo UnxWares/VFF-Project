@@ -4,6 +4,7 @@ namespace App\Services\Departments;
 
 use App\Models\Accident;
 use App\Services\Communes\CommuneRail;
+use App\Services\FiguresVersion;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,9 @@ final class DepartmentFigures
     public const INDEX_KEY = 'department_figures:v1:index';
 
     public const SHEET_KEY = 'department_figures:v1:sheet:';
+
+    /** Nom du suivi de fraîcheur (FiguresVersion). */
+    public const FRESHNESS_KEY = 'departments';
 
     /** Longueur de voie minimale dans le département pour y compter une ligne (mètres). */
     public const MIN_LINE_M = 1000;
@@ -122,6 +126,12 @@ final class DepartmentFigures
         return $cached;
     }
 
+    /** Les chiffres rangés viennent-ils de données périmées (ou n'ont-ils jamais été suivis) ? Ils restent lus en attendant. */
+    public function isStale(): bool
+    {
+        return app(FiguresVersion::class)->isStale(self::FRESHNESS_KEY);
+    }
+
     /** Adresse relative d'une fiche : `16-charente`. */
     public static function slug(string $code, string $name): string
     {
@@ -190,6 +200,7 @@ final class DepartmentFigures
     /** Calcule puis range dans le cache (sans expiration). */
     public function refresh(?array $only = null): array
     {
+        $version = app(FiguresVersion::class)->read();
         $result = $this->compute($only);
         foreach ($result['sheets'] as $code => $sheet) {
             Cache::forever(self::SHEET_KEY.$code, $sheet);
@@ -205,6 +216,10 @@ final class DepartmentFigures
             $order = array_map('strval', array_keys(FrenchDepartments::ALL));
             uksort($byCode, fn ($a, $b): int => array_search((string) $a, $order, true) <=> array_search((string) $b, $order, true));
             Cache::forever(self::INDEX_KEY, ['departments' => array_values($byCode)] + $result['index']);
+        }
+        if ($only === null) {
+            // Un calcul partiel laisse les autres départements périmés : seul un calcul complet met à jour.
+            app(FiguresVersion::class)->record(self::FRESHNESS_KEY, $version);
         }
 
         return $result;

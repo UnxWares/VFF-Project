@@ -8,8 +8,8 @@ use Illuminate\Console\Command;
 /**
  * Calcule les fiches des compagnies de chemins de fer (/companies, /companies/{slug}, `GET /api/v1/companies`,
  * liens des fiches de lignes) et les range dans le cache, sans expiration. Lecture seule en base (quelques dizaines de
- * secondes, requêtes de 30 secondes au plus) ; à lancer à la main après un import d'événements de concession ou une
- * modification de `database/data/companies.php` : aucune planification.
+ * secondes, requêtes de 30 secondes au plus) . Recalculées aussi par `vff:refresh-stale-figures` quand les données ont changé ;
+ * cette commande force un calcul (par exemple après une modification de `database/data/companies.php`).
  *
  *   php artisan vff:compute-company-figures
  *   php artisan vff:compute-company-figures --dry-run      (calcule et affiche, ne touche pas au cache)

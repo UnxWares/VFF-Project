@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 
 /**
  * Calcule « Ce que sait l'encyclopédie » (page /network/coverage, `GET /api/v1/stats/coverage`) et le range
- * dans le cache, sans expiration, avec sa date de calcul. Lecture seule en base (requêtes bornées à 30 s) ;
- * à lancer à la main après un rejeu de la carte ou un import : aucune planification.
+ * dans le cache, sans expiration, avec sa date de calcul. Lecture seule en base (requêtes bornées à 30 s) . Recalculée aussi par
+ * `vff:refresh-stale-figures` quand les données ont changé ; cette commande force un calcul.
  *
  *   php artisan vff:compute-coverage-figures
  *   php artisan vff:compute-coverage-figures --dry-run   (calcule et affiche, ne touche pas au cache)

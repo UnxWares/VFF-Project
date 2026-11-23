@@ -2,6 +2,7 @@
 
 namespace App\Services\Companies;
 
+use App\Services\FiguresVersion;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -41,6 +42,9 @@ final class CompanyFigures
     public const SHEET_KEY = 'company_figures:v1:sheet:';
 
     public const BY_LINE_KEY = 'company_figures:v1:by_line';
+
+    /** Nom du suivi de fraîcheur (FiguresVersion). */
+    public const FRESHNESS_KEY = 'companies';
 
     public const MAP_KEY = 'company_figures:v1:map:';
 
@@ -120,6 +124,12 @@ final class CompanyFigures
         self::$byLineMemo ??= (array) Cache::get(self::BY_LINE_KEY, []);
 
         return self::$byLineMemo[$lineId] ?? [];
+    }
+
+    /** Les chiffres rangés viennent-ils de données périmées (ou n'ont-ils jamais été suivis) ? Ils restent lus en attendant. */
+    public function isStale(): bool
+    {
+        return app(FiguresVersion::class)->isStale(self::FRESHNESS_KEY);
     }
 
     /** Oublie la copie en mémoire (tests, calcul suivi d'une lecture dans le même processus). */
@@ -212,6 +222,7 @@ final class CompanyFigures
     /** Calcule puis range dans le cache (sans expiration). */
     public function refresh(): array
     {
+        $version = app(FiguresVersion::class)->read();
         $result = $this->compute();
         foreach ($result['sheets'] as $slug => $sheet) {
             Cache::forever(self::MAP_KEY.$slug, $sheet['map']);
@@ -220,6 +231,7 @@ final class CompanyFigures
         }
         Cache::forever(self::INDEX_KEY, $result['index']);
         Cache::forever(self::BY_LINE_KEY, $result['by_line']);
+        app(FiguresVersion::class)->record(self::FRESHNESS_KEY, $version);
         self::forget();
 
         return $result;

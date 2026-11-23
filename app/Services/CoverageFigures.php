@@ -31,6 +31,9 @@ final class CoverageFigures
 {
     public const CACHE_KEY = 'coverage_figures:v1';
 
+    /** Nom du suivi de fraîcheur (FiguresVersion). */
+    public const FRESHNESS_KEY = 'coverage';
+
     private const OPEN = "('in_service','single_track')";
 
     private const CLOSED_OR_GONE = "('abandoned','service_track','dismantled','razed')";
@@ -60,11 +63,19 @@ final class CoverageFigures
         });
     }
 
+    /** Les chiffres rangés viennent-ils de données périmées (ou n'ont-ils jamais été suivis) ? Ils restent lus en attendant. */
+    public function isStale(): bool
+    {
+        return app(FiguresVersion::class)->isStale(self::FRESHNESS_KEY);
+    }
+
     /** Recalcule et range le résultat (sans expiration). */
     public function refresh(): array
     {
+        $version = app(FiguresVersion::class)->read();
         $figures = $this->compute();
         Cache::forever(self::CACHE_KEY, $figures);
+        app(FiguresVersion::class)->record(self::FRESHNESS_KEY, $version);
 
         return $figures;
     }
