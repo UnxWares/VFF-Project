@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
 use App\Http\Controllers\Api\LineSignallingController;
+use App\Http\Controllers\Api\LineSpeedController;
 use App\Http\Controllers\Api\LineStopsController;
 use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Controllers\Api\LineTraceController;
@@ -118,6 +119,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
+    Route::get('/v1/lines/{line:slug}/speeds', [LineSpeedController::class, 'index'])->name('api.lines.speeds');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
     // Voies (régime d'exploitation) et radio sol-train (GSM-R) de SNCF Réseau, ODbL : App\Services\Sncf\LineInfrastructure.
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');

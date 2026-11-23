@@ -159,6 +159,17 @@ type Line {
     ): [LineSignallingRange!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
+    Vitesses maximales de la ligne : tranches de points kilométriques de l'ère (SNCF Réseau Open Data,
+    jeu `vitesse-maximale-nominale-sur-ligne`, ODbL ; seule l'ère courante, 2030, est renseignée) et
+    changements datés relevés dans l'article Wikipédia de la ligne. Même lecture que
+    `GET /api/v1/lines/{line}/speeds`.
+    """
+    speeds(
+        "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
+        era: Int
+    ): LineSpeeds! @field(resolver: "App\\GraphQL\\Resolvers\\LineSpeedsResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
     Passages à niveau de la ligne aujourd'hui (SNCF Réseau, ODbL), dans l'ordre des points
     kilométriques, PK inconnus en dernier. Rattachement par le code de ligne : liste vide pour une
     ligne sans code SNCF Réseau.
@@ -381,6 +392,171 @@ type LineSignallingRange {
 
     "Remarque sur la tranche, en général la source (ex. « Source : SNCF Open Data, mode-de-cantonnement-des-lignes »)."
     note: String
+}
+
+"Vitesses maximales d'une ligne à une ère (`Line.speeds`)."
+type LineSpeeds {
+    "Année de l'ère lue."
+    era_year: Int!
+
+    "Tranches de PK de même vitesse maximale nominale, dans l'ordre des PK (voisines de même vitesse réunies). Liste vide hors de l'ère courante."
+    ranges: [LineSpeedRange!]!
+
+    "Vitesses la plus haute et la plus basse, longueur couverte et longueur par vitesse."
+    summary: LineSpeedSummary!
+
+    "Changements de vitesse datés et sûrs (fiabilité haute ou moyenne), du plus ancien au plus récent. Un fait absent ne veut pas dire que la vitesse n'a jamais changé."
+    history: [LineSpeedEvent!]!
+
+    "Provenance : SNCF Réseau (ODbL) pour les tranches, Wikipédia (CC BY-SA 4.0) pour l'historique."
+    provenance: LineSpeedProvenance!
+}
+
+"Tranche de points kilométriques de même vitesse maximale nominale (SNCF Réseau), sans limitation temporaire ni vitesse propre à une catégorie de trains."
+type LineSpeedRange {
+    "PK de début, en mètres, dans la numérotation de SNCF Réseau."
+    pk_start_m: Int!
+
+    "PK de fin, en mètres."
+    pk_end_m: Int!
+
+    "PK de début en notation `km+mmm`."
+    pk_start_label: String!
+
+    "PK de fin en notation `km+mmm`."
+    pk_end_label: String!
+
+    "Longueur de la tranche, en mètres (`pk_end_m - pk_start_m`)."
+    length_m: Int!
+
+    "Vitesse maximale nominale, en km/h."
+    max_speed_kmh: Int!
+}
+
+"Résumé des vitesses d'une ligne."
+type LineSpeedSummary {
+    "Vitesse la plus haute, en km/h. Nulle sans tranche."
+    max_speed_kmh: Int
+
+    "Vitesse la plus basse, en km/h. Nulle sans tranche."
+    min_speed_kmh: Int
+
+    "Longueur totale des tranches, en mètres."
+    covered_m: Int!
+
+    "Longueur par vitesse, la plus haute d'abord."
+    by_speed: [LineSpeedShare!]!
+}
+
+"Longueur de ligne à une vitesse."
+type LineSpeedShare {
+    "Vitesse maximale, en km/h."
+    max_speed_kmh: Int!
+
+    "Longueur des tranches à cette vitesse, en mètres."
+    length_m: Int!
+}
+
+"Changement de vitesse daté, relevé dans l'article Wikipédia de la ligne."
+type LineSpeedEvent {
+    "`raise` (relèvement), `lower` (abaissement), `opening` (vitesse à l'ouverture) ou `state` (vitesse autorisée à cette date)."
+    kind: String!
+
+    "Vitesse, en km/h."
+    speed_kmh: Int!
+
+    "Vitesse d'avant, en km/h, quand l'article la donne."
+    previous_speed_kmh: Int
+
+    "Date (AAAA-MM-JJ ; jour et mois manquants valent 01)."
+    date: String!
+
+    "Précision de la date : `day`, `month` ou `year`."
+    date_precision: String!
+
+    "Fiabilité : `high` (jour ou mois) ou `medium` (année)."
+    reliability: String!
+
+    "`whole_line`, `section` (portion dans `section`) ou `unspecified`."
+    scope: String!
+
+    "Portion, quand l'article la nomme."
+    section: LineSpeedEventSection
+
+    "Article et révision lus."
+    source: LineSpeedEventSource!
+}
+
+"Portion d'un changement de vitesse."
+type LineSpeedEventSection {
+    "Lieu de début, tel qu'écrit dans l'article."
+    from: String
+
+    "Lieu de fin, tel qu'écrit dans l'article."
+    to: String
+
+    "PK de début (mètres), quand la portion est placée sur la ligne."
+    pk_start_m: Int
+
+    "PK de fin (mètres)."
+    pk_end_m: Int
+}
+
+"Source d'un changement de vitesse."
+type LineSpeedEventSource {
+    "`wikipedia`."
+    provider: String!
+
+    "Titre de l'article."
+    title: String!
+
+    "Permalien de la révision lue."
+    url: String!
+
+    "Numéro de la révision lue."
+    revision: Int!
+
+    "Courte phrase de l'article (CC BY-SA 4.0), pour relire."
+    excerpt: String
+}
+
+"Provenance des vitesses."
+type LineSpeedProvenance {
+    "Tranches : SNCF Réseau Open Data."
+    ranges: LineSpeedRangesProvenance!
+
+    "Historique : articles de Wikipédia."
+    history: LineSpeedHistoryProvenance!
+}
+
+"Provenance des tranches de vitesse."
+type LineSpeedRangesProvenance {
+    "Producteur."
+    provider: String!
+
+    "Identifiant du jeu de données."
+    dataset: String!
+
+    "Page du jeu de données."
+    url: String!
+
+    "Licence (SPDX)."
+    license: String!
+
+    "Mention à reprendre."
+    mention: String!
+}
+
+"Provenance de l'historique des vitesses."
+type LineSpeedHistoryProvenance {
+    "Source."
+    provider: String!
+
+    "Licence."
+    license: String!
+
+    "Mention à reprendre."
+    mention: String!
 }
 
 """

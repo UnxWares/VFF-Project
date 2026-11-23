@@ -1,0 +1,45 @@
+<?php
+
+// Section « Vitesses » de la fiche ligne : vitesse maximale nominale par PK (SNCF Réseau, jeu
+// « vitesse-maximale-nominale-sur-ligne ») et changements datés relevés dans Wikipédia.
+return [
+    'title' => 'Vitesses maximales',
+    'intro' => 'Vitesse maximale nominale de la voie aujourd’hui, section par section, d’après SNCF Réseau : de :min à :max km/h.',
+    'intro_single' => 'Vitesse maximale nominale de la voie aujourd’hui, d’après SNCF Réseau : :max km/h sur toute la partie décrite.',
+    'intro_history_only' => 'SNCF Réseau ne publie pas de vitesse pour cette ligne. Les changements datés ci-dessous viennent de son article Wikipédia.',
+    'stat_max' => 'Vitesse la plus haute',
+    'stat_min' => 'Vitesse la plus basse',
+    'stat_top_share' => 'À la vitesse la plus haute',
+    'stat_covered' => 'Longueur décrite',
+    'chart_label' => 'Vitesse maximale selon le point kilométrique',
+    'axis_pk' => 'PK (km)',
+    'range_label' => 'PK :from à :to : :speed km/h sur :km km',
+    'hint' => 'Survolez le graphique ou parcourez les sections au clavier pour lire leur vitesse.',
+    'gap_legend' => 'Sans vitesse publiée',
+    'show_table_one' => 'Voir la section',
+    'show_table_other' => 'Voir les :count sections',
+    'table_caption' => 'Vitesse maximale par section, dans l’ordre des points kilométriques',
+    'col_from' => 'PK de début',
+    'col_to' => 'PK de fin',
+    'col_length' => 'Longueur',
+    'col_speed' => 'Vitesse',
+    'history_title' => 'Changements de vitesse datés',
+    'history_intro' => 'Relevés dans l’article Wikipédia de la ligne. Un changement absent ne veut pas dire que la vitesse n’a jamais changé.',
+    'kind' => [
+        'raise' => 'Vitesse relevée à :speed km/h',
+        'raise_from' => 'Vitesse relevée de :from à :speed km/h',
+        'lower' => 'Vitesse abaissée à :speed km/h',
+        'lower_from' => 'Vitesse abaissée de :from à :speed km/h',
+        'opening' => 'Ouverture à :speed km/h',
+        'state' => 'Vitesse autorisée : :speed km/h',
+    ],
+    'scope' => [
+        'whole_line' => 'Toute la ligne',
+        'section' => 'De :from à :to',
+        'section_pk' => 'PK :from à :to',
+    ],
+    'source_link' => 'Wikipédia',
+    'source_hint' => 'article « :title », révision lue',
+    'source' => 'Source : SNCF Réseau, vitesse maximale nominale sur ligne (ODbL). Vitesse nominale de la voie, sans les limitations temporaires ni les vitesses propres à certains trains. PK dans la numérotation de SNCF Réseau.',
+    'history_source' => 'Changements datés : articles de Wikipédia (CC BY-SA 4.0), faits relevés avec un lien vers la révision lue.',
+];

@@ -1,0 +1,45 @@
+<?php
+
+// Abschnitt „Geschwindigkeiten“ der Streckenseite: Streckenhöchstgeschwindigkeit nach Kilometrierung
+// (SNCF Réseau, Datensatz „vitesse-maximale-nominale-sur-ligne“) und datierte Änderungen aus Wikipedia.
+return [
+    'title' => 'Höchstgeschwindigkeiten',
+    'intro' => 'Heutige Streckenhöchstgeschwindigkeit, Abschnitt für Abschnitt, nach SNCF Réseau: von :min bis :max km/h.',
+    'intro_single' => 'Heutige Streckenhöchstgeschwindigkeit nach SNCF Réseau: :max km/h auf dem gesamten beschriebenen Teil.',
+    'intro_history_only' => 'SNCF Réseau veröffentlicht für diese Strecke keine Geschwindigkeit. Die datierten Änderungen unten stammen aus ihrem Wikipedia-Artikel.',
+    'stat_max' => 'Höchste Geschwindigkeit',
+    'stat_min' => 'Niedrigste Geschwindigkeit',
+    'stat_top_share' => 'Mit der höchsten Geschwindigkeit',
+    'stat_covered' => 'Beschriebene Länge',
+    'chart_label' => 'Höchstgeschwindigkeit nach Streckenkilometer',
+    'axis_pk' => 'Streckenkilometer (km)',
+    'range_label' => 'km :from bis :to: :speed km/h auf :km km',
+    'hint' => 'Fahren Sie mit der Maus über die Grafik oder gehen Sie die Abschnitte mit der Tastatur durch, um ihre Geschwindigkeit zu lesen.',
+    'gap_legend' => 'Keine veröffentlichte Geschwindigkeit',
+    'show_table_one' => 'Abschnitt anzeigen',
+    'show_table_other' => 'Die :count Abschnitte anzeigen',
+    'table_caption' => 'Höchstgeschwindigkeit je Abschnitt, in der Reihenfolge der Streckenkilometer',
+    'col_from' => 'Von km',
+    'col_to' => 'Bis km',
+    'col_length' => 'Länge',
+    'col_speed' => 'Geschwindigkeit',
+    'history_title' => 'Datierte Geschwindigkeitsänderungen',
+    'history_intro' => 'Aus dem Wikipedia-Artikel der Strecke. Eine fehlende Änderung heißt nicht, dass sich die Geschwindigkeit nie geändert hat.',
+    'kind' => [
+        'raise' => 'Geschwindigkeit auf :speed km/h angehoben',
+        'raise_from' => 'Geschwindigkeit von :from auf :speed km/h angehoben',
+        'lower' => 'Geschwindigkeit auf :speed km/h gesenkt',
+        'lower_from' => 'Geschwindigkeit von :from auf :speed km/h gesenkt',
+        'opening' => 'Eröffnung mit :speed km/h',
+        'state' => 'Zulässige Geschwindigkeit: :speed km/h',
+    ],
+    'scope' => [
+        'whole_line' => 'Gesamte Strecke',
+        'section' => 'Von :from bis :to',
+        'section_pk' => 'km :from bis :to',
+    ],
+    'source_link' => 'Wikipedia',
+    'source_hint' => 'Artikel „:title“, gelesene Version',
+    'source' => 'Quelle: SNCF Réseau, Streckenhöchstgeschwindigkeit (ODbL). Höchstgeschwindigkeit der Strecke, ohne vorübergehende Langsamfahrstellen und ohne Geschwindigkeiten einzelner Zuggattungen. Kilometrierung von SNCF Réseau.',
+    'history_source' => 'Datierte Änderungen: Wikipedia-Artikel (CC BY-SA 4.0), Fakten mit einem Link auf die gelesene Version.',
+];

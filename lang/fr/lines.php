@@ -575,6 +575,7 @@ return [
         'heritage' => 'Train touristique',
         'tech' => 'Technique',
         'profile' => 'Profil en long',
+        'speeds' => 'Vitesses',
         'level-crossings' => 'Passages à niveau',
         'greenways' => 'Voie verte',
         'chronicle' => 'Chronologie',

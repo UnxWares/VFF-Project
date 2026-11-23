@@ -23,6 +23,7 @@ use App\Mcp\Tools\LineInfrastructureTool;
 use App\Mcp\Tools\LineMaterialsTool;
 use App\Mcp\Tools\LineProfileTool;
 use App\Mcp\Tools\LineSheetTool;
+use App\Mcp\Tools\LineSpeedsTool;
 use App\Mcp\Tools\LineStopsTool;
 use App\Mcp\Tools\LineStoriesTool;
 use App\Mcp\Tools\ListDepartmentsTool;
@@ -109,6 +110,7 @@ class VffServer extends Server
         LineMaterialsTool::class,
         LocateOnLineTool::class,
         SignallingHistoryTool::class,
+        LineSpeedsTool::class,
         ListDepartmentsTool::class,
         NetworkInAreaTool::class,
         WhatWasHereTool::class,

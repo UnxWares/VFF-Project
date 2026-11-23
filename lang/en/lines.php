@@ -574,6 +574,7 @@ return [
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
         'profile' => 'Gradient profile',
+        'speeds' => 'Speeds',
         'level-crossings' => 'Level crossings',
         'greenways' => 'Greenway',
         'chronicle' => 'Chronology',

@@ -1154,6 +1154,20 @@ remplacement que l'article ne date pas reste invisible. Puis `provenance` (Wikip
 {"line": "rfn-905000", "year": 1990}
 ```
 
+
+### `line_speeds` : vitesses maximales d'une ligne
+
+Mêmes données que `GET /api/v1/lines/{line}/speeds` (service `LineSpeeds`), sans les phrases de l'article :
+`ranges` (vitesse maximale nominale par tranche de PK de SNCF Réseau, jeu `vitesse-maximale-nominale-sur-ligne`,
+ODbL ; tranches voisines de même vitesse réunies ; ère courante seulement), `summary` (vitesses la plus haute et la
+plus basse, longueur couverte, longueur par vitesse) et `history` (changements datés relevés dans l'article Wikipédia
+de la ligne : `kind` raise, lower, opening ou state, `speed_kmh`, `previous_speed_kmh`, date et précision,
+fiabilité high ou medium, portion, permalien de la révision lue).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+
 ### `list_departments` : départements et régions
 
 Liste de référence des territoires (Code officiel géographique de l'INSEE, Licence Ouverte 2.0), mêmes données que

@@ -30,6 +30,7 @@
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
+    import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { Link } from '@inertiajs/svelte';
@@ -65,7 +66,7 @@
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>,
-     *   profile?: any, trace_export_eras?: Array<number>,
+     *   profile?: any, speeds?: any, trace_export_eras?: Array<number>,
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
@@ -99,6 +100,8 @@
         signalling_history = [],
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
+        // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
+        speeds = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
         trace_export_eras = [],
         // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
@@ -127,6 +130,7 @@
         'heritage',
         'tech',
         'profile',
+        'speeds',
         'level-crossings',
         'greenways',
         'chronicle',
@@ -1256,6 +1260,10 @@
 
         {#if profile}
             <LineProfile {profile} />
+        {/if}
+
+        {#if speeds && (speeds.ranges.length || speeds.history.length)}
+            <LineSpeeds {speeds} />
         {/if}
 
         {#if level_crossings.total}

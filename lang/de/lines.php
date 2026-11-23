@@ -574,6 +574,7 @@ return [
         'heritage' => 'Museumsbahn',
         'tech' => 'Technik',
         'profile' => 'Höhenprofil',
+        'speeds' => 'Geschwindigkeiten',
         'level-crossings' => 'Bahnübergänge',
         'greenways' => 'Bahntrassenradweg',
         'chronicle' => 'Chronik',
