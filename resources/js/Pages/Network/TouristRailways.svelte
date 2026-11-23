@@ -21,6 +21,7 @@
         filterGreenways,
         filterRailways,
         kmOf,
+        operationFacts,
         sortRailways,
         wikidataUrl,
     } from '$lib/touristRailways.js';
@@ -176,6 +177,7 @@
                     </thead>
                     <tbody>
                         {#each filtered as r (r.id)}
+                            {@const ops = operationFacts(r, t, lang)}
                             <tr id={r.id}>
                                 <td class="name">
                                     <span class="rw-name">{r.name}</span>
@@ -184,6 +186,9 @@
                                             >{t('operator', { name: r.operator })}</span
                                         >
                                     {/if}
+                                    {#each ops as f (f.key)}
+                                        <span class="operator" lang={f.lang}>{f.text}</span>
+                                    {/each}
                                 </td>
                                 <td data-label={t('col_type')}>{t(`types.${r.type}`)}</td>
                                 <td data-label={t('col_gauge')}>
@@ -224,7 +229,7 @@
                                             <li class="muted">{t('no_links')}</li>
                                         {/if}
                                     </ul>
-                                    {#if factsOf(r).length}
+                                    {#if factsOf(r).length || (r.detail_source_url && ops.length)}
                                         <details class="sources">
                                             <summary>{t('sources')}</summary>
                                             <ul>
@@ -242,6 +247,21 @@
                                                         >
                                                     </li>
                                                 {/each}
+                                                {#if r.detail_source_url && ops.length}
+                                                    <li>
+                                                        <a href={r.detail_source_url}
+                                                            >{srcShort('wp-revision')}</a
+                                                        ><span class="muted"
+                                                            >{t('colon')}{ops
+                                                                .map((f) =>
+                                                                    t(
+                                                                        `fact.${f.key}`,
+                                                                    ).toLowerCase(),
+                                                                )
+                                                                .join(', ')}</span
+                                                        >
+                                                    </li>
+                                                {/if}
                                             </ul>
                                         </details>
                                     {/if}

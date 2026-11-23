@@ -105,3 +105,56 @@ export function pointsBounds(collection) {
 export function wikidataUrl(qid) {
     return qid ? `https://www.wikidata.org/wiki/${qid}` : null;
 }
+
+/** Clé de traduction d'une saison du catalogue (texte français) : `fold` avec des tirets bas. */
+export function seasonKey(season) {
+    return fold(season).replaceAll(' ', '_');
+}
+
+/**
+ * Faits d'exploitation affichés sous le nom, quand le catalogue les connaît (article cité par
+ * `detail_source_url`) : portion exploitée, saison, jour d'ouverture. La saison est écrite en français
+ * dans le catalogue : sa traduction est cherchée sous `season_text.<clé>`, sinon le texte français est
+ * gardé et marqué `lang: 'fr'`.
+ *
+ * @param {any} r exploitation (App\Services\TouristRailways)
+ * @param {(key: string, vars?: Record<string, string|number>) => string} t traduction (préfixe `tourist.` déjà mis)
+ * @param {string} lang langue de la page
+ * @returns {Array<{ key: string, text: string, lang: string | null }>}
+ */
+export function operationFacts(r, t, lang) {
+    /** @type {Array<{ key: string, text: string, lang: string | null }>} */
+    const facts = [];
+    if (r.section?.from) {
+        facts.push({
+            key: 'section',
+            text: r.section.to
+                ? t('section', { from: r.section.from, to: r.section.to })
+                : t('section_from', { from: r.section.from }),
+            lang: null,
+        });
+    }
+    if (r.season) {
+        const key = `season_text.${seasonKey(r.season)}`;
+        const translated = t(key);
+        const known = translated !== key && translated !== `tourist.${key}`;
+        facts.push({
+            key: 'season',
+            text: t('season', { season: known ? translated : r.season }),
+            lang: known || lang === 'fr' ? null : 'fr',
+        });
+    }
+    if (r.opened_on) {
+        const d = new Date(`${String(r.opened_on).slice(0, 10)}T00:00:00Z`);
+        if (!Number.isNaN(d.getTime())) {
+            const date = d.toLocaleDateString(lang, {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                timeZone: 'UTC',
+            });
+            facts.push({ key: 'opened_on', text: t('opened_on', { date }), lang: null });
+        }
+    }
+    return facts;
+}

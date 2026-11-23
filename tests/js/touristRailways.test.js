@@ -5,8 +5,10 @@ import {
     filterRailways,
     fold,
     kmOf,
+    operationFacts,
     pointsBounds,
     railwayPoints,
+    seasonKey,
     sortRailways,
     wikidataUrl,
 } from '../../resources/js/lib/touristRailways.js';
@@ -123,5 +125,60 @@ describe('touristRailways', () => {
     it('donne l’adresse Wikidata', () => {
         expect(wikidataUrl('Q737163')).toBe('https://www.wikidata.org/wiki/Q737163');
         expect(wikidataUrl(null)).toBeNull();
+    });
+});
+
+describe('operationFacts', () => {
+    // Traduction de test : la clé (préfixe tourist. compris) et ses paramètres, sauf les saisons connues.
+    const seasons = { 'season_text.de_fevrier_a_decembre': 'February to December' };
+    const t = (key, vars) =>
+        seasons[key] ??
+        (vars
+            ? `${key}|${Object.entries(vars)
+                  .map(([k, v]) => `${k}=${v}`)
+                  .join('|')}`
+            : `tourist.${key}`);
+    const r = (over = {}) => ({ section: null, season: null, opened_on: null, ...over });
+
+    it('rien quand le catalogue ne connaît ni portion, ni saison, ni ouverture', () => {
+        expect(operationFacts(r(), t, 'en')).toEqual([]);
+    });
+
+    it('portion exploitée, ou seulement son départ', () => {
+        expect(
+            operationFacts(r({ section: { from: 'Le Crotoy', to: 'Cayeux-sur-Mer' } }), t, 'fr'),
+        ).toEqual([
+            { key: 'section', text: 'section|from=Le Crotoy|to=Cayeux-sur-Mer', lang: null },
+        ]);
+        expect(
+            operationFacts(r({ section: { from: 'Les Hôpitaux-Neufs', to: null } }), t, 'fr')[0]
+                .text,
+        ).toBe('section_from|from=Les Hôpitaux-Neufs');
+    });
+
+    it('saison traduite, ou gardée en français et marquée comme telle', () => {
+        expect(operationFacts(r({ season: 'de février à décembre' }), t, 'en')).toEqual([
+            { key: 'season', text: 'season|season=February to December', lang: null },
+        ]);
+        expect(operationFacts(r({ season: 'les jours de fête' }), t, 'de')).toEqual([
+            { key: 'season', text: 'season|season=les jours de fête', lang: 'fr' },
+        ]);
+        expect(operationFacts(r({ season: 'les jours de fête' }), t, 'fr')[0].lang).toBeNull();
+    });
+
+    it('jour d’ouverture dans la langue de la page', () => {
+        expect(operationFacts(r({ opened_on: '2012-06-28' }), t, 'fr')[0].text).toBe(
+            'opened_on|date=28 juin 2012',
+        );
+        expect(operationFacts(r({ opened_on: '2012-06-28' }), t, 'de')[0].text).toBe(
+            'opened_on|date=28. Juni 2012',
+        );
+        expect(operationFacts(r({ opened_on: 'inconnu' }), t, 'fr')).toEqual([]);
+    });
+
+    it('clé de saison sans accents ni ponctuation, apostrophes droites ou typographiques', () => {
+        expect(seasonKey("d'avril à octobre")).toBe('d_avril_a_octobre');
+        expect(seasonKey('d’avril à octobre')).toBe('d_avril_a_octobre');
+        expect(seasonKey('du 1er mai au 31 octobre')).toBe('du_1er_mai_au_31_octobre');
     });
 });

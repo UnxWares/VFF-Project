@@ -110,6 +110,26 @@ class TouristRailwaysCatalogueTest extends TestCase
         $this->assertSame(['Ambert', 'La Chaise-Dieu'], [$byName['AGRIVAP Les trains de la découverte']['section_from'], $byName['AGRIVAP Les trains de la découverte']['section_to']]);
     }
 
+    /**
+     * La page traduit chaque saison du catalogue (texte français) par sa clé `seasonKey()` (resources/js/lib/touristRailways.js :
+     * sans accents, minuscules, tout autre signe remplacé par un tiret bas) : chaque saison a son texte en fr, en et de.
+     */
+    public function test_every_season_of_the_catalogue_is_translated_in_three_languages(): void
+    {
+        $key = fn (string $season): string => trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower(
+            (string) preg_replace('/\p{Mn}/u', '', (string) \Normalizer::normalize($season, \Normalizer::FORM_D)))), '_');
+        $this->assertSame('d_avril_a_octobre', $key("d'avril à octobre"));
+        $seasons = array_values(array_filter(array_column($this->entries(), 'season')));
+        $this->assertNotEmpty($seasons);
+        foreach (['fr', 'en', 'de'] as $lang) {
+            $texts = (require dirname(__DIR__, 2)."/lang/{$lang}/tourist.php")['season_text'] ?? [];
+            foreach ($seasons as $season) {
+                $this->assertArrayHasKey($key($season), $texts, "{$lang} : saison « {$season} » sans traduction");
+                $this->assertNotSame('', $texts[$key($season)]);
+            }
+        }
+    }
+
     public function test_no_long_dash_in_the_catalogue(): void
     {
         $text = (string) file_get_contents(dirname(__DIR__, 2).'/'.TouristRailways::CATALOGUE);

@@ -71,6 +71,9 @@ return [
         'start_year' => 'Betriebsbeginn',
         'operator' => 'Betreiber',
         'website' => 'Offizielle Website',
+        'section' => 'Befahrener Abschnitt',
+        'season' => 'Saison',
+        'opened_on' => 'Eröffnung',
     ],
     'src' => [
         'wp_list' => 'Wikipedia, Liste der Museumsbahnen in Frankreich',
@@ -96,6 +99,25 @@ return [
         'lignes_oubliees' => 'lignes-oubliees.com',
         'vff' => 'VFF-Streckenseite',
         'correction' => 'VFF-Korrektur',
+        'wp_revision' => 'Wikipedia (zitierte Version)',
+    ],
+    // Betriebsangaben unter dem Namen (Katalog, durch detail_source zitierter Artikel).
+    'section' => 'Befahrener Abschnitt: :from - :to',
+    'section_from' => 'Abfahrt: :from',
+    'season' => 'Saison: :season',
+    'opened_on' => 'Eröffnung: :date',
+    // Saisons du catalogue (texte français), par clé seasonKey() de resources/js/lib/touristRailways.js.
+    'season_text' => [
+        'a_la_belle_saison' => 'in der warmen Jahreszeit',
+        'd_avril_a_octobre' => 'April bis Oktober',
+        'd_avril_a_octobre_le_samedi_le_dimanche_et_certains_jours_feries' => 'April bis Oktober, samstags, sonntags und an einigen Feiertagen',
+        'd_avril_a_septembre' => 'April bis September',
+        'de_debut_juin_a_fin_septembre_et_pendant_certaines_vacances_scolaires' => 'Anfang Juni bis Ende September und in einigen Schulferien',
+        'de_fevrier_a_decembre' => 'Februar bis Dezember',
+        'de_la_mi_juin_a_la_mi_septembre' => 'Mitte Juni bis Mitte September',
+        'du_1er_mai_au_31_octobre' => '1. Mai bis 31. Oktober',
+        'en_saison' => 'in der Saison',
+        'pendant_la_saison_touristique' => 'während der Touristensaison',
     ],
     'colon' => ': ',
 
