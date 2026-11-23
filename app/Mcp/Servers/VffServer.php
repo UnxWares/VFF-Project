@@ -9,8 +9,13 @@ use App\Mcp\Resources\LicencesResource;
 use App\Mcp\Resources\LineSheetResource;
 use App\Mcp\Tools\AccidentSheetTool;
 use App\Mcp\Tools\AccidentsTool;
+use App\Mcp\Tools\BibliographyTool;
+use App\Mcp\Tools\CompaniesTool;
 use App\Mcp\Tools\CompareErasTool;
 use App\Mcp\Tools\CompareLineErasTool;
+use App\Mcp\Tools\DataCoverageTool;
+use App\Mcp\Tools\DepartmentHistoryTool;
+use App\Mcp\Tools\GetCommuneTool;
 use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\JournalTool;
 use App\Mcp\Tools\LevelCrossingsTool;
@@ -41,7 +46,9 @@ use App\Mcp\Tools\NetworkChronologyTool;
 use App\Mcp\Tools\NetworkEventsTool;
 use App\Mcp\Tools\NetworkInAreaTool;
 use App\Mcp\Tools\OnThisDayTool;
+use App\Mcp\Tools\PositionAtPkTool;
 use App\Mcp\Tools\PreservedRollingStockTool;
+use App\Mcp\Tools\ProtectedHeritageTool;
 use App\Mcp\Tools\RailProjectsTool;
 use App\Mcp\Tools\SearchTool;
 use App\Mcp\Tools\SegmentAuditsTool;
@@ -83,6 +90,7 @@ Matériel roulant : `materials` (séries filtrées par catégorie, constructeur,
 Ce jour-là : `on_this_day` (ce qui s'est passé un jour du calendrier les années précédentes : ouvertures et fermetures de lignes et de gares, électrifications, mises en service, accidents ; dates connues au jour seulement, chaque fait avec sa source).
 Matériel préservé : `preserved_rolling_stock` (exemplaires conservés d'une série, ou lieux : musées, associations, lignes touristiques, avec numéro, état dit par la source et protection monument historique de la base Palissy ; la liste est celle des sources, pas un inventaire).
 Projets : `rail_projects` (réouvertures, lignes nouvelles, LGV, RER métropolitains, électrifications pas encore en service, chaque étape datée avec sa source ; une étape non franchie est une date PRÉVUE : « prévue en 2028 selon … », jamais certaine).
+Bibliographie : `bibliography` (ouvrages et articles d'une ligne ou d'une gare : notice de la BnF, Licence Ouverte, à citer avec sa date de récupération ; rattachement prudent, une liste vide ne prouve pas qu'il n'existe rien). Patrimoine : `protected_heritage` (bâtiments voyageurs et ouvrages d'art classés, inscrits ou labellisés de tout le réseau, base Mérimée et Wikidata ; `station_heritage` pour une gare). Compagnies : `companies` (liste, ou fiche avec `company` : dates, lignes rattachées par un événement de concession daté et sourcé, réseau par décennie ; une ligne absente n'est pas « sans compagnie »). Territoires : `get_commune` (le rail d'une commune par code INSEE ou nom : gares, lignes, chronologie, voisines), `department_history` (le rail d'un département décennie par décennie, ou le tableau de tous). Couverture : `data_coverage` (ce que sait l'encyclopédie : parts renseignées et précision des dates, pour dire jusqu'où une réponse est complète). Position : `position_at_pk` (où tombe un PK sur une ligne : gares qui l'encadrent, commune, point).
 Chronologie d'une gare : `station_events` (dates d'ouverture, de fermeture, de réouverture et de démolition, filtrées et paginées ; `is_inferred` = date déduite par VFF, pas un relevé).
 Anciennes adresses : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare ou d'un accident fusionné répond avec la fiche actuelle et le dit dans `redirected` (slug demandé, slug actuel, raison) en tête de réponse : reprenez le slug actuel.
 Chronologie : `network_chronology` (le réseau année par année depuis 1827 : ouvertures, fermetures, électrifications, signalisation, matériel, accidents d'au moins 5 morts, jalons ; une décennie donne les comptes, une année les faits ; filtres de type et de région ; `hidden` compte des faits non détaillés). Tourisme : `tourist_railways` (chemins de fer touristiques et vélorails en activité : type, exploitant, écartement, longueur, début d'exploitation, lignes ; filtres de type et de région ; un champ null est inconnu).
@@ -94,9 +102,12 @@ class VffServer extends Server
 {
     /**
      * Tous les outils tiennent dans la première page de `tools/list` : le défaut du paquet (15) en
-     * laissait de côté pour les clients qui ne suivent pas `nextCursor` (50 outils le 23/11/2026).
+     * laissait de côté pour les clients qui ne suivent pas `nextCursor` (57 outils le 23/11/2026). Le plafond du paquet
+     * (50) borne aussi la page par défaut : il est relevé d'autant.
      */
     public int $defaultPaginationLength = 80;
+
+    public int $maxPaginationLength = 80;
 
     protected array $tools = [
         SearchTool::class,
@@ -149,6 +160,13 @@ class VffServer extends Server
         PreservedRollingStockTool::class,
         RailProjectsTool::class,
         StationEventsTool::class,
+        BibliographyTool::class,
+        ProtectedHeritageTool::class,
+        CompaniesTool::class,
+        GetCommuneTool::class,
+        DepartmentHistoryTool::class,
+        DataCoverageTool::class,
+        PositionAtPkTool::class,
     ];
 
     protected array $resources = [

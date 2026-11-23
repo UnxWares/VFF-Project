@@ -258,6 +258,13 @@
         'preserved_rolling_stock',
         'rail_projects',
         'station_events',
+        'bibliography',
+        'protected_heritage',
+        'companies',
+        'get_commune',
+        'department_history',
+        'data_coverage',
+        'position_at_pk',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.

@@ -101,6 +101,19 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- MCP : sept outils couvrent ce que REST était seul à servir. `bibliography` (REST `/lines/{line}/bibliography` et
+  `/stations/{station}/bibliography`, paginé par `limit` et `offset`), `protected_heritage` (REST `/heritage`, mêmes filtres
+  plus `department`, paginé, `facets.architects` limité aux 40 plus fréquents), `companies` (REST `/companies` et
+  `/companies/{company}`, lignes rattachées paginées, sans le tracé `map`), `get_commune` (REST `/communes/{insee}`, par code
+  INSEE ou par nom, erreur `commune_ambiguous` avec `candidates`, chronologie paginée), `department_history` (REST
+  `/departments/{department}/history` et `/stats/departments`, par code ou par nom, lignes paginées, 60 communes au plus),
+  `data_coverage` (REST `/stats/coverage`, filtre `set`) et `position_at_pk` (REST `/lines/{line}/at-pk`, `pk` ou `pk_m`).
+  Chaque réponse porte `vff_url`, `attribution` et, pour une ancienne adresse de ligne ou de gare, `redirected`. Comme pour les
+  autres outils, rien d'une source à usage non commercial n'est servi : dans `get_commune`, un événement de gare de cette seule
+  source est retiré de la chronologie ; dans `department_history`, une date de ligne de cette seule source est remplacée par la
+  date d'une source servie de la même année, ou nulle. `tools/list` donne désormais 57 outils, toujours sur une seule page.
+  Ajout seul ; REST et GraphQL ne changent pas.
+
 - MCP : trois outils, sur les mêmes services que l'API REST. `preserved_rolling_stock` (matériel préservé : exemplaires
   d'une série ou lieux et leurs pièces, état dit par la source, protection monument historique de la base Palissy, sources
   avec licence ; filtres `venue_type`, `venue`, `state`, `protected` ; `limit` et `offset`), `rail_projects` (projets
