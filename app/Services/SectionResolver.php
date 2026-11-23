@@ -127,6 +127,16 @@ class SectionResolver
 
     private const STATION_MAX_DIST_M = 2500;
 
+    /**
+     * Avantage, dans geocodeStations(), de la gare consolidée (table stations, nom principal ou autre nom) de la ligne
+     * sur la gare SNCF homonyme de la même ligne : l'extrémité de la portion tombe sur la gare que montrent la carte et
+     * les ères des gares (vff:build-station-eras, invariant stations.active_without_track), pas sur le point de la liste
+     * des gares SNCF. Tonnerre (830000) : point SNCF à 136 m de la gare, la section Paris - Tonnerre de 1849 s'arrêtait
+     * avant la gare, terminus jusqu'à l'ouverture de Tonnerre - Dijon en 1851 (chantier invariants-gares, 23/11/2026).
+     * 0,01 = 200 m d'écart au tracé (pénalité d/20000) : ne départage que des candidats presque à égalité.
+     */
+    private const CONSOLIDATED_STATION_BONUS = 0.01;
+
     private const COMMUNE_MAX_DIST_M = 6000;
 
     /** Hameau / lieu-dit (BD TOPO) : la gare qui porte son nom est au bord de la voie. */
@@ -1811,8 +1821,9 @@ class SectionResolver
                 continue;
             }
             $exact = $r->nl === $q;
+            $consolidated = $exact && $r->same_line && ($r->kind === 'gare' || str_starts_with($r->kind, 'gare (nom '));
             $score = ($exact ? 1.0 : (float) $r->sim) + ($r->same_line ? 0.3 : 0) - $l['d'] / 20000
-                - (str_starts_with($r->kind, 'commune') ? 0.15 : 0);
+                - (str_starts_with($r->kind, 'commune') ? 0.15 : 0) + ($consolidated ? self::CONSOLIDATED_STATION_BONUS : 0);
             if (! $best || $score > $best[0]) {
                 $best = [$score, ['loc' => $l, 'pt' => [(float) $r->lon, (float) $r->lat], 'name' => $r->label, 'label' => sprintf('%s « %s »%s (%d m du tracé)', $r->kind, $r->label, $r->same_line ? ' de la ligne' : '', $l['d'])]];
             }

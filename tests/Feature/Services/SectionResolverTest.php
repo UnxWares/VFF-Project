@@ -226,6 +226,40 @@ class SectionResolverTest extends TestCase
         $this->assertStringContainsString('commune « Epsilonbourg » (centre à', $r->note);
     }
 
+    /**
+     * Tonnerre (830000) : le point de la liste des gares SNCF est à 136 m de la gare consolidée ; la portion
+     * Paris - Tonnerre s'arrêtait avant la gare montrée sur la carte. La gare consolidée de la ligne, au même
+     * nom exact, l'emporte sur le point SNCF ; sans rattachement à la ligne, le point SNCF reste choisi.
+     */
+    public function test_consolidated_station_of_the_line_wins_over_the_sncf_point_of_the_same_name(): void
+    {
+        $id = DB::table('stations')->insertGetId(['slug' => 'betaville', 'name' => 'Betaville', 'type' => 'gare', 'status' => 'open',
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.2015, 47.0), 4326)'), 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_lines')->insert(['station_id' => $id, 'line_id' => $this->line->id, 'method' => 'sncf_pk', 'pk_m' => self::HALF_M,
+            'created_at' => now(), 'updated_at' => now()]);
+        $event = $this->event(['section_from' => 'Alphaville', 'section_to' => 'Betaville']);
+
+        $this->resolve();
+
+        $r = $this->row($event);
+        $this->assertSame('places', $r->res);
+        $this->assertEqualsWithDelta(2.2015, $r->xmax, 0.0003);
+        $this->assertStringContainsString('« Betaville » → gare « Betaville » de la ligne', $r->note);
+    }
+
+    public function test_sncf_point_is_kept_when_the_consolidated_station_is_not_linked_to_the_line(): void
+    {
+        DB::table('stations')->insert(['slug' => 'betaville', 'name' => 'Betaville', 'type' => 'gare', 'status' => 'open',
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.2015, 47.0), 4326)'), 'created_at' => now(), 'updated_at' => now()]);
+        $event = $this->event(['section_from' => 'Alphaville', 'section_to' => 'Betaville']);
+
+        $this->resolve();
+
+        $r = $this->row($event);
+        $this->assertEqualsWithDelta(2.2, $r->xmax, 0.0003);
+        $this->assertStringContainsString('« Betaville » → gare SNCF « Betaville » de la ligne', $r->note);
+    }
+
     public function test_hamlet_from_the_ign_geocoder_is_used_when_no_station_or_commune_matches(): void
     {
         $this->poi = [[

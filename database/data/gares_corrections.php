@@ -3832,11 +3832,11 @@ return [
         'station' => ['name' => 'Aime-La Plagne', 'uic' => '87741769'],
         'action' => 'add',
         'type' => 'opening',
-        'date' => '1913-10-20',
+        'date' => '1913-11-20',
         'precision' => 'day',
-        'source_url' => $wp('Gare d\'Aime-La Plagne', 234915287),
-        'quote' => 'La gare a été inaugurée le 20 octobre 1913, en même temps que la portion de ligne allant de Moûtiers à Bourg-Saint-Maurice.',
-        'reason' => 'article de la gare (oldid 234915287) ; article de la ligne « Ligne de Saint-Pierre-d\'Albigny à Bourg-Saint-Maurice » (oldid 238227992) : « La section de ligne de Moûtiers à Bourg-Saint-Maurice est mise en service en 1913 ». Remplace année 1893 de Wikidata (section Albertville - Moûtiers, hors de la gare).',
+        'source_url' => $wp('Gare de Bourg-Saint-Maurice', 240157164),
+        'quote' => 'La gare de Bourg-Saint-Maurice est mise en service le 20 novembre 1913 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lors de l\'ouverture à l\'exploitation de la section de Moûtiers à Bourg-Saint-Maurice',
+        'reason' => 'mise en service de la section de Moûtiers à Bourg-Saint-Maurice, où est la gare : article de la gare de Bourg-Saint-Maurice (oldid 240157164, d\'après Penna, La Tarentaise Autrefois, 2005, p. 118 et 127 ; inauguration le 28 juin 1914), article de la gare de Landry (oldid 230267366) et chronologie de l\'article de la ligne (oldid 238227992, « 20 novembre 1913 : de Moûtiers à Bourg-Saint-Maurice »). L\'article de la gare d\'Aime-La Plagne (oldid 234915287, « inaugurée le 20 octobre 1913, en même temps que la portion de ligne ») est seul à donner le 20 octobre, un mois avant l\'ouverture de la section. Remplace année 1893 de Wikidata (section Albertville - Moûtiers, hors de la gare).',
     ],
     // Vincey (id 15033)
     [
