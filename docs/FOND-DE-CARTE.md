@@ -80,7 +80,7 @@ au-delà des frontières, Corse comprise) et `normandie.geojson`.
 | --- | --- | --- |
 | `VFF_BASEMAP_ARCHIVE` | `france-20261120.pmtiles` | Nom du fichier dans le dossier ; vide ou absent : aucun fond libre |
 | `VFF_BASEMAP_DIRECTORY` | `storage/app/data/pmtiles` | Dossier de l'archive |
-| `VFF_BASEMAP_ONLINE` | `false` | Fond libre aussi en ligne, sur /maps et sur les petites cartes des fiches |
+| `VFF_BASEMAP_ONLINE` | `false` | Fond libre aussi en ligne, sur /maps et sur les petites cartes des fiches ; `true` en production (décision du 23/11/2026, `docs/MISE-EN-PRODUCTION.md` étape 15) |
 | `VFF_BASEMAP_MAX_AGE` | `2592000` (30 jours) | Durée de cache HTTP de l'archive |
 | `VFF_BASEMAP_MAX_RANGE_BYTES` | `1048576` (1 Mio) | Plus grande plage d'octets servie |
 | `VFF_BASEMAP_REQUESTS_PER_MINUTE` | `600` | Requêtes par minute et par adresse IP |

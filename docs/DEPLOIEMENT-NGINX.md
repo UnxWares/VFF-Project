@@ -34,7 +34,7 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
 4. **Archive PMTiles** : l'`alias` doit être le dossier `VFF_BASEMAP_DIRECTORY` (par défaut
    `storage/app/data/pmtiles/`), avec la barre finale.
 5. **`.env` de production** : `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/` (sinon les 6 Go passent par PHP),
-   `VFF_BASEMAP_ONLINE=true` si le fond libre doit servir la carte en ligne, et **`CSP_ENFORCE=true`** (politique
+   `VFF_BASEMAP_ONLINE=true` (fond libre en ligne pour toutes les cartes, décision du 23/11/2026), et **`CSP_ENFORCE=true`** (politique
    de sécurité du contenu bloquante dès la mise en ligne, décision du 22/11/2026 ; `docs/SECURITE-CSP.md`), puis
    `php artisan config:cache`. Vérifier : `curl -sI https://vff-project.org/ | grep -i content-security` doit
    montrer `Content-Security-Policy:` et non `Content-Security-Policy-Report-Only:`.

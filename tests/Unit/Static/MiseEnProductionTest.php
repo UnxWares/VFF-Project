@@ -182,6 +182,20 @@ class MiseEnProductionTest extends TestCase
         $this->assertStringContainsString('--no-comments', $restore, 'extensions de template1 : COMMENT ON EXTENSION refusé au rôle de sauvegarde');
     }
 
+    /**
+     * Décision du 23/11/2026 : fond libre en ligne à la mise en production (archive auto-hébergée jusqu'au zoom 15,
+     * OpenFreeMap seulement en secours). Le script l'exige, le document l'écrit, le défaut de développement reste false.
+     */
+    public function test_the_free_basemap_is_online_in_production_and_off_in_development(): void
+    {
+        $this->assertMatchesRegularExpression('/^\s*env_egal VFF_BASEMAP_ONLINE true$/m', self::script());
+        $this->assertStringContainsString('| `VFF_BASEMAP_ONLINE`, `VFF_BASEMAP_ACCEL_REDIRECT` | `true`', self::doc());
+        $this->assertStringNotContainsString('si le fond libre doit servir la carte en ligne', self::doc());
+        $this->assertStringContainsString('OpenFreeMap, service tiers, n\'est jamais', self::doc());
+        $this->assertMatchesRegularExpression('/^VFF_BASEMAP_ONLINE=false$/m', self::read('.env.example'));
+        $this->assertStringContainsString("'online' => (bool) env('VFF_BASEMAP_ONLINE', false)", self::read('config/maps.php'));
+    }
+
     public function test_tls_does_not_ask_for_ocsp_stapling(): void
     {
         $tls = self::read('deploy/nginx/snippets/vff-tls.conf');

@@ -174,7 +174,8 @@ Valeurs de `.env` contrôlées par le script (les autres gardent leur défaut de
 | `MAIL_FROM_ADDRESS` | `noreply@vff-project.org` |
 | `CSP_ENFORCE` | `true` (politique bloquante, décision du 22/11/2026) |
 | Temps réel | étape 12 |
-| Fond de carte, Commons | étapes 15 et 16 |
+| `VFF_BASEMAP_ONLINE`, `VFF_BASEMAP_ACCEL_REDIRECT` | `true` (fond libre en ligne, décision du 23/11/2026), `/_basemap/` : étape 15 |
+| Commons | étape 16 |
 | `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN`, `APP_VERSION` | étape 17 |
 
 - Contrôle : `--verifier --etape application` sans `MANQUE`.
@@ -343,14 +344,21 @@ rsync -a --partial --progress storage/app/data/pmtiles/france-20261120.pmtiles \
 
 ou, sur le serveur, `scripts/basemap-pmtiles.sh` (conteneur `go-pmtiles`, 10 Gio libres). Dans `.env` :
 `VFF_BASEMAP_ARCHIVE=france-20261120.pmtiles`, `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/` (sinon les 6 Go passent
-par PHP), `VFF_BASEMAP_ONLINE=true` si le fond libre doit servir la carte en ligne ; puis `config:cache`.
+par PHP), `VFF_BASEMAP_ONLINE=true` ; puis `config:cache`.
+
+Décision du 23/11/2026 : le fond libre sert toutes les cartes en ligne (`/maps` et petites cartes des fiches),
+depuis l'archive auto-hébergée construite jusqu'au zoom 15 (agrandie par MapLibre jusqu'au niveau 19) et mise à
+jour à la main. Aucune tuile n'est alors demandée à openstreetmap.org. OpenFreeMap, service tiers, n'est jamais
+le fond principal : seulement un secours. Le défaut de développement reste `false` (`.env.example`).
 
 ```bash
 sudo deploy/bin/mise-en-production.sh --verifier --etape fond-de-carte
 ```
 
-- Contrôle : une plage répond 206, l'archive entière 416, `/_basemap/` 404 (location interne).
-- Retour arrière : `VFF_BASEMAP_ONLINE=false` (la carte reprend les tuiles OpenStreetMap) ou
+- Contrôle : `VFF_BASEMAP_ONLINE=true`, une plage répond 206, l'archive entière 416, `/_basemap/` 404 (location
+  interne).
+- Secours et retour arrière : `VFF_BASEMAP_ONLINE=false` (les cartes reprennent les tuiles OpenStreetMap, noms
+  écrits avec les polices d'OpenFreeMap) ou
   `VFF_BASEMAP_ARCHIVE=` (aucun fond libre), puis `config:cache`.
 
 ## 16. Relais des vignettes de Commons (`commons`)

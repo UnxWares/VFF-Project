@@ -615,7 +615,8 @@ etape_fond_de_carte() {
     fi
     env_egal VFF_BASEMAP_ACCEL_REDIRECT /_basemap/
     if grep -q "alias $dir/;" "$DEPOT/deploy/nginx/vff-project.org.conf"; then ok "alias nginx /_basemap/ = $dir/"; else manque "alias de /_basemap/ différent de $dir/" "adapter deploy/nginx/vff-project.org.conf"; fi
-    info "fond libre en ligne sur /maps : VFF_BASEMAP_ONLINE=$(env_val VFF_BASEMAP_ONLINE)"
+    # Décision du 23/11/2026 : fond libre en ligne pour toutes les cartes (archive auto-hébergée jusqu'au zoom 15).
+    env_egal VFF_BASEMAP_ONLINE true
     if en_ligne; then
         [ "$(http_code -r 0-16383 "$BASE_URL/basemap/$archive")" = 206 ] && ok "plage de l'archive : 206" || manque "GET /basemap/$archive avec Range ne répond pas 206" "journal nginx et storage/logs"
         [ "$(http_code "$BASE_URL/basemap/$archive")" = 416 ] && ok "archive entière refusée : 416" || manque "GET sans Range ne répond pas 416" ""
