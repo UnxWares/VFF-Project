@@ -7,12 +7,12 @@ Corse et à leurs abords (environ 25 km au-delà des frontières).
 - **Hors ligne**, dès qu'une archive est servie : une page relue sans réseau dessine ses cartes sur ce fond.
   Le service worker garde les morceaux déjà affichés (2 000 au plus, 60 Mo, 30 jours) : la carte retrouve
   son fond sur les zones déjà vues, et le reste reste uni (couleur « papier » du site).
-- **En ligne**, seulement si l'option `VFF_BASEMAP_ONLINE=true` est posée : la carte /maps prend ce fond à
-  la place des tuiles OpenStreetMap. Désactivée par défaut. Sans elle, aucun morceau n'est lu en ligne, donc
-  rien n'est gardé pour la lecture hors ligne : le fond hors ligne reste uni.
+- **En ligne**, seulement si l'option `VFF_BASEMAP_ONLINE=true` est posée : la carte /maps et les petites
+  cartes des fiches prennent ce fond à la place des tuiles OpenStreetMap. Désactivée par défaut. Sans elle,
+  aucun morceau n'est lu en ligne, donc rien n'est gardé pour la lecture hors ligne : le fond hors ligne reste uni.
 
-Les petites cartes des fiches (ligne, gare, accident) prennent ce fond hors ligne ; en ligne, elles gardent
-leur fond habituel tant que leur code ne lit pas l'option (voir `usesBasemap` dans `resources/js/lib/basemap.js`).
+Toutes les cartes choisissent leur fond au même endroit, `resources/js/lib/mapStyle.svelte.js` (voir plus bas,
+« Petites cartes des fiches ») : mêmes règles, même style clair et sombre, mêmes polices, même crédit.
 
 ## Licences et crédit
 
@@ -80,7 +80,7 @@ au-delà des frontières, Corse comprise) et `normandie.geojson`.
 | --- | --- | --- |
 | `VFF_BASEMAP_ARCHIVE` | `france-20261120.pmtiles` | Nom du fichier dans le dossier ; vide ou absent : aucun fond libre |
 | `VFF_BASEMAP_DIRECTORY` | `storage/app/data/pmtiles` | Dossier de l'archive |
-| `VFF_BASEMAP_ONLINE` | `false` | Fond libre aussi en ligne sur /maps |
+| `VFF_BASEMAP_ONLINE` | `false` | Fond libre aussi en ligne, sur /maps et sur les petites cartes des fiches |
 | `VFF_BASEMAP_MAX_AGE` | `2592000` (30 jours) | Durée de cache HTTP de l'archive |
 | `VFF_BASEMAP_MAX_RANGE_BYTES` | `1048576` (1 Mio) | Plus grande plage d'octets servie |
 | `VFF_BASEMAP_REQUESTS_PER_MINUTE` | `600` | Requêtes par minute et par adresse IP |
@@ -154,11 +154,41 @@ servie directement, elle laisserait télécharger toute l'archive sans aucune li
 
 - `resources/js/lib/basemap.js` : style (palette claire et sombre de VFF), `usesBasemap`,
   `applyBasemapTheme` (changement de thème sans recharger le style).
+- `resources/js/lib/mapStyle.svelte.js` : la seule fabrique du fond de toutes les cartes (`mapStyle`,
+  `pageMapStyle`) et le suivi du thème sur le fond libre (`followBasemapTheme`).
 - `resources/js/lib/pmtilesProtocol.js` : protocole `pmtiles://`, enregistré par `addProtocol` (MapLibre 5
-  et 6), par `loadMaplibre` (petites cartes) et par `RailMap` (carte /maps).
+  et 6), par `loadMaplibre` (petites cartes, `hasPmtilesProtocol()` dit s'il a pu l'être) et par `RailMap`
+  (carte /maps).
 - `resources/js/lib/offlineMap.svelte.js` : `neutralMapStyle` rend le fond libre quand la page en décrit un.
 - `resources/js/pwa/` : le service worker garde chaque plage déjà lue sous sa propre clé
   (`basemapCacheKey`), la rend en 206 sans réseau, et garde les polices « cache d'abord ».
+
+## Petites cartes des fiches
+
+Cartes concernées : fiche de ligne (`LinePhaseMap`), de gare (`StationMiniMap`), de commune et de département
+(`CommuneMap`), d'accident (`AccidentMiniMap`), carte du patrimoine (`HeritageMap`), des chemins de fer
+touristiques (`TouristMap`) et des lignes d'un matériel (`MaterialLinesMap`). Chacune appelle
+`pageMapStyle(offline, { pmtiles: hasPmtilesProtocol() })` ; la carte /maps passe par la même fabrique.
+
+| Situation | Fond |
+| --- | --- |
+| En ligne, option désactivée (défaut) | Inchangé : tuiles raster d'OpenStreetMap (MapTiler si `VITE_MAPTILER_KEY`), crédit « © OpenStreetMap » |
+| En ligne, option activée | Fond libre de VFF, clair ou sombre selon le thème, noms dans la langue de la page, crédit « Protomaps © OpenStreetMap » |
+| Hors ligne, archive servie | Fond libre sur les zones déjà vues (morceaux gardés par le service worker), uni ailleurs |
+| Hors ligne sans archive, ou protocole `pmtiles://` absent | Fond uni « papier » |
+
+- Le fond libre passe avant MapTiler : avec l'option, la clé MapTiler ne sert plus aux cartes.
+- Le thème changé pendant la visite repeint le fond libre sur place (`followBasemapTheme`), sans recharger
+  les tracés ni les gares.
+- Les noms de gares en gras de la fiche de ligne prennent `Noto Sans Medium` sur le fond libre (`boldLabelFont`),
+  comme /maps : aucune police absente demandée.
+- Les morceaux lus par une petite carte en ligne sont gardés par le service worker comme ceux de /maps : avec
+  l'option, une fiche vue en ligne garde son fond hors ligne.
+- Vérifié le 23/11/2026 (serveur de dev, sans fenêtre) sur les fiches de ligne (Angoulême - Limoges), de gare
+  (Limoges-Bénédictins), de commune (Limoges) et d'accident (Brétigny-sur-Orge), à 320 et 1 280 px, en clair et en
+  sombre : option activée, seules des lectures de l'archive (aucune tuile OpenStreetMap, aucune police en 404) ;
+  option désactivée, tuiles OpenStreetMap comme avant, aucune lecture de l'archive. Captures dans
+  `storage/app/reports/agents/aprem-2111/petites-cartes-fond/`.
 
 ## Images gardées hors ligne (service worker)
 

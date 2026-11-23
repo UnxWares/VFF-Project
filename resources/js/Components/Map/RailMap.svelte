@@ -5,14 +5,9 @@
     import { get } from 'svelte/store';
     import { page, router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
-    import {
-        applyBasemapTheme,
-        basemapStyle,
-        boldLabelFont,
-        MAP_MAX_ZOOM,
-        usesBasemap,
-    } from '$lib/basemap.js';
+    import { isOfflineView, reportPartialMap } from '$lib/offlineMap.svelte.js';
+    import { applyBasemapTheme, boldLabelFont, MAP_MAX_ZOOM } from '$lib/basemap.js';
+    import { pageMapStyle } from '$lib/mapStyle.svelte.js';
     import { afterPaint } from '$lib/afterPaint.js';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
@@ -479,46 +474,21 @@
     let onBasemap = $state(false);
 
     /**
+     * Fond de la carte (lib/mapStyle.svelte.js, le même choix que les petites cartes des fiches), et
+     * `onBasemap` posé quand c'est le fond libre de VFF.
+     *
      * @param {boolean} offline page lue sans réseau : fond libre de VFF ou fond neutre, rien d'un tiers
      * @returns {string | import('maplibre-gl').StyleSpecification}
      */
     function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark, lang: get(i18n).language });
-        // Fond libre de VFF en ligne, si l'option maps.basemap.online est active.
-        const basemap = page.props.basemap;
-        if (usesBasemap(basemap, false)) {
-            return basemapStyle({
-                url: basemap.url,
-                attribution: basemap.attribution,
-                dark: theme.isDark,
-                lang: get(i18n).language,
-            });
-        }
-        const key = import.meta.env.VITE_MAPTILER_KEY;
-        if (key) {
-            return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-        }
-        // Fond carto par défaut : OpenStreetMap raster (look iconique).
-        // `maxzoom: 19` est essentiel - sinon MapLibre tente de fetcher z=20+
-        // qui n'existe pas → 404 + overzoom flou.
-        return {
-            version: 8,
-            sources: {
-                'osm-raster': {
-                    type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    maxzoom: 19,
-                    attribution: get(i18n).t('common.osm_attribution', {
-                        link: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                    }),
-                },
-            },
-            layers: [{ id: 'osm', type: 'raster', source: 'osm-raster' }],
-            // OpenFreeMap sert des polices Noto Sans complètes (vs demotiles qui
-            // renvoyait des 404 sur "Open Sans Semibold").
-            glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-        };
+        const background = pageMapStyle(offline, {
+            pmtiles: registerPmtilesProtocol(maplibregl),
+            osmAttribution: get(i18n).t('common.osm_attribution', {
+                link: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            }),
+        });
+        onBasemap = background.onBasemap;
+        return background.style;
     }
 
     function bustParam() {
@@ -1203,7 +1173,6 @@
         appliedView = viewKey(center, zoom);
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
-        onBasemap = registerPmtilesProtocol(maplibregl) && usesBasemap(page.props.basemap, offline);
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(offline),

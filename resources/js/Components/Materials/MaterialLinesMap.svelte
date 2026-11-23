@@ -3,10 +3,11 @@
     import { onDestroy, onMount } from 'svelte';
     import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { hasPmtilesProtocol, loadMaplibre } from '$lib/loadMaplibre.js';
     import { whenNear } from '$lib/whenNear.js';
     import { MAP_MAX_ZOOM } from '$lib/basemap.js';
-    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
+    import { followBasemapTheme, pageMapStyle } from '$lib/mapStyle.svelte.js';
+    import { isOfflineView, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { confidenceKey } from '$lib/materialFacts.js';
     import { periodText } from '$lib/materialPeriods.js';
@@ -34,6 +35,9 @@
 
     let mapContainer = $state();
     let map = null;
+    // Carte dessinée sur le fond libre de VFF (lib/mapStyle.svelte.js) : ses couleurs suivent le thème.
+    let onBasemap = false;
+    followBasemapTheme(() => (onBasemap ? map : null));
     let loaded = $state(false);
     let failed = $state(false);
     /** @type {{ material: any, lines: any[] } | null} */
@@ -73,42 +77,6 @@
     const rangeLabel = $derived(
         range ? t('materials.map.decade_during', { from: range[0], to: range[1] }) : '',
     );
-
-    /**
-     * @param {boolean} offline
-     * @returns {string | import('maplibre-gl').StyleSpecification}
-     */
-    function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
-        const key = import.meta.env.VITE_MAPTILER_KEY;
-        if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-        return {
-            version: 8,
-            sources: {
-                'osm-raster': {
-                    type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    maxzoom: 19,
-                    attribution:
-                        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                },
-            },
-            layers: [
-                {
-                    id: 'osm',
-                    type: 'raster',
-                    source: 'osm-raster',
-                    paint: {
-                        'raster-saturation': -0.7,
-                        'raster-opacity': 0.8,
-                        'raster-brightness-max': theme.isDark ? 0.7 : 1,
-                    },
-                },
-            ],
-            glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-        };
-    }
 
     const fc = () => ({
         type: 'FeatureCollection',
@@ -169,9 +137,18 @@
         if (!bounds) return;
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        const mapBackground = pageMapStyle(offline, {
+            pmtiles: hasPmtilesProtocol(),
+            osmPaint: {
+                'raster-saturation': -0.7,
+                'raster-opacity': 0.8,
+                'raster-brightness-max': theme.isDark ? 0.7 : 1,
+            },
+        });
+        onBasemap = mapBackground.onBasemap;
         map = new maplibregl.Map({
             container: mapContainer,
-            style: buildStyle(offline),
+            style: mapBackground.style,
             bounds,
             fitBoundsOptions: { padding: 36, maxZoom: 9 },
             maxZoom: MAP_MAX_ZOOM,

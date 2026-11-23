@@ -2,12 +2,20 @@
 // (ligne, gare) : la page s'affiche sans l'attendre, la carte arrive juste après dans la place qui lui
 // est réservée. Un seul téléchargement, partagé par toutes les cartes de la session. Le protocole
 // `pmtiles://` du fond de carte libre (lib/pmtilesProtocol.js) est enregistré au passage ; s'il manque,
-// les cartes s'affichent quand même (fond uni hors ligne, fond habituel en ligne).
+// les cartes s'affichent quand même (fond uni hors ligne, fond habituel en ligne) : hasPmtilesProtocol le dit.
 
 /** @typedef {typeof import('maplibre-gl')} MapLibre */
 
 /** @type {Promise<MapLibre> | null} */
 let pending = null;
+
+/** Protocole `pmtiles://` enregistré sur le MapLibre rendu (fond de carte libre utilisable). */
+let pmtilesReady = false;
+
+/** Le fond de carte libre peut-il être lu par les cartes chargées par loadMaplibre ? */
+export function hasPmtilesProtocol() {
+    return pmtilesReady;
+}
 
 /**
  * Rend MapLibre réglé par `./maplibre.js` (adresse du worker comprise), comme `import maplibregl from
@@ -24,7 +32,7 @@ export function loadMaplibre(
 ) {
     pending ??= Promise.all([importer(), protocol().catch(() => null)])
         .then(([maplibre, pmtiles]) => {
-            pmtiles?.registerPmtilesProtocol(maplibre);
+            pmtilesReady = pmtiles?.registerPmtilesProtocol(maplibre) === true;
             return maplibre;
         })
         .catch((error) => {
