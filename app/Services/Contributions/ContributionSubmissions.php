@@ -196,7 +196,8 @@ final readonly class ContributionSubmissions
         $contribution = Contribution::create([
             'user_id' => $author->id,
             'type' => EventContributions::TYPE,
-            'action' => ContributionAction::Create->value,
+            // Correction d'un événement existant (charge utile `corrects`) : rejouée par vff:apply-event-corrections.
+            'action' => ($payload['corrects'] ?? null) !== null ? ContributionAction::Update->value : ContributionAction::Create->value,
             'target_type' => Line::class,
             'target_id' => $line->id,
             'status' => ContributionStatus::Pending->value,

@@ -2,7 +2,9 @@
     /**
      * « Proposer un événement daté » : un événement d'une ligne existante (ouverture, fermeture,
      * électrification…), sa date à la précision de la source, la portion concernée et la source.
-     * Contrôles avant l'envoi (proposals.js), puis EventContributionController::store.
+     * Depuis la chronologie de la fiche (`correctedEvent`) : correction d'un événement existant,
+     * formulaire prérempli avec ses valeurs actuelles, ligne fixée et raison de la correction
+     * obligatoire. Contrôles avant l'envoi (proposals.js), puis EventContributionController::store.
      */
     import { Link, useForm } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
@@ -11,10 +13,13 @@
     import EntityPicker from '$components/Contribute/EntityPicker.svelte';
     import PartialDateFields from '$components/Contribute/PartialDateFields.svelte';
     import ProposalForm from '$components/Contribute/ProposalForm.svelte';
+    import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
         LIMITS,
         composeDate,
+        correctedEventText,
+        correctionDefaults,
         eventErrors,
         eventTypeLabel,
         pkMeters,
@@ -22,6 +27,7 @@
 
     let {
         preselectedLine = null,
+        correctedEvent = null,
         eventTypes = [],
         precisions = ['day', 'month', 'year'],
         sourceKinds = [],
@@ -33,25 +39,29 @@
     /** Traduction passée aux fonctions de proposals.js. */
     const tr = (key, opts) => $i18n.t(key, opts);
 
-    // Ligne présélectionnée depuis sa fiche (valeur initiale voulue : la page est rechargée pour une autre).
+    // Valeurs initiales voulues (ligne de la fiche, événement à corriger) : la page est rechargée pour une autre.
+    // svelte-ignore state_referenced_locally
+    const correcting = correctedEvent;
+    // svelte-ignore state_referenced_locally
+    const initial = correcting ? correctionDefaults(correcting, eventTypes) : null;
     // svelte-ignore state_referenced_locally
     let line = $state(preselectedLine);
-    let precision = $state('day');
-    let year = $state('');
-    let month = $state('');
-    let day = $state('');
+    let precision = $state(initial?.precision ?? 'day');
+    let year = $state(initial?.year ?? '');
+    let month = $state(initial?.month ?? '');
+    let day = $state(initial?.day ?? '');
     /** Points kilométriques saisis en kilomètres + mètres. */
     const PK_BOUNDS = ['start', 'end'];
-    let pk = $state({ start: { km: '', m: '' }, end: { km: '', m: '' } });
+    let pk = $state(initial?.pk ?? { start: { km: '', m: '' }, end: { km: '', m: '' } });
     let attempted = $state(false);
     /** @type {{ showErrors: () => Promise<void> }|undefined} */
     let proposal = $state();
 
     const form = useForm({
-        type: 'opening',
-        portion: 'whole',
-        from: '',
-        to: '',
+        type: initial?.type ?? 'opening',
+        portion: initial?.portion ?? 'whole',
+        from: initial?.from ?? '',
+        to: initial?.to ?? '',
         reuse: '',
         heritage_kind: '',
         description: '',
@@ -59,6 +69,8 @@
         source_title: '',
         source_url: '',
         source_license: '',
+        source_excerpt: '',
+        correction_reason: '',
         notes: '',
     });
 
@@ -83,6 +95,9 @@
             source_title: form.source_title.trim(),
             source_url: form.source_url.trim() || null,
             source_license: form.source_kind === 'document' ? form.source_license || null : null,
+            source_excerpt: form.source_excerpt.trim() || null,
+            corrects_event_id: correcting?.event_id ?? null,
+            correction_reason: correcting ? form.correction_reason.trim() : null,
             notes: form.notes.trim() || null,
         };
     }
@@ -110,6 +125,9 @@
         source_title: 'event-source-title',
         source_url: 'event-source-url',
         source_license: 'event-source-license',
+        source_excerpt: 'event-source-excerpt',
+        corrects_event_id: 'event-reason',
+        correction_reason: 'event-reason',
         notes: 'event-notes',
     };
 
@@ -134,14 +152,18 @@
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('proposals.event.meta_title')} - VFF</title>
+    <title
+        >{$i18n.t(correcting ? 'proposals.event.correct_title' : 'proposals.event.meta_title')} - VFF</title
+    >
 </svelte:head>
 
 <Layout compactHeader>
     <main>
         <PageHero
-            title={$i18n.t('proposals.event.title')}
-            subtitle={$i18n.t('proposals.event.subtitle')}
+            title={$i18n.t(correcting ? 'proposals.event.correct_title' : 'proposals.event.title')}
+            subtitle={$i18n.t(
+                correcting ? 'proposals.event.correct_subtitle' : 'proposals.event.subtitle',
+            )}
         >
             <p class="back">
                 <Link href="/contribute/mine" class="vff-link"
@@ -153,15 +175,53 @@
 
         <div class="vff-container body">
             <ProposalForm bind:this={proposal} {errors} fieldIds={FIELD_IDS} onsubmit={submit}>
-                <fieldset class="vff-panel group">
-                    <legend>{$i18n.t('proposals.event.line_legend')}</legend>
-                    <EntityPicker
-                        kind="line"
-                        id="event-line"
-                        bind:selected={line}
-                        error={errorFor('line_slug')}
-                    />
-                </fieldset>
+                {#if correcting && line}
+                    <fieldset class="vff-panel group">
+                        <legend>{$i18n.t('proposals.event.correct_legend')}</legend>
+                        <Notice tone="info" live="off">
+                            <p>
+                                {$i18n.t('proposals.event.correct_current', {
+                                    line: [line.code, line.name].filter(Boolean).join(' '),
+                                    event: correctedEventText(correcting, tr, $i18n.language),
+                                })}
+                            </p>
+                            <p>
+                                <a class="vff-link" href="/contribute/event?line={line.slug}"
+                                    >{$i18n.t('proposals.event.correct_new_instead')}</a
+                                >
+                            </p>
+                        </Notice>
+                        <Field
+                            id="event-reason"
+                            label={$i18n.t('proposals.event.reason')}
+                            hint={$i18n.t('proposals.event.reason_hint')}
+                            error={errorFor('correction_reason') ?? errorFor('corrects_event_id')}
+                            required
+                        >
+                            {#snippet children(attrs)}
+                                <textarea
+                                    {...attrs}
+                                    class="vff-textarea"
+                                    rows="3"
+                                    minlength={LIMITS.reason[0]}
+                                    maxlength={LIMITS.reason[1]}
+                                    required
+                                    bind:value={form.correction_reason}
+                                ></textarea>
+                            {/snippet}
+                        </Field>
+                    </fieldset>
+                {:else}
+                    <fieldset class="vff-panel group">
+                        <legend>{$i18n.t('proposals.event.line_legend')}</legend>
+                        <EntityPicker
+                            kind="line"
+                            id="event-line"
+                            bind:selected={line}
+                            error={errorFor('line_slug')}
+                        />
+                    </fieldset>
+                {/if}
 
                 <fieldset class="vff-panel group">
                     <legend>{$i18n.t('proposals.event.what_legend')}</legend>
@@ -441,6 +501,22 @@
                             />
                         {/snippet}
                     </Field>
+                    <Field
+                        id="event-source-excerpt"
+                        label={$i18n.t('proposals.event.source_excerpt')}
+                        hint={$i18n.t('proposals.event.source_excerpt_hint')}
+                        error={errorFor('source_excerpt')}
+                    >
+                        {#snippet children(attrs)}
+                            <textarea
+                                {...attrs}
+                                class="vff-textarea"
+                                rows="2"
+                                maxlength={LIMITS.excerpt}
+                                bind:value={form.source_excerpt}
+                            ></textarea>
+                        {/snippet}
+                    </Field>
                     {#if form.source_kind === 'document'}
                         <Field
                             id="event-source-license"
@@ -493,7 +569,11 @@
                 {#snippet actions()}
                     <button type="submit" class="vff-btn primary" disabled={form.processing}>
                         <i class="bi bi-send" aria-hidden="true"></i>
-                        {$i18n.t('proposals.event.submit')}
+                        {$i18n.t(
+                            correcting
+                                ? 'proposals.event.submit_correction'
+                                : 'proposals.event.submit',
+                        )}
                     </button>
                 {/snippet}
             </ProposalForm>

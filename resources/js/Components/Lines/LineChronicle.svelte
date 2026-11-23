@@ -24,6 +24,9 @@
      * fait, celui de l'adresse d'abord. Un seul lien « Voir l'histoire » par histoire, même quand
      * plusieurs sources rapportent le fait (storyLinks) ; jamais sous un doublon d'un fait retenu (statut
      * agrees) ni sous le fait d'une autre ligne. `lineSlug` construit l'adresse /lines/{slug}/stories/{id}.
+     * Lien « Corriger » sous chaque fait : formulaire de correction prérempli
+     * (/contribute/event?line={slug}&event={id}), sauf pour un accident (fiche vérifiée à part) et un
+     * fait déjà neutralisé par une correction sourcée (`other` avec `correction`).
      */
     let { chronicle, stories = [], lineSlug = null } = $props();
     const storyOf = $derived(lineSlug ? storyLinks(chronicle?.events ?? [], stories) : new Map());
@@ -82,6 +85,10 @@
     }
 
     const t = (key, opts) => String($i18n.t(key, opts));
+
+    /** @param {{ type: string, correction?: string|null }} e */
+    const correctable = (e) =>
+        lineSlug !== null && e.type !== 'accident' && !(e.type === 'other' && e.correction);
 </script>
 
 {#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
@@ -224,6 +231,14 @@
                                                 event: eventLabel(e.type),
                                                 date: dateOf(e.date, e.precision),
                                             })}>{t('stories.link')}</a
+                                        >{/if}
+                                    {#if correctable(e)}<a
+                                            class="ev-correct"
+                                            href="/contribute/event?line={lineSlug}&event={e.id}"
+                                            aria-label={t('lines.chronicle.correct_label', {
+                                                event: eventLabel(e.type),
+                                                date: dateOf(e.date, e.precision),
+                                            })}>{t('lines.chronicle.correct')}</a
                                         >{/if}
                                 </td>
                                 <td
@@ -424,6 +439,27 @@
         min-height: 24px;
         margin-top: 6px;
         font-weight: 600;
+    }
+    /* Proposer une correction du fait : discret (texte secondaire), cible de 24 px au moins (WCAG 2.5.8). */
+    .ev-correct {
+        display: inline-block;
+        min-height: 24px;
+        margin: 6px 0 0;
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
+        text-decoration: underline;
+        text-decoration-color: var(--vff-border-strong);
+    }
+    .ev-story + .ev-correct {
+        margin-left: 16px;
+    }
+    .ev-correct:hover {
+        color: var(--vff-accent-ink);
+    }
+    @media print {
+        .ev-correct {
+            display: none;
+        }
     }
     /* Images d'un événement : vignette de 120 px et crédit à côté (dessous sur téléphone). */
     .ev-media {

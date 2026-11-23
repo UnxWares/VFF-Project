@@ -83,6 +83,16 @@ return [
         'notes' => 'Note pour les validateurs',
         'notes_hint' => 'Page, citation exacte, doute éventuel : ce qui aide à vérifier. Elle n’est pas publiée.',
         'submit' => 'Envoyer l’événement',
+        'correct_title' => 'Corriger un événement daté',
+        'correct_subtitle' => 'Donnez la bonne date, la bonne portion ou le bon type, avec la source qui le prouve. Deux validateurs relisent la correction avant qu’elle remplace l’événement actuel.',
+        'correct_legend' => 'Correction',
+        'correct_current' => 'Événement actuel de la ligne :line : :event. Le formulaire reprend ses valeurs : modifiez celles qui sont fausses.',
+        'correct_new_instead' => 'Proposer plutôt un nouvel événement pour cette ligne',
+        'reason' => 'Ce qui est faux',
+        'reason_hint' => 'Une ou deux phrases, publiées avec la correction, par exemple « la source date la décision, pas l’ouverture ».',
+        'source_excerpt' => 'Citation courte (facultative)',
+        'source_excerpt_hint' => 'La phrase de la source qui donne la date, 300 caractères au plus. Elle est publiée avec l’événement.',
+        'submit_correction' => 'Envoyer la correction',
         'after' => 'Une fois publié, l’événement entre dans la chronologie de la ligne. La carte par décennie en tiendra compte au prochain recalcul de l’historique.',
         'errors' => [
             'places' => 'Indiquez les deux extrémités de la portion.',
@@ -93,6 +103,9 @@ return [
             'source_title' => 'Indiquez le titre ou la référence de la source, en trois caractères au moins.',
             'source_url' => 'Indiquez l’adresse de la source, en http:// ou https://.',
             'source_license' => 'Choisissez la licence du document.',
+            'excerpt_length' => 'La citation fait :max caractères au plus.',
+            'reason' => 'Expliquez ce qui est faux, en :min à :max caractères.',
+            'corrected_missing' => 'Cet événement ne peut pas être corrigé : il n’existe plus sur cette ligne, ou c’est un accident ou un fait déjà corrigé.',
         ],
     ],
 
@@ -234,6 +247,9 @@ return [
 
     'review' => [
         'kind_event' => 'Événement daté',
+        'kind_event_correction' => 'Correction d’un événement daté',
+        'corrects' => 'Remplace',
+        'correction_reason' => 'Ce qui est faux',
         'kind_media_commons' => 'Image de Wikimedia Commons',
         'kind_media_upload' => 'Image déposée',
         'type' => 'Type',

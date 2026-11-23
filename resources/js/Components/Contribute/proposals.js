@@ -33,6 +33,9 @@ export const LIMITS = {
     author: [2, 200],
     quote: [10, 600],
     seriesName: [2, 120],
+    /** Citation courte de la source d'un événement, raison d'une correction (EventContributions). */
+    excerpt: 300,
+    reason: [10, 300],
     builder: [2, 255],
 };
 
@@ -96,6 +99,38 @@ export function pkMeters(km, m) {
     return Number.isFinite(total) && total >= 0 ? Math.round(total) : null;
 }
 
+/**
+ * Valeurs initiales du formulaire d'événement pour corriger un événement existant
+ * (EventContributions::correctable) : type, date découpée à sa précision, portion (lieux, PK ou
+ * toute la ligne), PK en kilomètres et mètres. Un type qui n'est pas proposé retombe sur `other`.
+ * @param {{ type: string, date: string, precision: string, from?: string|null, to?: string|null, pk_start_m?: number|null, pk_end_m?: number|null }} e
+ * @param {string[]} types types proposés par le formulaire
+ */
+export function correctionDefaults(e, types) {
+    const [y = '', m = '', d = ''] = String(e.date ?? '').split('-');
+    const precision = ['day', 'month', 'year'].includes(e.precision) ? e.precision : 'day';
+    const pkParts = (meters) =>
+        meters == null
+            ? { km: '', m: '' }
+            : { km: String(Math.floor(meters / 1000)), m: String(meters % 1000) };
+    const portion =
+        e.from && e.to ? 'places' : e.pk_start_m != null && e.pk_end_m != null ? 'pk' : 'whole';
+    return {
+        type: types.includes(e.type) ? e.type : 'other',
+        precision,
+        year: y,
+        month: precision === 'year' || !m ? '' : Number(m),
+        day: precision === 'day' && d ? String(Number(d)) : '',
+        portion,
+        from: portion === 'places' ? e.from : '',
+        to: portion === 'places' ? e.to : '',
+        pk: {
+            start: portion === 'pk' ? pkParts(e.pk_start_m) : { km: '', m: '' },
+            end: portion === 'pk' ? pkParts(e.pk_end_m) : { km: '', m: '' },
+        },
+    };
+}
+
 /** Adresse web absolue en http ou https. */
 export function isWebUrl(value) {
     try {
@@ -130,6 +165,16 @@ export function eventErrors(f, t, now = new Date()) {
     }
     if (f.type === 'other' && !text(f.description))
         e.description = t('proposals.event.errors.description_other');
+    if (text(f.source_excerpt).length > LIMITS.excerpt)
+        e.source_excerpt = t('proposals.event.errors.excerpt_length', { max: LIMITS.excerpt });
+    if (f.corrects_event_id) {
+        const n = text(f.correction_reason).length;
+        if (n < LIMITS.reason[0] || n > LIMITS.reason[1])
+            e.correction_reason = t('proposals.event.errors.reason', {
+                min: LIMITS.reason[0],
+                max: LIMITS.reason[1],
+            });
+    }
     return { ...e, ...sourceErrors(f, t) };
 }
 
@@ -500,7 +545,45 @@ export function eventFacts(p, t, lang) {
             href: isWebUrl(source.url) ? source.url : null,
             note: sourceNote.join(', ') || null,
         },
+        p.source_excerpt && {
+            id: 'quote',
+            label: t('proposals.review.quote'),
+            text: p.source_excerpt,
+        },
+        p.corrects && {
+            id: 'corrects',
+            label: t('proposals.review.corrects'),
+            text: correctedEventText(p.corrects, t, lang),
+        },
+        p.corrects &&
+            p.correction_reason && {
+                id: 'reason',
+                label: t('proposals.review.correction_reason'),
+                text: p.correction_reason,
+            },
     ].filter(Boolean);
+}
+
+/**
+ * Événement qu'une correction remplace, en une ligne : « Fermeture aux voyageurs du 15 mai 1938,
+ * de Saint-Cloud à Versailles (wikipedia) ». Aussi pour l'encadré du formulaire de correction.
+ * @param {{ type: string, date: string, precision: string, source?: string|null, from?: string|null, to?: string|null, pk_start_m?: number|null, pk_end_m?: number|null }} e
+ * @param {(key: string, opts?: object) => any} t
+ * @param {string} lang
+ */
+export function correctedEventText(e, t, lang) {
+    const date = formatStationDate(e.date, e.precision, null, t, lang) ?? e.date;
+    const portion =
+        e.from && e.to
+            ? { kind: 'places', from: e.from, to: e.to }
+            : e.pk_start_m != null && e.pk_end_m != null
+              ? { kind: 'pk', pk_start_m: e.pk_start_m, pk_end_m: e.pk_end_m }
+              : null;
+    const head = t('proposals.review.event_of', { type: eventTypeLabel(e.type, t), date });
+    return (
+        [head, portion ? portionText(portion, t) : null].filter(Boolean).join(', ') +
+        (e.source ? ` (${translated(t, `lines.sources.${e.source}`, e.source)})` : '')
+    );
 }
 
 /**
@@ -867,7 +950,10 @@ export function seriesFacts(p, t) {
  */
 export function proposalKindKey(c) {
     const p = c.payload ?? {};
-    if (c.type === EVENT_TYPE) return 'proposals.review.kind_event';
+    if (c.type === EVENT_TYPE)
+        return p.corrects
+            ? 'proposals.review.kind_event_correction'
+            : 'proposals.review.kind_event';
     if (c.type === MEDIA_TYPE)
         return p.source === 'commons'
             ? 'proposals.review.kind_media_commons'

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\LineEventType;
+use App\Services\Contributions\EventContributions;
 use App\Services\WikipediaLineParser;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -18,6 +19,10 @@ use Illuminate\Support\Facades\DB;
  * Pourquoi un fichier rejoué plutôt qu'un UPDATE ponctuel : les imports (lignes-oubliees,
  * Wikipédia…) réécrivent leurs événements à chaque passage ; la correction doit être
  * réappliquée après eux. vff:rebuild-history l'appelle avant la résolution des portions.
+ *
+ * Puis les corrections d'événements proposées sur le site et publiées après deux approbations
+ * (contributions `line_event` de type correction, EventContributions::replayCorrections) : leur
+ * événement visé est neutralisé de nouveau, après les fichiers, puisque les imports le réécrivent.
  *
  * Idempotente : fingerprint « correction:… » pour les ajouts (un ajout retiré du fichier est
  * supprimé de la base), neutralisation et déplacement recherchent l'événement visé (source,
@@ -63,7 +68,7 @@ class ApplyEventCorrections extends Command
         return $files;
     }
 
-    public function handle(): int
+    public function handle(EventContributions $contributions): int
     {
         $corrections = [];
         foreach (self::files() as $file) {
@@ -120,6 +125,19 @@ class ApplyEventCorrections extends Command
             $rows[] = ['', 'add', '', '', $dry ? 'à supprimer' : 'supprimé', "{$n} ajout(s) retiré(s) du fichier"];
             if (! $dry) {
                 $stale->delete();
+            }
+        }
+
+        // Corrections publiées par les contributions : après les fichiers (un ajout « manual » rejoué
+        // reprend son type, la neutralisation de la contribution passe ensuite).
+        $onlyLine = $only ? $this->findLine((string) $only) : null;
+        if (! $only || $onlyLine !== null) {
+            $replay = $contributions->replayCorrections($onlyLine?->id, $dry);
+            if ($replay['replayed'] > 0) {
+                $rows[] = ['', 'contribution', '', '', $dry ? 'à neutraliser' : 'neutralisé', "{$replay['neutralized']} événement(s) de {$replay['replayed']} correction(s) publiée(s)"];
+            }
+            foreach ($replay['missing'] as $id) {
+                $this->warn("  contribution n° {$id} : événement corrigé introuvable (source modifiée ?)");
             }
         }
 

@@ -327,6 +327,8 @@ return [
         'col_fact' => 'Fait et source',
         'col_status' => 'Usage sur la fiche',
         'differs_from' => 'Autre date pour le même fait :',
+        'correct' => 'Corriger',
+        'correct_label' => 'Proposer une correction : :event, :date',
         'conflict_title' => 'Les sources divergent',
         'status' => [
             'retained' => 'Retenu',

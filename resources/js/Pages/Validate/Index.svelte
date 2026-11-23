@@ -234,7 +234,7 @@
                                             )}
                                         {:else if c.type === EVENT_TYPE}
                                             <i class="bi bi-calendar-event" aria-hidden="true"></i>
-                                            {$i18n.t('proposals.review.kind_event')}
+                                            {$i18n.t(proposalKindKey(c))}
                                         {:else if c.type === MEDIA_TYPE}
                                             <i class="bi bi-image" aria-hidden="true"></i>
                                             {$i18n.t(proposalKindKey(c))}

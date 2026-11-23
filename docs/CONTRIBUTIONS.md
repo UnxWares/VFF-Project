@@ -35,13 +35,44 @@ Saisie : ligne existante, type (tous ceux de `LineEventType` sauf `accident`, qu
 vérifiée), date à la précision de la source (`day`, `month`, `year` ; une année seule reste une
 année), portion (toute la ligne, entre deux lieux, entre deux PK), précision publiée (obligatoire
 pour `other`), source obligatoire : nature (`web`, `document`, `print`), titre ou référence,
-adresse (sauf pour un ouvrage papier), licence pour un document numérisé.
+adresse (sauf pour un ouvrage papier), licence pour un document numérisé, et citation courte
+facultative (`source_excerpt`, 300 caractères au plus, la phrase qui date le fait) ; note pour les
+validateurs, non publiée.
+
+### Correction d'un événement existant
+
+Chaque fait de la chronologie de la fiche de ligne porte un lien « Corriger »
+(`/contribute/event?line=<slug>&event=<id>`), sauf un accident (fiche vérifiée à part) et un fait
+déjà neutralisé par une correction sourcée. Le formulaire est prérempli avec les valeurs actuelles
+(type, date à sa précision, portion) et la ligne est fixée ; la raison de la correction
+(`correction_reason`, de 10 à 300 caractères, publiée) est obligatoire. Même champ dans la
+mutation (`corrects_event_id`, `correction_reason`).
+
+- Envoi (`EventContributions::normalize`) : l'événement doit appartenir à la ligne et être
+  corrigeable (`EventContributions::correctable`) ; la charge utile garde l'événement tel qu'il
+  était (`corrects` : identifiant, source, type, date, précision, portion) ; la contribution a
+  l'action `update`. Rien n'est écrit dans `line_events` avant les deux approbations.
+- Relecture : les validateurs voient l'événement remplacé, la raison, et l'événement tel qu'il est
+  maintenant (`corrected_event`, nul s'il a disparu ou a déjà été neutralisé).
+- Publication (`EventContributions::apply`, dans la transaction de l'approbation) : l'événement
+  corrigé entre comme un nouvel événement `contrib` (règles ci-dessous) et l'événement visé est
+  neutralisé comme une neutralisation des fichiers `database/data/line_event_corrections*.php` :
+  type `other`, description « <fait>, fait corrigé par la contribution n° <id> (correction sourcée :
+  <raison>) » (`applied.corrected_event_ids`).
+- Rejeu : les imports réécrivent leurs événements (nouvel identifiant, type d'origine).
+  `vff:apply-event-corrections`, lancé par `vff:rebuild-history` avant la résolution des portions,
+  rejoue après les fichiers les neutralisations des corrections publiées
+  (`EventContributions::replayCorrections`) : l'événement est retrouvé par son identifiant, sinon par
+  sa ligne, sa source, son type, sa date et son départ. Une correction dont l'événement a disparu est
+  signalée (« événement corrigé introuvable »).
 
 À la publication (`EventContributions::apply`), dans la transaction de l'approbation :
 
 - `line_events.source` = `contrib` (contributions validées), `fingerprint` = `contribution:<id>`
   (provenance ; rejouer la publication met à jour la même ligne), `source_url`, `source_quote`
-  (titre de la source et sa licence), description en français terminée par « (contribution n° <id>) » ;
+  (la citation courte si elle est donnée, sinon le titre de la source et sa licence), description en
+  français terminée par « (contribution n° <id>) » (« (contribution n° <id>, source : <titre>) »
+  quand la citation prend la place du titre) ;
 - la confiance suit la source citée (décision du 20/11/2026), comme pour les corrections `manual` :
     - registre des droits : `contrib` est une source composite, le fournisseur est celui du lien cité
       (Wikipédia, lignes-oubliees, Gallica…), `vff` pour un ouvrage ou une archive papier ;

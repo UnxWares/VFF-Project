@@ -2,6 +2,8 @@
 
 namespace App\Services\Contributions;
 
+use App\Enums\ContributionAction;
+use App\Enums\ContributionStatus;
 use App\Enums\LineEventType;
 use App\Models\Contribution;
 use App\Models\Line;
@@ -26,6 +28,14 @@ use Illuminate\Validation\ValidationException;
  *      registre des droits : VFF), empreinte `contribution:<id>` (provenance, une seule ligne
  *      même si la publication est rejouée), portion `pending`.
  *
+ * Correction d'un événement existant (`corrects_event_id`, depuis la chronologie de la fiche) : la
+ * charge utile garde l'événement visé tel qu'il était (source, type, date, portion) et la raison de
+ * la correction. À la publication, l'événement corrigé entre comme un nouvel événement `contrib` et
+ * l'événement visé est neutralisé (type `other`, description « … (correction sourcée : raison) »),
+ * comme une neutralisation de database/data/line_event_corrections*.php ; vff:apply-event-corrections
+ * rejoue ces neutralisations après chaque import (replayCorrections), puisque les imports réécrivent
+ * leurs événements.
+ *
  * Aucun recalcul du moteur ici : la portion est résolue ensuite par
  * `vff:resolve-event-sections --line=<code>`, et la carte par décennie suit au prochain passage du
  * pipeline de l'historique (tâche à part, docs/CONTRIBUTIONS.md).
@@ -49,6 +59,16 @@ final readonly class EventContributions
     public const SOURCE = 'contrib';
 
     public const FINGERPRINT_PREFIX = 'contribution:';
+
+    /** Marque d'un événement neutralisé, celle des fichiers de corrections (EventText::splitCorrection). */
+    public const NEUTRALIZED_MARK = 'correction sourcée :';
+
+    /** Citation courte de la source et raison d'une correction : une ou deux phrases. */
+    public const EXCERPT_MAX = 300;
+
+    public const REASON_MIN = 10;
+
+    public const REASON_MAX = 300;
 
     public function __construct(private TraceContributionService $traces) {}
 
@@ -88,6 +108,9 @@ final readonly class EventContributions
             'heritage_kind' => ['exclude_unless:type,heritage_start,heritage_end', 'nullable', 'string', Rule::in(self::HERITAGE_KINDS)],
             'description' => ['nullable', 'required_if:type,other', 'string', 'max:300'],
             ...SourceCitation::rules(),
+            'source_excerpt' => ['nullable', 'string', 'max:'.self::EXCERPT_MAX],
+            'corrects_event_id' => ['nullable', 'integer', 'min:1'],
+            'correction_reason' => ['exclude_without:corrects_event_id', 'required', 'string', 'min:'.self::REASON_MIN, 'max:'.self::REASON_MAX],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -107,6 +130,10 @@ final readonly class EventContributions
             'pk_end_m.required' => __('proposals.event.errors.pk'),
             'pk_end_m.gt' => __('proposals.event.errors.pk_order'),
             'description.required_if' => __('proposals.event.errors.description_other'),
+            'source_excerpt.max' => __('proposals.event.errors.excerpt_length', ['max' => self::EXCERPT_MAX]),
+            'correction_reason.required' => __('proposals.event.errors.reason', ['min' => self::REASON_MIN, 'max' => self::REASON_MAX]),
+            'correction_reason.min' => __('proposals.event.errors.reason', ['min' => self::REASON_MIN, 'max' => self::REASON_MAX]),
+            'correction_reason.max' => __('proposals.event.errors.reason', ['min' => self::REASON_MIN, 'max' => self::REASON_MAX]),
             ...SourceCitation::messages(),
         ];
     }
@@ -117,12 +144,16 @@ final readonly class EventContributions
      * @param  array<string, mixed>  $data
      * @return array{payload: array<string, mixed>, line: Line}
      *
-     * @throws ValidationException date illisible pour la précision choisie
+     * @throws ValidationException date illisible pour la précision choisie, événement corrigé introuvable
      * @throws ModelNotFoundException ligne inconnue
      */
     public function normalize(array $data): array
     {
         $line = Line::query()->where('slug', $data['line_slug'])->firstOrFail();
+        $corrects = isset($data['corrects_event_id'])
+            ? (self::correctable($line->id, (int) $data['corrects_event_id'])
+                ?? throw ValidationException::withMessages(['corrects_event_id' => __('proposals.event.errors.corrected_missing')]))
+            : null;
         $date = $this->traces->normalizeDate((string) $data['date'], (string) $data['precision'])
             ?? throw ValidationException::withMessages(['date' => __('editor.errors.bad_date')]);
 
@@ -146,8 +177,42 @@ final readonly class EventContributions
                 'heritage_kind' => $data['heritage_kind'] ?? null,
                 'description' => self::clean($data['description'] ?? null),
                 'source' => SourceCitation::fromInput($data),
+                'source_excerpt' => self::clean($data['source_excerpt'] ?? null),
+                'corrects' => $corrects,
+                'correction_reason' => $corrects !== null ? self::clean($data['correction_reason'] ?? null) : null,
                 'notes' => self::trimmed($data['notes'] ?? null),
             ],
+        ];
+    }
+
+    /**
+     * Événement d'une ligne qu'une proposition peut corriger, tel qu'il est maintenant (charge utile
+     * `corrects`) : jamais un accident (fiche vérifiée à part), ni un événement déjà neutralisé par une
+     * correction (`other` « correction sourcée »).
+     *
+     * @return array{event_id: int, source: string, type: string, date: string, precision: string, from: ?string, to: ?string, pk_start_m: ?int, pk_end_m: ?int, source_url: ?string, description: ?string}|null
+     */
+    public static function correctable(int $lineId, int $eventId): ?array
+    {
+        $e = DB::table('line_events')->where('id', $eventId)->where('line_id', $lineId)
+            ->first(['id', 'source', 'type', 'event_date', 'date_precision', 'section_from', 'section_to', 'section_pk_start_m', 'section_pk_end_m', 'source_url', 'description']);
+        if ($e === null || $e->type === LineEventType::Accident->value
+            || ($e->type === 'other' && str_contains((string) $e->description, self::NEUTRALIZED_MARK))) {
+            return null;
+        }
+
+        return [
+            'event_id' => (int) $e->id,
+            'source' => (string) $e->source,
+            'type' => (string) $e->type,
+            'date' => substr((string) $e->event_date, 0, 10),
+            'precision' => (string) $e->date_precision,
+            'from' => $e->section_from,
+            'to' => $e->section_to,
+            'pk_start_m' => $e->section_pk_start_m !== null ? (int) $e->section_pk_start_m : null,
+            'pk_end_m' => $e->section_pk_end_m !== null ? (int) $e->section_pk_end_m : null,
+            'source_url' => $e->source_url,
+            'description' => $e->description,
         ];
     }
 
@@ -175,7 +240,8 @@ final readonly class EventContributions
             'description' => self::description($p, $contribution->id),
             'source' => self::SOURCE,
             'source_url' => $p['source']['url'] ?? null,
-            'source_quote' => SourceCitation::reference($p['source'] ?? []),
+            // Citation courte de la source quand le contributeur l'a donnée, sinon sa référence (titre, licence).
+            'source_quote' => $p['source_excerpt'] ?? SourceCitation::reference($p['source'] ?? []),
             // La confiance suit la source citée (ouvrage, archive ou site officiel : haute ; page web secondaire : moyenne).
             'confidence' => EraTimeline::citedConfidence((string) ($p['source']['kind'] ?? 'web'), $p['source']['url'] ?? null),
             'section_from' => $portion['from'] ?? null,
@@ -197,8 +263,75 @@ final readonly class EventContributions
         } else {
             DB::table('line_events')->where('id', $id)->update($row);
         }
+        $neutralized = $this->neutralizeCorrected($contribution, (int) $id);
 
-        return ['line_event_id' => (int) $id, 'line_slug' => $line->slug];
+        return ['line_event_id' => (int) $id, 'line_slug' => $line->slug]
+            + (isset($p['corrects']) ? ['corrected_event_ids' => $neutralized] : []);
+    }
+
+    /**
+     * Neutralise l'événement qu'une correction remplace, comme une neutralisation des fichiers de
+     * corrections sourcées : type `other`, description « <fait>, fait corrigé par la contribution n° <id>
+     * (correction sourcée : <raison>) ». L'événement est retrouvé par son identifiant s'il n'a pas
+     * changé, sinon (import rejoué : nouvelle ligne) par sa ligne, sa source, son type et sa date, et
+     * son départ quand il en avait un. Rien à faire pour une proposition qui ne corrige rien.
+     *
+     * @param  int|null  $publishedId  événement publié par la contribution (jamais neutralisé)
+     * @return list<int> événements neutralisés ou déjà neutralisés
+     */
+    public function neutralizeCorrected(Contribution $contribution, ?int $publishedId = null, bool $dryRun = false): array
+    {
+        $c = $contribution->payload['corrects'] ?? null;
+        if (! is_array($c)) {
+            return [];
+        }
+        $publishedId ??= DB::table('line_events')->where('fingerprint', self::fingerprint($contribution->id))->value('id');
+        $base = DB::table('line_events')->where('line_id', $contribution->target_id)
+            ->where('source', $c['source'])->where('event_date', $c['date'])
+            ->whereIn('type', [$c['type'], 'other'])
+            ->when($publishedId !== null, fn ($q) => $q->where('id', '<>', $publishedId));
+        $ids = (clone $base)->where('id', $c['event_id'])->pluck('id');
+        if ($ids->isEmpty()) {
+            $ids = (clone $base)->when($c['from'] ?? null, fn ($q, $from) => $q->where('section_from', $from))->pluck('id');
+        }
+        if ($ids->isEmpty()) {
+            return [];
+        }
+        $label = __('editor.event_types.'.$c['type'], [], 'fr');
+        $description = Str::limit("{$label}, fait corrigé par la contribution n° {$contribution->id}", 600, '…')
+            .' ('.self::NEUTRALIZED_MARK.' '.($contribution->payload['correction_reason'] ?? '').')';
+        if (! $dryRun) {
+            DB::table('line_events')->whereIn('id', $ids)
+                ->where(fn ($q) => $q->where('type', '<>', 'other')->orWhere('description', '<>', $description)->orWhereNull('description'))
+                ->update(['type' => 'other', 'description' => $description, 'updated_at' => now()]);
+        }
+
+        return $ids->map(fn ($id): int => (int) $id)->values()->all();
+    }
+
+    /**
+     * Rejoue les neutralisations des corrections publiées (vff:apply-event-corrections, après les
+     * fichiers) : un import qui réécrit ses événements ne fait pas revenir un fait corrigé.
+     *
+     * @return array{replayed: int, neutralized: int, missing: list<int>} missing : contributions dont l'événement visé a disparu
+     */
+    public function replayCorrections(?int $lineId = null, bool $dryRun = false): array
+    {
+        $out = ['replayed' => 0, 'neutralized' => 0, 'missing' => []];
+        Contribution::query()->where('type', self::TYPE)->where('status', ContributionStatus::Applied->value)
+            ->where('action', ContributionAction::Update->value)
+            ->when($lineId !== null, fn ($q) => $q->where('target_id', $lineId))
+            ->orderBy('id')
+            ->each(function (Contribution $contribution) use (&$out, $dryRun): void {
+                $ids = $this->neutralizeCorrected($contribution, null, $dryRun);
+                $out['replayed']++;
+                $out['neutralized'] += count($ids);
+                if ($ids === []) {
+                    $out['missing'][] = $contribution->id;
+                }
+            });
+
+        return $out;
     }
 
     /**
@@ -261,7 +394,8 @@ final readonly class EventContributions
 
     /**
      * Description publiée (en français, comme les autres événements de la base) : le type, la
-     * portion, la précision du contributeur, et le numéro de la contribution.
+     * portion, la précision du contributeur, et le numéro de la contribution (avec la référence de
+     * la source quand une citation courte la remplace dans source_quote).
      *
      * @param  array<string, mixed>  $p
      */
@@ -276,8 +410,11 @@ final readonly class EventContributions
             default => '',
         };
         $detail = ($p['description'] ?? null) ? ' : '.$p['description'] : '';
+        // La citation courte prend la place de la référence dans source_quote : la référence reste ici.
+        $reference = ($p['source_excerpt'] ?? null) !== null ? SourceCitation::reference($p['source'] ?? []) : null;
 
-        return Str::limit($label.$where.$detail, 900, '…')." (contribution n° {$contributionId})";
+        return Str::limit($label.$where.$detail, 900, '…')." (contribution n° {$contributionId}"
+            .($reference !== null ? ', source : '.Str::limit($reference, 300, '…') : '').')';
     }
 
     /** PK en kilomètres et mètres : 12345 → « 12+345 ». */

@@ -7438,6 +7438,21 @@ input EventContributionInput {
     """
     source_license: String
 
+    "Citation courte de la source (la phrase qui date le fait), 300 caractères au plus : publiée avec l'événement à la place de la référence."
+    source_excerpt: String
+
+    """
+    Identifiant d'un événement de la même ligne à corriger (`LineEvent.id`, tel que le donne
+    `Line.events` ou la chronique) : la proposition devient une correction. À la publication,
+    l'événement proposé entre dans l'historique et l'événement visé est neutralisé (type `other`,
+    « correction sourcée »), y compris après un nouvel import de sa source. Un accident ou un
+    événement déjà neutralisé ne peut pas être corrigé.
+    """
+    corrects_event_id: Int
+
+    "Ce qui est faux dans l'événement corrigé, de 10 à 300 caractères : obligatoire avec `corrects_event_id`, publié avec la neutralisation."
+    correction_reason: String
+
     "Note pour les validateurs, non publiée, 2 000 caractères au plus."
     notes: String
 }
@@ -7716,7 +7731,7 @@ enum ContributionAction {
     "Création (nouvelle ligne, événement daté, image, lien de matériel, nouvelle série)."
     CREATE @enum(value: "create")
 
-    "Modification d'une ligne ou d'une série existante."
+    "Modification d'une ligne, d'une série ou d'un événement daté existant (correction)."
     UPDATE @enum(value: "update")
 
     "Suppression."
@@ -7786,7 +7801,10 @@ type Contribution {
     événements aux dates normalisées, `length_m`, `warnings` et, une fois publiée, `applied` ; pour
     `LINE_EVENT`, `line_slug`, `event_type`, `date` (`AAAA-MM-JJ`) et `precision`, `portion`
     (`kind`, `from`, `to`, `pk_start_m`, `pk_end_m`), `source` (`kind`, `title`, `url`, `license`),
-    `description`, `notes` et, une fois publiée, `applied.line_event_id` ; pour `MEDIA`, `source`,
+    `description`, `source_excerpt`, `notes`, pour une correction `corrects` (l'événement visé tel
+    qu'il était : `event_id`, `source`, `type`, `date`, `precision`, `from`, `to`, `pk_start_m`,
+    `pk_end_m`) et `correction_reason`, et, une fois publiée, `applied.line_event_id` (et
+    `applied.corrected_event_ids` pour une correction) ; pour `MEDIA`, `source`,
     `target_type` et la fiche, puis `commons` (métadonnées lues sur Commons) ou, pour un fichier
     déposé, `title`, `author`, `license`, `captured`, `place`, `location` et `file` (type,
     dimensions, empreinte SHA-256, métadonnées retirées, jamais d'adresse publique avant la

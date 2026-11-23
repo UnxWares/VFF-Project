@@ -83,6 +83,16 @@ return [
         'notes' => 'Note for the validators',
         'notes_hint' => 'Page, exact quote, any doubt: whatever helps checking. It is not published.',
         'submit' => 'Send the event',
+        'correct_title' => 'Correct a dated event',
+        'correct_subtitle' => 'Give the right date, section or type, with the source that proves it. Two validators review the correction before it replaces the current event.',
+        'correct_legend' => 'Correction',
+        'correct_current' => 'Current event of line :line: :event. The form starts from its values: change the ones that are wrong.',
+        'correct_new_instead' => 'Propose a new event for this line instead',
+        'reason' => 'What is wrong',
+        'reason_hint' => 'One or two sentences, published with the correction, for example “the source dates the decision, not the opening”.',
+        'source_excerpt' => 'Short quotation (optional)',
+        'source_excerpt_hint' => 'The sentence of the source that gives the date, 300 characters at most. It is published with the event.',
+        'submit_correction' => 'Send the correction',
         'after' => 'Once published, the event joins the line’s chronology. The decade map will take it into account at the next recalculation of the history.',
         'errors' => [
             'places' => 'Give both ends of the section.',
@@ -93,6 +103,9 @@ return [
             'source_title' => 'Give the title or reference of the source, at least three characters.',
             'source_url' => 'Give the address of the source, starting with http:// or https://.',
             'source_license' => 'Choose the licence of the document.',
+            'excerpt_length' => 'The quotation is :max characters at most.',
+            'reason' => 'Explain what is wrong in :min to :max characters.',
+            'corrected_missing' => 'This event cannot be corrected: it no longer exists on this line, or it is an accident or a fact already corrected.',
         ],
     ],
 
@@ -234,6 +247,9 @@ return [
 
     'review' => [
         'kind_event' => 'Dated event',
+        'kind_event_correction' => 'Correction of a dated event',
+        'corrects' => 'Replaces',
+        'correction_reason' => 'What is wrong',
         'kind_media_commons' => 'Image from Wikimedia Commons',
         'kind_media_upload' => 'Uploaded image',
         'type' => 'Type',

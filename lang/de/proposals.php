@@ -83,6 +83,16 @@ return [
         'notes' => 'Notiz für die Prüfer',
         'notes_hint' => 'Seite, genaues Zitat, Zweifel: alles, was bei der Prüfung hilft. Sie wird nicht veröffentlicht.',
         'submit' => 'Ereignis senden',
+        'correct_title' => 'Datiertes Ereignis korrigieren',
+        'correct_subtitle' => 'Geben Sie das richtige Datum, den richtigen Abschnitt oder die richtige Art an, mit der Quelle, die es belegt. Zwei Prüfer lesen die Korrektur, bevor sie das bisherige Ereignis ersetzt.',
+        'correct_legend' => 'Korrektur',
+        'correct_current' => 'Bisheriges Ereignis der Strecke :line: :event. Das Formular übernimmt seine Werte: Ändern Sie die falschen.',
+        'correct_new_instead' => 'Stattdessen ein neues Ereignis für diese Strecke vorschlagen',
+        'reason' => 'Was falsch ist',
+        'reason_hint' => 'Ein oder zwei Sätze, die mit der Korrektur veröffentlicht werden, zum Beispiel „die Quelle datiert den Beschluss, nicht die Eröffnung“.',
+        'source_excerpt' => 'Kurzes Zitat (freiwillig)',
+        'source_excerpt_hint' => 'Der Satz der Quelle, der das Datum nennt, höchstens 300 Zeichen. Er wird mit dem Ereignis veröffentlicht.',
+        'submit_correction' => 'Korrektur senden',
         'after' => 'Nach der Veröffentlichung erscheint das Ereignis in der Chronik der Strecke. Die Karte nach Jahrzehnten berücksichtigt es bei der nächsten Neuberechnung der Geschichte.',
         'errors' => [
             'places' => 'Geben Sie beide Enden des Abschnitts an.',
@@ -93,6 +103,9 @@ return [
             'source_title' => 'Geben Sie Titel oder Fundstelle der Quelle an, mindestens drei Zeichen.',
             'source_url' => 'Geben Sie die Adresse der Quelle an, mit http:// oder https://.',
             'source_license' => 'Wählen Sie die Lizenz des Dokuments.',
+            'excerpt_length' => 'Das Zitat hat höchstens :max Zeichen.',
+            'reason' => 'Erklären Sie in :min bis :max Zeichen, was falsch ist.',
+            'corrected_missing' => 'Dieses Ereignis kann nicht korrigiert werden: Es existiert auf dieser Strecke nicht mehr, oder es ist ein Unfall oder eine bereits korrigierte Tatsache.',
         ],
     ],
 
@@ -234,6 +247,9 @@ return [
 
     'review' => [
         'kind_event' => 'Datiertes Ereignis',
+        'kind_event_correction' => 'Korrektur eines datierten Ereignisses',
+        'corrects' => 'Ersetzt',
+        'correction_reason' => 'Was falsch ist',
         'kind_media_commons' => 'Bild aus Wikimedia Commons',
         'kind_media_upload' => 'Hochgeladenes Bild',
         'type' => 'Art',
