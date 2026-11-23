@@ -130,6 +130,7 @@ return [
     ],
     'earliest' => [
         'electrification' => 'Auf dieser Strecke frühestens mit der Elektrifizierung: :date',
+        'section' => 'Auf dieser Strecke frühestens mit der ersten Elektrifizierung eines Abschnitts: :date (:section)',
     ],
     'doubt' => [
         'title' => 'Erwähnt, Einsatz nicht belegt (:count)',

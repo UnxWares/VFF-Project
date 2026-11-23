@@ -130,6 +130,7 @@ return [
     ],
     'earliest' => [
         'electrification' => 'On this line no earlier than electrification: :date',
+        'section' => 'On this line no earlier than the first electrification of a section: :date (:section)',
     ],
     'doubt' => [
         'title' => 'Mentioned, service not established (:count)',

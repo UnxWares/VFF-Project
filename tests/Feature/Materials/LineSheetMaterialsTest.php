@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 /**
  * Section « Matériel roulant » de la fiche de ligne : séries citées sans service attesté, séries électriques
- * bornées par l'électrification de la ligne, famille non listée à côté de ses versions.
+ * bornées par la première électrification de la ligne ou d'une section, famille non listée à côté de ses versions.
  */
 class LineSheetMaterialsTest extends TestCase
 {
@@ -88,8 +88,7 @@ class LineSheetMaterialsTest extends TestCase
     public function test_an_electric_series_is_not_dated_before_the_electrification_of_the_line(): void
     {
         LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1996-06-01', 'date_precision' => 'month', 'confidence' => 'high', 'section_from' => 'Paris', 'section_to' => 'Cherbourg']);
-        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'medium', 'section_length_m' => 31295]);
-        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1995-01-01', 'date_precision' => 'year', 'confidence' => 'low']);
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'low', 'section_from' => 'Bernay', 'section_to' => 'Lisieux', 'section_length_m' => 31295]);
         $electric = Material::factory()->create(['slug' => 'bb-16000', 'name' => 'BB 16000', 'type' => 'locomotive_electrique', 'in_service_from' => 1958, 'in_service_to' => null]);
         $retired = Material::factory()->create(['slug' => 'bb-9200', 'name' => 'BB 9200', 'type' => 'locomotive_electrique', 'in_service_from' => 1957, 'in_service_to' => 1990]);
         $diesel = Material::factory()->create(['slug' => 'bb-67400', 'name' => 'BB 67400', 'type' => 'locomotive_diesel', 'in_service_from' => 1969, 'in_service_to' => null]);
@@ -101,7 +100,7 @@ class LineSheetMaterialsTest extends TestCase
 
         $rows = $this->sheetMaterials();
 
-        $this->assertSame(['reason' => 'electrification', 'date' => '1996-06-01', 'precision' => 'month'], $rows['bb-16000']['earliest_on_line']);
+        $this->assertSame(['reason' => 'electrification', 'date' => '1996-06-01', 'precision' => 'month', 'section' => null], $rows['bb-16000']['earliest_on_line']);
         $this->assertNull($rows['bb-9200']['earliest_on_line'], 'retirée avant l\'électrification');
         $this->assertNull($rows['bb-67400']['earliest_on_line'], 'thermique');
         $this->assertSame('1996-06-01', $rows['bb-15000']['periods'][0]['start_date']);
@@ -110,38 +109,30 @@ class LineSheetMaterialsTest extends TestCase
         $this->assertSame('2010-01-01', $rows['bb-15000']['periods'][0]['end_date']);
     }
 
-    public function test_a_line_without_a_whole_line_electrification_has_no_bound(): void
+    public function test_the_bound_is_the_first_electrification_of_a_section_and_names_it(): void
     {
-        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'medium', 'section_length_m' => 31295]);
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1996-06-01', 'date_precision' => 'day', 'confidence' => 'high', 'section_from' => 'Paris', 'section_to' => 'Cherbourg']);
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'medium', 'section_from' => 'Bernay', 'section_to' => 'Lisieux', 'section_length_m' => 31295]);
+        $electric = Material::factory()->create(['slug' => 'bb-16000', 'name' => 'BB 16000', 'type' => 'locomotive_electrique', 'in_service_from' => 1958, 'in_service_to' => null]);
+        $dated = Material::factory()->create(['slug' => 'bb-15000', 'name' => 'BB 15000', 'type' => 'locomotive_electrique', 'in_service_from' => 1971, 'in_service_to' => null]);
+        foreach ([$electric, $dated] as $m) {
+            $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
+        }
+        LineMaterialPeriod::create(['line_material_id' => LineMaterial::query()->where('material_id', $dated->id)->value('id'), 'start_date' => '1980-01-01', 'start_precision' => 'year', 'end_date' => '2010-01-01', 'end_precision' => 'year', 'confidence' => 'high', 'origin' => 'line_article', 'fingerprint' => md5((string) microtime()), 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?oldid=2']);
+
+        $rows = $this->sheetMaterials();
+
+        $this->assertSame(['reason' => 'electrification', 'date' => '1989-01-01', 'precision' => 'year', 'section' => 'Bernay - Lisieux'], $rows['bb-16000']['earliest_on_line']);
+        $this->assertSame('1989-01-01', $rows['bb-15000']['periods'][0]['start_date'], 'le début de 1980 est ramené à la première section électrifiée');
+        $this->assertSame('year', $rows['bb-15000']['periods'][0]['start_precision']);
+    }
+
+    public function test_a_line_without_a_reliable_electrification_has_no_bound(): void
+    {
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'low', 'section_length_m' => 31295]);
         $m = Material::factory()->create(['slug' => 'bb-16000', 'name' => 'BB 16000', 'type' => 'locomotive_electrique']);
         $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
 
         $this->assertNull($this->sheetMaterials()['bb-16000']['earliest_on_line']);
-    }
-
-    public function test_a_family_is_not_listed_next_to_its_versions(): void
-    {
-        $agc = Material::factory()->create(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité', 'type' => 'automotrice']);
-        $x = Material::factory()->create(['slug' => 'x-76500', 'name' => 'X 76500', 'type' => 'autorail']);
-        $z = Material::factory()->create(['slug' => 'z-27500', 'name' => 'Z 27500', 'type' => 'automotrice']);
-        $other = Material::factory()->create(['slug' => 'bb-67400', 'name' => 'BB 67400', 'type' => 'locomotive_diesel']);
-        foreach ([$agc, $x, $z, $other] as $m) {
-            $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
-        }
-
-        $rows = $this->sheetMaterials();
-
-        $this->assertFalse($rows->has('autorail-grande-capacite'));
-        $this->assertSame(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité'], $rows['x-76500']['family']);
-        $this->assertSame('autorail-grande-capacite', $rows['z-27500']['family']['slug']);
-        $this->assertNull($rows['bb-67400']['family']);
-    }
-
-    public function test_a_family_alone_on_a_line_stays_listed(): void
-    {
-        $agc = Material::factory()->create(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité', 'type' => 'automotrice']);
-        $this->link($agc, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
-
-        $this->assertTrue($this->sheetMaterials()->has('autorail-grande-capacite'));
     }
 }

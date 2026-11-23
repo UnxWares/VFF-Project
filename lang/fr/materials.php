@@ -131,6 +131,7 @@ return [
     ],
     'earliest' => [
         'electrification' => "Sur la ligne au plus tôt à l’électrification\u{a0}: :date",
+        'section' => "Sur la ligne au plus tôt à la première électrification d’une portion\u{a0}: :date (:section)",
     ],
     'doubt' => [
         'title' => 'Cités, sans service attesté (:count)',

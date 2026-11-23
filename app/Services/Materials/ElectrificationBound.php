@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Borne « pas avant l'électrification » d'une série électrique sur une ligne : aucune source ne date
- * l'arrivée de la BB 16000 sur Mantes - Cherbourg, mais une locomotive à caténaire n'y roule pas avant que la
- * ligne soit électrifiée. La borne n'est pas une date de service : c'est la plus ancienne date possible,
- * montrée avec son motif.
+ * l'arrivée de la BB 16000 sur Mantes - Cherbourg, mais une locomotive à caténaire n'y roule pas avant qu'une
+ * partie de la ligne soit électrifiée. La borne n'est pas une date de service : c'est la plus ancienne date
+ * possible, montrée avec son motif.
  *
- * Date de la ligne : la plus ancienne électrification de la ligne entière dans VFF (événements
- * `electrification` de fiabilité `high` ou `medium`), hors électrification d'une portion (section dont la
- * longueur résolue est inférieure à MIN_SHARE de la ligne). Une ligne électrifiée par étapes sans événement
- * pour la ligne entière n'a pas de borne.
+ * Date de la ligne : la PREMIÈRE électrification connue dans VFF, de la ligne entière ou d'une seule section
+ * (événements `electrification` de fiabilité `high` ou `medium`) : un matériel électrique peut circuler dès
+ * la première section sous tension. Quand c'est une section (longueur résolue inférieure à MIN_SHARE de la
+ * ligne), la borne la nomme (`section`). La date garde la précision de la source (jour, mois, année).
  *
  * Séries concernées : locomotives électriques et rames TGV, et les automotrices dont des systèmes
  * d'alimentation sont déclarés. Jamais un bimode, un autorail ni une série thermique, qui roulent sans
@@ -30,20 +30,31 @@ final class ElectrificationBound
     public const REASON = 'electrification';
 
     /**
-     * @return array{date: string, precision: string}|null
+     * @return array{date: string, precision: string, section: string|null}|null
      */
     public static function lineDate(Line $line): ?array
     {
         $length = (int) ($line->length_official_m ?? 0);
+        // À date égale, l'électrification de la ligne entière (portion non résolue ou longue) passe avant une section.
         $event = DB::table('line_events')
             ->where('line_id', $line->id)
             ->where('type', 'electrification')
             ->whereIn('confidence', ['high', 'medium'])
-            ->when($length > 0, fn ($q) => $q->where(fn ($w) => $w->whereNull('section_length_m')->orWhere('section_length_m', '>=', (int) ceil($length * self::MIN_SHARE))))
             ->orderBy('event_date')
-            ->first(['event_date', 'date_precision']);
+            ->orderByRaw('section_length_m desc nulls first')
+            ->first(['event_date', 'date_precision', 'section_from', 'section_to', 'section_length_m']);
+        if ($event === null) {
+            return null;
+        }
+        $isSection = $length > 0 && $event->section_length_m !== null
+            && (int) $event->section_length_m < (int) ceil($length * self::MIN_SHARE)
+            && $event->section_from !== null && $event->section_to !== null;
 
-        return $event === null ? null : ['date' => substr((string) $event->event_date, 0, 10), 'precision' => (string) $event->date_precision];
+        return [
+            'date' => substr((string) $event->event_date, 0, 10),
+            'precision' => (string) $event->date_precision,
+            'section' => $isSection ? $event->section_from.' - '.$event->section_to : null,
+        ];
     }
 
     /** La série a-t-elle besoin d'une caténaire pour rouler ? */

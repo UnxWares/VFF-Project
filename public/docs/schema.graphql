@@ -6022,7 +6022,7 @@ type LineSheetMaterial {
   "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
   relations: [LineMaterialRelation!]!
 
-  "Date la plus ancienne possible de la série sur la ligne, quand une règle la borne : une série électrique n'a pas circulé avant l'électrification de la ligne. Nulle sans borne. Ce n'est pas une date de service."
+  "Date la plus ancienne possible de la série sur la ligne, quand une règle la borne : une série électrique n'a pas circulé avant la première électrification connue de la ligne ou d'une de ses sections. Nulle sans borne. Ce n'est pas une date de service."
   earliest_on_line: LineSheetMaterialBound
 
   "Raison pour laquelle toutes les sources mettent en doute que la série ait assuré le service sur la ligne : `trial` (essais), `one_off` (circulation exceptionnelle, présentation, train spécial), `order` (commande), `positioning` (acheminement à vide vers un atelier), `preserved` (préservation), `possible` (possibilité étudiée), `diverted` (train détourné), `restricted` (réservé à une autre portion), `component` (pièce reprise d'une autre série), `section` (section d'essais ou de records) ou `other`. Nulle pour une série qui a circulé. La fiche web range ces séries à part."
@@ -6040,7 +6040,7 @@ type LineSheetMaterial {
 
 "Borne de date d'une série sur une ligne."
 type LineSheetMaterialBound {
-  "Motif de la borne : `electrification` (pas avant l'électrification de la ligne)."
+  "Motif de la borne : `electrification` (pas avant la première électrification connue de la ligne, entière ou d'une section)."
   reason: String!
 
   "Date de la borne (`AAAA-MM-JJ`)."
@@ -6048,6 +6048,9 @@ type LineSheetMaterialBound {
 
   "Précision de la date : `day`, `month` ou `year`."
   precision: String!
+
+  "Section nommée (`Bernay - Lisieux`) quand la première électrification est celle d'une section et non de la ligne entière, nulle sinon."
+  section: String
 }
 
 "Famille d'une série (voir `LineSheetMaterial.family`)."
@@ -6121,7 +6124,7 @@ type LineSheetMaterialPeriod {
   "Précision du début : `day`, `month` ou `year`."
   start_precision: String
 
-  "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant l'électrification de la ligne), nul sinon."
+  "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant la première électrification de la ligne ou d'une section), nul sinon."
   start_bounded_by: String
 
   "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
@@ -8403,4 +8406,3 @@ enum Trashed {
   "Only return non-trashed results."
   WITHOUT
 }
-

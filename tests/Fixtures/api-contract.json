@@ -961,6 +961,7 @@
     "gql LineSheetMaterial.type": "String",
     "gql LineSheetMaterialBound.date": "String!",
     "gql LineSheetMaterialBound.precision": "String!",
+    "gql LineSheetMaterialBound.section": "String",
     "gql LineSheetMaterialBound.reason": "String!",
     "gql LineSheetMaterialEnd.kind": "String!",
     "gql LineSheetMaterialEnd.since": "Int",

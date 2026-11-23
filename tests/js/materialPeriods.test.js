@@ -31,6 +31,8 @@ const fr = {
     'materials.doubt.reasons.trial': 'essais',
     'materials.doubt.reasons.other': 'mention incertaine',
     'materials.earliest.electrification': 'Sur la ligne au plus tôt à l’électrification : :date',
+    'materials.earliest.section':
+        'Sur la ligne au plus tôt à la première électrification d’une portion : :date (:section)',
 };
 const t = (key, opts = {}) =>
     Object.entries(opts).reduce((s, [k, v]) => s.replace(`:${k}`, String(v)), fr[key] ?? key);
@@ -236,6 +238,22 @@ describe('borne d’électrification', () => {
         expect(
             earliestText({ reason: 'electrification', date: '1996-06-01', precision: 'year' }, t),
         ).toBe('Sur la ligne au plus tôt à l’électrification : 1996');
+    });
+
+    it('nomme la portion quand la première électrification est celle d’une section', () => {
+        expect(
+            earliestText(
+                {
+                    reason: 'electrification',
+                    date: '1989-01-01',
+                    precision: 'year',
+                    section: 'Bernay - Lisieux',
+                },
+                t,
+            ),
+        ).toBe(
+            'Sur la ligne au plus tôt à la première électrification d’une portion : 1989 (Bernay - Lisieux)',
+        );
     });
 
     it('ne dit rien sans borne ni pour un motif inconnu', () => {
