@@ -7,6 +7,7 @@ use App\Enums\AccidentKind;
 use App\Enums\AccidentLocationPrecision;
 use App\Enums\AccidentReviewStatus;
 use App\Models\Scopes\PublicAccidents;
+use App\Services\Accidents\AccidentSlugTable;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Database\Factories\AccidentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -141,6 +142,11 @@ class Accident extends Model
      */
     public static function redirectSlugFor(string $slug): ?string
     {
+        // Fiche renommée (database/data/accident_slugs.php) : l'ancienne adresse mène à la nouvelle, puis aux alias éventuels.
+        $renamed = (new AccidentSlugTable)->renamedTo($slug);
+        if ($renamed !== null && ! self::withoutGlobalScopes()->where('slug', $slug)->exists()) {
+            return self::query()->where('slug', $renamed)->exists() ? $renamed : self::redirectSlugFor($renamed);
+        }
         $kept = self::withoutGlobalScopes()->where('slug', $slug)->whereNotNull('alias_of_id')->value('alias_of_id');
         // Un alias d'alias est suivi jusqu'à la fiche retenue (au plus 5 pas : pas de boucle possible).
         for ($i = 0; $i < 5 && $kept !== null; $i++) {
