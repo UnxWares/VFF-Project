@@ -214,6 +214,8 @@ class LineController extends Controller
             // Ligne classique en service sans mise en service de cantonnement datée : mention et date de la dernière vérification.
             'signalling_dating' => $defer(fn () => $signallingDating->forLine($line)),
             'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
+            // Sans profil : pourquoi (aucun tracé, tracé hors de France, pas encore calculé), dit dans la même section.
+            'profile_unavailable' => $defer(fn () => $profiles->unavailable($line)),
             // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
             'structures' => $defer(fn () => $structures->forSheet($line)),
             // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).

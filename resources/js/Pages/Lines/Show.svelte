@@ -79,7 +79,8 @@
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>, signalling_corrections?: Array<any>,
      *   signalling_dating?: { status: string, checked_at: string } | null,
-     *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
+     *   profile?: any, profile_unavailable?: { reason: 'no_trace'|'outside_france'|'not_computed' }|null,
+     *   speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
      *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
@@ -128,6 +129,8 @@
         signalling_dating: signallingDatingProp,
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile: profileProp,
+        // Sans profil : son motif (App\Services\Profiles\LineProfiles::unavailable), dit dans la même section.
+        profile_unavailable: profileUnavailableProp,
         // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
         structures: structuresProp,
         // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
@@ -156,6 +159,7 @@
         signallingHistoryProp,
         signallingCorrectionsProp,
         profileProp,
+        profileUnavailableProp,
         structuresProp,
         speedsProp,
         electrificationProp,
@@ -178,6 +182,15 @@
     const signalling_corrections = $derived(signallingCorrectionsProp ?? []);
     const signalling_dating = $derived(signallingDatingProp ?? null);
     const profile = $derived(profileProp ?? null);
+    // Texte de la section « Profil en long » d'une ligne sans profil, selon le motif.
+    const PROFILE_UNAVAILABLE = {
+        no_trace: 'profile.unavailable_no_trace',
+        outside_france: 'profile.unavailable_outside_france',
+        not_computed: 'profile.unavailable_not_computed',
+    };
+    const profileUnavailableKey = $derived(
+        profile ? null : (PROFILE_UNAVAILABLE[profileUnavailableProp?.reason] ?? null),
+    );
     const structures = $derived(
         structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
     );
@@ -1434,6 +1447,12 @@
 
         {#if profile}
             <LineProfile {profile} structures={structures.items} />
+        {:else if profileUnavailableKey}
+            <SheetSection
+                id="profile"
+                title={t('profile.title')}
+                intro={t(profileUnavailableKey)}
+            />
         {/if}
 
         {#if speeds && (speeds.ranges.length || speeds.history.length)}
