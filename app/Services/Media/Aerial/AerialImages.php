@@ -43,6 +43,11 @@ final class AerialImages
 
     public const NEGATIVE_TTL = 30 * 86400;
 
+    /** Contenu du marqueur `.none` posé par `vff:probe-aerial-coverage` (emprise de la mission absente) et sa durée de validité. */
+    public const PROBE_MARK = 'probe';
+
+    public const PROBE_TTL = 365 * 86400;
+
     public const MARKER = '.vff-aerial-cache';
 
     /** Part minimale de pixels couverts, et écart type minimal des gris (une vue unie est un trou de couverture). */
@@ -220,10 +225,15 @@ final class AerialImages
         return ! is_file($dir.'.jpg') && self::noneValid($dir.'.none');
     }
 
-    /** Marqueur négatif encore valable (30 jours). */
+    /** Marqueur négatif encore valable : 30 jours si posé par une vue vide, un an s'il vient de la sonde de couverture. */
     private static function noneValid(string $none): bool
     {
-        return is_file($none) && time() - (int) filemtime($none) < self::NEGATIVE_TTL;
+        if (! is_file($none)) {
+            return false;
+        }
+        $ttl = @file_get_contents($none) === self::PROBE_MARK ? self::PROBE_TTL : self::NEGATIVE_TTL;
+
+        return time() - (int) filemtime($none) < $ttl;
     }
 
     private function dir(string $period): string
@@ -245,7 +255,7 @@ final class AerialImages
         return $dir;
     }
 
-    private static function atomicWrite(string $file, string $bytes): void
+    public static function atomicWrite(string $file, string $bytes): void
     {
         $tmp = $file.'.'.bin2hex(random_bytes(4)).'.tmp';
         file_put_contents($tmp, $bytes);
