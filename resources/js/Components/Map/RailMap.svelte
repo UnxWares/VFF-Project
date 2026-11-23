@@ -459,7 +459,12 @@
     let destroyed = false;
 
     const TILES_BASE = '/api/v1/eras';
-    const FADE_MS = 350;
+    // Fondu des tracés au changement d'ère ; aucun si le visiteur demande moins d'animations (RGAA 13.8).
+    const FADE_MS =
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+            ? 0
+            : 350;
 
     // Couche prête (évènement `load` reçu). NB : `map.isStyleLoaded()` vaut false
     // tant que des tuiles chargent → l'utiliser comme garde faisait IGNORER un

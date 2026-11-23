@@ -1,5 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import { i18n } from '$lib/i18n.js';
     import { visibleLabels } from '$lib/timelineLabels.js';
 
@@ -41,6 +42,9 @@
     const todayEra = $derived(currentEra ?? eras[eras.length - 1]);
     const thisYear = new Date().getFullYear();
 
+    // Animations réduites demandées par le système : la lecture automatique par minuterie (sans `onPlay`)
+    // n'est pas proposée ; seule la lecture confiée à la page l'est (elle passe alors au pas à pas).
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
     let timerPlaying = $state(false);
     const isPlaying = $derived(onPlay ? playing : timerPlaying);
     let timer = null;
@@ -181,6 +185,7 @@
             onPlay();
             return;
         }
+        if (reducedMotion.current) return;
         if (isPlaying) {
             stopPlay();
             return;
@@ -211,16 +216,18 @@
 
 <div class="timeline" role="group" aria-label={t('maps.timeline.aria_label')}>
     <div class="timeline-head">
-        <button
-            type="button"
-            class="play-btn"
-            data-playback-control
-            onclick={togglePlay}
-            aria-label={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
-            title={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
-        >
-            <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}" aria-hidden="true"></i>
-        </button>
+        {#if onPlay || !reducedMotion.current}
+            <button
+                type="button"
+                class="play-btn"
+                data-playback-control
+                onclick={togglePlay}
+                aria-label={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
+                title={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
+            >
+                <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}" aria-hidden="true"></i>
+            </button>
+        {/if}
 
         <p class="year-display">
             <span class="year-value">{displayYear}</span>
