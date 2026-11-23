@@ -8,6 +8,7 @@ use App\Http\Controllers\AccountModerationController;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChronologyController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
@@ -76,6 +77,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     });
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
+// Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).
+Route::get('/chronology', [ChronologyController::class, 'index'])->name('network.chronology');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');

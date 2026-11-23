@@ -59,6 +59,9 @@
         <Link href="/network" class="vff-link">{$i18n.t('network.link_home')}</Link>
     </p>
     <p class="quiz-link">
+        <Link href="/chronology" class="vff-link">{$i18n.t('chronology.link_home')}</Link>
+    </p>
+    <p class="quiz-link">
         <Link href="/quiz" class="vff-link">{$i18n.t('quiz.links.home')}</Link>
     </p>
 </SectionBlock>

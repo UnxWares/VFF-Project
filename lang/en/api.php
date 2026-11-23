@@ -15,6 +15,8 @@ return [
         'intro' => 'All of them describe the same data: pick the interface you prefer.',
         'items' => [
             'stats_network' => 'The network in figures, decade by decade: kilometres open (passenger, freight only), closed and lifted, electrification, stations, dated closures and accidents, with the date of the calculation.',
+            'chronology' => 'A chronology of French railways, year by year: counts of openings, reopenings, closures, electrifications, signalling commissionings, rolling stock series, major accidents and national milestones, by kind and by region.',
+            'chronology_decade' => 'The facts of one decade, year by year: date at its precision, line, sections, kilometres, page and publishable sources of each fact.',
             'scalar' => ['title' => 'REST reference (Scalar)', 'text' => 'The main reference, with live requests and code samples.'],
             'swagger' => ['title' => 'REST reference (Swagger UI)', 'text' => 'The same specification in a more traditional interface.'],
             'openapi' => ['title' => 'OpenAPI 3.1 specification', 'text' => 'A JSON file to import into Postman, Insomnia or a client generator.'],

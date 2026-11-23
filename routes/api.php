@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccidentController;
+use App\Http\Controllers\Api\ChronologyController;
 use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
@@ -96,6 +97,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
     Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
     Route::get('/v1/stats/network', [NetworkFiguresController::class, 'show'])->name('api.stats.network');
+    // Chronologie du rail en France (faits par année, en cache : vff:compute-network-chronology).
+    Route::get('/v1/chronology', [ChronologyController::class, 'index'])->name('api.chronology');
+    Route::get('/v1/chronology/{decade}', [ChronologyController::class, 'show'])->where('decade', '[0-9]{4}')->name('api.chronology.decade');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');

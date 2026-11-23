@@ -8,6 +8,7 @@ return [
     'hero_subtitle' => 'Ce que le réseau ferré français a été, décennie après décennie, de 1830 à aujourd’hui : combien de kilomètres ouverts, fermés ou déposés, combien de gares, quelle part électrifiée, combien d’accidents. Chaque chiffre dit comment il est compté.',
     'computed' => 'Calculé le :date',
     'link_home' => 'Le réseau en chiffres, décennie par décennie',
+    'link_chronology' => 'Année par année, les faits derrière ces chiffres : la chronologie du rail en France',
     'today' => 'Aujourd’hui',
     'km' => ":value\u{00A0}km",
     'period_until' => 'jusqu’en :to',

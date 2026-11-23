@@ -415,6 +415,9 @@
                 {t('api_text')}
                 <a href="/api/v1/stats/network" class="vff-link">/api/v1/stats/network</a>
             </p>
+            <p class="note">
+                <Link href="/chronology" class="vff-link">{t('link_chronology')}</Link>
+            </p>
         </SectionBlock>
     </main>
 </Layout>

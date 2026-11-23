@@ -85,16 +85,16 @@ class SitemapBuilderMutationTest extends TestCase
     {
         Accident::factory()->create(['slug' => '2000-01-01-pas-dans-les-pages', 'kind' => 'collision']);
         $all = $this->locs((new SitemapBuilder)->family('https://h.org', 'pages', 1) ?? '');
-        $this->assertCount(20, $all);
+        $this->assertCount(21, $all);
         $this->assertSame('https://h.org/', $all[0]);
         $this->assertSame('https://h.org/whoarewe', $all[1]);
-        $this->assertSame('https://h.org/credits/media', $all[19]);
+        $this->assertSame('https://h.org/credits/media', $all[20]);
         $this->assertStringNotContainsString('lastmod', (string) (new SitemapBuilder)->family('https://h.org', 'pages', 1));
 
         $small = new SitemapBuilder(5);
-        $this->assertNotNull($small->family('https://h.org', 'pages', 4));
-        $this->assertNull($small->family('https://h.org', 'pages', 5));
-        $this->assertCount(4, array_filter($this->locs($small->index('https://h.org')), fn (string $l): bool => str_contains($l, 'sitemap-pages-')));
+        $this->assertNotNull($small->family('https://h.org', 'pages', 5));
+        $this->assertNull($small->family('https://h.org', 'pages', 6));
+        $this->assertCount(5, array_filter($this->locs($small->index('https://h.org')), fn (string $l): bool => str_contains($l, 'sitemap-pages-')));
     }
 
     public function test_rows_follow_the_order_of_ids_and_the_offset_of_the_page(): void

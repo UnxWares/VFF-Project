@@ -8,6 +8,7 @@ return [
     'hero_subtitle' => 'What the French railway network has been, decade after decade, from 1830 to today: how many kilometres open, closed or lifted, how many stations, what share electrified, how many accidents. Every figure says how it is counted.',
     'computed' => 'Calculated on :date',
     'link_home' => 'The network in figures, decade by decade',
+    'link_chronology' => 'Year by year, the facts behind these figures: the chronology of French railways',
     'today' => 'Today',
     'km' => ':value km',
     'period_until' => 'up to :to',

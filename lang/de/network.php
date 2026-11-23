@@ -8,6 +8,7 @@ return [
     'hero_subtitle' => 'Was das französische Eisenbahnnetz Jahrzehnt für Jahrzehnt war, von 1830 bis heute: wie viele Kilometer offen, stillgelegt oder abgebaut sind, wie viele Bahnhöfe es gibt, welcher Anteil elektrifiziert ist, wie viele Unfälle es gab. Jede Zahl sagt, wie sie gezählt wird.',
     'computed' => 'Berechnet am :date',
     'link_home' => 'Das Netz in Zahlen, Jahrzehnt für Jahrzehnt',
+    'link_chronology' => 'Jahr für Jahr, die Fakten hinter diesen Zahlen: die Chronik der Eisenbahn in Frankreich',
     'today' => 'Heute',
     'km' => ':value km',
     'period_until' => 'bis :to',

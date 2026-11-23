@@ -21,6 +21,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /chronology` et `GET /chronology/{decade}` (chronologie du rail en France, année par année depuis 1827 : ouvertures, réouvertures, fermetures, électrifications, signalisation, séries de matériel, accidents graves et jalons nationaux ; filtres `types`, `region`, `lang` ; chaque fait avec sa date à sa précision, sa fiche et ses sources publiables, les faits sans source publiable comptés dans `hidden`). Page : `/chronology`. Calcul : `vff:compute-network-chronology`.
 - REST : `GET /api/v1/materials/{material}/map`, les lignes d'une série avec leur tracé allégé (MultiLineString à 40 m près, 4 décimales),
   la fiabilité du lien, sa source (`source_url`, `article`, `quote`) et les périodes datées ; règle des droits des tracés comme
   `/lines/{line}/segments` (`geometry_withheld`). Ajout seul.
