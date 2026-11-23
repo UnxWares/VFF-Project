@@ -279,24 +279,40 @@ final class MaterialRelations
             return [];
         }
         array_push($chains, ...$this->joinedChains($text, $sentence, $chains, $eraYear));
+        // Ère tirée du milieu du service de la série (phrase sans année, série datée de bout en bout) : si un arrêt
+        // manque à cette ère, les ères suivantes jusqu'à la dernière où la série roule.
+        $now = (int) date('Y');
+        $midService = $material['from'] !== null && $material['to'] !== null && $year === intdiv($material['from'] + min($material['to'], $now), 2);
+        $lastEra = $midService ? ($this->router->eraYear(min((int) $material['to'], $now)) ?? $eraYear) : $eraYear;
         foreach ($chains as [$chain, $offset, $pieces]) {
-            $stops = [];
-            $written = [];
-            foreach ($pieces as $piece) {
-                [$ids, $name] = $this->stop($piece, $places, $eraYear);
-                if ($ids === []) {
-                    $this->stats['stops_unresolved']++;
-
-                    continue 2;
-                }
-                $stops[] = $ids;
-                $written[] = $name;
+            // Arrêt absent du graphe de l'ère (gare ouverte depuis, comme Lyon-Part-Dieu en 1983) : la phrase parle
+            // d'une époque où il existe.
+            // « Lille-Flandres - Lens via Don-Sainghin », « Chambéry - Lyon (par Ambérieu-en-Bugey) » : arrêts
+            // intermédiaires écrits après la relation, gardés s'ils se résolvent.
+            $variants = [$pieces];
+            if (preg_match('/\G\s*\(?\s*(?:via|par)\s+('.self::PLACE.'(?:\s*(?:,|\bet\b)\s*'.self::PLACE.')*)/u', $text, $via, 0, $offset + strlen($chain)) === 1) {
+                $through = preg_split('/\s*(?:,|\bet\b)\s*/u', $via[1]) ?: [];
+                array_unshift($variants, [...array_slice($pieces, 0, -1), ...$through, $pieces[count($pieces) - 1]]);
             }
+            $found = null;
+            foreach ([$eraYear, ...$this->router->laterEraYears($eraYear, $lastEra)] as $chainEra) {
+                foreach ($variants as $pieces) {
+                    if (($found = $this->stops($pieces, $places, $chainEra)) !== null) {
+                        break 2;
+                    }
+                }
+            }
+            if ($found === null) {
+                $this->stats['stops_unresolved']++;
+
+                continue;
+            }
+            [$stops, $written] = $found;
             $lines = [];
             $chosen = [];
             for ($k = 0; $k + 1 < count($stops); $k++) {
                 $this->stats['pairs']++;
-                $route = $this->router->route($stops[$k], $stops[$k + 1], $eraYear, $material['fast'], $material['electric'] ?? false);
+                $route = $this->router->route($stops[$k], $stops[$k + 1], $chainEra, $material['fast'], $material['electric'] ?? false);
                 if ($route['status'] === 'ambiguous') {
                     $this->stats['pairs_ambiguous']++;
                 } elseif ($route['status'] === 'no_path') {
@@ -339,7 +355,7 @@ final class MaterialRelations
             $period = $this->period($before.'[['.self::RELATION_TARGET.'|'.$label.']]'.$after, fn (string $t): bool => $t === self::RELATION_TARGET, $today);
             $evidence = $this->evidence($page, $section, mb_strimwidth($quote, 0, WikipediaMaterialSections::QUOTE_WIDTH, '…'), $doubt, array_filter([
                 'kind' => 'relation', 'label' => implode(' - ', $shown), 'from' => $named[0], 'to' => $named[count($named) - 1],
-                'stops' => $named, 'service' => self::service($quote, $section), 'era_year' => $eraYear,
+                'stops' => $named, 'service' => self::service($quote, $section), 'era_year' => $chainEra,
             ], fn ($v): bool => $v !== null), $period);
             foreach (array_unique($lines) as $lineId) {
                 $out[] = ['line_id' => $lineId, 'evidence' => $evidence];
@@ -415,25 +431,57 @@ final class MaterialRelations
     }
 
     /**
+     * Gares de chaque arrêt d'une relation à cette ère, avec les noms qui les ont désignées ; null si un arrêt
+     * reste introuvable. Un nom porté par des gares de plusieurs villes (« Tours », « Marseille » aux ères
+     * passées) désigne la ville la plus proche des arrêts voisins déjà trouvés (RelationRouter::resolve()).
+     *
+     * @param  list<string>  $pieces
+     * @param  list<array{name: string, label: string}>  $places
+     * @return array{0: list<list<int>>, 1: list<string>}|null
+     */
+    private function stops(array $pieces, array $places, int $eraYear): ?array
+    {
+        $resolved = array_map(fn (string $piece): array => $this->stop($piece, $places, $eraYear), $pieces);
+        foreach ($resolved as $k => [$ids]) {
+            $near = [...$resolved[$k - 1][0] ?? [], ...$resolved[$k + 1][0] ?? []];
+            if ($ids === [] && $near !== []) {
+                $resolved[$k] = $this->stop($pieces[$k], $places, $eraYear, $near);
+            }
+        }
+        foreach ($resolved as [$ids]) {
+            if ($ids === []) {
+                return null;
+            }
+        }
+
+        return [array_column($resolved, 0), array_column($resolved, 1)];
+    }
+
+    /**
      * Gares d'un arrêt de la relation : gare liée, sinon nom en clair, sans ses premiers mots au besoin
-     * (« Relation Argentan » → « Argentan »), avec le nom qui les a désignées.
+     * (« Relation Argentan » → « Argentan »), avec le nom qui les a désignées. Un nom porté par des gares de
+     * plusieurs villes garde ses premiers mots (« La Roche » ne devient pas « Roche ») : écrit seul, il se résout
+     * par les gares des arrêts voisins (`$near`), sinon pas du tout.
      *
      * @param  list<array{name: string, label: string}>  $places
+     * @param  list<int>  $near
      * @return array{0: list<int>, 1: string}
      */
-    private function stop(string $piece, array $places, int $eraYear): array
+    private function stop(string $piece, array $places, int $eraYear, array $near = []): array
     {
         $piece = trim($piece);
         if (preg_match('/^\x{E010}(\d+)\x{E011}$/u', $piece, $m) === 1) {
             $name = $places[(int) $m[1]]['name'];
 
-            return [$this->router->resolve($name, $eraYear), $name];
+            return [$this->router->resolve($name, $eraYear, $near), $name];
         }
         $words = preg_split('/\s+/u', $piece) ?: [];
         for ($i = 0; $i < count($words); $i++) {
             $name = implode(' ', array_slice($words, $i));
-            $ids = $this->router->resolve($name, $eraYear);
-            if ($ids !== []) {
+            // Les arrêts voisins ne départagent que le nom écrit entier : « Ligne de Saint-Benoît » n'est pas
+            // une gare de Saint-Benoît.
+            $ids = $this->router->resolve($name, $eraYear, $i === 0 ? $near : []);
+            if ($ids !== [] || $this->router->namesSeveralPlaces($name, $eraYear)) {
                 return [$ids, $name];
             }
         }

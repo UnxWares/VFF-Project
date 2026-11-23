@@ -183,7 +183,7 @@ final class MaterialPeriodCollector
                 );
                 foreach ($facts as $fact) {
                     // Comme les liens : un article partagé (redirection) ne vaut que pour la série qu'il nomme.
-                    if (! $families->speaksOf((int) $materialId, (string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), $fact['excerpt'])) {
+                    if (! $families->speaksOf((int) $materialId, (string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), MaterialFamilies::inSection($section['title'], $fact['excerpt']))) {
                         continue;
                     }
                     // Comme les liens : sur une LGV, seuls les engins de grande vitesse.

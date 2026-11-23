@@ -141,6 +141,18 @@ final class MaterialFamilies
         return WikipediaMaterialSections::speaksOf($requested, $finalTitle, $name, $quote) || $this->names($materialId, self::fold($quote));
     }
 
+    /**
+     * Phrase lue avec le titre de sa sous-section, pour reconnaître une version que nomme le titre et non la phrase :
+     * « Dessertes réalisées ou prévues > B 85000 » puis « Paris-Est - Troyes - Vittel - le week-end ; » parle des
+     * B 85000 (Coradia Liner), pas du Régiolis.
+     */
+    public static function inSection(string $section, string $quote): string
+    {
+        $parts = explode(' > ', $section);
+
+        return trim((string) end($parts))."\n".$quote;
+    }
+
     private function names(int $id, string $foldedQuote): bool
     {
         foreach ($this->terms[$id] ?? [] as $pattern) {

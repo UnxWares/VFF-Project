@@ -120,6 +120,12 @@ final class RelationRouter
     /** Part minimale des gares « <nom>-… » groupées dans une même ville quand d'autres sont loin. */
     private const CITY_MAJORITY = 0.75;
 
+    /**
+     * Nom porté par des gares de plusieurs villes : la ville retenue d'après les arrêts voisins doit en être au
+     * moins ce nombre de fois plus proche que la suivante.
+     */
+    private const NEAR_CITY_RATIO = 3.0;
+
     /** @var array<int, int>|null année de l'ère → identifiant */
     private ?array $eras = null;
 
@@ -159,6 +165,9 @@ final class RelationRouter
     /** @var array<string, list<int>> nom normalisé → gares */
     private array $byKey = [];
 
+    /** @var array<string, list<int>> clé sans distinction entre espace et tiret (looseKey()) → gares */
+    private array $byLooseKey = [];
+
     /** @var array<string, array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int}> */
     private array $memo = [];
 
@@ -185,6 +194,18 @@ final class RelationRouter
         return PathfindingService::eraYearFor(array_keys($this->eras), $year, $this->currentEraYear, (int) date('Y'));
     }
 
+    /**
+     * Ères postérieures à celle-ci, jusqu'à `$lastEraYear` compris, dans l'ordre.
+     *
+     * @return list<int>
+     */
+    public function laterEraYears(int $eraYear, int $lastEraYear): array
+    {
+        $this->loadEras();
+
+        return array_values(array_filter(array_keys($this->eras ?? []), fn (int $y): bool => $y > $eraYear && $y <= $lastEraYear));
+    }
+
     /** Le nom désigne-t-il une gare connue (toutes ères confondues) ? */
     public function isStationName(string $name): bool
     {
@@ -207,9 +228,15 @@ final class RelationRouter
      * pour être une même ville. Sans gare ouverte de ce nom, la gare de ce nom fermée aux voyageurs à l'ère, si
      * elle se rattache aux voies de l'ère (voir attach()) ; puis les gares « <nom>-… ».
      *
+     * `$near` : gares des arrêts voisins dans la relation. Un nom porté par des gares de plusieurs villes
+     * (« Tours » et « Tours (Savoie) », « Marseille » et Marseille-en-Beauvaisis, tous deux ouverts aux ères
+     * passées) désigne alors celle de ces villes qui est nettement la plus proche des arrêts voisins (voir
+     * nearestCity()) ; sans voisins, ou sans ville nettement plus proche, le nom reste ambigu.
+     *
+     * @param  list<int>  $near
      * @return list<int>
      */
-    public function resolve(string $name, int $eraYear): array
+    public function resolve(string $name, int $eraYear, array $near = []): array
     {
         $this->loadStations();
         $graph = $this->graph($eraYear);
@@ -217,26 +244,16 @@ final class RelationRouter
         if ($key === '' || $graph === null) {
             return [];
         }
-        $open = fn (int $id): bool => isset($graph['adj'][$id]);
-        $found = array_values(array_filter($this->byKey[$key] ?? [], $open));
-        // Gare de ce nom fermée aux voyageurs à l'ère : avant les gares « <nom>-… » (Sens, absente du graphe de
-        // 1970, partait sinon de Sens-Saint-Clément, sur la ligne de Coolus).
-        if ($found === []) {
-            $found = array_values(array_filter($this->byKey[$key] ?? [], fn (int $id): bool => $this->attach($id, $eraYear, true, false) !== []));
-        }
-        $prefixed = false;
-        if ($found === [] && mb_strlen($key) >= 3) {
-            $prefixed = true;
-            foreach ($this->stations as $id => $station) {
-                if ($open($id) && (str_starts_with($station['key'], $key.'-') || str_starts_with($station['key'], $key.' '))) {
-                    $found[] = $id;
-                }
-            }
-        }
+        [$found, $prefixed] = $this->candidates($key, $graph, $eraYear);
         if (count($found) > 1 && $this->spreadKm($found) > self::CITY_SPREAD_KM) {
             // Gares « <nom>-… » : une commune lointaine au nom composé (Paris-l'Hôpital, en Saône-et-Loire,
             // ouverte aux ères passées) ne retire pas « Paris » à toute une époque.
+            // Homonymes pour les arrêts voisins : même nom, ou « <nom>-… » (pas « Gare … » pour « Gare »).
+            $namesakes = array_values(array_filter($found, fn (int $id): bool => $this->stations[$id]['key'] === $key || str_starts_with($this->stations[$id]['key'], $key.'-')));
             $found = $prefixed ? $this->mainCity($found) : [];
+            if ($found === [] && $near !== []) {
+                $found = $this->nearestCity($namesakes, $near);
+            }
             if ($found === []) {
                 return [];
             }
@@ -247,6 +264,55 @@ final class RelationRouter
         }
 
         return $found;
+    }
+
+    /**
+     * Le nom désigne-t-il des gares ouvertes à l'ère dans plusieurs villes éloignées, sans que l'une l'emporte
+     * (resolve() vide sans voisins) ? Un tel nom attend les arrêts voisins de la relation ; il ne faut pas en
+     * retirer les premiers mots (« La Roche » n'est pas « Roche »).
+     */
+    public function namesSeveralPlaces(string $name, int $eraYear): bool
+    {
+        $graph = $this->graph($eraYear);
+        $key = self::key($name);
+        if ($key === '' || $graph === null || $this->resolve($name, $eraYear) !== []) {
+            return false;
+        }
+
+        return count($this->candidates($key, $graph, $eraYear)[0]) > 1;
+    }
+
+    /**
+     * Gares candidates d'un nom (clé de key()) : gares ouvertes de ce nom ; sinon la gare de ce nom fermée aux
+     * voyageurs à l'ère, si elle se rattache aux voies de l'ère ; sinon les mêmes, le nom écrit avec des tirets à la
+     * place des espaces ; sinon les gares ouvertes « <nom>-… » (le second élément dit lesquelles).
+     *
+     * @param  Graph  $graph
+     * @return array{0: list<int>, 1: bool}
+     */
+    private function candidates(string $key, array $graph, int $eraYear): array
+    {
+        $open = fn (int $id): bool => isset($graph['adj'][$id]);
+        $found = array_values(array_filter($this->byKey[$key] ?? [], $open));
+        // Gare de ce nom fermée aux voyageurs à l'ère : avant les gares « <nom>-… » (Sens, absente du graphe de
+        // 1970, partait sinon de Sens-Saint-Clément, sur la ligne de Coolus).
+        if ($found === []) {
+            $found = array_values(array_filter($this->byKey[$key] ?? [], fn (int $id): bool => $this->attach($id, $eraYear, true, false) !== []));
+        }
+        // « Don Sainghin » pour Don-Sainghin : le même nom, écrit avec des espaces à la place des tirets.
+        if ($found === [] && str_contains($key, ' ')) {
+            $found = array_values(array_filter($this->byLooseKey[self::looseKey($key)] ?? [], $open));
+        }
+        if ($found !== [] || mb_strlen($key) < 3) {
+            return [$found, false];
+        }
+        foreach ($this->stations as $id => $station) {
+            if ($open($id) && (str_starts_with($station['key'], $key.'-') || str_starts_with($station['key'], $key.' '))) {
+                $found[] = $id;
+            }
+        }
+
+        return [$found, true];
     }
 
     /**
@@ -318,12 +384,15 @@ final class RelationRouter
         if ($path === null || $path['edges'] === [] || (isset($result['cost']) && $result['cost'] < $path['cost'] * self::DETOUR_TOLERANCE)) {
             return $result;
         }
-        // Chaque arête : au moins une de ses gares dans le graphe de l'ère (une gare ouverte depuis, comme
-        // L'Isle-d'Abeau, passe ; un prolongement de plusieurs gares, non) et la plus grande part de sa longueur
-        // sur des lignes de l'ère ou des raccordements (Lyon-Guillotière, Grenay : bouts de raccordements récents).
+        // Chaque arête : au moins une de ses gares connue à l'ère, dans le graphe ou dans `station_eras` (une gare
+        // ouverte depuis, comme L'Isle-d'Abeau, passe ; un prolongement de plusieurs gares, non ; Vénissieux et
+        // Saint-Fons, ouvertes mais absentes du graphe avant 2030 sur la ligne 905, passent), et la plus grande part
+        // de sa longueur sur des lignes de l'ère ou des raccordements (Lyon-Guillotière, Grenay : bouts de
+        // raccordements récents).
         $eraLines = $this->linesOf($graph);
+        $existed = fn (int $station): bool => isset($graph['adj'][$station]) || $this->existsAt($station, $eraYear);
         foreach ($path['edges'] as $k => $eid) {
-            if (! isset($graph['adj'][$path['stations'][$k]]) && ! isset($graph['adj'][$path['stations'][$k + 1]])) {
+            if (! $existed($path['stations'][$k]) && ! $existed($path['stations'][$k + 1])) {
                 return $result;
             }
             $known = 0;
@@ -935,6 +1004,18 @@ final class RelationRouter
         return $this->attachments[$graphKey][$station];
     }
 
+    /** @var array<int, array<int, bool>> ère → gares qui ont un état à cette ère (`station_eras`) */
+    private array $existing = [];
+
+    /** La gare a-t-elle un état à l'ère (`station_eras`, quel qu'il soit) : existait-elle ? */
+    private function existsAt(int $station, int $eraYear): bool
+    {
+        $this->existing[$eraYear] ??= DB::table('station_eras')->where('era_id', $this->eras[$eraYear] ?? 0)->pluck('station_id')
+            ->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+
+        return isset($this->existing[$eraYear][$station]);
+    }
+
     /**
      * La gare est-elle fermée aux voyageurs à l'ère (`station_eras.status` = `declassified`) ? Une gare ouverte que
      * le graphe a perdue n'est pas rattachée : ce serait franchir un trou du graphe.
@@ -1233,6 +1314,7 @@ final class RelationRouter
             $key = self::key((string) $s->name);
             $this->stations[(int) $s->id] = ['name' => (string) $s->name, 'key' => $key, 'lat' => (float) $s->lat, 'lng' => (float) $s->lng];
             $this->byKey[$key][] = (int) $s->id;
+            $this->byLooseKey[self::looseKey($key)][] = (int) $s->id;
         }
     }
 
@@ -1256,6 +1338,12 @@ final class RelationRouter
         $key = (string) preg_replace(['/[’\']/u', '/\s*-\s*/u', '/\s+/u'], ["'", '-', ' '], $key);
 
         return (string) preg_replace(['/\bsaint(?=[- ])/u', '/\bsainte(?=[- ])/u'], ['st', 'ste'], $key);
+    }
+
+    /** Clé de key() où espaces et tirets se valent (« don sainghin » et « don-sainghin »). */
+    private static function looseKey(string $key): string
+    {
+        return str_replace(' ', '-', $key);
     }
 
     /** @param list<int> $ids */
@@ -1290,6 +1378,55 @@ final class RelationRouter
         }
 
         return count($best) >= self::CITY_MAJORITY * count($ids) && $this->spreadKm($best) <= self::CITY_SPREAD_KM ? $best : [];
+    }
+
+    /**
+     * Gares d'une même ville, parmi des gares homonymes trop éloignées, d'après les arrêts voisins : villes
+     * formées des gares à moins de CITY_SPREAD_KM les unes des autres, puis celle dont une gare est la plus proche
+     * d'un arrêt voisin, si elle l'est au moins NEAR_CITY_RATIO fois plus que la suivante ; sinon aucune.
+     *
+     * @param  list<int>  $ids
+     * @param  list<int>  $near
+     * @return list<int>
+     */
+    private function nearestCity(array $ids, array $near): array
+    {
+        $near = array_values(array_filter($near, fn (int $id): bool => isset($this->stations[$id])));
+        if ($near === []) {
+            return [];
+        }
+        // Villes : groupes de gares reliées de proche en proche à moins de CITY_SPREAD_KM.
+        $cities = [];
+        foreach ($ids as $id) {
+            $joined = [$id];
+            foreach ($cities as $k => $city) {
+                foreach ($city as $other) {
+                    if ($this->distanceKm($id, $other) <= self::CITY_SPREAD_KM) {
+                        array_push($joined, ...$city);
+                        unset($cities[$k]);
+
+                        continue 2;
+                    }
+                }
+            }
+            $cities[] = $joined;
+        }
+        if (count($cities) < 2) {
+            return [];
+        }
+        $distances = [];
+        foreach ($cities as $k => $city) {
+            $distances[$k] = min(array_map(fn (int $a): float => min(array_map(fn (int $b): float => $this->distanceKm($a, $b), $near)), $city));
+        }
+        asort($distances);
+        [$best, $second] = array_slice(array_keys($distances), 0, 2);
+        if ($distances[$second] < $distances[$best] * self::NEAR_CITY_RATIO) {
+            return [];
+        }
+        $city = $cities[$best];
+        sort($city);
+
+        return $city;
     }
 
     /** Distance à vol d'oiseau entre deux gares, en kilomètres. */

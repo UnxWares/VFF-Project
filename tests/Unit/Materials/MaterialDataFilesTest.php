@@ -175,4 +175,31 @@ class MaterialDataFilesTest extends TestCase
         $this->assertEqualsCanonicalizing(['sncf-b-83500', 'coradia-liner'], $families['regiolis']);
         $this->assertEqualsCanonicalizing(['z-5600', 'z-8800', 'z-20500', 'z-20900'], $families['z-2n']);
     }
+
+    /**
+     * Notes des relations ambiguës (material_relation_lines.php) : deux extrémités, des codes de ligne, une révision
+     * figée et la phrase citée. Paris - Laon, Neussargues - Saint-Chély-d'Apcher, Nancy - Neufchâteau, Bordeaux -
+     * Limoges et Limoges - Gannat : retraits de l'import complet du 23/11 (rapport aprem-2111/materiel-derive.md).
+     */
+    public function test_every_ambiguous_relation_note_is_complete_and_cited(): void
+    {
+        $notes = require __DIR__.'/../../../database/data/material_relation_lines.php';
+        $relations = [];
+        foreach ($notes as $note) {
+            $this->assertCount(2, $note['relation']);
+            $this->assertNotSame([], $note['lines']);
+            foreach ($note['lines'] as $code) {
+                $this->assertMatchesRegularExpression('/^\d{6}$/', $code);
+            }
+            $this->assertMatchesRegularExpression('/^https:\/\/fr\.wikipedia\.org\/w\/index\.php\?title=[^&]+&oldid=\d+$/', $note['source']);
+            $this->assertMatchesRegularExpression('/« [^»]+ »/u', $note['reason'], 'la phrase de la source est citée');
+            $relations[] = implode(' - ', $note['relation']);
+        }
+        $this->assertSame(count($relations), count(array_unique($relations)), 'une note par relation');
+        $this->assertContains('Paris - Laon', $relations);
+        $this->assertContains('Neussargues - Saint-Chély-d\'Apcher', $relations);
+        $this->assertContains('Nancy - Neufchâteau', $relations);
+        $this->assertContains('Bordeaux - Limoges', $relations);
+        $this->assertContains('Limoges - Gannat', $relations);
+    }
 }

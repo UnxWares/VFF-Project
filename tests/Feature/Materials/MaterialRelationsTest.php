@@ -340,6 +340,109 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame([], (new RelationRouter)->resolve('Lille', 2030), 'deux villes de taille voisine : nom ambigu');
     }
 
+    /**
+     * Nom porté par des gares de plusieurs villes (Tours et Tours (Savoie) ; La Roche-sur-Foron et La Roche-sur-Yon) :
+     * ambigu seul, il désigne dans une relation la ville nettement la plus proche des arrêts voisins, et garde ses
+     * premiers mots (« La Roche » ne devient pas une gare « Roche »).
+     */
+    public function test_a_name_shared_by_far_away_towns_is_settled_by_the_neighbouring_stops(): void
+    {
+        foreach (['Tours' => [0.69, 47.39], 'Tours (Savoie)' => [6.43, 45.66], 'Blois' => [1.32, 47.59], 'Moûtiers' => [6.53, 45.49],
+            'La Roche-sur-Foron' => [6.31, 46.07], 'La Roche-sur-Yon' => [-1.43, 46.67], 'Roche' => [5.25, 45.59], 'Annecy' => [6.12, 45.90], 'Annemasse' => [6.24, 46.20]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Blois', 'Tours', 'L1', 60);
+        $this->edge('Tours (Savoie)', 'Moûtiers', 'L2a', 20);
+        $this->edge('Annecy', 'La Roche-sur-Foron', 'L2b', 30);
+        $this->edge('La Roche-sur-Foron', 'Annemasse', 'L2a', 25);
+        $this->edge('La Roche-sur-Yon', 'Blois', 'L1', 300);
+        $this->edge('Roche', 'Annecy', '395000', 120);
+        $router = new RelationRouter;
+
+        $this->assertSame([$this->stations['La Roche-sur-Foron']->id], $router->resolve('La Roche sur Foron', 2030), 'écrit sans tirets');
+        $this->assertSame([], $router->resolve('Tours', 2030), 'sans voisins : ambigu');
+        $this->assertTrue($router->namesSeveralPlaces('Tours', 2030));
+        $this->assertSame([$this->stations['Tours']->id], $router->resolve('Tours', 2030, [$this->stations['Blois']->id]));
+        $this->assertSame([$this->stations['Tours (Savoie)']->id], $router->resolve('Tours', 2030, [$this->stations['Moûtiers']->id]));
+        $this->assertSame([], $router->resolve('Tours', 2030, [$this->stations['Blois']->id, $this->stations['Moûtiers']->id]), 'deux voisins aux deux bouts : ambigu');
+
+        $this->assertSame(['L1'], $this->codes($this->links($this->relations(), "* Blois - Tours\n")));
+        $links = $this->links($this->relations(), "* Annecy - La Roche - Annemasse\n");
+        $this->assertSame(['L2a', 'L2b'], $this->codes($links), 'La Roche-sur-Foron, pas la gare « Roche »');
+        $this->assertSame('Annecy - La Roche - Annemasse', $links[0]['evidence']['route']['label']);
+        // Nom tiré d'un nom plus long (« Ligne de Tours ») : les voisins ne le départagent pas.
+        $this->assertSame([], $this->links($this->relations(), "* Blois - Ligne de Tours\n"));
+    }
+
+    /**
+     * Graphe d'une ère passée troué sur plusieurs gares qui existaient (`station_eras`) : la relation suit le chemin
+     * actuel. Avant 2030, la ligne 905 n'avait aucune gare entre Lyon et Saint-Fons dans le graphe, et
+     * Lyon - Saint-André-le-Gaz passait par Ambérieu et Chambéry. Des gares sans état à l'ère (prolongement) : non.
+     */
+    public function test_a_past_era_gap_over_existing_stations_is_bridged(): void
+    {
+        $past = Era::factory()->create(['year' => 1990, 'is_current' => false]);
+        foreach (['Lyon-Part-Dieu' => [4.86, 45.76], 'Lyon-Guillotière' => [4.85, 45.75], 'Vénissieux' => [4.88, 45.71], 'St-Fons' => [4.86, 45.70], 'Ambérieu' => [5.36, 45.95],
+            'Chambéry' => [5.92, 45.57], 'St-André-le-Gaz' => [5.53, 45.55]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        foreach ([$this->era, $past] as $era) {
+            $this->edge('Lyon-Part-Dieu', 'Ambérieu', 'L1', 50, $era);
+            $this->edge('Ambérieu', 'Chambéry', 'L1', 90, $era);
+            $this->edge('Chambéry', 'St-André-le-Gaz', 'L2b', 40, $era);
+            $this->edge('St-Fons', 'St-André-le-Gaz', 'L2a', 50, $era);
+        }
+        $this->edge('Lyon-Part-Dieu', 'Lyon-Guillotière', 'L2a', 2);
+        $this->edge('Lyon-Guillotière', 'Vénissieux', 'L2a', 4);
+        $this->edge('Vénissieux', 'St-Fons', 'L2a', 3);
+        $route = fn (): array => (new RelationRouter)->route([$this->stations['Lyon-Part-Dieu']->id], [$this->stations['St-André-le-Gaz']->id], 1990);
+
+        $this->assertSame([$this->lines['L1']->id, $this->lines['L2b']->id], $route()['lines'], 'Guillotière et Vénissieux sans état en 1990 : prolongement, pas de pont');
+
+        foreach (['Lyon-Guillotière', 'Vénissieux'] as $name) {
+            DB::table('station_eras')->insert(['station_id' => $this->stations[$name]->id, 'era_id' => $past->id, 'status' => 'active']);
+        }
+        $this->assertSame([$this->lines['L2a']->id], $route()['lines'], 'gares de 1990 absentes du graphe : chemin actuel');
+    }
+
+    /**
+     * Ère tirée du milieu du service de la série : un arrêt qui n'existe pas encore à cette ère (Lyon-Part-Dieu, 1983)
+     * fait lire la relation à l'ère suivante, jamais après le retrait de la série ; une phrase datée garde son ère.
+     */
+    public function test_a_stop_opened_later_moves_the_relation_to_the_next_era(): void
+    {
+        $e1970 = Era::factory()->create(['year' => 1970, 'is_current' => false]);
+        $e1980 = Era::factory()->create(['year' => 1980, 'is_current' => false]);
+        $this->stations['Part-Dieu'] = Station::factory()->create(['name' => 'Part-Dieu', 'geom' => Point::makeGeodetic(48.70, 2.0)]);
+        foreach ([$e1970, $e1980] as $era) {
+            $this->edge('Paris-Montparnasse', 'Dreux', '395000', 80, $era);
+        }
+        $this->edge('Dreux', 'Part-Dieu', '430000', 10, $e1980);
+        $this->edge('Dreux', 'Part-Dieu', '430000', 10);
+        $relations = $this->relations();
+        $links = fn (string $text, int $from, int $to): array => $relations->links(
+            ['title' => 'X 2800', 'revid' => 42, 'sections' => [['title' => 'Services effectués', 'level' => 2, 'text' => $text]]],
+            ['fast' => false, 'from' => $from, 'to' => $to], new \DateTimeImmutable('2026-11-20'));
+
+        $found = $links("* Paris - Part-Dieu\n", 1960, 1990);
+        $this->assertSame(['395000', '430000'], $this->codes($found));
+        $this->assertSame(1980, $found[0]['evidence']['route']['era_year'], '1975 : pas encore de gare, ère suivante');
+        $this->assertSame([], $links("* Paris - Part-Dieu\n", 1970, 1978), 'série retirée avant l\'ouverture de la gare');
+        $this->assertSame([], $links("* Paris - Part-Dieu en 1972\n", 1960, 1990), 'phrase datée : son ère');
+    }
+
+    /** « A - B via C » et « A - B (par C) » : C est un arrêt de la relation, s'il se résout. */
+    public function test_a_stop_written_after_via_is_part_of_the_relation(): void
+    {
+        $this->assertSame([], $this->links($this->relations(), "* Caen - Mézidon\n"), 'deux itinéraires proches');
+        $this->assertSame(['L2a', 'L2b'], $this->codes($this->links($this->relations(), "* Caen - Mézidon via Lisieux\n")));
+        $this->assertSame(['L2a', 'L2b'], $this->codes($this->links($this->relations(), "* Caen - Mézidon (par Lisieux)\n")));
+        $this->assertSame(['L2b'], $this->codes($this->links($this->relations(), "* Lisieux - Mézidon par Alstom\n")), 'pas une gare : relation seule');
+        $links = $this->links($this->relations(), "* Paris - Granville via Dreux, Surdon et Argentan\n");
+        $this->assertSame(['395000', '405000', '430000'], $this->codes($links));
+        $this->assertSame('Paris - Dreux - Surdon - Argentan - Granville', $links[0]['evidence']['route']['label']);
+    }
+
     public function test_a_city_leaves_from_its_passenger_station_and_labels_are_readable(): void
     {
         $technical = $this->stations['Argentan (IE)'] = Station::factory()->create(['name' => 'Argentan (IE)', 'geom' => Point::makeGeodetic(48.75, -0.02)]);

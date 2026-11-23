@@ -389,7 +389,7 @@ final class LineMaterialLinker
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
-                    if (! $this->speaksOf((int) $materials[$requested], (string) $requested, $page, $link['quote'])
+                    if (! $this->speaksOf((int) $materials[$requested], (string) $requested, $page, MaterialFamilies::inSection($section['title'], $link['quote']))
                         || ($planned && ! WikipediaMaterialSections::isPlannedSectionService($link))) {
                         continue;
                     }
@@ -471,7 +471,7 @@ final class LineMaterialLinker
                     'electric' => self::isElectricOnly((string) $row->type, $row->electrification),
                 ];
                 foreach ($this->relations->links($page, $material) as $link) {
-                    if (! $this->speaksOf((int) $row->id, (string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
+                    if (! $this->speaksOf((int) $row->id, (string) $requested, $page, MaterialFamilies::inSection((string) ($link['evidence']['section'] ?? ''), (string) ($link['evidence']['quote'] ?? '')))) {
                         continue;
                     }
                     // Série qui remplace celle de l'article sur un itinéraire : le lien est pour elle, si son

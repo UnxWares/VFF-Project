@@ -69,4 +69,15 @@ class MaterialFamiliesTest extends TestCase
         $this->assertTrue($families->speaksOf(self::Z_56600, 'Z 56600', 'Regio 2N', 'Z 56600', 'Les rames Omneo Premium remplacent les Corail.'), 'par la désignation');
         $this->assertFalse($families->speaksOf(self::Z_56600, 'Z 56600', 'Regio 2N', 'Z 56600', 'Les Regio 2N circulent sur la ligne N.'));
     }
+
+    public function test_a_version_named_by_the_sub_section_title_gets_the_sentence(): void
+    {
+        $families = $this->families();
+        $quote = MaterialFamilies::inSection('Dessertes réalisées ou prévues > Z 56600', 'Paris-Saint-Lazare - Caen - Cherbourg ;');
+
+        $this->assertFalse($families->speaksOf(self::REGIO_2N, 'Regio 2N', 'Regio 2N', 'Regio 2N', $quote), 'sous-section d\'une version');
+        $this->assertTrue($families->speaksOf(self::Z_56600, 'Z 56600', 'Regio 2N', 'Z 56600', $quote));
+        $this->assertTrue($families->speaksOf(self::REGIO_2N, 'Regio 2N', 'Regio 2N', 'Regio 2N', MaterialFamilies::inSection('Utilisation > Normandie', 'Paris - Rouen ;')));
+        $this->assertSame("Z 56600\nPhrase.", MaterialFamilies::inSection('Dessertes > Z 56600', 'Phrase.'));
+    }
 }
