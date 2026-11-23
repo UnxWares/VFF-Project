@@ -211,7 +211,8 @@
     path={`/stations/${station.slug}`}
     type="article"
     jsonLd={(origin) => [
-        stationSchema({ origin, station, description: station.description }),
+        // Pas d'extrait ni de dates dans les données structurées : leurs sources ne sont pas toutes ouvertes (le serveur en trie).
+        stationSchema({ origin, station }),
         breadcrumbSchema(origin, [
             { name: $i18n.t('common.app_full'), path: '/' },
             { name: $i18n.t('nav.stations'), path: '/stations' },

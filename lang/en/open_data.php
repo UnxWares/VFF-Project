@@ -91,4 +91,9 @@ return [
         'title' => 'Cited sources',
         'intro' => 'Providers whose data appears in at least one dataset, with their licence.',
     ],
+
+    // Données structurées (JSON-LD) du jeu de données.
+    'json_ld' => [
+        'keywords' => 'railways, railway lines, stations, history, France, open data, ODbL',
+    ],
 ];

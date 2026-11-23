@@ -547,4 +547,10 @@ return [
         'attendance' => 'Fahrgastzahlen',
         'heritage' => 'Denkmalschutz',
     ],
+
+    // Données structurées (JSON-LD) de la fiche gare.
+    'json_ld' => [
+        'opened' => 'Eröffnungsdatum',
+        'closed' => 'Schließungsdatum',
+    ],
 ];

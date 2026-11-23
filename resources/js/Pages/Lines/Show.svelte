@@ -522,7 +522,15 @@
         ? { url: seoImages[0].display_url ?? seoImages[0].thumb_url, alt: seoImages[0].caption }
         : null}
     jsonLd={(origin) => [
-        lineSchema({ origin, line, description: line.description, images: seoImages }),
+        lineSchema({
+            origin,
+            line,
+            // Seul l'extrait de Wikipédia (CC BY-SA) est repris, comme côté serveur.
+            description: line.description_source?.type === 'wikipedia' ? line.description : null,
+            images: seoImages,
+            stations,
+            lengthLabel: t('lines.json_ld.length'),
+        }),
         breadcrumbSchema(origin, [
             { name: t('common.app_full'), path: '/' },
             { name: t('nav.lines'), path: '/lines' },

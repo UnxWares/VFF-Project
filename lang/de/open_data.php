@@ -91,4 +91,9 @@ return [
         'title' => 'Zitierte Quellen',
         'intro' => 'Anbieter, deren Daten in mindestens einem Datensatz stehen, mit ihrer Lizenz.',
     ],
+
+    // Données structurées (JSON-LD) du jeu de données.
+    'json_ld' => [
+        'keywords' => 'Eisenbahn, Bahnstrecken, Bahnhöfe, Geschichte, Frankreich, offene Daten, ODbL',
+    ],
 ];

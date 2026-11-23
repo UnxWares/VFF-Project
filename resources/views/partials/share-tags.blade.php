@@ -1,7 +1,8 @@
 {{--
     Aperçus de partage écrits par le serveur (Facebook, Mastodon, Discord et beaucoup de robots ne
     lisent pas le JavaScript) : description, adresse canonique, Open Graph, Twitter et JSON-LD de la
-    page, d'après App\Support\Seo\PageMetadata. L'attribut data-vff-seo les désigne au navigateur :
+    page, d'après App\Support\Seo\PageMetadata. Un bloc JSON-LD n'est pas exécuté (la politique de sécurité ne
+    s'applique pas aux blocs de données) ; le nonce y est posé comme sur les autres scripts du gabarit. L'attribut data-vff-seo les désigne au navigateur :
     Components/SeoHead.svelte les reprend telles quelles tant que la page est celle du serveur et les
     retire dès qu'on navigue ailleurs (lib/serverSeo.js), donc jamais de doublon dans la page vivante.
 --}}
@@ -25,5 +26,5 @@
     @endif
 @endif
 @foreach ($seo->jsonLd as $json)
-    <script data-vff-seo type="application/ld+json">{!! $json !!}</script>
+    <script data-vff-seo type="application/ld+json" nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">{!! $json !!}</script>
 @endforeach

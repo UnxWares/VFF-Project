@@ -92,4 +92,9 @@ return [
         'title' => 'Sources citées',
         'intro' => 'Fournisseurs dont les données figurent dans au moins un jeu, avec leur licence.',
     ],
+
+    // Données structurées (JSON-LD) du jeu de données.
+    'json_ld' => [
+        'keywords' => 'chemin de fer, lignes ferroviaires, gares, histoire, France, données ouvertes, ODbL',
+    ],
 ];

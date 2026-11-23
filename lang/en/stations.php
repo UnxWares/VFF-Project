@@ -547,4 +547,10 @@ return [
         'attendance' => 'Passenger numbers',
         'heritage' => 'Heritage',
     ],
+
+    // Données structurées (JSON-LD) de la fiche gare.
+    'json_ld' => [
+        'opened' => 'Opening date',
+        'closed' => 'Closing date',
+    ],
 ];

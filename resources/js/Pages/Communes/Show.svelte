@@ -10,7 +10,7 @@
     import CommuneMap from '$components/Communes/CommuneMap.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
-    import { breadcrumbSchema } from '$lib/structuredData.js';
+    import { breadcrumbSchema, communeSchema } from '$lib/structuredData.js';
     import {
         STATION_STATUS_COLOR,
         STATION_STATUS_ICON,
@@ -153,6 +153,7 @@
     path={`/communes/${commune.slug}`}
     type="article"
     jsonLd={(origin) => [
+        communeSchema({ origin, commune, stations }),
         breadcrumbSchema(origin, [
             { name: $i18n.t('common.app_full'), path: '/' },
             { name: commune.name, path: `/communes/${commune.slug}` },

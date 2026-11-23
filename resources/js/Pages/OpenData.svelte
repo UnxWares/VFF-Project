@@ -6,8 +6,10 @@
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
     import { i18n } from '$lib/i18n.js';
     import { formatBytes, networkCounts, withheldRows } from '$lib/openData.js';
+    import { breadcrumbSchema, datasetSchema } from '$lib/structuredData.js';
     import { Link } from '@inertiajs/svelte';
 
     let { datasets = [], credits = [], withheld = {}, licence } = $props();
@@ -36,8 +38,38 @@
 
 <svelte:head>
     <title>{$i18n.t('open_data.meta_title')} - VFF</title>
-    <meta name="description" content={$i18n.t('open_data.meta_description')} />
 </svelte:head>
+
+<!-- Partage et données structurées : le jeu de données ouvert (licence ODbL) et le fil d'Ariane. -->
+<SeoHead
+    title={$i18n.t('open_data.meta_title')}
+    description={$i18n.t('open_data.meta_description')}
+    path="/open-data"
+    jsonLd={(origin) => [
+        datasetSchema({
+            origin,
+            datasets,
+            licence,
+            name: $i18n.t('open_data.meta_title'),
+            description: $i18n.t('open_data.meta_description'),
+            lang,
+            keywords: $i18n.t('open_data.json_ld.keywords'),
+            siteName: $i18n.t('common.app_full'),
+            partName: (d) =>
+                d.kind === 'network'
+                    ? `${$i18n.t('open_data.network.title')} ${decade(d)}`
+                    : $i18n.t(`open_data.kinds.${d.kind}.title`),
+            partDescription: (d) =>
+                d.kind === 'network'
+                    ? $i18n.t('open_data.network.intro')
+                    : $i18n.t(`open_data.kinds.${d.kind}.text`),
+        }),
+        breadcrumbSchema(origin, [
+            { name: $i18n.t('common.app_full'), path: '/' },
+            { name: $i18n.t('open_data.meta_title'), path: '/open-data' },
+        ]),
+    ]}
+/>
 
 {#snippet download(d, name)}
     <a class="vff-btn secondary small" href={d.archive.url} download>

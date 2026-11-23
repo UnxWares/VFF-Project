@@ -587,4 +587,9 @@ return [
         'archives' => 'Archive',
         'notes' => 'Quellen',
     ],
+
+    // Données structurées (JSON-LD) de la fiche ligne.
+    'json_ld' => [
+        'length' => 'Offizielle Länge (km)',
+    ],
 ];

@@ -23,6 +23,14 @@ final class StructuredData
         'url' => 'https://www.unxwares.com',
     ];
 
+    /** Logo de l'éditeur : l'icône du site (public/icons), carrée, 512 px. */
+    private const LOGO_PATH = '/icons/icon-512.png';
+
+    private const LOGO_SIZE = 512;
+
+    /** Gares d'une commune citées dans ses données structurées. */
+    private const COMMUNE_STATIONS = 20;
+
     /** Élément Wikidata « ligne de chemin de fer », type précis d'une fiche ligne (schema.org n'en a pas). */
     private const WIKIDATA_RAILWAY_LINE = 'https://www.wikidata.org/wiki/Q728937';
 
@@ -115,7 +123,25 @@ final class StructuredData
     }
 
     /**
-     * Accueil : le site (avec sa recherche, qui mène à l'annuaire des lignes) et son éditeur.
+     * Éditeur de VFF, avec son logo (adresse absolue).
+     *
+     * @return array<string, mixed>
+     */
+    public static function publisher(string $origin): array
+    {
+        return self::PUBLISHER + [
+            '@id' => self::absoluteUrl($origin, '/#publisher'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => self::absoluteUrl($origin, self::LOGO_PATH),
+                'width' => self::LOGO_SIZE,
+                'height' => self::LOGO_SIZE,
+            ],
+        ];
+    }
+
+    /**
+     * Accueil : le site (avec sa recherche, qui mène à la page de résultats) et son éditeur.
      *
      * @return array<string, mixed>
      */
@@ -137,12 +163,12 @@ final class StructuredData
                         '@type' => 'SearchAction',
                         'target' => [
                             '@type' => 'EntryPoint',
-                            'urlTemplate' => self::absoluteUrl($origin, '/lines').'?q={search_term_string}',
+                            'urlTemplate' => self::absoluteUrl($origin, '/search').'?q={search_term_string}',
                         ],
                         'query-input' => 'required name=search_term_string',
                     ],
                 ],
-                self::PUBLISHER + ['@id' => self::absoluteUrl($origin, '/#publisher')],
+                self::publisher($origin),
             ],
         ];
     }
@@ -218,19 +244,29 @@ final class StructuredData
     }
 
     /**
-     * Fiche ligne : un lieu (Place) précisé par l'élément Wikidata « ligne de chemin de fer ».
+     * Fiche ligne : un lieu (Place, ou TouristAttraction pour une ligne dont le trafic est touristique)
+     * précisé par l'élément Wikidata « ligne de chemin de fer », avec ses gares terminus (`containsPlace`)
+     * et sa longueur officielle quand elle décrit la ligne entière (`additionalProperty`, en km).
      *
      * @param  array<string, mixed>  $line
      * @param  list<array<string, mixed>>  $images  médias de la ligne
+     * @param  list<array<string, mixed>>  $stations  gares de la fiche (celles qui portent `is_terminal` sont les terminus)
      * @return array<string, mixed>
      */
-    public static function line(string $origin, array $line, ?string $description, array $images): array
+    public static function line(string $origin, array $line, ?string $description, array $images, array $stations = []): array
     {
         $url = self::absoluteUrl($origin, '/lines/'.$line['slug']);
+        $length = null;
+        foreach ((array) ($line['facts'] ?? []) as $fact) {
+            if (is_array($fact) && ($fact['key'] ?? null) === 'length' && ($fact['scope'] ?? null) === 'line' && is_numeric($fact['km'] ?? null)) {
+                $length = (float) $fact['km'];
+                break;
+            }
+        }
 
         return [
             '@context' => 'https://schema.org',
-            '@type' => 'Place',
+            '@type' => ($line['current_traffic'] ?? null) === 'heritage' ? 'TouristAttraction' : 'Place',
             '@id' => $url.'#line',
             'additionalType' => self::WIKIDATA_RAILWAY_LINE,
             'url' => $url,
@@ -245,17 +281,32 @@ final class StructuredData
                 '@type' => 'AdministrativeArea',
                 'name' => is_string($r) ? $r : ($r['name'] ?? null),
             ], $line['regions'] ?? []),
+            'containsPlace' => array_map(fn (array $s): array => [
+                '@type' => 'TrainStation',
+                'name' => $s['name'],
+                'url' => self::absoluteUrl($origin, '/stations/'.$s['slug']),
+            ], array_values(array_filter($stations, fn (array $s): bool => ($s['is_terminal'] ?? false) && isset($s['slug'], $s['name'])))),
+            'additionalProperty' => $length === null ? null : [
+                '@type' => 'PropertyValue',
+                'name' => __('lines.json_ld.length'),
+                'value' => $length,
+                'unitCode' => 'KMT',
+                'unitText' => 'km',
+            ],
             'image' => array_values(array_filter(array_map(self::imageObject(...), $images))),
         ];
     }
 
     /**
-     * Fiche gare : TrainStation, avec sa position et sa commune.
+     * Fiche gare : TrainStation, avec sa position et sa commune. `$dates` : dates d'ouverture et de
+     * fermeture déjà triées par l'appelant (sourcées, d'une source dont la licence permet la
+     * redistribution), écrites en `additionalProperty` car schema.org n'a pas de date d'ouverture pour un lieu.
      *
      * @param  array<string, mixed>  $station
+     * @param  array{opened?: ?string, closed?: ?string}  $dates  dates ISO (année, mois ou jour)
      * @return array<string, mixed>
      */
-    public static function station(string $origin, array $station, ?string $description): array
+    public static function station(string $origin, array $station, ?string $description, array $dates = []): array
     {
         $url = self::absoluteUrl($origin, '/stations/'.$station['slug']);
         // Position signalée comme douteuse (sources éloignées) : pas de coordonnées données pour sûres.
@@ -279,7 +330,11 @@ final class StructuredData
             'address' => ($station['city'] ?? null)
                 ? ['@type' => 'PostalAddress', 'addressLocality' => $station['city'], 'addressCountry' => 'FR']
                 : null,
-            'sameAs' => array_filter([self::wikidataUrl($station['wikidata_id'] ?? null)]),
+            'additionalProperty' => array_values(array_filter([
+                ($dates['opened'] ?? null) ? ['@type' => 'PropertyValue', 'name' => __('stations.json_ld.opened'), 'value' => $dates['opened']] : null,
+                ($dates['closed'] ?? null) ? ['@type' => 'PropertyValue', 'name' => __('stations.json_ld.closed'), 'value' => $dates['closed']] : null,
+            ])),
+            'sameAs' => [self::wikidataUrl($station['wikidata_id'] ?? null)],
         ];
     }
 
@@ -354,6 +409,100 @@ final class StructuredData
                 fn ($w): ?string => is_array($w) ? ($w['url'] ?? null) : null,
                 array_values((array) ($accident['wikipedia'] ?? [])),
             ))),
+        ];
+    }
+
+    /**
+     * Fiche de commune : la ville (City), son département, son code INSEE et ses gares.
+     *
+     * @param  array<string, mixed>  $commune
+     * @param  list<array<string, mixed>>  $stations  gares de la commune (slug, name)
+     * @return array<string, mixed>
+     */
+    public static function commune(string $origin, array $commune, array $stations): array
+    {
+        $url = self::absoluteUrl($origin, '/communes/'.$commune['slug']);
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'City',
+            '@id' => $url.'#commune',
+            'url' => $url,
+            'name' => $commune['name'],
+            'identifier' => ($commune['insee'] ?? null)
+                ? ['@type' => 'PropertyValue', 'propertyID' => 'INSEE', 'value' => (string) $commune['insee']]
+                : null,
+            'containedInPlace' => ($commune['department_name'] ?? null)
+                ? ['@type' => 'AdministrativeArea', 'name' => $commune['department_name']]
+                : null,
+            'address' => ['@type' => 'PostalAddress', 'addressLocality' => $commune['name'], 'addressCountry' => 'FR'],
+            'containsPlace' => array_map(fn (array $s): array => [
+                '@type' => 'TrainStation',
+                'name' => $s['name'],
+                'url' => self::absoluteUrl($origin, '/stations/'.$s['slug']),
+            ], array_slice(array_values(array_filter($stations, fn (array $s): bool => isset($s['slug'], $s['name']))), 0, self::COMMUNE_STATIONS)),
+        ];
+    }
+
+    /**
+     * Jeu de données ouvert (/open-data) : le catalogue, sous licence ODbL, avec un jeu par entrée
+     * (`hasPart`) et ses fichiers à télécharger (`distribution`). Aucune source n'est nommée : le
+     * catalogue ne contient que des données libres de redistribution (OpenDataRights).
+     *
+     * @param  list<array<string, mixed>>  $datasets  jeux du catalogue (OpenDataController)
+     * @param  array{code?: string, name?: string, url?: string}  $licence
+     * @return array<string, mixed>
+     */
+    public static function dataset(string $origin, array $datasets, array $licence, string $name, string $description, string $lang): array
+    {
+        $url = self::absoluteUrl($origin, '/open-data');
+        $publisher = self::publisher($origin);
+        $licenceUrl = $licence['url'] ?? null;
+        $download = fn (string $path, ?int $bytes, string $format): array => [
+            '@type' => 'DataDownload',
+            'contentUrl' => self::absoluteUrl($origin, $path),
+            'encodingFormat' => $format,
+            'contentSize' => $bytes ? $bytes.' B' : null,
+        ];
+        $parts = [];
+        foreach ($datasets as $d) {
+            $kind = (string) ($d['kind'] ?? '');
+            $title = $kind === 'network'
+                ? __('open_data.network.title').' '.(($d['era'] ?? null) === 2030 ? __('open_data.network.current') : (string) ($d['era'] ?? ''))
+                : __('open_data.kinds.'.$kind.'.title');
+            $files = array_map(fn (array $f): array => $download((string) $f['url'], (int) ($f['bytes'] ?? 0),
+                str_ends_with((string) $f['name'], '.geojson') ? 'application/geo+json' : 'text/csv'), (array) ($d['files'] ?? []));
+            $parts[] = [
+                '@type' => 'Dataset',
+                'name' => $title,
+                'description' => $kind === 'network' ? __('open_data.network.intro') : __('open_data.kinds.'.$kind.'.text'),
+                'url' => $url,
+                'license' => $licenceUrl,
+                'isAccessibleForFree' => true,
+                'inLanguage' => $lang,
+                'dateModified' => ($d['generated_on'] ?? null) ?: null,
+                'distribution' => [
+                    $download((string) ($d['archive']['url'] ?? ''), (int) ($d['archive']['bytes'] ?? 0), 'application/zip'),
+                    ...$files,
+                ],
+            ];
+        }
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'Dataset',
+            '@id' => $url.'#dataset',
+            'url' => $url,
+            'name' => $name,
+            'description' => $description,
+            'license' => $licenceUrl,
+            'isAccessibleForFree' => true,
+            'inLanguage' => $lang,
+            'creator' => $publisher,
+            'publisher' => $publisher,
+            'isPartOf' => ['@type' => 'WebSite', 'name' => __('common.app_full'), 'url' => self::absoluteUrl($origin, '/')],
+            'keywords' => __('open_data.json_ld.keywords'),
+            'hasPart' => $parts,
         ];
     }
 }
