@@ -93,12 +93,22 @@ final class NetworkChronology
 
     public function __construct(private readonly SourceRights $rights) {}
 
-    /** Aperçu rangé dans le cache, ou calcul complet si le cache est vide. */
+    /**
+     * Aperçu rangé dans le cache, ou calcul complet si le cache est vide. Le calcul n'est lancé que par une requête à
+     * la fois : les autres attendent son résultat (même règle que NetworkFigures).
+     */
     public function meta(): array
     {
         $meta = Cache::get(self::CACHE_KEY.':meta');
+        if (is_array($meta)) {
+            return $meta;
+        }
 
-        return is_array($meta) ? $meta : $this->refresh()['meta'];
+        return Cache::lock(self::CACHE_KEY.':lock', 120)->block(60, function (): array {
+            $meta = Cache::get(self::CACHE_KEY.':meta');
+
+            return is_array($meta) ? $meta : $this->refresh()['meta'];
+        });
     }
 
     /**

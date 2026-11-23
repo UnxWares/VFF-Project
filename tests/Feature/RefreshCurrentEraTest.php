@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\NetworkChronology;
 use App\Services\NetworkFigures;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,8 +72,10 @@ class RefreshCurrentEraTest extends TestCase
 
         $this->travelTo('2026-10-20 04:30:00');
         Cache::forever(NetworkFigures::CACHE_KEY, ['computed_at' => 'avant']);
+        Cache::forever(NetworkChronology::CACHE_KEY.':meta', ['computed_at' => 'avant', 'first_year' => 1827, 'last_year' => 2026, 'counts' => []]);
         $this->refresh()->expectsOutputToContain('1 ligne(s), 0 gare(s)')->assertSuccessful();
         $this->assertNotSame('avant', Cache::get(NetworkFigures::CACHE_KEY)['computed_at'], 'chiffres du réseau recalculés');
+        $this->assertNotSame('avant', Cache::get(NetworkChronology::CACHE_KEY.':meta')['computed_at'], 'chronologie recalculée');
 
         $this->assertSame(['abandoned/unknown'], array_keys($this->km($closesTomorrow, 2030)), 'fermée ce jour : fermée');
         $this->assertSame(['in_service/mixed'], array_keys($this->km($closesTomorrow, 2020)), 'ères passées inchangées');
