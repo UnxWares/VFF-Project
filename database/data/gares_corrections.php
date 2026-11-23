@@ -7207,4 +7207,1761 @@ return [
         'reason' => 'article de la gare « Gare de Pont-Saint-Vincent » (oldid 241364429) : ouverture de la première partie de la ligne de Jarville-la-Malgrange à Vézelise le 11 novembre 1872. Remplace le 18/11/1872 déduit de la ligne. Confiance moyenne.',
     ],
 
+    // ── 46. Rattachements à Wikidata (23/11/2026, rapport storage/app/reports/agents/aprem-2111/wikidata-gares.md) ──────────────────────────────────
+    // Gares de VFF sans élément Wikidata dont l'élément existe : même UIC (P722, sur 7 chiffres, sans la clé), même nom et à moins de 300 m
+    // de la position VFF (les douze gares sans UIC : même nom, élément seul de ce nom à moins de 300 m, aucune autre fiche du même nom).
+    // Éléments lus sur l'API Wikidata le 23/11/2026 (wbgetentities, requêtes SPARQL bornées). Les éléments de classe « gare de marchandises »
+    // (Q55493) rejoignent les fiches de gares fret seul ou plus desservies créées de la même liste SNCF (même UIC, même point). Écartés : les
+    // fiches des fusions en attente, les homonymes à moins de 300 m, les éléments de tramway ou de métro. Appliqué par vff:consolidate-stations
+    // (action « link » : le Q-id est posé sur l'objet source de la gare, sans jamais remplacer celui qu'un objet porte déjà).
+
+    // Paris-La Villette-Hébert (id 14870)
+    [
+        'station' => ['name' => 'Paris-La Villette-Hébert', 'uic' => '87113134'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758491',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758491',
+        'quote' => 'P722 = 8711313',
+        'reason' => 'élément Wikidata Q120758491 (gare de marchandises) : UIC 87113134 (P722 8711313) identique, nom « Paris-La Villette-Hébert » et à 20 m de la position VFF.',
+    ],
+
+    // Artonges (id 14886)
+    [
+        'station' => ['name' => 'Artonges', 'uic' => '87115378'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758185',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758185',
+        'quote' => 'P722 = 8711537',
+        'reason' => 'élément Wikidata Q120758185 (gare de marchandises) : UIC 87115378 (P722 8711537) identique, nom « Artonges » et à 0 m de la position VFF.',
+    ],
+
+    // St-Mesmin (id 14937)
+    [
+        'station' => ['name' => 'St-Mesmin', 'uic' => '87118091'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757178',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757178',
+        'quote' => 'P722 = 8711809',
+        'reason' => 'élément Wikidata Q120757178 (gare de marchandises) : UIC 87118091 (P722 8711809) identique, nom « Saint-Mesmin » et à 25 m de la position VFF.',
+    ],
+
+    // Crancey (id 14940)
+    [
+        'station' => ['name' => 'Crancey', 'uic' => '87118166'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757176',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757176',
+        'quote' => 'P722 = 8711816',
+        'reason' => 'élément Wikidata Q120757176 (gare de marchandises) : UIC 87118166 (P722 8711816) identique, nom « Crancey » et à 25 m de la position VFF.',
+    ],
+
+    // Jessains (id 14943)
+    [
+        'station' => ['name' => 'Jessains', 'uic' => '87118273'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757181',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757181',
+        'quote' => 'P722 = 8711827',
+        'reason' => 'élément Wikidata Q120757181 (gare de marchandises) : UIC 87118273 (P722 8711827) identique, nom « Jessains » et à 25 m de la position VFF.',
+    ],
+
+    // Clairvaux (id 14945)
+    [
+        'station' => ['name' => 'Clairvaux', 'uic' => '87118315'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757167',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757167',
+        'quote' => 'P722 = 8711831',
+        'reason' => 'élément Wikidata Q120757167 (gare de marchandises) : UIC 87118315 (P722 8711831) identique, nom « Clairvaux » et à 25 m de la position VFF.',
+    ],
+
+    // Bouilly-Roncenay (id 14946)
+    [
+        'station' => ['name' => 'Bouilly-Roncenay', 'uic' => '87118356'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757174',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757174',
+        'quote' => 'P722 = 8711835',
+        'reason' => 'élément Wikidata Q120757174 (gare de marchandises) : UIC 87118356 (P722 8711835) identique, nom « Bouilly - Roncenay » et à 0 m de la position VFF.',
+    ],
+
+    // Buchères-Verrières (id 14947)
+    [
+        'station' => ['name' => 'Buchères-Verrières', 'uic' => '87118430'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757185',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757185',
+        'quote' => 'P722 = 8711843',
+        'reason' => 'élément Wikidata Q120757185 (gare de marchandises) : UIC 87118430 (P722 8711843) identique, nom « Buchères - Verrières » et à 0 m de la position VFF.',
+    ],
+
+    // Bar-sur-Seine (id 14948)
+    [
+        'station' => ['name' => 'Bar-sur-Seine', 'uic' => '87118497'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757175',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757175',
+        'quote' => 'P722 = 8711849',
+        'reason' => 'élément Wikidata Q120757175 (gare de marchandises) : UIC 87118497 (P722 8711849) identique, nom « Bar-sur-Seine » et à 0 m de la position VFF.',
+    ],
+
+    // Polisot (id 14949)
+    [
+        'station' => ['name' => 'Polisot', 'uic' => '87118505'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757168',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757168',
+        'quote' => 'P722 = 8711850',
+        'reason' => 'élément Wikidata Q120757168 (gare de marchandises) : UIC 87118505 (P722 8711850) identique, nom « Polisot » et à 0 m de la position VFF.',
+    ],
+
+    // Charmont (id 14950)
+    [
+        'station' => ['name' => 'Charmont', 'uic' => '87118554'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757183',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757183',
+        'quote' => 'P722 = 8711855',
+        'reason' => 'élément Wikidata Q120757183 (gare de marchandises) : UIC 87118554 (P722 8711855) identique, nom « Charmont » et à 177 m de la position VFF.',
+    ],
+
+    // Arcis-sur-Aube (id 14951)
+    [
+        'station' => ['name' => 'Arcis-sur-Aube', 'uic' => '87118588'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757170',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757170',
+        'quote' => 'P722 = 8711858',
+        'reason' => 'élément Wikidata Q120757170 (gare de marchandises) : UIC 87118588 (P722 8711858) identique, nom « Arcis-sur-Aube » et à 176 m de la position VFF.',
+    ],
+
+    // Chavanges (id 14953)
+    [
+        'station' => ['name' => 'Chavanges', 'uic' => '87118786'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757172',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757172',
+        'quote' => 'P722 = 8711878',
+        'reason' => 'élément Wikidata Q120757172 (gare de marchandises) : UIC 87118786 (P722 8711878) identique, nom « Chavanges » et à 0 m de la position VFF.',
+    ],
+
+    // Estissac (id 14954)
+    [
+        'station' => ['name' => 'Estissac', 'uic' => '87118810'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757187',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757187',
+        'quote' => 'P722 = 8711881',
+        'reason' => 'élément Wikidata Q120757187 (gare de marchandises) : UIC 87118810 (P722 8711881) identique, nom « Estissac » et à 0 m de la position VFF.',
+    ],
+
+    // Coussey (id 14975)
+    [
+        'station' => ['name' => 'Coussey', 'uic' => '87141341'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756954',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756954',
+        'quote' => 'P722 = 8714134',
+        'reason' => 'élément Wikidata Q120756954 (gare de marchandises) : UIC 87141341 (P722 8714134) identique, nom « Coussey » et à 0 m de la position VFF.',
+    ],
+
+    // Rolampont (id 15005)
+    [
+        'station' => ['name' => 'Rolampont', 'uic' => '87142075'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757252',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757252',
+        'quote' => 'P722 = 8714207',
+        'reason' => 'élément Wikidata Q120757252 (gare de marchandises) : UIC 87142075 (P722 8714207) identique, nom « Rolampont » et à 78 m de la position VFF.',
+    ],
+
+    // Rimaucourt (id 15014)
+    [
+        'station' => ['name' => 'Rimaucourt', 'uic' => '87142299'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757250',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757250',
+        'quote' => 'P722 = 8714229',
+        'reason' => 'élément Wikidata Q120757250 (gare de marchandises) : UIC 87142299 (P722 8714229) identique, nom « Rimaucourt » et à 0 m de la position VFF.',
+    ],
+
+    // Manois (id 15015)
+    [
+        'station' => ['name' => 'Manois', 'uic' => '87142307'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757257',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757257',
+        'quote' => 'P722 = 8714230',
+        'reason' => 'élément Wikidata Q120757257 (gare de marchandises) : UIC 87142307 (P722 8714230) identique, nom « Manois » et à 0 m de la position VFF.',
+    ],
+
+    // Vaux-sous-Aubigny (id 15024)
+    [
+        'station' => ['name' => 'Vaux-sous-Aubigny', 'uic' => '87142620'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757254',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757254',
+        'quote' => 'P722 = 8714262',
+        'reason' => 'élément Wikidata Q120757254 (gare de marchandises) : UIC 87142620 (P722 8714262) identique, nom « Vaux-sous-Aubigny » et à 0 m de la position VFF.',
+    ],
+
+    // Gironcourt-Houécourt (id 15054)
+    [
+        'station' => ['name' => 'Gironcourt-Houécourt', 'uic' => '87144352'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757037',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757037',
+        'quote' => 'P722 = 8714435',
+        'reason' => 'élément Wikidata Q120757037 (gare de marchandises) : UIC 87144352 (P722 8714435) identique, nom « Gironcourt - Houécourt » et à 0 m de la position VFF.',
+    ],
+
+    // Châtenois-Dolaincourt (id 15055)
+    [
+        'station' => ['name' => 'Châtenois-Dolaincourt', 'uic' => '87144360'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757032',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757032',
+        'quote' => 'P722 = 8714436',
+        'reason' => 'élément Wikidata Q120757032 (gare de marchandises) : UIC 87144360 (P722 8714436) identique, nom « Châtenois - Dolaincourt » et à 0 m de la position VFF.',
+    ],
+
+    // Messempré (id 15132)
+    [
+        'station' => ['name' => 'Messempré', 'uic' => '87172486'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757243',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757243',
+        'quote' => 'P722 = 8717248',
+        'reason' => 'élément Wikidata Q120757243 (gare de marchandises) : UIC 87172486 (P722 8717248) identique, nom « Messempré » et à 0 m de la position VFF.',
+    ],
+
+    // Tournes (id 15133)
+    [
+        'station' => ['name' => 'Tournes', 'uic' => '87172502'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q117311407',
+        'source_url' => 'https://www.wikidata.org/wiki/Q117311407',
+        'quote' => 'P722 = 8717250',
+        'reason' => 'élément Wikidata Q117311407 (gare de marchandises) : UIC 87172502 (P722 8717250) identique, nom « Tournes » et à 0 m de la position VFF.',
+    ],
+
+    // Vouziers (id 15135)
+    [
+        'station' => ['name' => 'Vouziers', 'uic' => '87172593'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107472266',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107472266',
+        'quote' => 'P722 = 8717259',
+        'reason' => 'élément Wikidata Q107472266 (gare de marchandises) : UIC 87172593 (P722 8717259) identique, nom « Vouziers » et à 0 m de la position VFF.',
+    ],
+
+    // Stenay (id 15138)
+    [
+        'station' => ['name' => 'Stenay', 'uic' => '87172775'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757205',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757205',
+        'quote' => 'P722 = 8717277',
+        'reason' => 'élément Wikidata Q120757205 (gare de marchandises) : UIC 87172775 (P722 8717277) identique, nom « Stenay » et à 0 m de la position VFF.',
+    ],
+
+    // Oiry (id 15142)
+    [
+        'station' => ['name' => 'Oiry', 'uic' => '87174102'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758244',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758244',
+        'quote' => 'P722 = 8717410',
+        'reason' => 'élément Wikidata Q120758244 (gare de marchandises) : UIC 87174102 (P722 8717410) identique, nom « Oiry » et à 4 m de la position VFF.',
+    ],
+
+    // Mailly-le-Camp (id 15153)
+    [
+        'station' => ['name' => 'Mailly-le-Camp', 'uic' => '87174573'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757180',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757180',
+        'quote' => 'P722 = 8717457',
+        'reason' => 'élément Wikidata Q120757180 (gare de marchandises) : UIC 87174573 (P722 8717457) identique, nom « Mailly-le-Camp » et à 179 m de la position VFF.',
+    ],
+
+    // Ancerville-Guë (id 15166)
+    [
+        'station' => ['name' => 'Ancerville-Guë', 'uic' => '87175166'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757391',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757391',
+        'quote' => 'P722 = 8717516',
+        'reason' => 'élément Wikidata Q120757391 (gare de marchandises) : UIC 87175166 (P722 8717516) identique, nom « Ancerville-Guë » et à 0 m de la position VFF.',
+    ],
+
+    // Sorcy (id 15169)
+    [
+        'station' => ['name' => 'Sorcy', 'uic' => '87175281'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108740428',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108740428',
+        'quote' => 'P722 = 8717528',
+        'reason' => 'élément Wikidata Q108740428 (gare de marchandises) : UIC 87175281 (P722 8717528) identique, nom « Sorcy » et à 102 m de la position VFF.',
+    ],
+
+    // Ligny (id 15170)
+    [
+        'station' => ['name' => 'Ligny', 'uic' => '87175323'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757392',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757392',
+        'quote' => 'P722 = 8717532',
+        'reason' => 'élément Wikidata Q120757392 (gare de marchandises) : UIC 87175323 (P722 8717532) identique, nom « Ligny » et à 0 m de la position VFF.',
+    ],
+
+    // Dugny (id 15172)
+    [
+        'station' => ['name' => 'Dugny', 'uic' => '87175661'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757390',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757390',
+        'quote' => 'P722 = 8717566',
+        'reason' => 'élément Wikidata Q120757390 (gare de marchandises) : UIC 87175661 (P722 8717566) identique, nom « Dugny » et à 0 m de la position VFF.',
+    ],
+
+    // Baleycourt (id 15173)
+    [
+        'station' => ['name' => 'Baleycourt', 'uic' => '87175760'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757203',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757203',
+        'quote' => 'P722 = 8717576',
+        'reason' => 'élément Wikidata Q120757203 (gare de marchandises) : UIC 87175760 (P722 8717576) identique, nom « Baleycourt » et à 0 m de la position VFF.',
+    ],
+
+    // Buzy (Meuse) (id 15176)
+    [
+        'station' => ['name' => 'Buzy (Meuse)', 'uic' => '87175802'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757394',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757394',
+        'quote' => 'P722 = 8717580',
+        'reason' => 'élément Wikidata Q120757394 (gare de marchandises) : UIC 87175802 (P722 8717580) identique, nom « Buzy (Meuse) » et à 0 m de la position VFF.',
+    ],
+
+    // St-Germain-sur-Meuse (id 15178)
+    [
+        'station' => ['name' => 'St-Germain-sur-Meuse', 'uic' => '87175836'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757393',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757393',
+        'quote' => 'P722 = 8717583',
+        'reason' => 'élément Wikidata Q120757393 (gare de marchandises) : UIC 87175836 (P722 8717583) identique, nom « Saint-Germain-sur-Meuse » et à 0 m de la position VFF.',
+    ],
+
+    // Mulhouse-Nord (id 15189)
+    [
+        'station' => ['name' => 'Mulhouse-Nord', 'uic' => '87182006'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17628881',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17628881',
+        'quote' => 'P722 = 8718200',
+        'reason' => 'élément Wikidata Q17628881 (Q519608) : UIC 87182006 (P722 8718200) identique, nom « gare de Mulhouse-Nord » et à 87 m de la position VFF.',
+    ],
+
+    // Florange (id 15273)
+    [
+        'station' => ['name' => 'Florange', 'uic' => '87191247'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756860',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756860',
+        'quote' => 'P722 = 8719124',
+        'reason' => 'élément Wikidata Q120756860 (gare de marchandises) : UIC 87191247 (P722 8719124) identique, nom « Florange » et à 22 m de la position VFF.',
+    ],
+
+    // Batilly (id 15308)
+    [
+        'station' => ['name' => 'Batilly', 'uic' => '87192617'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757388',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757388',
+        'quote' => 'P722 = 8719261',
+        'reason' => 'élément Wikidata Q120757388 (gare de marchandises) : UIC 87192617 (P722 8719261) identique, nom « Batilly » et à 0 m de la position VFF.',
+    ],
+
+    // Jeandelize (id 15311)
+    [
+        'station' => ['name' => 'Jeandelize', 'uic' => '87192708'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757159',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757159',
+        'quote' => 'P722 = 8719270',
+        'reason' => 'élément Wikidata Q120757159 (gare de marchandises) : UIC 87192708 (P722 8719270) identique, nom « Jeandelize » et à 0 m de la position VFF.',
+    ],
+
+    // Cocheren (id 15316)
+    [
+        'station' => ['name' => 'Cocheren', 'uic' => '87193227'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756895',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756895',
+        'quote' => 'P722 = 8719322',
+        'reason' => 'élément Wikidata Q120756895 (gare de marchandises) : UIC 87193227 (P722 8719322) identique, nom « Cocheren » et à 19 m de la position VFF.',
+    ],
+
+    // Bitche-Camp (id 15335)
+    [
+        'station' => ['name' => 'Bitche-Camp', 'uic' => '87193839'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756856',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756856',
+        'quote' => 'P722 = 8719383',
+        'reason' => 'élément Wikidata Q120756856 (gare de marchandises) : UIC 87193839 (P722 8719383) identique, nom « Bitche-Camp » et à 0 m de la position VFF.',
+    ],
+
+    // Schiltigheim (id 15365)
+    [
+        'station' => ['name' => 'Schiltigheim', 'uic' => '87212290'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17628898',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17628898',
+        'quote' => 'P722 = 8721229',
+        'reason' => 'élément Wikidata Q17628898 (gare de marchandises) : UIC 87212290 (P722 8721229) identique, nom « Schiltigheim » et à 169 m de la position VFF.',
+    ],
+
+    // Ciry-Sermoise (id 15498)
+    [
+        'station' => ['name' => 'Ciry-Sermoise', 'uic' => '87271866'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758138',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758138',
+        'quote' => 'P722 = 8727186',
+        'reason' => 'élément Wikidata Q120758138 (gare de marchandises) : UIC 87271866 (P722 8727186) identique, nom « Ciry - Sermoise » et à 0 m de la position VFF.',
+    ],
+
+    // Dunkerque-Port-Est (id 15593)
+    [
+        'station' => ['name' => 'Dunkerque-Port-Est', 'uic' => '87281204'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769303',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769303',
+        'quote' => 'P722 = 8728120',
+        'reason' => 'élément Wikidata Q120769303 (plusieurs classes) : UIC 87281204 (P722 8728120) identique, nom « Dunkerque-Port-Est » et à 1 m de la position VFF.',
+    ],
+
+    // Lomme (MIN) (id 15674)
+    [
+        'station' => ['name' => 'Lomme (MIN)', 'uic' => '87287417'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769291',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769291',
+        'quote' => 'P722 = 8728741',
+        'reason' => 'élément Wikidata Q120769291 (gare de marchandises) : UIC 87287417 (P722 8728741) identique, nom « Lomme (MIN) » et à 3 m de la position VFF.',
+    ],
+
+    // Feignies (id 15678)
+    [
+        'station' => ['name' => 'Feignies', 'uic' => '87295030'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q15279077',
+        'source_url' => 'https://www.wikidata.org/wiki/Q15279077',
+        'quote' => 'P722 = 8729503',
+        'reason' => 'élément Wikidata Q15279077 (plusieurs classes) : UIC 87295030 (P722 8729503) identique, nom « Feignies » et à 27 m de la position VFF.',
+    ],
+
+    // Douzies (id 15684)
+    [
+        'station' => ['name' => 'Douzies', 'uic' => '87295238'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769287',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769287',
+        'quote' => 'P722 = 8729523',
+        'reason' => 'élément Wikidata Q120769287 (gare de marchandises) : UIC 87295238 (P722 8729523) identique, nom « Douzies » et à 12 m de la position VFF.',
+    ],
+
+    // Athies-sous-Laon (id 15710)
+    [
+        'station' => ['name' => 'Athies-sous-Laon', 'uic' => '87296327'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758155',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758155',
+        'quote' => 'P722 = 8729632',
+        'reason' => 'élément Wikidata Q120758155 (gare de marchandises) : UIC 87296327 (P722 8729632) identique, nom « Athies-sous-Laon » et à 0 m de la position VFF.',
+    ],
+
+    // Clermont-les-Fermes (id 15711)
+    [
+        'station' => ['name' => 'Clermont-les-Fermes', 'uic' => '87296376'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758126',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758126',
+        'quote' => 'P722 = 8729637',
+        'reason' => 'élément Wikidata Q120758126 (gare de marchandises) : UIC 87296376 (P722 8729637) identique, nom « Clermont-les-Fermes » et à 0 m de la position VFF.',
+    ],
+
+    // Montcornet (id 15712)
+    [
+        'station' => ['name' => 'Montcornet', 'uic' => '87296384'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758119',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758119',
+        'quote' => 'P722 = 8729638',
+        'reason' => 'élément Wikidata Q120758119 (gare de marchandises) : UIC 87296384 (P722 8729638) identique, nom « Montcornet » et à 0 m de la position VFF.',
+    ],
+
+    // Origny-Ste-Benoite (id 15717)
+    [
+        'station' => ['name' => 'Origny-Ste-Benoite', 'uic' => '87296467'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758112',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758112',
+        'quote' => 'P722 = 8729646',
+        'reason' => 'élément Wikidata Q120758112 (gare de marchandises) : UIC 87296467 (P722 8729646) identique, nom « Origny-Sainte-Benoite » et à 0 m de la position VFF.',
+    ],
+
+    // Chivres-en-Laonnois (id 15728)
+    [
+        'station' => ['name' => 'Chivres-en-Laonnois', 'uic' => '87297192'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758150',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758150',
+        'quote' => 'P722 = 8729719',
+        'reason' => 'élément Wikidata Q120758150 (gare de marchandises) : UIC 87297192 (P722 8729719) identique, nom « Chivres-en-Laonnois » et à 0 m de la position VFF.',
+    ],
+
+    // Saleux (id 15737)
+    [
+        'station' => ['name' => 'Saleux', 'uic' => '87313015'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109581650',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109581650',
+        'quote' => 'P722 = 8731301',
+        'reason' => 'élément Wikidata Q109581650 (gare de marchandises) : UIC 87313015 (P722 8731301) identique, nom « Saleux » et à 8 m de la position VFF.',
+    ],
+
+    // Montières (id 15748)
+    [
+        'station' => ['name' => 'Montières', 'uic' => '87313197'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q18380201',
+        'source_url' => 'https://www.wikidata.org/wiki/Q18380201',
+        'quote' => 'P722 = 8731319',
+        'reason' => 'élément Wikidata Q18380201 (gare de marchandises) : UIC 87313197 (P722 8731319) identique, nom « Montières » et à 15 m de la position VFF.',
+    ],
+
+    // Bacouël (id 15802)
+    [
+        'station' => ['name' => 'Bacouël', 'uic' => '87315010'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109581289',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109581289',
+        'quote' => 'P722 = 8731501',
+        'reason' => 'élément Wikidata Q109581289 (gare de marchandises) : UIC 87315010 (P722 8731501) identique, nom « Bacouel » et à 0 m de la position VFF.',
+    ],
+
+    // Épehy (id 15943)
+    [
+        'station' => ['name' => 'Épehy', 'uic' => '87345363'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757433',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757433',
+        'quote' => 'P722 = 8734536',
+        'reason' => 'élément Wikidata Q120757433 (gare de marchandises) : UIC 87345363 (P722 8734536) identique, nom « Épehy » et à 0 m de la position VFF.',
+    ],
+
+    // St-Sébastien-Frêne-Rond (id 15965)
+    [
+        'station' => ['name' => 'St-Sébastien-Frêne-Rond', 'uic' => '87354597'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2675849',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2675849',
+        'quote' => 'P722 = 8735459',
+        'reason' => 'élément Wikidata Q2675849 (gare ferroviaire) : UIC 87354597 (P722 8735459) identique, nom « Saint-Sébastien-Frêne-Rond » et à 53 m de la position VFF.',
+    ],
+
+    // Paris-Batignolles (id 15966)
+    [
+        'station' => ['name' => 'Paris-Batignolles', 'uic' => '87381004'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107000687',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107000687',
+        'quote' => 'P722 = 8738100',
+        'reason' => 'élément Wikidata Q107000687 (gare de marchandises) : UIC 87381004 (P722 8738100) identique, nom « Paris-Batignolles » et à 11 m de la position VFF.',
+    ],
+
+    // St-Aubin-du-Vieil-Évreux (id 16061)
+    [
+        'station' => ['name' => 'St-Aubin-du-Vieil-Évreux', 'uic' => '87387126'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757380',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757380',
+        'quote' => 'P722 = 8738712',
+        'reason' => 'élément Wikidata Q120757380 (gare de marchandises) : UIC 87387126 (P722 8738712) identique, nom « Saint-Aubin-du-Vieil-Évreux » et à 15 m de la position VFF.',
+    ],
+
+    // Breteuil (id 16066)
+    [
+        'station' => ['name' => 'Breteuil', 'uic' => '87387241'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836193',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836193',
+        'quote' => 'P722 = 8738724',
+        'reason' => 'élément Wikidata Q114836193 (gare de marchandises) : UIC 87387241 (P722 8738724) identique, nom « Breteuil » et à 0 m de la position VFF.',
+    ],
+
+    // St-André-de-l\'Eure (id 16067)
+    [
+        'station' => ['name' => 'St-André-de-l\'Eure', 'uic' => '87387308'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836178',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836178',
+        'quote' => 'P722 = 8738730',
+        'reason' => 'élément Wikidata Q114836178 (gare de marchandises) : UIC 87387308 (P722 8738730) identique, nom « Saint-André-de-l\'Eure » et à 0 m de la position VFF.',
+    ],
+
+    // Garnay (id 16125)
+    [
+        'station' => ['name' => 'Garnay', 'uic' => '87393660'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756792',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756792',
+        'quote' => 'P722 = 8739366',
+        'reason' => 'élément Wikidata Q120756792 (gare de marchandises) : UIC 87393660 (P722 8739366) identique, nom « Garnay » et à 0 m de la position VFF.',
+    ],
+
+    // Beaulieu-Le Coudray (id 16147)
+    [
+        'station' => ['name' => 'Beaulieu-Le Coudray', 'uic' => '87394387'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108112580',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108112580',
+        'quote' => 'P722 = 8739438',
+        'reason' => 'élément Wikidata Q108112580 (gare de marchandises) : UIC 87394387 (P722 8739438) identique, nom « Beaulieu-Le Coudray » et à 6 m de la position VFF.',
+    ],
+
+    // St-Sauveur-Châteauneuf (id 16155)
+    [
+        'station' => ['name' => 'St-Sauveur-Châteauneuf', 'uic' => '87394569'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108130605',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108130605',
+        'quote' => 'P722 = 8739456',
+        'reason' => 'élément Wikidata Q108130605 (gare de marchandises) : UIC 87394569 (P722 8739456) identique, nom « Saint-Sauveur - Châteauneuf » et à 15 m de la position VFF.',
+    ],
+
+    // Coltainville (id 16156)
+    [
+        'station' => ['name' => 'Coltainville', 'uic' => '87394866'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756842',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756842',
+        'quote' => 'P722 = 8739486',
+        'reason' => 'élément Wikidata Q120756842 (gare de marchandises) : UIC 87394866 (P722 8739486) identique, nom « Coltainville » et à 0 m de la position VFF.',
+    ],
+
+    // La Chartre-sur-le-Loir (id 16187)
+    [
+        'station' => ['name' => 'La Chartre-sur-le-Loir', 'uic' => '87396671'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757429',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757429',
+        'quote' => 'P722 = 8739667',
+        'reason' => 'élément Wikidata Q120757429 (gare de marchandises) : UIC 87396671 (P722 8739667) identique, nom « La Chartre-sur-le-Loir » et à 164 m de la position VFF.',
+    ],
+
+    // Grand-Quevilly (id 16194)
+    [
+        'station' => ['name' => 'Grand-Quevilly', 'uic' => '87411108'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119079',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119079',
+        'quote' => 'P722 = 8741110',
+        'reason' => 'élément Wikidata Q115119079 (gare de marchandises) : UIC 87411108 (P722 8741110) identique, nom « Grand-Quevilly » et à 33 m de la position VFF.',
+    ],
+
+    // Petit-Couronne (id 16195)
+    [
+        'station' => ['name' => 'Petit-Couronne', 'uic' => '87411116'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119133',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119133',
+        'quote' => 'P722 = 8741111',
+        'reason' => 'élément Wikidata Q115119133 (gare de marchandises) : UIC 87411116 (P722 8741111) identique, nom « Petit-Couronne » et à 0 m de la position VFF.',
+    ],
+
+    // St-Pierre-lès-Elbeuf (id 16196)
+    [
+        'station' => ['name' => 'St-Pierre-lès-Elbeuf', 'uic' => '87411132'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q115119193',
+        'source_url' => 'https://www.wikidata.org/wiki/Q115119193',
+        'quote' => 'P722 = 8741113',
+        'reason' => 'élément Wikidata Q115119193 (gare de marchandises) : UIC 87411132 (P722 8741113) identique, nom « Saint-Pierre-lès-Elbeuf » et à 0 m de la position VFF.',
+    ],
+
+    // St-Ouen-du-Breuil (id 16214)
+    [
+        'station' => ['name' => 'St-Ouen-du-Breuil', 'uic' => '87411728'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757422',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757422',
+        'quote' => 'P722 = 8741172',
+        'reason' => 'élément Wikidata Q120757422 (gare de marchandises) : UIC 87411728 (P722 8741172) identique, nom « Saint-Ouen-du-Breuil » et à 1 m de la position VFF.',
+    ],
+
+    // Rouxmesnil (id 16234)
+    [
+        'station' => ['name' => 'Rouxmesnil', 'uic' => '87415034'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757415',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757415',
+        'quote' => 'P722 = 8741503',
+        'reason' => 'élément Wikidata Q120757415 (gare de marchandises) : UIC 87415034 (P722 8741503) identique, nom « Rouxmesnil » et à 71 m de la position VFF.',
+    ],
+
+    // Étrépagny (id 16249)
+    [
+        'station' => ['name' => 'Étrépagny', 'uic' => '87415828'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114836112',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114836112',
+        'quote' => 'P722 = 8741582',
+        'reason' => 'élément Wikidata Q114836112 (gare de marchandises) : UIC 87415828 (P722 8741582) identique, nom « Étrépagny » et à 0 m de la position VFF.',
+    ],
+
+    // Vendeuvre-Jort (id 16267)
+    [
+        'station' => ['name' => 'Vendeuvre-Jort', 'uic' => '87444224'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757403',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757403',
+        'quote' => 'P722 = 8744422',
+        'reason' => 'élément Wikidata Q120757403 (gare de marchandises) : UIC 87444224 (P722 8744422) identique, nom « Vendeuvre - Jort » et à 9 m de la position VFF.',
+    ],
+
+    // Montabard (id 16278)
+    [
+        'station' => ['name' => 'Montabard', 'uic' => '87444521'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757396',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757396',
+        'quote' => 'P722 = 8744452',
+        'reason' => 'élément Wikidata Q120757396 (gare de marchandises) : UIC 87444521 (P722 8744452) identique, nom « Montabard » et à 17 m de la position VFF.',
+    ],
+
+    // Zu-Rhein (id 16341)
+    [
+        'station' => ['name' => 'Zu-Rhein', 'uic' => '87472639'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758352',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758352',
+        'quote' => 'P722 = 8747263',
+        'reason' => 'élément Wikidata Q120758352 (gare de marchandises) : UIC 87472639 (P722 8747263) identique, nom « Zu-Rhein » et à 0 m de la position VFF.',
+    ],
+
+    // Montreuil-Belfroi (id 16505)
+    [
+        'station' => ['name' => 'Montreuil-Belfroi', 'uic' => '87484030'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757425',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757425',
+        'quote' => 'P722 = 8748403',
+        'reason' => 'élément Wikidata Q120757425 (gare de marchandises) : UIC 87484030 (P722 8748403) identique, nom « Montreuil-Belfroi » et à 0 m de la position VFF.',
+    ],
+
+    // Gennes-Longuefuye (id 16522)
+    [
+        'station' => ['name' => 'Gennes-Longuefuye', 'uic' => '87484667'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757195',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757195',
+        'quote' => 'P722 = 8748466',
+        'reason' => 'élément Wikidata Q120757195 (gare de marchandises) : UIC 87484667 (P722 8748466) identique, nom « Gennes - Longuefuye » et à 0 m de la position VFF.',
+    ],
+
+    // La Rochelle-Pallice (id 16524)
+    [
+        'station' => ['name' => 'La Rochelle-Pallice', 'uic' => '87485011'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769315',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769315',
+        'quote' => 'P722 = 8748501',
+        'reason' => 'élément Wikidata Q120769315 (gare de marchandises) : UIC 87485011 (P722 8748501) identique, nom « La Rochelle-Pallice » et à 1 m de la position VFF.',
+    ],
+
+    // Luché (id 16571)
+    [
+        'station' => ['name' => 'Luché', 'uic' => '87487256'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757247',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757247',
+        'quote' => 'P722 = 8748725',
+        'reason' => 'élément Wikidata Q120757247 (gare de marchandises) : UIC 87487256 (P722 8748725) identique, nom « Luché » et à 151 m de la position VFF.',
+    ],
+
+    // Janville (id 16629)
+    [
+        'station' => ['name' => 'Janville', 'uic' => '87543108'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756849',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756849',
+        'quote' => 'P722 = 8754310',
+        'reason' => 'élément Wikidata Q120756849 (gare de marchandises) : UIC 87543108 (P722 8754310) identique, nom « Janville » et à 0 m de la position VFF.',
+    ],
+
+    // Fains-la-Folie (id 16638)
+    [
+        'station' => ['name' => 'Fains-la-Folie', 'uic' => '87543306'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756806',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756806',
+        'quote' => 'P722 = 8754330',
+        'reason' => 'élément Wikidata Q120756806 (gare de marchandises) : UIC 87543306 (P722 8754330) identique, nom « Gare de Fains-la-Folie » et à 1 m de la position VFF.',
+    ],
+
+    // Orgères (id 16639)
+    [
+        'station' => ['name' => 'Orgères', 'uic' => '87543314'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756850',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756850',
+        'quote' => 'P722 = 8754331',
+        'reason' => 'élément Wikidata Q120756850 (gare de marchandises) : UIC 87543314 (P722 8754331) identique, nom « Orgères-en-Beauce » et à 0 m de la position VFF.',
+    ],
+
+    // Gommiers (id 16640)
+    [
+        'station' => ['name' => 'Gommiers', 'uic' => '87543322'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757383',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757383',
+        'quote' => 'P722 = 8754332',
+        'reason' => 'élément Wikidata Q120757383 (gare de marchandises) : UIC 87543322 (P722 8754332) identique, nom « Gommiers » et à 0 m de la position VFF.',
+    ],
+
+    // Bricy-Boulay (id 16642)
+    [
+        'station' => ['name' => 'Bricy-Boulay', 'uic' => '87543348'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757377',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757377',
+        'quote' => 'P722 = 8754334',
+        'reason' => 'élément Wikidata Q120757377 (gare de marchandises) : UIC 87543348 (P722 8754334) identique, nom « Bricy - Boulay » et à 0 m de la position VFF.',
+    ],
+
+    // Sully-sur-Loire (id 16648)
+    [
+        'station' => ['name' => 'Sully-sur-Loire', 'uic' => '87543538'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757374',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757374',
+        'quote' => 'P722 = 8754353',
+        'reason' => 'élément Wikidata Q120757374 (gare de marchandises) : UIC 87543538 (P722 8754353) identique, nom « Sully-sur-Loire » et à 0 m de la position VFF.',
+    ],
+
+    // Engenville (id 16649)
+    [
+        'station' => ['name' => 'Engenville', 'uic' => '87543686'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107649264',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107649264',
+        'quote' => 'P722 = 8754368',
+        'reason' => 'élément Wikidata Q107649264 (gare de marchandises) : UIC 87543686 (P722 8754368) identique, nom « Engenville » et à 9 m de la position VFF.',
+    ],
+
+    // Neuville-aux-Bois (id 16650)
+    [
+        'station' => ['name' => 'Neuville-aux-Bois', 'uic' => '87543728'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757376',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757376',
+        'quote' => 'P722 = 8754372',
+        'reason' => 'élément Wikidata Q120757376 (gare de marchandises) : UIC 87543728 (P722 8754372) identique, nom « Neuville-aux-Bois » et à 0 m de la position VFF.',
+    ],
+
+    // Fossé-Marolles (id 16749)
+    [
+        'station' => ['name' => 'Fossé-Marolles', 'uic' => '87574400'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756912',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756912',
+        'quote' => 'P722 = 8757440',
+        'reason' => 'élément Wikidata Q120756912 (gare de marchandises) : UIC 87574400 (P722 8757440) identique, nom « Fossé-Marolles » et à 77 m de la position VFF.',
+    ],
+
+    // Selommes (id 16764)
+    [
+        'station' => ['name' => 'Selommes', 'uic' => '87574715'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756908',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756908',
+        'quote' => 'P722 = 8757471',
+        'reason' => 'élément Wikidata Q120756908 (gare de marchandises) : UIC 87574715 (P722 8757471) identique, nom « Selommes » et à 78 m de la position VFF.',
+    ],
+
+    // Moulins-sur-Yèvre (id 16830)
+    [
+        'station' => ['name' => 'Moulins-sur-Yèvre', 'uic' => '87576413'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757428',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757428',
+        'quote' => 'P722 = 8757641',
+        'reason' => 'élément Wikidata Q120757428 (gare de marchandises) : UIC 87576413 (P722 8757641) identique, nom « Moulins-sur-Yèvre » et à 0 m de la position VFF.',
+    ],
+
+    // Asnières-lès-Bourges (id 16835)
+    [
+        'station' => ['name' => 'Asnières-lès-Bourges', 'uic' => '87576504'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757284',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757284',
+        'quote' => 'P722 = 8757650',
+        'reason' => 'élément Wikidata Q120757284 (gare de marchandises) : UIC 87576504 (P722 8757650) identique, nom « Asnières-lès-Bourges » et à 0 m de la position VFF.',
+    ],
+
+    // Aubigny-sur-Nère (id 16836)
+    [
+        'station' => ['name' => 'Aubigny-sur-Nère', 'uic' => '87576579'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757373',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757373',
+        'quote' => 'P722 = 8757657',
+        'reason' => 'élément Wikidata Q120757373 (gare de marchandises) : UIC 87576579 (P722 8757657) identique, nom « Aubigny-sur-Nère » et à 0 m de la position VFF.',
+    ],
+
+    // Le Bec-d\'Ambès (id 16866)
+    [
+        'station' => ['name' => 'Le Bec-d\'Ambès', 'uic' => '87581884'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758258',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758258',
+        'quote' => 'P722 = 8758188',
+        'reason' => 'élément Wikidata Q120758258 (gare de marchandises) : UIC 87581884 (P722 8758188) identique, nom « Le Bec-d\'Ambès » et à 0 m de la position VFF.',
+    ],
+
+    // Solférino (id 16872)
+    [
+        'station' => ['name' => 'Solférino', 'uic' => '87582577'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16764804',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16764804',
+        'quote' => 'P722 = 8758257',
+        'reason' => 'élément Wikidata Q16764804 (gare ferroviaire) : UIC 87582577 (P722 8758257) identique, nom « Solférino » et à 4 m de la position VFF.',
+    ],
+
+    // Charmant (id 16896)
+    [
+        'station' => ['name' => 'Charmant', 'uic' => '87583658'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757398',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757398',
+        'quote' => 'P722 = 8758365',
+        'reason' => 'élément Wikidata Q120757398 (gare de marchandises) : UIC 87583658 (P722 8758365) identique, nom « Charmant » et à 0 m de la position VFF.',
+    ],
+
+    // Colayrac (id 16927)
+    [
+        'station' => ['name' => 'Colayrac', 'uic' => '87586149'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756938',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756938',
+        'quote' => 'P722 = 8758614',
+        'reason' => 'élément Wikidata Q120756938 (gare de marchandises) : UIC 87586149 (P722 8758614) identique, nom « Colayrac » et à 0 m de la position VFF.',
+    ],
+
+    // Ste-Christie (id 16931)
+    [
+        'station' => ['name' => 'Ste-Christie', 'uic' => '87586362'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757191',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757191',
+        'quote' => 'P722 = 8758636',
+        'reason' => 'élément Wikidata Q120757191 (gare de marchandises) : UIC 87586362 (P722 8758636) identique, nom « Sainte-Christie » et à 0 m de la position VFF.',
+    ],
+
+    // Lasserre (id 16943)
+    [
+        'station' => ['name' => 'Lasserre', 'uic' => '87586750'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756946',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756946',
+        'quote' => 'P722 = 8758675',
+        'reason' => 'élément Wikidata Q120756946 (gare de marchandises) : UIC 87586750 (P722 8758675) identique, nom « Lasserre » et à 0 m de la position VFF.',
+    ],
+
+    // Limoges-Puy-Imbert (id 16953)
+    [
+        'station' => ['name' => 'Limoges-Puy-Imbert', 'uic' => '87592014'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757259',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757259',
+        'quote' => 'P722 = 8759201',
+        'reason' => 'élément Wikidata Q120757259 (gare de marchandises) : UIC 87592014 (P722 8759201) identique, nom « Limoges-Puy-Imbert » et à 147 m de la position VFF.',
+    ],
+
+    // Bessines (id 16985)
+    [
+        'station' => ['name' => 'Bessines', 'uic' => '87592626'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757260',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757260',
+        'quote' => 'P722 = 8759262',
+        'reason' => 'élément Wikidata Q120757260 (gare de marchandises) : UIC 87592626 (P722 8759262) identique, nom « Bessines » et à 0 m de la position VFF.',
+    ],
+
+    // Buzançais (id 17080)
+    [
+        'station' => ['name' => 'Buzançais', 'uic' => '87597377'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756899',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756899',
+        'quote' => 'P722 = 8759737',
+        'reason' => 'élément Wikidata Q120756899 (gare de marchandises) : UIC 87597377 (P722 8759737) identique, nom « Buzançais » et à 195 m de la position VFF.',
+    ],
+
+    // Clion-sur-Indre (id 17081)
+    [
+        'station' => ['name' => 'Clion-sur-Indre', 'uic' => '87597401'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756900',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756900',
+        'quote' => 'P722 = 8759740',
+        'reason' => 'élément Wikidata Q120756900 (gare de marchandises) : UIC 87597401 (P722 8759740) identique, nom « Clion-sur-Indre » et à 0 m de la position VFF.',
+    ],
+
+    // Châtillon-sur-Indre (id 17082)
+    [
+        'station' => ['name' => 'Châtillon-sur-Indre', 'uic' => '87597419'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q117476852',
+        'source_url' => 'https://www.wikidata.org/wiki/Q117476852',
+        'quote' => 'P722 = 8759741',
+        'reason' => 'élément Wikidata Q117476852 (gare de marchandises) : UIC 87597419 (P722 8759741) identique, nom « Châtillon-sur-Indre » et à 89 m de la position VFF.',
+    ],
+
+    // Fléré-la-Rivière (id 17083)
+    [
+        'station' => ['name' => 'Fléré-la-Rivière', 'uic' => '87597427'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756903',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756903',
+        'quote' => 'P722 = 8759742',
+        'reason' => 'élément Wikidata Q120756903 (gare de marchandises) : UIC 87597427 (P722 8759742) identique, nom « Fléré-la-Rivière » et à 0 m de la position VFF.',
+    ],
+
+    // Empalot (id 17098)
+    [
+        'station' => ['name' => 'Empalot', 'uic' => '87611020'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769307',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769307',
+        'quote' => 'P722 = 8761102',
+        'reason' => 'élément Wikidata Q120769307 (gare de marchandises) : UIC 87611020 (P722 8761102) identique, nom « Empalot » et à 4 m de la position VFF.',
+    ],
+
+    // Montluçon-Eau (id 17238)
+    [
+        'station' => ['name' => 'Montluçon-Eau', 'uic' => '87641019'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758196',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758196',
+        'quote' => 'P722 = 8764101',
+        'reason' => 'élément Wikidata Q120758196 (gare de marchandises) : UIC 87641019 (P722 8764101) identique, nom « Montluçon-Eau » et à 0 m de la position VFF.',
+    ],
+
+    // Archignat (id 17247)
+    [
+        'station' => ['name' => 'Archignat', 'uic' => '87641225'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758208',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758208',
+        'quote' => 'P722 = 8764122',
+        'reason' => 'élément Wikidata Q120758208 (gare de marchandises) : UIC 87641225 (P722 8764122) identique, nom « Archignat » et à 0 m de la position VFF.',
+    ],
+
+    // Grenade-sur-l\'Adour (id 17276)
+    [
+        'station' => ['name' => 'Grenade-sur-l\'Adour', 'uic' => '87671024'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757419',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757419',
+        'quote' => 'P722 = 8767102',
+        'reason' => 'élément Wikidata Q120757419 (gare de marchandises) : UIC 87671024 (P722 8767102) identique, nom « Grenade-sur-l\'Adour » et à 0 m de la position VFF.',
+    ],
+
+    // Roquefort (Landes) (id 17281)
+    [
+        'station' => ['name' => 'Roquefort (Landes)', 'uic' => '87671263'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757411',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757411',
+        'quote' => 'P722 = 8767126',
+        'reason' => 'élément Wikidata Q120757411 (gare de marchandises) : UIC 87671263 (P722 8767126) identique, nom « Roquefort » et à 0 m de la position VFF.',
+    ],
+
+    // Labarthe-Avezac (id 17285)
+    [
+        'station' => ['name' => 'Labarthe-Avezac', 'uic' => '87671404'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757389',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757389',
+        'quote' => 'P722 = 8767140',
+        'reason' => 'élément Wikidata Q120757389 (gare de marchandises) : UIC 87671404 (P722 8767140) identique, nom « Labarthe - Avezac » et à 0 m de la position VFF.',
+    ],
+
+    // Maubourguet (id 17289)
+    [
+        'station' => ['name' => 'Maubourguet', 'uic' => '87671651'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q108730260',
+        'source_url' => 'https://www.wikidata.org/wiki/Q108730260',
+        'quote' => 'P722 = 8767165',
+        'reason' => 'élément Wikidata Q108730260 (gare de marchandises) : UIC 87671651 (P722 8767165) identique, nom « Maubourguet » et à 0 m de la position VFF.',
+    ],
+
+    // Mauco-Benquet (id 17290)
+    [
+        'station' => ['name' => 'Mauco-Benquet', 'uic' => '87671867'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757413',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757413',
+        'quote' => 'P722 = 8767186',
+        'reason' => 'élément Wikidata Q120757413 (gare de marchandises) : UIC 87671867 (P722 8767186) identique, nom « Mauco - Benquet » et à 0 m de la position VFF.',
+    ],
+
+    // Hagetmau (id 17291)
+    [
+        'station' => ['name' => 'Hagetmau', 'uic' => '87671891'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757412',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757412',
+        'quote' => 'P722 = 8767189',
+        'reason' => 'élément Wikidata Q120757412 (gare de marchandises) : UIC 87671891 (P722 8767189) identique, nom « Hagetmau » et à 0 m de la position VFF.',
+    ],
+
+    // Lescar (id 17296)
+    [
+        'station' => ['name' => 'Lescar', 'uic' => '87672170'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757406',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757406',
+        'quote' => 'P722 = 8767217',
+        'reason' => 'élément Wikidata Q120757406 (gare de marchandises) : UIC 87672170 (P722 8767217) identique, nom « Lescar » et à 78 m de la position VFF.',
+    ],
+
+    // Lacq (id 17298)
+    [
+        'station' => ['name' => 'Lacq', 'uic' => '87672220'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757408',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757408',
+        'quote' => 'P722 = 8767222',
+        'reason' => 'élément Wikidata Q120757408 (gare de marchandises) : UIC 87672220 (P722 8767222) identique, nom « Lacq » et à 71 m de la position VFF.',
+    ],
+
+    // Baigts-de-Béarn (id 17300)
+    [
+        'station' => ['name' => 'Baigts-de-Béarn', 'uic' => '87672261'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757409',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757409',
+        'quote' => 'P722 = 8767226',
+        'reason' => 'élément Wikidata Q120757409 (gare de marchandises) : UIC 87672261 (P722 8767226) identique, nom « Baigts-de-Béarn » et à 70 m de la position VFF.',
+    ],
+
+    // Mignères-Gondréville (id 17429)
+    [
+        'station' => ['name' => 'Mignères-Gondréville', 'uic' => '87684563'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q107646786',
+        'source_url' => 'https://www.wikidata.org/wiki/Q107646786',
+        'quote' => 'P722 = 8768456',
+        'reason' => 'élément Wikidata Q107646786 (gare de marchandises) : UIC 87684563 (P722 8768456) identique, nom « Mignères - Gondreville » et à 16 m de la position VFF.',
+    ],
+
+    // Tavaux-Solvay (id 17550)
+    [
+        'station' => ['name' => 'Tavaux-Solvay', 'uic' => '87713487'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q111792835',
+        'source_url' => 'https://www.wikidata.org/wiki/Q111792835',
+        'quote' => 'P722 = 8771348',
+        'reason' => 'élément Wikidata Q111792835 (gare de marchandises) : UIC 87713487 (P722 8771348) identique, nom « Tavaux-Solvay » et à 0 m de la position VFF.',
+    ],
+
+    // Dijon-Porte-d\'Ouche-Perrigny (id 17572)
+    [
+        'station' => ['name' => 'Dijon-Porte-d\'Ouche-Perrigny', 'uic' => '87713867'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769257',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769257',
+        'quote' => 'P722 = 8771386',
+        'reason' => 'élément Wikidata Q120769257 (gare de marchandises) : UIC 87713867 (P722 8771386) identique, nom « Dijon-Porte-d\'Ouche-Perrigny » et à 35 m de la position VFF.',
+    ],
+
+    // Ste-Colombe-les-Vienne-St-Romain-en-Gal (id 17671)
+    [
+        'station' => ['name' => 'Ste-Colombe-les-Vienne-St-Romain-en-Gal', 'uic' => '87722322'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758321',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758321',
+        'quote' => 'P722 = 8772232',
+        'reason' => 'élément Wikidata Q120758321 (gare de marchandises) : UIC 87722322 (P722 8772232) identique, nom « Sainte-Colombe-lès-Vienne-Saint-Romain-en-Gal » et à 0 m de la position VFF.',
+    ],
+
+    // Vénissieux-Nord (id 17689)
+    [
+        'station' => ['name' => 'Vénissieux-Nord', 'uic' => '87723304'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q105422211',
+        'source_url' => 'https://www.wikidata.org/wiki/Q105422211',
+        'quote' => 'P722 = 8772330',
+        'reason' => 'élément Wikidata Q105422211 (gare de marchandises) : UIC 87723304 (P722 8772330) identique, nom « Vénissieux-Nord » et à 51 m de la position VFF.',
+    ],
+
+    // Port-Édouard-Herriot (id 17773)
+    [
+        'station' => ['name' => 'Port-Édouard-Herriot', 'uic' => '87729202'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q105384286',
+        'source_url' => 'https://www.wikidata.org/wiki/Q105384286',
+        'quote' => 'P722 = 8772920',
+        'reason' => 'élément Wikidata Q105384286 (gare de marchandises) : UIC 87729202 (P722 8772920) identique, nom « Port-Édouard-Herriot » et à 120 m de la position VFF.',
+    ],
+
+    // Lempdes (Haute-Loire) (id 17830)
+    [
+        'station' => ['name' => 'Lempdes (Haute-Loire)', 'uic' => '87734855'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757246',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757246',
+        'quote' => 'P722 = 8773485',
+        'reason' => 'élément Wikidata Q120757246 (gare de marchandises) : UIC 87734855 (P722 8773485) identique, nom « Lempdes » et à 226 m de la position VFF.',
+    ],
+
+    // Port-St-Louis-du-Rhône (id 18018)
+    [
+        'station' => ['name' => 'Port-St-Louis-du-Rhône', 'uic' => '87753855'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120769320',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120769320',
+        'quote' => 'P722 = 8775385',
+        'reason' => 'élément Wikidata Q120769320 (gare de marchandises) : UIC 87753855 (P722 8775385) identique, nom « Port-Saint-Louis-du-Rhône » et à 0 m de la position VFF.',
+    ],
+
+    // Portes (id 18091)
+    [
+        'station' => ['name' => 'Portes', 'uic' => '87761205'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757399',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757399',
+        'quote' => 'P722 = 8776120',
+        'reason' => 'élément Wikidata Q120757399 (gare de marchandises) : UIC 87761205 (P722 8776120) identique, nom « Portes-Lès-Valence » et à 127 m de la position VFF.',
+    ],
+
+    // Manthes-Lapeyrouse (id 18095)
+    [
+        'station' => ['name' => 'Manthes-Lapeyrouse', 'uic' => '87761320'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757402',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757402',
+        'quote' => 'P722 = 8776132',
+        'reason' => 'élément Wikidata Q120757402 (gare de marchandises) : UIC 87761320 (P722 8776132) identique, nom « Manthes - Lapeyrouse » et à 0 m de la position VFF.',
+    ],
+
+    // Alixan-Châteauneuf-d\'Isère (id 18099)
+    [
+        'station' => ['name' => 'Alixan-Châteauneuf-d\'Isère', 'uic' => '87761619'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757400',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757400',
+        'quote' => 'P722 = 8776161',
+        'reason' => 'élément Wikidata Q120757400 (gare de marchandises) : UIC 87761619 (P722 8776161) identique, nom « Alixan - Châteauneuf-d\'Isère » et à 0 m de la position VFF.',
+    ],
+
+    // Avignon-Fontcouverte (id 18133)
+    [
+        'station' => ['name' => 'Avignon-Fontcouverte', 'uic' => '87765024'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757041',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757041',
+        'quote' => 'P722 = 8776502',
+        'reason' => 'élément Wikidata Q120757041 (gare de marchandises) : UIC 87765024 (P722 8776502) identique, nom « Avignon-Fontcouverte » et à 0 m de la position VFF.',
+    ],
+
+    // Cavaillon (MIN) (id 18147)
+    [
+        'station' => ['name' => 'Cavaillon (MIN)', 'uic' => '87765537'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757148',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757148',
+        'quote' => 'P722 = 8776553',
+        'reason' => 'élément Wikidata Q120757148 (gare de marchandises) : UIC 87765537 (P722 8776553) identique, nom « Cavaillon (MIN) » et à 0 m de la position VFF.',
+    ],
+
+    // Florensac (id 18204)
+    [
+        'station' => ['name' => 'Florensac', 'uic' => '87781328'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757432',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757432',
+        'quote' => 'P722 = 8778132',
+        'reason' => 'élément Wikidata Q120757432 (gare de marchandises) : UIC 87781328 (P722 8778132) identique, nom « Florensac » et à 0 m de la position VFF.',
+    ],
+
+    // Lézignan-la-Cèbe (id 18205)
+    [
+        'station' => ['name' => 'Lézignan-la-Cèbe', 'uic' => '87781369'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q109559191',
+        'source_url' => 'https://www.wikidata.org/wiki/Q109559191',
+        'quote' => 'P722 = 8778136',
+        'reason' => 'élément Wikidata Q109559191 (gare de marchandises) : UIC 87781369 (P722 8778136) identique, nom « Lézignan-la-Cèbe » et à 0 m de la position VFF.',
+    ],
+
+    // Dienville (id 18361)
+    [
+        'station' => ['name' => 'Dienville', 'uic' => '87118760'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757190',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757190',
+        'quote' => 'P722 = 8711876',
+        'reason' => 'élément Wikidata Q120757190 (gare de marchandises) : UIC 87118760 (P722 8711876) identique, nom « Dienville » et à 0 m de la position VFF.',
+    ],
+
+    // Braine (id 18493)
+    [
+        'station' => ['name' => 'Braine', 'uic' => '87171496'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758176',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758176',
+        'quote' => 'P722 = 8717149',
+        'reason' => 'élément Wikidata Q120758176 (gare de marchandises) : UIC 87171496 (P722 8717149) identique, nom « Braine » et à 0 m de la position VFF.',
+    ],
+
+    // Autet (id 18660)
+    [
+        'station' => ['name' => 'Autet', 'uic' => '87185538'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757199',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757199',
+        'quote' => 'P722 = 8718553',
+        'reason' => 'élément Wikidata Q120757199 (gare de marchandises) : UIC 87185538 (P722 8718553) identique, nom « Autet » et à 0 m de la position VFF.',
+    ],
+
+    // Villersexel (id 18667)
+    [
+        'station' => ['name' => 'Villersexel', 'uic' => '87185835'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q24046086',
+        'source_url' => 'https://www.wikidata.org/wiki/Q24046086',
+        'quote' => 'P722 = 8718583',
+        'reason' => 'élément Wikidata Q24046086 (gare ferroviaire) : UIC 87185835 (P722 8718583) identique, nom « Villersexel » et à 78 m de la position VFF.',
+    ],
+
+    // Marquaix-Hamelet (id 18988)
+    [
+        'station' => ['name' => 'Marquaix-Hamelet', 'uic' => '87316265'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141863881',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141863881',
+        'quote' => 'P722 = 8731626',
+        'reason' => 'élément Wikidata Q141863881 (gare ferroviaire) : UIC 87316265 (P722 8731626) identique, nom « Gare de Marquaix-Hamelet » et à 0 m de la position VFF.',
+    ],
+
+    // Éragny-Bazincourt (id 19089)
+    [
+        'station' => ['name' => 'Éragny-Bazincourt', 'uic' => '87381251'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3095876',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3095876',
+        'quote' => 'P722 = 8738125',
+        'reason' => 'élément Wikidata Q3095876 (gare ferroviaire) : UIC 87381251 (P722 8738125) identique, nom « Éragny - Bazincourt » et à 85 m de la position VFF.',
+    ],
+
+    // Mondoubleau (id 19191)
+    [
+        'station' => ['name' => 'Mondoubleau', 'uic' => '87396747'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120756921',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120756921',
+        'quote' => 'P722 = 8739674',
+        'reason' => 'élément Wikidata Q120756921 (gare de marchandises) : UIC 87396747 (P722 8739674) identique, nom « Mondoubleau » et à 165 m de la position VFF.',
+    ],
+
+    // Colleville-Ste-Hélène (id 19231)
+    [
+        'station' => ['name' => 'Colleville-Ste-Hélène', 'uic' => '87413617'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757417',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757417',
+        'quote' => 'P722 = 8741361',
+        'reason' => 'élément Wikidata Q120757417 (gare de marchandises) : UIC 87413617 (P722 8741361) identique, nom « Colleville-Sainte-Hélène » et à 0 m de la position VFF.',
+    ],
+
+    // Mesnières-en-Bray (id 19244)
+    [
+        'station' => ['name' => 'Mesnières-en-Bray', 'uic' => '87415083'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q20971050',
+        'source_url' => 'https://www.wikidata.org/wiki/Q20971050',
+        'quote' => 'P722 = 8741508',
+        'reason' => 'élément Wikidata Q20971050 (gare ferroviaire) : UIC 87415083 (P722 8741508) identique, nom « Mesnières-en-Bray » et à 49 m de la position VFF.',
+    ],
+
+    // St-Mesmin-le-Vieux (id 19533)
+    [
+        'station' => ['name' => 'St-Mesmin-le-Vieux', 'uic' => '87487298'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q62017327',
+        'source_url' => 'https://www.wikidata.org/wiki/Q62017327',
+        'quote' => 'P722 = 8748729',
+        'reason' => 'élément Wikidata Q62017327 (gare ferroviaire) : UIC 87487298 (P722 8748729) identique, nom « Saint-Mesmin-le-Vieux » et à 91 m de la position VFF.',
+    ],
+
+    // Gontaud-Fauguerolles (id 19776)
+    [
+        'station' => ['name' => 'Gontaud-Fauguerolles', 'uic' => '87586578'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2471354',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2471354',
+        'quote' => 'P722 = 8758657',
+        'reason' => 'élément Wikidata Q2471354 (gare ferroviaire) : UIC 87586578 (P722 8758657) identique, nom « Gontaud - Fauguerolles » et à 9 m de la position VFF.',
+    ],
+
+    // Porta (id 19896)
+    [
+        'station' => ['name' => 'Porta', 'uic' => '87611491'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q97365959',
+        'source_url' => 'https://www.wikidata.org/wiki/Q97365959',
+        'quote' => 'P722 = 8761149',
+        'reason' => 'élément Wikidata Q97365959 (gare ferroviaire) : UIC 87611491 (P722 8761149) identique, nom « Porta » et à 71 m de la position VFF.',
+    ],
+
+    // Bayonne-Allées-Marines (id 20118)
+    [
+        'station' => ['name' => 'Bayonne-Allées-Marines', 'uic' => '87673012'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757404',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757404',
+        'quote' => 'P722 = 8767301',
+        'reason' => 'élément Wikidata Q120757404 (gare de marchandises) : UIC 87673012 (P722 8767301) identique, nom « Bayonne-Allées-Marines » et à 0 m de la position VFF.',
+    ],
+
+    // Lapalisse-St-Prix (id 20447)
+    [
+        'station' => ['name' => 'Lapalisse-St-Prix', 'uic' => '87732610'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3096851',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3096851',
+        'quote' => 'P722 = 8773261',
+        'reason' => 'élément Wikidata Q3096851 (gare ferroviaire) : UIC 87732610 (P722 8773261) identique, nom « Lapalisse - Saint-Prix » et à 232 m de la position VFF.',
+    ],
+
+    // Chassal (id 20532)
+    [
+        'station' => ['name' => 'Chassal', 'uic' => '87743609'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q55964538',
+        'source_url' => 'https://www.wikidata.org/wiki/Q55964538',
+        'quote' => 'P722 = 8774360',
+        'reason' => 'élément Wikidata Q55964538 (gare de marchandises) : UIC 87743609 (P722 8774360) identique, nom « Chassal » et à 7 m de la position VFF.',
+    ],
+
+    // Aramon (id 20796)
+    [
+        'station' => ['name' => 'Aramon', 'uic' => '87765883'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758323',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758323',
+        'quote' => 'P722 = 8776588',
+        'reason' => 'élément Wikidata Q120758323 (gare de marchandises) : UIC 87765883 (P722 8776588) identique, nom « Aramon » et à 36 m de la position VFF.',
+    ],
+
+    // Sedan-Balan (id 22052)
+    [
+        'station' => ['name' => 'Sedan-Balan', 'near' => [4.954710, 49.696963, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q113350170',
+        'source_url' => 'https://www.wikidata.org/wiki/Q113350170',
+        'quote' => 'libellé « Sedan Balan »',
+        'reason' => 'élément Wikidata Q113350170 (gare ferroviaire) : nom « Sedan Balan » identique, élément seul de ce nom à 10 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Sorlin-Vertrieu (id 22616)
+    [
+        'station' => ['name' => 'Saint-Sorlin-Vertrieu', 'near' => [5.368744, 45.884715, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q114571651',
+        'source_url' => 'https://www.wikidata.org/wiki/Q114571651',
+        'quote' => 'libellé « Saint-Sorlin - Vertrieu »',
+        'reason' => 'élément Wikidata Q114571651 (gare ferroviaire) : nom « Saint-Sorlin - Vertrieu » identique, élément seul de ce nom à 97 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Remise à Jorelle (id 22674)
+    [
+        'station' => ['name' => 'Remise à Jorelle', 'uic' => '87988709'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3424532',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3424532',
+        'quote' => 'P722 = 8798870',
+        'reason' => 'élément Wikidata Q3424532 (plusieurs classes) : UIC 87988709 (P722 8798870) identique, nom « La Remise à Jorelle » et à 39 m de la position VFF.',
+    ],
+
+    // Saint-Just-en-Chevalet (id 22865)
+    [
+        'station' => ['name' => 'Saint-Just-en-Chevalet', 'near' => [3.843895, 45.908885, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141875604',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141875604',
+        'quote' => 'libellé « Gare de Saint-Just-en-Chevalet »',
+        'reason' => 'élément Wikidata Q141875604 (gare ferroviaire) : nom « Gare de Saint-Just-en-Chevalet » identique, élément seul de ce nom à 8 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Ribérac (id 23027)
+    [
+        'station' => ['name' => 'Ribérac', 'near' => [0.332605, 45.256306, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106291626',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106291626',
+        'quote' => 'libellé « Ribérac »',
+        'reason' => 'élément Wikidata Q106291626 (gare ferroviaire) : nom « Ribérac » identique, élément seul de ce nom à 2 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Faulx (id 23184)
+    [
+        'station' => ['name' => 'Faulx', 'near' => [6.195324, 48.789244, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106938310',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106938310',
+        'quote' => 'libellé « Faulx »',
+        'reason' => 'élément Wikidata Q106938310 (gare ferroviaire) : nom « Faulx » identique, élément seul de ce nom à 25 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Vic-Fezensac (id 23256)
+    [
+        'station' => ['name' => 'Vic-Fezensac', 'near' => [0.303856, 43.767079, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q123498144',
+        'source_url' => 'https://www.wikidata.org/wiki/Q123498144',
+        'quote' => 'libellé « Vic-Fezensac »',
+        'reason' => 'élément Wikidata Q123498144 (gare ferroviaire) : nom « Vic-Fezensac » identique, élément seul de ce nom à 263 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Paul-Trois-Châteaux (id 23323)
+    [
+        'station' => ['name' => 'Saint-Paul-Trois-Châteaux', 'near' => [4.762248, 44.345776, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142167269',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142167269',
+        'quote' => 'libellé « Saint-Paul-Trois-Châteaux »',
+        'reason' => 'élément Wikidata Q142167269 (gare ferroviaire abandonnée) : nom « Saint-Paul-Trois-Châteaux » identique, élément seul de ce nom à 152 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Montségur (id 23324)
+    [
+        'station' => ['name' => 'Montségur', 'near' => [4.848281, 44.360329, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142167049',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142167049',
+        'quote' => 'libellé « Montségur »',
+        'reason' => 'élément Wikidata Q142167049 (gare ferroviaire abandonnée) : nom « Montségur » identique, élément seul de ce nom à 56 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Venterol-Rousset (id 23327)
+    [
+        'station' => ['name' => 'Venterol-Rousset', 'near' => [5.084568, 44.395117, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142166610',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142166610',
+        'quote' => 'libellé « Venterol - Rousset »',
+        'reason' => 'élément Wikidata Q142166610 (gare ferroviaire abandonnée) : nom « Venterol - Rousset » identique, élément seul de ce nom à 41 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Pleurtuit (id 23508)
+    [
+        'station' => ['name' => 'Pleurtuit', 'near' => [-2.063427, 48.579381, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q106362275',
+        'source_url' => 'https://www.wikidata.org/wiki/Q106362275',
+        'quote' => 'libellé « Pleurtuit »',
+        'reason' => 'élément Wikidata Q106362275 (gare ferroviaire) : nom « Pleurtuit » identique, élément seul de ce nom à 71 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Flines-lez-Raches (id 24702)
+    [
+        'station' => ['name' => 'Flines-lez-Raches', 'near' => [3.185312, 50.428072, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q57262541',
+        'source_url' => 'https://www.wikidata.org/wiki/Q57262541',
+        'quote' => 'libellé « Flines-lez-Raches »',
+        'reason' => 'élément Wikidata Q57262541 (gare ferroviaire) : nom « Flines-lez-Raches » identique, élément seul de ce nom à 18 m de la position VFF, fiche sans UIC.',
+    ],
+
+    // Saint-Germain-des-Près (id 24723)
+    [
+        'station' => ['name' => 'Saint-Germain-des-Près', 'near' => [0.998347, 45.347926, 0.3]],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141874741',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141874741',
+        'quote' => 'libellé « Gare de Saint-Germain-des-Prés »',
+        'reason' => 'élément Wikidata Q141874741 (gare ferroviaire) : nom « Gare de Saint-Germain-des-Prés » identique, élément seul de ce nom à 41 m de la position VFF, fiche sans UIC.',
+    ],
+
 ];

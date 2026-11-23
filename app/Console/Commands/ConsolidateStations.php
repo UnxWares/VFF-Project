@@ -42,6 +42,10 @@ use Illuminate\Support\Str;
  * ou son objet OSM ne prend pas le Q-id désigné (tag wikidata d'un objet OHM posé sur une autre gare),
  * et l'élément Wikidata de ce Q-id ne la rejoint pas ; les objets qui portent le tag restent rattachés.
  *
+ * Rattachements (action « link ») : la gare visée par son UIC, son objet OSM ou sa position et son nom, dont aucun objet
+ * ne porte de Q-id, prend celui de la correction (élément Wikidata trouvé par l'UIC, le nom et la distance, mais non
+ * importé ou non rattaché) ; un Q-id déjà porté par un objet de la gare, ou défait par « unlink », l'emporte.
+ *
  * Fusions (action « merge ») : deux fiches qui désignent la même gare (une seule gare au schéma de la ligne)
  * mais que les règles gardent distinctes (ancien bâtiment à plus de 150 m de la gare SNCF) deviennent une
  * seule gare, après le rapprochement : la fiche gardée garde son id et son slug, prend les objets sources de
@@ -91,6 +95,12 @@ class ConsolidateStations extends Command
     /** @var array<int, int> liens défaits : n° → objets sources qui désignent la gare */
     private array $unlinkHits = [];
 
+    /** @var list<array{name: string, uic: ?string, osm: ?string, near: ?array{float, float, float}, source: string, ref: string}> rattachements (StationCorrections) */
+    private array $links = [];
+
+    /** @var array<int, int> rattachements : n° → objets sources qui désignent la gare */
+    private array $linkHits = [];
+
     /** @var list<array{kept: array<string, string>, absorbed: array<string, string>, position: string, source_url: string}> fusions (StationCorrections) */
     private array $merges = [];
 
@@ -105,6 +115,8 @@ class ConsolidateStations extends Command
         $this->grid = [];
         $this->unlinks = $corrections->unlinks();
         $this->unlinkHits = array_fill(0, count($this->unlinks), 0);
+        $this->links = $corrections->links();
+        $this->linkHits = array_fill(0, count($this->links), 0);
         $this->merges = $corrections->merges();
         $this->loadRecords();
         $this->info(count($this->recs).' objets sources');
@@ -159,6 +171,10 @@ class ConsolidateStations extends Command
                 $hit ? ' ('.implode(', ', array_map(fn ($c) => $this->recs[$c['members'][0]]->name.', Q-id retenu : '.($c['qid'] ?? 'aucun'), $hit)).')' : '');
             $this->unlinkHits[$k] === 0 ? $this->warn($line.' : gare introuvable dans les sources') : $this->line($line);
         }
+        foreach ($this->links as $k => $l) {
+            $line = sprintf('  rattachement %s / %s %s : %d objet(s)', $l['name'], $l['source'], $l['ref'], $this->linkHits[$k]);
+            $this->linkHits[$k] === 0 ? $this->warn($line.' : gare introuvable dans les sources') : $this->line($line);
+        }
         if ($this->option('dry-run')) {
             return self::SUCCESS;
         }
@@ -199,6 +215,14 @@ class ConsolidateStations extends Command
                 array_map([StationNames::class, 'normalize'], array_filter([$r->props['old_name'] ?? null, $r->props['official_name'] ?? null, $r->props['uic_name'] ?? null])),
             ))));
             $r->unlink = $this->unlinksOf($r);
+            $r->linked = false;
+            if ($r->qid === null && $r->source !== 'wikidata') {
+                $link = $this->linkOf($r);
+                if ($link !== null) {
+                    $r->qid = $link;
+                    $r->linked = true;
+                }
+            }
             $this->recs[] = $r;
         }
     }
@@ -224,6 +248,31 @@ class ConsolidateStations extends Command
         }
 
         return $out;
+    }
+
+    /**
+     * Q-id posé sur cet objet par une correction « link » : UIC sur 7 chiffres ou objet OSM, ou position (rayon de la
+     * correction) ; dans tous les cas le nom de la correction est parmi les noms de l'objet, sauf pour l'UIC, qui désigne
+     * la gare sans ambiguïté. Un Q-id défait pour cette gare (« unlink ») n'est pas posé.
+     */
+    private function linkOf(object $r): ?string
+    {
+        foreach ($this->links as $k => $l) {
+            if (isset($r->unlink[$l['ref']])) {
+                continue;
+            }
+            $nameOk = in_array(StationNames::normalize($l['name']), $r->names, true);
+            $hit = ($l['uic'] !== null && $r->uic7 !== null && $r->uic7 === substr($l['uic'], 0, 7))
+                || ($l['osm'] !== null && $r->source === 'osm' && $r->source_ref === $l['osm'] && $nameOk)
+                || ($l['near'] !== null && $nameOk && $r->lon !== null && $this->haversine((float) $r->lat, (float) $r->lon, $l['near'][1], $l['near'][0]) <= $l['near'][2] * 1000);
+            if ($hit) {
+                $this->linkHits[$k]++;
+
+                return $l['ref'];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -810,7 +859,7 @@ class ConsolidateStations extends Command
         // Q-id d'un lien défait (action « unlink ») ignoré : tag posé sur l'objet d'une autre gare.
         $qid = $wd?->wikidata_id ?? collect($members)->pluck('qid')->filter(fn ($q) => $q && ! isset($c['unlinked'][$q]))->first();
         if ($qid) {
-            $prov['wikidata_id'] = $wd ? 'wikidata' : 'osm';
+            $prov['wikidata_id'] = $wd ? 'wikidata' : (collect($members)->contains(fn ($r) => $r->linked && $r->qid === $qid) ? 'correction' : 'osm');
         }
         $osmNode = collect($osm)->first(fn ($r) => str_starts_with($r->source_ref, 'n'));
 

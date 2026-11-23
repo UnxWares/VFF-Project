@@ -49,6 +49,12 @@ use Illuminate\Support\Facades\DB;
  *                  l'élément Wikidata ne la rejoint pas ; les objets qui portent le tag restent rattachés
  *                  (seul le Q-id est ignoré). Gare visée par « uic » ou « osm » (lue sur les sources, avant
  *                  la consolidation), « name » en contrôle ; sans effet dans vff:build-station-eras ;
+ *   - link       : rattachement d'une gare à un élément Wikidata trouvé par l'UIC (P722), le nom et la distance
+ *                  (« source » wikidata, « ref » Q-id) : la gare n'avait aucun Q-id parce que l'élément n'est pas importé
+ *                  (gare de marchandises, élément créé après la recherche) ou ne l'a pas rejointe. Lu par
+ *                  vff:consolidate-stations au rattachement : l'objet source de la gare visée (UIC sur 7 chiffres, ou
+ *                  objet OSM, ou « near » [lng, lat, rayon en km] avec le nom) qui n'a pas de Q-id prend celui-ci ;
+ *                  un Q-id déjà porté par un objet de la gare n'est jamais remplacé ; sans effet dans vff:build-station-eras ;
  *   - merge      : deux fiches désignent la même gare (une seule gare dans le schéma de la ligne, même PK) :
  *                  la fiche « station » est gardée (son id, son slug), la fiche « absorbed » s'y fond. Les deux
  *                  sont visées par « uic », « wikidata » ou « osm » (lus sur les sources, avant la consolidation,
@@ -62,12 +68,12 @@ use Illuminate\Support\Facades\DB;
  */
 final class StationCorrections
 {
-    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink', 'merge'];
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink', 'link', 'merge'];
 
     /** Fiche dont la fusion (action « merge ») reprend la position. */
     public const MERGE_POSITIONS = ['kept', 'absorbed'];
 
-    /** Sources dont un lien peut être défait (action « unlink »). */
+    /** Sources dont un lien peut être défait (action « unlink ») ou posé (action « link »). */
     public const UNLINK_SOURCES = ['wikidata'];
 
     /** États du jour admis par l'action « current ». */
@@ -134,6 +140,11 @@ final class StationCorrections
         if ($action === 'unlink' && (! in_array($c['source'] ?? null, self::UNLINK_SOURCES, true)
             || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st) || (! isset($st['uic']) && ! isset($st['osm'])))) {
             $errors[] = 'unlink : source wikidata, ref (Q-id), gare visée par uic ou osm';
+        }
+        if ($action === 'link' && (! in_array($c['source'] ?? null, self::UNLINK_SOURCES, true)
+            || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st)
+            || (! isset($st['uic']) && ! isset($st['osm']) && ! isset($st['near'])))) {
+            $errors[] = 'link : source wikidata, ref (Q-id), gare visée par uic, osm ou near';
         }
         if ($action === 'merge') {
             $errors = [...$errors, ...self::validateMerge($c)];
@@ -216,6 +227,30 @@ final class StationCorrections
                     'name' => (string) $c['station']['name'],
                     'uic' => isset($c['station']['uic']) ? (string) $c['station']['uic'] : null,
                     'osm' => isset($c['station']['osm']) ? (string) $c['station']['osm'] : null,
+                    'source' => (string) $c['source'],
+                    'ref' => (string) $c['ref'],
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Rattachements à un élément Wikidata (action « link »), valides, pour vff:consolidate-stations.
+     *
+     * @return list<array{name: string, uic: ?string, osm: ?string, near: ?array{float, float, float}, source: string, ref: string}>
+     */
+    public function links(): array
+    {
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'link' && self::validate($c) === []) {
+                $out[] = [
+                    'name' => (string) $c['station']['name'],
+                    'uic' => isset($c['station']['uic']) ? (string) $c['station']['uic'] : null,
+                    'osm' => isset($c['station']['osm']) ? (string) $c['station']['osm'] : null,
+                    'near' => isset($c['station']['near']) ? array_map('floatval', array_values($c['station']['near'])) : null,
                     'source' => (string) $c['source'],
                     'ref' => (string) $c['ref'],
                 ];
@@ -325,6 +360,8 @@ final class StationCorrections
                     'current' => (bool) ($out['current'][$sid] = (string) $c['status']),
                     // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
                     'unlink' => true,
+                    // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
+                    'link' => true,
                     // Appliquée par vff:consolidate-stations (StationMerger) : la fiche absorbée n'existe plus ici.
                     'merge' => true,
                     'pk' => DB::update(<<<'SQL'

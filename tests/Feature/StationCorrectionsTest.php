@@ -128,6 +128,21 @@ class StationCorrectionsTest extends TestCase
         $this->assertSame([['name' => 'St-Vidal', 'uic' => '87731844', 'osm' => null, 'source' => 'wikidata', 'ref' => 'Q1891124']], $corrections->unlinks());
     }
 
+    public function test_link_corrections_are_listed_for_the_consolidation(): void
+    {
+        $ok = ['station' => ['name' => 'Autet', 'uic' => '87185538'], 'action' => 'link', 'source' => 'wikidata', 'ref' => 'Q120757199',
+            'source_url' => 'https://www.wikidata.org/wiki/Q120757199', 'reason' => 'Meme UIC, meme nom, 0 m'];
+        $near = array_merge($ok, ['station' => ['name' => 'Faulx', 'near' => [6.2, 48.8, 0.3]], 'ref' => 'Q106938310']);
+
+        $corrections = new StationCorrections([$ok, $near, array_merge($ok, ['ref' => 'bad'])]);
+
+        $this->assertSame([
+            ['name' => 'Autet', 'uic' => '87185538', 'osm' => null, 'near' => null, 'source' => 'wikidata', 'ref' => 'Q120757199'],
+            ['name' => 'Faulx', 'uic' => null, 'osm' => null, 'near' => [6.2, 48.8, 0.3], 'source' => 'wikidata', 'ref' => 'Q106938310'],
+        ], $corrections->links());
+        $this->assertSame([], $corrections->unlinks());
+    }
+
     public function test_corrections_are_applied_idempotently_and_target_one_station(): void
     {
         $a = $this->station('Commequiers', 6.60, ['sncf' => ['disused', false, false]], 'declassified', '87486548');

@@ -25,6 +25,17 @@ class StationCorrectionsValidateTest extends TestCase
         $this->assertSame([], StationCorrections::validate($osm));
     }
 
+    public function test_a_link_needs_a_wikidata_id_and_a_station_known_by_the_sources(): void
+    {
+        $link = fn (array $o = []) => $o + ['station' => ['name' => 'Autet', 'uic' => '87185538'], 'action' => 'link', 'source' => 'wikidata', 'ref' => 'Q120757199',
+            'source_url' => 'https://www.wikidata.org/wiki/Q120757199', 'reason' => 'Meme UIC.'];
+        $this->assertSame([], StationCorrections::validate($link()));
+        $this->assertSame([], StationCorrections::validate($link(['station' => ['name' => 'Faulx', 'near' => [6.2, 48.8, 0.3]]])));
+        $this->assertNotEmpty(StationCorrections::validate($link(['ref' => 'Q12x'])));
+        $this->assertNotEmpty(StationCorrections::validate($link(['source' => 'osm'])));
+        $this->assertNotEmpty(StationCorrections::validate($link(['station' => ['name' => 'Autet', 'wikidata' => 'Q1']])));
+    }
+
     /** @return array<string, array{array<string, mixed>, string}> */
     public static function invalid(): array
     {

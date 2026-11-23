@@ -256,6 +256,46 @@ class ConsolidateStationsRulesTest extends TestCase
         $this->assertSame('Q777', $this->stationOf($near)->wikidata_id);
     }
 
+    /** @return array<string, mixed> */
+    private function link(array $station, string $ref): array
+    {
+        return ['station' => $station, 'action' => 'link', 'source' => 'wikidata', 'ref' => $ref,
+            'source_url' => 'https://www.wikidata.org/wiki/'.$ref, 'reason' => $ref.' porte le meme UIC'];
+    }
+
+    public function test_link_gives_the_wikidata_id_found_by_uic_or_by_name_and_position(): void
+    {
+        $autet = $this->source('sncf', '87185538', 'Autet', 47.50000, 5.80000, ['uic_code' => '87185538', 'lifecycle' => 'disused']);
+        $faulx = $this->source('osm', 'n7', 'Faulx', 48.80000, 6.20000, ['lifecycle' => 'disused']);
+        $other = $this->source('osm', 'n8', 'Faulx', 48.90000, 6.20000, ['lifecycle' => 'disused']);
+
+        $this->app->instance(StationCorrections::class, new StationCorrections([]));
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+        $this->assertNull($this->stationOf($autet)->wikidata_id);
+
+        $this->app->instance(StationCorrections::class, new StationCorrections([
+            $this->link(['name' => 'Autet', 'uic' => '87185538'], 'Q120757199'),
+            $this->link(['name' => 'Faulx', 'near' => [6.2, 48.8, 0.3]], 'Q106938310'),
+        ]));
+        $this->artisan('vff:consolidate-stations')->expectsOutputToContain('rattachement Autet / wikidata Q120757199 : 1 objet(s)')->assertSuccessful();
+
+        $this->assertSame('Q120757199', $this->stationOf($autet)->wikidata_id);
+        $this->assertSame('Q106938310', $this->stationOf($faulx)->wikidata_id);
+        $this->assertNull($this->stationOf($other)->wikidata_id, 'l\'homonyme a 11 km n\'est pas rattache');
+        $this->assertSame('correction', json_decode((string) $this->stationOf($autet)->provenance, true)['wikidata_id'] ?? null);
+    }
+
+    public function test_link_never_replaces_a_wikidata_id_carried_by_the_station(): void
+    {
+        $autet = $this->source('sncf', '87185538', 'Autet', 47.50000, 5.80000, ['uic_code' => '87185538', 'lifecycle' => 'disused']);
+        $this->source('wikidata', 'Q1', 'Autet', 47.50001, 5.80001, ['wikidata_id' => 'Q1', 'uic_code' => '87185538']);
+
+        $this->app->instance(StationCorrections::class, new StationCorrections([$this->link(['name' => 'Autet', 'uic' => '87185538'], 'Q2')]));
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+
+        $this->assertSame('Q1', $this->stationOf($autet)->wikidata_id);
+    }
+
     public function test_unlink_naming_another_station_has_no_effect(): void
     {
         $vidal = $this->source('sncf', '87731844', 'St-Vidal', 45.07190, 3.80322, ['uic_code' => '87731844']);
