@@ -53,12 +53,13 @@ class SitemapBuilderMutationTest extends TestCase
                 'https://vff-project.org/sitemap-lines-1.xml',
                 'https://vff-project.org/sitemap-stations-1.xml',
                 'https://vff-project.org/sitemap-communes-1.xml',
+                'https://vff-project.org/sitemap-departments-1.xml',
                 'https://vff-project.org/sitemap-materials-1.xml',
                 'https://vff-project.org/sitemap-accidents-1.xml',
             ],
             $this->locs($xml),
         );
-        $this->assertSame(7, substr_count($xml, '<sitemap>'));
+        $this->assertSame(8, substr_count($xml, '<sitemap>'));
         $this->assertStringContainsString("<sitemap>\n", $xml);
     }
 
@@ -86,10 +87,10 @@ class SitemapBuilderMutationTest extends TestCase
     {
         Accident::factory()->create(['slug' => '2000-01-01-pas-dans-les-pages', 'kind' => 'collision']);
         $all = $this->locs((new SitemapBuilder)->family('https://h.org', 'pages', 1) ?? '');
-        $this->assertCount(24, $all);
+        $this->assertCount(25, $all);
         $this->assertSame('https://h.org/', $all[0]);
         $this->assertSame('https://h.org/whoarewe', $all[1]);
-        $this->assertSame('https://h.org/credits/media', $all[23]);
+        $this->assertSame('https://h.org/credits/media', $all[24]);
         $this->assertStringNotContainsString('lastmod', (string) (new SitemapBuilder)->family('https://h.org', 'pages', 1));
 
         $small = new SitemapBuilder(5);

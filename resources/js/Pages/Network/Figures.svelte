@@ -421,6 +421,9 @@
             <p class="note">
                 <Link href="/on-this-day" class="vff-link">{t('link_on_this_day')}</Link>
             </p>
+            <p class="note">
+                <Link href="/departments" class="vff-link">{t('link_departments')}</Link>
+            </p>
         </SectionBlock>
     </main>
 </Layout>

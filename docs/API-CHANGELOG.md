@@ -21,6 +21,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Départements : `GET /api/v1/departments/{code}/history` (le rail d'un département décennie par décennie : `open_km`, `closed_km`,
+  `service_km`, `dismantled_km`, `razed_km`, gares, grandes dates, lignes, communes, accidents) et `GET /api/v1/stats/departments`
+  (tableau des départements, part fermée depuis 1930) ; agrégats en cache (`vff:compute-department-figures`), 503 tant que rien n'est
+  calculé. Pages : `/departments` et `/departments/{code}-{nom}`. Ajout seul.
 - Carte : `GET /api/v1/what-was-here?summary=1` (page « Autour de moi » `/nearby`) : rayon jusqu'à 10 000 m, 15 lignes et 20 gares
   au plus, `history` de chaque ligne (années d'ouverture, de fermeture et de dépose, `sections` pour une portion), années d'ouverture et
   de fermeture des gares et `commune` du point ; sans signalisation, matériel, événements ni accidents. Ajout seul.

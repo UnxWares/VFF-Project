@@ -13,6 +13,7 @@ use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
@@ -83,6 +84,10 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
 // Le rail d'une commune (gares, lignes, chronologie, carte) : seulement celles qui ont une gare ou une ligne.
 Route::get('/communes/{slug}', [CommuneController::class, 'show'])
     ->where('slug', '(?:[0-9]{5}|2[AB][0-9]{3})(?:-[a-z0-9-]*)?')->name('communes.show');
+// Le rail d'un département (longueurs et gares par décennie, grandes dates, lignes, communes, accidents) : agrégats en cache.
+Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
+Route::get('/departments/{slug}', [DepartmentController::class, 'show'])
+    ->where('slug', '(?:[0-9]{2,3}|2[ABab])(?:-[a-z0-9-]*)?')->name('departments.show');
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.

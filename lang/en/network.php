@@ -10,6 +10,7 @@ return [
     'link_home' => 'The network in figures, decade by decade',
     'link_chronology' => 'Year by year, the facts behind these figures: the chronology of French railways',
     'link_on_this_day' => 'A day of the calendar: what happened on this day in earlier years',
+    'link_departments' => 'Rail, department by department: kilometres in 1930 and today, share closed',
     'today' => 'Today',
     'km' => ':value km',
     'period_until' => 'up to :to',
