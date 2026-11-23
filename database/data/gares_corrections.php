@@ -6423,4 +6423,466 @@ return [
         'reason' => 'article de la gare (oldid 204050069) : « mais ouverte seulement en 1930 ». Remplace l\'année 1922 de Wikidata (gare achevée en 1922, premiers trains en 1930).',
     ],
 
+    // ── 44. Fermetures des gares fermées dont la date de fermeture était déduite de la ligne (audit-fermetures-2, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-fermetures-2.md). Les gares y ont souvent fermé avant la ligne (fermeture voyageurs du
+    // 15/05/1939, du 28/09/1969, de 1980 pour la desserte par autocars), la date déduite étant celle du déclassement, de la fin du fret
+    // ou de la fermeture totale. Seules les gares dont l'article (de la gare ou de la ligne, révision citée) dit la fermeture sont corrigées ;
+    // les autres restent à décider ou sans source (voir le CSV du rapport).
+
+    // Aire-sur-l'Adour (id 17277)
+    [
+        'station' => ['name' => 'Aire-sur-l\'Adour', 'wikidata' => 'Q115386235'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-10-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aire-sur-l\'Adour', 220918422),
+        'quote' => 'et est fermée aux voyageurs en 1970',
+        'reason' => 'article de la gare (oldid 220918422) : « et est fermée aux voyageurs en 1970 » ; Infobox : fermeture voyageurs le 12/10/1970 ; 2014 deduit de la ligne.',
+    ],
+
+    // Joudreville (id 18695)
+    [
+        'station' => ['name' => 'Joudreville', 'wikidata' => 'Q123498378'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Joudreville', 209684329),
+        'quote' => 'La SNCF met fin aux trains de voyageurs sur la ligne le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 209684329) : « La SNCF met fin aux trains de voyageurs sur la ligne le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1986 etait deduit de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Landres (id 18697)
+    [
+        'station' => ['name' => 'Landres', 'wikidata' => 'Q123498388'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Landres', 209700791),
+        'quote' => 'Les trains de voyageurs cessent de desservir la ligne le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 209700791) : « Les trains de voyageurs cessent de desservir la ligne le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1973 etait deduit de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Aumetz (id 18735)
+    [
+        'station' => ['name' => 'Aumetz', 'wikidata' => 'Q123498291'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-05-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aumetz', 230742995),
+        'quote' => 'la ligne ferme aux trains de passagers le 5 mai 1948',
+        'reason' => 'article de la gare (oldid 230742995) : « la ligne ferme aux trains de passagers le 5 mai 1948 » ; Fermeture voyageurs du 05/05/1948 ; 2005 deduit de la ligne.',
+    ],
+
+    // Roisel (id 18946)
+    [
+        'station' => ['name' => 'Roisel', 'wikidata' => 'Q2566610'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Roisel', 212959250),
+        'quote' => 'Le trafic voyageurs a été reporté sur la route le 1 avril 1970.',
+        'reason' => 'article de la gare (oldid 212959250) : « Le trafic voyageurs a été reporté sur la route le 1 avril 1970. » ; Trafic voyageurs reporte sur la route le 01/04/1970 ; 2010 deduit de la ligne.',
+    ],
+
+    // Mortagne-au-Perche (id 19316)
+    [
+        'station' => ['name' => 'Mortagne-au-Perche', 'wikidata' => 'Q109945175'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1953-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Mortagne-au-Perche', 234442336),
+        'quote' => 'La gare fermera au service voyageurs en 1953.',
+        'reason' => 'article de la gare (oldid 234442336) : « La gare fermera au service voyageurs en 1953. » ; Infobox : fermeture voyageurs 1953 (ligne d\'Alencon a Conde fermee aux voyageurs en 1935) ; 1989 deduit de la ligne.',
+    ],
+
+    // Gaël (id 19379)
+    [
+        'station' => ['name' => 'Gaël', 'wikidata' => 'Q26021574'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-03-06',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Gaël', 229514833),
+        'quote' => 'Elle est fermée au service des voyageurs le 6 mars 1972.',
+        'reason' => 'article de la gare (oldid 229514833) : « Elle est fermée au service des voyageurs le 6 mars 1972. » ; Fermeture voyageurs du 06/03/1972 (toute la ligne) ; 2018 deduit de la ligne (fret rouvert en 2009).',
+    ],
+
+    // Airvault-Ville (id 19528)
+    [
+        'station' => ['name' => 'Airvault-Ville', 'wikidata' => 'Q82784422'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Airvault-Ville', 188243396),
+        'quote' => 'Elle est fermée par la Société nationale des chemins de fer français (SNCF) lorsqu\'elle transfère sur route, en 1980, les dernières circulations omnibus du service des voyageurs.',
+        'reason' => 'article de la gare (oldid 188243396) : « Elle est fermée par la Société nationale des chemins de fer français (SNCF) lorsqu\'elle transfère sur route, en 1980, les dernières circulations omnibus du service des voyageurs. » ; Fermee aux voyageurs en 1980 (transfert sur route) ; 2015 deduit de la ligne.',
+    ],
+
+    // Gourge (id 19530)
+    [
+        'station' => ['name' => 'Gourge', 'wikidata' => 'Q83144554'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Chartres à Bordeaux-Saint-Jean', 241089765),
+        'quote' => 'de Thouars à Parthenay et Niort au 27 septembre 1980',
+        'reason' => 'article de la ligne (oldid 241089765) : « de Thouars à Parthenay et Niort au 27 septembre 1980 » ; Fermeture voyageurs de la section Thouars - Parthenay - Niort le 27/09/1980 (article de la ligne ; la gare : « fermee au service des voyageurs en 1980 ») ; 2015 est la fermeture a toutes les circulations.',
+    ],
+
+    // St-André-de-Lidon (id 19595)
+    [
+        'station' => ['name' => 'St-André-de-Lidon', 'wikidata' => 'Q24575294'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-André-de-Lidon', 220862797),
+        'quote' => 'La gare, comme l\'ensemble de la ligne, est fermée au service des voyageurs 15 05 1939.',
+        'reason' => 'article de la gare (oldid 220862797) : « La gare, comme l\'ensemble de la ligne, est fermée au service des voyageurs 15 05 1939. » ; Fermeture voyageurs du 15/05/1939 ; 2000 deduit de la ligne.',
+    ],
+
+    // Chauvigny (id 19689)
+    [
+        'station' => ['name' => 'Chauvigny', 'wikidata' => 'Q28040128'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Chauvigny', 150577964),
+        'quote' => 'Elle est fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 150577964) : « Elle est fermée au service des voyageurs en 1940 » ; Fermee aux voyageurs en 1940 ; 1989 deduit de la ligne.',
+    ],
+
+    // Concremiers (id 19853)
+    [
+        'station' => ['name' => 'Concremiers', 'wikidata' => 'Q28040130'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Concremiers', 228675721),
+        'quote' => 'Elle est fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 228675721) : « Elle est fermée au service des voyageurs en 1940 » ; Fermee aux voyageurs en 1940 ; 1973 deduit de la ligne.',
+    ],
+
+    // Ingrandes-Mérigny (id 19854)
+    [
+        'station' => ['name' => 'Ingrandes-Mérigny', 'wikidata' => 'Q3095792'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Ingrandes - Mérigny', 229526879),
+        'quote' => 'Elle est officiellement fermée au service des voyageurs le 27 mai 1940',
+        'reason' => 'article de la gare (oldid 229526879) : « Elle est officiellement fermée au service des voyageurs le 27 mai 1940 » ; Fermeture voyageurs du 27/05/1940 ; 1973 deduit de la ligne.',
+    ],
+
+    // St-Hilaire (Indre) (id 19855)
+    [
+        'station' => ['name' => 'St-Hilaire (Indre)', 'wikidata' => 'Q15948845'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1933-03-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Hilaire (Indre)', 228675946),
+        'quote' => 'Infobox, fermeture : 1 mars 1933 (voyageurs)',
+        'reason' => 'article de la gare (oldid 228675946) : Infobox, fermeture : 1 mars 1933 (voyageurs). Infobox : fermeture voyageurs le 01/03/1933 ; 1993 est le declassement de la ligne.',
+    ],
+
+    // Liglet (id 19856)
+    [
+        'station' => ['name' => 'Liglet', 'wikidata' => 'Q26714973'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1933-03-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Liglet', 235032634),
+        'quote' => 'La gare est fermée, comme la ligne, au service des voyageurs le 1 mars 1933.',
+        'reason' => 'article de la gare (oldid 235032634) : « La gare est fermée, comme la ligne, au service des voyageurs le 1 mars 1933. » ; Fermeture voyageurs du 01/03/1933 ; 1993 est le declassement de la ligne.',
+    ],
+
+    // St-Denis-de-Jouhet (id 19867)
+    [
+        'station' => ['name' => 'St-Denis-de-Jouhet', 'wikidata' => 'Q16638591'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Denis-de-Jouhet', 228675941),
+        'quote' => 'La gare, comme la ligne, est fermée au service des voyageurs le 1 juillet 1939.',
+        'reason' => 'article de la gare (oldid 228675941) : « La gare, comme la ligne, est fermée au service des voyageurs le 1 juillet 1939. » ; Fermeture voyageurs du 01/07/1939 ; 1995 est le declassement de la section.',
+    ],
+
+    // Larnagol-Calvignac (id 19937)
+    [
+        'station' => ['name' => 'Larnagol-Calvignac', 'wikidata' => 'Q113462421'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Calvignac', 236444829),
+        'quote' => 'Infobox, fermeture : 28 septembre 1980 (voyageurs)',
+        'reason' => 'article de la gare (oldid 236444829) : Infobox, fermeture : 28 septembre 1980 (voyageurs). Infobox : fermeture voyageurs le 28/09/1980 (ligne de Cahors a Capdenac) ; 2011 deduit de la ligne.',
+    ],
+
+    // Montbrun (id 19939)
+    [
+        'station' => ['name' => 'Montbrun', 'wikidata' => 'Q113458917'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montbrun', 237108391),
+        'quote' => 'Infobox, fermeture : 28 septembre 1980 (voyageurs)',
+        'reason' => 'article de la gare (oldid 237108391) : Infobox, fermeture : 28 septembre 1980 (voyageurs). Infobox : fermeture voyageurs le 28/09/1980 (ligne de Cahors a Capdenac) ; 2011 deduit de la ligne.',
+    ],
+
+    // Noyant-d'Allier (id 20006)
+    [
+        'station' => ['name' => 'Noyant-d\'Allier', 'wikidata' => 'Q16508055'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Noyant-d\'Allier', 235033632),
+        'quote' => 'La gare de Noyant-d\'Allier est fermée au service des voyageurs en 1972, lors de la fermeture de la section de Commentry à Moulins.',
+        'reason' => 'article de la gare (oldid 235033632) : « La gare de Noyant-d\'Allier est fermée au service des voyageurs en 1972, lors de la fermeture de la section de Commentry à Moulins. » ; Fermee aux voyageurs en 1972 avec la section Commentry - Moulins ; 1999 deduit de la ligne.',
+    ],
+
+    // Champtercier (id 20617)
+    [
+        'station' => ['name' => 'Champtercier', 'wikidata' => 'Q20971045'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1972-03-06',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Champtercier', 200688849),
+        'quote' => 'Elle est fermée le 6 mars 1972 avec la fin du trafic omnibus',
+        'reason' => 'article de la gare (oldid 200688849) : « Elle est fermée le 6 mars 1972 avec la fin du trafic omnibus » ; Fin du trafic omnibus le 06/03/1972 ; la ligne ferme totalement le 22/05/1991, 1988 non retrouve.',
+    ],
+
+    // Draguignan (id 20655)
+    [
+        'station' => ['name' => 'Draguignan', 'wikidata' => 'Q30739585'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1981-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Anciennes gares ferroviaires de Draguignan', 206881532),
+        'quote' => 'En 1981, la gare de Draguignan est fermée au trafic ferroviaire',
+        'reason' => 'article de la gare (oldid 206881532) : « En 1981, la gare de Draguignan est fermée au trafic ferroviaire » ; Fermee au trafic ferroviaire en 1981 (devient un point de vente) ; 1992 deduit de la ligne.',
+    ],
+
+    // Céret (id 20911)
+    [
+        'station' => ['name' => 'Céret', 'wikidata' => 'Q81720221'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Céret', 235031546),
+        'quote' => 'fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 235031546) : « fermée au service des voyageurs en 1940 » ; Infobox : fermeture voyageurs le 23/05/1940 ; 2014 deduit de la ligne.',
+    ],
+
+    // Drincham (id 21202)
+    [
+        'station' => ['name' => 'Drincham', 'wikidata' => 'Q60847117'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Drincham', 231973436),
+        'quote' => 'Elle est fermée en 1951 lors de la suppression de la ligne.',
+        'reason' => 'article de la gare (oldid 231973436) : « Elle est fermée en 1951 lors de la suppression de la ligne. » ; Fermee avec la ligne en 1951 ; 1944 deduit de la ligne.',
+    ],
+
+    // Ouzouer - Dampierre (id 21222)
+    [
+        'station' => ['name' => 'Ouzouer - Dampierre', 'wikidata' => 'Q61896217'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Ouzouer - Dampierre', 235030574),
+        'quote' => 'la suppression du trafic voyageur intervient le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 235030574) : « la suppression du trafic voyageur intervient le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 ; 1954 deduit de la ligne.',
+    ],
+
+    // Saint-Aigny - Le Blanc (id 21258)
+    [
+        'station' => ['name' => 'Saint-Aigny - Le Blanc', 'wikidata' => 'Q28040132'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Aigny - Le Blanc', 238289077),
+        'quote' => 'Elle est officiellement fermée au service des voyageurs le 27 mai 1940',
+        'reason' => 'article de la gare (oldid 238289077) : « Elle est officiellement fermée au service des voyageurs le 27 mai 1940 » ; Fermeture voyageurs du 27/05/1940 ; 1994 deduit de la ligne.',
+    ],
+
+    // Rosteig (id 21268)
+    [
+        'station' => ['name' => 'Rosteig', 'wikidata' => 'Q22340663'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rosteig', 235034165),
+        'quote' => 'Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969.',
+        'reason' => 'article de la gare (oldid 235034165) : « Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969. » ; Fermeture voyageurs du 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Saint-Louis-lès-Bitche (id 21291)
+    [
+        'station' => ['name' => 'Saint-Louis-lès-Bitche', 'wikidata' => 'Q22341813'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Louis-lès-Bitche', 229519298),
+        'quote' => 'Infobox, fermeture : 28 septembre 1969 (voyageurs)',
+        'reason' => 'article de la gare (oldid 229519298) : Infobox, fermeture : 28 septembre 1969 (voyageurs). Infobox : fermeture voyageurs le 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Montmorency (id 21441)
+    [
+        'station' => ['name' => 'Montmorency', 'wikidata' => 'Q16508052'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1954-06-30',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montmorency', 212402047),
+        'quote' => 'elle est fermée en 1954',
+        'reason' => 'article de la gare (oldid 212402047) : « elle est fermée en 1954 » ; Infobox : fermeture voyageurs le 30/06/1954 ; 1947 non retrouve dans l\'article.',
+    ],
+
+    // Soucht (id 21448)
+    [
+        'station' => ['name' => 'Soucht', 'wikidata' => 'Q22343124'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Soucht', 216787616),
+        'quote' => 'Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969.',
+        'reason' => 'article de la gare (oldid 216787616) : « Elle est fermée au service des voyageurs, comme la ligne, le 28 septembre 1969. » ; Fermeture voyageurs du 28/09/1969 ; 1973-07-26 est le declassement de la ligne.',
+    ],
+
+    // Pouligny-Saint-Pierre (id 21673)
+    [
+        'station' => ['name' => 'Pouligny-Saint-Pierre', 'wikidata' => 'Q3097334'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-06-27',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pouligny-Saint-Pierre', 228675912),
+        'quote' => 'Elle est fermée au service voyageurs, le 27 juin 1940.',
+        'reason' => 'article de la gare (oldid 228675912) : « Elle est fermée au service voyageurs, le 27 juin 1940. » ; Fermeture voyageurs du 27/06/1940 ; 1970 est le declassement de la ligne.',
+    ],
+
+    // Cogolin La Foux (id 21677)
+    [
+        'station' => ['name' => 'Cogolin La Foux', 'wikidata' => 'Q108154002'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1948-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cogolin La Foux', 239464028),
+        'quote' => 'fut officiellement fermée en 1948',
+        'reason' => 'article de la gare (oldid 239464028) : « fut officiellement fermée en 1948 » ; Fermeture officielle de la ligne en 1948 (infobox 1948) ; 1949 deduit de la ligne.',
+    ],
+
+    // Pitgam (id 21714)
+    [
+        'station' => ['name' => 'Pitgam', 'wikidata' => 'Q56753715'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Pitgam', 217416935),
+        'quote' => 'Elle est fermée en 1951 lors de la suppression de la ligne.',
+        'reason' => 'article de la gare (oldid 217416935) : « Elle est fermée en 1951 lors de la suppression de la ligne. » ; Fermee avec la ligne en 1951 ; 1944 deduit de la ligne.',
+    ],
+
+    // Audun-le-Tiche-Mont (id 21825)
+    [
+        'station' => ['name' => 'Audun-le-Tiche-Mont', 'wikidata' => 'Q123498162'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-05-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Audun-le-Tiche-Mont', 230682739),
+        'quote' => 'La SNCF supprime le trafic des passagers sur la ligne de Fontoy à Audun-le-Tiche le 5 mai 1948.',
+        'reason' => 'article de la gare (oldid 230682739) : « La SNCF supprime le trafic des passagers sur la ligne de Fontoy à Audun-le-Tiche le 5 mai 1948. » ; Fermeture voyageurs du 05/05/1948 ; 2009 deduit de la ligne.',
+    ],
+
+    // Régneville-sur-Mer (id 21884)
+    [
+        'station' => ['name' => 'Régneville-sur-Mer', 'wikidata' => 'Q65157674'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1942-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Regnéville', 239621002),
+        'quote' => 'Infobox, fermeture : 1942',
+        'reason' => 'article de la gare (oldid 239621002) : Infobox, fermeture : 1942. Infobox : fermeture 1942 ; 1939 deduit de la ligne.',
+    ],
+
+    // Anderny (id 21941)
+    [
+        'station' => ['name' => 'Anderny', 'wikidata' => 'Q123497996'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Anderny', 238957889),
+        'quote' => 'La SNCF cesse de desservir la ligne par des trains de voyageurs le 15 mai 1939',
+        'reason' => 'article de la gare (oldid 238957889) : « La SNCF cesse de desservir la ligne par des trains de voyageurs le 15 mai 1939 » ; Fermeture voyageurs du 15/05/1939 (fiche de la gare) ; 1973 etait une date deduite de la ligne (fret jusqu\'en 1991).',
+    ],
+
+    // Belvianes (id 21946)
+    [
+        'station' => ['name' => 'Belvianes', 'wikidata' => 'Q81075822'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-04-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Belvianes', 228481627),
+        'quote' => 'La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 04 1939.',
+        'reason' => 'article de la gare (oldid 228481627) : « La section entre Quillan et Rivesaltes a été fermée au trafic voyageurs le 18 04 1939. » ; Fermeture voyageurs du 18/04/1939 (infobox) ; 1956 deduit de la ligne.',
+    ],
+
+    // Amélie-les-Bains (id 21950)
+    [
+        'station' => ['name' => 'Amélie-les-Bains', 'wikidata' => 'Q82925388'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Amélie-les-Bains', 231707538),
+        'quote' => 'fermée au service des voyageurs en 1940',
+        'reason' => 'article de la gare (oldid 231707538) : « fermée au service des voyageurs en 1940 » ; Infobox : fermeture voyageurs le 23/05/1940 ; 1972 est la fermeture du troncon Amelie-les-Bains - Ceret (fret).',
+    ],
+
+    // Saint-Tropez (id 21979)
+    [
+        'station' => ['name' => 'Saint-Tropez', 'wikidata' => 'Q104162986'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1949-06-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Tropez', 221816503),
+        'quote' => 'jusqu\'à sa fermeture le 4 06 1949',
+        'reason' => 'article de la gare (oldid 221816503) : « jusqu\'à sa fermeture le 4 06 1949 » ; Jour precise : 04/06/1949 (l\'annee 1949 etait deduite de la ligne).',
+    ],
+
 ];
