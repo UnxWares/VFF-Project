@@ -154,7 +154,8 @@ class LineSignallingController extends Controller
      *   (l'article ne dit pas) ;
      * - `section` (portion nommée seulement, sinon null) : `from`, `to` (lieux tels qu'écrits), `location`
      *   (`stations` : placée par les deux gares d'extrémité trouvées sur la ligne et leurs PK calés,
-     *   `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
+     *   `landmarks` : une extrémité au moins est un point remarquable de la ligne (bifurcation, raccordement,
+     *   origine, fin, frontière ; gare de l'autre bout s'il y en a une), `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
      *   inventé), `pk_start_m` et `pk_end_m` (PK de la portion placée, en mètres, null sinon), `from_station`
      *   et `to_station` (`slug`, `name`, `pk_m` de chaque gare retenue, null sinon) ;
      * - `source` : `provider` (`wikipedia`, ou `manual` pour un fait daté par des documents), `title` de
