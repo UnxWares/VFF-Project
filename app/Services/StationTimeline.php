@@ -932,7 +932,15 @@ final class StationTimeline
     /** Règle G6 : fermeture tirée de la fin des voyageurs de la ligne, rattachée à la section par PK. */
     public const RULE_CLOSURE_BY_LINE = 'g6';
 
-    public const ERA_RULES = [self::RULE_OPENING_BY_MAP, self::RULE_CLOSURE_BY_LINE];
+    /** Règle G7 : une gare absente des fréquentations SNCF 2015-2024 n'avait plus de voyageurs en 2015. */
+    public const RULE_NO_ATTENDANCE = 'g7';
+
+    public const ERA_RULES = [self::RULE_OPENING_BY_MAP, self::RULE_CLOSURE_BY_LINE, self::RULE_NO_ATTENDANCE];
+
+    /** Première année de la série de fréquentation SNCF (jeu frequentation-gares-archive, 2015 à 2024). */
+    public const ATTENDANCE_FIRST_YEAR = 2015;
+
+    public const NOTE_NO_ATTENDANCE = 'Absente des fréquentations SNCF depuis 2015 : plus de voyageurs avant cette date';
 
     /**
      * G3 : nombre d'ères au plus entre l'ouverture déduite et la première ère desservie. Au-delà, c'est la carte
@@ -1028,5 +1036,29 @@ final class StationTimeline
         }
 
         return $best;
+    }
+
+    /**
+     * G7. Statut d'une ère historique (état au 31/12) d'une gare ouverte aux voyageurs « sans preuve » (fermeture
+     * non datée, ère incertaine) quand la gare est ABSENTE de la série nationale de fréquentation SNCF
+     * (2015-2024 : toutes les gares desservies par des voyageurs au moins un jour de la période, fermées
+     * en cours de route comprises, avec leurs voyageurs en chute puis à zéro : Chabanais 6 885 en 2015, 16 en 2020).
+     * Aucun voyageur depuis 2015 : à toute ère postérieure à 2014 la gare est fermée aux voyageurs, fermée
+     * (ou réduite au fret) comme aujourd'hui. Charente : 12 gares de Paris - Bordeaux et d'Angoulême - Saintes,
+     * « actives » en 2020 faute de date de fermeture, fermées depuis le siècle dernier selon les articles.
+     * La gare doit avoir un code UIC (le rattachement de la série se fait par UIC) ; $unattended le dit.
+     *
+     * @param  ?string  $status  statut calculé pour l'ère
+     * @param  ?string  $today  état actuel : CLOSED, FREIGHT, ou autre (null : la règle ne dit rien)
+     * @param  bool  $unattended  gare à code UIC sans aucune ligne dans la série de fréquentation (série non vide)
+     * @return ?string statut à la place, ou null (règle sans effet)
+     */
+    public static function closedByAttendance(int $eraYear, bool $isCurrent, ?string $status, ?string $today, bool $unattended): ?string
+    {
+        if (! $unattended || $isCurrent || $eraYear < self::ATTENDANCE_FIRST_YEAR || $status !== self::ACTIVE) {
+            return null;
+        }
+
+        return in_array($today, [self::CLOSED, self::FREIGHT], true) ? $today : null;
     }
 }

@@ -9,6 +9,8 @@ return [
     |        desservie ») ; les ères « fermée » avant la première ère desservie sont retirées ;
     |   g6 : fermeture d'une gare fermée sans date tirée de la fin des voyageurs de ses lignes, rattachée à
     |        sa section par PK.
+    |   g7 : une gare à code UIC absente de la série de fréquentation SNCF 2015-2024 (aucun voyageur depuis 2015),
+    |        sans date de fermeture, est fermée aux ères postérieures à 2014 et non plus « active incertaine ».
     |
     | Liste séparée par des virgules (VFF_STATION_ERA_RULES=g3,g6). L'option --rules= de la commande passe
     | avant (--rules=none : aucune).

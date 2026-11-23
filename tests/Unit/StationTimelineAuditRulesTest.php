@@ -108,4 +108,19 @@ class StationTimelineAuditRulesTest extends TestCase
         $this->assertSame(['date' => '1969-09-28', 'precision' => 'day'],
             T::closureFromLinePassengerEnds($eras, 2030, '2026-11-22', '2026-11-22', [['date' => '1969-09-28', 'precision' => 'weird']]));
     }
+
+    public function test_g7_closes_a_passenger_era_after_2014_for_a_station_absent_from_the_attendance_series(): void
+    {
+        $this->assertSame(T::CLOSED, T::closedByAttendance(2020, false, T::ACTIVE, T::CLOSED, true));
+        // Fret seul aujourd'hui : la gare reste desservie par le fret, seuls les voyageurs ont disparu.
+        $this->assertSame(T::FREIGHT, T::closedByAttendance(2020, false, T::ACTIVE, T::FREIGHT, true));
+        // Avant 2015 la série ne dit rien ; l'ère courante garde son état du jour ; gare présente dans la série ou sans UIC ;
+        // fret historique (l'absence de voyageurs ne prouve rien du fret) ; gare ouverte aujourd'hui.
+        $this->assertNull(T::closedByAttendance(2010, false, T::ACTIVE, T::CLOSED, true));
+        $this->assertNull(T::closedByAttendance(2030, true, T::ACTIVE, T::CLOSED, true));
+        $this->assertNull(T::closedByAttendance(2020, false, T::ACTIVE, T::CLOSED, false));
+        $this->assertNull(T::closedByAttendance(2020, false, T::FREIGHT, T::CLOSED, true));
+        $this->assertNull(T::closedByAttendance(2020, false, T::ACTIVE, null, true));
+        $this->assertContains(T::RULE_NO_ATTENDANCE, T::ERA_RULES);
+    }
 }
