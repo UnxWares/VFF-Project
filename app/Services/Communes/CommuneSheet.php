@@ -2,6 +2,7 @@
 
 namespace App\Services\Communes;
 
+use App\Mcp\Support\NonCommercialSources;
 use App\Models\Accident;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\DB;
  * - lignes : celles dont une portion de 50 m au moins est dans la commune, à l'une des ères. État actuel d'après les
  *   portions de l'ère courante (en service, ou fermée avec voie en place, déposée ou disparue de la carte), longueur
  *   dans la commune à la dernière ère où la ligne y est en service (à défaut, à la dernière où elle figure),
- *   dates d'ouverture et de fermeture des événements de la ligne dont la section passe par la commune ;
+ *   dates d'ouverture et de fermeture des événements de la ligne dont la section passe par la commune (jamais ceux
+ *   d'une source à usage non commerciale : la fiche ne les crédite pas, et l'API les servirait sans mention) ;
  * - chronologie : ces dates, celles des gares et les accidents dont la commune est le lieu, du plus ancien au
  *   plus récent (CHRONOLOGY_LIMIT entrées au plus) ;
  * - communes voisines qui ont du rail ; carte : contour, gares et tracés de la commune.
@@ -58,7 +60,7 @@ final class CommuneSheet
     /** Précisions de la plus fine à la plus large (choix de l'entrée gardée quand deux sources se recouvrent). */
     private const RANK = ['day' => 0, 'month' => 1, 'year' => 2];
 
-    public function __construct(private readonly CommuneRail $rail) {}
+    public function __construct(private readonly CommuneRail $rail, private readonly NonCommercialSources $nonCommercial) {}
 
     /**
      * La fiche de la commune actuelle de ce code INSEE, null si elle n'existe pas ou n'a ni gare ni ligne.
@@ -252,6 +254,7 @@ final class CommuneSheet
             FROM commune_contours c
             JOIN line_events le ON le.section_geom && c.geom AND ST_Intersects(le.section_geom, c.geom)
             WHERE c.code_insee = ? AND le.type IN ({$types}) AND le.event_date IS NOT NULL AND le.line_id = ANY(?::bigint[])
+              AND {$this->nonCommercial->sqlKept('line_events', 'le.source', 'le.source_url')}
               AND ST_Length(ST_Intersection(le.section_geom, ST_MakeValid(c.geom))::geography) >= ?
             ORDER BY le.event_date, le.id
         SQL, [$insee, '{'.implode(',', $lineIds).'}', self::MIN_EVENT_M]);

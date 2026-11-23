@@ -95,6 +95,22 @@ class CommuneSheetTest extends TestCase
             }));
     }
 
+    public function test_facts_of_the_non_commercial_source_are_neither_shown_nor_served(): void
+    {
+        $this->portionEvent($this->line, 'opening', '1839-08-02', 48.8763, 2.31, 2.34);
+        // Fermeture connue par la seule source à usage non commercial (année seule), par sa valeur ou par son lien.
+        $this->portionEvent($this->line, 'closure', '1972-01-01', 48.8763, 2.31, 2.34);
+        DB::table('line_events')->where('event_date', '1972-01-01')->update(['source' => 'archeoferroviaire', 'date_precision' => 'year']);
+        $this->portionEvent($this->line, 'electrification', '1931-01-01', 48.8763, 2.31, 2.34);
+        DB::table('line_events')->where('event_date', '1931-01-01')->update(['source' => 'manual', 'source_url' => 'http://archeoferroviaire.free.fr/x']);
+
+        $dates = array_column($this->getJson('/api/v1/communes/99100')->assertOk()->json('data.chronology'), 'date');
+        $this->assertContains('1839-08-02', $dates);
+        $this->assertNotContains('1972-01-01', $dates);
+        $this->assertNotContains('1931-01-01', $dates);
+        $this->assertNull($this->getJson('/api/v1/communes/99100')->json('data.lines.0.electrified'));
+    }
+
     public function test_a_commune_crossed_by_a_line_without_a_station_has_a_page(): void
     {
         $this->get('/communes/99101-voisineville')->assertOk()->assertInertia(fn (Assert $page) => $page
