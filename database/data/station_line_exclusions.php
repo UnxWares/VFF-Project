@@ -95,4 +95,11 @@ return [
     // ligne de Paray-le-Monial à Givors-Canal qui passe à proximité.
     ['station' => 'etoile-dalai', 'line' => 'rfn-775000', 'reason' => 'halte du Fourvière Ouest-Lyonnais (ligne de Lyon-Saint-Just à Vaugneray, ouverte le 19 avril 1886), pas de la ligne de Paray-le-Monial à Givors-Canal',
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode('Fourvière_Ouest-Lyonnais').'&oldid=239282879', 'reviewed_at' => '2026-11-23'],
+
+    // Liste des gares de SNCF Open Data : deux enregistrements portent l'UIC 87783621 « Badaroux », l'un sur la ligne 723000
+    // (Lozère), l'autre sur la ligne 020000 (PK 217+109, commune de Haussignemont, Marne). Ce second enregistrement est celui de
+    // Blesme-Haussignemont (UIC 87174326, mêmes PK et coordonnées, lignes 020000 et 070000) dont le libellé et l'UIC ont été
+    // recopiés par erreur ; la fiche de Badaroux se retrouvait à 237 km de sa ligne, au milieu des deux points.
+    ['station' => 'badaroux', 'line' => 'rfn-020000', 'reason' => 'gare de la ligne de Mende à La Bastide (723000, Lozère) ; l\'enregistrement « Badaroux » de la ligne 020000 (PK 217+109, Haussignemont, Marne) est celui de Blesme-Haussignemont (UIC 87174326) dont le libellé et l\'UIC sont faux dans la liste des gares SNCF',
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87174326', 'reviewed_at' => '2026-11-23'],
 ];

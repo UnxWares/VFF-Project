@@ -3478,4 +3478,43 @@ return [
         'quote' => 'Gare de Rennes (nœud OSM railway=station, à 15 m de la gare OSM ; Wikidata à 18 m)',
         'reason' => 'position OSM sur la halle voyageurs (orthophoto IGN) ; le point du référentiel SNCF est 118 m à l\'est',
     ],
+
+    // ── 32. Positions de Wikidata fausses, relevées dans les sources ouvertes (erreurs-sources, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/erreurs-sources.md, E1 et E2). La position retenue était déjà bonne (liste SNCF,
+    // OSM) ; la position de l'article, d'accord avec elle, supprime l'écart de 8 km et de 1,1 km qui levait le drapeau
+    // « à vérifier » (position_spread_m).
+
+    // Rosendaël : Wikidata Q3049345 est à 51,0705 N, 2,51782 E, près de la frontière belge, 8,0 km de l'article ; la liste
+    // SNCF (UIC 87281600) donne 51,04251 N, 2,41126 E, à 90 m de l'article.
+    [
+        'station' => ['name' => 'Rosendael', 'wikidata' => 'Q3049345'],
+        'action' => 'position',
+        'lng' => 2.411732,
+        'lat' => 51.043349,
+        'source_url' => $wp('Gare de Rosendaël', 220965878),
+        'quote' => 'Gare de Rosendaël (coordonnées de l\'article : 51,043349 N, 2,411732 E)',
+        'reason' => 'coordonnées de l\'article, à 90 m de la liste des gares SNCF (51,04251 N, 2,41126 E, UIC 87281600) ; Wikidata (51,0705 N, 2,51782 E) est à 8 km, près de la frontière belge',
+    ],
+    // Avenue de Saint-Ouen : Wikidata Q16507976 reprend les coordonnées de Q16508091 (gare du boulevard Ornano), 1,15 km à l'est ;
+    // l'objet OSM w77670163 (ancien bâtiment) est à 48,8957 N, 2,3287 E.
+    [
+        'station' => ['name' => 'Avenue de Saint-Ouen', 'wikidata' => 'Q16507976'],
+        'action' => 'position',
+        'lng' => 2.32866,
+        'lat' => 48.89575,
+        'source_url' => $wp('Gare de l\'avenue de Saint-Ouen', 228129603),
+        'quote' => 'Gare de l\'avenue de Saint-Ouen (coordonnées de l\'article : 48,89575 N, 2,32866 E)',
+        'reason' => 'coordonnées de l\'article, à 10 m de l\'objet OSM w77670163 ; Wikidata (48,8976 N, 2,3441 E) recopie celles de la gare du boulevard Ornano, 1,15 km plus loin',
+    ],
+    // Les Lacs (Ille-et-Vilaine) : Wikidata P1619 = 1857 est faux ; la halte est créée à la suite de l'accident du 13/07/1878.
+    [
+        'station' => ['name' => 'Les Lacs', 'wikidata' => 'Q2213900'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare des Lacs', 229513869),
+        'quote' => 'la halte est créée à la suite de l\'accident du 13 juillet 1878',
+        'reason' => 'halte créée après l\'accident du 13/07/1878 (source de l\'article : mairie de Saint-Aubin-des-Landes) ; la date de 1857 de Wikidata est fausse',
+    ],
 ];
