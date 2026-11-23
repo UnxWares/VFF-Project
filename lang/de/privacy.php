@@ -6,6 +6,8 @@
 // (Components/Map/*, Lines/LineGallery.svelte), géolocalisation (Map/RailMap.svelte), comptes
 // (AuthController, ProfileController), notifications (DatabaseNotification), signalements
 // (ErrorReport, limiteur error-reports d'AppServiceProvider). Version : config/legal.php.
+// « Autour de moi » (lib/nearby.js, WhatWasHereController, PositionlessError, location nginx
+// /api/v1/what-was-here sans journal d'erreurs, docs/DEPLOIEMENT-NGINX.md) : texte vrai tant que ces règles tiennent.
 // Toute évolution de ces points doit mettre ce texte à jour. Le français fait foi.
 // Traduction de lang/fr/privacy.php.
 return [
@@ -37,6 +39,7 @@ return [
     'visitors' => [
         'title' => 'Wenn Sie die Website ohne Konto besuchen',
         'paragraph' => '<p>Um Ihnen die Seiten zu senden, erhält der Server zwangsläufig Ihre IP-Adresse, die angeforderte Seite, das Datum und die Kennung Ihres Browsers. Diese Informationen werden in technischen Protokollen gespeichert, die ausschließlich für die Sicherheit des Dienstes, die Fehlerdiagnose und die Missbrauchsbekämpfung verwendet und höchstens 12 Monate aufbewahrt werden.</p>'
+            .'<p>Die Seite „In meiner Nähe“ fragt Ihren Browser mit Ihrer Erlaubnis nach Ihrem Standort, und zwar nur, wenn Sie auf „Meinen Standort verwenden“ klicken. Ihr Browser rundet ihn sofort auf ein Tausendstel Grad, also auf ein Feld von etwa 110 Metern von Nord nach Süd und je nach Breitengrad 70 bis 110 Metern von Ost nach West, und sendet VFF nur diesen gerundeten Standort mit dem gewählten Umkreis, um die Strecken und Bahnhöfe in der Nähe zu finden. Wie jede Anfrage kommt er mit Ihrer IP-Adresse an. VFF speichert diesen Standort weder in einem Cache noch in seinen technischen Protokollen noch in seinen Fehlerberichten, die von dieser Anfrage höchstens die Adresse ohne Parameter festhalten. Wenn Sie danach die Karte von dieser Seite aus öffnen, enthält deren Adresse diesen gerundeten Standort, wie die Adresse jeder Kartenansicht, und wie bei der Schaltfläche „Mich orten“ werden dann die Kacheln des angezeigten Gebiets angefragt.</p>'
             .'<p>Zum Schutz der API wird die Anzahl der Anfragen jeder IP-Adresse eine Minute lang gezählt (höchstens 300 Anfragen) und danach vergessen.</p>'
             .'<p>Ihr Browser kann der Website außerdem ohne Ihr Zutun eine Ressource melden, die eine Seite außerhalb der Sicherheitsregeln der Website geladen hat (Bericht zur „Content Security Policy“). Die Website speichert davon nur die Adresse der Seite ohne ihre Parameter, die betroffene Regel und die Herkunft der Ressource, ohne Ihre IP-Adresse, Ihren Browser oder Ihr Konto, 30 Tage lang.</p>'
             .'<p>Stürzt eine Seite ab, kann der Server oder Ihr Browser einen Fehlerbericht an ein von UnxWares betriebenes Überwachungswerkzeug senden. Er enthält die Art des Fehlers, die Meldung, die betroffene Codezeile, die Adresse der Seite ohne Parameter und die Version der Website. Er enthält keine IP-Adresse, keinen Browser, keine Cookies, kein Konto und keinen Inhalt Ihrer Anfrage. Berichte werden höchstens 30 Tage aufbewahrt. Um zu prüfen, ob die Website erreichbar ist, ruft ein Dienst außerdem regelmäßig eine Statusseite ab, die keine Besucherdaten enthält.</p>'

@@ -7,6 +7,8 @@
 // (AuthController, ProfileController), notifications (DatabaseNotification), signalements
 // (ErrorReport, limiteur error-reports d'AppServiceProvider), images proposées (MediaContributions,
 // ImageSanitizer). Version : config/legal.php.
+// « Autour de moi » (lib/nearby.js, WhatWasHereController, PositionlessError, location nginx
+// /api/v1/what-was-here sans journal d'erreurs, docs/DEPLOIEMENT-NGINX.md) : texte vrai tant que ces règles tiennent.
 // Toute évolution de ces points doit mettre ce texte à jour. Le français fait foi.
 return [
     'meta_title' => 'Politique de confidentialité',
@@ -36,6 +38,7 @@ return [
     'visitors' => [
         'title' => 'Si vous consultez le site sans compte',
         'paragraph' => '<p>Pour vous envoyer les pages, le serveur reçoit nécessairement votre adresse IP, la page demandée, la date et l’identification de votre navigateur. Ces informations sont enregistrées dans des journaux techniques, utilisés uniquement pour la sécurité du service, le diagnostic des erreurs et la lutte contre les abus, et conservés 12 mois au plus.</p>'
+            .'<p>La page « Autour de moi » demande votre position à votre navigateur, avec votre autorisation, seulement quand vous cliquez sur « Utiliser ma position ». Votre navigateur l’arrondit aussitôt au millième de degré, soit une case d’environ 110 mètres du nord au sud et de 70 à 110 mètres d’est en ouest selon la latitude, puis n’envoie à VFF que cette position arrondie, avec le rayon choisi, pour trouver les lignes et les gares proches. Comme toute requête, elle arrive avec votre adresse IP. VFF ne garde cette position ni dans un cache, ni dans ses journaux techniques, ni dans ses rapports d’erreur, qui ne retiennent de cette requête, au plus, que son adresse sans ses paramètres. Si vous ouvrez ensuite la carte depuis cette page, son adresse contient cette position arrondie, comme celle de toute vue de la carte, et, comme avec le bouton « Me localiser », les tuiles de la zone affichée sont alors demandées.</p>'
             .'<p>Pour protéger l’API, le nombre de requêtes de chaque adresse IP est compté pendant une minute (300 requêtes au plus), puis oublié.</p>'
             .'<p>Votre navigateur peut aussi signaler au site, sans action de votre part, une ressource qu’une page a chargée en dehors des règles de sécurité du site (rapport de « politique de sécurité du contenu »). Le site n’en garde que l’adresse de la page sans ses paramètres, la règle en cause et l’origine de la ressource, sans votre adresse IP, votre navigateur ni votre compte, pendant 30 jours.</p>'
             .'<p>Si une page plante, le serveur ou votre navigateur peut envoyer un rapport d’erreur à un outil de suivi hébergé par UnxWares. Il contient le type de l’erreur, son message, la ligne de code en cause, l’adresse de la page sans ses paramètres et la version du site. Il ne contient ni votre adresse IP, ni votre navigateur, ni vos cookies, ni votre compte, ni le contenu de votre requête. Les rapports sont gardés 30 jours au plus. Pour surveiller que le site répond, un service vérifie aussi régulièrement une page d’état qui ne contient aucune donnée de visiteur.</p>'

@@ -6,6 +6,8 @@
 // (Components/Map/*, Lines/LineGallery.svelte), géolocalisation (Map/RailMap.svelte), comptes
 // (AuthController, ProfileController), notifications (DatabaseNotification), signalements
 // (ErrorReport, limiteur error-reports d'AppServiceProvider). Version : config/legal.php.
+// « Autour de moi » (lib/nearby.js, WhatWasHereController, PositionlessError, location nginx
+// /api/v1/what-was-here sans journal d'erreurs, docs/DEPLOIEMENT-NGINX.md) : texte vrai tant que ces règles tiennent.
 // Toute évolution de ces points doit mettre ce texte à jour. Le français fait foi.
 // Traduction de lang/fr/privacy.php.
 return [
@@ -37,6 +39,7 @@ return [
     'visitors' => [
         'title' => 'If you browse the site without an account',
         'paragraph' => '<p>To send you the pages, the server necessarily receives your IP address, the page requested, the date and the identification of your browser. This information is recorded in technical logs, used only for the security of the service, error diagnosis and the fight against abuse, and kept for 12 months at most.</p>'
+            .'<p>The “Around me” page asks your browser for your position, with your permission, only when you click “Use my location”. Your browser immediately rounds it to a thousandth of a degree, a cell of about 110 metres from north to south and 70 to 110 metres from east to west depending on the latitude, then sends VFF only this rounded position, with the chosen radius, to find the nearby lines and stations. Like any request, it arrives with your IP address. VFF keeps this position neither in a cache, nor in its technical logs, nor in its error reports, which keep at most the address of this request without its parameters. If you then open the map from this page, its address contains this rounded position, like that of any map view, and, as with the “Locate me” button, the tiles of the area shown are then requested.</p>'
             .'<p>To protect the API, the number of requests from each IP address is counted for one minute (300 requests at most), then forgotten.</p>'
             .'<p>Your browser may also tell the site, without any action on your part, about a resource that a page loaded outside the site’s security rules (a "content security policy" report). The site keeps only the page address without its parameters, the rule concerned and the origin of the resource, without your IP address, browser or account, for 30 days.</p>'
             .'<p>If a page crashes, the server or your browser may send an error report to a monitoring tool hosted by UnxWares. It holds the type of the error, its message, the line of code involved, the page address without its parameters and the site version. It holds no IP address, browser, cookie, account or request content. Reports are kept for 30 days at most. To check that the site is up, a service also polls a status page that contains no visitor data.</p>'
