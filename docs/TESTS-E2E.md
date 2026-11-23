@@ -81,6 +81,10 @@ DB_DATABASE=vff_xxx_test bin/php artisan migrate --force
 DB_DATABASE=vff_xxx_test bin/php artisan db:seed --class='Database\Seeders\E2eSeeder' --force
 ```
 
+Le seeder range aussi les fiches des départements et des compagnies dans le cache. Sur une base `*_test`, les clés du
+cache prennent le nom de la base dans leur préfixe (`config/cache.php`) : le seeder et le serveur de la suite, lancés
+avec le même `DB_DATABASE`, partagent leurs clés sans toucher à celles du site de dev, qui utilise le même Valkey.
+
 ## Intégration continue
 
 Le job `e2e` de `.github/workflows/ci.yml` démarre PostgreSQL + PostGIS et Valkey en services, migre la base
