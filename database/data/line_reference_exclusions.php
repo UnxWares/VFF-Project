@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Retraits faits à la main dans les tracés de référence, lus par vff:build-line-references à chaque reconstruction
+ * Retraits (et voies partagées désignées) faits à la main dans les tracés de référence, lus par vff:build-line-references à chaque reconstruction
  * (App\Services\LineReferenceExclusions : forme des entrées, portée, garde-fous). Un recalcul du moteur ne fait pas
  * revenir ce qui est retiré ici.
  *
@@ -9,7 +9,10 @@
  *   seulement sa portion à moins de radius_m mètres du point near [lon, lat] ;
  * - kind « fragment » : la polyligne du tracé de la ligne qui passe à moins de 5 m du point at [lon, lat] et mesure
  *   au plus max_m mètres est retirée (position plutôt qu'identifiant : les ids de line_reference_parts changent à
- *   chaque calcul).
+ *   chaque calcul) ;
+ * - kind « shared » : la voie source archeo ou OHM (source_name, source_ref) d'une section que la ligne parcourt sur la
+ *   voie de la ligne `over` compte comme rattachée en second : le trou est comblé par le dessin de `over` ; avec `near`
+ *   et `radius_m` (5 km au plus), seule sa portion dans ce disque compte.
  *
  * @return list<array<string, mixed>>
  */
@@ -49,4 +52,21 @@ return [
     ['kind' => 'trace', 'line' => '945000', 'source_name' => 'ohm', 'source_ref' => '198736884',
         'reason' => 'voie de la ligne de Coni à Vintimille entre Breil-sur-Roya et Tende, rattachée à tort à Nice - Breil-sur-Roya',
         'source' => 'https://www.openhistoricalmap.org/way/198736884 ; storage/app/reports/agents/aprem-2111/trous-trace.md', 'reviewed_at' => $day],
+
+    // Le Martinet - Beaucaire (813000) entre Saint-Julien-les-Fumades et la bifurcation au sud de Salindres (3,4 km) :
+    // la ligne roule sur la voie du Teil à Alès (805000). Ses traces s'arrêtent à la gare (Saint-Julien - Le Martinet)
+    // et reprennent à la bifurcation (Uzès - Saint-Julien) ; la section n'a que la trace archeo d'Alès à Bessèges,
+    // portée par 805000 et jamais rattachée à 813000. Les PK de l'article le confirment : Saint-Julien PK 10,0, Uzès
+    // PK 48,34, soit 3,4 km de tronc commun plus 35,0 km de la bifurcation à Uzès le long de la trace.
+    ['kind' => 'shared', 'line' => '813000', 'over' => '805000', 'source_name' => 'archeoferroviaire', 'source_ref' => '64d00cea341f51c34d000da278a37fd7',
+        'reason' => 'tronc commun avec la ligne du Teil à Alès entre Saint-Julien-les-Fumades et la bifurcation vers Uzès, sans trace propre de la ligne',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Martinet_%C3%A0_Beaucaire&oldid=227988999 (PK du schéma) ; storage/app/reports/agents/aprem-2111/trous-trace-2.md', 'reviewed_at' => $day],
+
+    // Grande Ceinture (990000) à Versailles, de la gare des Chantiers à celle des Matelots (2,4 km) : la section fait
+    // partie de la ligne de Paris-Montparnasse à Brest (420000), la Grande Ceinture y roule sur sa voie. Seule la voie
+    // OHM de Paris - Brest y passe, rattachée en second à la Grande Ceinture mais sur toute sa longueur (le comblement
+    // la refusait : ses bouts sont loin du tracé) ; le disque la limite à la section.
+    ['kind' => 'shared', 'line' => '990000', 'over' => '420000', 'source_name' => 'ohm', 'source_ref' => '205265140', 'near' => [2.11990, 48.79550], 'radius_m' => 1180,
+        'reason' => 'Versailles, des Chantiers aux Matelots : tronc commun avec la ligne de Paris-Montparnasse à Brest, sans trace propre de la Grande Ceinture',
+        'source' => 'https://fr.wikipedia.org/wiki/Ligne_de_la_Grande_Ceinture_de_Paris (« de la gare des Chantiers à la gare des Matelots, à Versailles », partie de la ligne de Paris-Montparnasse à Brest) ; storage/app/reports/agents/aprem-2111/trous-trace-2.md', 'reviewed_at' => $day],
 ];

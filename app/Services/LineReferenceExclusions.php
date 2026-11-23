@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
  * Retraits faits à la main dans les tracés de référence (database/data/line_reference_exclusions.php), lus par
  * vff:build-line-references à chaque reconstruction d'une ligne : un recalcul du moteur ne les fait pas revenir.
  *
- * Deux sortes d'entrées :
+ * Trois sortes d'entrées :
  *   - « trace » : une voie source (source_name + source_ref, clés stables d'un import à l'autre) n'entre pas dans le
  *     tracé de la ligne : en entier, ou seulement sa portion à moins de `radius_m` mètres du point `near` (lon, lat),
  *     pour retirer un bout de voie (crochet d'aiguillage) sans perdre le reste. Elle n'est ni prise comme tracé
@@ -18,6 +18,14 @@ use Illuminate\Support\Facades\DB;
  *     la ligne qui passe à moins de FRAGMENT_TOL_M du point `at` (lon, lat) et mesure au plus `max_m` mètres est
  *     retirée. Désignée par sa position, pas par un identifiant de line_reference_parts (qui change à chaque calcul).
  *     Le retrait est inscrit dans line_reference_duplicates (action « removed », cause « retrait à la main »).
+ *   - « shared » (seul ajout du fichier) : la voie source (source_name + source_ref, archeo ou OHM) d'une section que la
+ *     ligne parcourt sur la voie d'une autre ligne (`over`, code ou slug de la ligne qui porte la voie en principal)
+ *     compte comme rattachée en second à la ligne pour l'étape 1 bis de vff:build-line-references : le trou de la
+ *     section est comblé par le dessin de l'autre ligne (voie partagée au bit près), avec les garde-fous de cette
+ *     étape (bouts au tracé, même réseau et même écartement). Pour une voie partagée que le rattachement automatique
+ *     (source_trace_lines) n'a pas vue, faute de trace propre de la ligne sur la section. Avec `near` et `radius_m`
+ *     (jusqu'à SHARED_RADIUS_MAX_M), seule la portion de la voie dans ce disque compte (une trace de toute une ligne
+ *     radiale pour la seule section commune).
  *
  * Champs communs : line (code ou slug de la ligne), reason (pourquoi, faits seulement), source (lien https ou
  * rapport de relecture qui le montre), reviewed_at (AAAA-MM-JJ). Une entrée mal formée, en double ou dont la ligne
@@ -28,14 +36,17 @@ final class LineReferenceExclusions
     /** Distance maximale (m) entre le point d'une entrée « fragment » et la polyligne visée. */
     public const FRAGMENT_TOL_M = 5.0;
 
+    /** Rayon maximal (m) du disque d'une entrée « shared ». */
+    public const SHARED_RADIUS_MAX_M = 5000;
+
     private const COMMON = ['kind', 'line', 'reason', 'source', 'reviewed_at'];
 
-    private const KEYS = ['trace' => ['source_name', 'source_ref', 'near', 'radius_m'], 'fragment' => ['at', 'max_m']];
+    private const KEYS = ['trace' => ['source_name', 'source_ref', 'near', 'radius_m'], 'fragment' => ['at', 'max_m'], 'shared' => ['source_name', 'source_ref', 'over', 'near', 'radius_m']];
 
     /** @var list<array<string, mixed>> */
     private array $entries;
 
-    /** @var array<int, array{traces: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>, fragments: list<array{lon: float, lat: float, max_m: float, entry: int}>}>|null */
+    /** @var array<int, array{traces: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>, fragments: list<array{lon: float, lat: float, max_m: float, entry: int}>, shared: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>}>|null */
     private ?array $byLine = null;
 
     /** @var list<string> */
@@ -63,7 +74,7 @@ final class LineReferenceExclusions
     {
         $kind = $e['kind'] ?? null;
         if (! is_string($kind) || ! isset(self::KEYS[$kind])) {
-            return ['kind : « trace » ou « fragment »'];
+            return ['kind : « trace », « fragment » ou « shared »'];
         }
         $errors = [];
         foreach (['line', 'reason', 'source', 'reviewed_at'] as $k) {
@@ -78,7 +89,24 @@ final class LineReferenceExclusions
         if (is_string($e['reviewed_at'] ?? null) && (! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $e['reviewed_at'], $d) || ! checkdate((int) $d[2], (int) $d[3], (int) $d[1]))) {
             $errors[] = 'reviewed_at : date AAAA-MM-JJ';
         }
-        if ($kind === 'trace') {
+        if ($kind === 'shared') {
+            foreach (['source_name', 'source_ref', 'over'] as $k) {
+                if (! is_string($e[$k] ?? null) || trim($e[$k]) === '') {
+                    $errors[] = "{$k} manquant";
+                }
+            }
+            if (is_string($e['source_name'] ?? null) && ! in_array($e['source_name'], ['archeoferroviaire', 'ohm'], true)) {
+                $errors[] = 'source_name : archeoferroviaire ou ohm';
+            }
+            if (array_key_exists('near', $e) || array_key_exists('radius_m', $e)) {
+                if (! self::isPoint($e['near'] ?? null)) {
+                    $errors[] = 'near : [lon, lat]';
+                }
+                if (! self::isLength($e['radius_m'] ?? null, self::SHARED_RADIUS_MAX_M)) {
+                    $errors[] = 'radius_m : longueur de 1 à '.self::SHARED_RADIUS_MAX_M.' m';
+                }
+            }
+        } elseif ($kind === 'trace') {
             foreach (['source_name', 'source_ref'] as $k) {
                 if (! is_string($e[$k] ?? null) || trim($e[$k]) === '') {
                     $errors[] = "{$k} manquant";
@@ -114,16 +142,16 @@ final class LineReferenceExclusions
             && abs($p[0]) <= 180 && abs($p[1]) <= 90;
     }
 
-    private static function isLength(mixed $m): bool
+    private static function isLength(mixed $m, float $max = 500): bool
     {
-        return (is_int($m) || is_float($m)) && $m >= 1 && $m <= 500;
+        return (is_int($m) || is_float($m)) && $m >= 1 && $m <= $max;
     }
 
     /**
      * Entrées résolues dans la base, par id de ligne : ids des voies exclues, fragments à retirer. Les entrées
      * invalides, introuvables, ambiguës ou en double sont rendues par errors() et ne sont pas appliquées.
      *
-     * @return array<int, array{traces: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>, fragments: list<array{lon: float, lat: float, max_m: float, entry: int}>}>
+     * @return array<int, array{traces: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>, fragments: list<array{lon: float, lat: float, max_m: float, entry: int}>, shared: list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}>}>
      */
     public function resolve(): array
     {
@@ -147,7 +175,18 @@ final class LineReferenceExclusions
                 continue;
             }
             $lineId = (int) $lines->first();
-            if ($e['kind'] === 'trace') {
+            if ($e['kind'] === 'shared') {
+                $over = DB::table('lines')->where(fn ($q) => $q->where('slug', $e['over'])->orWhere('code', $e['over']))->pluck('id');
+                $trace = DB::table('source_traces')->where('source', $e['source_name'])->where('source_ref', $e['source_ref'])->first(['id', 'line_id']);
+                if ($over->count() !== 1 || $trace === null || (int) $trace->line_id !== (int) $over->first() || (int) $over->first() === $lineId) {
+                    $this->errors[] = $label.' : '.($over->count() !== 1 ? 'ligne over introuvable ou ambiguë' : ($trace === null
+                        ? 'voie '.$e['source_name'].' '.$e['source_ref'].' introuvable' : 'voie non portée en principal par la ligne over'));
+
+                    continue;
+                }
+                $trace = (int) $trace->id;
+                $key = 's|'.$lineId.'|'.$trace.(isset($e['near']) ? '|'.round((float) $e['near'][0], 5).'|'.round((float) $e['near'][1], 5) : '');
+            } elseif ($e['kind'] === 'trace') {
                 $trace = DB::table('source_traces')->where('source', $e['source_name'])->where('source_ref', $e['source_ref'])->value('id');
                 if ($trace === null) {
                     $this->errors[] = $label.' : voie '.$e['source_name'].' '.$e['source_ref'].' introuvable';
@@ -164,8 +203,11 @@ final class LineReferenceExclusions
                 continue;
             }
             $seen[$key] = $i;
-            $this->byLine[$lineId] ??= ['traces' => [], 'fragments' => []];
-            if ($e['kind'] === 'trace') {
+            $this->byLine[$lineId] ??= ['traces' => [], 'fragments' => [], 'shared' => []];
+            if ($e['kind'] === 'shared') {
+                $this->byLine[$lineId]['shared'][] = ['id' => $trace, 'lon' => isset($e['near']) ? (float) $e['near'][0] : null,
+                    'lat' => isset($e['near']) ? (float) $e['near'][1] : null, 'radius_m' => isset($e['radius_m']) ? (float) $e['radius_m'] : null];
+            } elseif ($e['kind'] === 'trace') {
                 $this->byLine[$lineId]['traces'][] = ['id' => (int) $trace, 'lon' => isset($e['near']) ? (float) $e['near'][0] : null,
                     'lat' => isset($e['near']) ? (float) $e['near'][1] : null, 'radius_m' => isset($e['radius_m']) ? (float) $e['radius_m'] : null];
             } else {
@@ -188,6 +230,12 @@ final class LineReferenceExclusions
     public function tracesFor(int $lineId): array
     {
         return $this->resolve()[$lineId]['traces'] ?? [];
+    }
+
+    /** @return list<array{id: int, lon: ?float, lat: ?float, radius_m: ?float}> voies (source_traces) d'une section portée par une autre ligne, comptées comme rattachées en second, en entier (radius_m null) ou dans un disque */
+    public function sharedFor(int $lineId): array
+    {
+        return $this->resolve()[$lineId]['shared'] ?? [];
     }
 
     /**
