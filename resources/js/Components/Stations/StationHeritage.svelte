@@ -76,6 +76,13 @@
                 </figure>
             {/if}
         </div>
+        {#if items.some((i) => i.protection !== 'inventory')}
+            <p class="all">
+                <a class="vff-link" href="/heritage?q={encodeURIComponent(name)}"
+                    >{t('stations.heritage.see_in_heritage')}</a
+                >
+            </p>
+        {/if}
     </SheetSection>
 {/if}
 
@@ -108,6 +115,9 @@
         margin: var(--vff-space-1) 0 0;
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
+    }
+    .all {
+        margin: var(--vff-space-4) 0 0;
     }
     .photo {
         margin: 0;

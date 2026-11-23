@@ -227,4 +227,34 @@ class CommuneSheetTest extends TestCase
 
         $this->assertSame(['99100'], (new CommuneRail)->codes());
     }
+
+    public function test_the_station_sheet_links_to_its_commune_and_department(): void
+    {
+        $this->origin->update(['department_code' => '75']);
+
+        $this->getWithDeferredProps('/stations/'.$this->origin->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Stations/Show')
+            ->where('department_name', 'Paris')
+            ->where('commune', ['slug' => '99100-testville', 'name' => 'Testville']));
+    }
+
+    public function test_the_station_sheet_has_no_commune_link_without_a_commune_sheet(): void
+    {
+        DB::table('commune_rail')->where('code_insee', '99100')->delete();
+        Cache::flush();
+
+        $this->getWithDeferredProps('/stations/'.$this->origin->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('commune', null));
+    }
+
+    public function test_the_accident_sheet_links_to_the_commune_sheet_only_when_it_exists(): void
+    {
+        Accident::factory()->create(['slug' => '1950-01-01-testville', 'commune_insee' => '99100', 'commune_name' => 'Testville', 'occurred_on' => '1950-01-01']);
+        Accident::factory()->create(['slug' => '1951-01-01-ailleurs', 'commune_insee' => '99999', 'commune_name' => 'Ailleurs', 'occurred_on' => '1951-01-01']);
+        Accident::factory()->create(['slug' => '1952-01-01-sans-lieu', 'commune_insee' => null, 'commune_name' => null, 'occurred_on' => '1952-01-01']);
+
+        $this->get('/accidents/1950-01-01-testville')->assertInertia(fn (Assert $page) => $page->where('commune_page', '99100-testville'));
+        $this->get('/accidents/1951-01-01-ailleurs')->assertInertia(fn (Assert $page) => $page->where('commune_page', null));
+        $this->get('/accidents/1952-01-01-sans-lieu')->assertInertia(fn (Assert $page) => $page->where('commune_page', null));
+    }
 }

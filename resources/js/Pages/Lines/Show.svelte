@@ -517,6 +517,11 @@
                 // Libellé et précision rédigés côté serveur (LineFacts) ; repli sur l'ancien calcul.
                 label: f.label ?? t(FACT_LABELS[f.key]),
                 value: factValue(f),
+                // Départements traversés : un lien vers la fiche « Le rail du département » quand tous ont un code.
+                links:
+                    f.key === 'departements' && f.list?.length && f.list.every((d) => d.code)
+                        ? f.list
+                        : null,
                 note: (f.note ?? factNote(f)).replaceAll("'", '’'),
                 // Noms de régions et de départements : français sur toutes les pages.
                 lang: ['regions', 'departements'].includes(f.key) ? srcLang : undefined,
@@ -896,8 +901,23 @@
                             <div class="row">
                                 <dt>{f.label}</dt>
                                 <dd>
-                                    <span lang={f.lang}>{f.value}</span>{#if f.note}<span
-                                            class="meta fact-note">{f.note}</span
+                                    {#if f.links}
+                                        {#each f.links as d, j (d.code)}<a
+                                                class="vff-link"
+                                                href="/departments/{d.code}"
+                                                ><span lang={f.lang}>{d.name}</span><span
+                                                    class="vff-sr-only"
+                                                >
+                                                    : {t('departments.commune_link', {
+                                                        name: d.name,
+                                                    })}</span
+                                                ></a
+                                            >&nbsp;({d.code}){j < f.links.length - 1
+                                                ? ', '
+                                                : ''}{/each}
+                                    {:else}
+                                        <span lang={f.lang}>{f.value}</span>
+                                    {/if}{#if f.note}<span class="meta fact-note">{f.note}</span
                                         >{/if}
                                 </dd>
                             </div>

@@ -457,6 +457,7 @@ return [
     ],
     'heritage' => [
         'title' => 'Heritage',
+        'see_in_heritage' => 'See it in the protected railway heritage',
         'building' => [
             'classified' => 'Station building listed as a historic monument (classé)',
             'classified_partial' => 'Station building partly listed as a historic monument (classé)',

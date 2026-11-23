@@ -30,6 +30,7 @@ return [
     ],
     'pages' => [
         'tourist_railways' => 'Museumsbahnen und Draisinenbahnen',
+        'heritage' => 'Geschütztes Eisenbahnerbe',
         'chronology' => 'Chronologie der französischen Eisenbahn',
         'signalling_map' => 'Karte der Signaltechnik',
     ],

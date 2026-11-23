@@ -374,6 +374,10 @@ return [
         'name' => 'Dépose',
         'definition' => 'Retrait physique de la voie (rails, traverses). Une ligne peut être déposée lorsqu’elle est fermée ou déclassée ; son emprise peut subsister.',
     ],
+    'monument-historique' => [
+        'name' => 'Monument historique',
+        'definition' => 'Protection que l’État accorde à un bâtiment ou à un ouvrage d’intérêt d’histoire ou d’art : le classement est le niveau le plus élevé, l’inscription le niveau inférieur. Des gares, des halles, des rotondes et des viaducs en bénéficient ; le label « Architecture contemporaine remarquable » distingue des édifices plus récents.',
+    ],
     'ere' => [
         'name' => 'Ère',
         'definition' => 'Instantané du réseau à une date donnée : la carte historique en propose un par décennie, de 1830 à aujourd’hui, tandis que les fiches gardent les dates exactes des événements.',

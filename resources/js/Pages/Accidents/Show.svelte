@@ -20,7 +20,8 @@
     } from '$lib/accidentText.js';
     import { colon, formatLocale, formatNumber } from '$lib/typo.js';
 
-    let { accident } = $props();
+    /** `commune_page` : adresse relative de la fiche « Le rail à <commune> » (nulle sans fiche). */
+    let { accident, commune_page = null } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const name = $derived(accident.name[lang] ?? accident.name.fr);
@@ -233,13 +234,35 @@
                     {#if place.commune}
                         <div>
                             <dt>{$i18n.t('accidents.show.commune')}</dt>
-                            <dd>{place.commune}</dd>
+                            <dd>
+                                {#if commune_page}
+                                    <a class="vff-link" href="/communes/{commune_page}"
+                                        >{place.commune}<span class="vff-sr-only">
+                                            : {$i18n.t('communes.title', {
+                                                name: place.commune,
+                                            })}</span
+                                        ></a
+                                    >
+                                {:else}
+                                    {place.commune}
+                                {/if}
+                            </dd>
                         </div>
                     {/if}
                     {#if place.department}
                         <div>
                             <dt>{$i18n.t('accidents.show.department')}</dt>
-                            <dd>{place.department} ({place.department_code})</dd>
+                            <dd>
+                                <a class="vff-link" href="/departments/{place.department_code}"
+                                    >{place.department} ({place.department_code})<span
+                                        class="vff-sr-only"
+                                    >
+                                        : {$i18n.t('departments.commune_link', {
+                                            name: place.department,
+                                        })}</span
+                                    ></a
+                                >
+                            </dd>
                         </div>
                     {/if}
                     {#if located}

@@ -94,6 +94,7 @@ return [
         'cfil' => ['theme' => 'history', 'abbr' => 'CFIL', 'see' => ['ecartement-metrique', 'concession']],
         'declassement' => ['theme' => 'history', 'see' => ['rfn', 'fermeture', 'depose']],
         'depose' => ['theme' => 'history', 'see' => ['fermeture', 'declassement']],
+        'monument-historique' => ['theme' => 'history', 'see' => ['gare', 'viaduc', 'ouvrage-d-art'], 'example' => ['path' => '/heritage', 'page' => 'heritage']],
         'ere' => ['theme' => 'history', 'see' => ['mise-en-service', 'ligne'], 'example' => ['path' => '/chronology', 'page' => 'chronology']],
         'materiel-roulant' => ['theme' => 'rolling_stock', 'see' => ['locomotive', 'automotrice', 'autorail', 'wagon'], 'example' => ['path' => '/materials/tgv-atlantique', 'name' => 'TGV Atlantique']],
         'serie' => ['theme' => 'rolling_stock', 'see' => ['materiel-roulant']],

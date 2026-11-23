@@ -374,6 +374,10 @@ return [
         'name' => 'Gleisrückbau',
         'definition' => 'Physischer Ausbau des Gleises (Schienen, Schwellen). Eine Strecke kann zurückgebaut werden, wenn sie stillgelegt oder entwidmet ist; ihre Trasse kann erhalten bleiben.',
     ],
+    'monument-historique' => [
+        'name' => 'Monument historique (Denkmalschutz)',
+        'definition' => 'Schutz, den der französische Staat einem Gebäude oder Bauwerk von geschichtlichem oder künstlerischem Wert gewährt: die Einstufung („classé“) ist die höchste Stufe, die Eintragung („inscrit“) die darunterliegende. Bahnhöfe, Bahnhofshallen, Lokschuppen und Viadukte gehören dazu; das Label „Architecture contemporaine remarquable“ zeichnet jüngere Bauten aus.',
+    ],
     'ere' => [
         'name' => 'Epoche (ère)',
         'definition' => 'Momentaufnahme des Netzes zu einem bestimmten Datum: Die historische Karte bietet eine je Jahrzehnt, von 1830 bis heute, während die Seiten die genauen Daten der Ereignisse bewahren.',

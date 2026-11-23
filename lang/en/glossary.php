@@ -30,6 +30,7 @@ return [
     ],
     'pages' => [
         'tourist_railways' => 'Heritage railways and rail bikes',
+        'heritage' => 'Protected railway heritage',
         'chronology' => 'Chronology of French railways',
         'signalling_map' => 'Signalling map',
     ],

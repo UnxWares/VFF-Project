@@ -30,6 +30,7 @@ return [
     ],
     'pages' => [
         'tourist_railways' => 'Chemins de fer touristiques et vélorails',
+        'heritage' => 'Patrimoine ferroviaire protégé',
         'chronology' => 'Chronologie du rail en France',
         'signalling_map' => 'Carte de la signalisation',
     ],

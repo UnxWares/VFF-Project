@@ -39,6 +39,8 @@
         aerial_views = [],
         chronology = [],
         heritage = null,
+        department_name = null,
+        commune = null,
         neighbors: neighborsProp,
         media_count: mediaCountProp,
         attendance: attendanceProp,
@@ -294,6 +296,19 @@
                 {@render statusMark(station.status)}
                 {$i18n.t(`stations.statuses.${station.status}`)}
             </p>
+            {#if commune || (station.department_code && department_name)}
+                <!-- Fiches du territoire (commune reçue après le premier affichage) : liens explicites, jamais le seul nom. -->
+                <p class="territory">
+                    {#if commune}<a class="vff-link" href="/communes/{commune.slug}"
+                            >{t('communes.title', { name: commune.name })}</a
+                        >{/if}
+                    {#if station.department_code && department_name}<a
+                            class="vff-link"
+                            href="/departments/{station.department_code}"
+                            >{t('departments.commune_link', { name: department_name })}</a
+                        >{/if}
+                </p>
+            {/if}
             {#if altNames.length}
                 <p class="alt-names">
                     {$i18n.t('stations.also_known_as_label')}
@@ -650,6 +665,14 @@
         color: var(--vff-text);
         font-size: 12px;
         line-height: 1;
+    }
+    .territory {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin: 10px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .alt-names {
         max-width: var(--vff-measure);

@@ -6,11 +6,13 @@ use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Station;
 use App\Services\Api\MediaGallery;
+use App\Services\Communes\CommuneRail;
 use App\Services\Heritage\StationHeritage;
 use App\Services\Media\Aerial\AerialImages;
 use App\Services\Sncf\StationAttendance;
 use App\Services\StationDirectory;
 use App\Services\StationSheet;
+use App\Support\FrenchDepartments;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -112,7 +114,7 @@ class StationController extends Controller
         };
     }
 
-    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance, StationHeritage $heritage): Response
+    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance, StationHeritage $heritage, CommuneRail $communes): Response
     {
         // Premier affichage : en-tête, « À propos », patrimoine, décennies, chronologie, lignes et sources. Fiche
         // construite une fois, et seulement quand la réponse la demande : le chargement des props différées ne la refait pas.
@@ -133,6 +135,10 @@ class StationController extends Controller
             'aerial_views' => fn () => AerialImages::views($station->slug, $core()['station']['lat'], $core()['station']['lng'], (int) $station->id),
             // Gares voisines (carte et liste de la section « Situation »).
             'neighbors' => $defer(fn () => $sheet->neighbors((int) $station->id)),
+            // Nom du département de la gare (table fixe) : son nom mène à sa fiche « Le rail du département ».
+            'department_name' => fn () => FrenchDepartments::find((string) ($core()['station']['department_code'] ?? ''))[0] ?? null,
+            // Fiche « Le rail à <commune> » de la commune de la gare (nulle sans fiche) : le nom de la commune y mène.
+            'commune' => $defer(fn () => $sheet->commune((int) $station->id, $communes)),
             // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
             'media_count' => $defer(fn () => $gallery->count($station)),
             // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.

@@ -457,6 +457,7 @@ return [
     ],
     'heritage' => [
         'title' => 'Denkmalschutz',
+        'see_in_heritage' => 'Im geschützten Eisenbahnerbe ansehen',
         'building' => [
             'classified' => 'Empfangsgebäude als Monument historique eingestuft (classé)',
             'classified_partial' => 'Empfangsgebäude teilweise als Monument historique eingestuft (classé)',

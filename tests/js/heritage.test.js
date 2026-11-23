@@ -98,6 +98,17 @@ describe('filterHeritage', () => {
         expect(filterHeritage(rows, { q: 'limoges gonthier' }).map((r) => r.id)).toEqual(['a']);
         expect(filterHeritage(rows, { q: 'introuvable' })).toEqual([]);
     });
+    it('also searches the name of the station sheet (link from a station page)', () => {
+        const rowsWithStation = [
+            item({
+                id: 's',
+                name: 'Bâtiment voyageurs',
+                station: { slug: 'x', name: 'Gare du Nord' },
+            }),
+            item({ id: 't', name: 'Autre', station: null }),
+        ];
+        expect(filterHeritage(rowsWithStation, { q: 'nord' }).map((r) => r.id)).toEqual(['s']);
+    });
     it('combines filters', () => {
         expect(
             filterHeritage(rows, { architect: 'Roger Gonthier', region: 'Grand Est' }),

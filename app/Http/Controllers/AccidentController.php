@@ -9,6 +9,7 @@ use App\Models\Accident;
 use App\Models\AccidentLine;
 use App\Services\Accidents\Context\AccidentContextView;
 use App\Services\Api\AccidentQuery;
+use App\Services\Communes\CommuneRail;
 use App\Support\FrenchDepartments;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,7 +66,7 @@ class AccidentController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $accident): Response|RedirectResponse
+    public function show(Request $request, string $accident, CommuneRail $communes): Response|RedirectResponse
     {
         $model = Accident::query()->withCoordinates()->where('slug', $accident)->first();
         if ($model === null) {
@@ -82,8 +83,15 @@ class AccidentController extends Controller
             ...AccidentContextView::RELATIONS,
         ]);
 
+        // Fiche « Le rail à <commune> » de la commune du lieu, quand elle existe (liste des communes qui ont du rail, en cache).
+        $insee = $model->commune_insee;
+        $communePage = $insee !== null && $model->commune_name !== null && in_array($insee, $communes->codes(), true)
+            ? CommuneRail::slug($insee, $model->commune_name)
+            : null;
+
         return Inertia::render('Accidents/Show', [
             'accident' => AccidentDetailResource::make($model)->resolve($request),
+            'commune_page' => $communePage,
         ]);
     }
 

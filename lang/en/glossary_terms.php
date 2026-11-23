@@ -374,6 +374,10 @@ return [
         'name' => 'Lifted track',
         'definition' => 'The physical removal of the track (rails, sleepers). A line can be lifted once it is closed or declassified; its right of way may remain.',
     ],
+    'monument-historique' => [
+        'name' => 'Historic monument',
+        'definition' => 'Protection granted by the French State to a building or structure of historical or artistic interest: listing as “classé” is the highest level, “inscrit” the level below. Stations, train sheds, roundhouses and viaducts are among them; the “Architecture contemporaine remarquable” label singles out more recent buildings.',
+    ],
     'ere' => [
         'name' => 'Era',
         'definition' => 'A snapshot of the network at a given date: the historical map offers one per decade, from 1830 to today, while the sheets keep the exact dates of events.',

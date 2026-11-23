@@ -109,7 +109,7 @@ class GlossaryTest extends TestCase
             if ($example === null) {
                 continue;
             }
-            $this->assertMatchesRegularExpression('#^/(lines|stations|materials)/[a-z0-9-]+$|^/(tourist-railways|chronology|maps\?layer=signalling)$#', $example['path'], "{$slug} : adresse");
+            $this->assertMatchesRegularExpression('#^/(lines|stations|materials)/[a-z0-9-]+$|^/(tourist-railways|heritage|chronology|maps\?layer=signalling)$#', $example['path'], "{$slug} : adresse");
             $this->assertTrue(isset($example['name']) xor isset($example['page']), "{$slug} : un nom de fiche ou une page");
             if (isset($example['page'])) {
                 foreach (['fr', 'en', 'de'] as $locale) {

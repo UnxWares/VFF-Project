@@ -37,7 +37,12 @@
     const lang = $derived($i18n.language ?? 'fr');
     const n = (v) => formatNumber(v, lang);
 
-    let q = $state('');
+    // Recherche reprise de l'adresse (`/heritage?q=Gare de Limoges-Bénédictins`) : lien « Voir dans le patrimoine » des fiches de gare.
+    let q = $state(
+        typeof window === 'undefined'
+            ? ''
+            : (new URLSearchParams(window.location.search).get('q') ?? ''),
+    );
     let protection = $state('');
     let object = $state('');
     let style = $state('');

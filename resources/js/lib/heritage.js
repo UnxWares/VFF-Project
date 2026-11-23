@@ -42,7 +42,15 @@ export function filterHeritage(items, filters = {}) {
         if (era && i.era !== era) return false;
         if (!needle) return true;
         const haystack = fold(
-            [i.name, i.title, i.commune, i.region, i.line?.name, ...i.architects].join(' '),
+            [
+                i.name,
+                i.title,
+                i.station?.name,
+                i.commune,
+                i.region,
+                i.line?.name,
+                ...i.architects,
+            ].join(' '),
         );
         return needle.split(' ').every((word) => haystack.includes(word));
     });

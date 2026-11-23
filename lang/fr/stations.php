@@ -457,6 +457,7 @@ return [
     ],
     'heritage' => [
         'title' => 'Patrimoine',
+        'see_in_heritage' => 'Voir dans le patrimoine ferroviaire protégé',
         'building' => [
             'classified' => 'Bâtiment voyageurs classé aux monuments historiques',
             'classified_partial' => 'Bâtiment voyageurs partiellement classé aux monuments historiques',

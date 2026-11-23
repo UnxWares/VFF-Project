@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ServiceEnd;
 use App\Models\Station;
+use App\Services\Communes\CommuneRail;
 use App\Support\GeneratedText;
 use App\Support\SourceRights;
 use Illuminate\Support\Collection;
@@ -132,6 +133,30 @@ final class StationSheet
         }
 
         return $page;
+    }
+
+    /**
+     * Commune actuelle de la gare quand elle a sa fiche « Le rail à <commune> » : `slug` (adresse relative) et `name`.
+     * Une lecture indexée (contour qui contient le point de la gare), faite après le premier affichage ; nul quand la gare
+     * n'est dans aucun contour ou que la commune n'a pas de fiche.
+     *
+     * @return array{slug: string, name: string}|null
+     */
+    public function commune(int $sid, CommuneRail $rail): ?array
+    {
+        $row = DB::selectOne(<<<'SQL'
+            SELECT c.code_insee, m.nom
+            FROM stations s
+            JOIN commune_contours c ON c.geom && s.geom AND ST_Contains(c.geom, s.geom)
+            JOIN communes m ON m.code_insee = c.code_insee AND m.type = 'commune-actuelle'
+            WHERE s.id = ?
+            LIMIT 1
+        SQL, [$sid]);
+        if ($row === null || ! in_array((string) $row->code_insee, $rail->codes(), true)) {
+            return null;
+        }
+
+        return ['slug' => CommuneRail::slug((string) $row->code_insee, (string) $row->nom), 'name' => (string) $row->nom];
     }
 
     /**
