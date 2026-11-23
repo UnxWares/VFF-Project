@@ -6,7 +6,7 @@
 
     /**
      * Recherche de tout le site : rubriques (Carte, Lignes, Gares…), lignes, gares et matériel
-     * roulant, accidents et communes qui ont du rail (GET /api/v1/search), puis « Toutes les lignes / gares / accidents contenant… » vers les annuaires.
+     * roulant, accidents, termes du glossaire et communes qui ont du rail (GET /api/v1/search), puis « Toutes les lignes / gares / accidents contenant… » vers les annuaires.
      * Choisir un résultat ouvre directement sa page.
      *
      * Combobox ARIA 1.2 : le focus reste dans le champ, les flèches parcourent les résultats
@@ -39,14 +39,17 @@
     const listId = `${uid}-list`;
 
     let q = $state('');
-    let results = $state.raw({
+    /** Réponse vide de GET /api/v1/search (avant la saisie, après une erreur). */
+    const emptyResults = () => ({
         lines: [],
         stations: [],
         materials: [],
         accidents: [],
         communes: [],
         pk_positions: [],
+        glossary: [],
     });
+    let results = $state.raw(emptyResults());
     // idle | loading | done | error
     let phase = $state('idle');
     let searched = $state('');
@@ -106,7 +109,8 @@
             results.materials.length +
             results.accidents.length +
             results.communes.length +
-            results.pk_positions.length,
+            results.pk_positions.length +
+            results.glossary.length,
     );
 
     // Rien ne correspond mot pour mot : tous les résultats sont des noms approchés (fautes de frappe).
@@ -160,18 +164,12 @@
                 accidents: data.accidents ?? [],
                 communes: data.communes ?? [],
                 pk_positions: data.pk_positions ?? [],
+                glossary: data.glossary ?? [],
             };
             phase = 'done';
         } catch (e) {
             if (e.name === 'AbortError') return;
-            results = {
-                lines: [],
-                stations: [],
-                materials: [],
-                accidents: [],
-                communes: [],
-                pk_positions: [],
-            };
+            results = emptyResults();
             phase = 'error';
         }
         searched = text;
@@ -182,14 +180,7 @@
     function reset() {
         clearTimeout(debounceTimer);
         abortCtrl?.abort();
-        results = {
-            lines: [],
-            stations: [],
-            materials: [],
-            accidents: [],
-            communes: [],
-            pk_positions: [],
-        };
+        results = emptyResults();
         phase = 'idle';
         searched = '';
         activeIndex = -1;

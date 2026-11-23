@@ -215,6 +215,7 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 href: `/glossary#${g.slug}`,
                 name: g.names?.[lang] ?? g.name,
                 icon: 'bi-book',
+                detail: null,
             })),
         },
         {
