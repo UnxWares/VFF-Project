@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 19 novembre : catastrophe du Sud-Express près de Dax, dans le sud de la France ; au total 14 morts, dont 3 morts avant-hier soir de leurs blessures.',
         ],
+        'kb-1900-11-17-oukoop' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'Gebr. Oukoop (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-11-17',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001943386:mpeg21:a00010:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Bayonne datée du 15 novembre : le Sud-Express déraille près de Dax et roule sur une digue ; douze morts comptés jusque-là, bilan provisoire.',
+            'facts' => ['date' => '1900-11-15', 'commune_insee' => '40088', 'deaths' => 12, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

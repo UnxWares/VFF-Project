@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
         ],
+        'kb-1926-07-30-nijhoff' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TREINRAMP IN FRANKRIJK. Tal van slachtoffers.',
+            'publisher' => 'M. Nĳhoff [etc.] (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1926-07-30',
+            'locator' => 'article « TREINRAMP IN FRANKRIJK. Tal van slachtoffers. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010010445:mpeg21:a0082:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris datée du 30 juillet : « ce matin de bonne heure », l\'express de Mulhouse déraille entre Noisy-le-Sec et Rosny, aux portes de Paris ; quatre corps retirés, bilan provisoire.',
+            'facts' => ['date' => '1926-07-30', 'commune_insee' => '93064', 'deaths' => 4, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

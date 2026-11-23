@@ -63,6 +63,21 @@ return [
             'note' => 'Dépêche du 23 décembre : à Douai, 12 morts et 25 blessés ; l\'express Lille-Paris, juste avant la gare, heurté par un train de marchandises ; trois voitures en pièces.',
             'facts' => ['commune_insee' => '59178', 'deaths' => 12],
         ],
+        'kb-1919-12-24-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'KORTE BERICHTEN UIT HET BUITENLAND.',
+            'publisher' => 'NV Dagblad de Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1919-12-24',
+            'locator' => 'article « KORTE BERICHTEN UIT HET BUITENLAND. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003542298:mpeg21:a00012:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 23 décembre : un train de marchandises de Dunkerque a heurté « hier » le train de voyageurs Lille-Paris arrêté en gare de Douai ; onze morts, bilan provisoire (la dépêche Reuter du même jour en donne douze).',
+            'facts' => ['date' => '1919-12-22', 'commune_insee' => '59178', 'deaths' => 11, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

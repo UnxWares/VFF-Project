@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article d\'archives, non lisible (accès réservé) ; seul le titre est connu, par la citation de Wikipédia.',
         ],
+        'kb-1965-08-28-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Bij treinbotsing in Frankrijk 12 doden',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1965-08-28',
+            'locator' => 'article « Bij treinbotsing in Frankrijk 12 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010617227:mpeg21:a0002:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 28 août : « ce matin de bonne heure », collision en gare de Pont-d\'Héry (Jura) entre le rapide Milan-Paris et l\'express de Lombardie ; une douzaine de morts d\'après les premières informations, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '39436', 'deaths' => 12, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

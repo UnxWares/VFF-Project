@@ -19,6 +19,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche, d\'après la presse de l\'époque (Gallica).',
         ],
+        'kb-1988-11-08-arbeiderspers' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Negen doden bij Frans treinongeluk',
+            'publisher' => 'De Arbeiderspers (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1988-11-08',
+            'locator' => 'article « Negen doden bij Frans treinongeluk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010962970:mpeg21:a0144:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 8 novembre : « hier », neuf ouvriers des voies tués à la gare du village d\'Ay, près d\'Épernay, quand le rapide Luxembourg-Paris a heurté leur wagon d\'entretien.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '51030', 'deaths' => 9],
+        ],
     ],
     'sections' => [
         'course' => [

@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Le train a déraillé en passant devant la gare de Bernay : poteaux télégraphiques renversés, locomotive couchée en travers de la route, wagons projetés les uns sur les autres ; premier bilan du Matin de sept morts et vingt-cinq à trente blessés graves.',
         ],
+        'kb-1910-09-11-van-belle' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen. SPOORWEGONGELUK.',
+            'publisher' => 'G.W. van Belle (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1910-09-11',
+            'locator' => 'article « Telegrammen. SPOORWEGONGELUK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB04:000186385:mpeg21:a0011:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Bernay datée du 10 septembre : le train de Cherbourg a déraillé ici ; six morts et vingt blessés, bilan provisoire (un journal du 12 septembre place l\'accident le samedi à 16 h 30).',
+            'facts' => ['date' => '1910-09-10', 'commune_insee' => '27056', 'deaths' => 6, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

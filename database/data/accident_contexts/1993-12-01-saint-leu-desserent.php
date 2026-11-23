@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Entrée de la liste : matériel, vitesse, bilan et suites ; renvoie à des pages locales et à L\'Humanité.',
         ],
+        'kb-1993-12-02-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk eist 4 levens',
+            'publisher' => 'Dagblad De Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1993-12-02',
+            'locator' => 'article « Treinongeluk eist 4 levens », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010691753:mpeg21:a0558:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 2 décembre : « hier matin », accident ferroviaire à Saint-Leu-d\'Esserent (Oise), un appareil de mesure laissé sur la voie ; quatre morts, dont le conducteur.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '60584', 'deaths' => 4],
+        ],
     ],
     'sections' => [
         'circumstances' => [

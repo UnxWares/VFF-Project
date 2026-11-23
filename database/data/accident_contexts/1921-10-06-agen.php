@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même information : 2 morts, 7 blessés graves et de nombreux blessés légers.',
         ],
+        'kb-1921-10-07-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'EEN NIEUW SPOORWEG. ONGELUK IN FRANKRIJK.',
+            'publisher' => 'NV Dagblad de Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1921-10-07',
+            'locator' => 'article « EEN NIEUW SPOORWEG. ONGELUK IN FRANKRIJK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000961006:mpeg21:a00030:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Bordeaux datée du 6 octobre : « cet après-midi » vers 13 h, un train de marchandises heurte un train à l\'arrêt en gare d\'Agen ; deux morts, sept blessés graves, bilan provisoire.',
+            'facts' => ['date' => '1921-10-06', 'commune_insee' => '47001', 'deaths' => 2, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -103,6 +103,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche Reuter de Paris du 2 février : l\'express pour Calais déraille à Saint-Denis ; quatre morts et 15 blessés dans ce premier bilan.',
         ],
+        'kb-1916-02-02-van-bergen' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen. Fransch bericht.',
+            'publisher' => 'W. van Bergen (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1916-02-02',
+            'locator' => 'article « Telegrammen. Fransch bericht. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSAB03:000060380:mpeg21:a0027:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 2 février : l\'express qui a passé « hier » à Saint-Denis déraille à grande vitesse et sept voitures prennent feu ; dix morts connus jusque-là, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '93066', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

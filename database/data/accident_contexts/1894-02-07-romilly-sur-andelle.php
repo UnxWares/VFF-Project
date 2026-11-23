@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lu seulement dans sa transcription.',
         ],
+        'kb-1894-02-09-den-hengst' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Gemengde buitenlandsche berichten.',
+            'publisher' => 'P. den Hengst en Zoon [etc.] (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1894-02-09',
+            'locator' => 'article « Gemengde buitenlandsche berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010146179:mpeg21:a0009:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 9 février : mercredi soir, près de Romilly-sur-Andelle, un train de sable déraille par un mauvais aiguillage ; trois ouvriers tués et un grièvement blessé, bilan provisoire (une dépêche du même jour, mal lue par l\'OCR, donne « 8 » ou « 3 » morts).',
+            'facts' => ['date' => '1894-02-07', 'commune_insee' => '27493', 'deaths' => 3, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

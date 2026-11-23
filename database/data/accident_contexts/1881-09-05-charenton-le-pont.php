@@ -103,6 +103,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 9 septembre : le train omnibus no 584 de Corbeil à Paris est à l\'arrêt en gare quand l\'express no 10 arrive à pleine vitesse.',
         ],
+        'kb-1881-09-06-bosch-zoon' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'L.E. Bosch & Zoon (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1881-09-06',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253122068:mpeg21:a00019:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du lundi 5 septembre : « ce matin », le rapide de Marseille heurte à Charenton un train de voyageurs venu de Montargis ; treize morts, bilan provisoire.',
+            'facts' => ['date' => '1881-09-05', 'commune_insee' => '94018', 'deaths' => 13, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Brève du 27 novembre : grave accident à Tournay, ligne de Toulouse à Tarbes ; un train de marchandises, frein défaillant, glisse sur une pente et heurte un train de voyageurs à l\'arrêt ; treize morts, huit blessés graves.',
         ],
+        'kb-1897-11-25-maastrichtsche-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN. en LAATSTE BERICHTEN',
+            'publisher' => 'Maastrichtsche Dagblad-Drukkerij (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1897-11-25',
+            'locator' => 'article « TELEGRAMMEN. en LAATSTE BERICHTEN », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMCC01:048305013:mpeg21:a00019:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 24 novembre : « ce matin » à 6 h 30, un train de marchandises heurte le train mixte en gare de Tournay (ligne de Toulouse à Tarbes), dans le brouillard ; dix morts, bilan provisoire.',
+            'facts' => ['date' => '1897-11-24', 'commune_insee' => '65447', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

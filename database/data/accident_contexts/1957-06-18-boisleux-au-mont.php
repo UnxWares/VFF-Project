@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 19 juin : mardi, l\'express Tourcoing-Paris déraille à Boisleux près d\'Arras ; huit morts, 25 blessés graves, tous français.',
         ],
+        'kb-1957-06-19-van-der-veen' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk in Frankrijk Acht doden. de sneltrin Tourcoing-Parijs ontspoord.',
+            'publisher' => 'J.D. van der Veen (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-06-19',
+            'locator' => 'article « Treinongeluk in Frankrijk Acht doden. de sneltrin Tourcoing-Parijs ontspoord. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMRHCG03:163575041:mpeg21:a00061:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 19 juin : « hier », déraillement de l\'express Tourcoing-Paris à Boisleux, près d\'Arras ; huit morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '62151', 'deaths' => 8, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

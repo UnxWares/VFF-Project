@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
         ],
+        'kb-1912-08-07-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'NV Dagblad de Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1912-08-07',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000953098:mpeg21:a00001:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Lyon datée du 6 août : « aujourd\'hui », deux trains se heurtent obliquement dans le tunnel de Lozanne ; quatre morts et douze blessés, bilan provisoire.',
+            'facts' => ['date' => '1912-08-06', 'commune_insee' => '69121', 'deaths' => 4, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

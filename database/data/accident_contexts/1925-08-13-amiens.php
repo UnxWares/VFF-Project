@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 15 août : accident de jeudi après-midi avant l\'entrée en gare d\'Amiens, vitesse excessive, freins défaillants au dernier moment ; 11 morts, 160 blessés graves et 75 légers.',
         ],
+        'kb-1925-08-14-nieuwenhuis' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De spoorwegramp bij Amiens.',
+            'publisher' => 'Nieuwenhuis (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1925-08-14',
+            'locator' => 'article « De spoorwegramp bij Amiens. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010668586:mpeg21:a0006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche d\'Amiens du 14 août : « hier soir », déraillement en gare d\'Amiens ; 11 morts d\'après le dernier télégramme, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '80021', 'deaths' => 11, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Version initiale : 5 morts, 7 blessés graves et 18 légers.',
         ],
+        'kb-1961-08-30-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk in Frankrijk: 8 doden',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1961-08-30',
+            'locator' => 'article « Treinongeluk in Frankrijk: 8 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010616022:mpeg21:a0116:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 30 août : « hier après-midi », déraillement d\'un train de voyageurs vers Roscoff à la gare de Theil, à l\'ouest de Paris ; huit morts (le journal situe à tort le Finistère).',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '61484', 'deaths' => 8],
+        ],
     ],
     'sections' => [
         'circumstances' => [

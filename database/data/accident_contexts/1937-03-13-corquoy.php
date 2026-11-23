@@ -131,6 +131,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 15 mars : même récit, locomotive, tender, fourgon et une voiture sortent des rails ; quinze morts.',
         ],
+        'kb-1937-03-14-den-hengst' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'STORM VEROORZAAKT TREINRAMP Omgewaaide boom op het traject Bourges-Montlucon doet sneltrein ontsporen. DOODEN EN GEWONDEN',
+            'publisher' => 'P. den Hengst en Zoon [etc.] (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1937-03-14',
+            'locator' => 'article « STORM VEROORZAAKT TREINRAMP Omgewaaide boom op het traject Bourges-Montlucon doet sneltrein ontsporen. DOODEN EN GEWONDEN », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010664246:mpeg21:a0065:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Havas datée de Bourges le 13 mars : « cet après-midi » à 13 h 10, l\'express déraille près de Corquoy après la chute d\'un arbre sur la voie pendant la tempête ; huit corps déjà retirés, bilan provisoire.',
+            'facts' => ['date' => '1937-03-13', 'commune_insee' => '18073', 'deaths' => 8, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

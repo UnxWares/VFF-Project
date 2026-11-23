@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Légende du 17 avril : l\'express de nuit Hendaye-Paris a déraillé près de Marcheprime après le détachement d\'un amortisseur de la première voiture ; version isolée.',
         ],
+        'kb-1935-04-15-tyl' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinontsporing bij Bordeaux Drie dooden, zes zwaar gewonden.',
+            'publisher' => 'M. Tyl en Zoon H. Tyl (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1935-04-15',
+            'locator' => 'article « Treinontsporing bij Bordeaux Drie dooden, zes zwaar gewonden. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMHCO01:000087274:mpeg21:a0002:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 15 avril : dans la nuit du samedi au dimanche, déraillement de l\'express des Pyrénées à la gare de Marcheprime, à une trentaine de kilomètres avant Bordeaux ; trois morts, bilan provisoire.',
+            'facts' => ['date' => '1935-04-14', 'commune_insee' => '33555', 'deaths' => 3, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

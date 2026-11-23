@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
         ],
+        'kb-1922-07-04-telegraaf' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'EXPRES STRAATSBURG-PARIJS ONTSPOORD. Verscheidene slachtoffers.',
+            'publisher' => 'Dagblad De Telegraaf (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-07-04',
+            'locator' => 'article « EXPRES STRAATSBURG-PARIJS ONTSPOORD. Verscheidene slachtoffers. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110552195:mpeg21:a0123:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Strasbourg datée du 4 juillet : « hier soir », l\'express Strasbourg-Paris aurait déraillé près de Sarrebourg ; trois morts, bilan provisoire donné « selon les on-dit » (la compagnie de l\'Est n\'avait encore rien reçu).',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '57630', 'deaths' => 3, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -117,6 +117,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 18 octobre : collision hier entre un train de marchandises et l\'auto-train Nice-Paris à Melun, 18 morts et 57 blessés selon les chemins de fer français.',
         ],
+        'kb-1991-10-17-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Minstens veertien doden bij treinbotsing in Frankrijk',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1991-10-17',
+            'locator' => 'article « Minstens veertien doden bij treinbotsing in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010567701:mpeg21:a0263:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 17 octobre : « ce matin de bonne heure », collision à Melun entre un train de marchandises et le rapide Paris-Nice ; au moins 14 morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '77288', 'deaths' => 14, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

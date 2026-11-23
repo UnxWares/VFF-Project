@@ -87,7 +87,8 @@ return [
             'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253125036:mpeg21:a00032:ocr',
             'access' => 'open',
             'consulted_on' => '2026-11-23',
-            'note' => 'Brève du 5 février : mardi dernier, par le brouillard, collision de deux trains à la gare de Clichy-Levallois ; locomotive et plusieurs voitures brisées.',
+            'note' => 'Brève du 5 février : mardi dernier, par le brouillard, collision de deux trains à la gare de Clichy-Levallois ; locomotive et plusieurs voitures brisées ; sept morts d\'après le relevé officiel, bilan provisoire (gare de Clichy-Levallois, aujourd\'hui Levallois-Perret).',
+            'facts' => ['date' => '1880-02-03', 'commune_insee' => '92044', 'deaths' => 7, 'deaths_provisional' => true],
         ],
     ],
     'sections' => [

@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche AP, UPI et Reuter : la voiture arrière d\'un train local sort des rails juste après la gare, 9 morts et 9 blessés dont 2 graves.',
         ],
+        'kb-1966-10-22-van-der-loeff' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Wegen doden bij ontsporing in Frankrijk',
+            'publisher' => 'Van der Loeff (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1966-10-22',
+            'locator' => 'article « Wegen doden bij ontsporing in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBPERS01:003293045:mpeg21:a00218:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 22 octobre (le titre porte une faute d\'OCR pour « Negen ») : « hier soir », déraillement et renversement d\'un autorail de la ligne Montargis-Nevers à la gare de Cosne-sur-Loire ; neuf morts (un autre journal du même jour en donne dix).',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '58086', 'deaths' => 9],
+        ],
     ],
     'sections' => [
         'circumstances' => [

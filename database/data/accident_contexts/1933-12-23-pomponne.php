@@ -187,6 +187,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Heurt le samedi soir près du pont de Chauveau entre Vaires et Lagny (Seine-et-Marne) ; le titre annonce 201 morts.',
         ],
+        'kb-1933-12-25-onze-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'EEN SPOORWEGRAMP ZONDER WEERGA',
+            'publisher' => 'N.V. Onze Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1933-12-25',
+            'locator' => 'article « EEN SPOORWEGRAMP ZONDER WEERGA », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMWFA01:000291072:mpeg21:a00021:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 25 décembre : samedi soir, collision entre l\'express de Strasbourg et un train à l\'arrêt, près de Lagny, au hameau de Pomponne ; près de 200 morts d\'après les premières informations, bilan encore provisoire.',
+            'facts' => ['date' => '1933-12-23', 'commune_insee' => '77372', 'deaths' => 200, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

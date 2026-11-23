@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Le débat sur le projet de loi relatif à la protection de la liberté du travail et à la défense de la République évoque le sabotage d\'Arras et ses 20 morts.',
         ],
+        'kb-1947-12-03-morpurgo' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk. SABOTAGE EIST DODEN Parlement neemt maatregelen.',
+            'publisher' => 'A.J. Morpurgo (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1947-12-03',
+            'locator' => 'article « Frankrijk. SABOTAGE EIST DODEN Parlement neemt maatregelen. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010480035:mpeg21:a0001:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 3 décembre : peu après minuit, déraillement d\'un train postal près d\'Arras à la suite du démontage de rails ; au moins 13 morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '62041', 'deaths' => 13, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'La BB 9249 (dépôt d\'Avignon, mise en service en 1959) a été détruite à Andancette en 1966 et radiée le 18 avril 1967.',
         ],
+        'kb-1966-09-05-de-tijd' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk in Frankrijk: 5 doden',
+            'publisher' => 'N.V. Drukkerĳ De Tĳd (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1966-09-05',
+            'locator' => 'article « Treinongeluk in Frankrijk: 5 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110610966:mpeg21:a0011:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche d\'Andancette du 5 septembre : « ce matin », l\'express Paris-Briançon heurte un camion à un passage à niveau sans garde puis se trouve sur la voie d\'un train de marchandises ; cinq morts.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '26009', 'deaths' => 5],
+        ],
     ],
     'sections' => [
         'circumstances' => [

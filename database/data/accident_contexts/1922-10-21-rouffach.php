@@ -75,6 +75,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 26 octobre : l\'express parti de Strasbourg à 22 h 30 a heurté, à 600 mètres au nord de la gare de Rouffach, l\'arrière d\'un train de marchandises, d\'après la presse française.',
         ],
+        'kb-1922-10-21-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Latere Berichten.',
+            'publisher' => 'NV De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-10-21',
+            'locator' => 'article « Latere Berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000132242:mpeg21:a00055:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 21 octobre : « cette nuit », l\'express Strasbourg-Bordeaux, attendu à Mulhouse à 0 h 20, heurte un train de marchandises en gare de Rouffach ; sept morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '68287', 'deaths' => 7, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

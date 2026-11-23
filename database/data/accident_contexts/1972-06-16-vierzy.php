@@ -117,6 +117,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche de Soissons du 19 juin : au moins 62 morts et plus de 100 blessés, accident vendredi soir tard près de Vierzy (Aisne).',
         ],
+        'kb-1972-06-17-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TREINBOTSING IN FRANSE TUNNEL: ZEKER 50 DODEN',
+            'publisher' => 'Stichting Leeuwarder courant 1947 (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1972-06-17',
+            'locator' => 'article « TREINBOTSING IN FRANSE TUNNEL: ZEKER 50 DODEN », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010619057:mpeg21:a0593:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 17 juin : « hier soir », près de Vierzy (Aisne), deux trains de voyageurs roulent sur les gravats d\'un tunnel en partie effondré ; au moins 50 morts, bilan provisoire.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '02799', 'deaths' => 50, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

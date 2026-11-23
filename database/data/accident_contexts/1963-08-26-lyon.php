@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Légende de photographie : 8 morts et près de 20 blessés.',
         ],
+        'kb-1963-08-27-oost-brabant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Acht doden Treinen rammen elkaar in tunnel',
+            'publisher' => 'Dagblad en Drukkerij Oost-Brabant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1963-08-27',
+            'locator' => 'article « Acht doden Treinen rammen elkaar in tunnel », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMRHCE02:163649049:mpeg21:a00009:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Lyon du 27 août : « hier après-midi », collision de deux trains dans un tunnel à huit cents mètres de la gare de Lyon-Saint-Paul ; au moins huit morts.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '69123', 'deaths' => 8, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

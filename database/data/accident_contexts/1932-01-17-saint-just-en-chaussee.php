@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 19 janvier : déraillement d\'un train de voyageurs à Saint-Just-en-Chaussée, 10 morts et 20 blessés ; rupture d\'un essieu probable selon Havas ; quatre voitures déraillent juste avant la gare et une cabine d\'aiguilleur est heurtée.',
         ],
+        'kb-1932-01-18-tyl' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'ERNSTIG SPOORWEGONGELUK',
+            'publisher' => 'M. Tyl en Zoon H. Tyl (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1932-01-18',
+            'locator' => 'article « ERNSTIG SPOORWEGONGELUK », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMHCO01:000085451:mpeg21:a0007:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 18 janvier : « hier soir », déraillement d\'un train de voyageurs près de Saint-Just-en-Chaussée (rupture d\'un essieu) ; dix morts et vingt blessés.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '60581', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

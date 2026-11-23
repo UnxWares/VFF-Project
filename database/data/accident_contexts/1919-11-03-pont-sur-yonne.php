@@ -117,6 +117,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 8 novembre : l\'accident de Villeperrot, entre Pont-sur-Yonne et Sens, a fait au moins 27 morts et plus de 90 blessés ; une avarie de locomotive avait obligé le train parti de Paris à 8 h 25 à s\'arrêter.',
         ],
+        'kb-1919-11-06-den-hengst' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'P. den Hengst en Zoon [etc.] (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1919-11-06',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010654351:mpeg21:a0039:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 5 novembre publiée le 6 : lundi soir, l\'express Paris-Genève tamponne à Pont-sur-Yonne le train venu du Simplon ; 20 morts comptés, bilan provisoire (d\'autres journaux du même jour donnent ensuite 27).',
+            'facts' => ['date' => '1919-11-03', 'commune_insee' => '89309', 'deaths' => 20, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

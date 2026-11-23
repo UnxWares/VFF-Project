@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article cité par la liste de Wikipédia.',
         ],
+        'kb-1982-01-18-nieuwenhuis' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing bij Dijon: vier doden',
+            'publisher' => 'Nieuwenhuis (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1982-01-18',
+            'locator' => 'article « Treinbotsing bij Dijon: vier doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011010313:mpeg21:a0012:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 18 janvier : « ce matin », un train de marchandises heurte un fourgon à un passage à niveau à Gevrey-Chambertin, près de Dijon ; quatre morts, des agents d\'entretien des chemins de fer.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '21295', 'deaths' => 4],
+        ],
     ],
     'sections' => [
         'circumstances' => [

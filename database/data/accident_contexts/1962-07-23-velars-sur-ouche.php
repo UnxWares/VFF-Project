@@ -148,6 +148,21 @@ return [
             'note' => 'Article du 24 juillet : 36 morts de la catastrophe près de Dijon ; un directeur de sanatorium de Velars a vu l\'accident.',
             'facts' => ['date_relative' => 'previous_day', 'deaths' => 36, 'deaths_provisional' => true],
         ],
+        'kb-1962-07-24-nieuwe-limburger' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Koppeling brak bij 140 km/u Sneltrein ontspoorde bij Dyon: reeds 36 doden',
+            'publisher' => 'Nieuwe Limburger koerier (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1962-07-24',
+            'locator' => 'article « Koppeling brak bij 140 km/u Sneltrein ontspoorde bij Dyon: reeds 36 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011027802:mpeg21:a0014:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 24 juillet : lundi après-midi, déraillement de l\'express Paris-Marseille sur le viaduc de Velars-sur-Ouche, à une quinzaine de kilomètres de Dijon ; 36 morts d\'après les informations officielles, bilan provisoire (l\'en-tête porte le 22 juillet, le texte dit lundi, soit le 23).',
+            'facts' => ['date' => '1962-07-23', 'commune_insee' => '21661', 'deaths' => 36, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

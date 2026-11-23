@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Brève : plusieurs cantonniers surpris dans le tunnel de Vincennes par deux trains, deux morts et sept blessés graves.',
         ],
+        'kb-1911-03-10-molenbroek' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenlandsche Berichten.',
+            'publisher' => 'J.H. Molenbroek (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-03-10',
+            'locator' => 'article « Buitenlandsche Berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB08:000134854:mpeg21:a0004:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 10 mars : mercredi matin, vers 7 h 30, dans le tunnel de Vincennes à cinquante mètres de la gare, deux ouvriers de la voie sont fauchés par un train ; deux morts et huit blessés graves, bilan provisoire.',
+            'facts' => ['date' => '1911-03-08', 'commune_insee' => '94080', 'deaths' => 2, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
