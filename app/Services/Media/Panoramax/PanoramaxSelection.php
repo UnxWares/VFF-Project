@@ -72,6 +72,21 @@ final class PanoramaxSelection
 
     public const MAX_PITCH = 30;
 
+    /**
+     * Tri par vision (PanoramaxVision), premier filtre : distance à la gare (mètres), écart d'azimut (degrés) d'une
+     * photo plate et d'un panorama, photos gardées par séquence, séquences gardées par gare (borne les vignettes à
+     * télécharger : 4 photos par gare en moyenne).
+     */
+    public const VISION_MAX_M = 100;
+
+    public const VISION_MAX_ANGLE = 35;
+
+    public const VISION_MAX_ANGLE_PANO = 60;
+
+    public const VISION_PER_SEQUENCE = 2;
+
+    public const VISION_MAX_SEQUENCES = 6;
+
     /** Instance (nom dans le catalogue fédéré) => [libellé, adresse]. */
     public const INSTANCES = [
         'ign' => ['IGN', 'https://panoramax.ign.fr'],
@@ -203,6 +218,114 @@ final class PanoramaxSelection
                 $f['vff:view'] = $view;
             }
             $ok[] = [$f, self::score($f, $stationLat, $stationLng)];
+        }
+        usort($ok, fn (array $a, array $b): int => $b[1] <=> $a[1] ?: strcmp((string) $a[0]['id'], (string) $b[0]['id']));
+
+        $out = [];
+        $sequences = [];
+        foreach ($ok as [$f]) {
+            $seq = (string) ($f['collection'] ?? $f['id']);
+            if (isset($sequences[$seq])) {
+                continue;
+            }
+            $sequences[$seq] = true;
+            $out[] = $f;
+            if (count($out) >= self::MAX_PER_STATION) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Tri par vision, premier filtre (géométrique, large) : photos d'une instance lisible par le tri
+     * (PanoramaxVision::INSTANCES), à VISION_MAX_M au plus de la gare, tournées vers elle à VISION_MAX_ANGLE
+     * près (VISION_MAX_ANGLE_PANO pour un panorama, dont la vignette montre l'avant), ni sans cap ni penchées.
+     * Par séquence, les VISION_PER_SEQUENCE plus proches et mieux tournées ; par gare, les VISION_MAX_SEQUENCES
+     * meilleures séquences. Ce sont les vignettes à télécharger et à noter.
+     *
+     * @param  list<array<string, mixed>>  $features
+     * @param  array<string, int>  $rejected  compteurs des photos écartées, par motif (complétés)
+     * @return list<array<string, mixed>>
+     */
+    public static function visionCandidates(array $features, float $stationLat, float $stationLng, array &$rejected = []): array
+    {
+        $sequences = [];
+        foreach ($features as $f) {
+            $p = (array) ($f['properties'] ?? []);
+            $reason = self::basicReason($f);
+            if ($reason === null) {
+                [$lng, $lat] = (array) self::position($f);
+                $pano = (int) ($p['pers:interior_orientation']['field_of_view'] ?? 0) >= 360;
+                $reason = match (true) {
+                    ! in_array(self::instance($f), PanoramaxVision::INSTANCES, true) => 'vision_instance',
+                    ! is_numeric($p['view:azimuth'] ?? null) => 'no_azimuth',
+                    abs((float) ($p['pers:roll'] ?? 0)) > self::MAX_ROLL || abs((float) ($p['pers:pitch'] ?? 0)) > self::MAX_PITCH => 'tilted',
+                    self::distanceM((float) $lat, (float) $lng, $stationLat, $stationLng) > self::VISION_MAX_M => 'too_far',
+                    self::angle($f, $stationLat, $stationLng) > ($pano ? self::VISION_MAX_ANGLE_PANO : self::VISION_MAX_ANGLE) => 'facing_away',
+                    default => null,
+                };
+            }
+            if ($reason !== null) {
+                $rejected[$reason] = ($rejected[$reason] ?? 0) + 1;
+
+                continue;
+            }
+            [$lng, $lat] = (array) self::position($f);
+            $g = self::distanceM((float) $lat, (float) $lng, $stationLat, $stationLng) / self::VISION_MAX_M + self::angle($f, $stationLat, $stationLng) / 90;
+            $sequences[(string) ($f['collection'] ?? $f['id'])][] = [$g, (string) $f['id'], $f];
+        }
+        $order = fn (array $a, array $b): int => $a[0] <=> $b[0] ?: strcmp($a[1], $b[1]);
+        foreach ($sequences as &$list) {
+            usort($list, $order);
+        }
+        unset($list);
+        uasort($sequences, fn (array $a, array $b): int => $order($a[0], $b[0]));
+
+        $out = [];
+        foreach (array_slice($sequences, 0, self::VISION_MAX_SEQUENCES) as $list) {
+            foreach (array_slice($list, 0, self::VISION_PER_SEQUENCE) as [, , $f]) {
+                $out[] = $f;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Photos retenues par le tri par vision, dans l'ordre de leur note : candidates (visionCandidates) dont la
+     * note de vision atteint PanoramaxVision::MIN_SCORE (MIN_SCORE_SCENE si la photo passe aussi la règle des
+     * abords) ; une par séquence, MAX_PER_STATION au plus. La note et ce que voit la photo sont rangés dans
+     * `vff:vision` et `vff:view`.
+     *
+     * @param  list<array<string, mixed>>  $candidates
+     * @param  callable(string): ?float  $score  note de vision d'une photo (null si absente)
+     * @param  array<string, int>  $rejected
+     * @return list<array<string, mixed>>
+     */
+    public static function pickVision(array $candidates, float $stationLat, float $stationLng, callable $score, array &$rejected = [], ?StationScene $scene = null): array
+    {
+        $ok = [];
+        foreach ($candidates as $f) {
+            $s = $score((string) $f['id']);
+            if ($s === null) {
+                $rejected['vision_unscored'] = ($rejected['vision_unscored'] ?? 0) + 1;
+
+                continue;
+            }
+            [$sceneReason, $view] = $scene !== null && ! $scene->isEmpty() ? self::assess($f, $stationLat, $stationLng, $scene) : ['no_scene', null];
+            $min = $sceneReason === null ? PanoramaxVision::MIN_SCORE_SCENE : PanoramaxVision::MIN_SCORE;
+            if ($s < $min) {
+                $rejected['vision_low'] = ($rejected['vision_low'] ?? 0) + 1;
+
+                continue;
+            }
+            $f['vff:vision'] = ['score' => $s, 'scene' => $sceneReason === null];
+            if ($sceneReason === null && $view !== null) {
+                $f['vff:view'] = $view;
+            }
+            $ok[] = [$f, 4.0 * $s + self::score($f, $stationLat, $stationLng)];
         }
         usort($ok, fn (array $a, array $b): int => $b[1] <=> $a[1] ?: strcmp((string) $a[0]['id'], (string) $b[0]['id']));
 

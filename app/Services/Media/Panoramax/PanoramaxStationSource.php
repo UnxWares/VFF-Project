@@ -42,6 +42,8 @@ final class PanoramaxStationSource implements MediaSource
      * @param  ?list<int>  $stationIds  gares à lire (toutes si null)
      * @param  ?PanoramaxSceneBuilder  $scenes  abords des gares (règle des abords), null pour la règle ancienne
      * @param  ?list<string>  $instances  instances gardées (toutes celles de PanoramaxSelection::INSTANCES si null)
+     * @param  ?PanoramaxVision  $vision  tri par vision (note de chaque vignette), combiné à la règle des abords si
+     *                                    `$scenes` est donné
      */
     public function __construct(
         private readonly PanoramaxClient $client,
@@ -49,6 +51,7 @@ final class PanoramaxStationSource implements MediaSource
         private readonly bool $cacheOnly = false,
         private readonly ?PanoramaxSceneBuilder $scenes = null,
         private readonly ?array $instances = null,
+        private readonly ?PanoramaxVision $vision = null,
     ) {}
 
     public function provider(): string
@@ -91,6 +94,14 @@ final class PanoramaxStationSource implements MediaSource
             if ($this->instances !== null) {
                 $features = array_values(array_filter($features, fn (array $f): bool => in_array(PanoramaxSelection::instance($f), $this->instances, true)));
             }
+            if ($this->vision !== null) {
+                $this->stationsRead++;
+                foreach ($this->visionPick($features, $s, $lat, $lng) as $f) {
+                    yield $this->accept($f, $s, $lat, $lng);
+                }
+
+                continue;
+            }
             $scene = null;
             // Abords lus seulement si une photo peut servir (instance, licence, crédit) : une requête à l'IGN de moins.
             if ($this->scenes !== null && array_filter($features, fn (array $f): bool => PanoramaxSelection::basicReason($f) === null) !== []) {
@@ -119,16 +130,59 @@ final class PanoramaxStationSource implements MediaSource
                 continue;
             }
             foreach (PanoramaxSelection::pick($features, $lat, $lng, $this->rejected, $scene) as $f) {
-                $record = $this->record($f, (int) $s->id, $lat, $lng);
-                $this->accepted[] = ['station' => $s->name, 'slug' => $s->slug, 'id' => $record->externalId,
-                    'distance_m' => $record->meta['distance_m'], 'angle' => $record->meta['angle_to_station'],
-                    'license' => $record->license, 'date' => $record->capturedAt, 'thumb' => $record->thumbUrl, 'page' => $record->sourceUrl,
-                    'instance' => $record->meta['instance'], 'station_seen_deg' => $record->meta['station_seen_deg'] ?? null,
-                    'platform_seen_deg' => $record->meta['platform_seen_deg'] ?? null, 'station_building_m' => $record->meta['station_building_m'] ?? null];
-
-                yield $record;
+                yield $this->accept($f, $s, $lat, $lng);
             }
         }
+        $this->vision?->flushUnscored();
+    }
+
+    /**
+     * Tri par vision d'une gare : candidates (premier filtre géométrique), vignettes téléchargées si besoin, notes
+     * relues ; la règle des abords, si les abords sont connus, abaisse le seuil. Une gare rasée ne reçoit rien.
+     *
+     * @param  list<array<string, mixed>>  $features
+     * @return list<array<string, mixed>>
+     */
+    private function visionPick(array $features, object $s, float $lat, float $lng): array
+    {
+        $vision = $this->vision;
+        if ($vision === null || ($s->lifecycle ?? null) === 'razed') {
+            return [];
+        }
+        $candidates = PanoramaxSelection::visionCandidates($features, $lat, $lng, $this->rejected);
+        if ($candidates === []) {
+            return [];
+        }
+        foreach ($candidates as $f) {
+            $vision->fetch($f, $this->cacheOnly);
+            if ($vision->score((string) $f['id']) === null) {
+                $vision->unscored[] = (string) $f['id'];
+            }
+        }
+        $scene = null;
+        if ($this->scenes !== null) {
+            try {
+                $scene = $this->scenes->scene($lat, $lng, $this->cacheOnly);
+            } catch (RuntimeException) {
+                $scene = null;
+            }
+        }
+
+        return PanoramaxSelection::pickVision($candidates, $lat, $lng, $vision->score(...), $this->rejected, $scene);
+    }
+
+    /** @param  array<string, mixed>  $f */
+    private function accept(array $f, object $s, float $lat, float $lng): MediaRecord
+    {
+        $record = $this->record($f, (int) $s->id, $lat, $lng);
+        $this->accepted[] = ['station' => $s->name, 'slug' => $s->slug, 'id' => $record->externalId,
+            'distance_m' => $record->meta['distance_m'], 'angle' => $record->meta['angle_to_station'],
+            'license' => $record->license, 'date' => $record->capturedAt, 'thumb' => $record->thumbUrl, 'page' => $record->sourceUrl,
+            'instance' => $record->meta['instance'], 'station_seen_deg' => $record->meta['station_seen_deg'] ?? null,
+            'platform_seen_deg' => $record->meta['platform_seen_deg'] ?? null, 'station_building_m' => $record->meta['station_building_m'] ?? null,
+            'vision_score' => $record->meta['vision_score'] ?? null];
+
+        return $record;
     }
 
     /** @param  array<string, mixed>  $f */
@@ -182,6 +236,10 @@ final class PanoramaxStationSource implements MediaSource
                     'station_seen_deg' => (int) round((float) $f['vff:view']['target_deg']),
                     'platform_seen_deg' => (int) round((float) $f['vff:view']['platform_deg']),
                     'station_building_m' => $f['vff:view']['nearest_m'] !== null ? (int) round((float) $f['vff:view']['nearest_m']) : null,
+                ] : []),
+                ...(is_array($f['vff:vision'] ?? null) ? [
+                    'rule' => ($f['vff:vision']['scene'] ?? false) ? 'vision_scene' : 'vision',
+                    'vision_score' => round((float) $f['vff:vision']['score'], 3),
                 ] : []),
             ],
         );

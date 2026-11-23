@@ -2,6 +2,7 @@
 
 namespace App\Services\Media\Panoramax;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -51,9 +52,14 @@ class PanoramaxClient
             usleep((int) ($wait * 1_000_000));
         }
         $this->lastCall = microtime(true);
-        $res = Http::withHeaders(['User-Agent' => self::USER_AGENT, 'Accept' => 'application/geo+json'])
-            ->timeout(30)->retry(2, 5000, throw: false)
-            ->get(self::BASE, ['bbox' => $bbox, 'limit' => 100]);
+        try {
+            $res = Http::withHeaders(['User-Agent' => self::USER_AGENT, 'Accept' => 'application/geo+json'])
+                ->timeout(30)->retry(2, 5000, throw: false)
+                ->get(self::BASE, ['bbox' => $bbox, 'limit' => 100]);
+        } catch (ConnectionException $e) {
+            // Délai dépassé ou connexion perdue : la gare est comptée en erreur, la passe continue.
+            throw new RuntimeException("Panoramax : pas de réponse pour {$bbox} ({$e->getMessage()})", 0, $e);
+        }
         if (! $res->successful()) {
             throw new RuntimeException("Panoramax : réponse {$res->status()} pour {$bbox}");
         }

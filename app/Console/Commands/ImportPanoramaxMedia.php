@@ -7,6 +7,7 @@ use App\Services\Media\Panoramax\PanoramaxClient;
 use App\Services\Media\Panoramax\PanoramaxSceneBuilder;
 use App\Services\Media\Panoramax\PanoramaxSelection;
 use App\Services\Media\Panoramax\PanoramaxStationSource;
+use App\Services\Media\Panoramax\PanoramaxVision;
 use App\Services\Media\Sources\MediaWriter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\DB;
  *   vff:import-panoramax-media --dry-run --cache-only               relit le cache sans réseau
  *   vff:import-panoramax-media --dry-run --rule=legacy              règle ancienne (60 m, 15°), pour comparer
  *   vff:import-panoramax-media --instance=ign                       photos de l'instance IGN seulement
+ *   vff:import-panoramax-media --dry-run --vision                   tri par vision : télécharge les vignettes à noter
+ *   scripts/panoramax-vision/run.sh                                      note les vignettes (CLIP, processeur)
+ *   vff:import-panoramax-media --vision --cache-only                importe les photos dont la gare est visible
  *   vff:import-panoramax-media                                      toutes les gares
  */
 class ImportPanoramaxMedia extends Command
@@ -35,7 +39,8 @@ class ImportPanoramaxMedia extends Command
         {--cache-only : Aucune requête réseau : seules les gares déjà en cache sont lues}
         {--csv= : Fichier CSV où écrire les photos retenues}
         {--rule=scene : Règle de tri : scene (abords de la gare, par défaut) ou legacy (60 m, 15°)}
-        {--instance=* : Instances gardées (ign, osm-fr ; les deux par défaut)}';
+        {--instance=* : Instances gardées (ign, osm-fr ; les deux par défaut)}
+        {--vision : Tri par vision (note « la gare est visible » de scripts/panoramax-vision, en cache), instance IGN seule}';
 
     protected $description = 'Photos Panoramax (IGN, OpenStreetMap France) des gares : au plus 3 par gare, qui voient un bâtiment ou un quai de la gare';
 
@@ -65,10 +70,16 @@ class ImportPanoramaxMedia extends Command
             return self::FAILURE;
         }
 
+        $vision = $this->option('vision') ? app(PanoramaxVision::class) : null;
+        if ($vision !== null) {
+            // Seules les vignettes de l'IGN se lisent (robots.txt d'OpenStreetMap France) : les autres instances sont ignorées.
+            $instances = PanoramaxVision::INSTANCES;
+        }
         $source = new PanoramaxStationSource(
             app(PanoramaxClient::class), $ids, (bool) $this->option('cache-only'),
             $rule === 'scene' ? app(PanoramaxSceneBuilder::class) : null,
             $instances !== [] ? $instances : null,
+            $vision,
         );
         $limit = $this->option('limit') !== null ? max(1, (int) $this->option('limit')) : null;
         $report = $writer->write($source->records($limit), (bool) $this->option('dry-run'));
@@ -79,6 +90,10 @@ class ImportPanoramaxMedia extends Command
             $report->inserted + $report->updated, $report->inserted,
             $report->touchedCount(Station::class), $report->gainedCount(Station::class),
         ));
+        if ($vision !== null) {
+            $this->info(sprintf('Vision (%s) : %d vignettes téléchargées, %d photos candidates sans note (liste : storage/app/data/panoramax/vision/a-noter.txt, à noter avec scripts/panoramax-vision/run.sh)',
+                trim($vision->model()), $vision->downloaded, count(array_unique($vision->unscored))));
+        }
         $licenses = array_count_values(array_map(fn (array $a): string => (string) $a['license'], $source->accepted));
         $this->table(['Licence', 'Photos'], collect($licenses)->map(fn (int $n, string $l): array => [$l, $n])->values()->all());
         if ($source->rejected !== []) {
@@ -88,10 +103,10 @@ class ImportPanoramaxMedia extends Command
         if ($this->option('csv') !== null) {
             $h = fopen((string) $this->option('csv'), 'wb');
             if ($h !== false) {
-                fputcsv($h, ['slug', 'station', 'id', 'distance_m', 'angle', 'license', 'date', 'thumb', 'page', 'instance', 'station_seen_deg', 'platform_seen_deg', 'station_building_m'], escape: '\\');
+                fputcsv($h, ['slug', 'station', 'id', 'distance_m', 'angle', 'license', 'date', 'thumb', 'page', 'instance', 'station_seen_deg', 'platform_seen_deg', 'station_building_m', 'vision_score'], escape: '\\');
                 foreach ($source->accepted as $a) {
                     fputcsv($h, [$a['slug'], $a['station'], $a['id'], $a['distance_m'], $a['angle'], $a['license'], $a['date'], $a['thumb'], $a['page'],
-                        $a['instance'], $a['station_seen_deg'], $a['platform_seen_deg'], $a['station_building_m']], escape: '\\');
+                        $a['instance'], $a['station_seen_deg'], $a['platform_seen_deg'], $a['station_building_m'], $a['vision_score']], escape: '\\');
                 }
                 fclose($h);
             }
