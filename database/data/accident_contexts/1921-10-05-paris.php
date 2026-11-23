@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident du tunnel des Batignolles (Paris) du 5 octobre 1921 (recherche du 21/11/2026).
 return [
     'slug' => '1921-10-05-paris',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'declic1718' => [
             'provider' => 'sites-web',
@@ -103,9 +103,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Presse de l\'époque citée par Wikipédia, à consulter.',
         ],
+        'ddb-1921-10-06-dortmunder' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Dortmunder Zeitung du 6 octobre 1921',
+            'publisher' => 'Dortmunder Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1921-10-06',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/7EF6OYN33SVBYL4ZUOAJKSIH7DTVCVPN?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 5 octobre : collision dans un tunnel, réservoirs à gaz explosés, 16 voitures sur 21 brûlées ; 50 blessés estimés, 20 grièvement blessés hospitalisés ; frein défaillant de la locomotive du train de Versailles.',
+        ],
+        'kb-1921-10-06-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ernstig spoorwegongeluk.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1921-10-06',
+            'locator' => 'article « Ernstig spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010655062:mpeg21:a0025:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Havas de Paris du 5 octobre : deux trains de voyageurs se heurtent vers 18 h dans le tunnel des Batignolles ; l\'un prend feu ; nombreuses victimes.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'L\'Algemeen Handelsblad du 6 octobre 1921 rapporte, dans une dépêche Havas du 5, que deux trains de voyageurs sont entrés en collision vers 18 h dans le tunnel des Batignolles à Paris, l\'un des deux prenant feu, avec de nombreuses victimes. Date, lieu et nature sont confirmés ; le bilan de 28 morts de la fiche n\'est pas dans cette première dépêche.',
+                'en' => 'The Algemeen Handelsblad of 6 October 1921 reports, in a Havas dispatch of the 5th, that two passenger trains collided at about 6 pm in the Batignolles tunnel in Paris, one of them catching fire, with many victims. Date, place and nature are confirmed; the toll of 28 dead in the record is not in this first dispatch.',
+                'de' => 'Das Algemeen Handelsblad vom 6. Oktober 1921 berichtet in einer Havas-Meldung vom 5., zwei Reisezüge seien gegen 18 Uhr im Tunnel von Batignolles in Paris zusammengestoßen, einer davon in Brand geraten, mit vielen Opfern. Datum, Ort und Art sind bestätigt; die Bilanz von 28 Toten der Datenbank steht nicht in dieser ersten Meldung.',
+                'sources' => ['kb-1921-10-06-algemeen-handelsblad'],
+            ],
             [
                 'fr' => 'Le 5 octobre 1921, à l\'heure de pointe, les voies de sortie de la gare Saint-Lazare à Paris passent sous la butte des Batignolles dans quatre tunnels parallèles à deux voies chacun. L\'accident survient dans l\'un d\'eux, à environ 300 mètres de la gare.',
                 'en' => 'On 5 October 1921, during the rush hour, the exit tracks from Paris Saint-Lazare station ran under the Batignolles hill in four parallel tunnels with two tracks each. The accident took place in one of them, about 300 metres from the station.',
@@ -140,6 +174,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Dortmunder Zeitung du 6 octobre 1921 décrit une collision dans un tunnel avec explosion des réservoirs à gaz, seize voitures sur vingt et une brûlées et environ 50 blessés, dont 20 grièvement, un train de Versailles ayant eu un frein défaillant. Cela confirme la nature, mais le nombre de morts n\'est pas donné dans la partie lue (28 dans la fiche).',
+                'en' => 'The Dortmunder Zeitung of 6 October 1921 describes a collision in a tunnel with gas tanks exploding, sixteen of twenty-one carriages burnt and about 50 injured, 20 of them seriously, a Versailles train having a failed brake. This confirms the nature, but the number of dead is not given in the part read (28 in the record).',
+                'de' => 'Die Dortmunder Zeitung vom 6. Oktober 1921 beschreibt einen Zusammenstoß in einem Tunnel mit explodierenden Gasbehältern, sechzehn von einundzwanzig verbrannten Wagen und etwa 50 Verletzten, davon 20 schwer, wobei ein Zug aus Versailles eine versagende Bremse hatte. Das bestätigt die Art, doch die Zahl der Toten wird im gelesenen Teil nicht genannt (28 in der Datenbank).',
+                'sources' => ['ddb-1921-10-06-dortmunder'],
+            ],
             [
                 'fr' => 'Le bilan retenu est de 28 morts, la plupart victimes de l\'incendie, qui a été favorisé par les voitures en bois et l\'éclairage au gaz. Une quarantaine de blessés sont hospitalisés et une soixantaine d\'autres sont soignés sur place, selon Wikipédia ; l\'inventaire des tunnels en compte 30.',
                 'en' => 'The toll retained is 28 dead, most of them victims of the fire, which was fed by the wooden coaches and gas lighting. About forty injured were taken to hospital and some sixty others were treated on the spot, according to Wikipedia; the tunnel inventory counts 30.',

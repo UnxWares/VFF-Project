@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Boisleux-au-Mont du 18 juin 1957 (recherche du 21/11/2026).
 return [
     'slug' => '1957-06-18-boisleux-au-mont',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-gare-boisleux' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article d\'archives, accès refusé à la lecture ; le titre donne le premier bilan (huit morts, vingt blessés).',
         ],
+        'ddb-1957-06-20-honnefer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zugunglück bei Arras',
+            'publisher' => 'Honnefer Volkszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1957-06-20',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/ORMF2PW5LYSR2E5VK2JXTJGJ63CAF5IU?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche dpa de Paris du 19 juin : près d\'Arras, dix morts et vingt blessés graves ; les deux dernières voitures et le fourgon d\'un express de la frontière belge vers Paris déraillent à un aiguillage.',
+        ],
+        'kb-1957-06-19-algemeen-dagblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TWEE VERKEERSRAMPEN',
+            'publisher' => 'Algemeen Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-06-19',
+            'locator' => 'article « TWEE VERKEERSRAMPEN », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000347066:mpeg21:a00001:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 19 juin : neuf kilomètres au sud d\'Arras, près de la gare de Boisleux-au-Mont, grave accident d\'hier ; huit morts dont de jeunes enfants et 25 blessés dans la soirée.',
+        ],
+        'kb-1957-06-19-trouw' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Franse treinramp eist 8 levens',
+            'publisher' => 'Trouw (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-06-19',
+            'locator' => 'article « Franse treinramp eist 8 levens », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ABCDDD:010816816:mpeg21:a0078:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 19 juin : mardi, l\'express Tourcoing-Paris déraille à Boisleux près d\'Arras ; huit morts, 25 blessés graves, tous français.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -66,6 +108,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'La Honnefer Volkszeitung du 20 juin 1957 rapporte, dans une dépêche dpa de Paris du 19, un accident près d\'Arras : les deux dernières voitures et le fourgon d\'un express de la frontière belge vers Paris ont déraillé à un aiguillage, avec dix morts et vingt blessés graves, contre 11 morts dans la fiche. Lieu et nature sont confirmés ; la date exacte n\'est pas dans l\'extrait.',
+                'en' => 'The Honnefer Volkszeitung of 20 June 1957 reports, in a dpa dispatch from Paris of the 19th, an accident near Arras: the last two carriages and the luggage van of an express from the Belgian border to Paris derailed at a set of points, with ten dead and twenty seriously injured, against 11 dead in the record. Place and nature are confirmed; the exact date is not in the extract.',
+                'de' => 'Die Honnefer Volkszeitung vom 20. Juni 1957 berichtet in einer dpa-Meldung aus Paris vom 19. über ein Unglück bei Arras: Die beiden letzten Wagen und der Gepäckwagen eines Schnellzugs von der belgischen Grenze nach Paris entgleisten an einer Weiche, mit zehn Toten und zwanzig Schwerverletzten, gegenüber 11 Toten in der Datenbank. Ort und Art sind bestätigt; das genaue Datum steht nicht im Auszug.',
+                'sources' => ['ddb-1957-06-20-honnefer'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais du 19 juin 1957 situent le déraillement de l\'express Tourcoing-Paris le mardi (18 juin) à Boisleux-au-Mont, à neuf kilomètres au sud d\'Arras, avec huit morts et 25 blessés graves le soir même, contre dix morts et vingt blessés graves dans la presse allemande du 20 et 11 morts dans la fiche. Date, lieu et nature sont confirmés ; le bilan évolue d\'un jour à l\'autre.',
+                'en' => 'Two Dutch newspapers of 19 June 1957 place the derailment of the Tourcoing-Paris express on Tuesday (18 June) at Boisleux-au-Mont, nine kilometres south of Arras, with eight dead and 25 seriously injured that evening, against ten dead and twenty seriously injured in the German press of the 20th and 11 dead in the record. Date, place and nature are confirmed; the toll changed from one day to the next.',
+                'de' => 'Zwei niederländische Zeitungen vom 19. Juni 1957 verlegen die Entgleisung des Expresszuges Tourcoing-Paris auf Dienstag (18. Juni) nach Boisleux-au-Mont, neun Kilometer südlich von Arras, mit acht Toten und 25 Schwerverletzten am selben Abend, gegenüber zehn Toten und zwanzig Schwerverletzten in der deutschen Presse vom 20. und 11 Toten in der Datenbank. Datum, Ort und Art sind bestätigt; die Bilanz änderte sich von Tag zu Tag.',
+                'sources' => ['kb-1957-06-19-algemeen-dagblad', 'kb-1957-06-19-trouw'],
+            ],
             [
                 'fr' => 'Un premier bilan faisait état de huit morts et de vingt blessés, dont trois graves ; le bilan final est de onze morts. Les blessés ont été conduits dans les hôpitaux d\'Arras, et le bâtiment voyageurs de Boisleux a servi à entreposer les corps et à soigner les blessés légers.',
                 'en' => 'An early toll reported eight dead and twenty injured, three of them seriously; the final toll is eleven dead. The injured were taken to the hospitals of Arras, and Boisleux station building was used to hold the bodies and treat the lightly injured.',

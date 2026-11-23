@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Étampes du 19 mars 1931 (recherche du 21/11/2026).
 return [
     'slug' => '1931-03-19-etampes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-etampes' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Intervention d\'un député communiste citée par Wikipédia à propos des causes ; Gallica non lu (droits).',
         ],
+        'ddb-1931-03-20-hallische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahn-Katastrophe in Frankreich',
+            'publisher' => 'Hallische Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1931-03-20',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/QCHDKIGUVYV2VH4QD52Y5WKSRM7OUFCG?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 20 mars : grave accident vers 20 h à la gare d\'Étampes, le train de luxe Paris-Bordeaux-Hendaye déraille ; six morts et 30 blessés graves, parfois cinq ou sept morts selon les dépêches.',
+        ],
+        'kb-1931-03-21-voorwaarts' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De ramp te Etampes. Het aantal dooden tot negen gestegen. Wat de chef van de restauratiewagen vertelt.',
+            'publisher' => 'Voorwaarts (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1931-03-21',
+            'locator' => 'article « De ramp te Etampes. Het aantal dooden tot negen gestegen. Wat de chef van de restauratiewagen vertelt. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBDDD02:000203462:mpeg21:a0015:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 20 mars : le nombre de morts de la catastrophe d\'Étampes est monté à neuf ; le train omnibus de Brétigny venait d\'entrer en gare quand le choc a eu lieu.',
+        ],
+        'kb-1931-03-20-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK. SPOORWEGONGELUK BIJ ETAMPES.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1931-03-20',
+            'locator' => 'article « FRANKRIJK. SPOORWEGONGELUK BIJ ETAMPES. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010661293:mpeg21:a0230:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Belga : un wagon-restaurant où de nombreuses personnes dînaient heurte un train à l\'arrêt ; à minuit, cinq morts dont deux agents et une vingtaine de blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -80,6 +122,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Les Hallische Nachrichten du 20 mars 1931 rapportent, dans une dépêche de Paris du 20, que le train de luxe Paris-Bordeaux-Hendaye a déraillé vers 20 h à la gare d\'Étampes, avec six morts et 30 blessés graves (cinq ou sept morts selon d\'autres dépêches), contre 10 morts dans la fiche. Lieu et nature sont confirmés ; le bilan évolue d\'un jour à l\'autre.',
+                'en' => 'The Hallische Nachrichten of 20 March 1931 report, in a Paris dispatch of the 20th, that the Paris-Bordeaux-Hendaye luxury train derailed at about 8 pm at Étampes station, with six dead and 30 seriously injured (five or seven dead according to other dispatches), against 10 dead in the record. Place and nature are confirmed; the toll changed from one day to the next.',
+                'de' => 'Die Hallischen Nachrichten vom 20. März 1931 berichten in einer Pariser Meldung vom 20., der Luxuszug Paris-Bordeaux-Hendaye sei gegen 20 Uhr im Bahnhof Étampes entgleist, mit sechs Toten und 30 Schwerverletzten (fünf oder sieben Tote nach anderen Meldungen), gegenüber 10 Toten in der Datenbank. Ort und Art sind bestätigt; die Bilanz änderte sich von Tag zu Tag.',
+                'sources' => ['ddb-1931-03-20-hallische'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais des 20 et 21 mars 1931 confirment la catastrophe d\'Étampes, un wagon-restaurant où de nombreuses personnes dînaient ayant heurté un train à l\'arrêt en gare, avec cinq morts à minuit puis neuf morts le 20 mars, contre 10 morts dans la fiche. Lieu et nature sont confirmés ; le bilan évolue d\'un jour à l\'autre.',
+                'en' => 'Two Dutch newspapers of 20 and 21 March 1931 confirm the Étampes disaster, a restaurant car in which many people were dining having hit a train standing in the station, with five dead at midnight then nine dead on 20 March, against 10 dead in the record. Place and nature are confirmed; the toll changed from one day to the next.',
+                'de' => 'Zwei niederländische Zeitungen vom 20. und 21. März 1931 bestätigen die Katastrophe von Étampes, bei der ein Speisewagen, in dem viele Menschen speisten, auf einen im Bahnhof stehenden Zug auffuhr, mit fünf Toten um Mitternacht, dann neun Toten am 20. März, gegenüber 10 Toten in der Datenbank. Ort und Art sind bestätigt; die Bilanz änderte sich von Tag zu Tag.',
+                'sources' => ['kb-1931-03-21-voorwaarts', 'kb-1931-03-20-algemeen-handelsblad'],
+            ],
             [
                 'fr' => 'La voiture-restaurant, écrasée entre l\'automotrice et le fourgon, a concentré la plupart des victimes. Le bilan final est de dix morts et d\'une quarantaine de blessés. La compagnie avait d\'abord annoncé dix morts, puis un communiqué rectificatif en a donné cinq, avant que le décès de blessés graves ne ramène le chiffre à dix. Les cheminots, la gendarmerie, les pompiers et des militaires de la base aérienne d\'Étampes ont organisé les secours.',
                 'en' => 'The restaurant car, crushed between the suburban unit and the van, took most of the casualties. The final toll was ten dead and about forty injured. The company had first announced ten dead, then a corrective statement gave five, before the death of seriously injured people brought the figure back to ten. Railway staff, the gendarmerie, firefighters and soldiers from the Étampes air base organised the rescue.',

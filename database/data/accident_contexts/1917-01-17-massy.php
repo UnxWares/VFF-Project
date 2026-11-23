@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Massy-Palaiseau du 17 janvier 1917 (recherche du 21/11/2026).
 return [
     'slug' => '1917-01-17-massy',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1917' => [
             'provider' => 'wikipedia',
@@ -103,9 +103,43 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Dépêche de Paris du 17 janvier : deux parties d\'un train de transport de troupes anglais se sont heurtées, deux wagons détruits.',
         ],
+        'ddb-1917-01-20-central-volksblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Central-Volksblatt du 20 janvier 1917',
+            'publisher' => 'Central-Volksblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1917-01-20',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/CGJT2HZKCNR2Q4ZI5CJD24P5M7ZHT3RA?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Genève du 19 janvier : grave accident près de Massy-Palaiseau d\'après Le Petit Parisien ; train de permissionnaires de Salonique (70 officiers britanniques et 500 soldats) ; premier bilan de 10 morts en hausse.',
+        ],
+        'kb-1917-01-18-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1917-01-18',
+            'locator' => 'article « Treinbotsing. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010653854:mpeg21:a0014:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Paris du 17 janvier : la rupture d\'un attelage provoque à Massy-Palaiseau une collision entre deux parties d\'un train militaire anglais ; deux wagons détruits, 10 morts et 15 blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'L\'Algemeen Handelsblad du 18 janvier 1917 rapporte, dans une dépêche Reuter de Paris du 17, qu\'à Massy-Palaiseau la rupture d\'un attelage a provoqué la collision entre deux parties d\'un train militaire anglais, avec deux wagons détruits, 10 morts et 15 blessés dans ce premier bilan, contre 14 morts dans la fiche. Date, lieu et nature sont confirmés.',
+                'en' => 'The Algemeen Handelsblad of 18 January 1917 reports, in a Reuter dispatch from Paris dated the 17th, that at Massy-Palaiseau a broken coupling caused a collision between two parts of a British military train, with two wagons destroyed, 10 dead and 15 injured in this first toll, against 14 dead in the record. Date, place and nature are confirmed.',
+                'de' => 'Das Algemeen Handelsblad vom 18. Januar 1917 berichtet in einer Reuter-Meldung aus Paris vom 17., in Massy-Palaiseau habe eine gerissene Kupplung einen Zusammenstoß zwischen zwei Teilen eines englischen Militärzuges verursacht, mit zwei zerstörten Wagen, 10 Toten und 15 Verletzten in dieser ersten Bilanz, gegenüber 14 Toten in der Datenbank. Datum, Ort und Art sind bestätigt.',
+                'sources' => ['kb-1917-01-18-algemeen-handelsblad'],
+            ],
             [
                 'fr' => 'Le 17 janvier 1917, vers 11 h 20, sur la ligne de Grande Ceinture, un train transportant plus de 1 600 permissionnaires britanniques du Havre vers Marseille vient de s\'arrêter en gare de Massy-Palaiseau (Essonne).',
                 'en' => 'On 17 January 1917, at about 11.20 a.m., on the Grande Ceinture line, a train carrying more than 1,600 British soldiers on leave from Le Havre to Marseille had just stopped at Massy-Palaiseau station (Essonne).',
@@ -122,6 +156,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Une dépêche de Genève publiée le 20 janvier 1917, d\'après Le Petit Parisien, situe l\'accident près de Massy-Palaiseau, sur un train de permissionnaires revenant de Salonique (70 officiers britanniques et 500 soldats), avec un premier bilan de dix morts en augmentation, contre 14 dans la fiche.',
+                'en' => 'A Geneva dispatch published on 20 January 1917, based on Le Petit Parisien, places the accident near Massy-Palaiseau, on a train of soldiers on leave from Salonika (70 British officers and 500 soldiers), with a first toll of ten dead that was rising, against 14 in the record.',
+                'de' => 'Eine am 20. Januar 1917 veröffentlichte Genfer Meldung nach dem Petit Parisien verlegt das Unglück in die Nähe von Massy-Palaiseau, auf einen Urlauberzug aus Saloniki (70 englische Offiziere und 500 Soldaten), mit einer ersten, noch steigenden Zahl von zehn Toten, gegenüber 14 in der Datenbank.',
+                'sources' => ['ddb-1917-01-20-central-volksblatt'],
+            ],
             [
                 'fr' => 'Selon la liste française, l\'accident fait quatorze morts et une quarantaine de blessés.',
                 'en' => 'According to the French list, the accident killed fourteen people and injured about forty.',

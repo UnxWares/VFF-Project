@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Fampoux du 8 juillet 1846 (recherche du 21/11/2026).
 return [
     'slug' => '1846-07-08-fampoux',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -103,6 +103,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien relevé dans les notes de Wikipédia ; non lu.',
         ],
+        'kb-1846-07-11-journal-de-la-haye' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Catastrophe sur le chemin de fer du Ro. d',
+            'publisher' => 'Journal de La Haye (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1846-07-11',
+            'locator' => 'article « Catastrophe sur le chemin de fer du Ro. d », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010258027:mpeg21:a0003:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Récit du 11 juillet : catastrophe sur le chemin de fer du Nord, le convoi sur le point d\'atteindre Arras après avoir dépassé Roeux, sur un remblai élevé ; parmi les voyageurs le général Oudinot et un député.',
+        ],
+        'kb-1846-07-13-nieuwe-rotterdamsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ingezonden Stukken.',
+            'publisher' => 'Nieuwe Rotterdamsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1846-07-13',
+            'locator' => 'article « Ingezonden Stukken. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010082390:mpeg21:a0017:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Lettre du 13 juillet : le malheur près d\'Arras sur le chemin de fer de Paris à Bruxelles, où plus de cinquante personnes se sont noyées.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -134,6 +162,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 11 et 13 juillet 1846 décrivent la catastrophe du chemin de fer du Nord près d\'Arras, au passage d\'un remblai élevé après le village de Roeux, avec plus de cinquante personnes noyées selon l\'un, contre 14 morts dans la fiche, dont le bilan reste douteux. Date et lieu (près d\'Arras, Fampoux et Roeux) sont confirmés ; ce chiffre de la presse des premiers jours est bien supérieur à celui de la fiche et ne l\'établit pas.',
+                'en' => 'Two Dutch newspapers of 11 and 13 July 1846 describe the disaster on the Northern railway near Arras, on a high embankment after the village of Roeux, with more than fifty people drowned according to one, against 14 dead in the record, whose toll remains doubtful. Date and place (near Arras, Fampoux and Roeux) are confirmed; this figure from the press of the first days is far above the record\'s and does not establish it.',
+                'de' => 'Zwei niederländische Zeitungen vom 11. und 13. Juli 1846 beschreiben das Unglück der Nordbahn bei Arras auf einem hohen Damm hinter dem Dorf Roeux, mit mehr als fünfzig Ertrunkenen nach der einen, gegenüber 14 Toten in der Datenbank, deren Bilanz zweifelhaft bleibt. Datum und Ort (bei Arras, Fampoux und Roeux) sind bestätigt; diese Zahl der Presse der ersten Tage liegt weit über der der Datenbank und belegt sie nicht.',
+                'sources' => ['kb-1846-07-11-journal-de-la-haye', 'kb-1846-07-13-nieuwe-rotterdamsche-courant'],
+            ],
             [
                 'fr' => 'Les autorités annoncent 14 morts et une quarantaine de blessés sur environ 220 passagers. Au procès, le procureur retient ce chiffre officiel de 14 morts et dix blessés graves.',
                 'en' => 'The authorities announced 14 dead and about forty injured among some 220 passengers. At the trial, the prosecutor used this official figure of 14 dead and ten seriously injured.',

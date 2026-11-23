@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Châtelaudren du 29 octobre 1922 (recherche du 21/11/2026).
 return [
     'slug' => '1922-10-29-chatelaudren-plouagat',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1922' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Liste d\'accidents sur la ligne ; confirme la collision du rapide Paris-Brest en gare le 29 octobre 1922.',
         ],
+        'ddb-1922-11-04-paderborner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Kein Tag ohne Eisenbahnkatastrophe',
+            'publisher' => 'Paderborner Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1922-11-04',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/7QS4TQVCY4SJHQDOAFATOZIBNWM6H7AD?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 4 novembre : l\'express Paris-Brest heurte, en gare de Châtelaudren, un train de marchandises en manoeuvre ; quatorze personnes tuées.',
+        ],
+        'kb-1922-10-30-de-volkskrant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ernstig spoorwegongeluk tengevolge van een tengvovle',
+            'publisher' => 'De Volkskrant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-10-30',
+            'locator' => 'article « Ernstig spoorwegongeluk tengevolge van een tengvovle », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000132249:mpeg21:a00015:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 30 octobre : hier dimanche matin, l\'express Paris-Brest heurte à la gare de Châtelaudren un train de marchandises ; le signal était fermé mais la tempête de neige empêche le mécanicien de le voir ; 14 morts et 39 blessés.',
+        ],
+        'kb-1922-11-01-nieuwe-hengeloosche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'VERVOLG BUITENLAND.',
+            'publisher' => 'Nieuwe Hengeloosche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-11-01',
+            'locator' => 'article « VERVOLG BUITENLAND. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMGAHE01:234801035:mpeg21:a00006:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 1er novembre : l\'express parti de Paris le samedi à 17 h entre en gare de Châtelaudren à pleine vitesse et heurte un train de marchandises en manoeuvre ; 14 morts.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -80,6 +122,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Paderborner Anzeiger du 4 novembre 1922 annonce que l\'express Paris-Brest a heurté en gare de Châtelaudren un train de marchandises qui manoeuvrait, et que quatorze personnes ont été tuées, ce qui concorde avec la fiche (14 morts). La brève lue ne donne pas la date exacte.',
+                'en' => 'The Paderborner Anzeiger of 4 November 1922 reports that the Paris-Brest express ran into a shunting goods train at Châtelaudren station and that fourteen people were killed, which matches the record (14 dead). The brief read does not give the exact date.',
+                'de' => 'Der Paderborner Anzeiger vom 4. November 1922 meldet, dass der Eilzug Paris-Brest im Bahnhof Châtelaudren mit einem rangierenden Güterzug zusammenstieß und vierzehn Personen getötet wurden, was mit der Datenbank (14 Tote) übereinstimmt. Die gelesene Meldung nennt das genaue Datum nicht.',
+                'sources' => ['ddb-1922-11-04-paderborner'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais des 30 octobre et 1er novembre 1922 confirment la date (dimanche 29 octobre au matin), le lieu (gare de Châtelaudren) et le bilan de 14 morts de la fiche, avec 39 blessés : l\'express Paris-Brest a heurté un train de marchandises en manoeuvre, le mécanicien n\'ayant pas vu le signal fermé dans la tempête de neige.',
+                'en' => 'Two Dutch newspapers of 30 October and 1 November 1922 confirm the date (Sunday morning, 29 October), the place (Châtelaudren station) and the toll of 14 dead in the record, with 39 injured: the Paris-Brest express hit a shunting goods train, the driver not having seen the closed signal in the snowstorm.',
+                'de' => 'Zwei niederländische Zeitungen vom 30. Oktober und 1. November 1922 bestätigen das Datum (Sonntagmorgen, 29. Oktober), den Ort (Bahnhof Châtelaudren) und die Bilanz von 14 Toten der Datenbank, mit 39 Verletzten: Der Schnellzug Paris-Brest fuhr auf einen rangierenden Güterzug auf, wobei der Lokführer das geschlossene Signal im Schneesturm nicht sah.',
+                'sources' => ['kb-1922-10-30-de-volkskrant', 'kb-1922-11-01-nieuwe-hengeloosche-courant'],
+            ],
             [
                 'fr' => 'L\'accident fait quatorze morts et une quarantaine de blessés, dont cinq meurent par la suite, soit dix-neuf morts au total. Soixante chevaux ont aussi été tués.',
                 'en' => 'The accident killed fourteen people and injured about forty, five of whom died later, nineteen deaths in all. Sixty horses were also killed.',

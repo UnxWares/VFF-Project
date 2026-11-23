@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Nozières (Brignon) du 7 septembre 1957 (recherche du 21/11/2026).
 return [
     'slug' => '1957-09-07-brignon',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'gard-tourisme-gare' => [
             'provider' => 'sites-web',
@@ -75,9 +75,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Site dédié à l\'accident, cité par Wikipédia ; renvoie une erreur 404 : à retrouver dans une archive.',
         ],
+        'ddb-1957-09-09-neckar-bote' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Neckar-Bote du 9 septembre 1957',
+            'publisher' => 'Neckar-Bote (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1957-09-09',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/MUPIQN4QZ634YVQSLX2FIKWCP37KGSHG?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève : environ 50 blessés, en partie graves, quand l\'express Paris-Nîmes déraille à 22 km de sa destination, près de la petite gare de Nozières-Brignon où des travaux imposaient une déviation.',
+        ],
+        'kb-1957-09-09-nieuwe-haarlemsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TE NOZIÈRES-BRIGNON De express Parijs-Nîmes ontspoord: 29 doden Ondanks waarschuwing met te grote snelheid...',
+            'publisher' => 'Nieuwe Haarlemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-09-09',
+            'locator' => 'article « TE NOZIÈRES-BRIGNON De express Parijs-Nîmes ontspoord: 29 doden Ondanks waarschuwing met te grote snelheid... », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMNHA03:179282060:mpeg21:a00005:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 9 septembre : l\'express Paris-Nîmes déraille samedi en passant à grande vitesse une aiguille à la gare de Nozières-Brignon malgré un avertissement ; 29 morts.',
+        ],
+        'kb-1957-09-09-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinramp bij Nimes eist 29 doden',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1957-09-09',
+            'locator' => 'article « Treinramp bij Nimes eist 29 doden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=KBNRC01:000037777:mpeg21:a0016:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 9 septembre : accident à 28 km de Nîmes, locomotive, tender, deux fourgons, la voiture postale et quatre voitures de voyageurs déraillent ; surtout des vacanciers.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Le Neckar-Bote du 9 septembre 1957 situe le déraillement de l\'express Paris-Nîmes à environ 22 km de Nîmes, près de la petite gare de Nozières-Brignon où des travaux imposaient une déviation, avec une cinquantaine de blessés dont certains grièvement ; le nombre de morts n\'est pas lu dans la partie consultée (26 dans la fiche). Cela confirme le lieu et la cause liée aux travaux.',
+                'en' => 'The Neckar-Bote of 9 September 1957 places the derailment of the Paris-Nîmes express about 22 km from Nîmes, near the small Nozières-Brignon station where works required a diversion, with about fifty injured, some seriously; the number of dead is not in the part consulted (26 in the record). This confirms the place and the works-related cause.',
+                'de' => 'Der Neckar-Bote vom 9. September 1957 verlegt die Entgleisung des Expresszuges Paris-Nîmes etwa 22 km vor Nîmes in die Nähe des kleinen Bahnhofs Nozières-Brignon, wo Bauarbeiten eine Umleitung erforderten, mit etwa fünfzig zum Teil schwer Verletzten; die Zahl der Toten steht nicht im gelesenen Teil (26 in der Datenbank). Das bestätigt den Ort und die mit den Bauarbeiten verbundene Ursache.',
+                'sources' => ['ddb-1957-09-09-neckar-bote'],
+            ],
             [
                 'fr' => 'Le samedi 7 septembre 1957 à 12 h 35, l\'express Paris-Nîmes no 1115, composé de neuf voitures bondées, a déraillé à Nozières, dans la commune de Brignon (Gard), sur la ligne de Saint-Germain-des-Fossés à Nîmes.',
                 'en' => 'On Saturday 7 September 1957 at 12.35 p.m., the Paris to Nîmes express no. 1115, made up of nine crowded coaches, derailed at Nozières, in the commune of Brignon (Gard), on the Saint-Germain-des-Fossés to Nîmes line.',
@@ -94,6 +142,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais du 9 septembre 1957 confirment le déraillement de l\'express Paris-Nîmes le samedi (7 septembre) à la gare de Nozières-Brignon, à 28 km de Nîmes, passée à grande vitesse sur un aiguillage malgré un avertissement, avec 29 morts, contre 26 dans la fiche.',
+                'en' => 'Two Dutch newspapers of 9 September 1957 confirm the derailment of the Paris-Nîmes express on Saturday (7 September) at Nozières-Brignon station, 28 km from Nîmes, taken at high speed over a set of points despite a warning, with 29 dead, against 26 in the record.',
+                'de' => 'Zwei niederländische Zeitungen vom 9. September 1957 bestätigen die Entgleisung des Expresszuges Paris-Nîmes am Samstag (7. September) im Bahnhof Nozières-Brignon, 28 km vor Nîmes, der trotz Warnung mit hoher Geschwindigkeit über eine Weiche befahren wurde, mit 29 Toten, gegenüber 26 in der Datenbank.',
+                'sources' => ['kb-1957-09-09-nieuwe-haarlemsche-courant', 'kb-1957-09-09-algemeen-handelsblad'],
+            ],
             [
                 'fr' => 'L\'accident a fait 27 morts et 70 blessés selon la fiche de Gard Tourisme et l\'article de Wikipédia sur la gare.',
                 'en' => 'The accident left 27 dead and 70 injured according to the Gard Tourisme page and the Wikipedia article on the station.',

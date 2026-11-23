@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Lothiers (commune de Tendu) du 6 décembre 1918 (recherche du 21/11/2026).
 return [
     'slug' => '1918-12-06-tendu',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1918' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Cité par l\'article Wikipédia de la gare ; non lu (erreur de connexion).',
         ],
+        'ddb-1918-12-09-nuertinger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nürtinger Tagblatt du 9 décembre 1918',
+            'publisher' => 'Nürtinger Tagblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1918-12-09',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/N5WTFNSPYN4M4FFRL5JGGZGZNQTEAOZ3?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche WTB de Paris du 9 décembre, d\'après Le Petit Parisien : lors d\'une collision près de Châteauroux, 68 personnes ont été tuées et 151 blessées « avant-hier ».',
+        ],
+        'kb-1918-12-09-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK. Een spoorwegongeluk.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1918-12-09',
+            'locator' => 'article « FRANKRIJK. Een spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010653481:mpeg21:a0150:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Paris du 8 décembre : selon Le Petit Parisien, 66 morts et 151 blessés dans une collision de chemin de fer « hier » près de Châteauroux.',
+        ],
+        'kb-1918-12-09-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'BUITENLAND.',
+            'publisher' => 'Leeuwarder Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1918-12-09',
+            'locator' => 'article « BUITENLAND. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010601452:mpeg21:a0043:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 9 décembre : selon Le Petit Parisien, 68 morts et 151 blessés lors d\'une collision hier près de Châteauroux.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -116,6 +158,18 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Le Nürtinger Tagblatt du 9 décembre 1918 relaie, d\'après Le Petit Parisien, une collision près de Châteauroux qui aurait fait 68 morts et 151 blessés « avant-hier », c\'est-à-dire le 7 décembre selon la dépêche, contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date et le bilan restent à départager.',
+                'en' => 'The Nürtinger Tagblatt of 9 December 1918 relays, from Le Petit Parisien, a collision near Châteauroux said to have caused 68 dead and 151 injured "the day before yesterday", that is 7 December according to the dispatch, against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date and the toll remain to be settled.',
+                'de' => 'Das Nürtinger Tagblatt vom 9. Dezember 1918 gibt nach dem Petit Parisien einen Zusammenstoß bei Châteauroux wieder, der vorgestern 68 Tote und 151 Verletzte gefordert haben soll, nach der Meldung also am 7. Dezember, gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; Datum und Bilanz bleiben abzuklären.',
+                'sources' => ['ddb-1918-12-09-nuertinger'],
+            ],
+            [
+                'fr' => 'Trois journaux néerlandais et allemands des 8 et 9 décembre 1918 relaient Le Petit Parisien : une collision près de Châteauroux qui a fait 66 ou 68 morts et 151 blessés, avec la date du 7 décembre (« hier » ou « avant-hier » selon les dépêches du 8 et du 9), contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date reste à confirmer.',
+                'en' => 'Three Dutch and German newspapers of 8 and 9 December 1918 relay Le Petit Parisien: a collision near Châteauroux that caused 66 or 68 deaths and 151 injured, dated 7 December ("yesterday" or "the day before yesterday" according to the dispatches of the 8th and 9th), against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date remains to be confirmed.',
+                'de' => 'Drei niederländische und deutsche Zeitungen vom 8. und 9. Dezember 1918 geben den Petit Parisien wieder: ein Zusammenstoß bei Châteauroux mit 66 oder 68 Toten und 151 Verletzten, auf den 7. Dezember datiert („gestern“ oder „vorgestern“ je nach den Meldungen vom 8. und 9.), gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; das Datum bleibt zu bestätigen.',
+                'sources' => ['kb-1918-12-09-algemeen-handelsblad', 'kb-1918-12-09-leeuwarder-courant'],
+            ],
             [
                 'fr' => 'La date est donnée au 6 décembre vers 3 h par la liste de 1918, dans la nuit du 6 au 7 vers 4 h par l\'article de la gare, et au 7 décembre par le site de Vineuil.',
                 'en' => 'The date is given as 6 December at about 3 a.m. by the 1918 list, as the night of 6 to 7 December at about 4 a.m. by the station article, and as 7 December by the Vineuil site.',

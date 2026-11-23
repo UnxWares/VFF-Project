@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Chalon-sur-Saône (Varennes-le-Grand) du 6 octobre 1943 (recherche du 21/11/2026).
 return [
     'slug' => '1943-10-06-varennes-le-grand',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'ahicf-1943' => [
             'provider' => 'sites-web',
@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Journal collaborationniste de l\'époque, non lu (Gallica inaccessible depuis la machine) : à consulter.',
         ],
+        'kb-1943-10-09-arnhemsche-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'STALIN STELT GEEN  BELANG IN FINANCIEELE  CONFERENTIE.',
+            'publisher' => 'Arnhemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1943-10-09',
+            'locator' => 'article « STALIN STELT GEEN  BELANG IN FINANCIEELE  CONFERENTIE. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010329820:mpeg21:a0016:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 8 octobre : l\'express Paris-Lyon est entré près de Chalon-sur-Saône dans un train de marchandises ; 21 morts, 30 blessés graves et 60 légers à ce stade.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -92,6 +106,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'L\'Arnhemsche Courant du 9 octobre 1943 rapporte, dans une dépêche de Paris du 8, que l\'express Paris-Lyon est entré près de Chalon-sur-Saône dans un train de marchandises, avec 21 morts, 30 blessés graves et 60 blessés légers à ce stade, contre 32 morts dans la fiche. La dépêche parle d\'un choc, non d\'un attentat ; la fiche retient une attaque d\'après d\'autres sources.',
+                'en' => 'The Arnhemsche Courant of 9 October 1943 reports, in a Paris dispatch of the 8th, that the Paris-Lyon express ran into a goods train near Chalon-sur-Saône, with 21 dead, 30 seriously and 60 lightly injured at that stage, against 32 dead in the record. The dispatch speaks of a collision, not an attack; the record retains an attack according to other sources.',
+                'de' => 'Die Arnhemsche Courant vom 9. Oktober 1943 berichtet in einer Pariser Meldung vom 8., der Schnellzug Paris-Lyon sei bei Chalon-sur-Saône auf einen Güterzug aufgefahren, mit 21 Toten, 30 Schwer- und 60 Leichtverletzten zu diesem Zeitpunkt, gegenüber 32 Toten in der Datenbank. Die Meldung spricht von einem Zusammenstoß, nicht von einem Anschlag; die Datenbank hält nach anderen Quellen einen Anschlag fest.',
+                'sources' => ['kb-1943-10-09-arnhemsche-courant'],
+            ],
             [
                 'fr' => 'Les sources donnent 32 morts (liste de Wikipédia) ou 39 morts (article de l\'association Rails & histoire), et de nombreux blessés. Parmi les morts figuraient le conducteur du rapide, du dépôt de Dijon-Perrigny, et un mécanicien stagiaire du dépôt de Chalon-sur-Saône qui voyageait comme passager.',
                 'en' => 'The sources give 32 dead (Wikipedia list) or 39 dead (article by the Rails & histoire association), and many injured. The dead included the driver of the express, from the Dijon-Perrigny depot, and a trainee driver from the Chalon-sur-Saône depot who was travelling as a passenger.',

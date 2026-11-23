@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident d'Armentières du 12 décembre 1920 (recherche du 21/11/2026).
 return [
     'slug' => '1920-12-12-armentieres',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1920' => [
             'provider' => 'wikipedia',
@@ -33,6 +33,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Compte rendu contemporain cité par la liste de Wikipédia ; non lu (Gallica).',
         ],
+        'kb-1920-12-13-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'Leeuwarder Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1920-12-13',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010602059:mpeg21:a0053:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêches Havas-Reuter d\'Armentières des 12 et 13 décembre : un train de voyageurs heurte un train de marchandises venant de Lille ; une dizaine de morts, puis onze morts et une trentaine de blessés.',
+        ],
+        'kb-1920-12-13-nieuwsblad-van-het-noorden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrafische berichten. Frankrijk.',
+            'publisher' => 'Nieuwsblad van het Noorden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1920-12-13',
+            'locator' => 'article « Telegrafische berichten. Frankrijk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010668219:mpeg21:a0111:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 12 décembre : l\'accident de ce dimanche matin près d\'Armentières, le train de voyageurs 2102 venant de Berguette vers Lille heurte un autre train à la Chapelle-d\'Armentières.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -52,6 +80,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Deux journaux néerlandais du 13 décembre 1920 confirment l\'accident du dimanche matin (12 décembre) près d\'Armentières, à la Chapelle-d\'Armentières, entre un train de voyageurs et un train de marchandises venant de Lille, avec une dizaine de morts puis onze morts et une trentaine de blessés selon les nouvelles dépêches, ce qui confirme la date, le lieu et le bilan de 11 morts de la fiche.',
+                'en' => 'Two Dutch newspapers of 13 December 1920 confirm the accident of Sunday morning (12 December) near Armentières, at La Chapelle-d\'Armentières, between a passenger train and a goods train coming from Lille, with about ten dead then eleven dead and about thirty injured according to later dispatches, which confirms the date, the place and the toll of 11 dead in the record.',
+                'de' => 'Zwei niederländische Zeitungen vom 13. Dezember 1920 bestätigen das Unglück vom Sonntagmorgen (12. Dezember) bei Armentières, in La Chapelle-d\'Armentières, zwischen einem Reisezug und einem aus Lille kommenden Güterzug, mit etwa zehn Toten, dann elf Toten und etwa dreißig Verletzten nach späteren Meldungen, was Datum, Ort und die Bilanz von 11 Toten der Datenbank bestätigt.',
+                'sources' => ['kb-1920-12-13-leeuwarder-courant', 'kb-1920-12-13-nieuwsblad-van-het-noorden'],
+            ],
             [
                 'fr' => 'La liste de Wikipédia compte onze morts et une trentaine de blessés, d\'après Le Petit Parisien des 13 et 14 décembre 1920.',
                 'en' => 'The Wikipedia list counts eleven dead and about thirty injured, based on Le Petit Parisien of 13 and 14 December 1920.',

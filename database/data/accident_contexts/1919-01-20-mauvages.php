@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Mauvages du 20 janvier 1919 (recherche du 21/11/2026).
 return [
     'slug' => '1919-01-20-mauvages',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1919' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,34 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Un train de ravitaillement a heurté un train de marchandises près de la gare de Mauvages.',
         ],
+        'kb-1919-01-23-algemeen-handelsblad' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK. Spoorwegongeluk.',
+            'publisher' => 'Algemeen Handelsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1919-01-23',
+            'locator' => 'article « FRANKRIJK. Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010653759:mpeg21:a0026:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 22 janvier (Reuter), d\'après Le Petit Parisien de Nancy : à Mauvages, entre Neufchâteau et Toul, deux trains se heurtent ; environ vingt morts et quarante blessés selon la rumeur.',
+        ],
+        'kb-1919-01-22-het-vaderland' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1919-01-22',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001524035:mpeg21:a00057:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Nancy du 22 janvier : grave accident dimanche sur le réseau de l\'Est près de la gare de Mauvages, entre Neufchâteau et Toul ; un train de ravitaillement a heurté un train de marchandises ; une vingtaine de morts et quarante blessés au premier bilan.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -105,6 +133,14 @@ return [
                 'en' => 'The hospital train was standing still after a coupling failure, and the leave train ran into it. The entry consulted says nothing more on why the collision happened (signalling, speed, responsibility).',
                 'de' => 'Der Lazarettzug stand nach einem Kupplungsbruch still, der Urlauberzug fuhr auf ihn auf. Der eingesehene Eintrag sagt nichts weiter zu den Ursachen des Zusammenstoßes (Signalisierung, Geschwindigkeit, Verantwortlichkeit).',
                 'sources' => ['wp-liste-1919'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Deux journaux néerlandais des 22 et 23 janvier 1919 confirment l\'accident près de la gare de Mauvages, entre Neufchâteau et Toul, d\'un train de ravitaillement contre un train de marchandises, avec une vingtaine de morts et quarante blessés au premier bilan (15 morts et 41 blessés dans la fiche). Ils le placent un dimanche, soit le 19 janvier 1919, et non le 20 janvier de la fiche : la date reste à vérifier.',
+                'en' => 'Two Dutch newspapers of 22 and 23 January 1919 confirm the accident near Mauvages station, between Neufchâteau and Toul, of a supply train against a goods train, with about twenty dead and forty injured in the first toll (15 dead and 41 injured in the record). They place it on a Sunday, that is 19 January 1919, and not 20 January as in the record: the date remains to be checked.',
+                'de' => 'Zwei niederländische Zeitungen vom 22. und 23. Januar 1919 bestätigen das Unglück nahe dem Bahnhof Mauvages zwischen Neufchâteau und Toul, bei dem ein Versorgungszug auf einen Güterzug auffuhr, mit etwa zwanzig Toten und vierzig Verletzten in der ersten Bilanz (15 Tote und 41 Verletzte in der Datenbank). Sie verlegen es auf einen Sonntag, also den 19. Januar 1919, und nicht auf den 20. Januar der Datenbank: Das Datum bleibt zu prüfen.',
+                'sources' => ['kb-1919-01-23-algemeen-handelsblad', 'kb-1919-01-22-het-vaderland'],
             ],
         ],
     ],

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Troyes (Saint-Julien-les-Villas) de janvier 1940 (recherche du 21/11/2026).
 return [
     'slug' => '1940-01-20-troyes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1940' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dossiers cités par Wikipédia pour l\'accident et l\'interpellation ; le serveur n\'a pas répondu, documents non lus.',
         ],
+        'ddb-1940-01-25-general-anzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'General-Anzeiger Dortmund du 25 janvier 1940',
+            'publisher' => 'General-Anzeiger Dortmund (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1940-01-25',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AY6QSEI5XWKG5QP77PMDY6PVP3SAGR3M?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève de Bruxelles : près de Troyes, un train de permissionnaires heurte un train de marchandises ; sept morts, dont les deux mécaniciens et un chauffeur, une quarantaine de blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -108,6 +122,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le General-Anzeiger du 25 janvier 1940 rapporte, dans une brève de Bruxelles, qu\'un train de permissionnaires a heurté un train de marchandises près de Troyes, avec sept morts, dont les deux mécaniciens et un chauffeur, et une quarantaine de blessés, contre 10 morts dans la fiche. Lieu et nature sont confirmés ; le bilan diffère, la brève ne donnant pas la date.',
+                'en' => 'The General-Anzeiger of 25 January 1940 reports, in a brief from Brussels, that a leave train hit a goods train near Troyes, with seven dead, including both drivers and a fireman, and about forty injured, against 10 dead in the record. Place and nature are confirmed; the toll differs, the brief not giving the date.',
+                'de' => 'Der General-Anzeiger vom 25. Januar 1940 berichtet in einer Kurzmeldung aus Brüssel, bei Troyes sei ein Urlauberzug mit einem Güterzug zusammengestoßen, mit sieben Toten, darunter beide Lokführer und ein Heizer, und etwa vierzig Verletzten, gegenüber 10 Toten in der Datenbank. Ort und Art sind bestätigt; die Bilanz weicht ab, die Kurzmeldung nennt das Datum nicht.',
+                'sources' => ['ddb-1940-01-25-general-anzeiger'],
+            ],
             [
                 'fr' => 'Le bilan est de dix morts, dont trois cheminots et sept militaires, et d\'une quarantaine de blessés.',
                 'en' => 'The toll was ten dead, three of them railwaymen and seven soldiers, and about forty injured.',

@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident ferroviaire de Laguian-Mazous (dit de Villecomtal) du 1er août 1922 (recherche du 21/11/2026).
 return [
     'slug' => '1922-08-01-laguian-mazous',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -89,9 +89,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Page introuvable à la lecture (erreur 404) ; indiquerait le nombre de pèlerins et un pèlerinage commémoratif en mai 2022.',
         ],
+        'ddb-1922-08-02-bautzener' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schweres Eisenbahn-Unglück in Südfrankreich',
+            'publisher' => 'Bautzener Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1922-08-02',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/7MNFASUTEAC4QFUOXFHNMXI5G7L4ENIE?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Le mardi après-midi, entre Agen et Tarbes, deux trains de pèlerins et de malades pour Lourdes se heurtent ; 40 morts et plus de 50 blessés annoncés dans les premières dépêches.',
+        ],
+        'kb-1922-08-01-leeuwarder-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'Leeuwarder Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-08-01',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010602554:mpeg21:a0043:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Havas d\'Auch du 1er août : deux trains de pèlerins pour Lourdes se heurtent à la montée de Villecomtal ; quarante morts et cinquante blessés.',
+        ],
+        'kb-1922-08-04-provinciale-noordbrabantsche-en-boss' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenland.',
+            'publisher' => 'Provinciale Noordbrabantsche en Bossche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1922-08-04',
+            'locator' => 'article « Buitenland. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSADB01:000003409:mpeg21:a0043:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Récit : les trains suivent la ligne d\'Agen à Tarbes à vingt minutes d\'écart ; le premier, passé Miélan et Villecomtal, cale dans la forte rampe de Laguian et recule.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Deux journaux néerlandais d\'août 1922 confirment la collision du 1er août entre deux trains de pèlerins pour Lourdes sur la ligne d\'Agen à Tarbes, le premier ayant calé dans la rampe de Laguian après Miélan et Villecomtal, avec quarante morts et cinquante blessés dans la dépêche Havas du jour, contre 33 morts dans la fiche.',
+                'en' => 'Two Dutch newspapers of August 1922 confirm the collision of 1 August between two pilgrim trains for Lourdes on the Agen to Tarbes line, the first having stalled on the Laguian gradient after Miélan and Villecomtal, with forty dead and fifty injured in the Havas dispatch of the day, against 33 dead in the record.',
+                'de' => 'Zwei niederländische Zeitungen vom August 1922 bestätigen den Zusammenstoß vom 1. August zwischen zwei Pilgerzügen nach Lourdes auf der Strecke von Agen nach Tarbes, wobei der erste nach Miélan und Villecomtal an der Steigung von Laguian stehen blieb, mit vierzig Toten und fünfzig Verletzten in der Havas-Meldung des Tages, gegenüber 33 Toten in der Datenbank.',
+                'sources' => ['kb-1922-08-01-leeuwarder-courant', 'kb-1922-08-04-provinciale-noordbrabantsche-en-boss'],
+            ],
             [
                 'fr' => 'Le 1er août 1922, vers 4 h 50 selon l\'article français (vers 4 h 30 selon la presse locale), deux trains de pèlerins du diocèse de Moulins, partis de l\'Allier la veille et se rendant à Lourdes, circulent à environ trente minutes d\'intervalle sur la ligne à voie unique d\'Agen à Tarbes, exploitée par la Compagnie du Midi.',
                 'en' => 'On 1 August 1922, at about 4.50 a.m. according to the French article (about 4.30 a.m. according to the local press), two pilgrim trains from the diocese of Moulins, which had left the Allier the day before and were heading for Lourdes, were running about thirty minutes apart on the single-track Agen to Tarbes line operated by the Compagnie du Midi.',
@@ -120,6 +168,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Les Bautzener Nachrichten du 2 août 1922 annoncent, pour la collision de deux trains de pèlerins et de malades pour Lourdes le mardi après-midi (1er août) sur la ligne d\'Agen vers Tarbes, 40 morts et plus de 50 blessés dans les premières dépêches, contre 33 morts dans la fiche.',
+                'en' => 'The Bautzener Nachrichten of 2 August 1922 report, for the collision of two trains of pilgrims and sick people bound for Lourdes on Tuesday afternoon (1 August) on the Agen to Tarbes line, 40 dead and more than 50 injured in the first dispatches, against 33 dead in the record.',
+                'de' => 'Die Bautzener Nachrichten vom 2. August 1922 melden für den Zusammenstoß zweier Züge mit Pilgern und Kranken nach Lourdes am Dienstagnachmittag (1. August) auf der Strecke von Agen nach Tarbes in den ersten Meldungen 40 Tote und über 50 Verwundete, gegenüber 33 Toten in der Datenbank.',
+                'sources' => ['ddb-1922-08-02-bautzener'],
+            ],
             [
                 'fr' => 'Selon l\'article français, l\'accident fait 33 morts et 32 blessés. Les infirmiers présents dans les trains ont donné les premiers soins dans la maisonnette du garde-barrière, les blessés ont été conduits à la mairie-école de Laguian et les morts à l\'église. Le premier train de secours est arrivé vers 10 h.',
                 'en' => 'According to the French article, the accident killed 33 people and injured 32. Medical orderlies travelling on the trains gave first aid in the crossing keeper\'s cottage, the injured were taken to the Laguian town hall and school and the dead to the church. The first relief train arrived at about 10 a.m.',

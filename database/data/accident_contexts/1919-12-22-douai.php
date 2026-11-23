@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Douai du 22 décembre 1919 (recherche du 21/11/2026).
 return [
     'slug' => '1919-12-22-douai',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1919' => [
             'provider' => 'wikipedia',
@@ -33,6 +33,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Compte rendu contemporain cité par la liste de Wikipédia ; non lu (Gallica).',
         ],
+        'ddb-1919-12-23-iserlohner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Iserlohner Kreisanzeiger du 23 décembre 1919',
+            'publisher' => 'Iserlohner Kreisanzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1919-12-23',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/S4SJHJIV4R5CDIQVT42GDRXUHRFKOVUG?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève d\'après une dépêche Havas : à la gare de Douai, un train de marchandises est entré dans un express ; quatre voitures détruites, 9 morts et un certain nombre de blessés.',
+        ],
+        'kb-1919-12-24-de-tijd' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk.',
+            'publisher' => 'De Tijd (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1919-12-24',
+            'locator' => 'article « Spoorwegongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010384583:mpeg21:a0072:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 23 décembre : à Douai, 12 morts et 25 blessés ; l\'express Lille-Paris, juste avant la gare, heurté par un train de marchandises ; trois voitures en pièces.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -52,6 +80,18 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'L\'Iserlohner Kreisanzeiger du 23 décembre 1919 rapporte, d\'après Havas, qu\'à la gare de Douai un train de marchandises est entré dans un express, avec quatre voitures détruites, neuf morts et un certain nombre de blessés, contre 12 morts dans la fiche. Lieu et nature sont confirmés ; l\'extrait ne donne pas la date exacte.',
+                'en' => 'The Iserlohner Kreisanzeiger of 23 December 1919 reports, from Havas, that at Douai station a goods train ran into an express, with four carriages destroyed, nine dead and a number of injured, against 12 dead in the record. Place and nature are confirmed; the extract does not give the exact date.',
+                'de' => 'Der Iserlohner Kreisanzeiger vom 23. Dezember 1919 berichtet nach Havas, im Bahnhof Douai sei ein Güterzug in einen Schnellzug gefahren, mit vier zertrümmerten Wagen, neun Toten und einer Anzahl Verletzter, gegenüber 12 Toten in der Datenbank. Ort und Art sind bestätigt; der Auszug nennt das genaue Datum nicht.',
+                'sources' => ['ddb-1919-12-23-iserlohner'],
+            ],
+            [
+                'fr' => 'La Tijd du 24 décembre 1919 rapporte, dans des dépêches de Paris du 23, qu\'à Douai, juste avant la gare, l\'express Lille-Paris a été heurté par un train de marchandises, avec trois voitures en pièces, 12 morts et 25 blessés. Avec la presse allemande du 23 décembre, cela confirme le lieu, la nature et le bilan de 12 morts de la fiche, l\'accident datant au plus tard du 22 au 23 décembre.',
+                'en' => 'De Tijd of 24 December 1919 reports, in Paris dispatches of the 23rd, that at Douai, just before the station, the Lille-Paris express was hit by a goods train, with three carriages in pieces, 12 dead and 25 injured. With the German press of 23 December, this confirms the place, the nature and the toll of 12 dead in the record, the accident dating from 22 to 23 December at the latest.',
+                'de' => 'De Tijd vom 24. Dezember 1919 berichtet in Pariser Meldungen vom 23., in Douai sei kurz vor dem Bahnhof der Schnellzug Lille-Paris von einem Güterzug gerammt worden, mit drei zertrümmerten Wagen, 12 Toten und 25 Verletzten. Zusammen mit der deutschen Presse vom 23. Dezember bestätigt das den Ort, die Art und die Bilanz von 12 Toten der Datenbank, wobei das Unglück spätestens auf den 22. bis 23. Dezember fällt.',
+                'sources' => ['kb-1919-12-24-de-tijd'],
+            ],
             [
                 'fr' => 'Le bilan est de douze morts et quarante-cinq blessés d\'après la liste de Wikipédia, qui renvoie au Petit Parisien du 23 décembre 1919.',
                 'en' => 'The toll is twelve dead and forty-five injured according to the Wikipedia list, which refers to Le Petit Parisien of 23 December 1919.',

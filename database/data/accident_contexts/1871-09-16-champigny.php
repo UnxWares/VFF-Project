@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident de Champigny (Yonne) du 16 septembre 1871 (recherche du 21/11/2026).
 return [
     'slug' => '1871-09-16-champigny',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -75,6 +75,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Rappel de l\'affaire pendant un débat, cité par la liste de Wikipédia à propos des poursuites ; Gallica non lu.',
         ],
+        'kb-1871-09-19-dagblad-van-zuidholland-en-s-gravenh' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'FRANKRIJK.',
+            'publisher' => 'Dagblad van Zuidholland en \'s Gravenhaagsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1871-09-19',
+            'locator' => 'article « FRANKRIJK. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000881069:mpeg21:a00041:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 19 septembre : samedi, un train ordinaire a déraillé sur le chemin de fer de Lyon entre Pont-sur-Yonne et Champigny ; neuf morts et plusieurs blessés.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -92,6 +106,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'Le Dagblad van Zuidholland du 19 septembre 1871 rapporte que samedi (16 septembre) un train ordinaire a déraillé sur le chemin de fer de Lyon entre Pont-sur-Yonne et Champigny, avec neuf morts et plusieurs blessés, contre 11 morts et 32 blessés dans la fiche. Date, lieu et nature sont confirmés ; le bilan diffère.',
+                'en' => 'The Dagblad van Zuidholland of 19 September 1871 reports that on Saturday (16 September) an ordinary train derailed on the Lyon railway between Pont-sur-Yonne and Champigny, with nine dead and several injured, against 11 dead and 32 injured in the record. Date, place and nature are confirmed; the toll differs.',
+                'de' => 'Das Dagblad van Zuidholland vom 19. September 1871 berichtet, am Samstag (16. September) sei ein gewöhnlicher Zug auf der Lyoner Bahn zwischen Pont-sur-Yonne und Champigny entgleist, mit neun Toten und mehreren Verletzten, gegenüber 11 Toten und 32 Verletzten in der Datenbank. Datum, Ort und Art sind bestätigt; die Bilanz weicht ab.',
+                'sources' => ['kb-1871-09-19-dagblad-van-zuidholland-en-s-gravenh'],
+            ],
             [
                 'fr' => 'Le bilan donné par la liste de Wikipédia est de 11 morts et 32 blessés ; l\'article sur la gare parle de 11 morts et de nombreux blessés sans chiffre.',
                 'en' => 'The Wikipedia list gives 11 dead and 32 injured; the station article mentions 11 dead and many injured without a figure.',

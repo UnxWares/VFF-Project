@@ -4,7 +4,7 @@
 // Fusion du 22/11/2026 : la fiche « accident ferroviaire de Sarry » (17 septembre 1914) décrit le même accident (décision de Baptiste) ; ses sources et ses énoncés sont repris ici.
 return [
     'slug' => '1914-09-15-lizy-sur-ourcq',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1914' => [
             'provider' => 'wikipedia',
@@ -146,9 +146,29 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Même récit : train de la Compagnie de l\'Est, pont de la Marne détruit, accident près de Meaux.',
         ],
+        'kb-1914-09-19-nieuwsblad-van-het-noorden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Gemengde berichten.',
+            'publisher' => 'Nieuwsblad van het Noorden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1914-09-19',
+            'locator' => 'article « Gemengde berichten. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010667634:mpeg21:a0010:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 19 septembre : un train de blessés a eu un accident à Lizy-sur-Ourcq, après un mauvais réglage d\'aiguille, sur un pont en partie détruit.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Le Nieuwsblad van het Noorden du 19 septembre 1914 rapporte un accident à Lizy-sur-Ourcq, où un train de blessés, à la suite d\'une aiguille mal placée, a roulé sur un pont en partie détruit. Cela confirme le lieu et la nature (train sanitaire, pont détruit) ; l\'extrait lu ne donne ni date précise ni bilan.',
+                'en' => 'The Nieuwsblad van het Noorden of 19 September 1914 reports an accident at Lizy-sur-Ourcq, where a train of wounded, because of wrongly set points, ran onto a partly destroyed bridge. This confirms the place and the nature (hospital train, destroyed bridge); the extract read gives neither a precise date nor a toll.',
+                'de' => 'Das Nieuwsblad van het Noorden vom 19. September 1914 berichtet über ein Unglück bei Lizy-sur-Ourcq, bei dem ein Zug mit Verwundeten wegen einer falsch gestellten Weiche auf eine teilweise zerstörte Brücke fuhr. Das bestätigt den Ort und die Art (Lazarettzug, zerstörte Brücke); der gelesene Auszug nennt weder ein genaues Datum noch eine Bilanz.',
+                'sources' => ['kb-1914-09-19-nieuwsblad-van-het-noorden'],
+            ],
             [
                 'fr' => 'Pendant la première bataille de la Marne, un train de blessés circulait de nuit sur la ligne de Trilport à Bazoches. Il a été dirigé vers le pont de Mary-sur-Marne, à environ 1,4 km de Lizy-sur-Ourcq, que des combats récents avaient détruit.',
                 'en' => 'During the First Battle of the Marne, a train of wounded soldiers was running at night on the Trilport to Bazoches line. It was sent towards the bridge at Mary-sur-Marne, about 1.4 km from Lizy-sur-Ourcq, which recent fighting had destroyed.',

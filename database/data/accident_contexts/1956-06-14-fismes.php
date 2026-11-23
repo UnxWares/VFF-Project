@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement de Fismes de juin 1956 (recherche du 21/11/2026). Fiche peu documentée.
 return [
     'slug' => '1956-06-14-fismes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1950' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Légende d\'une photographie d\'agence vue dans un moteur de recherche, non lue sur la page : elle daterait l\'accident du 6 juin 1956 (au petit matin) et annoncerait sept morts ; à vérifier.',
         ],
+        'ddb-1956-06-15-honnefer' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => '11 Tote und 30 Schwerverletzte',
+            'publisher' => 'Honnefer Volkszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1956-06-15',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/KMZ7EBQ3O7CBH7Y3N3HZJXSKAML2EBPM?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche dpa de Reims du 14 juin : jeudi matin, à la gare de Fismes près de Reims, la quatrième voiture de l\'express Paris-Luxembourg sort des rails à 90 km/h et heurte un pilier de pont ; onze morts et 30 blessés graves.',
+        ],
+        'kb-1956-06-15-nieuwsblad-van-het-zuiden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Elf doden bij treinramp in Frankrijk',
+            'publisher' => 'Nieuwsblad van het Zuiden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1956-06-15',
+            'locator' => 'article « Elf doden bij treinramp in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000620058:mpeg21:a00022:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche UP de Fismes du 14 juin : jeudi, l\'express Paris-Luxembourg déraille en gare de Fismes ; 11 morts, 150 blessés dont 34 graves.',
+        ],
+        'kb-1956-06-15-de-gooi-en-eemlander' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Aantal doden van treinramp tot elf gestegen Een twaalfde slachtoffer nog in levensgevaar',
+            'publisher' => 'De Gooi- en Eemlander (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1956-06-15',
+            'locator' => 'article « Aantal doden van treinramp tot elf gestegen Een twaalfde slachtoffer nog in levensgevaar », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMGAGM01:234879062:mpeg21:a00009:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 15 juin : le nombre de morts est monté à onze (sept morts sur place, deux en route vers l\'hôpital, deux à l\'hôpital) ; un douzième blessé en danger de mort.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -77,6 +119,20 @@ return [
                 'en' => 'The Wikipedia list gives 14 June 1956, eleven dead and thirty-eight injured, without a source that could be read (a post by the town of Fismes). Documents that were found but not read add other elements: a postcard dates the disaster to 14 June, while a press agency photo caption is said to give 6 June and seven dead. The date and the toll still need checking in the press of the time and in the SNCF archives.',
                 'de' => 'Die Wikipedia-Liste nennt den 14. Juni 1956, elf Tote und achtunddreißig Verletzte, ohne lesbare Quelle (ein Beitrag der Stadt Fismes). Gefundene, aber nicht gelesene Dokumente liefern weitere Angaben: Eine Postkarte datiert die Katastrophe auf den 14. Juni, während eine Bildunterschrift einer Bildagentur den 6. Juni und sieben Tote nennen soll. Datum und Bilanz müssen noch in der Presse der Zeit und in den SNCF-Archiven überprüft werden.',
                 'sources' => ['wp-liste-1950'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La Honnefer Volkszeitung du 15 juin 1956 rapporte, dans une dépêche dpa de Reims du 14, que le jeudi matin (14 juin), à la gare de Fismes près de Reims, la quatrième voiture de l\'express Paris-Luxembourg a déraillé à 90 km/h et heurté un pilier de pont, avec onze morts et 30 blessés graves. Date, lieu, nature et bilan de 11 morts confirment la fiche.',
+                'en' => 'The Honnefer Volkszeitung of 15 June 1956 reports, in a dpa dispatch from Reims of the 14th, that on Thursday morning (14 June), at Fismes station near Reims, the fourth carriage of the Paris-Luxembourg express left the rails at 90 km/h and hit a bridge pier, with eleven dead and 30 seriously injured. Date, place, nature and the toll of 11 dead confirm the record.',
+                'de' => 'Die Honnefer Volkszeitung vom 15. Juni 1956 berichtet in einer dpa-Meldung aus Reims vom 14., am Donnerstagvormittag (14. Juni) sei am Bahnhof Fismes bei Reims der vierte Wagen des Schnellzugs Paris-Luxemburg bei 90 km/h entgleist und gegen einen Brückenpfeiler gestoßen, mit elf Toten und 30 Schwerverletzten. Datum, Ort, Art und die Bilanz von 11 Toten bestätigen die Datenbank.',
+                'sources' => ['ddb-1956-06-15-honnefer'],
+            ],
+            [
+                'fr' => 'Deux journaux néerlandais du 15 juin 1956 confirment le déraillement du jeudi (14 juin) de l\'express Paris-Luxembourg en gare de Fismes, près de Reims, avec 11 morts (sept sur place, deux en route vers l\'hôpital, deux à l\'hôpital), ce qui concorde avec la presse allemande et avec le bilan de la fiche ; les blessés sont donnés pour 30 à 150, dont 34 graves.',
+                'en' => 'Two Dutch newspapers of 15 June 1956 confirm the derailment on Thursday (14 June) of the Paris-Luxembourg express at Fismes station, near Reims, with 11 dead (seven on the spot, two on the way to hospital, two in hospital), which agrees with the German press and with the toll in the record; the injured are given as 30 to 150, 34 of them seriously.',
+                'de' => 'Zwei niederländische Zeitungen vom 15. Juni 1956 bestätigen die Entgleisung des Expresszuges Paris-Luxemburg am Donnerstag (14. Juni) im Bahnhof Fismes bei Reims, mit 11 Toten (sieben an Ort und Stelle, zwei auf dem Weg ins Krankenhaus, zwei im Krankenhaus), was mit der deutschen Presse und mit der Bilanz der Datenbank übereinstimmt; die Verletzten werden mit 30 bis 150 angegeben, davon 34 schwer.',
+                'sources' => ['kb-1956-06-15-nieuwsblad-van-het-zuiden', 'kb-1956-06-15-de-gooi-en-eemlander'],
             ],
         ],
     ],

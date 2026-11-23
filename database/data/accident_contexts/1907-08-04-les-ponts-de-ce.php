@@ -3,7 +3,7 @@
 // Contexte sourcé de l'accident des Ponts-de-Cé du 4 août 1907 (recherche du 21/11/2026).
 return [
     'slug' => '1907-08-04-les-ponts-de-ce',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-fr' => [
             'provider' => 'wikipedia',
@@ -131,9 +131,49 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia ; Gallica bloque la machine, non lu.',
         ],
+        'ddb-1907-08-06-vorwaerts' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eine furchtbare Eisenbahnkatastrophe',
+            'publisher' => 'Vorwärts (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1907-08-06',
+            'locator' => 'p. 9',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IW47TUYVICHOG3UK2F2NKBNABPSHYOOU?issuepage=9',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche du 5 août (journal du 6) : le train de 11 h 29 d\'Angers vers Poitiers, dimanche, s\'abat à l\'entrée du pont sur la Loire ; locomotive, tender et la voiture suivante tombent dans le fleuve ; 16 blessés ; ministre Barthou parti sur les lieux.',
+        ],
+        'kb-1907-08-05-de-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'TELEGRAMMEN.',
+            'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1907-08-05',
+            'locator' => 'article « TELEGRAMMEN. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003502092:mpeg21:a00001:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter d\'Angers du 4 août : un train de l\'État entre Angers et Poitiers déraille, locomotive vingt mètres avant le pont sur la Loire près des Ponts-de-Cé ; le plancher du pont s\'effondre ; le titre annonce des dizaines de victimes.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Le Vorwärts du 6 août 1907 décrit la catastrophe du dimanche (4 août) : le train de 11 h 29 d\'Angers vers Poitiers est tombé à l\'entrée du pont sur la Loire, la locomotive, le tender et la voiture suivante, pleine de voyageurs, ont plongé dans le fleuve, et seize personnes étaient blessées. Cela confirme la date et le lieu ; le journal n\'a pas donné le nombre de morts dans la partie lue.',
+                'en' => 'The Vorwärts of 6 August 1907 describes the disaster of Sunday (4 August): the 11.29 am train from Angers to Poitiers fell at the entrance of the bridge over the Loire, the locomotive, the tender and the next carriage, full of passengers, plunged into the river, and sixteen people were injured. This confirms the date and the place; the newspaper did not give the number of dead in the part read.',
+                'de' => 'Der Vorwärts vom 6. August 1907 beschreibt die Katastrophe vom Sonntag (4. August): Der Zug von Angers nach Poitiers um 11.29 Uhr stürzte am Eingang der Brücke über die Loire ab, Lokomotive, Tender und der folgende, mit Reisenden vollgestopfte Wagen fielen in den Fluss, sechzehn Personen wurden verletzt. Das bestätigt Datum und Ort; die Zahl der Toten nannte die Zeitung im gelesenen Teil nicht.',
+                'sources' => ['ddb-1907-08-06-vorwaerts'],
+            ],
+            [
+                'fr' => 'Le journal De Courant du 5 août 1907 rapporte, dans une dépêche Reuter d\'Angers du 4 août, qu\'un train de l\'État entre Angers et Poitiers a déraillé vingt mètres avant le pont sur la Loire près des Ponts-de-Cé, le plancher du pont s\'effondrant sous la locomotive et le tender. Date, lieu et nature sont confirmés ; le bilan de 27 morts de la fiche est postérieur à cette dépêche.',
+                'en' => 'The newspaper De Courant of 5 August 1907 reports, in a Reuter dispatch from Angers dated 4 August, that a State railway train between Angers and Poitiers derailed twenty metres before the bridge over the Loire near Les Ponts-de-Cé, the floor of the bridge collapsing under the locomotive and the tender. Date, place and nature are confirmed; the toll of 27 dead in the record came after this dispatch.',
+                'de' => 'Die Zeitung De Courant vom 5. August 1907 berichtet in einer Reuter-Meldung aus Angers vom 4. August, ein Zug der Staatsbahn zwischen Angers und Poitiers sei zwanzig Meter vor der Brücke über die Loire bei Les Ponts-de-Cé entgleist, wobei der Brückenboden unter Lokomotive und Tender einstürzte. Datum, Ort und Art sind bestätigt; die Bilanz von 27 Toten der Datenbank stammt aus der Zeit nach dieser Meldung.',
+                'sources' => ['kb-1907-08-05-de-courant'],
+            ],
             [
                 'fr' => 'Le dimanche 4 août 1907, l\'omnibus n° 407 d\'Angers-Saint-Laud à Poitiers, sur la ligne de Loudun à Angers-Maître-École (réseau de l\'État), quitte Angers à 11 h 25. Il est composé d\'une locomotive, d\'un tender, de deux fourgons et de sept voitures, et il est bondé en raison de la foule dominicale et d\'une fête patronale voisine.',
                 'en' => 'On Sunday 4 August 1907, local train no. 407 from Angers-Saint-Laud to Poitiers, on the Loudun to Angers-Maître-École line (État network), left Angers at 11.25 am. It consisted of a locomotive, a tender, two luggage vans and seven coaches, and it was packed because of the Sunday crowds and a nearby village fair.',
