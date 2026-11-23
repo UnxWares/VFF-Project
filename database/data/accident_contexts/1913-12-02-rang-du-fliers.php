@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Express Paris-Boulogne contre un train de marchandises près de la gare de Rang-du-Fliers, deux voitures tombées du remblai, un chauffeur tué, voyageurs (surtout des Américains) indemnes.',
+            'facts' => ['date' => '1913-12-02', 'commune_insee' => '62688', 'deaths' => 1],
         ],
     ],
     'sections' => [

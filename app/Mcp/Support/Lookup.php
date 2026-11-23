@@ -41,11 +41,16 @@ final class Lookup
         return null;
     }
 
+    /** Gare par slug, ou ancien slug (fiche fusionnée dans une autre : la gare revient sous son slug actuel). */
     public static function station(string $query): ?Station
     {
         $q = trim($query);
+        if ($q === '') {
+            return null;
+        }
 
-        return $q === '' ? null : Station::where('slug', $q)->first();
+        return Station::where('slug', $q)->first()
+            ?? (($current = Station::redirectSlugFor($q)) !== null ? Station::where('slug', $current)->first() : null);
     }
 
     /**

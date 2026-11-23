@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même dépêche, avec un autre accident de train militaire signalé à Bédarieux.',
         ],
+        'ddb-1913-09-08-badische-presse' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Les accidents des trains militaires du 7 septembre',
+            'publisher' => 'Badische Presse (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/37TFS566JC3GHANJT7QH2YW55RAUN2O6?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 8 septembre : dimanche, un train militaire du 81e régiment arrivé avec trois heures de retard en gare de Saint-Amans-Soult repart malgré les télégrammes du chef de gare voisin et heurte à 300 m de la gare un train venant de Mazamet ; une vivandière et deux soldats tués (trois morts), nombreux blessés.',
+            'facts' => ['date' => '1913-09-07', 'commune_insee' => '81238', 'deaths' => 3],
+        ],
     ],
     'sections' => [
         'circumstances' => [

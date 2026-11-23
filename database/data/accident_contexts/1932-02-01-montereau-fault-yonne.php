@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche Reuter : sneltrein Paris-Milan déraillé près de la gare de Montereau, un chauffeur tué, trois blessés dont un postier ; rappel d\'un accident dû à un sabotage au même endroit deux ans plus tôt.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '77305', 'deaths' => 1, 'deaths_provisional' => true],
         ],
         'delpher-1932-02-02a' => [
             'provider' => 'delpher',

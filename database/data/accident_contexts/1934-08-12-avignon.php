@@ -19,6 +19,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche, d\'après la presse de l\'époque (Gallica).',
         ],
+        'ddb-1934-08-13-solinger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück. Schnellzug Genf-Avignon-Ventimiglia entgleist',
+            'publisher' => 'Solinger Tageblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1934-08-13',
+            'locator' => 'p. 5',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/GV6ZRXSYQ2E45JLAIGVYKYHMVGSI4OJ6?issuepage=5',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 12 août : dimanche matin peu après 4 h, l\'express Genève-Vintimille déraille à 200 m de l\'entrée de la gare d\'Avignon, tous les wagons quittent les rails ; 8 morts et 35 blessés.',
+            'facts' => ['date' => '1934-08-12', 'commune_insee' => '84007', 'deaths' => 8],
+        ],
     ],
     'sections' => [
         'course' => [

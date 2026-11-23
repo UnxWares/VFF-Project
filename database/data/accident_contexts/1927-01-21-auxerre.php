@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Seconde référence de presse citée par la liste de Wikipédia, à consulter ; non lue.',
         ],
+        'ddb-1927-01-22-annener' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schweres Eisenbahnunglück in Frankreich',
+            'publisher' => 'Annener Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1927-01-22',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/2WOSRTEQSTEQRFU3EJZCLXFAIQQER74A?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 21 janvier : aujourd\'hui, en gare d\'Auxerre, un train venant de Joigny, dont les freins lâchent, entre dans le hall à 60 km/h ; la locomotive déraille, deux voitures sont jetées sur le quai ; un voyageur tué, sept grièvement blessés.',
+            'facts' => ['date' => '1927-01-21', 'commune_insee' => '89024', 'deaths' => 1],
+        ],
     ],
     'sections' => [
         'circumstances' => [

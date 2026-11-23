@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche de Sillé-le-Guillaume : erreur de manoeuvre des aiguilles, express de Brest contre un omnibus, samedi, deux morts et dix blessés.',
+            'facts' => ['date' => '1908-11-28', 'commune_insee' => '72334', 'deaths' => 2, 'deaths_provisional' => true],
         ],
         'delpher-overijsselsche-1908-12-01' => [
             'provider' => 'delpher',

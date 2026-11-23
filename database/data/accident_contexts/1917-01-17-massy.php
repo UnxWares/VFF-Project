@@ -130,6 +130,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche Reuter de Paris du 17 janvier : la rupture d\'un attelage provoque à Massy-Palaiseau une collision entre deux parties d\'un train militaire anglais ; deux wagons détruits, 10 morts et 15 blessés.',
+            'facts' => ['date' => '1917-01-17', 'commune_insee' => '91377', 'deaths' => 10, 'deaths_provisional' => true],
         ],
     ],
     'sections' => [

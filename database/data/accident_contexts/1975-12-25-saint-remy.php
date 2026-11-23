@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche du 27 décembre : déraillement de l\'express Vlaanderen-Rivièra à 3 h 25 près de Saint-Rémy, 100 km au nord de Lyon ; trois Belges et une Française tués, 13 blessés graves, 19 légers dont neuf Néerlandais ; environ 700 voyageurs ; défaut mécanique d\'aiguille, peut-être dû au gel ; 120 km/h.',
+            'facts' => ['date' => '1975-12-25', 'commune_insee' => '71475', 'deaths' => 4],
         ],
         'delpher-1975-12-27-abc' => [
             'provider' => 'delpher',

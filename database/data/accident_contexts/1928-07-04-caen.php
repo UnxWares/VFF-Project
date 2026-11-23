@@ -61,6 +61,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche B.T.A. : le train postal de Cherbourg a heurté un train local, le chef de train tué, plusieurs blessés dans le train heurté, aucun grave.',
         ],
+        'ddb-1928-07-05-langenberger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zusammenstoß auf einem französischen Bahnhof',
+            'publisher' => 'Langenberger Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1928-07-05',
+            'locator' => 'p. 9',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/YVV2G5H66YYNEDRPHVMU7BJ4V55RB35S?issuepage=9',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 5 juillet : hier à midi, en gare de Caen, un train venant de Cherbourg avec des passagers de troisième classe d\'un paquebot rattrape les dernières voitures d\'un train à l\'arrêt ; le conducteur est tué, huit voyageurs de l\'autre train blessés.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '14118', 'deaths' => 1],
+        ],
     ],
     'sections' => [
         'circumstances' => [

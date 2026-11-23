@@ -33,6 +33,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Entrée courte, sourcée par Le Petit Journal du 11 septembre 1894 (Gallica, non lu) ; renvoie à l\'article détaillé.',
         ],
+        'ddb-1894-09-11-koelnische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Das Eisenbahn-Unglück bei Appilly',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1894-09-11',
+            'locator' => 'p. 10',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/HLLV64NVA4INXNX2YMEOJZ2HLWZJAM2K?issuepage=10',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Rapport officiel de la Compagnie du Nord au ministre : dimanche après-midi, en gare d\'Appilly, l\'express pour Bruxelles et Cologne heurte une machine de manoeuvre lancée par le chef de gare ; le chef de gare, deux étrangers et deux dames sont tués (cinq morts en tout), six voyageurs et trois agents blessés.',
+            'facts' => ['date' => '1894-09-09', 'commune_insee' => '60021', 'deaths' => 5],
+        ],
     ],
     'sections' => [
         'circumstances' => [

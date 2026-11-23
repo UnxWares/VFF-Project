@@ -27,8 +27,8 @@ class LineReferenceExclusionsTest extends TestCase
         yield 'voie coupée autour d\'un point' => [$cut, []];
         yield 'fragment' => [$fragment, []];
         yield 'fragment, longueur décimale' => [['max_m' => 12.5] + $fragment, []];
-        yield 'sorte inconnue' => [['kind' => 'portion'] + $trace, ['kind : « trace » ou « fragment »']];
-        yield 'sorte absente' => [array_diff_key($trace, ['kind' => 1]), ['kind : « trace » ou « fragment »']];
+        yield 'sorte inconnue' => [['kind' => 'portion'] + $trace, ['kind : « trace », « fragment » ou « shared »']];
+        yield 'sorte absente' => [array_diff_key($trace, ['kind' => 1]), ['kind : « trace », « fragment » ou « shared »']];
         yield 'ligne absente' => [array_diff_key($trace, ['line' => 1]), ['line manquant']];
         yield 'raison vide' => [['reason' => ''] + $trace, ['reason manquant']];
         yield 'source absente' => [array_diff_key($fragment, ['source' => 1]), ['source manquant']];
@@ -43,6 +43,13 @@ class LineReferenceExclusionsTest extends TestCase
         yield 'point en texte' => [['at' => ['2.3', '49.8']] + $fragment, ['at : [lon, lat]']];
         yield 'fragment sans longueur' => [array_diff_key($fragment, ['max_m' => 1]), ['max_m : longueur de 1 à 500 m']];
         yield 'clé d\'une autre sorte' => [$fragment + ['source_ref' => '1'], ['clés inconnues : source_ref']];
+        $shared = ['kind' => 'shared', 'over' => '805000', 'source_name' => 'archeoferroviaire', 'source_ref' => 'abc'] + $common;
+        yield 'voie partagée' => [$shared, []];
+        yield 'voie partagée dans un disque' => [['near' => [2.118, 48.7955], 'radius_m' => 2000] + $shared, []];
+        yield 'voie partagée sans ligne porteuse' => [array_diff_key($shared, ['over' => 1]), ['over manquant']];
+        yield 'voie partagée précise' => [['source_name' => 'osm'] + $shared, ['source_name : archeoferroviaire ou ohm']];
+        yield 'voie partagée, disque trop grand' => [['near' => [2.118, 48.7955], 'radius_m' => 9000] + $shared, ['radius_m : longueur de 1 à 5000 m']];
+        yield 'voie partagée, clé d\'un fragment' => [$shared + ['max_m' => 10], ['clés inconnues : max_m']];
     }
 
     /**

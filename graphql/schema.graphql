@@ -5034,11 +5034,11 @@ type Query {
         status: String @eq
     ): [Station!]! @paginate(defaultCount: 20, maxCount: 100)
 
-    "Une gare, par son slug (ex. `rennes`)."
+    "Une gare, par son slug (ex. `rennes`). L'ancien slug d'une fiche fusionnée dans une autre donne la fiche gardée, dont le champ `slug` est le slug actuel (comme la redirection 301 de `GET /api/v1/stations/{station}`)."
     station(
         "Slug de la gare."
-        slug: String! @eq
-    ): Station @find
+        slug: String!
+    ): Station @field(resolver: "App\\GraphQL\\Resolvers\\StationBySlugResolver")
 
     """
     Séries de matériel roulant (20 par défaut, 100 au plus), triées par nom sauf `filter.sort`.

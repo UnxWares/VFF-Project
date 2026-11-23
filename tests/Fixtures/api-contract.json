@@ -7170,6 +7170,7 @@
     "rest status GET /stations 422": "response",
     "rest status GET /stations 429": "response",
     "rest status GET /stations/{station} 200": "response",
+    "rest status GET /stations/{station} 301": "response",
     "rest status GET /stations/{station} 401": "response",
     "rest status GET /stations/{station} 403": "response",
     "rest status GET /stations/{station} 404": "response",

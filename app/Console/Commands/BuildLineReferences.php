@@ -33,6 +33,11 @@ use Illuminate\Support\Facades\Storage;
  *    ligne, jamais la trace d'une ligne d'un autre réseau ou d'un autre écartement, un tramway par exemple), repris
  *    du dessin de la ligne qui porte la trace en principal (voie partagée à 0 m) ou, sans ce dessin, recalé comme sa
  *    source et privé de ses doublons parallèles. Mesure du 23/11/2026 : rapport trous-trace.md.
+ *    Les morceaux hors du tracé qui se touchent sont jugés ensemble (une trace qui se recoupe, raccordement en
+ *    triangle dessiné en aller et retour, est coupée en plusieurs morceaux à son nœud) ; un groupe qui relie deux
+ *    morceaux distincts du tracé (connexes à BRIDGE_END_M près) comble le trou même loin de leurs extrémités libres.
+ *    Une voie partagée sans trace rattachée en second est désignée à la main (kind « shared » de
+ *    database/data/line_reference_exclusions.php). Mesure : rapport trous-trace-2.md.
  *
  * 2. Recalage (App\Services\TraceConflation) : un morceau archeo, OHM ou SNCF
  *    est remplacé, portion par portion, par la géométrie précise qui suit le
@@ -179,6 +184,12 @@ class BuildLineReferences extends Command
 
     /** Trou comblé par une trace rattachée en second : distance maximale des bouts au tracé, et de l'un à une extrémité libre (m). */
     private const BRIDGE_END_M = 150;
+
+    /** Bout d'un comblement arrêté sur la voie d'une autre ligne : longueur maximale du dessin de cette ligne repris jusqu'au tracé (m). */
+    private const CARRIER_MAX_M = 5000;
+
+    /** Bout d'un comblement arrêté sur la voie d'une autre ligne : distance maximale du bout à son dessin (m). */
+    private const CARRIER_TOUCH_M = 30;
 
     /** Trous comblés par une trace rattachée en second : nombre, longueur (m). */
     private array $bridgeStats = [];
@@ -345,8 +356,8 @@ class BuildLineReferences extends Command
             }
         }
         if ($b = $this->bridgeStats) {
-            $this->line(sprintf('  trous comblés par une trace rattachée en second : %d morceaux (%s km avant recalage), %d morceaux repris du dessin de la ligne qui porte la section',
-                $b['bridged'] ?? 0, $this->km($b['bridged_m'] ?? 0), $b['shared'] ?? 0));
+            $this->line(sprintf('  trous comblés par une trace rattachée en second : %d morceaux (%s km avant recalage), %d morceaux repris du dessin de la ligne qui porte la section, %d bouts prolongés sur la voie d\'une autre ligne (%s km)',
+                $b['bridged'] ?? 0, $this->km($b['bridged_m'] ?? 0), $b['shared'] ?? 0, $b['carrier'] ?? 0, $this->km($b['carrier_m'] ?? 0)));
         }
         if ($r = $this->roundingStats) {
             $this->line(sprintf('  arrondi des sommets : %d sommets arrondis en arc de cercle (%d points ajoutés)',
@@ -675,88 +686,230 @@ class BuildLineReferences extends Command
      */
     private function bridgeSecondaryHoles(int $lineId, string $acc, array $excluded): string
     {
-        // Sources grossières des tracés d'origine (la forme SNCF Réseau, généralisée, n'est jamais prise ici).
+        // Sources grossières des tracés d'origine (la forme SNCF Réseau, généralisée, n'est jamais prise ici) : traces
+        // rattachées en second, et voies partagées désignées à la main (LineReferenceExclusions, kind « shared »),
+        // limitées au disque de l'entrée quand elle en donne un (une trace de Paris - Brest pour Versailles).
+        $shared = $this->exclusions->sharedFor($lineId);
+        $clip = [
+            'si' => $this->pgIds(array_column($shared, 'id')),
+            'sx' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lon'] ?? 0), $shared)).'}',
+            'sy' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lat'] ?? 0), $shared)).'}',
+            'sr' => '{'.implode(',', array_map(fn ($c) => $c['radius_m'] === null ? 'NULL' : sprintf('%.2F', $c['radius_m']), $shared)).'}',
+        ];
         foreach (array_filter(self::SOURCES, fn (array $s): bool => in_array($s[0], ['archeoferroviaire', 'ohm'], true)) as [$source, $tolerance, $filter]) {
             $g = DB::selectOne(<<<SQL
-                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(ST_Transform(st.geom, 2154)))), 'hex') AS ewkb, jsonb_agg(st.id ORDER BY st.id)::text AS ids
-                FROM source_trace_lines stl JOIN source_traces st ON st.id = stl.source_trace_id
-                JOIN lines l ON l.id = stl.line_id LEFT JOIN lines o ON o.id = st.line_id
-                WHERE stl.line_id = :line AND stl.role = 'secondary' AND st.source = :source AND {$filter}
-                  AND st.line_id IS DISTINCT FROM :line2 AND st.id <> ALL(CAST(:excluded AS bigint[]))
-                  -- Même réseau et même écartement que la ligne qui porte la trace (jamais la voie d'un tramway).
-                  AND (o.id IS NULL OR (o.network IS NOT DISTINCT FROM l.network
-                       AND (o.gauge_mm_default IS NULL OR l.gauge_mm_default IS NULL OR o.gauge_mm_default = l.gauge_mm_default)))
+                WITH sh AS (SELECT * FROM unnest(CAST(:si AS bigint[]), CAST(:sx AS float8[]), CAST(:sy AS float8[]), CAST(:sr AS float8[])) c(i, x, y, r))
+                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(g))), 'hex') AS ewkb, jsonb_agg(id ORDER BY id)::text AS ids
+                FROM (
+                    SELECT st.id, CASE WHEN sh.r IS NULL THEN ST_Transform(st.geom, 2154)
+                        ELSE ST_CollectionExtract(ST_Intersection(ST_Transform(st.geom, 2154), ST_Buffer(ST_Transform(ST_SetSRID(ST_MakePoint(sh.x, sh.y), 4326), 2154), sh.r, 16)), 2) END AS g
+                    FROM source_traces st JOIN lines l ON l.id = :line LEFT JOIN lines o ON o.id = st.line_id
+                    LEFT JOIN sh ON sh.i = st.id
+                    WHERE (st.id IN (SELECT stl.source_trace_id FROM source_trace_lines stl WHERE stl.line_id = :line3 AND stl.role = 'secondary') OR sh.i IS NOT NULL)
+                      AND st.source = :source AND {$filter}
+                      AND st.line_id IS DISTINCT FROM :line2 AND st.id <> ALL(CAST(:excluded AS bigint[]))
+                      -- Même réseau et même écartement que la ligne qui porte la trace (jamais la voie d'un tramway).
+                      AND (o.id IS NULL OR (o.network IS NOT DISTINCT FROM l.network
+                           AND (o.gauge_mm_default IS NULL OR l.gauge_mm_default IS NULL OR o.gauge_mm_default = l.gauge_mm_default)))
+                ) t
+                WHERE NOT ST_IsEmpty(g)
                 HAVING COUNT(*) > 0
-                SQL, ['line' => $lineId, 'line2' => $lineId, 'source' => $source, 'excluded' => $this->pgIds($excluded)]);
+                SQL, ['line' => $lineId, 'line2' => $lineId, 'line3' => $lineId, 'source' => $source, 'excluded' => $this->pgIds($excluded)] + $clip);
             if (! $g?->ewkb) {
                 continue;
             }
             $bufTol = $this->buffer($acc, (float) $tolerance);
-            if (! $resid = $this->cut($g->ewkb, $bufTol, self::BRIDGE_MIN_M)) {
+            // Morceaux hors du tracé gardés dès MIN_PART_M : une trace qui se recoupe (raccordement en triangle dessiné
+            // en aller et retour, Ascq - Tourcoing à Ascq) est coupée en plusieurs morceaux au nœud, jugés ensemble.
+            if (! $resid = $this->cut($g->ewkb, $bufTol, self::MIN_PART_M)) {
                 continue;
             }
-            // Extrémités libres de la géométrie retenue : bouts de ses morceaux fusionnés touchés par aucun autre.
-            $bridge = DB::selectOne(<<<'SQL'
-                WITH a0 AS (SELECT ST_GeomFromEWKB(decode(:acc, 'hex')) AS g),
-                a AS (SELECT ST_LineMerge(g) AS g FROM a0),
-                parts AS (SELECT d.geom AS g FROM a, LATERAL ST_Dump(a.g) d),
-                ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts),
-                free AS (SELECT ST_Collect(e.p) AS g FROM ends e WHERE (SELECT COUNT(*) FROM parts WHERE ST_DWithin(parts.g, e.p, 1)) = 1),
-                r AS (SELECT d.geom AS g FROM ST_Dump(ST_GeomFromEWKB(decode(:r, 'hex'))) d)
-                SELECT encode(ST_AsEWKB(ST_Collect(r.g)), 'hex') AS ewkb, COUNT(*) AS n, COALESCE(SUM(ST_Length(r.g)), 0) AS m
-                FROM r, free, a0
-                WHERE ST_Length(r.g) >= :min AND free.g IS NOT NULL
-                  AND ST_DWithin(ST_StartPoint(r.g), a0.g, :end) AND ST_DWithin(ST_EndPoint(r.g), a0.g, :end2)
-                  AND (ST_DWithin(ST_StartPoint(r.g), free.g, :end3) OR ST_DWithin(ST_EndPoint(r.g), free.g, :end4))
-                  AND ST_Distance(ST_StartPoint(r.g), ST_EndPoint(r.g)) > 2 * :end5
-                HAVING COUNT(*) > 0
-                SQL, ['acc' => $acc, 'r' => $resid, 'min' => self::BRIDGE_MIN_M] + array_fill_keys(['end', 'end2', 'end3', 'end4', 'end5'], self::BRIDGE_END_M + $tolerance));
-            if (! $bridge?->ewkb) {
-                continue;
-            }
-            // La section est d'abord reprise du dessin de la ligne qui porte la trace en principal (voie partagée, même
-            // géométrie au bit près : masquée ensuite par vff:build-shared-track, sans doublon décalé) ; à défaut de ce
-            // dessin, la trace est recalée comme sa source.
-            $shared = $this->sharedDrawing($lineId, $g->ids, $bridge->ewkb, (float) $bridge->m, $acc);
-            if ($shared) {
-                foreach ($shared as [$partSource, $partIds, $piece]) {
-                    $this->insertParts($lineId, $partSource, $partIds, [$piece]);
+            // Groupes de morceaux qui se touchent (à 0,5 m), avec leurs bouts extérieurs (touchés par aucun autre morceau
+            // du groupe). Un groupe comble un trou si ses bouts rejoignent le tracé (bridges()) ; un bout arrêté sur la
+            // voie d'une autre ligne du même réseau est d'abord prolongé le long de son dessin (carrier()).
+            $groups = DB::select(<<<'SQL'
+                WITH r AS (SELECT d.geom AS g FROM ST_Dump(ST_GeomFromEWKB(decode(:r, 'hex'))) d WHERE ST_Length(d.geom) > 0),
+                c AS (SELECT g, ST_ClusterDBSCAN(g, 0.5, 1) OVER () AS k FROM r),
+                outer_ends AS (
+                    SELECT c.k, e.p FROM c, LATERAL (VALUES (ST_StartPoint(c.g)), (ST_EndPoint(c.g))) e(p)
+                    WHERE (SELECT COUNT(*) FROM c c2 WHERE c2.k = c.k AND ST_DWithin(c2.g, e.p, 0.5)) = 1
+                )
+                SELECT c.k, encode(ST_AsEWKB(ST_Collect(c.g)), 'hex') AS ewkb, SUM(ST_Length(c.g)) AS m,
+                       (SELECT json_agg(encode(ST_AsEWKB(o.p), 'hex')) FROM outer_ends o WHERE o.k = c.k)::text AS ends
+                FROM c GROUP BY c.k HAVING SUM(ST_Length(c.g)) >= :min
+                SQL, ['r' => $resid, 'min' => self::BRIDGE_MIN_M]);
+            $end = self::BRIDGE_END_M + $tolerance;
+            // Lignes qui portent ces traces en principal : jamais porteuses (leur dessin, c'est la trace elle-même, et le
+            // suivre ferait le prolongement vers l'autre ligne).
+            $owners = array_map('intval', array_column(DB::select(
+                'SELECT DISTINCT line_id FROM source_traces WHERE id IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))::bigint) AND line_id IS NOT NULL',
+                [$g->ids]), 'line_id'));
+            $taken = [];
+            foreach ($groups as $grp) {
+                $points = [];
+                $extra = [];
+                foreach ((array) json_decode((string) $grp->ends, true) as $p) {
+                    if (DB::selectOne("SELECT ST_DWithin(ST_GeomFromEWKB(decode(?, 'hex')), ST_GeomFromEWKB(decode(?, 'hex')), ?) AS ok", [$p, $acc, $end])->ok) {
+                        $points[] = $p;
+
+                        continue;
+                    }
+                    if (! $car = $this->carrier($lineId, (string) $p, $acc, $end, $owners)) {
+                        continue 2;
+                    }
+                    $extra[] = $car;
+                    $points[] = $car['end'];
                 }
-                $added = array_column($shared, 2);
-                $this->bridgeStats['shared'] = ($this->bridgeStats['shared'] ?? 0) + count($shared);
-            } else {
-                $added = $this->conflate($lineId, $source, $g->ewkb, $bridge->ewkb, $acc, $bufTol);
-                if (! $added) {
+                if ($this->bridges($acc, $points, $end)) {
+                    $taken[] = [$grp, $extra];
+                }
+            }
+            // Chaque groupe pris séparément : un groupe sans dessin à reprendre n'empêche pas les autres.
+            foreach ($taken as [$grp, $carriers]) {
+                $bridge = $grp;
+                // Sections portées par une autre ligne au bout du groupe (carrier()) : son dessin, au bit près, gardé
+                // seulement si le groupe lui-même est pris.
+                $accC = $carriers ? $this->accumulate($acc, array_merge(...array_map(fn (array $c): array => array_column($c['rows'], 2), $carriers))) : $acc;
+                // La section est d'abord reprise du dessin de la ligne qui porte la trace en principal (voie partagée, même
+                // géométrie au bit près : masquée ensuite par vff:build-shared-track, sans doublon décalé) ; à défaut de ce
+                // dessin, la trace est recalée comme sa source.
+                $drawing = $this->sharedDrawing($lineId, $g->ids, $bridge->ewkb, (float) $bridge->m, $accC);
+                if ($drawing) {
+                    $added = array_column($drawing, 2);
+                } elseif (! $added = $this->conflate($lineId, $source, $g->ewkb, $bridge->ewkb, $accC, $bufTol)) {
                     continue;
                 }
-                $this->insertParts($lineId, $source, $g->ids, $added);
+                foreach ($carriers as $car) {
+                    foreach ($car['rows'] as [$partSource, $partIds, $piece]) {
+                        $this->insertParts($lineId, $partSource, $partIds, [$piece]);
+                    }
+                    $this->bridgeStats['carrier'] = ($this->bridgeStats['carrier'] ?? 0) + 1;
+                    $this->bridgeStats['carrier_m'] = ($this->bridgeStats['carrier_m'] ?? 0) + $car['m'];
+                }
+                if ($drawing) {
+                    foreach ($drawing as [$partSource, $partIds, $piece]) {
+                        $this->insertParts($lineId, $partSource, $partIds, [$piece]);
+                    }
+                    $this->bridgeStats['shared'] = ($this->bridgeStats['shared'] ?? 0) + count($drawing);
+                } else {
+                    $this->insertParts($lineId, $source, $g->ids, $added);
+                }
+                $acc = $accC;
+                // Raccord des bouts au tracé : tolérance de la source (30 ou 40 m, au-dessus de MATCH_TOL_M) + 5 m.
+                if ($stitch = $this->stitch(array_column($added, 2), $acc, min($tolerance + 5, self::MAX_STITCH_M))) {
+                    $added[] = ['connector', [], $stitch];
+                    $this->insertParts($lineId, $source, $g->ids, [['connector', [], $stitch]]);
+                }
+                $this->bridgeStats['bridged'] = ($this->bridgeStats['bridged'] ?? 0) + 1;
+                $this->bridgeStats['bridged_m'] = ($this->bridgeStats['bridged_m'] ?? 0) + (float) $bridge->m;
+                $acc = $this->accumulate($acc, $added);
             }
-            // Raccord des bouts au tracé : tolérance de la source (30 ou 40 m, au-dessus de MATCH_TOL_M) + 5 m.
-            if ($stitch = $this->stitch(array_column($added, 2), $acc, min($tolerance + 5, self::MAX_STITCH_M))) {
-                $added[] = ['connector', [], $stitch];
-                $this->insertParts($lineId, $source, $g->ids, [['connector', [], $stitch]]);
-            }
-            $this->bridgeStats['bridged'] = ($this->bridgeStats['bridged'] ?? 0) + (int) $bridge->n;
-            $this->bridgeStats['bridged_m'] = ($this->bridgeStats['bridged_m'] ?? 0) + (float) $bridge->m;
-            $acc = $this->accumulate($acc, $added);
         }
 
         return $acc;
     }
 
     /**
+     * Les points d'attache d'un groupe de morceaux comblent-ils un trou du tracé (EWKB hex, Lambert-93) ? Au moins deux,
+     * tous à moins de $end du tracé, deux d'entre eux à plus de 2 x $end l'un de l'autre, et l'un près d'une extrémité
+     * libre du tracé ou deux sur des morceaux distincts du tracé (connexes à BRIDGE_END_M près : les petits trous sont
+     * comblés plus loin). La trace d'Ascq - Tourcoing rejoint Somain - Halluin 1,3 km après le bout d'Ascq et 310 m
+     * avant celui de Hem : aucune extrémité libre à moins de 180 m, mais deux morceaux distincts. Jamais un autre
+     * itinéraire entre deux points d'un tracé continu.
+     *
+     *
+     * @param  list<string>  $points
+     */
+    private function bridges(string $acc, array $points, float $end): bool
+    {
+        if (count($points) < 2) {
+            return false;
+        }
+
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH a0 AS (SELECT ST_GeomFromEWKB(decode(:acc, 'hex')) AS g),
+            parts AS (SELECT d.geom AS g FROM a0, LATERAL ST_Dump(ST_LineMerge(a0.g)) d),
+            ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts),
+            free AS (SELECT ST_Collect(e.p) AS g FROM ends e WHERE (SELECT COUNT(*) FROM parts WHERE ST_DWithin(parts.g, e.p, 1)) = 1),
+            comp AS (SELECT g, ST_ClusterDBSCAN(g, :eps, 1) OVER () AS ck FROM parts),
+            att AS (
+                SELECT x.p, (SELECT comp.ck FROM comp WHERE ST_DWithin(comp.g, x.p, :end) ORDER BY ST_Distance(comp.g, x.p) LIMIT 1) AS ck
+                FROM (SELECT ST_GeomFromEWKB(decode(y, 'hex')) AS p FROM unnest(CAST(:pts AS text[])) y) x
+            )
+            SELECT bool_and(ST_DWithin(att.p, a0.g, :end2))
+                   AND (bool_or(free.g IS NOT NULL AND ST_DWithin(att.p, free.g, :end3)) OR COUNT(DISTINCT att.ck) >= 2)
+                   AND ST_MaxDistance(ST_Collect(att.p), ST_Collect(att.p)) > 2 * :end4 AS ok
+            FROM att, a0, free
+            SQL, ['acc' => $acc, 'pts' => '{'.implode(',', $points).'}', 'eps' => self::BRIDGE_END_M] + array_fill_keys(['end', 'end2', 'end3', 'end4'], $end))->ok;
+    }
+
+    /**
+     * Bout d'un groupe de morceaux arrêté hors du tracé, sur la voie d'une autre ligne (même réseau, même écartement) :
+     * le dessin de cette ligne depuis le bout jusqu'au tracé (au plus CARRIER_MAX_M), repris au bit près (source et
+     * provenance gardées), ou null. Saint-Germain-des-Fossés - Darsac roule sur Clermont-Ferrand - Saint-Just-sur-Loire
+     * de Courty, où s'arrête la trace de Puy-Guillaume - Courty, à Pont-de-Dore, où reprend son tracé (2,3 km).
+     *
+     * @param  list<int>  $owners  lignes qui portent les traces du groupe en principal (jamais porteuses)
+     * @return array{end: string, m: float, rows: list<array{0: string, 1: string, 2: array{0: ?string, 1: array<int, int>, 2: string}}>}|null
+     */
+    private function carrier(int $lineId, string $point, string $acc, float $end, array $owners): ?array
+    {
+        $path = DB::selectOne(<<<'SQL'
+            WITH pt AS (SELECT ST_GeomFromEWKB(decode(:p, 'hex')) AS p),
+            ab AS (SELECT ST_Buffer(ST_GeomFromEWKB(decode(:acc, 'hex')), :tol) AS g),
+            a0 AS (SELECT ST_GeomFromEWKB(decode(:acc2, 'hex')) AS g),
+            o AS (
+                SELECT rp.line_id, ST_LineMerge(ST_Collect(ST_Intersection(ST_Transform(rp.geom, 2154), ST_Buffer(pt.p, :reach)))) AS g
+                FROM line_reference_parts rp JOIN lines o ON o.id = rp.line_id JOIN lines l ON l.id = :line, pt
+                WHERE rp.line_id <> :line2 AND rp.line_id <> ALL(CAST(:owners AS bigint[])) AND rp.geom && ST_Transform(ST_Expand(pt.p, :reach2), 4326)
+                  AND ST_DWithin(ST_Transform(rp.geom, 2154), pt.p, :reach3)
+                  AND o.network IS NOT DISTINCT FROM l.network
+                  AND (o.gauge_mm_default IS NULL OR l.gauge_mm_default IS NULL OR o.gauge_mm_default = l.gauge_mm_default)
+                GROUP BY rp.line_id
+                HAVING MIN(ST_Distance(ST_Transform(rp.geom, 2154), pt.p)) <= :touch
+            ),
+            -- Morceau du dessin qui passe au bout, coupé au bout ; la moitié qui rejoint le tracé, hors du tracé.
+            seg AS (
+                SELECT o.line_id, d.geom AS g, ST_LineLocatePoint(d.geom, pt.p) AS f FROM o, pt, LATERAL ST_Dump(o.g) d
+                WHERE ST_DWithin(d.geom, pt.p, :touch2)
+            ),
+            half AS (
+                SELECT line_id, h.g FROM seg, LATERAL (VALUES (ST_LineSubstring(seg.g, 0, seg.f)), (ST_LineSubstring(seg.g, seg.f, 1))) h(g)
+                WHERE ST_Length(h.g) > 0
+            ),
+            out AS (SELECT half.line_id, d.geom AS g FROM half, ab, LATERAL ST_Dump(ST_CollectionExtract(ST_Difference(half.g, ab.g), 2)) d)
+            SELECT out.line_id, encode(ST_AsEWKB(out.g), 'hex') AS ewkb, ST_Length(out.g) AS m,
+                   encode(ST_AsEWKB(CASE WHEN ST_Distance(ST_StartPoint(out.g), pt.p) < ST_Distance(ST_EndPoint(out.g), pt.p) THEN ST_EndPoint(out.g) ELSE ST_StartPoint(out.g) END), 'hex') AS far
+            FROM out, pt, a0
+            WHERE ST_DWithin(out.g, pt.p, :touch3) AND ST_Length(out.g) <= :max
+              AND ST_DWithin(CASE WHEN ST_Distance(ST_StartPoint(out.g), pt.p) < ST_Distance(ST_EndPoint(out.g), pt.p) THEN ST_EndPoint(out.g) ELSE ST_StartPoint(out.g) END, a0.g, :end)
+            ORDER BY ST_Length(out.g) LIMIT 1
+            SQL, ['p' => $point, 'acc' => $acc, 'acc2' => $acc, 'tol' => self::MATCH_TOL_M, 'line' => $lineId, 'line2' => $lineId, 'end' => $end,
+            'max' => self::CARRIER_MAX_M, 'owners' => $this->pgIds($owners)] + array_fill_keys(['reach', 'reach2', 'reach3'], self::CARRIER_MAX_M) + array_fill_keys(['touch', 'touch2', 'touch3'], self::CARRIER_TOUCH_M));
+        if (! $path) {
+            return null;
+        }
+        $rows = $this->sharedDrawing($lineId, null, $path->ewkb, (float) $path->m, $acc, [(int) $path->line_id], self::CARRIER_TOUCH_M);
+
+        return $rows ? ['end' => (string) $path->far, 'm' => (float) $path->m, 'rows' => $rows] : null;
+    }
+
+    /**
      * Dessin déjà construit de la section par la ligne qui porte en principal les traces rattachées en second : ses
      * morceaux (source et provenance gardées) dans un couloir de BRIDGE_END_M autour du morceau qui comble le trou,
-     * hors de la géométrie déjà retenue. Rendu seulement s'il couvre au moins 80 % du morceau.
+     * hors de la géométrie déjà retenue. Rendu seulement s'il couvre au moins 80 % du morceau. $owners : lignes
+     * prises en plus des propriétaires des traces $traceIds (ligne porteuse de carrier()), couloir de $width mètres.
      *
+     * @param  list<int>  $owners
      * @return list<array{0: string, 1: string, 2: array{0: ?string, 1: array<int, int>, 2: string}}>
      */
-    private function sharedDrawing(int $lineId, string $traceIds, string $bridge, float $bridgeM, string $acc): array
+    private function sharedDrawing(int $lineId, ?string $traceIds, string $bridge, float $bridgeM, string $acc, array $owners = [], float $width = self::BRIDGE_END_M): array
     {
         $rows = DB::select(<<<'SQL'
             WITH b AS (SELECT ST_Buffer(ST_GeomFromEWKB(decode(:b, 'hex')), :w) AS g),
             a AS (SELECT ST_Buffer(ST_GeomFromEWKB(decode(:acc, 'hex')), :tol) AS g),
-            owners AS (SELECT DISTINCT st.line_id FROM source_traces st WHERE st.id IN (SELECT jsonb_array_elements_text(CAST(:ids AS jsonb))::bigint) AND st.line_id IS NOT NULL AND st.line_id <> :line),
+            owners AS (SELECT DISTINCT st.line_id FROM source_traces st WHERE st.id IN (SELECT jsonb_array_elements_text(CAST(:ids AS jsonb))::bigint) AND st.line_id IS NOT NULL AND st.line_id <> :line
+                       UNION SELECT unnest(CAST(:owners AS bigint[]))),
             o AS (
                 SELECT p.source, p.matched_source, p.matched_trace_ids, p.source_trace_ids,
                        ST_CollectionExtract(ST_Difference(ST_Intersection(ST_Transform(p.geom, 2154), b.g), a.g), 2) AS g
@@ -766,7 +919,7 @@ class BuildLineReferences extends Command
             SELECT source, matched_source, COALESCE(matched_trace_ids::text, '[]') AS mids, source_trace_ids::text AS ids, encode(ST_AsEWKB(d.geom), 'hex') AS ewkb, ST_Length(d.geom) AS m
             FROM o, LATERAL ST_Dump(o.g) d
             WHERE ST_Length(d.geom) >= 1
-            SQL, ['b' => $bridge, 'w' => self::BRIDGE_END_M, 'acc' => $acc, 'tol' => self::MATCH_TOL_M, 'ids' => $traceIds, 'line' => $lineId]);
+            SQL, ['b' => $bridge, 'w' => $width, 'acc' => $acc, 'tol' => self::MATCH_TOL_M, 'ids' => $traceIds ?? '[]', 'line' => $lineId, 'owners' => $this->pgIds($owners)]);
         if (array_sum(array_map(fn ($r) => (float) $r->m, $rows)) < 0.8 * $bridgeM) {
             return [];
         }

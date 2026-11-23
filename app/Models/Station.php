@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Gare ou halte (actuelle ou disparue), dédoublonnée depuis plusieurs sources
@@ -69,5 +70,22 @@ class Station extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Slug actuel de la fiche qui a pris l'adresse $slug (table station_redirects : ancien slug « osm-… »,
+     * fiche fondue dans une autre par l'action « merge » de database/data/gares_corrections.php) ; null si
+     * $slug est celui d'une fiche existante ou n'est pas un ancien slug. Sert aux 301 du site, de l'API, de
+     * GraphQL et du serveur MCP.
+     */
+    public static function redirectSlugFor(string $slug): ?string
+    {
+        if (self::query()->where('slug', $slug)->exists()) {
+            return null;
+        }
+        $target = DB::table('station_redirects as r')->join('stations as s', 's.id', '=', 'r.station_id')
+            ->where('r.old_slug', $slug)->value('s.slug');
+
+        return is_string($target) && $target !== $slug ? $target : null;
     }
 }

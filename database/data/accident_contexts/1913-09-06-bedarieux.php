@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
         ],
+        'ddb-1913-09-08-tagliche-rundschau' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur les trains militaires français',
+            'publisher' => 'Tägliche Rundschau (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IT55DBAYE2WK5RYMVKS5RCELEHYLDLMJ?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 8 septembre : samedi soir, par suite d\'une rupture d\'aiguille, le train du 96e régiment d\'infanterie déraille en gare de Bédarieux ; un caporal tué (un médecin militaire grièvement blessé) et six réservistes blessés.',
+            'facts' => ['date' => '1913-09-06', 'commune_insee' => '34028', 'deaths' => 1, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

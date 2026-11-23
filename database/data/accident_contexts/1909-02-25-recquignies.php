@@ -74,6 +74,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Précise que les chiffres varient et que les dernières nouvelles donnent trois morts et dix blessés.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '59495', 'deaths' => 3],
         ],
     ],
     'sections' => [

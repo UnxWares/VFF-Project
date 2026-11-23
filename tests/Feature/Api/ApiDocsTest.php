@@ -77,7 +77,8 @@ class ApiDocsTest extends TestCase
         '/lines/{line}/segments' => [200, 404, 422, 429],
         '/lines/{line}/geojson' => [200, 404, 422, 429],
         '/stations' => [200, 422, 429],
-        '/stations/{station}' => [200, 404, 429],
+        // 301 : fiche fusionnée dans une autre (en-tête Location, sans corps).
+        '/stations/{station}' => [200, 301, 404, 429],
         '/sources' => [200, 429],
         '/sources/{provider}' => [200, 404, 429],
     ];
@@ -392,6 +393,9 @@ class ApiDocsTest extends TestCase
             $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($responses)), "{$path} : codes de réponse");
             foreach ($codes as $code) {
                 $this->assertNotEmpty($responses[(string) $code]['description'] ?? null, "{$path} : réponse {$code} sans description");
+                if ($code >= 300 && $code < 400) {
+                    continue; // redirection : l'adresse est dans l'en-tête Location, pas de corps à illustrer
+                }
                 $this->assertNotEmpty($responses[(string) $code]['content']['application/json']['schema']['examples'] ?? null, "{$path} : réponse {$code} sans exemple");
             }
         }

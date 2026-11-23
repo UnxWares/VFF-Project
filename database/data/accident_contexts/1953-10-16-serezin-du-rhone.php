@@ -103,6 +103,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 16 octobre : à la gare de Sérézin-du-Rhône, à environ dix kilomètres au sud de Lyon, une locomotive en manoeuvre heurte à grande vitesse un train omnibus d\'ouvriers allant à Lyon ; au moins dix morts.',
+            'facts' => ['date_relative' => 'same_day', 'commune_insee' => '69294', 'deaths' => 10, 'deaths_provisional' => true],
         ],
         'kb-1953-10-16-de-tijd' => [
             'provider' => 'delpher',

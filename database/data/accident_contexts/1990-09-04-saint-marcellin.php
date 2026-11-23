@@ -18,6 +18,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher).',
+            'facts' => ['date' => '1990-09-04', 'commune_insee' => '38416', 'deaths' => 1],
         ],
         'wp-liste-1990' => [
             'provider' => 'wikipedia',

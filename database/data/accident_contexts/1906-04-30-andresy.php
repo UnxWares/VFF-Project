@@ -60,6 +60,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Collision à 20 h 40 ; premier bilan d\'un mort, puis décès du mécanicien et du chauffeur.',
+            'facts' => ['date' => '1906-04-30', 'commune_insee' => '78015', 'deaths' => 3],
         ],
         'delpher-landenvolk-1906-05-01' => [
             'provider' => 'delpher',
