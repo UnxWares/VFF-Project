@@ -207,8 +207,8 @@ Le suivi des contributions en direct (`docs/API.md`, section « Temps réel ») 
 production n'a pas de serveur temps réel. Pour l'activer :
 
 1. **Processus Reverb** : `php artisan reverb:start` (il écoute `REVERB_SERVER_HOST:REVERB_SERVER_PORT`,
-   par défaut `127.0.0.1:8080`), lancé et relancé par le superviseur du serveur (unité systemd ou
-   Supervisor), comme le travailleur de file d'attente `php artisan queue:work`, qui envoie les
+   par défaut `127.0.0.1:8080`), lancé et relancé par le superviseur du serveur (unité systemd prête dans
+   `deploy/systemd/production/vff-reverb.service`, `docs/DEPLOIEMENT-SERVICES.md`), comme le travailleur de file d'attente `php artisan queue:work`, qui envoie les
    événements. Après un déploiement : `php artisan reverb:restart`.
 2. **`.env` de production** (modèle dans `.env.example`) :
    - `REALTIME_ENABLED=true` et `BROADCAST_CONNECTION=reverb` ;
@@ -277,5 +277,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/j
   --data-binary @gros-fichier.json https://vff-project.org/graphql   # 413 au-delà de 2 Mio
 ```
 
-Planificateur : poser `schedule:run` chaque minute (cron ou minuteur systemd, `docs/PLANIFICATION.md`), puis
+Planificateur : poser `schedule:run` chaque minute (minuteur systemd `deploy/systemd/production/`, `docs/DEPLOIEMENT-SERVICES.md`), puis
 vérifier que `checks.scheduler.status` de `/up/details` (avec le jeton) passe à `ok`.
+
+Tout le reste (Reverb, file, planificateur, `deploy/bin/verify-production.sh`) : `docs/DEPLOIEMENT-SERVICES.md`.

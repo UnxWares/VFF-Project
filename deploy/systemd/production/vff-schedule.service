@@ -1,0 +1,46 @@
+# Un passage du planificateur Laravel (schedule:run), lancé chaque minute par vff-schedule.timer.
+# Pour le SERVEUR de production. Installation : docs/DEPLOIEMENT-SERVICES.md.
+[Unit]
+Description=VFF - planificateur Laravel (schedule:run)
+After=network-online.target postgresql.service valkey.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=vff
+Group=vff
+WorkingDirectory=/srv/vff
+Environment=APP_ENV=production
+ExecStart=/usr/bin/php artisan schedule:run --no-interaction
+# Le recalcul de l'ère courante peut durer longtemps (withoutOverlapping 180 minutes dans routes/console.php).
+TimeoutStartSec=3h
+Nice=5
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+MemoryHigh=2G
+MemoryMax=3G
+TasksMax=256
+# Durcissement (systemd.exec(5))
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+UMask=0027
+ReadWritePaths=/srv/vff/storage /srv/vff/bootstrap/cache
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vff-schedule

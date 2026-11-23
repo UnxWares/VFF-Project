@@ -1,0 +1,54 @@
+# Travailleur de la file d'attente (Valkey, QUEUE_CONNECTION=redis). Pour le SERVEUR de production.
+# Installation : docs/DEPLOIEMENT-SERVICES.md. Redémarrage propre au déploiement : "php artisan queue:restart"
+# (le travailleur finit son travail en cours puis sort, systemd le relance sur le nouveau code).
+[Unit]
+Description=VFF - travailleur de file d'attente (queue:work)
+After=network-online.target valkey.service postgresql.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=vff
+Group=vff
+WorkingDirectory=/srv/vff
+Environment=APP_ENV=production
+# --max-time et --max-jobs : le processus se recycle seul (fuites de mémoire), systemd le relance aussitôt.
+# --timeout doit rester inférieur à retry_after de config/queue.php (90 s par défaut) ; --tries=3.
+ExecStart=/usr/bin/php artisan queue:work redis --queue=default --sleep=3 --tries=3 --timeout=60 --max-time=3600 --max-jobs=1000 --no-interaction
+Restart=always
+RestartSec=3
+# Laisse le travail en cours se terminer avant l'arrêt.
+TimeoutStopSec=90
+KillSignal=SIGTERM
+MemoryHigh=384M
+MemoryMax=512M
+TasksMax=128
+# Durcissement (systemd.exec(5))
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+UMask=0027
+ReadWritePaths=/srv/vff/storage /srv/vff/bootstrap/cache
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vff-queue
+
+[Install]
+WantedBy=multi-user.target

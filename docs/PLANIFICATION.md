@@ -106,7 +106,7 @@ Au choix, cron :
 * * * * * cd /srv/vff && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-ou un service et un minuteur systemd (`/etc/systemd/system/vff-schedule.service` et `.timer`) :
+ou un service et un minuteur systemd (fichiers prêts dans `deploy/systemd/production/`, durcis, pose détaillée dans `docs/DEPLOIEMENT-SERVICES.md`) :
 
 ```ini
 # vff-schedule.service
