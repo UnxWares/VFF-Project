@@ -160,6 +160,14 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     des voyageurs (sans ouverture) confirme le fret seul d'un tronçon en service, ou contredit un tronçon mixte ; R7,
     une source sans aucun événement des voyageurs ne contredit plus le trafic (« voyageurs attendus » vient du
     service par défaut d'une ouverture, raison `traffic_assumed`, avis faible).
+    `2026-11-23.2` (23/11/2026, décomposition des kilomètres non sûrs de 2030,
+    `storage/app/reports/agents/aprem-2111/troncons-surs.md`) : R8, les points d'échantillon à moins de 30 m d'une voie
+    OSM en tunnel ou d'une voie BD TOPO sous le sol sortent de l'écart du placement (`underground_excluded`, tronçon tout
+    en souterrain : `unknown`, `underground`) ; R9, sur un train touristique confirmé par la source `heritage`, une
+    observation actuelle qui dit la voie fermée est d'accord ; R10, l'avis faible d'une chronologie que toutes les
+    observations actuelles fortes contredisent (`outweighed`) ne retient plus la note ; R11, une étiquette OSM seule
+    (« disused » contre SNCF Réseau « exploitée », « abandoned » contre une voie que SNCF Réseau dit maintenue en place)
+    devient un avis faible quand une autre observation forte est d'accord.
 
 ## État des mesures (21/11/2026, fin d'après-midi)
 

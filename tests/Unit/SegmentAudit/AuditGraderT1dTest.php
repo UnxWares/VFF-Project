@@ -130,6 +130,6 @@ class AuditGraderT1dTest extends TestCase
 
     public function test_rule_version(): void
     {
-        $this->assertSame('2026-11-23.1', AuditGrader::RULE_VERSION);
+        $this->assertSame('2026-11-23.2', AuditGrader::RULE_VERSION);
     }
 }

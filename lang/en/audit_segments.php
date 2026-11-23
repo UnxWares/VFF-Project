@@ -210,6 +210,8 @@ return [
         'no_track_nearby' => 'Open section with no real track within 50 m.',
         'distant_reference_only' => 'Past era: the trace follows the line’s OSM track, and only today’s BD TOPO track, more than 15 m away, could contradict it.',
         'no_reference' => 'No reference track within 50 m.',
+        'underground' => 'Underground section: no track is surveyed from aerial photographs there, the gap is not measured.',
+        'underground_excluded' => 'Points in tunnels are left out of the gap (track not surveyed from the air).',
         'abroad' => 'Outside France: no reference track.',
         'only_same_source' => 'Only the trace’s own source is available as a reference.',
         'on_other_line_track' => 'The trace lies on another line’s track, while its own track runs alongside.',

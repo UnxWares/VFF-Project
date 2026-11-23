@@ -22,7 +22,13 @@ use App\Enums\AuditGrade;
  *   (règle track_unconfirmed : dépose probable).
  *   ère courante : une seule contradiction forte, venue de la BD TOPO ou d'un statut SNCF « déclassée
  *   vendue », devient faible quand deux observations actuelles fortes sont d'accord (règle
- *   observation_outvoted ; OSM « abandoned » ou « razed » reste une vraie contradiction) ;
+ *   observation_outvoted ; OSM « abandoned » ou « razed » reste une vraie contradiction, sauf contre une voie que
+ *   SNCF Réseau dit maintenue en place ; OSM « disused » seul contre SNCF Réseau « exploitée » et une autre
+ *   observation forte devient faible aussi : règle R11, règles `2026-11-23.2`) ;
+ *   ère courante, train touristique confirmé par l'inventaire des trains touristiques (source `heritage`) : une
+ *   observation actuelle qui dit la voie fermée parle du trafic commercial, elle est d'accord (règle R9) ;
+ *   l'avis faible d'une chronologie que toutes les observations actuelles fortes contredisent (`outweighed`) ne
+ *   retient plus la note même si sa source est mieux classée (règle R10) ;
  *   ère passée : un tronçon en service que seules des sources faibles confirment reste « sûr » quand
  *   aucune fin datée (fermeture, déclassement, dépose) ne le touche à cette ère et que le même tronçon
  *   est en service et sûr à l'ère courante (règle continuous_service ; règle R2, règles `.8` : une fin
@@ -62,6 +68,9 @@ use App\Enums\AuditGrade;
  *          FULL_COVERAGE des points ; à l'ère courante, une autre référence indépendante qui colle ainsi suffit
  *          quand la première retenue (BD TOPO) est loin (règles `.7`) ; fair : médiane ≤ TOLERANCE_M, ou couverture partielle ;
  *   poor : médiane > TOLERANCE_M, ou tronçon en service à l'ère courante sans aucune voie de référence proche ;
+ *   points en souterrain (règle R8, règles `2026-11-23.2`) : un point à moins de UNDERGROUND_RADIUS_M d'une voie
+ *          OSM en tunnel ou d'une voie BD TOPO sous le sol n'entre pas dans la mesure (`underground_excluded`) ; un
+ *          tronçon tout en souterrain est `unknown` (`underground`) ;
  *   unknown : tronçon fermé ou déposé sans référence, tronçon hors de France (abroad), ou seule la
  *             source du tracé elle-même. Ère passée : la référence indépendante la plus proche est
  *             retenue (la voie a pu être déplacée depuis), et un tracé OSM rattaché à la ligne, qui le
@@ -89,7 +98,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-23.1';
+    public const RULE_VERSION = '2026-11-23.2';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -115,6 +124,14 @@ final class AuditGrader
     public const MIN_COVERAGE = 0.5;
 
     public const FULL_COVERAGE = 0.8;
+
+    /**
+     * R8 (règles `2026-11-23.2`) : un point d'échantillon à moins de ce rayon d'une voie OSM en tunnel ou d'une voie
+     * BD TOPO sous le sol n'entre pas dans l'écart du placement. Contrôle du 23/11 sur cinq tronçons en service
+     * notés « 95e centile trop fort » (Livron - Aspres, Andelot - La Cluse, Coni - Vintimille, Épernay - Reims,
+     * Brive - Toulouse) : 132 des 147 points à plus de 5 m étaient en tunnel, contre 1 à 2 m à l'air libre.
+     */
+    public const UNDERGROUND_RADIUS_M = 30.0;
 
     /** Écarts entre lesquels une voie rattachée à la ligne compte comme « sa propre voie », à côté. */
     public const OWN_TRACK_MIN_M = 8.0;
@@ -239,7 +256,7 @@ final class AuditGrader
     /**
      * Note de classement à partir des avis des sources et des règles métier.
      *
-     * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int, outvoted?: bool}>  $verdicts
+     * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int, outvoted?: bool, outweighed?: bool}>  $verdicts
      * @param  list<string>  $violatedRules
      * @param  bool  $continuity  ère passée : aucune fin datée ne touche le tronçon à cette ère, tronçon en service et sûr à l'ère courante
      * @return array{grade: AuditGrade, reasons: list<string>}
@@ -278,8 +295,10 @@ final class AuditGrader
         } elseif ($strongAgree === []) {
             $grade = AuditGrade::Fair;
             $reasons[] = $softContra !== [] ? 'weak_contradiction' : 'weak_sources_only';
-        } elseif ($softContra !== [] && $best($softContra) < $bestAgree) {
-            // Avis faible, mais d'une source mieux classée que toutes celles qui sont d'accord.
+        } elseif (($ranked = array_filter($softContra, fn (array $v): bool => ! ($v['outweighed'] ?? false))) !== [] && $best($ranked) < $bestAgree) {
+            // Avis faible, mais d'une source mieux classée que toutes celles qui sont d'accord. R10 (règles
+            // `2026-11-23.2`) : pas l'avis d'une chronologie que toutes les observations actuelles fortes contredisent
+            // (`outweighed`) : le rang des sources départage des dates, pas l'état d'aujourd'hui que trois relevés voient.
             $grade = AuditGrade::Fair;
             $reasons[] = 'weak_contradiction';
         } else {
@@ -304,7 +323,7 @@ final class AuditGrader
      * `all` (toutes les voies, celles des autres lignes comprises) et `own` (voies rattachées à la
      * ligne, à moins de OWN_TRACK_MAX_M).
      *
-     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float, all?: array{found: int, median_m: ?float, p95_m: ?float}, own?: array{found: int, median_m: ?float}}>  $refs
+     * @param  array<string, array{points: int, found: int, underground?: int, median_m: ?float, p95_m: ?float, all?: array{found: int, median_m: ?float, p95_m: ?float}, own?: array{found: int, median_m: ?float}}>  $refs
      * @return array{grade: AuditGrade, reasons: list<string>, reference: ?string, same_source: bool, coverage: float, median_m: ?float, p95_m: ?float}
      */
     public static function placement(array $refs, ?string $source, bool $activeToday, bool $abroad = false, bool $bestMatch = false): array
@@ -457,7 +476,7 @@ final class AuditGrader
     /**
      * Note de placement sur les voies qui ne sont pas rattachées à une autre ligne.
      *
-     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>  $refs
+     * @param  array<string, array{points: int, found: int, underground?: int, median_m: ?float, p95_m: ?float}>  $refs
      * @return array{grade: AuditGrade, reasons: list<string>, reference: ?string, same_source: bool, coverage: float, median_m: ?float, p95_m: ?float}
      */
     private static function placementOn(array $refs, ?string $source, bool $activeToday, bool $abroad, bool $bestMatch): array
@@ -483,6 +502,10 @@ final class AuditGrader
             $sameSource = true;
         }
         $empty = ['reference' => $pick, 'same_source' => $sameSource, 'coverage' => $pick ? round(self::coverage($refs[$pick]), 3) : 0.0, 'median_m' => null, 'p95_m' => null];
+        if ($pick === null && self::allUnderground($refs)) {
+            // R8 : tout le tronçon est en souterrain, aucune voie n'y est relevée d'avion.
+            return ['grade' => AuditGrade::Unknown, 'reasons' => ['underground']] + $empty;
+        }
         if ($pick === null) {
             $poor = $activeToday && ! $abroad;
 
@@ -512,8 +535,29 @@ final class AuditGrader
                 $grade = AuditGrade::Fair;
             }
         }
+        if (($r['underground'] ?? 0) > 0) {
+            $reasons[] = 'underground_excluded';
+        }
 
         return ['grade' => $grade, 'reasons' => $reasons, 'median_m' => $median, 'p95_m' => $p95, 'coverage' => round($coverage, 3)] + $empty;
+    }
+
+    /**
+     * R8 : aucun point mesurable (tous en souterrain) sur toutes les références.
+     *
+     * @param  array<string, array<string, mixed>>  $refs
+     */
+    private static function allUnderground(array $refs): bool
+    {
+        $under = 0;
+        foreach ($refs as $r) {
+            if (($r['points'] ?? 0) > 0) {
+                return false;
+            }
+            $under = max($under, (int) ($r['underground'] ?? 0));
+        }
+
+        return $under > 0;
     }
 
     /** @param  array{points: int, found: int}  $r */

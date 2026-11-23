@@ -138,6 +138,9 @@ final class SegmentAuditor
             $observed = [];
             if ($current) {
                 $observed = $this->currentVerdicts($s);
+                if ($s->is_heritage && self::heritageConfirmed($verdicts)) {
+                    $observed = self::heritageObservations($observed);
+                }
                 $verdicts = self::outvoted([...self::outweighed($verdicts, $observed), ...$observed]);
             }
             $rules = [];
@@ -149,7 +152,7 @@ final class SegmentAuditor
             }
             $classification = AuditGrader::classification(array_map(fn (array $v): array => [
                 'source' => $v['source'], 'agrees' => $v['agrees'], 'weak' => $v['weak'], 'near_date' => $v['near_date'], 'priority' => $v['priority'],
-                'outvoted' => $v['outvoted'] ?? false,
+                'outvoted' => $v['outvoted'] ?? false, 'outweighed' => $v['outweighed'] ?? false,
             ], $verdicts), $rules, isset($continuous[$id]) && AuditGrader::statusClass($s->status) === 'open'
                 && ! self::blocksContinuity($events, array_map('intval', array_filter(explode(',', trim((string) $s->evs, '{}')))), $eraEnd));
 
@@ -196,7 +199,7 @@ final class SegmentAuditor
                     ],
                     'placement' => ['reasons' => $place['reasons'], 'reference' => $place['reference'], 'same_source' => $place['same_source'],
                         'coverage' => $place['coverage'], 'median_m' => self::round($place['median_m']), 'p95_m' => self::round($place['p95_m']),
-                        'references' => array_map(fn (array $r): array => ['points' => $r['points'], 'found' => $r['found'],
+                        'references' => array_map(fn (array $r): array => ['points' => $r['points'], 'found' => $r['found'], 'underground' => $r['underground'],
                             'median_m' => self::round($r['median_m']), 'p95_m' => self::round($r['p95_m']),
                             'all' => ['found' => $r['all']['found'], 'median_m' => self::round($r['all']['median_m']), 'p95_m' => self::round($r['all']['p95_m'])],
                             'own' => ['found' => $r['own']['found'], 'median_m' => self::round($r['own']['median_m'])]], $refs)],
@@ -635,6 +638,40 @@ final class SegmentAuditor
     }
 
     /**
+     * R9 (règles `2026-11-23.2`) : le train touristique d'un tronçon est-il daté par l'inventaire des trains
+     * touristiques (source `heritage`, d'accord avec le tronçon) ?
+     *
+     * @param  list<array<string, mixed>>  $verdicts
+     */
+    private static function heritageConfirmed(array $verdicts): bool
+    {
+        foreach ($verdicts as $v) {
+            if ($v['source'] === 'heritage' && $v['agrees'] && ! $v['weak']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * R9 : sur un tronçon de train touristique confirmé, une observation actuelle qui dit la voie fermée (statut
+     * SNCF Réseau « neutralisée », « déclassée non vendue », « fermée et mise à disposition de tiers », BD TOPO
+     * « non exploité », OSM « disused ») parle du trafic commercial : elle est d'accord, comme une chronologie
+     * qui dit la ligne fermée (même règle pour les événements). Une voie dite déposée reste une contradiction.
+     * Contrôle du 23/11 : 676000 (Train du Pays Cathare et du Fenouillèdes), 757000, 600000, 947000, 721000,
+     * 418000, la voie y est en place et le train touristique y roule.
+     *
+     * @param  list<array<string, mixed>>  $observed
+     * @return list<array<string, mixed>>
+     */
+    private static function heritageObservations(array $observed): array
+    {
+        return array_map(fn (array $v): array => ! $v['agrees'] && in_array($v['expected']['class'], ['closed', 'closed_in_place'], true)
+            ? ['agrees' => true, 'why' => null, 'heritage' => true] + $v : $v, $observed);
+    }
+
+    /**
      * Ère courante : quand au moins deux observations de l'état actuel (SNCF Réseau, BD TOPO, OSM
      * rattachées à la ligne) sont d'accord et qu'aucune ne contredit, l'avis contraire d'une
      * chronologie devient faible (un événement mal localisé ou un ancien tracé voisin l'explique).
@@ -671,8 +708,16 @@ final class SegmentAuditor
             return $verdicts;
         }
         $v = $verdicts[$contra[0]];
+        // R11 (règles `2026-11-23.2`) : l'étiquette d'une voie OSM seule contre le registre de SNCF Réseau, propriétaire
+        // de la voie, et une autre observation forte : « disused » contre une voie « exploitée » (fret rare, que les
+        // contributeurs ne voient pas passer), ou « abandoned » (rails enlevés) contre une voie dite maintenue en
+        // place (« neutralisée », « fermée avec maintien en place de la voie », « fermée non déposée »).
+        $sncf = array_values(array_filter($agree, fn (array $a): bool => $a['source'] === 'sncf'));
+        $osmAlone = $v['source'] === 'osm' && $sncf !== []
+            && ($v['expected']['class'] === 'closed' || ($v['expected']['class'] === 'gone' && $sncf[0]['expected']['class'] === 'closed_in_place'));
         $lone = $v['kind'] === 'current' && ($v['source'] === 'bdtopo'
-            || ($v['source'] === 'sncf' && str_contains(mb_strtolower((string) ($v['observed']['statut'] ?? '')), 'déclassée vendue')));
+            || ($v['source'] === 'sncf' && str_contains(mb_strtolower((string) ($v['observed']['statut'] ?? '')), 'déclassée vendue'))
+            || $osmAlone);
         if ($lone) {
             $verdicts[$contra[0]] = ['weak' => true, 'outvoted' => true] + $v;
         }
@@ -849,7 +894,7 @@ final class SegmentAuditor
      * sur les mêmes points, l'écart à toutes les voies (`all`) et aux voies de la ligne (`own`, à
      * moins de OWN_TRACK_MAX_M), pour reconnaître un tronçon posé sur la voie d'une autre ligne.
      *
-     * @return array<int, array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float, all: array{found: int, median_m: ?float, p95_m: ?float}, own: array{found: int, median_m: ?float}}>>
+     * @return array<int, array<string, array{points: int, found: int, underground: int, median_m: ?float, p95_m: ?float, all: array{found: int, median_m: ?float, p95_m: ?float}, own: array{found: int, median_m: ?float}}>>
      */
     private function placementSamples(int $lineId, int $eraId): array
     {
@@ -865,12 +910,25 @@ final class SegmentAuditor
                 CROSS JOIN LATERAL generate_series(1, k.n) AS i
                 CROSS JOIN LATERAL (SELECT ST_LineInterpolatePoint(seg.g, (i - 0.5) / k.n) AS q) p
             ),
+            -- Point en souterrain (règle R8) : une voie OSM en tunnel ou une voie BD TOPO sous le sol à moins de
+            -- UNDERGROUND_RADIUS_M. Ni l'une ni l'autre n'y est relevée sur photographie aérienne (la BD TOPO y déclare
+            -- 10 à 20 m de précision pour une partie de ses tronçons) : le point ne compte pas dans l'écart.
+            under AS MATERIALIZED (
+                SELECT pts.id, pts.q, pts.q4, EXISTS (
+                    SELECT 1 FROM source_traces st
+                    WHERE st.source IN ('osm', 'bdtopo') AND st.geom && ST_Expand(pts.q4, 0.0005)
+                      AND ((st.source = 'osm' AND COALESCE(st.properties->>'tunnel', 'no') NOT IN ('no', 'culvert'))
+                           OR (st.source = 'bdtopo' AND st.properties->>'position_par_rapport_au_sol' LIKE '-%'))
+                      AND ST_DWithin(ST_Transform(st.geom, 2154), pts.q, :under)
+                ) AS under
+                FROM pts
+            ),
             ref(name) AS (VALUES ('bdtopo'), ('osm'), ('ign-historique')),
             -- Trois écarts par point : aux voies qui ne sont pas rattachées à une autre ligne (dist), à
             -- toutes les voies (dist_all) et aux voies rattachées à la ligne (dist_own, jusqu'à 60 m).
             d AS (
                 SELECT pts.id, ref.name, x.dist, x.dist_all, x.dist_own
-                FROM pts CROSS JOIN ref
+                FROM under pts CROSS JOIN ref
                 CROSS JOIN LATERAL (
                     SELECT MIN(t.m) FILTER (WHERE t.free) AS dist, MIN(t.m) AS dist_all, MIN(t.m) FILTER (WHERE t.own) AS dist_own
                     FROM (SELECT ST_Distance(ST_Transform(st.geom, 2154), pts.q) AS m,
@@ -880,8 +938,11 @@ final class SegmentAuditor
                             AND (ref.name <> 'osm' OR st.layer = ANY(CAST(:osm AS text[])))
                             AND (ref.name <> 'bdtopo' OR st.layer <> 'Funiculaire ou crémaillère')) t
                 ) x
-            )
-            SELECT id, name, COUNT(*) AS points, COUNT(*) FILTER (WHERE dist <= :radius) AS found,
+                WHERE NOT pts.under
+            ),
+            -- Une ligne par tronçon et par référence, même sans point mesurable (tout en souterrain).
+            n AS (SELECT id, COUNT(*) FILTER (WHERE under) AS underground FROM under GROUP BY id)
+            SELECT n.id, ref.name, n.underground, COUNT(d.id) AS points, COUNT(*) FILTER (WHERE dist <= :radius) AS found,
                    percentile_cont(0.5) WITHIN GROUP (ORDER BY dist) FILTER (WHERE dist <= :radius2) AS median_m,
                    percentile_cont(0.95) WITHIN GROUP (ORDER BY dist) FILTER (WHERE dist <= :radius3) AS p95_m,
                    COUNT(*) FILTER (WHERE dist_all <= :radius4) AS found_all,
@@ -889,8 +950,10 @@ final class SegmentAuditor
                    percentile_cont(0.95) WITHIN GROUP (ORDER BY dist_all) FILTER (WHERE dist_all <= :radius6) AS p95_all,
                    COUNT(*) FILTER (WHERE dist_own <= :own) AS found_own,
                    percentile_cont(0.5) WITHIN GROUP (ORDER BY dist_own) FILTER (WHERE dist_own <= :own2) AS median_own
-            FROM d GROUP BY id, name
+            FROM n CROSS JOIN ref LEFT JOIN d ON d.id = n.id AND d.name = ref.name
+            GROUP BY n.id, ref.name, n.underground
             SQL, ['line' => $lineId, 'era' => $eraId, 'maxn' => AuditGrader::MAX_SAMPLES, 'step' => AuditGrader::SAMPLE_STEP_M,
+            'under' => AuditGrader::UNDERGROUND_RADIUS_M,
             'line3' => $lineId, 'line4' => $lineId,
             'osm' => $osmLayers, 'radius' => AuditGrader::REFERENCE_RADIUS_M, 'radius2' => AuditGrader::REFERENCE_RADIUS_M, 'radius3' => AuditGrader::REFERENCE_RADIUS_M,
             'radius4' => AuditGrader::REFERENCE_RADIUS_M, 'radius5' => AuditGrader::REFERENCE_RADIUS_M, 'radius6' => AuditGrader::REFERENCE_RADIUS_M,
@@ -901,7 +964,7 @@ final class SegmentAuditor
             if ((int) $r->found_all === 0 && (int) $r->found_own === 0 && $r->name === 'ign-historique') {
                 continue;
             }
-            $out[(int) $r->id][$r->name] = ['points' => (int) $r->points, 'found' => (int) $r->found,
+            $out[(int) $r->id][$r->name] = ['points' => (int) $r->points, 'found' => (int) $r->found, 'underground' => (int) $r->underground,
                 'median_m' => $f($r->median_m), 'p95_m' => $f($r->p95_m),
                 'all' => ['found' => (int) $r->found_all, 'median_m' => $f($r->median_all), 'p95_m' => $f($r->p95_all)],
                 'own' => ['found' => (int) $r->found_own, 'median_m' => $f($r->median_own)]];

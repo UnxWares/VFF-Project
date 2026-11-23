@@ -210,6 +210,8 @@ return [
         'no_track_nearby' => 'Abschnitt in Betrieb ohne tatsächliches Gleis im Umkreis von 50 m.',
         'distant_reference_only' => 'Frühere Epoche: Der Verlauf folgt dem OSM-Gleis der Strecke, und nur das heutige BD-TOPO-Gleis in mehr als 15 m Abstand könnte ihm widersprechen.',
         'no_reference' => 'Kein Referenzgleis im Umkreis von 50 m.',
+        'underground' => 'Unterirdischer Abschnitt: Dort wird kein Gleis aus Luftbildern erfasst, der Abstand wird nicht gemessen.',
+        'underground_excluded' => 'Punkte in Tunneln zählen nicht zum Abstand (Gleis nicht aus der Luft erfasst).',
         'abroad' => 'Außerhalb Frankreichs: kein Referenzgleis.',
         'only_same_source' => 'Als Referenz steht nur die Quelle des Verlaufs selbst zur Verfügung.',
         'on_other_line_track' => 'Der Verlauf liegt auf dem Gleis einer anderen Strecke, obwohl das eigene Gleis daneben verläuft.',

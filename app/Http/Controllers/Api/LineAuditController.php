@@ -96,8 +96,8 @@ class LineAuditController extends Controller
      * source au moins aussi fiable, ou quand « voyageurs seuls » apparaît hors d'une LGV. Raisons
      * (`reasons`) : `sources_agree`, `source_contradicts`, `sources_disagree`, `weak_contradiction`,
      * `weak_sources_only`, `no_source`, `rule_passenger_only_off_lgv`, `rule_track_unconfirmed`,
-     * `observation_outvoted` (une seule observation actuelle, BD TOPO ou SNCF « déclassée vendue »,
-     * contre deux d'accord), `continuous_service` (ère passée : aucune fin datée de la ligne ne touche le
+     * `observation_outvoted` (une seule observation actuelle, BD TOPO, SNCF « déclassée vendue » ou étiquette
+     * OSM contre le registre de SNCF Réseau, contre deux d'accord), `continuous_service` (ère passée : aucune fin datée de la ligne ne touche le
      * tronçon à cette ère, tronçon sûr aujourd'hui).
      *
      * **Placement** (`placement`) : un point tous les 50 m du tronçon, distance à la voie la plus
@@ -107,7 +107,9 @@ class LineAuditController extends Controller
      * sert jamais de référence (`references.<source>.all` : même mesure sur toutes les voies,
      * `references.<source>.own` : voies de la ligne seules, jusqu'à 60 m). Raisons : `within_target`,
      * `within_tolerance`, `p95_over_tolerance`, `median_over_tolerance`, `partial_coverage`,
-     * `no_track_nearby`, `no_reference`, `abroad`, `only_same_source`, et pour un tronçon qui ne colle
+     * `no_track_nearby`, `no_reference`, `abroad`, `only_same_source`, `underground` (tronçon tout en
+     * tunnel, non mesuré), `underground_excluded` (points en tunnel hors de la mesure, `references.<source>.underground`
+     * les compte), et pour un tronçon qui ne colle
      * qu'à la voie d'une autre ligne : `on_other_line_track` (sa propre voie passe à 8 à 60 m :
      * `poor` pour un tronçon fermé ou déposé ou à une ère passée, `good` pour un tronçon en service
      * aujourd'hui, la raison signalant le cas à relire), `shared_track`
