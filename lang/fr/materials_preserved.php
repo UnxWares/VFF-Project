@@ -1,0 +1,72 @@
+<?php
+
+// Matériel préservé : section de la fiche d'une série (Components/Materials/PreservedUnits.svelte) et page
+// /materials/preserved (Pages/Materials/Preserved.svelte). Données : App\Services\Materials\PreservedRollingStock.
+return [
+    'meta_title' => 'Matériel roulant préservé',
+    'meta_description' => 'Où voir du matériel roulant ferroviaire préservé en France : musées, associations, lignes touristiques et sites, avec le numéro de chaque exemplaire, son état, sa protection au titre des monuments historiques et la source.',
+    'title' => 'Matériel roulant préservé',
+    'subtitle' => ':units exemplaires de :series séries sont conservés dans :venues lieux d’après nos sources ; :protected sont protégés au titre des monuments historiques. Chaque fait nomme sa source ; une liste n’est pas un inventaire.',
+    'all_materials' => 'Tous les matériels',
+    'see_all' => 'Voir le matériel préservé',
+
+    'section_title' => 'Exemplaires préservés',
+    'section_intro' => 'Les exemplaires de cette série que nos sources disent conservés, avec le lieu où on peut les voir. L’état est celui que la source rapporte, il peut avoir changé.',
+    'section_link' => 'Tous les lieux de matériel préservé',
+    'place' => 'Où le voir',
+    'state_label' => 'État',
+    'protection_label' => 'Protection',
+    'sources_label' => 'Sources',
+    'place_unknown' => 'Lieu non précisé par la source',
+
+    'state' => [
+        'running' => 'En état de marche',
+        'exposed' => 'Exposé',
+        'restoration' => 'En restauration',
+        'stored' => 'Garé ou en réserve',
+    ],
+    'type' => [
+        'museum' => 'Musées',
+        'association' => 'Associations',
+        'tourist_railway' => 'Lignes touristiques',
+        'site' => 'Autres lieux',
+    ],
+    'type_one' => [
+        'museum' => 'Musée',
+        'association' => 'Association',
+        'tourist_railway' => 'Ligne touristique',
+        'site' => 'Lieu',
+    ],
+    'protection' => [
+        'classified_date' => 'Classé monument historique (objet) le :date',
+        'classified_year' => 'Classé monument historique (objet) en :year',
+        'classified' => 'Classé monument historique (objet)',
+        'listed_date' => 'Inscrit monument historique (objet) le :date',
+        'listed_year' => 'Inscrit monument historique (objet) en :year',
+        'listed' => 'Inscrit monument historique (objet)',
+        'declassified_date' => 'Déclassé le :date',
+        'declassified' => 'Protection levée',
+        'notice' => 'Notice Palissy :ref',
+    ],
+    'see_tourist' => 'Voir la ligne touristique',
+
+    'filters_title' => 'Trouver un lieu',
+    'search_label' => 'Lieu, commune, numéro ou série',
+    'search_hint' => 'Cité du train, Mulhouse, 241 P 17…',
+    'type_filter' => 'Type de lieu',
+    'all_types' => 'Tous',
+    'protected_only' => 'Seulement les pièces protégées',
+    'reset' => 'Réinitialiser les filtres',
+    'results' => ':count lieux, :pieces pièces',
+    'results_one' => ':count lieu, :pieces pièces',
+    'empty_title' => 'Aucun lieu ne correspond',
+    'empty_text' => 'Essayez un autre mot, ou retirez un filtre.',
+    'pieces' => ':count pièces',
+    'pieces_one' => ':count pièce',
+    'show_pieces' => 'Voir les pièces',
+    'more_venues' => 'Afficher plus de lieux',
+    'coverage_title' => 'Ce que cette liste couvre',
+    'coverage_text' => 'Les exemplaires viennent des listes de matériel préservé de Wikipédia, de la base Palissy (objets mobiliers protégés au titre des monuments historiques) et de Wikidata. Une série absente n’a pas d’exemplaire préservé connu de VFF ; un exemplaire absent n’est pas pour autant détruit. Le matériel à voie étroite, les wagons et les voitures protégés figurent dans leur lieu, sans série.',
+    'series_label' => 'Série',
+    'source_list' => 'Sources et licences',
+];

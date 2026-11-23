@@ -178,6 +178,20 @@ return [
             'domaines' => ['pop.culture.gouv.fr'],
             'lu_le' => '2026-11-23',
         ],
+        'palissy' => [
+            'nom' => 'POP, Plateforme ouverte du patrimoine (base Palissy, ministère de la Culture)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 1.0 (Etalab, « fr-lo » sur data.gouv.fr)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/liste-des-objets-mobiliers-propriete-publique-classes-au-titre-des-monuments-historiques-1',
+            ],
+            'citation' => 'Jeu « Liste des objets protégés au titre des Monuments historiques » publié par le ministère de la Culture sur data.gouv.fr, licence « fr-lo » (Licence Ouverte), ressource palissy.csv, dernière mise à jour le 2026-11-13 (lu le 2026-11-23 par l\'API data.gouv.fr ; le portail data.culture.gouv.fr n\'expose plus de page lisible sans JavaScript).',
+            'obligations' => 'Mention de la paternité (« Ministère de la Culture, base Palissy, POP ») et de la date de mise à jour. Seul le fichier officiel du ministère est lu (ministere-culture.s3.sbg.io.cloud.ovh.net/POP/palissy.csv).',
+            'remarques' => 'Seuls les objets ferroviaires protégés sont gardés (database/data/preserved_rolling_stock.php, clé `palissy`) : numéro, lieu au moment de la protection, date et nature de la protection.',
+            'domaines' => ['pop.culture.gouv.fr'],
+            'lu_le' => '2026-11-23',
+        ],
         'commons' => [
             'nom' => 'Wikimedia Commons',
             'statut' => 'sur',

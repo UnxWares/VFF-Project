@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NetworkAuditController;
 use App\Http\Controllers\Api\NetworkFiguresController;
 use App\Http\Controllers\Api\OnThisDayController;
+use App\Http\Controllers\Api\PreservedMaterialController;
 use App\Http\Controllers\Api\RailProjectController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
@@ -202,9 +203,11 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Matériel roulant (fiches Wikidata, liens avec les lignes attestés par une source).
     Route::get('/v1/materials', [MaterialController::class, 'index'])->name('api.materials.index');
     Route::get('/v1/materials/timeline', [MaterialTimelineController::class, 'index'])->name('api.materials.timeline');
+    Route::get('/v1/materials/preserved', [PreservedMaterialController::class, 'index'])->name('api.materials.preserved');
     Route::get('/v1/materials/{material:slug}', [MaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.show');
     Route::get('/v1/materials/{material:slug}/map', [MaterialController::class, 'map'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.map');
     Route::get('/v1/materials/{material:slug}/media', [MaterialController::class, 'media'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.media');
+    Route::get('/v1/materials/{material:slug}/preserved', [PreservedMaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.preserved.show');
     Route::get('/v1/lines/{line:slug}/materials', [LineMaterialController::class, 'index'])->name('api.lines.materials');
 
     // Accidents et événements graves (Wikidata, Wikipédia, BEA-TT ; slug = date puis commune).

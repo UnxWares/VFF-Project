@@ -25,6 +25,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /materials/preserved` (matériel préservé : lieux, musées, associations et lignes touristiques avec leurs pièces, numéro, état, protection au titre des monuments historiques d'après la base Palissy, sources ; `meta` donne la couverture) et `GET /materials/{material}/preserved` (exemplaires préservés d'une série). Page : `/materials/preserved` ; section « Exemplaires préservés » de la fiche de série. Ajout seul.
 - REST : `GET /lines/{line}/at-pk?pk=` (ou `pk_m=` en mètres) : position d'un point kilométrique sur une ligne (`pk` : `120`, `120,5` ou
   `120+500`). Donne les gares qui l'encadrent (`between`, ou `at_station`), la commune, les bornes de la ligne (`bounds`) et un point
   de carte (`lat`, `lng`, `position_method` : `profile`, `stations` ou `station`). PK hors de la ligne : 404 `pk_out_of_range` avec les bornes.

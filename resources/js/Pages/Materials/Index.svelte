@@ -136,6 +136,11 @@
                         >{t('materials_timeline.see_all_in_timeline')}</Link
                     >
                 </p>
+                <p class="quiz-link">
+                    <Link href="/materials/preserved" class="vff-link"
+                        >{t('materials_preserved.see_all')}</Link
+                    >
+                </p>
             {/if}
         </PageHero>
 

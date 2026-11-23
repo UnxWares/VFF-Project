@@ -37,6 +37,7 @@ use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnThisDayController;
 use App\Http\Controllers\OpenDataController;
+use App\Http\Controllers\PreservedMaterialController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RailProjectController;
@@ -116,6 +117,8 @@ Route::get('/nearby', [NearbyController::class, 'index'])->name('nearby');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 // Frise du matériel roulant : avant la fiche, dont l'adresse accepterait « timeline » comme identifiant.
 Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');
+// Matériel préservé : lieux et pièces, avant la fiche (même raison).
+Route::get('/materials/preserved', [PreservedMaterialController::class, 'index'])->name('materials.preserved');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 // Les accidents en chiffres : avant la fiche, dont l'adresse accepterait « statistics » comme identifiant.

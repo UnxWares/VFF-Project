@@ -1,0 +1,72 @@
+<?php
+
+// Erhaltene Fahrzeuge: Abschnitt eines Baureihenblatts (Components/Materials/PreservedUnits.svelte) und Seite
+// /materials/preserved (Pages/Materials/Preserved.svelte). Daten: App\Services\Materials\PreservedRollingStock.
+return [
+    'meta_title' => 'Erhaltene Fahrzeuge',
+    'meta_description' => 'Wo man erhaltene Eisenbahnfahrzeuge in Frankreich sehen kann: Museen, Vereine, Museumsbahnen und Orte, mit Nummer, Zustand, Denkmalschutz und Quelle jedes Fahrzeugs.',
+    'title' => 'Erhaltene Fahrzeuge',
+    'subtitle' => 'Nach unseren Quellen werden :units Fahrzeuge aus :series Baureihen an :venues Orten bewahrt; :protected davon stehen unter Denkmalschutz. Jede Angabe nennt ihre Quelle; eine Liste ist kein Bestandsverzeichnis.',
+    'all_materials' => 'Alle Fahrzeuge',
+    'see_all' => 'Erhaltene Fahrzeuge ansehen',
+
+    'section_title' => 'Erhaltene Fahrzeuge dieser Baureihe',
+    'section_intro' => 'Die Fahrzeuge dieser Baureihe, die nach unseren Quellen erhalten sind, mit dem Ort, an dem Sie sie sehen können. Der Zustand ist der von der Quelle berichtete und kann sich geändert haben.',
+    'section_link' => 'Alle Orte mit erhaltenen Fahrzeugen',
+    'place' => 'Wo zu sehen',
+    'state_label' => 'Zustand',
+    'protection_label' => 'Schutz',
+    'sources_label' => 'Quellen',
+    'place_unknown' => 'Ort in der Quelle nicht genannt',
+
+    'state' => [
+        'running' => 'Betriebsfähig',
+        'exposed' => 'Ausgestellt',
+        'restoration' => 'In Aufarbeitung',
+        'stored' => 'Abgestellt oder im Depot',
+    ],
+    'type' => [
+        'museum' => 'Museen',
+        'association' => 'Vereine',
+        'tourist_railway' => 'Museumsbahnen',
+        'site' => 'Weitere Orte',
+    ],
+    'type_one' => [
+        'museum' => 'Museum',
+        'association' => 'Verein',
+        'tourist_railway' => 'Museumsbahn',
+        'site' => 'Ort',
+    ],
+    'protection' => [
+        'classified_date' => 'Als Denkmal (Objekt) eingestuft am :date',
+        'classified_year' => 'Als Denkmal (Objekt) eingestuft im Jahr :year',
+        'classified' => 'Als Denkmal (Objekt) eingestuft',
+        'listed_date' => 'In das Denkmalverzeichnis (Objekt) eingetragen am :date',
+        'listed_year' => 'In das Denkmalverzeichnis (Objekt) eingetragen im Jahr :year',
+        'listed' => 'In das Denkmalverzeichnis (Objekt) eingetragen',
+        'declassified_date' => 'Einstufung aufgehoben am :date',
+        'declassified' => 'Schutz aufgehoben',
+        'notice' => 'Palissy-Eintrag :ref',
+    ],
+    'see_tourist' => 'Zur Museumsbahn',
+
+    'filters_title' => 'Einen Ort suchen',
+    'search_label' => 'Ort, Gemeinde, Nummer oder Baureihe',
+    'search_hint' => 'Cité du train, Mulhouse, 241 P 17…',
+    'type_filter' => 'Art des Ortes',
+    'all_types' => 'Alle',
+    'protected_only' => 'Nur geschützte Stücke',
+    'reset' => 'Filter zurücksetzen',
+    'results' => ':count Orte, :pieces Stücke',
+    'results_one' => ':count Ort, :pieces Stücke',
+    'empty_title' => 'Kein Ort passt',
+    'empty_text' => 'Versuchen Sie ein anderes Wort oder entfernen Sie einen Filter.',
+    'pieces' => ':count Stücke',
+    'pieces_one' => ':count Stück',
+    'show_pieces' => 'Stücke anzeigen',
+    'more_venues' => 'Weitere Orte anzeigen',
+    'coverage_title' => 'Was diese Liste abdeckt',
+    'coverage_text' => 'Die Fahrzeuge stammen aus den Listen erhaltener Fahrzeuge in Wikipedia, der Palissy-Datenbank (als Denkmal geschützte bewegliche Objekte) und Wikidata. Eine fehlende Baureihe hat kein VFF bekanntes erhaltenes Fahrzeug; ein fehlendes Fahrzeug ist nicht zwingend zerstört. Geschützte Schmalspurfahrzeuge, Güterwagen und Reisezugwagen stehen an ihrem Ort, ohne Baureihe.',
+    'series_label' => 'Baureihe',
+    'source_list' => 'Quellen und Lizenzen',
+];

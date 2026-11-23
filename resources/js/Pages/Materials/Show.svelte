@@ -7,6 +7,7 @@
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import MaterialLinesMap from '$components/Materials/MaterialLinesMap.svelte';
     import NotableUnits from '$components/Sheet/NotableUnits.svelte';
+    import PreservedUnits from '$components/Materials/PreservedUnits.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -31,6 +32,7 @@
         map_url = null,
         media_count = 0,
         notable_units = [],
+        preserved = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -481,6 +483,10 @@
 
         {#if notable_units.length}
             <NotableUnits units={notable_units} series={material.slug} />
+        {/if}
+
+        {#if preserved.length}
+            <PreservedUnits units={preserved} />
         {/if}
 
         {#if map_url && lines.length}
