@@ -18,8 +18,8 @@ class SectionsDatesCorrectionsTest extends TestCase
 
     private const FILE = 'line_event_corrections_sections_dates.php';
 
-    private const MONTHS = ['01' => 'janvier', '02' => 'février', '03' => 'mars', '04' => 'avril', '05' => 'mai', '06' => 'juin',
-        '07' => 'juillet', '08' => 'août', '09' => 'septembre', '10' => 'octobre', '11' => 'novembre', '12' => 'décembre'];
+    private const MONTHS = [1 => 'janvier', 2 => 'février', 3 => 'mars', 4 => 'avril', 5 => 'mai', 6 => 'juin',
+        7 => 'juillet', 8 => 'août', 9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre'];
 
     /** @return list<array<string, mixed>> */
     private function corrections(): array
@@ -58,7 +58,7 @@ class SectionsDatesCorrectionsTest extends TestCase
             $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', $c['source_url'], $label);
             [$y, $m, $d] = explode('-', $c['date']);
             $quote = (string) $c['quote'];
-            $this->assertMatchesRegularExpression('/(?<!\d)'.(int) $d.'(?:er)?\s+'.self::MONTHS[$m].'/u', $quote, "{$label} : le jour et le mois ne sont pas dans la citation");
+            $this->assertMatchesRegularExpression('/(?<!\d)'.(int) $d.'(?:er)?\s+'.self::MONTHS[(int) $m].'/u', $quote, "{$label} : le jour et le mois ne sont pas dans la citation");
             $this->assertStringContainsString($y, $quote, $label);
             $this->assertLessThanOrEqual(300, mb_strlen($quote), $label);
             $this->assertNotSame('', trim((string) $c['reason']), $label);
