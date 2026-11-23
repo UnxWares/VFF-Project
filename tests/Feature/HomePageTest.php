@@ -169,4 +169,14 @@ class HomePageTest extends TestCase
 
         $this->get('/')->assertInertia(fn (Assert $page) => $page->where('mediaCount', 2));
     }
+
+    public function test_media_count_follows_the_non_commercial_setting(): void
+    {
+        $this->commonsImage();
+        $this->commonsImage(['is_featured' => false, 'commercial_ok' => false]);
+        config(['vff.media.show_non_commercial' => false]);
+
+        // Même total que /credits/media : un média masqué par le réglage n'est pas compté.
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('mediaCount', 1));
+    }
 }

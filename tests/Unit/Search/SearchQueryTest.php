@@ -74,4 +74,15 @@ class SearchQueryTest extends TestCase
         $this->assertSame(['% chaleons%', '% saint%', '% hil%'], $bindings);
         $this->assertSame(['FALSE', []], SearchQuery::parse('%')->matchSql('k'));
     }
+
+    public function test_long_query_is_cut_to_the_maximum_length(): void
+    {
+        // Une adresse de 6 000 caractères donnait 1 500 conditions LIKE par catégorie (7 s pour /stations).
+        $words = implode(' ', array_map(fn (int $i) => 'mot'.chr(97 + $i % 26).chr(97 + intdiv($i, 26) % 26), range(1, 1500)));
+        $search = SearchQuery::parse($words);
+        $this->assertSame(SearchQuery::MAX_LENGTH, mb_strlen($search->raw));
+        $this->assertLessThanOrEqual(intdiv(SearchQuery::MAX_LENGTH, 2), count($search->tokens));
+        $this->assertSame(SearchQuery::parse(mb_substr($words, 0, SearchQuery::MAX_LENGTH))->tokens, $search->tokens);
+        $this->assertSame([['saint'], ['hilaire']], SearchQuery::parse('St-Hilaire')->tokens, 'requête courte inchangée');
+    }
 }

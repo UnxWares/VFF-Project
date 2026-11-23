@@ -26,6 +26,13 @@ final class SearchQuery
     public const FUZZY_THRESHOLD = 0.6;
 
     /**
+     * Longueur maximale (caractères) d'une requête lue : au-delà, elle est coupée. Chaque mot ajoute une condition
+     * LIKE et la ressemblance porte sur tout le texte : sans plafond, une adresse de 6 000 caractères coûtait 7 s de
+     * base pour /stations. Même plafond que la validation de l'API et du serveur MCP (`max:100`).
+     */
+    public const MAX_LENGTH = 100;
+
+    /**
      * @param  list<list<string>>  $tokens  mots exigés, chacun avec ses variantes (une suffit)
      */
     private function __construct(
@@ -37,6 +44,7 @@ final class SearchQuery
 
     public static function parse(string $raw): self
     {
+        $raw = mb_substr($raw, 0, self::MAX_LENGTH);
         $key = SearchText::key($raw);
         $words = array_values(array_filter(explode(' ', $key), fn (string $w) => $w !== ''));
         $rawWords = array_values(array_filter(explode(' ', SearchText::key($raw, false)), fn (string $w) => $w !== ''));
