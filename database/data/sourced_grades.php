@@ -1,21 +1,19 @@
 <?php
 
 /**
- * Déclivités les plus fortes publiées par une source écrite, une par ligne, avec la révision lue.
+ * Déclivités les plus fortes publiées par Wikipédia, une par ligne, avec la révision lue.
  * Lu par App\Services\Profiles\SourcedGrades : quand le profil en long ne publie pas sa propre
  * mesure (altitude du terrain seulement, tunnel, points interpolés), la fiche, l'API REST, GraphQL
- * et l'outil MCP `line_profile` donnent cette valeur à la place, avec sa source. Une déclivité
- * mesurée sur la voie n'est jamais remplacée.
+ * et l'outil MCP `line_profile` donnent cette valeur à la place, avec sa source
+ * (`sourced_grade`) ; quand la mesure est publiée, la valeur est donnée à côté, avec l'écart
+ * (`sourced_grade_compared`). Une déclivité mesurée sur la voie n'est jamais remplacée.
  *
- * Source actuelle : champ `pente` (pente maximale, en ‰) de l'infobox « Ligne ferroviaire » de
- * l'article de Wikipédia en français de la ligne, révisions lues le 19/11/2026 (cache local des
- * articles). Fichier produit par
- * storage/app/reports/agents/aprem-2111/profil-declivites/extraire-pentes.py, règles prudentes :
- * article rattaché à une seule ligne, valeur unique entre 1 et 120 ‰ (au-delà : crémaillère,
- * rack_railways.php), longueur de l'infobox à 25 % près de celle de la ligne, ligne hors de
- * rack_railways.php. Contrôle du 22/11/2026 sur les 235 lignes dont la déclivité est aussi mesurée
- * sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près (la mesure porte sur une rampe d'1 km, l'infobox
- * souvent sur un point).
+ * Fichier ÉCRIT par `php artisan vff:import-wikipedia-grades` (articles déjà en cache, aucun appel
+ * réseau ; règles dans App\Services\Profiles\WikipediaGrades) : champ `pente` de l'infobox
+ * « Ligne ferroviaire » quand l'article est bien celui de la ligne (longueur à 25 % près ou
+ * numéro de ligne), sinon déclivité maximale écrite dans le texte de l'article, contrôlée par
+ * la mesure du profil. L'import ajoute et met à jour, il n'efface rien ; une entrée tirée du
+ * texte (`quote` « texte : … ») a été relue et n'est jamais remplacée.
  *
  * Les déclivités du jeu SNCF Open Data (SNCF Réseau, ODbL) sont dans un fichier à part, écrit par
  * `vff:import-sncf-grades` : database/data/sourced_grades_sncf.php.
@@ -26,7 +24,7 @@
  *   - license : licence de la source (`CC BY-SA 4.0`) ;
  *   - source_url : permalien de la révision lue ;
  *   - source_title : titre de l'article ;
- *   - quote : champs de l'infobox lus, sans leurs appels de note.
+ *   - quote : champs de l'infobox lus, ou phrase du texte, sans leurs appels de note.
  *
  * Wikipédia : CC BY-SA 4.0 ; seuls des faits (une valeur numérique) sont repris, avec le lien.
  *
@@ -41,6 +39,14 @@ return [
         'source_title' => 'Tramway d\'Annecy à Thônes',
         'quote' => 'pente = 60 ; longueur = 22',
     ],
+    'archeo-ligne-de-bastia-a-ajaccio' => [
+        'max_grade_permil' => 30,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bastia_%C3%A0_Ajaccio&oldid=241366105',
+        'source_title' => 'Ligne de Bastia à Ajaccio',
+        'quote' => 'texte : « Ici, les déclivités maximales sont de 30 ‰ contrairement aux normes en vigueur sur le reste du réseau. »',
+    ],
     'archeo-ligne-de-biarritz-la-negresse-a-biarritz-ville' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
@@ -53,9 +59,25 @@ return [
         'max_grade_permil' => 7.8,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bondy_%C3%A0_Aulnay-sous-Bois&oldid=238577434',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bondy_%C3%A0_Aulnay-sous-Bois&oldid=241524248',
         'source_title' => 'Ligne de Bondy à Aulnay-sous-Bois',
         'quote' => 'pente = 7.8 ; longueur = 8',
+    ],
+    'archeo-ligne-de-bouxwiller-a-ingwiller' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bouxwiller_%C3%A0_Ingwiller&oldid=235341814',
+        'source_title' => 'Ligne de Bouxwiller à Ingwiller',
+        'quote' => 'pente = 10 ; texte : « profil en faible pente de 6 à 10 mm/m »',
+    ],
+    'archeo-ligne-de-castres-a-murat-sur-vebre' => [
+        'max_grade_permil' => 40,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Castres_%C3%A0_Murat-sur-V%C3%A8bre&oldid=240607848',
+        'source_title' => 'Chemin de fer de Castres à Murat-sur-Vèbre',
+        'quote' => 'pente = 6 ; texte : « rampe quasi continue sur les 75 km du trajet, pouvant atteindre les 40 ‰ »',
     ],
     'archeo-ligne-de-chantilly-a-crepy-en-valois' => [
         'max_grade_permil' => 15,
@@ -89,6 +111,14 @@ return [
         'source_title' => 'Ligne de Chars à Marines',
         'quote' => 'pente = 20 ; longueur = 6',
     ],
+    'archeo-ligne-de-concarneau-a-quimperle' => [
+        'max_grade_permil' => 25,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Quimperl%C3%A9_%C3%A0_Concarneau&oldid=235342588',
+        'source_title' => 'Ligne de Quimperlé à Concarneau',
+        'quote' => 'texte : « …ligne quittait la gare PO de Quimperlé pour gagner Pont-Aven, via Moëlan-sur-Mer et Riec-sur-Bélon, franchissant une région vallonnée et le fleuve côtier Bélon près de Pont Guily ; les rampes atteignaient souvent 25 ‰. »',
+    ],
     'archeo-ligne-de-dinard-a-saint-briac' => [
         'max_grade_permil' => 45,
         'provider' => 'wikipedia',
@@ -96,6 +126,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Tramway_de_Saint-Briac_%C3%A0_Dinard&oldid=240215631',
         'source_title' => 'Tramway de Saint-Briac à Dinard',
         'quote' => 'pente = 45 ; longueur = 9',
+    ],
+    'archeo-ligne-de-domfront-a-pontaubault' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Domfront_%C3%A0_Pontaubault&oldid=236237594',
+        'source_title' => 'Ligne de Domfront à Pontaubault',
+        'quote' => 'pente = 15 ; numéro = 437000',
     ],
     'archeo-ligne-de-douai-a-blanc-misseron' => [
         'max_grade_permil' => 6,
@@ -121,6 +159,14 @@ return [
         'source_title' => 'Tramway Grenoble - Villard-de-Lans',
         'quote' => 'pente = 68 ; longueur = 39',
     ],
+    'archeo-ligne-de-hazebrouck-a-hondschoote' => [
+        'max_grade_permil' => 25,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Hazebrouck_%C3%A0_Bergues_et_Hondschoote&oldid=237506140',
+        'source_title' => 'Chemin de fer de Hazebrouck à Bergues et Hondschoote',
+        'quote' => 'pente = 25 ; texte : « La voie comprenait quelques rampes atteignant 25 ‰ »',
+    ],
     'archeo-ligne-de-hussigny-godbrange-a-audun-le-tiche' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
@@ -136,6 +182,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lamothe_%C3%A0_Arcachon&oldid=235342227',
         'source_title' => 'Ligne de Lamothe à Arcachon',
         'quote' => 'pente = 5 ; longueur = 16.043',
+    ],
+    'archeo-ligne-de-marcoing-a-masnieres' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Marcoing_%C3%A0_Masni%C3%A8res&oldid=236095159',
+        'source_title' => 'Ligne de Marcoing à Masnières',
+        'quote' => 'pente = 12 ; texte : « une rampe de 12 ‰ sur environ un kilomètre »',
     ],
     'archeo-ligne-de-meaux-a-dammartin' => [
         'max_grade_permil' => 33,
@@ -184,6 +238,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Tramway_de_Pithiviers_%C3%A0_Toury&oldid=241373195',
         'source_title' => 'Tramway de Pithiviers à Toury',
         'quote' => 'pente = 10 ; longueur = 30.613',
+    ],
+    'archeo-ligne-de-ponte-leccia-a-calvi' => [
+        'max_grade_permil' => 20,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Ponte-Leccia_%C3%A0_Calvi&oldid=235342565',
+        'source_title' => 'Ligne de Ponte-Leccia à Calvi',
+        'quote' => 'texte : « La déclivité maximale est 20 ‰ et le rayon de courbe minimal de 100 m, mais ce rayon est uniquement appliqué sur les sections les plus difficiles. »',
     ],
     'archeo-ligne-de-pre-en-pail-a-mayenne' => [
         'max_grade_permil' => 20,
@@ -377,6 +439,22 @@ return [
         'source_title' => 'Ligne de Dannemarie à Pfetterhouse',
         'quote' => 'pente = 15 ; longueur = 20.115',
     ],
+    'lo-137000' => [
+        'max_grade_permil' => 30,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_la_vall%C3%A9e_de_Kaysersberg&oldid=241121876',
+        'source_title' => 'Chemin de fer de la vallée de Kaysersberg',
+        'quote' => 'pente = 30 ; texte : « Le tronçon entre Kaysersberg et Lapoutroie fait 13.4 km et la pente atteint par endroit 30 ‰ »',
+    ],
+    'lo-201000' => [
+        'max_grade_permil' => 6,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Montm%C3%A9dy_%C3%A0_%C3%89couviez&oldid=190319264',
+        'source_title' => 'Ligne de Montmédy à Écouviez',
+        'quote' => 'pente = 6 ; numéro = 201000',
+    ],
     'lo-213000' => [
         'max_grade_permil' => 7,
         'provider' => 'wikipedia',
@@ -465,6 +543,14 @@ return [
         'source_title' => 'Ligne des Ifs à Étretat',
         'quote' => 'pente = 20 ; longueur = 14.9',
     ],
+    'lo-381000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Neuilly-la-For%C3%AAt_%C3%A0_Isigny-sur-Mer&oldid=238384712',
+        'source_title' => 'Ligne de Neuilly-la-Forêt à Isigny-sur-Mer',
+        'quote' => 'pente = 12 ; numéro = 381000',
+    ],
     'lo-398000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -480,6 +566,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27%C3%89chauffour_%C3%A0_Bernay&oldid=236733764',
         'source_title' => 'Ligne d\'Échauffour à Bernay',
         'quote' => 'pente = 20 ; longueur = 46.7',
+    ],
+    'lo-401000' => [
+        'max_grade_permil' => 19,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_La_Trinit%C3%A9-de-R%C3%A9ville_%C3%A0_Lisieux&oldid=223605862',
+        'source_title' => 'Ligne de La Trinité-de-Réville à Lisieux',
+        'quote' => 'pente = 19 ; numéro = 401000',
     ],
     'lo-402000' => [
         'max_grade_permil' => 20,
@@ -537,6 +631,14 @@ return [
         'source_title' => 'Ligne de Mamers à Mortagne-au-Perche',
         'quote' => 'pente = 20 ; longueur = 38',
     ],
+    'lo-427000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_La_Hutte_-_Coulombiers_%C3%A0_Mamers&oldid=238880846',
+        'source_title' => 'Ligne de La Hutte - Coulombiers à Mamers',
+        'quote' => 'pente = 15 ; numéro = 427000',
+    ],
     'lo-443000' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
@@ -560,6 +662,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Laval_%C3%A0_Pouanc%C3%A9&oldid=229059074',
         'source_title' => 'Ligne de Laval à Pouancé',
         'quote' => 'pente = 15 ; longueur = 60.4',
+    ],
+    'lo-464000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Vincent-des-Landes_%C3%A0_Mass%C3%A9rac&oldid=233734728',
+        'source_title' => 'Ligne de Saint-Vincent-des-Landes à Massérac',
+        'quote' => 'pente = 10 ; numéro = 464000',
     ],
     'lo-471000' => [
         'max_grade_permil' => 17,
@@ -601,6 +711,14 @@ return [
         'source_title' => 'Ligne de Thorigné à Courtalain - Saint-Pellerin',
         'quote' => 'pente = 15 ; longueur = 50.7',
     ],
+    'lo-507000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bess%C3%A9-sur-Braye_%C3%A0_Saint-Calais&oldid=235341773',
+        'source_title' => 'Ligne de Bessé-sur-Braye à Saint-Calais',
+        'quote' => 'pente = 15 ; numéro = 507000',
+    ],
     'lo-522000' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
@@ -608,6 +726,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Perray-Jouannet_aux_Fourneaux&oldid=236148493',
         'source_title' => 'Ligne de Perray-Jouannet aux Fourneaux',
         'quote' => 'pente = 15 ; longueur = 25.7',
+    ],
+    'lo-540000' => [
+        'max_grade_permil' => 5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Aigrefeuille_-_Le_Thou_%C3%A0_Rochefort&oldid=208883917',
+        'source_title' => 'Ligne d\'Aigrefeuille - Le Thou à Rochefort',
+        'quote' => 'pente = 5 ; numéro = 540000',
     ],
     'lo-542000' => [
         'max_grade_permil' => 10,
@@ -817,6 +943,14 @@ return [
         'source_title' => 'Ligne transcévenole',
         'quote' => 'pente = 25 ; longueur = 93',
     ],
+    'lo-793000' => [
+        'max_grade_permil' => 18,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Riom_%C3%A0_Ch%C3%A2telguyon&oldid=235337757',
+        'source_title' => 'Ligne de Riom à Châtelguyon',
+        'quote' => 'pente = 18 ; numéro = 793000',
+    ],
     'lo-806000' => [
         'max_grade_permil' => 15,
         'provider' => 'wikipedia',
@@ -832,6 +966,30 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Sernin_%C3%A0_Largenti%C3%A8re&oldid=238965298',
         'source_title' => 'Ligne de Saint-Sernin à Largentière',
         'quote' => 'pente = 20 ; longueur = 12.9',
+    ],
+    'lo-816000' => [
+        'max_grade_permil' => 11,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Vigan_%C3%A0_Quissac&oldid=221155593',
+        'source_title' => 'Ligne du Vigan à Quissac',
+        'quote' => 'pente = 11 ; numéro = 816000',
+    ],
+    'lo-817000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sommi%C3%A8res_%C3%A0_Saint-C%C3%A9saire&oldid=241015188',
+        'source_title' => 'Ligne de Sommières à Saint-Césaire',
+        'quote' => 'pente = 12 ; numéro = 817000',
+    ],
+    'lo-818000' => [
+        'max_grade_permil' => 7,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sommi%C3%A8res_%C3%A0_Gallargues&oldid=225728940',
+        'source_title' => 'Ligne de Sommières à Gallargues',
+        'quote' => 'pente = 7 ; numéro = 818000',
     ],
     'lo-823000' => [
         'max_grade_permil' => 17,
@@ -897,11 +1055,19 @@ return [
         'source_title' => 'Ligne de Champagnole à Lons-le-Saunier',
         'quote' => 'pente = 25 ; longueur = 44.9',
     ],
+    'lo-881000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Germain-du-Plain_%C3%A0_Lons-le-Saunier&oldid=238375844',
+        'source_title' => 'Ligne de Saint-Germain-du-Plain à Lons-le-Saunier',
+        'quote' => 'pente = 15 ; numéro = 881000',
+    ],
     'lo-914000' => [
         'max_grade_permil' => 30,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Pierrelatte_%C3%A0_Nyons&oldid=237789002',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Pierrelatte_%C3%A0_Nyons&oldid=241521083',
         'source_title' => 'Ligne de Pierrelatte à Nyons',
         'quote' => 'pente = 30 ; longueur = 41.028',
     ],
@@ -965,7 +1131,7 @@ return [
         'max_grade_permil' => 16,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Strasbourg-Ville_%C3%A0_Saint-Di%C3%A9&oldid=241301563',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Strasbourg-Ville_%C3%A0_Saint-Di%C3%A9&oldid=241514871',
         'source_title' => 'Ligne de Strasbourg-Ville à Saint-Dié',
         'quote' => 'pente = 16 ; longueur = 86.501',
     ],
@@ -1129,6 +1295,14 @@ return [
         'source_title' => 'Ligne de Rémilly à Stiring-Wendel',
         'quote' => 'pente = 11 ; longueur = 51.363',
     ],
+    'rfn-176000' => [
+        'max_grade_permil' => 5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bouzonville_%C3%A0_Guerstling&oldid=207130146',
+        'source_title' => 'Ligne de Bouzonville à Guerstling',
+        'quote' => 'pente = 5 ; numéro = 176000',
+    ],
     'rfn-177000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -1145,6 +1319,22 @@ return [
         'source_title' => 'Ligne de Thionville à Apach',
         'quote' => 'pente = 3 ; longueur = 22.168',
     ],
+    'rfn-194000' => [
+        'max_grade_permil' => 25,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Knutange_-_Nilvange_%C3%A0_Algrange-Rochonvillers&oldid=240253890',
+        'source_title' => 'Ligne de Knutange - Nilvange à Algrange-Rochonvillers',
+        'quote' => 'pente = 25 ; numéro = 194000',
+    ],
+    'rfn-2000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Gretz-Armainvilliers_%C3%A0_S%C3%A9zanne&oldid=240817135',
+        'source_title' => 'Ligne de Gretz-Armainvilliers à Sézanne',
+        'quote' => 'texte : « Les déclivités ne dépassent pas 10 ‰. »',
+    ],
     'rfn-20000' => [
         'max_grade_permil' => 6.3,
         'provider' => 'wikipedia',
@@ -1152,6 +1342,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Blesme_-_Haussign%C3%A9mont_%C3%A0_Chaumont&oldid=235341775',
         'source_title' => 'Ligne de Blesme - Haussignémont à Chaumont',
         'quote' => 'pente = 6.3 ; longueur = 89.3',
+    ],
+    'rfn-202000' => [
+        'max_grade_permil' => 8,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Longuyon_%C3%A0_Mont-Saint-Martin_%28vers_Athus%29&oldid=238224819',
+        'source_title' => 'Ligne de Longuyon à Mont-Saint-Martin (vers Athus)',
+        'quote' => 'texte : « C\'est une ligne au profil convenable, les déclivités ne dépassent pas 8 ‰. »',
     ],
     'rfn-203000' => [
         'max_grade_permil' => 22.5,
@@ -1241,6 +1439,14 @@ return [
         'source_title' => 'Ligne de Liart à Tournes',
         'quote' => 'pente = 8 ; longueur = 24',
     ],
+    'rfn-223000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Charleville-M%C3%A9zi%C3%A8res_%C3%A0_Hirson_%28par_Auvillers%29&oldid=240040383',
+        'source_title' => 'Ligne de Charleville-Mézières à Hirson (par Auvillers)',
+        'quote' => 'pente = 15 ; longueur = 55',
+    ],
     'rfn-227000' => [
         'max_grade_permil' => 6,
         'provider' => 'wikipedia',
@@ -1256,6 +1462,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Laon_%C3%A0_Liart&oldid=238312821',
         'source_title' => 'Ligne de Laon à Liart',
         'quote' => 'pente = 9 ; longueur = 59.9',
+    ],
+    'rfn-229606' => [
+        'max_grade_permil' => 16,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Voie-m%C3%A8re_du_Bourget_%28Garonor%29&oldid=217578236',
+        'source_title' => 'Voie-mère du Bourget (Garonor)',
+        'quote' => 'texte : « Les déclivités atteignent 16 ‰. »',
     ],
     'rfn-232000' => [
         'max_grade_permil' => 6,
@@ -1288,6 +1502,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Maubeuge_%C3%A0_Fourmies&oldid=235337755',
         'source_title' => 'Ligne de Maubeuge à Fourmies',
         'quote' => 'pente = 16 ; longueur = 41',
+    ],
+    'rfn-242626' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Saint-Quentin_%C3%A0_Guise&oldid=239837707',
+        'source_title' => 'Chemin de fer de Saint-Quentin à Guise',
+        'quote' => 'pente = 15 ; numéro = 242626',
     ],
     'rfn-247000' => [
         'max_grade_permil' => 5,
@@ -1377,13 +1599,37 @@ return [
         'source_title' => 'Ligne de Fives à Hirson',
         'quote' => 'pente = 11.5 ; longueur = 123',
     ],
+    'rfn-27000' => [
+        'max_grade_permil' => 16,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Nan%C3%A7ois_-_Tronville_%C3%A0_Neufch%C3%A2teau&oldid=235342435',
+        'source_title' => 'Ligne de Nançois - Tronville à Neufchâteau',
+        'quote' => 'pente = 16 ; numéro = 027000',
+    ],
+    'rfn-271000' => [
+        'max_grade_permil' => 8,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Roubaix_-_Wattrelos_%C3%A0_Wattrelos&oldid=232578145',
+        'source_title' => 'Ligne de Roubaix - Wattrelos à Wattrelos',
+        'quote' => 'pente = 8 ; numéro = 271000',
+    ],
     'rfn-272000' => [
         'max_grade_permil' => 6.7,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris-Nord_%C3%A0_Lille&oldid=241116844',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris-Nord_%C3%A0_Lille&oldid=241487697',
         'source_title' => 'Ligne de Paris-Nord à Lille',
         'quote' => 'pente = 6.7 ; longueur = 251',
+    ],
+    'rfn-281000' => [
+        'max_grade_permil' => 7,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lens_%C3%A0_Corbehem&oldid=235337736',
+        'source_title' => 'Ligne de Lens à Corbehem',
+        'quote' => 'pente = 7 ; texte : « les déclivités ne dépassaient pas 5 ‰ (accidentellement 7 ‰ sur un kilomètre au niveau de Lens) »',
     ],
     'rfn-284000' => [
         'max_grade_permil' => 7,
@@ -1416,6 +1662,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Haubourdin_%C3%A0_Saint-Andr%C3%A9&oldid=209890241',
         'source_title' => 'Ligne d\'Haubourdin à Saint-André',
         'quote' => 'pente = 5 ; longueur = 19.592',
+    ],
+    'rfn-293000' => [
+        'max_grade_permil' => 7,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Wavrin_%C3%A0_Armenti%C3%A8res&oldid=218433375',
+        'source_title' => 'Ligne de Wavrin à Armentières',
+        'quote' => 'pente = 7 ; numéro = 293000',
     ],
     'rfn-295000' => [
         'max_grade_permil' => 7,
@@ -1473,6 +1727,14 @@ return [
         'source_title' => 'Ligne de Coudekerque-Branche aux Fontinettes',
         'quote' => 'pente = 8 ; longueur = 41.159',
     ],
+    'rfn-306000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Doullens_%C3%A0_Arras&oldid=235342053',
+        'source_title' => 'Ligne de Doullens à Arras',
+        'quote' => 'pente = 12 ; numéro = 306000',
+    ],
     'rfn-308000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -1528,6 +1790,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Creil_%C3%A0_Beauvais&oldid=235342013',
         'source_title' => 'Ligne de Creil à Beauvais',
         'quote' => 'pente = 4.1 ; longueur = 37',
+    ],
+    'rfn-317000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Rochy-Cond%C3%A9_%C3%A0_Soissons&oldid=239341121',
+        'source_title' => 'Ligne de Rochy-Condé à Soissons',
+        'quote' => 'texte : « Commence ensuite la descente vers la vallée de l\'Arré avec un profil ondulé et des pentes atteignant les 12 ‰, interrompue par la gare de Ronquerolles près du hameau de ce nom sur la commune d\'Agnetz. »',
     ],
     'rfn-319000' => [
         'max_grade_permil' => 10,
@@ -1705,6 +1975,30 @@ return [
         'source_title' => 'Ligne de Mantes-la-Jolie à Cherbourg',
         'quote' => 'pente = 10 ; longueur = 313',
     ],
+    'rfn-370000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Georges-Motel_%C3%A0_Grand-Quevilly&oldid=237211403',
+        'source_title' => 'Ligne de Saint-Georges-Motel à Grand-Quevilly',
+        'quote' => 'pente = 15 ; numéro = 370000',
+    ],
+    'rfn-371000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27%C3%89vreux-Embranchement_%C3%A0_Acquigny&oldid=229530207',
+        'source_title' => 'Ligne d\'Évreux-Embranchement à Acquigny',
+        'quote' => 'pente = 10 ; numéro = 371000',
+    ],
+    'rfn-375000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27%C3%89vreux-Embranchement_%C3%A0_Quetteville&oldid=238462724',
+        'source_title' => 'Ligne d\'Évreux-Embranchement à Quetteville',
+        'quote' => 'pente = 10 ; numéro = 375000',
+    ],
     'rfn-376000' => [
         'max_grade_permil' => 1,
         'provider' => 'wikipedia',
@@ -1760,6 +2054,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Plaisir_-_Grignon_%C3%A0_%C3%89p%C3%B4ne_-_M%C3%A9zi%C3%A8res&oldid=235184846',
         'source_title' => 'Ligne de Plaisir - Grignon à Épône - Mézières',
         'quote' => 'pente = 9 ; longueur = 20',
+    ],
+    'rfn-397000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Dreux_%C3%A0_Saint-Aubin-du-Vieil-%C3%89vreux&oldid=235342056',
+        'source_title' => 'Ligne de Dreux à Saint-Aubin-du-Vieil-Évreux',
+        'quote' => 'pente = 10 ; numéro = 397000',
     ],
     'rfn-40000' => [
         'max_grade_permil' => 17,
@@ -1849,6 +2151,14 @@ return [
         'source_title' => 'Ligne de Sillé-le-Guillaume à La Hutte - Coulombiers',
         'quote' => 'pente = 12 ; longueur = 30',
     ],
+    'rfn-439000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Vitr%C3%A9_%C3%A0_Pontorson&oldid=235113145',
+        'source_title' => 'Ligne de Vitré à Pontorson',
+        'quote' => 'pente = 15 ; numéro = 439000',
+    ],
     'rfn-441000' => [
         'max_grade_permil' => 7,
         'provider' => 'wikipedia',
@@ -1872,6 +2182,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Morlaix_%C3%A0_Roscoff&oldid=240554161',
         'source_title' => 'Ligne de Morlaix à Roscoff',
         'quote' => 'pente = 20 ; longueur = 25.567',
+    ],
+    'rfn-450000' => [
+        'max_grade_permil' => 6,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Mans_%C3%A0_Angers-Ma%C3%AEtre-%C3%89cole&oldid=234894015',
+        'source_title' => 'Ligne du Mans à Angers-Maître-École',
+        'quote' => 'pente = 6 ; numéro = 450000',
     ],
     'rfn-457000' => [
         'max_grade_permil' => 12,
@@ -1977,6 +2295,14 @@ return [
         'source_title' => 'LGV Est européenne',
         'quote' => 'pente = 35 ; longueur = 406',
     ],
+    'rfn-508000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Aubign%C3%A9-Racan_%C3%A0_Sabl%C3%A9&oldid=211241069',
+        'source_title' => 'Ligne d\'Aubigné-Racan à Sablé',
+        'quote' => 'pente = 15 ; numéro = 508000',
+    ],
     'rfn-51000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -2073,6 +2399,14 @@ return [
         'source_title' => 'Ligne de Nantes-Orléans à Saintes',
         'quote' => 'pente = 11 ; longueur = 251.289',
     ],
+    'rfn-534000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Nantes-%C3%89tat_%C3%A0_La_Roche-sur-Yon_par_Sainte-Pazanne&oldid=241345071',
+        'source_title' => 'Ligne de Nantes-État à La Roche-sur-Yon par Sainte-Pazanne',
+        'quote' => 'pente = 12 ; numéro = 534000',
+    ],
     'rfn-536000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -2145,6 +2479,22 @@ return [
         'source_title' => 'Ligne d\'Ouest-Ceinture à Chartres',
         'quote' => 'pente = 10 ; longueur = 83.846',
     ],
+    'rfn-555000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Beaulieu-le-Coudray_%C3%A0_Auneau-Embranchement&oldid=241526961',
+        'source_title' => 'Ligne de Beaulieu-le-Coudray à Auneau-Embranchement',
+        'quote' => 'pente = 15 ; numéro = 555000',
+    ],
+    'rfn-556000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Chartres_%C3%A0_Orl%C3%A9ans&oldid=239688246',
+        'source_title' => 'Ligne de Chartres à Orléans',
+        'quote' => 'pente = 15 ; numéro = 556000',
+    ],
     'rfn-557000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -2152,6 +2502,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Voves_%C3%A0_Toury&oldid=239834683',
         'source_title' => 'Ligne de Voves à Toury',
         'quote' => 'pente = 10 ; longueur = 29.8',
+    ],
+    'rfn-558000' => [
+        'max_grade_permil' => 5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Courtalain_-_Saint-Pellerin_%C3%A0_Patay&oldid=238796728',
+        'source_title' => 'Ligne de Courtalain - Saint-Pellerin à Patay',
+        'quote' => 'pente = 5 ; numéro = 558000',
     ],
     'rfn-57000' => [
         'max_grade_permil' => 7,
@@ -2192,6 +2550,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Beillant_%C3%A0_Angoul%C3%AAme&oldid=236391733',
         'source_title' => 'Ligne de Beillant à Angoulême',
         'quote' => 'pente = 10 ; longueur = 65',
+    ],
+    'rfn-580000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Ch%C3%A2teauneuf-sur-Charente_%C3%A0_Saint-Mariens_-_Saint-Yzan&oldid=239768227',
+        'source_title' => 'Ligne de Châteauneuf-sur-Charente à Saint-Mariens - Saint-Yzan',
+        'quote' => 'pente = 15 ; numéro = 580000',
     ],
     'rfn-584000' => [
         'max_grade_permil' => 10,
@@ -2256,6 +2622,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Montmorillon_%C3%A0_Saint-Aigny_-_Le_Blanc&oldid=239210121',
         'source_title' => 'Ligne de Montmorillon à Saint-Aigny - Le Blanc',
         'quote' => 'pente = 12.5 ; longueur = 36',
+    ],
+    'rfn-604000' => [
+        'max_grade_permil' => 12.5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Mignaloux_-_Nouaill%C3%A9_%C3%A0_Bersac&oldid=238688060',
+        'source_title' => 'Ligne de Mignaloux - Nouaillé à Bersac',
+        'quote' => 'pente = 12.5 ; numéro = 604000',
     ],
     'rfn-606000' => [
         'max_grade_permil' => 20,
@@ -2421,7 +2795,7 @@ return [
         'max_grade_permil' => 25,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Agne_%C3%A0_Auch&oldid=235342675',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Agne_%C3%A0_Auch&oldid=241553742',
         'source_title' => 'Ligne de Saint-Agne à Auch',
         'quote' => 'pente = 25 ; longueur = 83.219',
     ],
@@ -2521,6 +2895,14 @@ return [
         'source_title' => 'Ligne de Pau à Canfranc (frontière)',
         'quote' => 'pente = 43 ; longueur = 93',
     ],
+    'rfn-665000' => [
+        'max_grade_permil' => 16,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Buzy_%C3%A0_Laruns-Eaux-Bonnes-Les_Eaux-Chaudes&oldid=235497810',
+        'source_title' => 'Ligne de Buzy à Laruns-Eaux-Bonnes-Les Eaux-Chaudes',
+        'quote' => 'pente = 16 ; numéro = 665000',
+    ],
     'rfn-666000' => [
         'max_grade_permil' => 16,
         'provider' => 'wikipedia',
@@ -2608,6 +2990,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Auxy_-_Juranville_%C3%A0_Bourges&oldid=240777187',
         'source_title' => 'Ligne d\'Auxy - Juranville à Bourges',
         'quote' => 'pente = 17 ; longueur = 135.747',
+    ],
+    'rfn-683000' => [
+        'max_grade_permil' => 5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_des_Aubrais_-_Orl%C3%A9ans_%C3%A0_Malesherbes&oldid=239167115',
+        'source_title' => 'Ligne des Aubrais - Orléans à Malesherbes',
+        'quote' => 'pente = 5 ; numéro = 683000',
     ],
     'rfn-685000' => [
         'max_grade_permil' => 16,
@@ -2785,6 +3175,14 @@ return [
         'source_title' => 'Ligne de Trilport à Bazoches',
         'quote' => 'pente = 6 ; longueur = 74',
     ],
+    'rfn-721000' => [
+        'max_grade_permil' => 30,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bort-les-Orgues_%C3%A0_Neussargues&oldid=235341801',
+        'source_title' => 'Ligne de Bort-les-Orgues à Neussargues',
+        'quote' => 'pente = 30 ; numéro = 721000',
+    ],
     'rfn-722000' => [
         'max_grade_permil' => 33.5,
         'provider' => 'wikipedia',
@@ -2857,6 +3255,14 @@ return [
         'source_title' => 'Ligne de Tessonnières à Albi',
         'quote' => 'pente = 5 ; longueur = 16.176',
     ],
+    'rfn-742000' => [
+        'max_grade_permil' => 8,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Albi_%C3%A0_Saint-Ju%C3%A9ry&oldid=241143027',
+        'source_title' => 'Ligne d\'Albi à Saint-Juéry',
+        'quote' => 'pente = 8 ; numéro = 742000',
+    ],
     'rfn-745000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -2864,6 +3270,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Villeneuve-Saint-Georges_%C3%A0_Montargis&oldid=236077985',
         'source_title' => 'Ligne de Villeneuve-Saint-Georges à Montargis',
         'quote' => 'pente = 10 ; longueur = 109',
+    ],
+    'rfn-746000' => [
+        'max_grade_permil' => 4,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Corbeil-Essonnes_%C3%A0_Montereau&oldid=241117450',
+        'source_title' => 'Ligne de Corbeil-Essonnes à Montereau',
+        'quote' => 'texte : « C\'est une ligne à double voie au bon profil, les déclivités ne dépassent pas 4 ‰. »',
     ],
     'rfn-747000' => [
         'max_grade_permil' => 10,
@@ -3089,6 +3503,22 @@ return [
         'source_title' => 'Ligne du Martinet à Beaucaire',
         'quote' => 'pente = 15 ; longueur = 88.2',
     ],
+    'rfn-814000' => [
+        'max_grade_permil' => 12,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Mas-des-Gardies_aux_Mazes-le-Cr%C3%A8s&oldid=239852278',
+        'source_title' => 'Ligne de Mas-des-Gardies aux Mazes-le-Crès',
+        'quote' => 'pente = 12 ; numéro = 814000',
+    ],
+    'rfn-815000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_L%C3%A9zan_%C3%A0_Saint-Jean-du-Gard&oldid=211474255',
+        'source_title' => 'Ligne de Lézan à Saint-Jean-du-Gard',
+        'quote' => 'pente = 15 ; numéro = 815000',
+    ],
     'rfn-819000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -3113,6 +3543,14 @@ return [
         'source_title' => 'Ligne de Flamboin-Gouaix à Montereau',
         'quote' => 'pente = 6 ; longueur = 27.7',
     ],
+    'rfn-834100' => [
+        'max_grade_permil' => 35,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=LGV_M%C3%A9diterran%C3%A9e&oldid=240289807',
+        'source_title' => 'LGV Méditerranée',
+        'quote' => 'texte : « Les rampes maximales sont de 35 ‰, assez fréquentes à cause de la géographie accidentée des régions traversées. »',
+    ],
     'rfn-839000' => [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
@@ -3120,6 +3558,22 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Nuits-sous-Ravi%C3%A8res_%C3%A0_Ch%C3%A2tillon-sur-Seine&oldid=239806784',
         'source_title' => 'Ligne de Nuits-sous-Ravières à Châtillon-sur-Seine',
         'quote' => 'pente = 10 ; longueur = 35.4',
+    ],
+    'rfn-840000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bricon_%C3%A0_Ch%C3%A2tillon-sur-Seine&oldid=235377138',
+        'source_title' => 'Ligne de Bricon à Châtillon-sur-Seine',
+        'quote' => 'pente = 15 ; numéro = 840000',
+    ],
+    'rfn-843000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Is-sur-Tille_%C3%A0_Culmont_-_Chalindrey&oldid=235341640',
+        'source_title' => 'Ligne d\'Is-sur-Tille à Culmont - Chalindrey',
+        'quote' => 'pente = 10 ; numéro = 843 000',
     ],
     'rfn-847000' => [
         'max_grade_permil' => 8,
@@ -3152,6 +3606,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Dijon-Ville_%C3%A0_Vallorbe_%28fronti%C3%A8re%29&oldid=240753028',
         'source_title' => 'Ligne de Dijon-Ville à Vallorbe (frontière)',
         'quote' => 'pente = 20 ; longueur = 145',
+    ],
+    'rfn-851000' => [
+        'max_grade_permil' => 10,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Gray_%C3%A0_Saint-Jean-de-Losne&oldid=235438590',
+        'source_title' => 'Ligne de Gray à Saint-Jean-de-Losne',
+        'quote' => 'pente = 10 ; numéro = 851000',
     ],
     'rfn-852000' => [
         'max_grade_permil' => 6,
@@ -3280,6 +3742,22 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Frasne_%C3%A0_Verri%C3%A8res-de-Joux_%28fronti%C3%A8re%29&oldid=235342104',
         'source_title' => 'Ligne de Frasne à Verrières-de-Joux (frontière)',
         'quote' => 'pente = 11 ; longueur = 27.690',
+    ],
+    'rfn-88000' => [
+        'max_grade_permil' => 10.5,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_L%C3%A9rouville_%C3%A0_Pont-Maugis&oldid=238956139',
+        'source_title' => 'Ligne de Lérouville à Pont-Maugis',
+        'quote' => 'pente = 10.5 ; numéro = 088000',
+    ],
+    'rfn-880000' => [
+        'max_grade_permil' => 15,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Mouchard_%C3%A0_Bourg-en-Bresse&oldid=236256709',
+        'source_title' => 'Ligne de Mouchard à Bourg-en-Bresse',
+        'quote' => 'pente = 15 ; numéro = 880000',
     ],
     'rfn-882000' => [
         'max_grade_permil' => 13,
@@ -3469,7 +3947,7 @@ return [
         'max_grade_permil' => 17,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Cavaillon_%C3%A0_Saint-Maime_-_Dauphin&oldid=241132755',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Cavaillon_%C3%A0_Saint-Maime_-_Dauphin&oldid=241491046',
         'source_title' => 'Ligne de Cavaillon à Saint-Maime - Dauphin',
         'quote' => 'pente = 17 ; longueur = 70',
     ],
@@ -3477,7 +3955,7 @@ return [
         'max_grade_permil' => 8,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Cheval-Blanc_%C3%A0_Pertuis&oldid=241251037',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Cheval-Blanc_%C3%A0_Pertuis&oldid=241491042',
         'source_title' => 'Ligne de Cheval-Blanc à Pertuis',
         'quote' => 'pente = 8 ; longueur = 40.466',
     ],
@@ -3493,7 +3971,7 @@ return [
         'max_grade_permil' => 10,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Orange_%C3%A0_l%27Isle_-_Fontaine-de-Vaucluse&oldid=240669117',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Orange_%C3%A0_l%27Isle_-_Fontaine-de-Vaucluse&oldid=241521090',
         'source_title' => 'Ligne d\'Orange à l\'Isle - Fontaine-de-Vaucluse',
         'quote' => 'pente = 10 ; longueur = 37.997',
     ],
@@ -3501,7 +3979,7 @@ return [
         'max_grade_permil' => 10.5,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sorgues_-_Ch%C3%A2teauneuf-du-Pape_%C3%A0_Carpentras&oldid=240296661',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sorgues_-_Ch%C3%A2teauneuf-du-Pape_%C3%A0_Carpentras&oldid=241491038',
         'source_title' => 'Ligne de Sorgues - Châteauneuf-du-Pape à Carpentras',
         'quote' => 'pente = 10.5 ; longueur = 16.497',
     ],
@@ -3569,6 +4047,14 @@ return [
         'source_title' => 'Ligne de Nice à Breil-sur-Roya',
         'quote' => 'pente = 25 ; longueur = 44.086',
     ],
+    'rfn-946000' => [
+        'max_grade_permil' => 25,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Coni_%C3%A0_Vintimille&oldid=237352655',
+        'source_title' => 'Ligne de Coni à Vintimille',
+        'quote' => 'pente = 25 ; numéro = 946000',
+    ],
     'rfn-947000' => [
         'max_grade_permil' => 20,
         'provider' => 'wikipedia',
@@ -3608,6 +4094,14 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Ermont_-_Eaubonne_%C3%A0_Champ-de-Mars&oldid=236360420',
         'source_title' => 'Ligne d\'Ermont - Eaubonne à Champ-de-Mars',
         'quote' => 'pente = 40 ; longueur = 21',
+    ],
+    'rfn-97000' => [
+        'max_grade_permil' => 11,
+        'provider' => 'wikipedia',
+        'license' => 'CC BY-SA 4.0',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Champigneulles_%C3%A0_Sarralbe&oldid=240565246',
+        'source_title' => 'Ligne de Champigneulles à Sarralbe',
+        'quote' => 'pente = 11 ; numéro = 97000',
     ],
     'rfn-973000' => [
         'max_grade_permil' => 5,
@@ -3649,216 +4143,12 @@ return [
         'source_title' => 'Ligne de Choisy-le-Roi à Massy - Verrières',
         'quote' => 'pente = 12 ; longueur = 16.25',
     ],
-    // Section du 22/11/2026 (agent declivites-2) : 20 lignes dont l'infobox donne la pente sans longueur, l'identité étant
-    // garantie par le champ `numéro` de l'infobox (égal au numéro de la ligne), et 6 lignes dont la déclivité maximale
-    // est écrite dans le texte de l'article (portion donnée dans `quote`). Contrôle : terrain mesuré sous le tracé non
-    // supérieur à 4 fois la valeur de la source.
-    'lo-201000' => [
-        'max_grade_permil' => 6,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Montm%C3%A9dy_%C3%A0_%C3%89couviez&oldid=190319264',
-        'source_title' => 'Ligne de Montmédy à Écouviez',
-        'quote' => 'pente = 6 ; numéro = 201000',
-    ],
-    'lo-427000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_La_Hutte_-_Coulombiers_%C3%A0_Mamers&oldid=238880846',
-        'source_title' => 'Ligne de La Hutte - Coulombiers à Mamers',
-        'quote' => 'pente = 15 ; numéro = 427000',
-    ],
-    'lo-464000' => [
-        'max_grade_permil' => 10,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Vincent-des-Landes_%C3%A0_Mass%C3%A9rac&oldid=233734728',
-        'source_title' => 'Ligne de Saint-Vincent-des-Landes à Massérac',
-        'quote' => 'pente = 10 ; numéro = 464000',
-    ],
-    'lo-507000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bess%C3%A9-sur-Braye_%C3%A0_Saint-Calais&oldid=235341773',
-        'source_title' => 'Ligne de Bessé-sur-Braye à Saint-Calais',
-        'quote' => 'pente = 15 ; numéro = 507000',
-    ],
-    'lo-540000' => [
-        'max_grade_permil' => 5,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Aigrefeuille_-_Le_Thou_%C3%A0_Rochefort&oldid=208883917',
-        'source_title' => 'Ligne d\'Aigrefeuille - Le Thou à Rochefort',
-        'quote' => 'pente = 5 ; numéro = 540000',
-    ],
-    'lo-793000' => [
-        'max_grade_permil' => 18,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Riom_%C3%A0_Ch%C3%A2telguyon&oldid=235337757',
-        'source_title' => 'Ligne de Riom à Châtelguyon',
-        'quote' => 'pente = 18 ; numéro = 793000',
-    ],
-    'lo-817000' => [
-        'max_grade_permil' => 12,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sommi%C3%A8res_%C3%A0_Saint-C%C3%A9saire&oldid=241015188',
-        'source_title' => 'Ligne de Sommières à Saint-Césaire',
-        'quote' => 'pente = 12 ; numéro = 817000',
-    ],
-    'lo-818000' => [
-        'max_grade_permil' => 7,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Sommi%C3%A8res_%C3%A0_Gallargues&oldid=225728940',
-        'source_title' => 'Ligne de Sommières à Gallargues',
-        'quote' => 'pente = 7 ; numéro = 818000',
-    ],
-    'rfn-271000' => [
-        'max_grade_permil' => 8,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Roubaix_-_Wattrelos_%C3%A0_Wattrelos&oldid=232578145',
-        'source_title' => 'Ligne de Roubaix - Wattrelos à Wattrelos',
-        'quote' => 'pente = 8 ; numéro = 271000',
-    ],
-    'rfn-293000' => [
-        'max_grade_permil' => 7,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Wavrin_%C3%A0_Armenti%C3%A8res&oldid=218433375',
-        'source_title' => 'Ligne de Wavrin à Armentières',
-        'quote' => 'pente = 7 ; numéro = 293000',
-    ],
-    'rfn-371000' => [
-        'max_grade_permil' => 10,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27%C3%89vreux-Embranchement_%C3%A0_Acquigny&oldid=229530207',
-        'source_title' => 'Ligne d\'Évreux-Embranchement à Acquigny',
-        'quote' => 'pente = 10 ; numéro = 371000',
-    ],
-    'rfn-397000' => [
-        'max_grade_permil' => 10,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Dreux_%C3%A0_Saint-Aubin-du-Vieil-%C3%89vreux&oldid=235342056',
-        'source_title' => 'Ligne de Dreux à Saint-Aubin-du-Vieil-Évreux',
-        'quote' => 'pente = 10 ; numéro = 397000',
-    ],
-    'rfn-439000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Vitr%C3%A9_%C3%A0_Pontorson&oldid=235113145',
-        'source_title' => 'Ligne de Vitré à Pontorson',
-        'quote' => 'pente = 15 ; numéro = 439000',
-    ],
-    'rfn-508000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Aubign%C3%A9-Racan_%C3%A0_Sabl%C3%A9&oldid=211241069',
-        'source_title' => 'Ligne d\'Aubigné-Racan à Sablé',
-        'quote' => 'pente = 15 ; numéro = 508000',
-    ],
-    'rfn-555000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Beaulieu-le-Coudray_%C3%A0_Auneau-Embranchement&oldid=239299942',
-        'source_title' => 'Ligne de Beaulieu-le-Coudray à Auneau-Embranchement',
-        'quote' => 'pente = 15 ; numéro = 555000',
-    ],
-    'rfn-580000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Ch%C3%A2teauneuf-sur-Charente_%C3%A0_Saint-Mariens_-_Saint-Yzan&oldid=239768227',
-        'source_title' => 'Ligne de Châteauneuf-sur-Charente à Saint-Mariens - Saint-Yzan',
-        'quote' => 'pente = 15 ; numéro = 580000',
-    ],
-    'rfn-665000' => [
+    'rfn-99000' => [
         'max_grade_permil' => 16,
         'provider' => 'wikipedia',
         'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Buzy_%C3%A0_Laruns-Eaux-Bonnes-Les_Eaux-Chaudes&oldid=235497810',
-        'source_title' => 'Ligne de Buzy à Laruns-Eaux-Bonnes-Les Eaux-Chaudes',
-        'quote' => 'pente = 16 ; numéro = 665000',
-    ],
-    'rfn-814000' => [
-        'max_grade_permil' => 12,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Mas-des-Gardies_aux_Mazes-le-Cr%C3%A8s&oldid=239852278',
-        'source_title' => 'Ligne de Mas-des-Gardies aux Mazes-le-Crès',
-        'quote' => 'pente = 12 ; numéro = 814000',
-    ],
-    'rfn-815000' => [
-        'max_grade_permil' => 15,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_L%C3%A9zan_%C3%A0_Saint-Jean-du-Gard&oldid=211474255',
-        'source_title' => 'Ligne de Lézan à Saint-Jean-du-Gard',
-        'quote' => 'pente = 15 ; numéro = 815000',
-    ],
-    'rfn-97000' => [
-        'max_grade_permil' => 11,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Champigneulles_%C3%A0_Sarralbe&oldid=240565246',
-        'source_title' => 'Ligne de Champigneulles à Sarralbe',
-        'quote' => 'pente = 11 ; numéro = 97000',
-    ],
-    'archeo-ligne-de-castres-a-murat-sur-vebre' => [
-        'max_grade_permil' => 40,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Castres_%C3%A0_Murat-sur-V%C3%A8bre&oldid=240607848',
-        'source_title' => 'Chemin de fer de Castres à Murat-sur-Vèbre',
-        'quote' => 'pente = 6 ; texte : « rampe quasi continue sur les 75 km du trajet, pouvant atteindre les 40 ‰ »',
-    ],
-    'archeo-ligne-de-hazebrouck-a-hondschoote' => [
-        'max_grade_permil' => 25,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Hazebrouck_%C3%A0_Bergues_et_Hondschoote&oldid=237506140',
-        'source_title' => 'Chemin de fer de Hazebrouck à Bergues et Hondschoote',
-        'quote' => 'pente = 25 ; texte : « La voie comprenait quelques rampes atteignant 25 ‰ »',
-    ],
-    'archeo-ligne-de-marcoing-a-masnieres' => [
-        'max_grade_permil' => 12,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Marcoing_%C3%A0_Masni%C3%A8res&oldid=236095159',
-        'source_title' => 'Ligne de Marcoing à Masnières',
-        'quote' => 'pente = 12 ; texte : « une rampe de 12 ‰ sur environ un kilomètre »',
-    ],
-    'lo-137000' => [
-        'max_grade_permil' => 30,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_la_vall%C3%A9e_de_Kaysersberg&oldid=241121876',
-        'source_title' => 'Chemin de fer de la vallée de Kaysersberg',
-        'quote' => 'pente = 30 ; texte : « Le tronçon entre Kaysersberg et Lapoutroie fait 13.4 km et la pente atteint par endroit 30 ‰ »',
-    ],
-    'rfn-281000' => [
-        'max_grade_permil' => 7,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lens_%C3%A0_Corbehem&oldid=235337736',
-        'source_title' => 'Ligne de Lens à Corbehem',
-        'quote' => 'pente = 7 ; texte : « les déclivités ne dépassaient pas 5 ‰ (accidentellement 7 ‰ sur un kilomètre au niveau de Lens) »',
-    ],
-    'archeo-ligne-de-bouxwiller-a-ingwiller' => [
-        'max_grade_permil' => 10,
-        'provider' => 'wikipedia',
-        'license' => 'CC BY-SA 4.0',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bouxwiller_%C3%A0_Ingwiller&oldid=235341814',
-        'source_title' => 'Ligne de Bouxwiller à Ingwiller',
-        'quote' => 'pente = 10 ; texte : « profil en faible pente de 6 à 10 mm/m »',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Metz-Ville_%C3%A0_Ch%C3%A2teau-Salins&oldid=239700629',
+        'source_title' => 'Ligne de Metz-Ville à Château-Salins',
+        'quote' => 'texte : « Son profil était médiocre, les déclivités maximum étaient de 16 mm/m. »',
     ],
 ];

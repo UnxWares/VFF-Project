@@ -232,6 +232,36 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
 | `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte, longueur de la portion la plus raide). |
 
+### `vff:import-wikipedia-grades`
+
+Déclivités maximales lues dans les articles de Wikipédia des lignes, déjà en cache
+(`storage/app/data/signalisation-historique/wikipedia`, rempli par `vff:import-signalling-history`) : aucun appel réseau, la
+base n'est jamais modifiée. Champ `pente` de l'infobox quand l'article est bien celui de la ligne (longueur à 25 % près, ou
+numéro de ligne égal à son code), sinon déclivité maximale écrite dans le texte (une seule valeur, sans fourchette ni portion
+nommée), reprise seulement si elle s'accorde avec la mesure du profil. Article partagé par plusieurs lignes et lignes à
+crémaillère écartés. Résultat fusionné dans `database/data/sourced_grades.php` (lu par la fiche et l'API : `sourced_grade`,
+`sourced_grade_compared`) : ajouts et mises à jour seulement, rien n'est effacé, une entrée tirée du texte n'est jamais
+remplacée. Règles : `App\Services\Profiles\WikipediaGrades`. Relancer la commande sur les mêmes articles donne le même fichier.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Bilan seulement, aucun fichier écrit. |
+| `--articles-dir=` | Dossier du cache des articles. |
+| `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
+| `--csv=` | Rapport détaillé par ligne (slug, titre, lecture, effet sur le fichier, valeur de Wikipédia, mesure, motif de non-publication). |
+
+### `vff:profile-trace-holes`
+
+Lignes dont le tracé de référence a de vrais trous sous le profil en long (les trous conventionnels posés devant chaque
+embranchement ne comptent pas) : nombre de lignes, de trous, km de trous à vol d'oiseau, trous de plus de 5 km, lignes dont
+les trous font 25 % du parcours ou plus, lignes sans profil, puis les lignes aux plus grands trous. Lecture seule.
+
+| Option | Effet |
+|:-|:-|
+| `--min-m=0` | Ne compter que les trous d'au moins cette longueur (mètres). |
+| `--top=30` | Nombre de lignes affichées. |
+| `--csv=` | Liste complète, un trou par ligne du CSV (slug, nom, nombre et longueur des trous, part, motif, bornes du trou). |
+
 ### `vff:import-sncf-track-regime`
 
 Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par

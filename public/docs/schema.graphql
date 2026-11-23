@@ -4411,6 +4411,12 @@ type LineProfile {
   "Déclivité la plus forte donnée par une source écrite (Wikipédia : infobox ou texte de l'article ; SNCF Réseau : segment le plus raide du jeu « Caractéristique des voies et déclivité », ODbL), quand la déclivité mesurée n'est pas publiée pour cause de terrain seul, de tunnel ou de points interpolés. Nulle sinon : elle ne remplace jamais une mesure publiée."
   sourced_grade: LineProfileSourcedGrade
 
+  "Déclivité la plus forte donnée par une source écrite (mêmes sources que `sourced_grade`), servie À CÔTÉ de la déclivité mesurée publiée, avec l'écart. Nulle quand la mesure n'est pas publiée (la source est alors dans `sourced_grade`) ou qu'aucune source ne la donne."
+  sourced_grade_compared: LineProfileSourcedGradeCompared
+
+  "Vrais trous du tracé de référence, sans les trous conventionnels posés devant chaque embranchement (`branches`) : la courbe s'y interrompt et les chiffres de `summary` ne portent que sur la partie connue."
+  trace_holes: LineProfileTraceHoles!
+
   "Toutes les gares rattachées à la ligne (fermées comprises), projetées sur le parcours."
   stations: [LineProfileStation!]!
 
@@ -4494,6 +4500,36 @@ type LineProfileSourcedGrade {
 
   "Source : fournisseur (`wikipedia` ou `sncf`), titre, lien (permalien de la révision lue, ou page du jeu SNCF filtrée sur la ligne), licence (CC BY-SA 4.0 ou ODbL 1.0) et attribution (`Wikipédia` ou `SNCF Réseau`)."
   source: LineProfileRackSource!
+}
+
+"Déclivité d'une source écrite servie à côté de la déclivité mesurée publiée, jamais à sa place."
+type LineProfileSourcedGradeCompared {
+  "Déclivité la plus forte selon la source, en ‰ (sans position ni sens)."
+  max_grade_permil: Float!
+
+  "Part de la ligne décrite par la source, de 0 à 1 (jeu SNCF) ; nulle quand la source porte sur toute la ligne (Wikipédia)."
+  covered_share: Float
+
+  "Écart en ‰, arrondi au dixième : déclivité mesurée (`summary.max_grade_permil`) moins celle de la source ; positif quand la mesure est plus forte. La mesure porte sur une rampe d'1 km, la source souvent sur un point : quelques ‰ d'écart sont ordinaires."
+  difference_permil: Float!
+
+  "Source : fournisseur (`wikipedia` ou `sncf`), titre, lien (permalien de la révision lue, ou page du jeu SNCF filtrée sur la ligne), licence et attribution."
+  source: LineProfileRackSource!
+}
+
+"Trous du tracé de référence sous un profil en long."
+type LineProfileTraceHoles {
+  "Nombre de trous (0 : tracé continu)."
+  count: Int!
+
+  "Longueur cumulée des trous, en mètres, à vol d'oiseau entre leurs bords : la voie disparue était au moins aussi longue."
+  length_m: Int!
+
+  "Part des trous dans le parcours (parcours connu plus trous), de 0 à 1 ; nulle pour un profil antérieur au 21/11/2026."
+  share: Float
+
+  "Bornes de chaque trou, en mètres le long du parcours."
+  ranges: [LineProfileGap!]!
 }
 
 "Source écrite d'une donnée du profil (fiche de crémaillère, déclivité sourcée)."

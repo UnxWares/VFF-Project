@@ -34,11 +34,13 @@ class LineProfileController extends Controller
         ],
         'rack' => null,
         'sourced_grade' => null,
+        'sourced_grade_compared' => null,
         'points' => [[0, 578.9, -145], [100, 578.3, -45], [5200, 756.2, 5111], [10500, 958.6, 10425]],
         'structures' => [['from_m' => 700, 'to_m' => 900, 'kind' => 'bridge']],
         'altitude_sources' => ['bdtopo' => 339, 'rge_alti' => 5, 'rge_track' => 0, 'interpolated' => 24, 'missing' => 0],
         'gaps' => [],
         'branches' => [],
+        'trace_holes' => ['count' => 0, 'length_m' => 0, 'share' => 0.0, 'ranges' => []],
         'terrain_ranges' => [['from_m' => 25900, 'to_m' => 26300]],
         'track_estimate_ranges' => [],
         'track_estimate' => null,
@@ -146,6 +148,18 @@ class LineProfileController extends Controller
      * lignes de Wikipédia mesurées sur la voie : 141 à 2 ‰ près, 210 à 5 ‰ près (l'infobox donne
      * souvent la pente d'un point, la mesure celle d'une rampe d'1 km).
      *
+     * **Source à côté de la mesure** (`sourced_grade_compared`) : quand la déclivité mesurée est
+     * publiée et qu'une source écrite en donne une (mêmes fichiers et même forme que
+     * `sourced_grade`), elle est servie à côté, jamais à sa place, avec `difference_permil` = mesure
+     * moins source, en ‰ arrondi au dixième (positif : la mesure est plus forte). `null` sinon.
+     *
+     * **Continuité du tracé** (`trace_holes`) : vrais trous du tracé de référence, sans les trous
+     * conventionnels posés devant chaque embranchement : `count`, `length_m` (longueur cumulée, à vol
+     * d'oiseau entre les bords de chaque trou : la voie disparue était au moins aussi longue), `share`
+     * (part des trous dans le parcours connu plus les trous, de 0 à 1 ; `null` pour un profil
+     * antérieur au 21/11/2026) et `ranges` (bornes de chaque trou, en distances). Les chiffres de
+     * `summary` ne portent que sur la partie connue.
+     *
      * **Autres listes** : `structures` = tunnels (`tunnel`) et ponts (`bridge`) de la BD TOPO sous
      * le parcours, en distances ; `gaps` = trous du tracé, sans altitude ; `terrain_ranges` = parties
      * dont l'altitude est celle du terrain (RGE ALTI) et non de la voie ; `track_estimate_ranges` =
@@ -168,11 +182,13 @@ class LineProfileController extends Controller
      *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
      *         source: array{provider: string, title: string, url: string, license: string}}|null,
      *     sourced_grade: array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
+     *     sourced_grade_compared: array{max_grade_permil: float, covered_share: float|null, difference_permil: float, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
      *     points: array<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: array<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, rge_track: int, interpolated: int, missing: int},
      *     gaps: array<array{from_m: int, to_m: int}>,
      *     branches: array<array{from_m: int, to_m: int}>,
+     *     trace_holes: array{count: int, length_m: int, share: float|null, ranges: array<array{from_m: int, to_m: int}>},
      *     terrain_ranges: array<array{from_m: int, to_m: int}>,
      *     track_estimate_ranges: array<array{from_m: int, to_m: int}>,
      *     track_estimate: array{method: string, calibrated_on: string, reference: string, step_m: int,

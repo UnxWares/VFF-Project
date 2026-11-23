@@ -7,9 +7,11 @@
     import {
         altitudeDomain,
         areaPath,
+        comparisonKind,
         crossesGap,
         GRADE_WINDOW_M,
         gradeAt,
+        holeStations,
         labelledStations,
         linePath,
         indexAtPk,
@@ -20,6 +22,7 @@
         showsCumulativeClimb,
         sourceLang,
         ticks,
+        touchesRanges,
     } from '$lib/lineProfile.js';
 
     /**
@@ -40,6 +43,10 @@
      *     source: { title: string, url: string } } | null,
      *   sourced_grade?: { max_grade_permil: number, covered_share?: number|null,
      *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string } } | null,
+     *   sourced_grade_compared?: { max_grade_permil: number, covered_share?: number|null, difference_permil: number,
+     *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string, attribution: string } } | null,
+     *   trace_holes?: { count: number, length_m: number, share: number|null,
+     *     ranges: Array<{ from_m: number, to_m: number }> },
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, rge_track?: number, interpolated: number, missing: number },
@@ -88,6 +95,29 @@
                   }),
               })
             : t('profile.sourced_grade_wikipedia'),
+    );
+    // Mesure publiée : la valeur d'une source écrite est donnée à côté, avec l'écart, jamais à sa place.
+    const compared = $derived(profile.sourced_grade_compared ?? null);
+    const comparedText = $derived.by(() => {
+        if (!compared) return null;
+        const kind = comparisonKind(compared.difference_permil);
+        const text = t(`profile.compared_${kind}`, {
+            provider: compared.source.attribution,
+            grade: permil(compared.max_grade_permil),
+            diff: permil(Math.abs(compared.difference_permil)),
+        });
+        return compared.source.provider === 'sncf'
+            ? `${text} ${t('profile.compared_sncf_share', {
+                  share: formatNumber(compared.covered_share ?? 0, lang, {
+                      style: 'percent',
+                      maximumFractionDigits: 0,
+                  }),
+              })}`
+            : text;
+    });
+    // Vrais trous du tracé de référence (sans les trous conventionnels des embranchements).
+    const holes = $derived(
+        profile.trace_holes ?? { count: 0, length_m: 0, share: null, ranges: [] },
     );
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
@@ -238,6 +268,10 @@
             z,
             pk: pk ?? null,
             grade: z === null ? null : gradeAt(profile.points, d, profile.gaps, gradeWindow),
+            // Fenêtre qui touche le terrain ou la voie estimée : déclivité estimée, pas mesurée sur la voie.
+            gradeEstimated:
+                touchesRanges(terrain, d - gradeWindow / 2, d + gradeWindow / 2) ||
+                touchesRanges(estimated, d - gradeWindow / 2, d + gradeWindow / 2),
             tunnel: tunnels.some((tu) => d >= tu.from_m && d <= tu.to_m),
             structure:
                 placed.find(
@@ -264,7 +298,17 @@
                 >.
             </p>
         {:else if gradeWhere}
-            <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
+            <p class="grade-where">
+                {t('profile.grade')}{colon(lang)}{gradeWhere}{#if compared && comparedText}.
+                    {comparedText}{colon(lang)}<a
+                        href={compared.source.url}
+                        rel="external"
+                        lang={compared.source.provider === 'sncf'
+                            ? 'fr'
+                            : sourceLang(compared.source.url)}>{compared.source.title}</a
+                    >.
+                {/if}
+            </p>
         {:else if sourced}
             <p class="grade-where">
                 {sourcedText}{colon(lang)}<a
@@ -279,6 +323,44 @@
             <p class="grade-where">
                 {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'none'}`)}
             </p>
+        {/if}
+
+        {#if holes.count > 0}
+            <div class="holes">
+                <p>
+                    {t('profile.holes', {
+                        count: holes.count,
+                        km: km(holes.length_m),
+                        share: formatNumber(holes.share ?? 0, lang, {
+                            style: 'percent',
+                            maximumFractionDigits: 1,
+                        }),
+                    })}
+                    {#if (holes.share ?? 0) >= 0.25}{t('profile.holes_large')}{/if}
+                </p>
+                <details class="list">
+                    <summary>{t('profile.holes_list', { count: holes.count })}</summary>
+                    <ul>
+                        {#each holes.ranges as h (h.from_m)}
+                            {@const around = holeStations(profile.stations, h, profile.gaps)}
+                            <li>
+                                {t('profile.hole_at', {
+                                    from: km(h.from_m),
+                                    to: km(h.to_m),
+                                    length: km(h.to_m - h.from_m),
+                                })}{#if around.before && around.after}{t('profile.hole_between', {
+                                        from: around.before.name,
+                                        to: around.after.name,
+                                    })}{:else if around.before}{t('profile.hole_after', {
+                                        name: around.before.name,
+                                    })}{:else if around.after}{t('profile.hole_before', {
+                                        name: around.after.name,
+                                    })}{/if}
+                            </li>
+                        {/each}
+                    </ul>
+                </details>
+            </div>
         {/if}
 
         <!-- Nom de la figure : le titre de la section, pas la légende (figcaption) qui ne liste que les motifs. -->
@@ -495,9 +577,12 @@
                                 >{/if}
                             {#if reading.z !== null}<span>{metres(reading.z)}</span>{/if}
                             {#if reading.grade !== null}<span
-                                    >{t('profile.local_grade', {
-                                        grade: permil(reading.grade),
-                                    })}</span
+                                    >{t(
+                                        reading.gradeEstimated
+                                            ? 'profile.local_grade_estimated'
+                                            : 'profile.local_grade',
+                                        { grade: permil(reading.grade) },
+                                    )}</span
                                 >{/if}
                             {#if reading.tunnel}<span class="muted">{t('profile.in_tunnel')}</span
                                 >{/if}
@@ -630,6 +715,22 @@
     }
     .grade-where {
         margin-top: calc(-1 * var(--vff-space-3));
+    }
+    /* Tracé incomplet : texte courant (pas atténué), la liste des trous repliée sous la phrase. */
+    .holes {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        max-width: var(--vff-measure);
+    }
+    .holes p {
+        margin: 0;
+        line-height: var(--vff-lh-body);
+    }
+    .holes ul {
+        margin: 0;
+        padding-inline-start: var(--vff-space-5);
+        line-height: var(--vff-lh-body);
     }
     .chart {
         margin: 0;

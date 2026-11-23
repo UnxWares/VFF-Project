@@ -801,7 +801,11 @@ publiée par la source et lien vers l'article de Wikipédia lu ; null pour une l
 la plus forte selon une source écrite, en ‰, avec `covered_share`, part de la ligne décrite par la source, et `source` :
 `wikipedia`, infobox ou texte de l'article, permalien de la révision lue, CC BY-SA 4.0 ; ou `sncf`, segment le plus
 raide du jeu « Caractéristique des voies et déclivité » de SNCF Réseau, ODbL 1.0, attribution « SNCF Réseau » à citer ;
-null sinon, jamais à la place d'une mesure publiée), `terrain_ranges` (parties à l'altitude du terrain), `track_estimate_ranges` (parties à l'altitude de la voie estimée
+null sinon, jamais à la place d'une mesure publiée), `sourced_grade_compared` (quand la déclivité mesurée est publiée et
+qu'une source écrite en donne une : même forme que `sourced_grade` plus `difference_permil`, mesure moins source en ‰,
+servie à côté de la mesure, jamais à sa place), `trace_holes` (vrais trous du tracé de référence, sans les trous
+conventionnels devant les embranchements : `count`, `length_m` à vol d'oiseau, `share` du parcours, `ranges` ; les chiffres
+de `summary` ne portent que sur la partie connue), `terrain_ranges` (parties à l'altitude du terrain), `track_estimate_ranges` (parties à l'altitude de la voie estimée
 d'après le terrain) et `track_estimate` (méthode et erreur mesurée contre le MNT LiDAR HD selon l'écart entre le tracé et la
 voie, null sans point estimé), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au

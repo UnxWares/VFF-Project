@@ -39,6 +39,13 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   neutralisé (type `other`, « correction sourcée »). La charge utile porte alors `corrects` et `correction_reason`, et
   `applied.corrected_event_ids`. Ajout seul.
 
+- Profil en long (REST `GET /api/v1/lines/{line}/profile`, GraphQL `LineProfile`, MCP `line_profile`) : `sourced_grade_compared`
+  donne, quand la déclivité mesurée est publiée, celle d'une source écrite (Wikipédia ou SNCF Réseau, même forme que
+  `sourced_grade`) à côté de la mesure, avec `difference_permil` (mesure moins source, en ‰) ; `null` sinon. `trace_holes` dit
+  ce qui manque au tracé de référence : `count`, `length_m` (à vol d'oiseau), `share` (part du parcours) et `ranges`, sans les
+  trous conventionnels posés devant les embranchements (`gaps` reste inchangé). 37 déclivités de Wikipédia de plus (515 lignes),
+  lues dans l'infobox ou le texte des articles par `vff:import-wikipedia-grades`. Ajouts seuls.
+
 - Fiche d'une ligne (REST `GET /api/v1/lines/{slug}`, `materials` ; GraphQL `LineSheet.materials`) : chaque série porte `link_doubt`, la raison pour laquelle toutes les sources mettent en doute qu'elle ait assuré le service sur la ligne (`trial` essais, `one_off` circulation exceptionnelle ou présentation, `order` commande, `positioning` acheminement à vide, `preserved`, `possible`, `diverted`, `restricted`, `component`, `section`, `other`), `null` pour une série qui a circulé. La page web range ces séries dans un groupe replié. Ajout seul.
 - Fiche d'une ligne (`materials`) : une série électrique (locomotive électrique, rame TGV, automotrice à systèmes d'alimentation déclarés) ne commence pas avant la première électrification connue dans VFF, de la ligne entière ou d'une seule de ses sections : le début d'une période qui la précède est ramené à cette date (`start_date`, `start_precision`) et la période porte `start_bounded_by` (`electrification`) ; la série porte `earliest_on_line` (`reason`, `date`, `precision`, et `section` : portion nommée quand c'est celle d'une section et non de la ligne entière, nulle sinon), qui dit la date la plus ancienne possible. Ce n'est pas une date de service.
 - Fiche d'une ligne (`materials`) : une famille de séries (Autorail grande capacité, Regio 2N) n'est plus listée à côté de ses versions liées à la même ligne (X 76500, Z 27500, B 82500) ; chaque version porte `family` (`slug`, `name`). Une famille seule sur la ligne, ou qui porte des périodes que ses versions n'ont pas, reste listée. Les liens de la famille restent lisibles par `GET /api/v1/lines/{slug}/materials`.

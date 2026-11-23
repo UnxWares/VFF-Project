@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
     altitudeDomain,
     areaPath,
+    comparisonKind,
     crossesGap,
     gradeAt,
+    holeStations,
     labelledStations,
     nearestStation,
     linePath,
@@ -15,6 +17,7 @@ import {
     showsCumulativeClimb,
     sourceLang,
     ticks,
+    touchesRanges,
 } from '../../resources/js/lib/lineProfile.js';
 
 /** Points tous les 100 m, altitude donnée par une fonction de la distance. */
@@ -280,5 +283,47 @@ describe('PK demandé par la recherche', () => {
         expect(indexAtPk(points, 1290)).toBe(3);
         expect(indexAtPk(points, 5000)).toBe(-1);
         expect(indexAtPk([[0, 1, null]], 10)).toBe(-1);
+    });
+});
+
+describe('déclivité estimée, comparaison à une source et trous du tracé', () => {
+    it('repère une fenêtre qui touche le terrain ou la voie estimée', () => {
+        const ranges = [{ from_m: 2000, to_m: 3000 }];
+        expect(touchesRanges(ranges, 2900, 3900)).toBe(true);
+        expect(touchesRanges(ranges, 3001, 4000)).toBe(false);
+        expect(touchesRanges([], 0, 1000)).toBe(false);
+    });
+
+    it('dit si la source donne la même valeur, moins ou plus que la mesure', () => {
+        expect(comparisonKind(0.4)).toBe('same');
+        expect(comparisonKind(-0.4)).toBe('same');
+        expect(comparisonKind(2.3)).toBe('lower');
+        expect(comparisonKind(-1.5)).toBe('higher');
+    });
+
+    it('nomme les gares qui encadrent un trou, sans franchir un autre trou', () => {
+        const stations = [
+            { distance_m: 0, name: 'A' },
+            { distance_m: 4000, name: 'B' },
+            { distance_m: 9000, name: 'C' },
+            { distance_m: 15000, name: 'D' },
+        ];
+        const gaps = [
+            { from_m: 5000, to_m: 8000 },
+            { from_m: 10000, to_m: 14000 },
+        ];
+        expect(holeStations(stations, gaps[0], gaps)).toEqual({
+            before: stations[1],
+            after: stations[2],
+        });
+        expect(holeStations(stations, gaps[1], gaps)).toEqual({
+            before: stations[2],
+            after: stations[3],
+        });
+        // Aucune gare entre le trou et le précédent : rien avant.
+        expect(holeStations([stations[0], stations[3]], gaps[1], gaps)).toEqual({
+            before: null,
+            after: stations[3],
+        });
     });
 });

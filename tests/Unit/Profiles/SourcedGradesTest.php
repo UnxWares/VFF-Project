@@ -29,7 +29,8 @@ class SourcedGradesTest extends TestCase
             $this->assertSame(SourcedGrades::PROVIDERS[$entry['provider']]['license'], $entry['license'], $slug);
             if ($entry['provider'] === 'wikipedia') {
                 $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', $entry['source_url'], $slug);
-                $this->assertStringStartsWith('pente = ', $entry['quote'], $slug);
+                // Champs de l'infobox lus, ou phrase du texte de l'article (vff:import-wikipedia-grades).
+                $this->assertMatchesRegularExpression('/^(pente = |texte : « )/u', $entry['quote'], $slug);
             } else {
                 $this->assertSame('SNCF Réseau', $entry['attribution'] ?? null, $slug);
                 $this->assertMatchesRegularExpression('#^https://data\.sncf\.com/explore/dataset/caracteristique-des-voies-et-declivite/table/\?refine\.code_ligne=\d{6}$#', $entry['source_url'], $slug);
@@ -61,6 +62,25 @@ class SourcedGradesTest extends TestCase
         $this->assertNull(SourcedGrades::present('rfn-405000', null));
         $this->assertNull(SourcedGrades::present('rfn-405000', 'rack'));
         $this->assertNull(SourcedGrades::present('ligne-inconnue', 'terrain_only'));
+    }
+
+    public function test_the_source_is_compared_to_a_published_measure_but_never_replaces_it(): void
+    {
+        // Argentan - Granville : 10 ‰ selon l'infobox ; mesure publiée de 12,34 ‰.
+        $compared = SourcedGrades::compare('rfn-405000', 12.34, null);
+        $this->assertNotNull($compared);
+        $this->assertSame(10.0, $compared['max_grade_permil']);
+        $this->assertSame(2.3, $compared['difference_permil']);
+        $this->assertSame('wikipedia', $compared['source']['provider']);
+        $this->assertSame('Wikipédia', $compared['source']['attribution']);
+        // Source plus forte que la mesure : écart négatif.
+        $this->assertSame(-1.5, SourcedGrades::compare('rfn-405000', 8.5, null)['difference_permil'] ?? null);
+
+        // Mesure non publiée (la source passe dans `sourced_grade`), absente, crémaillère, ligne inconnue : rien.
+        $this->assertNull(SourcedGrades::compare('rfn-405000', null, 'terrain_only'));
+        $this->assertNull(SourcedGrades::compare('rfn-405000', null, null));
+        $this->assertNull(SourcedGrades::compare('rfn-405000', 12.0, 'rack'));
+        $this->assertNull(SourcedGrades::compare('ligne-inconnue', 12.0, null));
     }
 
     public function test_both_providers_are_present_and_sncf_serves_its_licence_and_share(): void

@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Profiles\LineProfileBuilder;
-use App\Services\Profiles\ProfileStats;
+use App\Services\Profiles\MeasuredGrade;
 use App\Services\Profiles\RackRailways;
 use App\Services\Profiles\SncfGrades;
 use App\Services\Profiles\SourcedGrades;
@@ -108,7 +107,7 @@ class ImportSncfGrades extends Command
                 continue;
             }
             $wiki = isset($wikipedia[$line->slug]) ? (float) $wikipedia[$line->slug]['max_grade_permil'] : null;
-            $measure = $this->measure($line);
+            $measure = MeasuredGrade::of($line->profile_id === null ? null : (int) $line->profile_id, $line->max_grade_permil === null ? null : (float) $line->max_grade_permil, $line->gaps === null ? null : (string) $line->gaps);
             $decision = SncfGrades::decide($agg, $this->length($line), $wiki, $measure, $minCoverage, $minSteep);
             $row = array_replace($row, ['covered_share' => $decision['covered_share'], 'wikipedia' => $wiki,
                 'measure' => $measure['value'] ?? null, 'measure_kind' => $measure['kind'] ?? null]);
@@ -231,31 +230,6 @@ class ImportSncfGrades extends Command
         $length = $line->length_official_m ?? $line->length_m ?? null;
 
         return $length === null ? null : (int) $length;
-    }
-
-    /**
-     * Déclivité mesurée par le profil : publiée (sur la voie), sinon recalculée sur le terrain
-     * (altitudes RGE ALTI lissées sur 1 km, fenêtre de 1 km, comme ProfileStats), qui la surestime
-     * en général. Null sans profil.
-     *
-     * @return array{value: float, kind: string}|null
-     */
-    private function measure(object $line): ?array
-    {
-        if ($line->profile_id === null) {
-            return null;
-        }
-        if ($line->max_grade_permil !== null) {
-            return ['value' => (float) $line->max_grade_permil, 'kind' => 'track'];
-        }
-        $rows = DB::select('SELECT distance_m, altitude_m, source, structure FROM line_profile_points WHERE line_profile_id = ? ORDER BY seq', [$line->profile_id]);
-        $points = array_map(fn (object $r): array => [(float) $r->distance_m, $r->altitude_m === null ? null : (float) $r->altitude_m], $rows);
-        $gaps = array_map(fn (array $g): array => [(float) $g['from_m'], (float) $g['to_m']], (array) json_decode((string) ($line->gaps ?? '[]'), true));
-        $flags = LineProfileBuilder::gradeFlags($points, array_map(fn (object $r): ?string => $r->source, $rows), array_map(fn (object $r): ?string => $r->structure, $rows));
-        $stats = ProfileStats::summarize(ProfileStats::smoothTerrain($points, $gaps, $flags), $gaps);
-        $value = $stats['max_grade_permil'] ?? null;
-
-        return $value === null ? null : ['value' => (float) $value, 'kind' => 'terrain'];
     }
 
     /** @param  list<array<string, mixed>>  $rows */

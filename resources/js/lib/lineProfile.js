@@ -313,3 +313,56 @@ export function sourceLang(url) {
     const match = /^https?:\/\/([a-z]{2,3})\.(?:m\.)?wikipedia\.org\//i.exec(url ?? '');
     return match ? match[1].toLowerCase() : undefined;
 }
+
+/**
+ * Vrai si l'intervalle [a, b] touche l'une des parties données (`terrain_ranges`,
+ * `track_estimate_ranges`) : la déclivité lue sur cette fenêtre vient alors, au moins en partie, du
+ * terrain ou de l'altitude de la voie estimée, et ne doit pas être présentée comme mesurée sur la voie.
+ * @param {Array<{ from_m: number, to_m: number }>} ranges
+ * @param {number} a
+ * @param {number} b
+ * @returns {boolean}
+ */
+export function touchesRanges(ranges, a, b) {
+    return ranges.some((r) => r.from_m <= b && r.to_m >= a);
+}
+
+/**
+ * Sens de la phrase qui compare la déclivité mesurée à celle d'une source écrite
+ * (`profile.sourced_grade_compared.difference_permil`, mesure moins source) : `same` à moins de
+ * 0,5 ‰ (la mesure est arrondie au dixième, l'infobox à l'unité), `lower` quand la source donne
+ * moins que la mesure, `higher` quand elle donne plus.
+ * @param {number} difference
+ * @returns {'same'|'lower'|'higher'}
+ */
+export function comparisonKind(difference) {
+    if (Math.abs(difference) < 0.5) return 'same';
+    return difference > 0 ? 'lower' : 'higher';
+}
+
+/**
+ * Gares qui encadrent un trou du tracé (`profile.trace_holes.ranges`) : la dernière avant son début et
+ * la première après sa fin, dans le même morceau du parcours (pas au-delà du début d'un embranchement
+ * ni d'un autre trou) ; null de part ou d'autre quand il n'y en a pas.
+ * @template {{ distance_m: number, name: string }} S
+ * @param {S[]} stations triées par distance
+ * @param {{ from_m: number, to_m: number }} hole
+ * @param {Array<{ from_m: number, to_m: number }>} [gaps] tous les trous du parcours (`profile.gaps`)
+ * @returns {{ before: S|null, after: S|null }}
+ */
+export function holeStations(stations, hole, gaps = []) {
+    // Bornes du morceau de part et d'autre : fin du trou précédent, début du trou suivant.
+    const low = Math.max(
+        -Infinity,
+        ...gaps.filter((g) => g.to_m <= hole.from_m).map((g) => g.to_m),
+    );
+    const high = Math.min(
+        Infinity,
+        ...gaps.filter((g) => g.from_m >= hole.to_m).map((g) => g.from_m),
+    );
+    const before = stations
+        .filter((s) => s.distance_m <= hole.from_m && s.distance_m >= low)
+        .at(-1);
+    const after = stations.find((s) => s.distance_m >= hole.to_m && s.distance_m <= high);
+    return { before: before ?? null, after: after ?? null };
+}
