@@ -416,6 +416,7 @@ return [
         'summary' => 'Réouverture en deux phases portée par la Région : Alès - Saint-Ambroix (environ 40 M€ estimés) puis Saint-Ambroix - Bessèges. Une consultation publique en ligne s\'est tenue du 4 mai au 4 août 2026 pour la première phase, dans l\'attente de l\'autorisation environnementale.',
         'stages' => [
             ['kind' => 'dup', 'date' => '2026-05-04', 'done' => true, 'note' => 'consultation en ligne du 4 mai au 4 août 2026 (557 observations dont 459 favorables), phase 1 Alès - Saint-Ambroix', 'source' => ['label' => 'Objectif Gard, consultation publique largement favorable', 'url' => 'https://www.objectifsud.fr/economie/fait-du-soir-ligne-ales-besseges-la-consultation-publique-largement-favorable-mais-parfois-hors-sujet-167783.php', 'published' => '2026-08-05']],
+            ['kind' => 'dup', 'date' => '2026-06-11', 'done' => true, 'note' => 'avis délibéré de l\'Autorité environnementale sur le projet de modernisation de la ligne ; deux avis défavorables (Conseil national de la protection de la nature et Inspection générale de l\'environnement) cités en juillet 2026, la Région maintient une réouverture en 2028', 'source' => ['label' => 'IGEDD, avis délibéré sur la modernisation de la ligne Alès - Bessèges (11/06/2026)', 'url' => 'https://www.igedd.developpement-durable.gouv.fr/IMG/pdf/8__110626_modernisation_ligne_sncf_ales_besseges_delibere_cle2d8e9a.pdf', 'published' => '2026-06-11']],
             ['kind' => 'commissioning', 'date' => '2028', 'done' => false, 'note' => 'mise en service prévue Alès - Saint-Ambroix', 'source' => ['label' => 'Objectif Gard, entretien avec le vice-président de la Région', 'url' => 'https://www.objectifgard.com/gard/linterview-jean-luc-gibelin-on-ouvrira-les-lignes-ales-saint-ambroix-en-2028-et-saint-ambroix-besseges-en-2030-164070.php', 'published' => '2026-05-22']],
             ['kind' => 'commissioning', 'date' => '2030', 'done' => false, 'note' => 'mise en service prévue Saint-Ambroix - Bessèges', 'source' => ['label' => 'Objectif Gard, entretien avec le vice-président de la Région', 'url' => 'https://www.objectifgard.com/gard/linterview-jean-luc-gibelin-on-ouvrira-les-lignes-ales-saint-ambroix-en-2028-et-saint-ambroix-besseges-en-2030-164070.php', 'published' => '2026-05-22']],
         ],
@@ -739,6 +740,55 @@ return [
             ['kind' => 'works', 'date' => '2026-11-06', 'done' => true, 'note' => 'inauguration de l\'atelier de maintenance de Mantes-la-Jolie (209 M EUR, financé par les huit partenaires du projet)', 'source' => ['label' => 'Batiweb, atelier de maintenance du RER E à Mantes-la-Jolie', 'url' => 'https://www.batiweb.com/actualites/urbanisme/atelier-maintenance-rer-e-mantes-la-jolie-209-millions-49578', 'published' => '2026-11-06']],
             ['kind' => 'commissioning', 'date' => '2027-02-28', 'done' => false, 'note' => 'arrivée commerciale du RER E à Mantes-la-Jolie annoncée par les porteurs du projet (prévue)', 'source' => ['label' => 'Batiweb, atelier de maintenance du RER E à Mantes-la-Jolie', 'url' => 'https://www.batiweb.com/actualites/urbanisme/atelier-maintenance-rer-e-mantes-la-jolie-209-millions-49578', 'published' => '2026-11-06']],
             ['kind' => 'commissioning', 'date' => '2029', 'done' => false, 'note' => 'mise en service définitive complète à fin 2029 (prévue)', 'source' => ['label' => 'Batiweb, atelier de maintenance du RER E à Mantes-la-Jolie', 'url' => 'https://www.batiweb.com/actualites/urbanisme/atelier-maintenance-rer-e-mantes-la-jolie-209-millions-49578', 'published' => '2026-11-06']],
+        ],
+        'checked' => '2026-11-23',
+    ],
+    [
+        // Doutes : Le coût de 43 M EUR et le calendrier 2030-2032 viennent d'un article de février 2024 ; la répartition
+        // État - Région à parts égales vient d'une synthèse de recherche sur la concertation de 2025 (page de la Région
+        // non lue). Aucune source de novembre 2026 n'a confirmé l'ouverture de l'enquête publique ni la date de la DUP
+        // (annoncée sur 2026-2027). La mise en service dépend de ce calendrier : elle n'est donc donnée que comme
+        // fourchette prévue par la source.
+        'id' => 'louviers-rouen',
+        'name' => 'Réouverture de Louviers à Rouen (raccordement de Louviers)',
+        'kind' => 'reopening',
+        'regions' => ['Normandie'],
+        'porteurs' => [
+            ['name' => 'SNCF Réseau', 'role' => 'maître d\'ouvrage'],
+            ['name' => 'Région Normandie', 'role' => 'autorité organisatrice'],
+            ['name' => 'État', 'role' => 'financeur'],
+        ],
+        'line_slugs' => [],
+        'summary' => 'Projet de desserte voyageurs de Louviers par réhabilitation de 5,5 km d\'ancienne voie, un raccordement d\'environ 500 m à l\'axe Paris - Rouen, l\'électrification et une nouvelle halte à Louviers (environ 43 M EUR selon la Région). Après la concertation de 2025, une procédure de déclaration d\'utilité publique est annoncée sur 2026-2027.',
+        'stages' => [
+            ['kind' => 'study', 'date' => '2021-06', 'done' => true, 'note' => 'annonce du projet par la Région Normandie après une étude d\'opportunité et de faisabilité jugée concluante', 'source' => ['label' => 'Le Journal des Entreprises, Réouverture de la liaison ferroviaire Louviers - Rouen', 'url' => 'https://www.lejournaldesentreprises.com/breve/reouverture-de-la-liaison-ferroviaire-louviers-rouen-2080810', 'published' => '2024-02-09']],
+            ['kind' => 'debate', 'date' => '2025-06-02', 'done' => true, 'note' => 'concertation publique du 2 juin au 11 juillet 2025 (réunions publiques et ateliers de terrain)', 'source' => ['label' => 'RCF, Louviers - Rouen en train : la concertation publique est lancée', 'url' => 'https://www.rcf.fr/articles/actualite/louviersrouen-en-train-la-concertation-publique-est-lancee']],
+            ['kind' => 'dup', 'date' => '2026', 'done' => false, 'note' => 'procédure de déclaration d\'utilité publique annoncée sur la période 2026-2027 (prévue)', 'source' => ['label' => 'Le Journal des Entreprises, Réouverture de la liaison ferroviaire Louviers - Rouen', 'url' => 'https://www.lejournaldesentreprises.com/breve/reouverture-de-la-liaison-ferroviaire-louviers-rouen-2080810', 'published' => '2024-02-09']],
+            ['kind' => 'commissioning', 'date' => '2030', 'done' => false, 'note' => 'mise en service prévue entre 2030 et 2032 selon la Région (un train par heure, une demi-heure avec le futur RER métropolitain)', 'source' => ['label' => 'Le Journal des Entreprises, Réouverture de la liaison ferroviaire Louviers - Rouen', 'url' => 'https://www.lejournaldesentreprises.com/breve/reouverture-de-la-liaison-ferroviaire-louviers-rouen-2080810', 'published' => '2024-02-09']],
+        ],
+        'checked' => '2026-11-23',
+    ],
+    [
+        // Doutes : la date du 12 décembre 2027 vient d'un article d'août 2025 ; d'autres documents du concessionnaire
+        // parlent de fin 2027 et de 2028 pour la première année de pleine fréquentation. Le communiqué de lancement du
+        // chantier (janvier 2026) est un PDF non lisible : la date du 17 décembre 2025 est celle citée par une synthèse
+        // de recherche. Les sources de financement du chantier (200 M EUR de financement cités en titre) ne sont pas
+        // détaillées dans les pages lues.
+        'id' => 'nancy-contrexeville',
+        'name' => 'Réouverture de Nancy à Contrexéville (ligne 14)',
+        'kind' => 'reopening',
+        'regions' => ['Grand Est'],
+        'porteurs' => [
+            ['name' => 'Région Grand Est', 'role' => 'autorité concédante'],
+            ['name' => 'Nova 14 (NGE Concessions, Transdev, Banque des Territoires)', 'role' => 'concessionnaire'],
+        ],
+        'line_slugs' => [],
+        'summary' => 'Régénération complète de 75 km de voie pour rouvrir la ligne aux voyageurs, dans le cadre d\'une concession de 22 ans signée le 28 juin 2024 par la Région Grand Est avec Nova 14 (environ 150 M EUR de chantier, centre de maintenance à Mirecourt). Les travaux ont commencé en décembre 2025 ; la reprise du trafic est programmée pour le 12 décembre 2027.',
+        'stages' => [
+            ['kind' => 'funding', 'date' => '2024-06-28', 'done' => true, 'note' => 'signature du contrat de concession (22 ans) entre la Région Grand Est et Nova 14 ; capital réparti entre NGE Concessions (50 %), Transdev (20 %) et la Banque des Territoires (30 %)', 'source' => ['label' => 'Transdev, communiqué sur le nouveau groupement pour la ligne Nancy - Contrexéville', 'url' => 'https://www.transdev.com/wp-content/uploads/2024/06/06-04-24_cpresse_nouveau_groupement_ligne_nancy-contrexeville.pdf', 'published' => '2024-06-04']],
+            ['kind' => 'funding', 'date' => '2024', 'done' => true, 'note' => 'contrat de financement de 90 M EUR de la Banque européenne d\'investissement pour la réouverture', 'source' => ['label' => 'Banque européenne d\'investissement, communiqué 2024-271', 'url' => 'https://www.eib.org/fr/press/all/2024-271-france-la-bei-signe-un-contrat-de-financement-de-90-millions-d-euros-pour-la-reouverture-de-la-ligne-ferroviaire-regionale-nancy-contrexeville']],
+            ['kind' => 'works', 'date' => '2025-12-17', 'done' => true, 'note' => 'démarrage des travaux de régénération après l\'obtention des autorisations administratives', 'source' => ['label' => 'Nova 14 et Banque des Territoires, communiqué de lancement du chantier (22/01/2026)', 'url' => 'https://www.banquedesterritoires.fr/sites/default/files/2026-01/01-22-26_CPresse_Lancement_chantier_ligne_14_Nancy_Contrex%C3%A9ville.pdf', 'published' => '2026-01-22']],
+            ['kind' => 'commissioning', 'date' => '2027-12-12', 'done' => false, 'note' => 'reprise du trafic voyageurs programmée (14 allers-retours quotidiens annoncés, Nancy - Contrexéville en 1 h 10) (prévue)', 'source' => ['label' => 'Le Journal des Entreprises, Nova 14 engage un chantier à 150 millions d\'euros', 'url' => 'https://www.lejournaldesentreprises.com/article/le-concessionnaire-de-la-ligne-nancy-contrexeville-nova-14-engage-un-chantier-150-millions-deuros-2125277', 'published' => '2025-08-29']],
         ],
         'checked' => '2026-11-23',
     ],
