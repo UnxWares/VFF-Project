@@ -120,19 +120,25 @@ pas d'interface utilisable), **sur place**.
 
 - **Archives nationales du monde du travail (Roubaix)** : fonds de la Compagnie du chemin de fer du Nord, cote
   202 AQ (personnel, exploitation, matériel, Nord-Belge). Inventaires en ligne, identifiants ARK stables :
-  https://recherche-anmt.culture.gouv.fr/ ; **lien** (page refusée aux clients automatiques le 22/11/2026). Aucun
+  https://recherche-anmt.culture.gouv.fr/ ; **écarté** pour l'instant : contrôle anti-robots à preuve de travail
+  (« Making sure you're not a bot », 23/11/2026), non contourné ; demande d'accès préparée. Aucun
   fonds AQ trouvé pour le PLM, le PO, l'Est, l'Ouest ou le Midi : leurs archives sont surtout au Mans et aux Archives
   nationales.
 - **Archives nationales (Pierrefitte)** : série F/14 (Travaux publics : concessions, compagnies, matériel fixe) et
   versements du ministère des Transports. Salle des inventaires virtuelle :
-  https://www.siv.archives-nationales.culture.gouv.fr/ ; **lien**. Réutilisation gratuite des informations publiques
+  https://www.siv.archives-nationales.culture.gouv.fr/ ; **lien**, **écarté du rattachement** : robots.txt interdit tout
+  (`Disallow: /`), et la liste ouverte des inventaires (data.gouv.fr, 31 001 inventaires, Licence Ouverte) a 106 intitulés
+  sur le rail dont aucun ne nomme une ligne (« Chemins de fer, 1844-1952 ; ports maritimes... »). Réutilisation gratuite des informations publiques
   avec mention de l'origine (registre `archives-nationales`).
 - **Ministère de la Transition écologique, centre d'archives** : répertoires en PDF des versements sur les chemins de
   fer (direction des transports terrestres, service des chemins de fer, concessions, tramways), par numéro de
-  versement : https://www.archives.developpement-durable.gouv.fr/ ; **lien** (le site refuse les clients
-  automatiques).
+  versement : https://www.archives.developpement-durable.gouv.fr/ ; **lien**, **écarté du rattachement** (le site répond
+  au 23/11/2026, Licence Ouverte, mais ne donne que des notices de fonds, une quarantaine pour le rail, dont les
+  intitulés (« Desserte ferroviaire de la vallée de Kaysersberg », « Tramways de Colmar et Mulhouse ») ne nomment presque
+  jamais une ligne ; le détail est dans des PDF sans interface).
 - **Archives départementales, série S** (travaux publics et transports ; chemins de fer d'intérêt local et tramways
-  souvent en 3 S ou 5 S, la cote varie selon le département). Exemples d'inventaires en ligne : Isère
+  souvent en 3 S ou 5 S, la cote varie selon le département ; Isère : page de protection `shield` aux clients automatiques,
+  23/11/2026). Exemples d'inventaires en ligne : Isère
   (https://archives.isere.fr/), Creuse (https://archives.creuse.fr/), Haute-Vienne (https://archives.haute-vienne.fr/),
   Cantal (https://archives.cantal.fr/). Licence propre à chaque département (registre `archives-departementales`) ;
   **lien**.
@@ -149,9 +155,18 @@ pas d'interface utilisable), **sur place**.
 
 - **Gallica (BnF)** : **rattaché** (`vff:import-gallica`).
 - **Calames** (manuscrits et archives des bibliothèques de l'enseignement supérieur) : Licence Ouverte, point d'accès
-  OAI-PMH simulé https://calames.abes.fr/oai/oai2.aspx ; **ouverte**, non exploré pour le rail.
-- **Europeana** : métadonnées CC0, API avec clé gratuite (https://api.europeana.eu/record/v2/search.json), IIIF ;
-  **ouverte**, non exploré.
+  OAI-PMH https://calames.abes.fr/oai/oai2.aspx (formats `oai_dc` et `oai_ead`, pas de recherche : moissonnage par
+  établissement, 100 notices par page, environ 4 notices par seconde, réponses calculées à la volée). **Ouverte, sondée le
+  23/11/2026** : 18 établissements sur 75 lus en tout ou en partie (Ponts, Mines Paris, Polytechnique, première
+  tranche de La Contemporaine, BNU Strasbourg, INHA...), 630 notices qui parlent de chemin de fer, dont **10 rattachées**
+  par le titre à 4 lignes par le comparateur de VFF (Paris - Strasbourg, Strasbourg - Bâle, Paris - Rouen - Le Havre,
+  Commentry - Montluçon : mémoires d'élèves ingénieurs, 1841 à 1860 environ), les 10 justes à la relecture. Le reste est
+  hors sujet (missions à l'étranger, mines, matériel). Tirage de 40 impossible : le gisement lu est trop petit. **Reportée,
+  aucun code écrit** : un nouveau fonds demande l'API, le MCP, la fiche et les trois langues pour une dizaine de notices ;
+  à reprendre si un moissonnage complet (plusieurs heures à une requête par seconde) en trouve au moins une quarantaine.
+- **Europeana** : métadonnées CC0, API qui **exige une clé** (https://api.europeana.eu/record/v2/search.json répond
+  « Invalid API key provided » sans clé, vérifié le 23/11/2026) : **à demander par Baptiste**, brouillon dans
+  `storage/app/reports/agents/aprem-2111/demandes-archives-fonds.md`.
 - **École des ponts ParisTech, « Héritage des ponts et chaussées »** : fonds ancien sur l'infrastructure de Gallica ;
   **lien**.
 - **Rails et histoire (AHICF)** : Revue d'histoire des chemins de fer sur OpenEdition (https://journals.openedition.org/rhcf/),
@@ -179,4 +194,5 @@ aux lignes : il porte sur des personnes.
    deux lieux, précision sur 40 notices relues.
 2. **Descriptions des Archives SNCF** : fait le 23/11/2026 (voir « Lecture des descriptions »), à appliquer en base ; reste
    à lire les listes de plusieurs lignes d'un même dossier.
-3. **Calames et Europeana** : sondage des notices ferroviaires françaises.
+3. **Calames et Europeana** : Calames sondé (10 rattachements justes, trop peu pour un fonds de plus, voir le répertoire) ;
+   Europeana attend une clé gratuite à demander par Baptiste.
