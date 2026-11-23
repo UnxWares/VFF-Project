@@ -171,7 +171,7 @@ return [
         'file_chosen' => ':size, :width × :height pixels',
         'preview_alt' => 'Aperçu du fichier choisi',
         'privacy_note' => 'Avant l’enregistrement, VFF retire du fichier ses métadonnées (position GPS, appareil, dates) et ne garde que son orientation. Jusqu’à sa publication, seuls vous et les validateurs pouvez le voir.',
-        'gps_found' => 'Cette photo contient la position où elle a été prise (:lat, :lng). Elle sera retirée du fichier. Vous pouvez la recopier dans les coordonnées, qui sont publiées avec l’image.',
+        'gps_found' => 'Cette photo contient la position où elle a été prise (:lat, :lon). Elle sera retirée du fichier. Vous pouvez la recopier dans les coordonnées, qui sont publiées avec l’image.',
         'gps_use' => 'Recopier cette position',
         'gps_copied' => 'Position recopiée dans les coordonnées, plus bas. Vous pouvez la corriger ou l’effacer.',
         'details_legend' => 'Description',

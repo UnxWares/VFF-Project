@@ -603,7 +603,7 @@
                                 <p>
                                     {$i18n.t('proposals.media.gps_found', {
                                         lat: coordinate(filePosition.lat),
-                                        lng: coordinate(filePosition.lng),
+                                        lon: coordinate(filePosition.lng),
                                     })}
                                 </p>
                                 <button

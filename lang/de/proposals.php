@@ -171,7 +171,7 @@ return [
         'file_chosen' => ':size, :width × :height Pixel',
         'preview_alt' => 'Vorschau der gewählten Datei',
         'privacy_note' => 'Vor dem Speichern entfernt VFF die Metadaten der Datei (GPS-Standort, Kamera, Daten) und behält nur ihre Ausrichtung. Bis zur Veröffentlichung sehen nur Sie und die Prüfer die Datei.',
-        'gps_found' => 'Dieses Foto enthält den Aufnahmeort (:lat, :lng). Er wird aus der Datei entfernt. Sie können ihn in die Koordinaten übernehmen, die mit dem Bild veröffentlicht werden.',
+        'gps_found' => 'Dieses Foto enthält den Aufnahmeort (:lat, :lon). Er wird aus der Datei entfernt. Sie können ihn in die Koordinaten übernehmen, die mit dem Bild veröffentlicht werden.',
         'gps_use' => 'Diesen Standort übernehmen',
         'gps_copied' => 'Standort in die Koordinaten weiter unten übernommen. Sie können ihn korrigieren oder löschen.',
         'details_legend' => 'Beschreibung',
