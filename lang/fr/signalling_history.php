@@ -34,4 +34,15 @@ return [
         'document_hint' => ':title, nouvel onglet',
         'note_documents' => 'Quand le lien porte le nom d’un éditeur, la date vient de ce document, confirmée par une source officielle ou par deux sources indépendantes. Le jour ou le mois n’apparaît que si ces documents le donnent.',
     ],
+    'at' => [
+        'intro' => 'Date choisie dans « :section » : :date. Chaque mise en service est située par rapport à cette date.',
+        'change' => 'Choisir une autre date',
+    ],
+    'status' => [
+        'in_force' => 'En vigueur à cette date',
+        'replaced' => 'Remplacé par :system (:when)',
+        'later' => 'Pas encore en service à cette date',
+        'uncertain_year' => 'Date connue à l’année près : en service avant ou après cette date',
+        'uncertain_month' => 'Date connue au mois près : en service avant ou après cette date',
+    ],
 ];

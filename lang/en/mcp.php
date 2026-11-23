@@ -109,6 +109,7 @@ return [
         'max_speed' => 'Maximum speed',
         'electrification' => 'Electrification',
         'signalling' => 'Signalling',
+        'signalling_history' => 'Signalling and train protection over time',
         'phases' => 'Phases',
         'chronology' => 'Chronology',
         'source' => 'source',

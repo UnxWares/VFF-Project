@@ -34,4 +34,15 @@ return [
         'document_hint' => ':title, neuer Tab',
         'note_documents' => 'Trägt der Link den Namen eines Herausgebers, stammt das Datum aus diesem Dokument und ist durch eine amtliche Quelle oder durch zwei unabhängige Quellen bestätigt. Tag oder Monat stehen nur da, wenn diese Dokumente sie nennen.',
     ],
+    'at' => [
+        'intro' => 'Im Abschnitt „:section“ gewähltes Datum: :date. Jede Inbetriebnahme wird zu diesem Datum eingeordnet.',
+        'change' => 'Anderes Datum wählen',
+    ],
+    'status' => [
+        'in_force' => 'An diesem Datum in Betrieb',
+        'replaced' => 'Ersetzt durch :system (:when)',
+        'later' => 'An diesem Datum noch nicht in Betrieb',
+        'uncertain_year' => 'Datum nur auf das Jahr genau bekannt: vor oder nach diesem Datum in Betrieb',
+        'uncertain_month' => 'Datum nur auf den Monat genau bekannt: vor oder nach diesem Datum in Betrieb',
+    ],
 ];

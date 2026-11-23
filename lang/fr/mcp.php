@@ -110,6 +110,7 @@ return [
         'max_speed' => 'Vitesse maximale',
         'electrification' => 'Électrification',
         'signalling' => 'Signalisation',
+        'signalling_history' => 'Signalisation et protection au fil du temps',
         'phases' => 'Phases',
         'chronology' => 'Chronologie',
         'source' => 'source',

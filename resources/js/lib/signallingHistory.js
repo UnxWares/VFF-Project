@@ -107,3 +107,113 @@ export function articleTitles(facts) {
 export function hasDocumentFacts(facts) {
     return facts.some((f) => f.source.provider === 'manual');
 }
+
+// Repères à l'époque choisie sur la fiche (phase du « tracé dans le temps ») : même règle que la carte
+// par ère et que l'API avec `era` (App\Services\Signalling\SignallingHistoryState::inForce), avec en
+// plus l'incertitude d'une date connue à l'année ou au mois près.
+
+/** Tolérance (m) sur les bornes de deux portions placées (SignallingHistoryState::TOLERANCE_M). */
+const TOLERANCE_M = 200;
+
+/** Premier et dernier jour (AAAA-MM-JJ) d'une date connue au jour, au mois ou à l'année près. */
+export function periodBounds(iso, precision) {
+    const d = String(iso ?? '').slice(0, 10);
+    const [y, m] = d.split('-');
+    if (precision === 'year') return [`${y}-01-01`, `${y}-12-31`];
+    if (precision === 'month') {
+        const last = new Date(Date.UTC(Number(y), Number(m), 0)).getUTCDate();
+        return [`${y}-${m}-01`, `${y}-${m}-${String(last).padStart(2, '0')}`];
+    }
+    return [d, d];
+}
+
+/**
+ * Moment d'une phase de la ligne, ou null : sa date à sa précision ; un changement non daté
+ * (`range`) vaut la fin de sa période (31 décembre, ou aujourd'hui pour l'ère courante), comme la carte.
+ *
+ * @returns {{ start: string, end: string, date: string, precision: string } | null}
+ */
+export function phaseMoment(phase) {
+    if (!phase?.date) return null;
+    const precision = phase.precision === 'range' ? 'day' : (phase.precision ?? 'day');
+    const [start, end] = periodBounds(phase.date, precision);
+    return { start, end, date: start, precision };
+}
+
+/** Groupe de remplacement : un cantonnement remplace un cantonnement, une TVM une TVM, le KVB le KVB. */
+export function factGroup(f) {
+    if (f.role === 'block') return 'block';
+    if (f.role === 'cab') return String(f.system).replace(/[-_].*$/, '');
+    return f.system;
+}
+
+function placedRange(f) {
+    const s = f.section;
+    return s?.pk_start_m != null && s?.pk_end_m != null ? [s.pk_start_m, s.pk_end_m] : null;
+}
+
+/** Le fait récent recouvre-t-il le fait ancien (toute la ligne, ou sa portion placée contient l'autre) ? */
+export function factCovers(recent, old) {
+    if (recent.scope === 'whole_line') return true;
+    const n = placedRange(recent);
+    const o = placedRange(old);
+    if (!n || !o) return false;
+    return n[0] <= o[0] + TOLERANCE_M && n[1] >= o[1] - TOLERANCE_M;
+}
+
+/**
+ * Situation de chaque fait au moment choisi, dans l'ordre des faits :
+ *   - `later` : mis en service après ce moment ;
+ *   - `uncertain` : connu à l'année ou au mois près, période qui contient ce moment (avant ou après ?) ;
+ *   - `replaced` (avec `by`) : un fait plus récent du même groupe, sûrement en service, le recouvre ;
+ *   - `in_force` : sinon.
+ * Un fait récent sans portion placée ne remplace rien : on ne sait pas où il s'applique.
+ *
+ * @param {Array<any>} facts faits de `LineSignallingHistory::forSheet`
+ * @param {{ start: string, end: string }} moment
+ * @returns {Array<{ status: 'later' | 'uncertain' | 'replaced' | 'in_force', by?: any }>}
+ */
+export function statusesAt(facts, moment) {
+    const bounds = facts.map((f) => periodBounds(f.date, f.date_precision));
+    const certain = (i) => bounds[i][1] <= moment.start;
+    return facts.map((f, i) => {
+        if (bounds[i][0] > moment.end) return { status: 'later' };
+        if (!certain(i)) return { status: 'uncertain' };
+        const by = facts.find(
+            (n, j) =>
+                j !== i &&
+                n.date > f.date &&
+                certain(j) &&
+                factGroup(n) === factGroup(f) &&
+                factCovers(n, f),
+        );
+        return by ? { status: 'replaced', by } : { status: 'in_force' };
+    });
+}
+
+/**
+ * Texte de la situation d'un fait au moment choisi (`signalling_history.status.*`).
+ *
+ * @param {{ status: string, by?: any }} s
+ * @param {any} fact
+ * @param {(key: string, opts?: object) => string} t
+ * @param {string} lang
+ */
+export function statusText(s, fact, t, lang) {
+    if (s.status === 'replaced') {
+        return tieUnits(
+            t('signalling_history.status.replaced', {
+                system: s.by.system,
+                when: formatEventDate(s.by.date, s.by.date_precision, lang),
+            }),
+        );
+    }
+    if (s.status === 'uncertain') {
+        return t(
+            fact.date_precision === 'month'
+                ? 'signalling_history.status.uncertain_month'
+                : 'signalling_history.status.uncertain_year',
+        );
+    }
+    return t(`signalling_history.status.${s.status}`);
+}

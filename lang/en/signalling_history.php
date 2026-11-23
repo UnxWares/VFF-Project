@@ -34,4 +34,15 @@ return [
         'document_hint' => ':title, new tab',
         'note_documents' => 'When the link shows a publisher’s name, the date comes from that document and is confirmed by an official source or by two independent sources. The day or month is shown only when these documents give it.',
     ],
+    'at' => [
+        'intro' => 'Date chosen in “:section”: :date. Each commissioning is placed against that date.',
+        'change' => 'Choose another date',
+    ],
+    'status' => [
+        'in_force' => 'In force at that date',
+        'replaced' => 'Replaced by :system (:when)',
+        'later' => 'Not yet in service at that date',
+        'uncertain_year' => 'Date known to the year only: in service before or after that date',
+        'uncertain_month' => 'Date known to the month only: in service before or after that date',
+    ],
 ];

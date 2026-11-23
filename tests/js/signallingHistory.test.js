@@ -3,6 +3,10 @@ import {
     articleTitles,
     hasDocumentFacts,
     historyRows,
+    periodBounds,
+    phaseMoment,
+    statusText,
+    statusesAt,
     portionText,
     systemLabel,
 } from '$lib/signallingHistory.js';
@@ -239,5 +243,85 @@ describe('faits datés par des documents', () => {
         expect(articleTitles([doc])).toEqual([]);
         expect(hasDocumentFacts([doc, fact()])).toBe(true);
         expect(hasDocumentFacts([fact()])).toBe(false);
+    });
+});
+
+describe('statusesAt : situation à la date choisie sur la fiche', () => {
+    const at = (date, precision = 'day') => phaseMoment({ date, precision });
+    const tvm = fact({
+        system: 'TVM-300',
+        role: 'cab',
+        date: '1983-09-25',
+        date_precision: 'day',
+        section: { from: 'A', to: 'B', pk_start_m: 1000, pk_end_m: 50000 },
+    });
+    const tvm430 = fact({
+        system: 'TVM-430',
+        role: 'cab',
+        date: '1994-07-03',
+        date_precision: 'day',
+        section: { from: 'A', to: 'B', pk_start_m: 900, pk_end_m: 50100 },
+    });
+    const kvb = fact({
+        system: 'KVB',
+        role: 'speed_control',
+        date: '1990-01-01',
+        date_precision: 'year',
+        scope: 'whole_line',
+        section: null,
+    });
+
+    it('pas encore, en vigueur, remplacé par un fait du même groupe qui recouvre la portion', () => {
+        expect(statusesAt([tvm, tvm430], at('1980-01-01')).map((s) => s.status)).toEqual([
+            'later',
+            'later',
+        ]);
+        expect(statusesAt([tvm, tvm430], at('1990-06-10')).map((s) => s.status)).toEqual([
+            'in_force',
+            'later',
+        ]);
+        const late = statusesAt([tvm, tvm430], at('2000-01-01'));
+        expect(late.map((s) => s.status)).toEqual(['replaced', 'in_force']);
+        expect(late[0].by.system).toBe('TVM-430');
+    });
+
+    it('le KVB (contrôle de vitesse) ne remplace jamais un cantonnement', () => {
+        const bal = fact({
+            date: '1970-01-01',
+            date_precision: 'year',
+            scope: 'whole_line',
+            section: null,
+        });
+        expect(statusesAt([bal, kvb], at('2000-01-01')).map((s) => s.status)).toEqual([
+            'in_force',
+            'in_force',
+        ]);
+    });
+
+    it('une date à l’année près qui contient la date choisie reste incertaine', () => {
+        expect(statusesAt([kvb], at('1990-06-10'))[0].status).toBe('uncertain');
+        expect(statusesAt([kvb], at('1990-12-31'))[0].status).toBe('in_force');
+        expect(statusesAt([kvb], at('1990-01-01', 'year'))[0].status).toBe('uncertain');
+    });
+
+    it('un changement non daté vaut la fin de sa période, comme la carte par ère', () => {
+        expect(phaseMoment({ date: '1950-12-31', precision: 'range' })).toEqual({
+            start: '1950-12-31',
+            end: '1950-12-31',
+            date: '1950-12-31',
+            precision: 'day',
+        });
+        expect(periodBounds('2024-02-01', 'month')).toEqual(['2024-02-01', '2024-02-29']);
+        expect(phaseMoment(null)).toBeNull();
+    });
+
+    it('textes de la situation', () => {
+        const [s] = statusesAt([tvm, tvm430], at('2000-01-01'));
+        expect(statusText(s, tvm, t, 'fr')).toBe(
+            'signalling_history.status.replaced|system=TVM-430|when=3 juillet 1994',
+        );
+        expect(statusText({ status: 'uncertain' }, kvb, t, 'fr')).toBe(
+            'signalling_history.status.uncertain_year',
+        );
     });
 });

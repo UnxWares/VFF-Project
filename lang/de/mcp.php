@@ -109,6 +109,7 @@ return [
         'max_speed' => 'Höchstgeschwindigkeit',
         'electrification' => 'Elektrifizierung',
         'signalling' => 'Signalisierung',
+        'signalling_history' => 'Signalisierung und Zugbeeinflussung im Lauf der Zeit',
         'phases' => 'Phasen',
         'chronology' => 'Chronik',
         'source' => 'Quelle',

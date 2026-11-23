@@ -48,6 +48,7 @@
     import { mediaCaption } from '$lib/mediaCredits.js';
     import GlossaryText from '$components/GlossaryText.svelte';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
+    import { phaseMoment } from '$lib/signallingHistory.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -1396,7 +1397,12 @@
                 {/if}
 
                 {#if signalling_history.length}
-                    <LineSignallingHistory history={signalling_history} />
+                    <LineSignallingHistory
+                        history={signalling_history}
+                        moment={phaseMoment(phase)}
+                        momentLabel={phase ? phaseDate(phase) : null}
+                        momentSection={t('lines.section.route_through_time')}
+                    />
                 {/if}
             </SheetSection>
         {/if}
