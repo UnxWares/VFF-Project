@@ -6,6 +6,7 @@ use App\Enums\QuizLevel;
 use App\Enums\QuizTopic;
 use App\Services\LineFacts;
 use App\Services\NetworkChronology;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
@@ -54,7 +55,13 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
         'ign' => ['Licence Ouverte 2.0', 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/'],
         'pop' => ['Licence Ouverte 2.0', 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/'],
         'sncf' => ['ODbL 1.0', 'https://opendatacommons.org/licenses/odbl/1-0/'],
+        'wikipedia-en' => ['CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/'],
+        'wikipedia-de' => ['CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/'],
+        'bea-tt' => ['Licence Ouverte 2.0', 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/'],
     ];
+
+    /** Écarts en mois des mauvaises dates d'une électrification (question de degré 3 : absente du niveau facile, donc proches). */
+    public const MONTH_OFFSETS = [1, 2, 3, 4, 5, 6];
 
     public function __construct(private readonly FactPool $facts, private readonly NetworkChronology $chronology) {}
 
@@ -94,9 +101,14 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
         if ($topic->isYear()) {
             return $this->yearOptions($subject, $easy);
         }
+        if ($topic->isDate()) {
+            return $this->dateOptions($subject);
+        }
 
         return match ($topic) {
             QuizTopic::Company => $this->companyOptions($subject),
+            QuizTopic::CabSignalling => $this->cabOptions($subject),
+            QuizTopic::LineMaterial => array_map(fn (string $label): array => $this->synthetic($subject, $label), $subject['data']['others']),
             QuizTopic::Architect => $this->byGap($same, fn (array $o): int => $o['data']['built'] === null || $subject['data']['built'] === null ? PHP_INT_MAX : abs($o['data']['built'] - $subject['data']['built'])),
             QuizTopic::LongestTunnel, QuizTopic::LongestViaduct => $this->belowBy($same, 'length_m', (int) $subject['data']['length_m'], $easy ? self::EASY_RATIO : self::HARD_RATIO),
             QuizTopic::Attendance => $this->belowBy($same, 'passengers', (int) $subject['data']['passengers'], $easy ? self::EASY_RATIO : self::HARD_RATIO),
@@ -112,7 +124,9 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
         $d = $s['data'];
         $subject = match ($topic) {
             QuizTopic::Milestone => __('chronology.milestones.'.$d['milestone'].'.title'),
-            QuizTopic::OpeningYear, QuizTopic::ElectrificationYear, QuizTopic::Company, QuizTopic::Architect, QuizTopic::HeritageYear => (string) $s['title'],
+            QuizTopic::OpeningYear, QuizTopic::ElectrificationYear, QuizTopic::ElectrificationDate, QuizTopic::Company, QuizTopic::Architect, QuizTopic::HeritageYear,
+            QuizTopic::StationOpeningYear, QuizTopic::CabSignalling, QuizTopic::LineMaterial => (string) $s['title'],
+            QuizTopic::AccidentYear => $this->accidentTitle($d),
             default => null,
         };
 
@@ -148,6 +162,11 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
             QuizTopic::Milestone => __('quiz.facts.reveal.milestone', ['title' => __('chronology.milestones.'.$d['milestone'].'.title'), 'year' => $s['label']]),
             QuizTopic::HeritageYear => __('quiz.facts.reveal.heritage_year', ['station' => $s['title'], 'year' => $s['label'], 'protection' => __('quiz.facts.protection.'.$d['protection'])]),
             QuizTopic::Architect => __('quiz.facts.reveal.architect', ['station' => $s['title'], 'architect' => $s['label']]),
+            QuizTopic::StationOpeningYear => __('quiz.facts.reveal.station_opening_year', ['station' => $s['title'], 'date' => QuizLabel::date($d['date'], $locale)]),
+            QuizTopic::ElectrificationDate => __('quiz.facts.reveal.electrification_date', ['line' => $s['title'], 'date' => QuizLabel::date($d['date'], $locale)]),
+            QuizTopic::CabSignalling => __('quiz.facts.reveal.cab_signalling', ['line' => $s['title'], 'system' => QuizLabel::of($s, $locale), 'date' => QuizLabel::date($d['since'], $locale)]),
+            QuizTopic::LineMaterial => __('quiz.facts.reveal.line_material', ['line' => $s['title'], 'series' => $s['label'], 'others' => $list(fn (array $o): string => $o['label'], $others)]),
+            QuizTopic::AccidentYear => __('quiz.facts.reveal.accident_year', ['accident' => $this->accidentTitle($d), 'date' => QuizLabel::date($d['date'], $locale)]),
             QuizTopic::Company => __('quiz.facts.reveal.'.($d['to'] === null ? 'company_open' : 'company'), ['line' => $s['title'], 'company' => $s['label'], 'year' => $d['year'], 'from' => $d['from'], 'to' => $d['to']]),
             QuizTopic::LongestTunnel, QuizTopic::LongestViaduct => __('quiz.facts.reveal.'.$topic->value, [
                 'name' => $s['label'], 'length' => $num($d['length_m']),
@@ -166,7 +185,11 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
         $sources = $this->sources($pick->options, $locale);
 
         return [
-            'answer' => ['key' => (string) $s['key'], 'label' => (string) $s['label'], 'title' => $topic === QuizTopic::Milestone ? (string) __('chronology.milestones.'.$d['milestone'].'.title') : (string) $s['title'], 'url' => $s['url']],
+            'answer' => ['key' => (string) $s['key'], 'label' => QuizLabel::of($s, $locale), 'title' => match ($topic) {
+                QuizTopic::Milestone => (string) __('chronology.milestones.'.$d['milestone'].'.title'),
+                QuizTopic::AccidentYear => $this->accidentTitle($d),
+                default => (string) $s['title'],
+            }, 'url' => $s['url']],
             'fact' => [
                 'text' => (string) $text,
                 'lang' => $locale,
@@ -198,6 +221,53 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
         usort($years, fn (int $a, int $b): int => strcmp(hash('xxh128', $subject['id']."|{$a}"), hash('xxh128', $subject['id']."|{$b}")));
 
         return array_map(fn (int $y): array => $this->synthetic($subject, (string) $y), $years);
+    }
+
+    /**
+     * Dates voisines de la date juste (même jour du mois, 1 à 6 mois d'écart), dans l'ordre d'un hachage
+     * du sujet, bornées à l'histoire du rail et au jour même. Libellé neutre : la date ISO, écrite dans la langue de
+     * la page à l'affichage (QuizLabel).
+     *
+     * @param  array<string, mixed>  $subject
+     * @return list<array<string, mixed>>
+     */
+    private function dateOptions(array $subject): array
+    {
+        $date = Carbon::parse((string) $subject['data']['date']);
+        $dates = [];
+        foreach (self::MONTH_OFFSETS as $offset) {
+            foreach ([-1, 1] as $sign) {
+                $d = $date->copy()->addMonthsNoOverflow($sign * $offset);
+                if ($d->year >= FactPool::FIRST_YEAR && $d->lessThanOrEqualTo(now()) && $d->toDateString() !== $date->toDateString()) {
+                    $dates[] = $d->toDateString();
+                }
+            }
+        }
+        usort($dates, fn (string $a, string $b): int => strcmp(hash('xxh128', $subject['id']."|{$a}"), hash('xxh128', $subject['id']."|{$b}")));
+
+        return array_map(fn (string $d): array => $this->synthetic($subject, $d, ['date' => $d]), $dates);
+    }
+
+    /**
+     * Autres systèmes de cabine (jamais en service sur la ligne : la ligne n'en a qu'un), ceux de la même famille
+     * (TVM, ETCS) d'abord.
+     *
+     * @param  array<string, mixed>  $subject
+     * @return list<array<string, mixed>>
+     */
+    private function cabOptions(array $subject): array
+    {
+        $family = strtok((string) $subject['label'], '-_');
+        $others = array_values(array_diff(array_keys(DailyFactPool::CAB_SYSTEMS), [(string) $subject['label']]));
+        usort($others, fn (string $a, string $b): int => [strtok($a, '-_') === $family ? 0 : 1, $a] <=> [strtok($b, '-_') === $family ? 0 : 1, $b]);
+
+        return array_map(fn (string $system): array => $this->synthetic($subject, $system, ['trans' => 'quiz.facts.cab.'.DailyFactPool::CAB_SYSTEMS[$system]]), $others);
+    }
+
+    /** Nature et commune de l'accident, dans la langue de la page (« Collision à Levallois-Perret »). @param  array<string, mixed>  $d */
+    private function accidentTitle(array $d): string
+    {
+        return (string) __('accidents.names.at_commune', ['kind' => __('accidents.names.kinds.'.$d['kind']), 'commune' => $d['commune']]);
     }
 
     /**
@@ -273,11 +343,12 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
      * Mauvaise réponse propre à une question (année, compagnie) : ni sujet du vivier ni source.
      *
      * @param  array<string, mixed>  $subject
+     * @param  array<string, string>  $display  `date` ou `trans` : comment écrire le libellé (QuizLabel)
      * @return array<string, mixed>
      */
-    private function synthetic(array $subject, string $label): array
+    private function synthetic(array $subject, string $label, array $display = []): array
     {
-        return ['id' => $subject['id'].'#'.$label, 'key' => self::optionKey((string) $subject['id'], $label), 'label' => $label, 'topic' => $subject['topic']];
+        return ['id' => $subject['id'].'#'.$label, 'key' => self::optionKey((string) $subject['id'], $label), 'label' => $label, 'topic' => $subject['topic']] + $display;
     }
 
     /**
@@ -289,14 +360,14 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
     private function hints(QuizTopic $topic, array $s): array
     {
         $rows = [];
-        if (in_array($topic, [QuizTopic::OpeningYear, QuizTopic::ElectrificationYear, QuizTopic::Company], true)) {
+        if (in_array($topic, [QuizTopic::OpeningYear, QuizTopic::ElectrificationYear, QuizTopic::ElectrificationDate, QuizTopic::Company, QuizTopic::LineMaterial], true)) {
             $id = (int) ($s['data']['line_id'] ?? DB::table('lines')->where('slug', $s['data']['line'])->value('id'));
             $names = $id > 0 ? array_slice(array_column(LineFacts::departments($id), 'name'), 0, 4) : [];
             if ($names !== []) {
                 $rows[] = ['label' => __('quiz.hints.departments'), 'value' => implode(', ', $names)];
             }
         }
-        if (in_array($topic, [QuizTopic::Architect, QuizTopic::HeritageYear], true)) {
+        if (in_array($topic, [QuizTopic::Architect, QuizTopic::HeritageYear, QuizTopic::StationOpeningYear], true)) {
             if (($s['data']['city'] ?? null) !== null) {
                 $rows[] = ['label' => __('quiz.facts.hint.city'), 'value' => (string) $s['data']['city']];
             }
@@ -325,9 +396,9 @@ final class FactQuiz implements GroupedQuizSource, PickAwareQuizSource, QuizSour
                     continue;
                 }
                 [$license, $licenseUrl] = self::LICENSES[$src['provider']] ?? [null, null];
-                $name = trans()->has('quiz.facts.sources.'.$src['provider'], $locale)
+                $name = $src['name'] ?? (trans()->has('quiz.facts.sources.'.$src['provider'], $locale)
                     ? (string) trans('quiz.facts.sources.'.$src['provider'], [], $locale)
-                    : $this->chronology->sourceName((string) $src['provider'], $locale);
+                    : $this->chronology->sourceName((string) $src['provider'], $locale));
                 $out[$key] = ['name' => $name, 'title' => null, 'url' => $src['url'] ?? null, 'license' => $license, 'license_url' => $licenseUrl];
             }
         }

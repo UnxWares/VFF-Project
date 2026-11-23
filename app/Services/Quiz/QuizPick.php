@@ -35,6 +35,6 @@ final readonly class QuizPick
      */
     public function publicOptions(): array
     {
-        return array_map(fn (array $o): array => ['key' => (string) $o['key'], 'label' => (string) $o['label']], $this->options);
+        return array_map(fn (array $o): array => ['key' => (string) $o['key'], 'label' => QuizLabel::of($o)], $this->options);
     }
 }

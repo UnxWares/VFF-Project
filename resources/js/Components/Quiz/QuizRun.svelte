@@ -28,6 +28,7 @@
         scaleBar,
         scoreOf,
         STALE_STATUS,
+        subjectLang,
         tracePath,
         traceViewBox,
         TRACE_MARGIN,
@@ -251,7 +252,7 @@
                     })}
                 </p>
                 {#if question.subject}
-                    <p class="subject" lang={question.topic === 'milestone' ? lang : 'fr'}>
+                    <p class="subject" lang={subjectLang(question.topic, lang)}>
                         {question.subject}
                     </p>
                 {/if}

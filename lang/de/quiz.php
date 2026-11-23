@@ -24,7 +24,7 @@ return [
         'materials' => 'Fahrzeug erkennen',
         'materials_text' => 'Ein Foto von Wikimedia Commons und vier Baureihen desselben Typs.',
         'facts' => 'Bahnwissen',
-        'facts_text' => 'Textfragen zu belegten Fakten: Eröffnung einer Strecke, Gesellschaft, längster Tunnel, Architekt eines Bahnhofs, meistgenutzter Bahnhof, erste Baureihe im Einsatz. Beim leichten Schwierigkeitsgrad liegen die falschen Antworten weit entfernt, und die anspruchsvollsten Fragen entfallen.',
+        'facts_text' => 'Textfragen zu belegten Fakten: Eröffnung einer Strecke, Gesellschaft, längster Tunnel, Architekt und Eröffnung eines Bahnhofs, Signalsystem einer Hochgeschwindigkeitsstrecke, Elektrifizierung, Fahrzeuge einer Strecke, alte Unfälle, meistgenutzter Bahnhof, erste Baureihe im Einsatz. Beim leichten Schwierigkeitsgrad liegen die falschen Antworten weit entfernt, und die anspruchsvollsten Fragen entfallen.',
         'unavailable' => 'Für dieses Spiel gibt es noch nicht genug geprüfte Daten.',
     ],
     'levels' => [
@@ -123,6 +123,11 @@ return [
             'heritage_year' => 'In welchem Jahr wurde dieser Bahnhof oder ein Teil seiner Gebäude unter Denkmalschutz gestellt?',
             'attendance' => 'Welcher dieser Bahnhöfe hatte im Jahr :year die meisten Reisenden?',
             'first_series' => 'Welche dieser Baureihen (:type) ging als erste in Betrieb?',
+            'station_opening_year' => 'In welchem Jahr wurde dieser Bahnhof eröffnet?',
+            'cab_signalling' => 'Welches Führerstandssignalsystem ist auf dieser Hochgeschwindigkeitsstrecke eingebaut?',
+            'electrification_date' => 'An welchem Datum wurde diese Strecke elektrifiziert?',
+            'line_material' => 'Welche dieser Baureihen wird unter denen genannt, die diese Strecke bedienen?',
+            'accident_year' => 'In welchem Jahr ereignete sich dieser Unfall?',
         ],
         'reveal' => [
             'opening_year' => '„:line“ wurde im Jahr :year eröffnet.',
@@ -136,6 +141,17 @@ return [
             'longest_viaduct' => ':name ist der längste dieser Viadukte mit :length m. Die anderen: :others.',
             'attendance' => ':name ist der meistgenutzte dieser Bahnhöfe im Jahr :year, mit :count Reisenden. Die anderen: :others.',
             'first_series' => 'Die Baureihe :name ging als erste in Betrieb, im Jahr :year. Die anderen: :others.',
+            'station_opening_year' => 'Der Bahnhof „:station“ wurde am :date eröffnet.',
+            'cab_signalling' => 'Die Strecke „:line“ ist mit dem System :system ausgerüstet, seit der Inbetriebnahme des ersten Abschnitts am :date.',
+            'electrification_date' => '„:line“ wurde am :date elektrifiziert.',
+            'line_material' => 'Die Baureihe :series wird von den Quellen der Enzyklopädie unter den Fahrzeugen von „:line“ genannt. Keine Quelle verbindet die anderen vorgeschlagenen Baureihen mit dieser Strecke: :others.',
+            'accident_year' => ':accident, am :date.',
+        ],
+        'cab' => [
+            'tvm_300' => 'TVM 300',
+            'tvm_430' => 'TVM 430',
+            'etcs_l1' => 'ETCS Level 1',
+            'etcs_l2' => 'ETCS Level 2',
         ],
         'protection' => [
             'registered' => 'Eintragung',

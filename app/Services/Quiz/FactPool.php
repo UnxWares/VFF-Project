@@ -78,6 +78,7 @@ final class FactPool
             $this->has('station_heritage') ? $this->heritageYears() : [],
             $this->has('station_attendances') ? $this->attendances() : [],
             $this->firstSeries(),
+            (new DailyFactPool)->build($this->has('station_events', 'station_attendances'), $this->has('line_signalling_events'), $this->has('line_materials'), $this->has('accidents', 'accident_sources')),
         );
         usort($items, fn (array $a, array $b): int => strcmp((string) $a['id'], (string) $b['id']));
 
@@ -146,8 +147,18 @@ final class FactPool
                 if (count($list) !== 1 || $f['sections'] !== [] || ($f['sources'] ?? []) === [] || isset($conflicts[$slug.'|'.$kind])) {
                     continue;
                 }
+                $data = ['year' => (int) $f['year'], 'precision' => (string) $f['precision'], 'line' => (string) $slug];
+                // Une électrification datée au jour (toutes les sources qui la datent au jour s'accordent) donne une
+                // question sur la date entière, pas sur l'année.
+                if ($kind === 'electrification' && $f['precision'] === 'day') {
+                    $item = self::item(QuizTopic::ElectrificationDate, $slug, (string) $f['date'], (string) $f['line']['name'], '/lines/'.$slug, $f['sources'], $data + ['date' => (string) $f['date']]);
+                    $item['date'] = (string) $f['date'];
+                    $items[] = $item;
+
+                    continue;
+                }
                 $topic = $kind === 'opening' ? QuizTopic::OpeningYear : QuizTopic::ElectrificationYear;
-                $items[] = $this->item($topic, $slug, (string) $f['year'], (string) $f['line']['name'], '/lines/'.$slug, $f['sources'], ['year' => (int) $f['year'], 'precision' => (string) $f['precision'], 'line' => (string) $slug]);
+                $items[] = self::item($topic, $slug, (string) $f['year'], (string) $f['line']['name'], '/lines/'.$slug, $f['sources'], $data);
             }
         }
 
@@ -167,7 +178,7 @@ final class FactPool
             if ($year > (int) now()->year) {
                 continue;
             }
-            $items[] = $this->item(QuizTopic::Milestone, $m['key'], (string) $year, $m['key'], '/chronology', [['provider' => 'wikipedia', 'url' => $m['url']]], ['year' => $year, 'milestone' => $m['key']]);
+            $items[] = self::item(QuizTopic::Milestone, $m['key'], (string) $year, $m['key'], '/chronology', [['provider' => 'wikipedia', 'url' => $m['url']]], ['year' => $year, 'milestone' => $m['key']]);
         }
 
         return $items;
@@ -244,7 +255,7 @@ final class FactPool
                     $others[] = ['label' => (string) $o['short'], 'kind' => (string) $o['kind']];
                 }
             }
-            $items[] = $this->item(QuizTopic::Company, "{$line->slug}@{$year}", (string) $company['short'], (string) $line->name, '/lines/'.$line->slug, [['provider' => 'wikipedia', 'url' => $articles[(int) $line->id]]], [
+            $items[] = self::item(QuizTopic::Company, "{$line->slug}@{$year}", (string) $company['short'], (string) $line->name, '/lines/'.$line->slug, [['provider' => 'wikipedia', 'url' => $articles[(int) $line->id]]], [
                 'year' => $year, 'line' => (string) $line->slug, 'line_id' => (int) $line->id, 'company' => (string) $company['short'],
                 'company_kind' => (string) $company['kind'], 'from' => (int) $c['from_year'], 'to' => $c['to_year'] === null ? null : (int) $c['to_year'],
                 'others' => $others,
@@ -284,7 +295,7 @@ final class FactPool
             $sources = $r->length_source === 'bdtopo'
                 ? [['provider' => 'ign', 'url' => 'https://geoservices.ign.fr/bdtopo']]
                 : [['provider' => 'wikidata', 'url' => 'https://www.wikidata.org/wiki/'.$r->wikidata_id]];
-            $items[] = $this->item($topic, (string) $r->id, ucfirst($name), ucfirst($name), '/lines/'.$r->line_slug, $sources, ['length_m' => (int) $r->length_m, 'line' => (string) $r->line_name]);
+            $items[] = self::item($topic, (string) $r->id, ucfirst($name), ucfirst($name), '/lines/'.$r->line_slug, $sources, ['length_m' => (int) $r->length_m, 'line' => (string) $r->line_name]);
         }
 
         return $items;
@@ -308,7 +319,7 @@ final class FactPool
             if ($name === null) {
                 continue;
             }
-            $items[] = $this->item(QuizTopic::Architect, (string) $r->slug, $name, (string) $r->name, '/stations/'.$r->slug, [self::heritageSource($r)], [
+            $items[] = self::item(QuizTopic::Architect, (string) $r->slug, $name, (string) $r->name, '/stations/'.$r->slug, [self::heritageSource($r)], [
                 'city' => $r->city, 'built' => $r->built_from !== null ? (int) $r->built_from : null, 'station' => (string) $r->name,
             ]);
         }
@@ -330,7 +341,7 @@ final class FactPool
                 continue;
             }
             $year = (int) substr((string) $r->protection_date, 0, 4);
-            $items[] = $this->item(QuizTopic::HeritageYear, (string) $r->slug, (string) $year, (string) $r->name, '/stations/'.$r->slug, [self::heritageSource($r)], [
+            $items[] = self::item(QuizTopic::HeritageYear, (string) $r->slug, (string) $year, (string) $r->name, '/stations/'.$r->slug, [self::heritageSource($r)], [
                 'year' => $year, 'protection' => (string) $r->protection, 'city' => $r->city, 'station' => (string) $r->name,
             ]);
         }
@@ -412,7 +423,7 @@ final class FactPool
             if ($count[mb_strtolower(trim((string) $r->name))] > 1) {
                 continue;
             }
-            $items[] = $this->item(QuizTopic::Attendance, (string) $r->slug, (string) $r->name, (string) $r->name, '/stations/'.$r->slug, [['provider' => 'sncf', 'url' => 'https://data.sncf.com/explore/dataset/frequentation-gares-archive/']], [
+            $items[] = self::item(QuizTopic::Attendance, (string) $r->slug, (string) $r->name, (string) $r->name, '/stations/'.$r->slug, [['provider' => 'sncf', 'url' => 'https://data.sncf.com/explore/dataset/frequentation-gares-archive/']], [
                 'passengers' => (int) $r->passengers, 'year' => self::ATTENDANCE_YEAR,
             ]);
         }
@@ -446,7 +457,7 @@ final class FactPool
             $source = ($prov['source'] ?? '') === 'wikipedia' && isset($prov['revid'])
                 ? ['provider' => 'wikipedia', 'url' => 'https://fr.wikipedia.org/w/index.php?oldid='.(int) $prov['revid']]
                 : ['provider' => 'wikidata', 'url' => $r->wikidata_id !== null ? 'https://www.wikidata.org/wiki/'.$r->wikidata_id : null];
-            $items[] = $this->item(QuizTopic::FirstSeries, (string) $r->slug, (string) $r->name, (string) $r->name, '/materials/'.$r->slug, [$source], [
+            $items[] = self::item(QuizTopic::FirstSeries, (string) $r->slug, (string) $r->name, (string) $r->name, '/materials/'.$r->slug, [$source], [
                 'type' => (string) $r->type, 'from' => (int) $r->in_service_from,
             ]);
         }
@@ -462,7 +473,7 @@ final class FactPool
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    private function item(QuizTopic $topic, string $ref, string $label, string $title, ?string $url, array $sources, array $data): array
+    public static function item(QuizTopic $topic, string $ref, string $label, string $title, ?string $url, array $sources, array $data): array
     {
         $id = $topic->value.':'.$ref;
 

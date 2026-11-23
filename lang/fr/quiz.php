@@ -24,7 +24,7 @@ return [
         'materials' => 'Reconnaître le matériel',
         'materials_text' => 'Une photo de Wikimedia Commons et quatre séries du même type.',
         'facts' => 'Culture du rail',
-        'facts_text' => 'Des questions de texte sur des faits sourcés : ouverture d\'une ligne, compagnie, plus long tunnel, architecte d\'une gare, gare la plus fréquentée, première série en service. Au niveau facile, les mauvaises réponses sont éloignées et les questions les plus pointues sont écartées.',
+        'facts_text' => 'Des questions de texte sur des faits sourcés : ouverture d\'une ligne, compagnie, plus long tunnel, architecte et ouverture d\'une gare, système de signalisation d\'une LGV, électrification, matériel d\'une ligne, accidents anciens, gare la plus fréquentée, première série en service. Au niveau facile, les mauvaises réponses sont éloignées et les questions les plus pointues sont écartées.',
         'unavailable' => 'Pas encore assez de données vérifiées pour ce jeu.',
     ],
     'levels' => [
@@ -123,6 +123,11 @@ return [
             'heritage_year' => 'En quelle année cette gare, ou une partie de ses bâtiments, a-t-elle été protégée au titre des monuments historiques ?',
             'attendance' => 'Laquelle de ces gares a compté le plus de voyageurs en :year ?',
             'first_series' => 'Laquelle de ces séries (:type) est entrée en service la première ?',
+            'station_opening_year' => 'En quelle année cette gare a-t-elle ouvert ?',
+            'cab_signalling' => 'Quel système de signalisation en cabine équipe cette ligne à grande vitesse ?',
+            'electrification_date' => 'À quelle date cette ligne a-t-elle été électrifiée ?',
+            'line_material' => 'Laquelle de ces séries de matériel est citée parmi celles qui assurent cette ligne ?',
+            'accident_year' => 'En quelle année cet accident a-t-il eu lieu ?',
         ],
         'reveal' => [
             'opening_year' => '« :line » a ouvert en :year.',
@@ -136,6 +141,17 @@ return [
             'longest_viaduct' => ':name est le plus long de ces viaducs, avec :length m. Les autres : :others.',
             'attendance' => ':name est la plus fréquentée de ces gares en :year, avec :count voyageurs. Les autres : :others.',
             'first_series' => 'La série :name est la première entrée en service, en :year. Les autres : :others.',
+            'station_opening_year' => 'La gare « :station » a ouvert le :date.',
+            'cab_signalling' => 'La ligne « :line » est équipée du système :system, depuis la mise en service de son premier tronçon, le :date.',
+            'electrification_date' => '« :line » a été électrifiée le :date.',
+            'line_material' => 'La série :series est citée parmi le matériel de « :line » par les sources de l\'encyclopédie. Aucune source ne rattache à cette ligne les autres séries proposées : :others.',
+            'accident_year' => ':accident, le :date.',
+        ],
+        'cab' => [
+            'tvm_300' => 'TVM 300',
+            'tvm_430' => 'TVM 430',
+            'etcs_l1' => 'ETCS niveau 1',
+            'etcs_l2' => 'ETCS niveau 2',
         ],
         'protection' => [
             'registered' => 'inscription',

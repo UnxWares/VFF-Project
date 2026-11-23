@@ -12,6 +12,7 @@ import {
     saveBest,
     scaleBar,
     scoreOf,
+    subjectLang,
     tracePath,
     traceViewBox,
 } from '$lib/quiz.js';
@@ -202,5 +203,18 @@ describe('jeu « Culture du rail »', () => {
         expect(quizHref('facts', 'hard', 'abcd1234', 'deadbeef')).toBe(
             '/quiz?game=facts&level=hard&seed=abcd1234&v=deadbeef',
         );
+    });
+
+    it('écrit dans la langue de la page le sujet des jalons et des accidents, en français les noms propres', () => {
+        expect(subjectLang('milestone', 'en')).toBe('en');
+        expect(subjectLang('accident_year', 'de')).toBe('de');
+        for (const topic of [
+            'station_opening_year',
+            'cab_signalling',
+            'electrification_date',
+            'line_material',
+        ]) {
+            expect(subjectLang(topic, 'en')).toBe('fr');
+        }
     });
 });
