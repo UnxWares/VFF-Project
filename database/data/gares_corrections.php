@@ -9332,4 +9332,264 @@ return [
         'reason' => 'article de la ligne « Ligne de Châteaubriant à Rennes » (oldid 234893924) : ouverte à l\'exploitation le 28 décembre 1881 ; l\'article de la gare (oldid 238686402) dit la gare inaugurée dès la mise en place de la ligne en 1881. Précise l\'année 1881 de Wikidata au jour.',
     ],
 
+    // ── 48. Ouvertures « à décider » des audits de gares, tranchées avec la règle stricte (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-a-decider.md) : une date qui change l'existant repose sur la chronologie détaillée de l'article
+    // de la ligne ou sur deux sources concordantes, une infobox seule ne contredit pas la section de la ligne, une inauguration n'est pas une
+    // ouverture au public, une halte créée après la ligne a sa propre date sourcée. Les gares de Pontoise à Gisors (mise en service de la
+    // section le 4 octobre 1868), du Theil et de Champagné (section de Chartres au Mans, 1 juin 1854), Logelbach, Breitenbach et Muhlbach
+    // (sections de la ligne de Colmar à Metzeral), Rang-du-Fliers, Pontarlier, Avesnes, Alès, La Grand-Combe et Longueil-Sainte-Marie reçoivent
+    // la date de leur section, Cap-d'Ail et Èze une date qui n'est plus antérieure à leur ligne.
+
+    // Boissy-l'Aillerie (id 15978)
+    [
+        'station' => ['name' => 'Boissy-l\'Aillerie', 'uic' => '87381152'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Montgeroult-Courcelles (id 15979)
+    [
+        'station' => ['name' => 'Montgeroult-Courcelles', 'uic' => '87381160'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Santeuil-Le Perchay (id 15981)
+    [
+        'station' => ['name' => 'Santeuil-Le Perchay', 'uic' => '87381186'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Chars (id 15982)
+    [
+        'station' => ['name' => 'Chars', 'uic' => '87381194'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Lavilletertre (id 15983)
+    [
+        'station' => ['name' => 'Lavilletertre', 'uic' => '87381202'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Liancourt-St-Pierre (id 15984)
+    [
+        'station' => ['name' => 'Liancourt-St-Pierre', 'uic' => '87381210'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Chaumont-en-Vexin (id 15985)
+    [
+        'station' => ['name' => 'Chaumont-en-Vexin', 'uic' => '87381228'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Trie-Château (id 15986)
+    [
+        'station' => ['name' => 'Trie-Château', 'uic' => '87381236'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Denis à Dieppe', 239854982),
+        'quote' => 'La ligne atteint Gisors le 4 octobre 1868 dans les chemins de fer.',
+        'reason' => 'article de la ligne « Ligne de Saint-Denis à Dieppe » (oldid 239854982) : la section de Pontoise à Gisors, où se trouve la gare, est mise en service le 4 octobre 1868 (Gisors, article de la gare oldid 232268107 : même jour) ; le 10 octobre 1868 de la base vient d\'OpenHistoricalMap, sans autre source. Le même article dit une halte prévue à Trie-Château pour les voyageurs dans le récit de cette mise en service. Remplace le 10 octobre 1868. Confiance moyenne.',
+    ],
+
+    // Le Theil-La Rouge (id 16175)
+    [
+        'station' => ['name' => 'Le Theil-La Rouge', 'uic' => '87396333'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Mars-la-Brière', 240063538),
+        'quote' => 'lorsqu\'elle ouvre à l\'exploitation la section de Chartres au Mans de sa ligne de Paris-Montparnasse à Brest',
+        'reason' => 'article de la gare « Gare de Saint-Mars-la-Brière » (oldid 240063538) : la section de Chartres au Mans est ouverte le 1 juin 1854 ; les articles « Gare de La Ferté-Bernard » (oldid 230876421), « Gare de Sceaux - Boëssé » (oldid 223032459) et « Gare du Mans » (oldid 238252707) donnent le même jour pour les gares entre Nogent-le-Rotrou et Le Mans, et « Histoire de Nogent-le-Rotrou » (oldid 239795400) : Nogent reliée au Mans le 1 juin 1854. Le Theil-La Rouge est sur cette section. L\'article de la gare dit « mai 1857 » (recopie de l\'ouverture de la ligne jusqu\'à Rennes). Précise l\'année 1854 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Champagné (id 16169)
+    [
+        'station' => ['name' => 'Champagné', 'uic' => '87396275'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Mars-la-Brière', 240063538),
+        'quote' => 'lorsqu\'elle ouvre à l\'exploitation la section de Chartres au Mans de sa ligne de Paris-Montparnasse à Brest',
+        'reason' => 'article de la gare « Gare de Saint-Mars-la-Brière » (oldid 240063538) : la section de Chartres au Mans est ouverte le 1 juin 1854 ; les articles « Gare de La Ferté-Bernard » (oldid 230876421), « Gare de Sceaux - Boëssé » (oldid 223032459) et « Gare du Mans » (oldid 238252707) donnent le même jour pour les gares entre Nogent-le-Rotrou et Le Mans, et « Histoire de Nogent-le-Rotrou » (oldid 239795400) : Nogent reliée au Mans le 1 juin 1854. Champagné est sur cette section. L\'article de la gare dit « mai 1857 » (recopie de l\'ouverture de la ligne jusqu\'à Rennes). Précise l\'année 1854 de Wikidata au jour. Confiance moyenne.',
+    ],
+
+    // Logelbach (id 15205)
+    [
+        'station' => ['name' => 'Logelbach', 'uic' => '87182345'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-12-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La section de Colmar à Munster est ouverte le 3 décembre 1868 par la Compagnie des chemins de fer de l\'Est.',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster, où se trouve Logelbach, est ouverte le 3 décembre 1868 ; l\'article de la gare (oldid 241597894) dit 1867 « lors de l\'ouverture de la ligne », ce qui ne peut pas être antérieur à la section. Remplace l\'année 1867 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Breitenbach (id 15224)
+    [
+        'station' => ['name' => 'Breitenbach', 'uic' => '87182659'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1893-11-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La ligne est prolongée jusqu\'à Metzeral par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL) le 1er novembre 1893',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster est ouverte le 3 décembre 1868, la ligne n\'est prolongée au-delà de Munster jusqu\'à Metzeral que le 1er novembre 1893 ; Breitenbach est après Munster (l\'article de la gare, oldid 241597867, la place entre Luttenbach-près-Munster et Metzeral et dit 1868 « lors de l\'ouverture de la ligne de Colmar à Munster »). Remplace l\'année 1868 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Muhlbach-sur-Munster (id 15231)
+    [
+        'station' => ['name' => 'Muhlbach-sur-Munster', 'uic' => '87182733'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1893-11-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La ligne est prolongée jusqu\'à Metzeral par la Direction générale impériale des chemins de fer d\'Alsace-Lorraine (EL) le 1er novembre 1893',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : la section de Colmar à Munster est ouverte le 3 décembre 1868, la ligne n\'est prolongée au-delà de Munster jusqu\'à Metzeral que le 1er novembre 1893 ; Muhlbach-sur-Munster est après Munster (l\'article de la gare, oldid 241597911, la place entre Luttenbach-près-Munster et Metzeral et dit 1868 « lors de l\'ouverture de la ligne de Colmar à Munster »). Remplace l\'année 1868 de Wikidata et de l\'article de la gare. Confiance moyenne.',
+    ],
+
+    // Rang-du-Fliers-Verton (id 15821)
+    [
+        'station' => ['name' => 'Rang-du-Fliers-Verton', 'uic' => '87317057'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Longueau à Boulogne-Ville', 235223334),
+        'quote' => '21 décembre 1847 dans les chemins de fer : ouverture d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la ligne « Ligne de Longueau à Boulogne-Ville » (oldid 235223334) : la section d\'Abbeville à Neufchâtel, où se trouve Rang-du-Fliers, est ouverte le 21 décembre 1847 ; la base portait le 11 novembre 1847 (OpenHistoricalMap), sans source. Remplace le 11 novembre 1847.',
+    ],
+
+    // Cap-d'Ail (id 18050)
+    [
+        'station' => ['name' => 'Cap-d\'Ail', 'uic' => '87756395'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cap-d\'Ail', 228568248),
+        'quote' => 'La gare est construite en 1881 pour la Compagnie Paris-Lyon-Méditerranée',
+        'reason' => 'article de la gare « Gare de Cap-d\'Ail » (oldid 228568248) : section Histoire : la gare est construite en 1881 pour le PLM ; la section de Nice à Monaco de la ligne est ouverte le 9 octobre 1868 (article de la ligne, oldid 240736526), le 1866 de Wikidata est donc antérieur à la ligne elle-même. Remplace l\'année 1866 de Wikidata. Confiance moyenne (« construite » et non « ouverte »).',
+    ],
+
+    // Èze (id 18049)
+    [
+        'station' => ['name' => 'Èze', 'uic' => '87756387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-10-09',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Marseille-Saint-Charles à Vintimille (frontière)', 240736526),
+        'quote' => 'Le 9 octobre 1868, ouverture de la ligne entre Nice et Monaco.',
+        'reason' => 'article de la ligne « Ligne de Marseille-Saint-Charles à Vintimille (frontière) » (oldid 240736526) : la section de Nice à Monaco, où se trouve Èze-sur-Mer, est ouverte le 9 octobre 1868 ; l\'article de la gare (oldid 228568278) dit « mise en service en 1866 », antérieur à la ligne, comme le 1866 de Wikidata (construction vraisemblable des ouvrages). Remplace l\'année 1866 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Pontarlier (id 17573)
+    [
+        'station' => ['name' => 'Pontarlier', 'uic' => '87715003'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1860-07-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Frasne à Verrières-de-Joux (frontière)', 235342104),
+        'quote' => '24 juillet 1860, mise en service de Pontarlier aux Verrières et à la frontière suisse',
+        'reason' => 'article de la ligne « Ligne de Frasne à Verrières-de-Joux (frontière) » (oldid 235342104) : chronologie détaillée, Pontarlier aux Verrières mise en service le 24 juillet 1860 (référence Palau citée) ; l\'infobox de la gare donne le 25 et OpenStreetMap le 17 : une infobox seule ne contredit pas la chronologie de la ligne. Remplace le 17 juillet 1860 d\'OpenStreetMap.',
+    ],
+
+    // Avesnes (id 15694)
+    [
+        'station' => ['name' => 'Avesnes', 'uic' => '87295733'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-10-30',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Fives à Hirson', 240286509),
+        'quote' => 'd\'Aulnoye à Hirson, le 30 octobre 1869',
+        'reason' => 'article de la ligne « Ligne de Fives à Hirson » (oldid 240286509) : chronologie des ouvertures, d\'Aulnoye à Hirson le 30 octobre 1869 (Avesnes-sur-Helpe est sur cette section, entre Aulnoye-Aymeries et Fourmies), de Valenciennes à Aulnoye le 1 septembre 1872 ; l\'article de la gare dit « ouverte en 1872 » pour la ligne de Lille à Thionville (autre section). Remplace l\'année 1872 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Alès (id 18179)
+    [
+        'station' => ['name' => 'Alès', 'uic' => '87775288'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-08-19',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => '19 août 1840 dans les chemins de fer : Alès – Nîmes',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : chronologie, Alès - Nîmes le 19 août 1840 ; l\'article « Gare de Nîmes » (oldid 239952199) dit la ligne d\'Alais à Beaucaire ouverte en totalité le 19 août 1840 ; l\'article de la gare d\'Alès (oldid 238810237) et Wikidata disent 1840. Précise l\'année 1840 de Wikidata au jour.',
+    ],
+
+    // Grand'Combe-La Pise (id 18178)
+    [
+        'station' => ['name' => 'Grand\'Combe-La Pise', 'uic' => '87775254'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-01-01',
+        'precision' => 'month',
+        'source_url' => $wp('Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 240237870),
+        'quote' => 'janvier 1841 dans les chemins de fer : Alès – La Levade',
+        'reason' => 'article de la ligne « Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac » (oldid 240237870) : chronologie, Alès - La Levade (La Grand-Combe) en janvier 1841, et « dès 1841 » dans l\'introduction ; le texte de l\'article de la gare dit 1841, l\'infobox et Wikidata 1840 (l\'année de la section Alès - Nîmes, qui ne dessert pas La Grand-Combe). Remplace l\'année 1840 de Wikidata. Confiance moyenne.',
+    ],
+
+    // Longueil-Ste-Marie (id 15537)
+    [
+        'station' => ['name' => 'Longueil-Ste-Marie', 'uic' => '87276303'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-10-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Creil à Jeumont', 236310314),
+        'quote' => 'Le 20 octobre 1847, de Creil à Compiègne via Pont-Sainte-Maxence',
+        'reason' => 'article de la ligne « Ligne de Creil à Jeumont » (oldid 236310314) : chronologie des mises en service, de Creil à Compiègne via Pont-Sainte-Maxence le 20 octobre 1847 ; l\'article de la gare (oldid 241485293) dit que la gare s\'appelait d\'abord Verberie jusqu\'à l\'ouverture de la ligne d\'Ormoy-Villers à Boves en 1882 : elle est donc plus ancienne que cette ligne, 1882 de Wikidata étant la date de cette ligne. Remplace l\'année 1882 de Wikidata. Confiance moyenne.',
+    ],
+
 ];
