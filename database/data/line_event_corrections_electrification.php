@@ -59,4 +59,21 @@ return [
         'quote' => 'la ligne est électrifiée en 25 kV 50 Hz sur une dizaine de kilomètres, entre Valence et Saint-Marcel-lès-Valence (peu avant la gare de Valence TGV), avec une section de séparation entre 25000 volts alternatif et 1500 V continu au PK 2.2',
         'reason' => '25 kV 50 Hz de la séparation du PK 2,2 à Saint-Marcel-lès-Valence ; « Valence » était lu comme la gare de Valence TGV (731 m seulement)',
     ],
+
+    // 366000 Mantes - Cherbourg. L'article ne dit pas que Bernay - Lisieux est électrifié en 1989 : la ligne de la
+    // chronologie annonce « début des travaux préparatoires à l'électrification » (suppression de passages à
+    // niveau, rectification de tracés), et le corps de l'article précise que les travaux d'électrification
+    // « seront engagés » à partir de 1989. La mise sous tension est de 1996 (27 mars de Bueil à Cherbourg,
+    // 21 mai de Mantes-la-Jolie à Bueil, mise en service le 1er juin 1996 : « entièrement électrifiée depuis le
+    // 1 juin 1996 »). L'événement de 1996 de l'import est donc juste (jour) ; seul celui de 1989 est faux.
+    // Il bornait à tort le matériel électrique de la fiche de ligne à 1989 (ElectrificationBound).
+    [
+        'line' => '366000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'electrification', 'date' => '1989-01-01', 'from' => 'Bernay'],
+        'label' => 'Début des travaux préparatoires à l\'électrification de Bernay à Lisieux (1989)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Mantes-la-Jolie_%C3%A0_Cherbourg&oldid=241344631',
+        'quote' => 'début des travaux préparatoires à l\'électrification de la ligne (suppression des passages à niveau, rectification de certains tracés de Bernay à Lisieux)',
+        'reason' => 'travaux préparatoires de 1989, pas une mise sous tension ; l\'électrification de la ligne est mise en service le 1er juin 1996',
+    ],
 ];
