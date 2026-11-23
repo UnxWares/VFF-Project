@@ -4208,4 +4208,114 @@ return [
         'quote' => 'La gare du Blanc-Mesnil n\'est mise en service que début juin 1980',
         'reason' => 'article de la gare (oldid 233856627, infobox : 1980). Précise l\'année 1980 de Wikidata au mois.',
     ],
+
+    // ── 38. Fermetures au service des gares fermées sur une ligne encore ouverte, relues contre l'article (audit-fermetures,
+    // 23/11/2026, rapport storage/app/reports/agents/aprem-2111/audit-fermetures.md). La date de fermeture de ces gares était déduite d'un
+    // événement de la ligne (déclassement, fin du fret, dépose de la voie, fin d'une autre antenne) ou d'un tracé, sans rapport avec
+    // l'arrêt de la gare elle-même.
+
+    // Dommartin-Lissieu (ancienne gare, Rhône) : la gare a été déplacée de quelques centaines de mètres vers le sud en 2012 ; la nouvelle gare
+    // (fiche 17656) est desservie par les TER. La fermeture de 1998, déduite d'un tracé, ne repose sur rien.
+    [
+        'station' => ['name' => 'Dommartin-Lissieu', 'near' => [4.73223, 45.84781, 0.2]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '2012-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Dommartin - Lissieu', 241156143),
+        'quote' => 'En 2012, la gare a été déplacée de quelques centaines de mètres au sud, toujours sur la commune de Dommartin',
+        'reason' => 'ancienne gare remplacée en 2012 par la gare actuelle, quelques centaines de mètres plus au sud (fiche 17656, desservie par les TER) ; la date 1998 était déduite d\'un tracé, jour de 2012 non trouvé',
+    ],
+    // Bercy-Ceinture : la gare de la ligne PLM ferme le 05/10/1942, jour de l'ouverture du prolongement de la ligne 8 du métro à
+    // Charenton - Écoles. La date de 1993 est la fin de la Petite Ceinture, sans rapport avec cette gare.
+    [
+        'station' => ['name' => 'Bercy-Ceinture', 'wikidata' => 'Q21426977'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1942-10-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Bercy-Ceinture', 235030745),
+        'quote' => 'La gare reste en activité jusqu\'à sa fermeture le 5 octobre 1942 à la suite de l\'ouverture le même jour du prolongement de la ligne 8 du métro de Paris',
+        'reason' => 'article de la gare : fermeture le 05/10/1942 (prolongement du métro à Charenton - Écoles) ; la date 1993 était celle de la fin de la Petite Ceinture, déduite de la ligne',
+    ],
+    // Fresnoy-Morangles : station du chemin de fer de Hermes à Beaumont fermée définitivement le 18/12/1935, treize ans avant la fin
+    // de l'exploitation de la ligne (1948-1949) et vingt-quatre avant son déclassement (01/01/1959, date déduite jusque-là).
+    [
+        'station' => ['name' => 'Fresnoy-Morangles', 'near' => [2.28652, 49.20626, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1935-12-18',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hermes à Beaumont', 239087525),
+        'quote' => 'fermeture définitive de la station de Fresnoy-Morangles le 18 décembre 1935',
+        'reason' => 'article de la ligne : la station est fermée définitivement le 18/12/1935, bien avant la fin de l\'exploitation (1948-1949) ; la date 1959 était le déclassement de la ligne',
+    ],
+    // Gavarry : gare de l'antenne de La Pauline-Hyères aux Salins-d'Hyères, fermée officiellement au service des voyageurs le 24/05/1940.
+    // La date de 2010 déduite de la ligne n'est pas celle des voyageurs.
+    [
+        'station' => ['name' => 'Gavarry', 'near' => [6.07595, 43.12989, 0.3]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-05-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Pauline-Hyères aux Salins-d\'Hyères', 235223327),
+        'quote' => 'La fermeture du service voyageurs, de la Pauline-Hyères aux Salins-d\'Hyères, intervient officiellement le 24 mai 1940.',
+        'reason' => 'article de la ligne : fermeture officielle du service voyageurs de la Pauline-Hyères aux Salins-d\'Hyères le 24/05/1940 ; la date de 2010 déduite de la ligne est celle d\'un autre service',
+    ],
+    // Romanswiller : la desserte de marchandises (un aller-retour quotidien depuis Molsheim) dure jusqu'en 1988, dernière desserte de la
+    // gare (voyageurs supprimés en 1969). Le 25/02/1993 de la fiche est le déclassement de Molsheim à Romanswiller.
+    [
+        'station' => ['name' => 'Romanswiller', 'wikidata' => 'Q125552008'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1988-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Romanswiller', 238409253),
+        'quote' => 'Le trafic de marchandises sur la ligne subsistera jusqu’en 1988 sous la forme d\'une desserte quotidienne depuis Molsheim',
+        'reason' => 'dernière desserte (le fret) en 1988, voyageurs supprimés en 1969 ; le 25/02/1993 est le déclassement de Molsheim à Romanswiller (article de la ligne de Sélestat à Saverne), pas la fin du service',
+    ],
+    // Gattières, Vence, Loup, Peymeinade (Central-Var) : l'armée allemande détruit les viaducs de Pascaressa, du Loup et de la Siagne le
+    // 24/08/1944 ; dès 1945 la ligne est limitée à Meyrargues - Tanneron et l'est de la Siagne n'est jamais reconstruit. La date du
+    // 02/01/1950 est la fermeture officielle du reste de la ligne (Montauroux, Callian, Fayence, Claviers : confirmée). Jour de l'arrêt
+    // du service non trouvé : année 1944.
+    [
+        'station' => ['name' => 'Gattières', 'near' => [7.18033, 43.75533, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1944-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'le 24 août 1944, l’armée allemande détruisit les trois principaux viaducs situés dans les Alpes-Maritimes',
+        'reason' => 'arrêt du service : viaducs détruits le 24/08/1944 et jamais reconstruits, la ligne est limitée à Meyrargues - Tanneron dès 1945 (fermeture officielle du reste le 02/01/1950) ; la date 1950 déduite de la ligne est la fermeture de la section ouest',
+    ],
+    [
+        'station' => ['name' => 'Vence', 'near' => [7.09677, 43.72511, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1944-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'Dès 1945, la ligne Central-Var est alors limitée à la section Meyrargues - Tanneron',
+        'reason' => 'arrêt du service : viaducs détruits le 24/08/1944 et jamais reconstruits, la section à l\'est de la Siagne ne rouvre pas (fermeture officielle du reste le 02/01/1950)',
+    ],
+    [
+        'station' => ['name' => 'Loup', 'near' => [6.98531, 43.71373, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1944-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'Dès 1945, la ligne Central-Var est alors limitée à la section Meyrargues - Tanneron',
+        'reason' => 'arrêt du service : viaduc du Loup détruit le 24/08/1944 et jamais reconstruit (fermeture officielle du reste de la ligne le 02/01/1950)',
+    ],
+    [
+        'station' => ['name' => 'Peymeinade', 'near' => [6.87547, 43.63909, 0.3]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1944-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'Dès 1945, la ligne Central-Var est alors limitée à la section Meyrargues - Tanneron',
+        'reason' => 'arrêt du service : viaduc de la Siagne détruit le 24/08/1944 et jamais reconstruit, la section est de Tanneron ne rouvre pas (fermeture officielle du reste le 02/01/1950)',
+    ],
 ];
