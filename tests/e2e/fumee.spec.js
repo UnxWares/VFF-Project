@@ -58,8 +58,9 @@ const PAGES = [
         titre: { fr: /Connexion - VFF/, en: /VFF/ },
         cle: (p) => p.locator('#email'),
     },
-    // Pages ajoutées la nuit du 22 au 23/11/2026 : adresses stables (une commune, un département,
-    // une compagnie). Le titre exact est posé côté client, d'où la forme générique.
+    // Pages ajoutées la nuit du 22 au 23/11/2026, sur les entités du jeu minimal (E2eSeeder : commune
+    // et département de la gare d'Andelot, compagnie calculée). Le titre exact est posé côté client,
+    // d'où la forme générique.
     { nom: 'recherche', chemin: '/search?q=limoges', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     { nom: 'chronologie', chemin: '/chronology', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     { nom: 'ce jour-là', chemin: '/on-this-day', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
@@ -72,13 +73,13 @@ const PAGES = [
     { nom: 'glossaire', chemin: '/glossary', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     {
         nom: 'fiche commune',
-        chemin: '/communes/87085-limoges',
-        titre: { fr: /Limoges - VFF/, en: /Limoges - VFF/ },
+        chemin: '/communes/39009-andelot-en-montagne',
+        titre: { fr: /Andelot-en-Montagne - VFF/, en: /Andelot-en-Montagne - VFF/ },
         cle: h1,
     },
     {
         nom: 'fiche département',
-        chemin: '/departments/87-haute-vienne',
+        chemin: '/departments/39-jura',
         titre: { fr: /VFF/, en: /VFF/ },
         cle: h1,
     },

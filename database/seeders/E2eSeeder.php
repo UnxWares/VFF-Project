@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Era;
+use App\Services\Companies\CompanyFigures;
+use App\Services\Departments\DepartmentFigures;
 use App\Support\DatabaseGuard;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,9 @@ use Illuminate\Support\Facades\DB;
  * (`1890-09-16-andelot-en-montagne`) rattaché à la ligne et à la gare, et une seconde ligne pour que la
  * liste ne soit pas réduite à une fiche. Ce sont des faits publics (noms, communes, dates) : aucune donnée
  * personnelle, aucun compte. L'article du journal vient des fichiers versionnés `resources/content/journal`.
+ * La commune d'Andelot-en-Montagne (39009, contour simplifié autour de la gare) porte la fiche de commune ; les
+ * fiches du département 39 et des compagnies sont calculées et rangées dans le cache, comme le font
+ * vff:compute-department-figures et vff:compute-company-figures, pour que leurs pages répondent.
  *
  * Idempotent : relancer le seeder ne duplique rien (clés naturelles : slug, ère + ligne + gare).
  * Garde-fou : refuse toute base dont le nom ne finit pas par `_test` ou `_test_<n>` (processus d'une suite en
@@ -27,6 +32,10 @@ class E2eSeeder extends Seeder
     public const string STATION = 'andelot';
 
     public const string ACCIDENT = '1890-09-16-andelot-en-montagne';
+
+    public const string COMMUNE = '39009';
+
+    public const string DEPARTMENT = '39';
 
     /** Première ère où la ligne figure (ouverture de la ligne en 1862 à 1883). */
     private const int FIRST_ERA = 1870;
@@ -69,7 +78,33 @@ class E2eSeeder extends Seeder
             $this->segment($otherId, Era::query()->where('year', 2030)->value('id'), 'LINESTRING(2.3730 48.8443, 4.8357 45.7606, 5.3800 43.3030)');
 
             $this->accident($stationIds[self::STATION], $lineId);
+            $this->commune();
         });
+
+        // Fiches lues dans le cache seulement (pages /departments/39-jura et /companies/…).
+        app(DepartmentFigures::class)->refresh([self::DEPARTMENT]);
+        app(CompanyFigures::class)->refresh();
+    }
+
+    /** Commune d'Andelot-en-Montagne : contour carré simplifié qui contient la gare `andelot`. */
+    private function commune(): void
+    {
+        $now = now();
+        DB::table('communes')->updateOrInsert(['code_insee' => self::COMMUNE, 'type' => 'commune-actuelle'], [
+            'nom' => 'Andelot-en-Montagne',
+            'nom_norm' => 'andelot en montagne',
+            'departement' => self::DEPARTMENT,
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(5.92, 46.86), 4326)'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('commune_contours')->updateOrInsert(['code_insee' => self::COMMUNE], [
+            'nom' => 'Andelot-en-Montagne',
+            'departement' => self::DEPARTMENT,
+            'geom' => DB::raw("ST_GeomFromText('MULTIPOLYGON(((5.89 46.84, 5.95 46.84, 5.95 46.88, 5.89 46.88, 5.89 46.84)))', 4326)"),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
     }
 
     private function line(string $slug, string $name, string $code, string $type, string $network): int
