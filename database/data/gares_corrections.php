@@ -12872,4 +12872,53 @@ return [
         'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Petit-Cœur-La Léchère-les-Bains » (oldid 238060740) à 23 m, Wikidata Q111598627 à 23 m, OSM w190312564 à 0 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 105 m ; à signaler à la source : liste SNCF UIC 87741702 (point géocodé) à 105 m',
     ],
 
+    // ── 53. Fiches mêlées à une station de tramway (gares-melees, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/gares-melees.md) ──
+    // Éléments Wikidata de station de tramway rattachés à une gare ferroviaire (dates d'ouverture du tramway, positions) : l'élément est
+    // détaché de la gare (unlink, lu au rattachement par vff:consolidate-stations) ; l'UIC, les sources SNCF et les médias de la gare restent.
+
+    // Meyzieu : Q28495871 (frwiki « Gare de Meyzieu », image « La Soie tram 3.jpg », UIC 8779235 différent de 87729350, point à 275 m de la gare du
+    // chemin de fer de l'Est de Lyon) est la station du tramway T3, ouverte le 05/12/2006 ; la fiche de la gare CFEL (fermée aux voyageurs le
+    // 31/12/1947) prenait cette date comme ouverture (ouverture 2006 après fermeture 1947).
+    [
+        'station' => ['name' => 'Meyzieu', 'uic' => '87729350'],
+        'action' => 'unlink',
+        'source' => 'wikidata',
+        'ref' => 'Q28495871',
+        'source_url' => 'https://www.wikidata.org/wiki/Q28495871',
+        'quote' => 'Meyzieu, gare ferroviaire française, ouverte le 5 décembre 2006, image La Soie tram 3.jpg',
+        'reason' => 'Q28495871 est la station du tramway T3 de Meyzieu (ouverture 05/12/2006, UIC 8779235, point à 275 m de la gare du CFEL), pas la gare ferroviaire de l\'UIC 87729350',
+    ],
+    // L'élément détaché devient sa propre fiche : station de tramway, hors du réseau ferré.
+    [
+        'station' => ['name' => 'Meyzieu', 'wikidata' => 'Q28495871'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://www.wikidata.org/wiki/Q28495871',
+        'quote' => 'image La Soie tram 3.jpg, ouverture le 5 décembre 2006',
+        'reason' => 'station de tramway (T3), hors du réseau ferré ; fiche née du détachement de l\'élément de la gare ferroviaire de Meyzieu',
+    ],
+
+    // Les Côteaux (UIC 87382515) : l'élément Q21856015 décrit à la fois l'ancienne gare (fermée en 1993) et la station du tramway T2 au même
+    // endroit ; son ouverture du 02/07/1997 est celle du tramway T2, après la fermeture de la gare du 21/05/1993. Même élément et même site : seule
+    // la date est neutralisée (le lien, l'UIC et les médias restent).
+    [
+        'station' => ['name' => 'Les Côteaux', 'uic' => '87382515'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1997-07-02'],
+        'source_url' => 'https://www.wikidata.org/wiki/Q21856015',
+        'quote' => 'ancienne gare française, station de la ligne T2 du tramway d\'Île-de-France',
+        'reason' => '02/07/1997 est l\'ouverture de la station du tramway T2, postérieure à la fermeture de la gare ferroviaire (21/05/1993)',
+    ],
+
+    // Porte de Vincennes : fiche née du seul élément Q76233926 (« station du tramway d\'Île-de-France », lignes T3a et T3b), sans UIC ni autre
+    // source ; ses dates 1854 et 1934 étaient déduites d'une ligne ferroviaire voisine.
+    [
+        'station' => ['name' => 'Porte de Vincennes', 'wikidata' => 'Q76233926'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => 'https://www.wikidata.org/wiki/Q76233926',
+        'quote' => 'station du tramway d\'Île-de-France',
+        'reason' => 'station des lignes de tramway T3a et T3b, seule source de la fiche, hors du réseau ferré',
+    ],
+
 ];
