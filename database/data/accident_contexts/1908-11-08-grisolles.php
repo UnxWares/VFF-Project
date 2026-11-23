@@ -45,7 +45,7 @@ return [
             'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1908&oldid=233618338#Novembre',
             'access' => 'open',
             'consulted_on' => '2026-11-21',
-            'note' => 'Source de l\'import. Entrée sourcée par Le Petit Journal du 9 novembre 1908 ; elle décrit un accident près de Grisolles, pas à Sète.',
+            'note' => 'Source de l\'import. Entrée sourcée par Le Petit Journal du 9 novembre 1908 ; elle décrit un accident près de Grisolles, pas à Sète. Texte de la révision 233618338 relu le 23/11/2026 : « entre Toulouse et Montauban, près de la gare de Grisolles, un rail se rompt au passage du train Sète-Bordeaux ». Sète n\'y est que l\'origine du train ; la lecture automatique de la liste (lieu « Sète ») est une erreur d\'analyse de l\'import, non un désaccord de la source.',
         ],
         'gallica-petit-journal-1908-11-09' => [
             'provider' => 'gallica',

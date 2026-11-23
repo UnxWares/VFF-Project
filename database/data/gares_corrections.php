@@ -3572,4 +3572,22 @@ return [
         'quote' => 'La ligne et l\'embranchement, tous deux à voie unique, sont mis en service le 25 octobre 1890.',
         'reason' => 'gare de la section Apt - Saint-Maime - Dauphin (déclassement d\'Apt à Saignon : PK 32,400 à 37,353), mise en service le 25/10/1890 ; la date de 1877 est celle de Cavaillon - Apt',
     ],
+
+    // ── 34. Fermetures au service des voyageurs relevées avant l'application des ères de gares (corrections-matin,
+    // 23/11/2026, rapport storage/app/reports/agents/aprem-2111/corrections-matin.md).
+
+    // Auger-Saint-Vincent : le 15/05/1939, la SNCF supprime les trains de voyageurs de Senlis à Crépy-en-Valois, mais le service
+    // reprend fin septembre 1939 (puis cesse de nouveau en juillet 1940 et revient après la guerre : trois allers-retours, autorails
+    // légers depuis le 15/11/1946). La suppression définitive est celle du service d'été 1949, que l'article de la commune de la gare
+    // confirme (« fermée définitivement au service voyageurs en été 1949 »). Jour exact du service d'été non trouvé : année 1949.
+    [
+        'station' => ['name' => 'Auger-St-Vincent', 'uic' => '87272187'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1949-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Chantilly - Gouvieux à Crépy-en-Valois', 237300162),
+        'quote' => 'l\'entrée en vigueur du service d\'été 1949, qui voit la suppression définitive des trains de voyageurs entre Senlis et Crépy-en-Valois',
+        'reason' => 'le 15/05/1939 est une suppression temporaire (service repris fin septembre 1939, puis de nouveau supprimé en juillet 1940 et rétabli après la guerre) ; la fermeture définitive aux voyageurs date du service d\'été 1949 (article de la ligne ; article de la commune, oldid 241056468 : « fermée définitivement au service voyageurs en été 1949 »), jour non trouvé',
+    ],
 ];
