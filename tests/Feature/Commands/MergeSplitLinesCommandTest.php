@@ -46,6 +46,12 @@ class MergeSplitLinesCommandTest extends TestCase
         ]);
     }
 
+    /** Ligne créée par vff:link-traces depuis archeoferroviaire (reconnue par alt_names.source, pas par son slug). */
+    private function archeoLine(string $name, string $slug): Line
+    {
+        return $this->line($name, null, ['slug' => $slug, 'alt_names' => ['created_by' => 'vff:link-traces', 'source' => 'archeoferroviaire']]);
+    }
+
     /** Ligne créée par vff:link-traces depuis un tracé OHM (géométrie de travail lm_c). */
     private function created(string $name, string $wkt, array $attributes = []): Line
     {
@@ -158,7 +164,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $existing = $this->line('Ligne de Coulommiers à Sézanne', '100000', ['length_official_m' => 15500]);
         $this->reference($existing, 'LINESTRING(2.0 46.0, 2.1 46.0)');
         $this->gare('100000', 'Esternay');
-        $section = $this->line('Ligne d\'Esternay à Sézanne', null, ['slug' => 'archeo-esternay-sezanne']);
+        $section = $this->archeoLine('Ligne d\'Esternay à Sézanne', 'archeo-esternay-sezanne');
         $this->reference($section, 'LINESTRING(2.1 46.0, 2.2 46.0)');
         $t = $this->trace('archeoferroviaire', 'a-est', 'LINESTRING(2.1 46.0, 2.2 46.0)', $section->id, null, 'created');
 
@@ -166,27 +172,27 @@ class MergeSplitLinesCommandTest extends TestCase
         $origin = $this->line('Ligne de Mézidon à Trouville-Deauville', '101000', ['length_official_m' => 15500]);
         $this->reference($origin, 'LINESTRING(2.0 46.5, 2.1 46.5)');
         $this->gare('101000', 'Dives');
-        $first = $this->line('Ligne de Mézidon à Dives', null, ['slug' => 'archeo-mezidon-dives']);
+        $first = $this->archeoLine('Ligne de Mézidon à Dives', 'archeo-mezidon-dives');
         $this->reference($first, 'LINESTRING(2.1 46.5, 2.2 46.5)');
 
         // Même terminus, mais l'origine n'est pas un lieu de la ligne : autre ligne.
         $other = $this->line('Ligne de Somain à Halluin', '102000', ['length_official_m' => 15500]);
         $this->reference($other, 'LINESTRING(2.0 47.0, 2.1 47.0)');
-        $foreign = $this->line('Ligne d\'Armentières à Halluin', null, ['slug' => 'archeo-armentieres-halluin']);
+        $foreign = $this->archeoLine('Ligne d\'Armentières à Halluin', 'archeo-armentieres-halluin');
         $this->reference($foreign, 'LINESTRING(2.1 47.0, 2.2 47.0)');
 
         // Longueurs incompatibles (la section n'est pas le complément) : pas candidate.
         $long = $this->line('Ligne de Paris à Melun', '103000', ['length_official_m' => 40000]);
         $this->reference($long, 'LINESTRING(2.0 47.5, 2.1 47.5)');
         $this->gare('103000', 'Juvisy');
-        $short = $this->line('Ligne de Juvisy à Melun', null, ['slug' => 'archeo-juvisy-melun']);
+        $short = $this->archeoLine('Ligne de Juvisy à Melun', 'archeo-juvisy-melun');
         $this->reference($short, 'LINESTRING(2.1 47.5, 2.2 47.5)');
 
         // Tracé complet (≥ 85 % de l'officiel) : rien à compléter.
         $full = $this->line('Ligne de Gisors à Pont', '104000', ['length_official_m' => 8000]);
         $this->reference($full, 'LINESTRING(2.0 48.0, 2.1 48.0)');
         $this->gare('104000', 'Serqueux');
-        $extra = $this->line('Ligne de Serqueux à Pont', null, ['slug' => 'archeo-serqueux-pont']);
+        $extra = $this->archeoLine('Ligne de Serqueux à Pont', 'archeo-serqueux-pont');
         $this->reference($extra, 'LINESTRING(2.1 48.0, 2.11 48.0)');
 
         return compact('existing', 'section', 't', 'origin', 'first', 'other', 'foreign', 'short', 'extra');
@@ -253,7 +259,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $ifs = $this->line('Ligne des Ifs à Étretat', '360000', ['length_official_m' => 15500]);
         $this->reference($ifs, 'LINESTRING(2.0 46.0, 2.1 46.0)');
         $this->gare('360000', 'Les Loges-Vaucottes-sur-Mer');
-        $loges = $this->line('Ligne des Loges à Etretat', null, ['slug' => 'archeo-loges-etretat']);
+        $loges = $this->archeoLine('Ligne des Loges à Etretat', 'archeo-loges-etretat');
         $this->reference($loges, 'LINESTRING(2.1 46.0, 2.2 46.0)');
 
         // « Saint-Denis » (commune) : le lieu connu « Saint-Denis-lès-Martel » est lui-même une commune.
@@ -262,14 +268,14 @@ class MergeSplitLinesCommandTest extends TestCase
         $souillac = $this->line('Ligne de Souillac à Viescamp', '700000', ['length_official_m' => 15500]);
         $this->reference($souillac, 'LINESTRING(2.0 46.5, 2.1 46.5)');
         $this->gare('700000', 'Saint-Denis-lès-Martel');
-        $denis = $this->line('Ligne de Saint-Denis à Viescamp', null, ['slug' => 'archeo-saint-denis-viescamp']);
+        $denis = $this->archeoLine('Ligne de Saint-Denis à Viescamp', 'archeo-saint-denis-viescamp');
         $this->reference($denis, 'LINESTRING(2.1 46.5, 2.2 46.5)');
 
         // « Tours » (commune) : « Joué-lès-Tours » ne COMMENCE pas par « Tours- ».
         $this->commune('37261', 'Tours', 0.69, 47.39);
         $joue = $this->line('Ligne de Joué-lès-Tours à Chinon', '701000', ['length_official_m' => 15500]);
         $this->reference($joue, 'LINESTRING(2.0 47.0, 2.1 47.0)');
-        $tours = $this->line('Ligne de Tours à Chinon', null, ['slug' => 'archeo-tours-chinon']);
+        $tours = $this->archeoLine('Ligne de Tours à Chinon', 'archeo-tours-chinon');
         $this->reference($tours, 'LINESTRING(2.1 47.0, 2.2 47.0)');
 
         $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
@@ -291,32 +297,32 @@ class MergeSplitLinesCommandTest extends TestCase
         $argenton = $this->line('Ligne de Port-de-Piles à Argenton-sur-Creuse', '598000', ['length_official_m' => 15500]);
         $this->reference($argenton, 'LINESTRING(2.1 46.0, 2.2 46.0)');
         $this->gare('598000', 'Le Blanc');
-        $blanc = $this->line('Ligne de Port-de-Piles au Blanc', null, ['slug' => 'archeo-ligne-de-port-de-piles-au-blanc']);
+        $blanc = $this->archeoLine('Ligne de Port-de-Piles au Blanc', 'archeo-ligne-de-port-de-piles-au-blanc');
         $this->reference($blanc, 'LINESTRING(2.0 46.0, 2.1 46.0)');
         $t = $this->trace('archeoferroviaire', 'a-ppb', 'LINESTRING(2.0 46.0, 2.1 46.0)', $blanc->id, 'Port-de-Piles Le Blanc', 'created');
         // Part du même terminus, mais La Châtre n'est pas un lieu de la ligne : autre ligne.
-        $chatre = $this->line('Ligne d\'Argenton-sur-Creuse à La Châtre', null, ['slug' => 'archeo-argenton-la-chatre']);
+        $chatre = $this->archeoLine('Ligne d\'Argenton-sur-Creuse à La Châtre', 'archeo-argenton-la-chatre');
         $this->reference($chatre, 'LINESTRING(2.2 46.0, 2.3 46.0)');
 
         // Autre sens, origine de la section = arrivée de la ligne : « Abbeville à Saint-Pol », section de 289000.
         $fives = $this->line('Ligne de Fives à Abbeville', '289000', ['length_official_m' => 15500]);
         $this->reference($fives, 'LINESTRING(2.0 46.5, 2.1 46.5)');
         $this->gare('289000', 'St-Pol-sur-Ternoise');
-        $pol = $this->line('Ligne d\'Abbeville à Saint-Pol', null, ['slug' => 'archeo-abbeville-saint-pol']);
+        $pol = $this->archeoLine('Ligne d\'Abbeville à Saint-Pol', 'archeo-abbeville-saint-pol');
         $this->reference($pol, 'LINESTRING(2.1 46.5, 2.2 46.5)');
 
         // Autre sens, arrivée de la section = origine de la ligne.
         $neuville = $this->line('Ligne de Neuville-de-Poitou à Bressuire', '524000', ['length_official_m' => 15500]);
         $this->reference($neuville, 'LINESTRING(2.0 47.0, 2.1 47.0)');
         $this->gare('524000', 'Parthenay');
-        $parthenay = $this->line('Ligne de Parthenay à Neuville-de-Poitou', null, ['slug' => 'archeo-parthenay-neuville']);
+        $parthenay = $this->archeoLine('Ligne de Parthenay à Neuville-de-Poitou', 'archeo-parthenay-neuville');
         $this->reference($parthenay, 'LINESTRING(2.1 47.0, 2.2 47.0)');
 
         // « au » dans les deux noms, terminus partagé.
         $laon = $this->line('Ligne de Laon au Cateau', '236000', ['length_official_m' => 15500]);
         $this->reference($laon, 'LINESTRING(2.0 47.5, 2.1 47.5)');
         $this->gare('236000', 'Wassigny');
-        $wassigny = $this->line('Ligne de Wassigny au Cateau', null, ['slug' => 'archeo-wassigny-le-cateau']);
+        $wassigny = $this->archeoLine('Ligne de Wassigny au Cateau', 'archeo-wassigny-le-cateau');
         $this->reference($wassigny, 'LINESTRING(2.1 47.5, 2.2 47.5)');
 
         $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
@@ -346,7 +352,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->reference($loupe, 'MULTILINESTRING((2.0 46.0, 2.1 46.0), (2.2 46.0, 2.3 46.0))');
         $this->gare('422000', 'Senonches', pk: 7700);
         $this->gare('422000', 'Breteuil', pk: 15500);
-        $breteuil = $this->line('Ligne de Breteuil à Senonches', null, ['slug' => 'archeo-breteuil-senonches']);
+        $breteuil = $this->archeoLine('Ligne de Breteuil à Senonches', 'archeo-breteuil-senonches');
         $this->reference($breteuil, 'LINESTRING(2.2 46.0, 2.1 46.0)');
         $t = $this->trace('archeoferroviaire', 'a-bs', 'LINESTRING(2.2 46.0, 2.1 46.0)', $breteuil->id, 'Breteuil Senonches', 'created');
 
@@ -355,7 +361,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $cremade = $this->line('Ligne de Montauban-Ville-Bourbon à La Crémade', '738000', ['length_official_m' => 16000]);
         $this->reference($cremade, 'LINESTRING(2.1 45.0, 2.2 45.0)');
         $this->gare('738000', 'St-Sulpice');
-        $montauban = $this->line('Ligne de Montauban à Saint-Sulpice', null, ['slug' => 'archeo-montauban-saint-sulpice']);
+        $montauban = $this->archeoLine('Ligne de Montauban à Saint-Sulpice', 'archeo-montauban-saint-sulpice');
         $this->reference($montauban, 'LINESTRING(2.0 45.0, 2.1 45.0)');
 
         // Gares communes (3258 dans 553000) : « Massy » n'est pas un lieu connu de la ligne, mais trois gares que
@@ -366,7 +372,7 @@ class MergeSplitLinesCommandTest extends TestCase
         foreach (['Ablis' => 2.02, 'Bonnelles' => 2.04, 'Limours-État' => 2.06] as $name => $lng) {
             $this->attachedStation($chartres, $name, $lng, 44.0);
         }
-        $massy = $this->line('Ligne de Massy à Gallardon', null, ['slug' => 'archeo-massy-gallardon']);
+        $massy = $this->archeoLine('Ligne de Massy à Gallardon', 'archeo-massy-gallardon');
         $this->reference($massy, 'LINESTRING(2.0 44.0, 2.1 44.0)');
 
         // Prolongement (3165 dans 682000) : « Les Bornes » n'est pas un lieu de la ligne, mais l'autre bout est à
@@ -377,7 +383,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->gare('682000', 'Les Bordes');
         $this->event($bourges, 'wikipedia', 'https://fr.wikipedia.org/wiki/Ligne_d%27Auxy-Juranville_%C3%A0_Bourges',
             ['type' => 'closure_freight', 'section_from' => 'Beaune-la-Rolande', 'section_to' => 'Lorris']);
-        $beaune = $this->line('Ligne de Beaune-la-Rolande aux Bornes', null, ['slug' => 'archeo-beaune-la-rolande-aux-bornes']);
+        $beaune = $this->archeoLine('Ligne de Beaune-la-Rolande aux Bornes', 'archeo-beaune-la-rolande-aux-bornes');
         $this->reference($beaune, 'LINESTRING(2.0 45.5, 2.1 45.5)');
 
         // Sans longueur officielle (3237 dans 696000) : deux gares de la ligne et l'écart de leurs PK.
@@ -385,7 +391,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->reference($gozet, 'LINESTRING(2.0 46.5, 2.1 46.5)');
         $this->gare('696000', 'La Châtre', pk: 298800);
         $this->gare('696000', 'La Ville-Gozet', pk: 306500);
-        $chatre = $this->line('Ligne de La Châtre à La Ville-Gozet', null, ['slug' => 'archeo-la-chatre-la-ville-gozet']);
+        $chatre = $this->archeoLine('Ligne de La Châtre à La Ville-Gozet', 'archeo-la-chatre-la-ville-gozet');
         $this->reference($chatre, 'LINESTRING(2.1 46.5, 2.2 46.5)');
 
         // Refusée par la règle des extrémités partagées (3312 dans 719000 : « Saint-Denis-près-Martel » n'est ni une
@@ -394,7 +400,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->reference($viescamp, 'LINESTRING(2.1 44.5, 2.2 44.5)');
         $this->event($viescamp, 'wikipedia', 'https://fr.wikipedia.org/wiki/Ligne_de_Souillac_%C3%A0_Viescamp-sous-Jall%C3%A8s',
             ['section_from' => 'Souillac', 'section_to' => 'Saint-Denis-près-Martel']);
-        $denis = $this->line('Ligne de Souillac à Saint-Denis-près-Martel', null, ['slug' => 'archeo-souillac-saint-denis']);
+        $denis = $this->archeoLine('Ligne de Souillac à Saint-Denis-près-Martel', 'archeo-souillac-saint-denis');
         $this->reference($denis, 'LINESTRING(2.0 44.5, 2.1 44.5)');
 
         $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
@@ -430,7 +436,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $loupe = $this->line('Ligne de La Loupe à Prey', '422000', ['length_official_m' => 18000]);
         $this->reference($loupe, 'LINESTRING(2.1 46.0, 2.2 46.0)');
         $this->gare('422000', 'La Loupe');
-        $mortagne = $this->line('Ligne de Mortagne à La Loupe', null, ['slug' => 'archeo-mortagne-la-loupe']);
+        $mortagne = $this->archeoLine('Ligne de Mortagne à La Loupe', 'archeo-mortagne-la-loupe');
         $this->reference($mortagne, 'LINESTRING(2.0 46.0, 2.1 46.0)');
 
         // Autre ligne qui aboutit au tracé (4104 « Thionville à Fontoy » contre 180000) : aucune extrémité partagée,
@@ -440,7 +446,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $metz = $this->line('Ligne de Metz-Ville à Zoufftgen', '180000', ['length_official_m' => 16000]);
         $this->reference($metz, 'LINESTRING(2.1 45.0, 2.2 45.0)');
         $this->gare('180000', 'Thionville');
-        $fontoy = $this->line('Ligne de Thionville à Fontoy', null, ['slug' => 'archeo-thionville-fontoy']);
+        $fontoy = $this->archeoLine('Ligne de Thionville à Fontoy', 'archeo-thionville-fontoy');
         $this->reference($fontoy, 'LINESTRING(2.0 45.0, 2.1 45.0)');
 
         // Section à relire (3170 « Bettrechies à Dour », Dour en Belgique) : même cas que Thionville.
@@ -448,7 +454,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $gussignies = $this->line('Ligne d\'Escaudœuvres à Gussignies', '251000', ['length_official_m' => 16000]);
         $this->reference($gussignies, 'LINESTRING(2.1 44.5, 2.2 44.5)');
         $this->gare('251000', 'Bettrechies');
-        $dour = $this->line('Ligne de Bettrechies à Dour', null, ['slug' => 'archeo-bettrechies-dour']);
+        $dour = $this->archeoLine('Ligne de Bettrechies à Dour', 'archeo-bettrechies-dour');
         $this->reference($dour, 'LINESTRING(2.0 44.5, 2.1 44.5)');
 
         // Section à relire (3325 « Villiers au Tronchot ») et autre ligne (3655 « Genève-Carouge à Etrembières ») :
@@ -458,11 +464,11 @@ class MergeSplitLinesCommandTest extends TestCase
         $esternay = $this->line('Ligne de Longueville à Esternay', '003000', ['length_official_m' => 16000]);
         $this->reference($esternay, 'LINESTRING(2.1 44.0, 2.2 44.0)');
         $this->gare('003000', 'Villiers-St-Georges');
-        $tronchot = $this->line('Ligne de Villiers au Tronchot', null, ['slug' => 'archeo-villiers-au-tronchot']);
+        $tronchot = $this->archeoLine('Ligne de Villiers au Tronchot', 'archeo-villiers-au-tronchot');
         $this->reference($tronchot, 'LINESTRING(2.1 44.0, 2.0 44.0)');
         $annemasse = $this->line('Ligne de Lausanne à Annemasse (frontière)', '894000', ['length_official_m' => 16000]);
         $this->reference($annemasse, 'LINESTRING(2.1 43.5, 2.2 43.5)');
-        $geneve = $this->line('Ligne de Genève-Carouge à Etrembières', null, ['slug' => 'archeo-geneve-carouge-etrembieres']);
+        $geneve = $this->archeoLine('Ligne de Genève-Carouge à Etrembières', 'archeo-geneve-carouge-etrembieres');
         $this->reference($geneve, 'LINESTRING(2.0 43.5, 2.1 43.5)');
 
         // Court morceau près d'une gare de la ligne (4103 « Thionville à Basse-Yutz » contre 180000) : la section
@@ -470,7 +476,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $zoufftgen = $this->line('Ligne de Metz-Ville à Zoufftgen', '180000', ['length_official_m' => 65000]);
         $this->reference($zoufftgen, 'LINESTRING(2.0 43.0, 2.65 43.0)');
         $this->gare('180000', 'Thionville');
-        $yutz = $this->line('Ligne de Thionville à Basse-Yutz', null, ['slug' => 'archeo-thionville-basse-yutz']);
+        $yutz = $this->archeoLine('Ligne de Thionville à Basse-Yutz', 'archeo-thionville-basse-yutz');
         $this->reference($yutz, 'LINESTRING(2.65 43.0, 2.7 43.0)');
 
         // Prolongement apparent (4340 « Bricon à Buxières-lès-Villiers » contre 840000) : Bricon est près du bout libre,
@@ -478,7 +484,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->commune('52072', 'Bricon', 2.095, 41.5);
         $chatillon = $this->line('Ligne de Bricon à Châtillon-sur-Seine', '840000', ['length_official_m' => 10000]);
         $this->reference($chatillon, 'LINESTRING(2.1 41.5, 2.2 41.5)');
-        $buxieres = $this->line('Ligne militaire de Bricon à Buxières-lès-Villiers', null, ['slug' => 'archeo-bricon-buxieres']);
+        $buxieres = $this->archeoLine('Ligne militaire de Bricon à Buxières-lès-Villiers', 'archeo-bricon-buxieres');
         $this->reference($buxieres, 'LINESTRING(2.07 41.5, 2.1 41.5)');
 
         // Deux gares de la ligne, mais la section reprend le tracé connu sur 1,7 km de ses 10 km : pas un morceau manquant.
@@ -486,7 +492,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->reference($arcachon, 'LINESTRING(2.1 41.0, 2.2 41.0)');
         $this->gare('655000', 'Facture');
         $this->gare('655000', 'Lamothe');
-        $lamothe = $this->line('Ligne de Facture à Lamothe', null, ['slug' => 'archeo-facture-lamothe']);
+        $lamothe = $this->archeoLine('Ligne de Facture à Lamothe', 'archeo-facture-lamothe');
         $this->reference($lamothe, 'LINESTRING(2.0 41.0, 2.12 41.0)');
 
         // Deux gares de la ligne, mais l'écart de leurs PK (30 km) ne retrouve pas la section (7,7 km).
@@ -494,7 +500,7 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->reference($pagny, 'MULTILINESTRING((2.0 42.5, 2.1 42.5), (2.2 42.5, 2.3 42.5))');
         $this->gare('026000', 'Coussey', pk: 10000);
         $this->gare('026000', 'St-Germain-sur-Meuse', pk: 40000);
-        $coussey = $this->line('Ligne de Coussey à Saint-Germain-sur-Meuse', null, ['slug' => 'archeo-coussey-saint-germain']);
+        $coussey = $this->archeoLine('Ligne de Coussey à Saint-Germain-sur-Meuse', 'archeo-coussey-saint-germain');
         $this->reference($coussey, 'LINESTRING(2.1 42.5, 2.2 42.5)');
 
         // Deux lignes à code prouvées pour la même section : à relire, rien n'est fusionné.
@@ -506,7 +512,7 @@ class MergeSplitLinesCommandTest extends TestCase
             $this->gare($code, 'Lacourt-Haut');
             $this->gare($code, 'Moulis-Bas');
         }
-        $both = $this->line('Ligne de Lacourt-Haut à Moulis-Bas', null, ['slug' => 'archeo-lacourt-moulis']);
+        $both = $this->archeoLine('Ligne de Lacourt-Haut à Moulis-Bas', 'archeo-lacourt-moulis');
         $this->reference($both, 'LINESTRING(2.1 42.0, 2.2 42.0)');
 
         $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])

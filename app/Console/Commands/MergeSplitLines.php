@@ -267,13 +267,13 @@ class MergeSplitLines extends Command
                        lower(unaccent(split_part({$named}, ' à ', 2))) AS dest,
                        lower(unaccent(regexp_replace(split_part({$named}, ' à ', 1), '^Ligne (de la |de l''|du |des |de |d'')', ''))) AS orig
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND {$named} LIKE '% à %'
+                WHERE l.alt_names->>'source' = 'archeoferroviaire' AND l.code IS NULL AND {$named} LIKE '% à %'
             ),
             existing AS (
                 SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m,
                        lower(unaccent({$named})) AS uname
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug NOT LIKE 'archeo-%' AND l.length_official_m > 0
+                WHERE l.alt_names->>'source' IS DISTINCT FROM 'archeoferroviaire' AND l.length_official_m > 0
                   AND r.length_m < 0.85 * l.length_official_m
             )
             SELECT DISTINCT ON (c.id) c.id AS created_id, c.name AS created_name, ROUND(c.length_m / 1000.0, 1) AS created_km,
@@ -355,7 +355,7 @@ class MergeSplitLines extends Command
             WITH created AS (
                 SELECT l.id, l.name, r.geom, r.length_m
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.slug LIKE 'archeo-%' AND l.code IS NULL AND r.length_m > 0
+                WHERE l.alt_names->>'source' = 'archeoferroviaire' AND l.code IS NULL AND r.length_m > 0
             ),
             pts AS (SELECT c.id, (ST_Dump(ST_Boundary(c.geom))).geom AS g FROM created c),
             -- bouts de la section : les deux extrémités de ses morceaux les plus éloignées l'une de l'autre
@@ -367,7 +367,7 @@ class MergeSplitLines extends Command
             existing AS (
                 SELECT l.id, l.name, l.length_official_m AS off, r.geom, r.length_m
                 FROM lines l JOIN line_reference_geometries r ON r.line_id = l.id
-                WHERE l.code IS NOT NULL AND l.slug NOT LIKE 'archeo-%'
+                WHERE l.code IS NOT NULL AND l.alt_names->>'source' IS DISTINCT FROM 'archeoferroviaire'
                   AND (l.length_official_m IS NULL OR r.length_m < 0.85 * l.length_official_m)
             )
             SELECT c.id AS created_id, c.name AS created_name, c.length_m AS created_m,

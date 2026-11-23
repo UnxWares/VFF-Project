@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LineType;
+use App\Services\Lines\LineSlugRedirects;
 use Database\Factories\LineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -102,5 +103,21 @@ class Line extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Slug actuel de la ligne qui a porté ce slug (database/data/line_slug_redirects.php), null si ce slug n'a
+     * jamais été retiré, s'il est encore porté par une ligne ou si la ligne visée n'existe pas. Sert aux
+     * redirections 301 du site et de l'API, et à GraphQL et au serveur MCP, qui acceptent l'ancien slug.
+     */
+    public static function redirectSlugFor(string $slug): ?string
+    {
+        $target = app(LineSlugRedirects::class)->target($slug);
+        if ($target === null) {
+            return null;
+        }
+        $found = self::query()->whereIn('slug', [$slug, $target])->pluck('slug')->all();
+
+        return in_array($slug, $found, true) || ! in_array($target, $found, true) ? null : $target;
     }
 }

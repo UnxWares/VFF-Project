@@ -340,6 +340,23 @@ une ligne à code n'est jamais fusionnée, et un tracé dans le couloir de deux 
 blanc du 22/11 sur `vff` : 4 fusions (Aire-sur-la-Lys à Isbergues, Avesnes à Flaumont, Gravigny à Amfreville, Louviers à
 Caudebec-lès-Elbeuf), 7 refus.
 
+### `vff:neutralize-line-slugs`
+
+Slug neutre des lignes dont le slug porte un préfixe de source (`archeo-`) : le préfixe est retiré, suffixe `-2`, `-3`… en cas de
+collision (`App\Services\Lines\NeutralLineSlugs`). Chaque ancien slug, et celui d'une ligne fusionnée dans une autre
+(`alt_names.merged`), va dans `database/data/line_slug_redirects.php` : 301 du site et de l'API, ancien slug accepté par GraphQL et
+le MCP. Idempotente.
+
+```bash
+bin/php artisan vff:neutralize-line-slugs --dry-run [-v]     # liste (toute avec -v) et collisions, rien d'écrit
+bin/php artisan vff:neutralize-line-slugs --map-only         # fichier des correspondances seulement
+bin/php artisan vff:neutralize-line-slugs --rewrite-files    # renomme (une transaction), écrit le fichier, réécrit les slugs cités
+bin/php artisan cache:clear                                  # ensuite : carte, tuiles, plan du site
+```
+
+`--rewrite-files` remplace les anciens slugs entiers cités dans `app`, `database/data`, `docs`, `graphql`, `resources/js` et `tests`.
+Les lignes créées ensuite par `vff:link-traces` reçoivent directement un slug neutre.
+
 ### Règles du moteur ajoutées à `vff:build-line-references`
 
 Les options sont celles du tableau plus haut. Trois règles de continuité du tracé de référence (étape `--no-junction-repair`

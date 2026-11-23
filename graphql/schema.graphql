@@ -4231,11 +4231,11 @@ type Query {
         type: String @eq
     ): [Line!]! @paginate(defaultCount: 20, maxCount: 100)
 
-    "Une ligne, par son slug (ex. `rfn-420000`)."
+    "Une ligne, par son slug (ex. `rfn-420000`). L'ancien slug d'une ligne renommée est accepté : la ligne est renvoyée sous son slug actuel (champ `slug`)."
     line(
         "Slug de la ligne : `rfn-` suivi du code à 6 chiffres pour le réseau ferré national."
-        slug: String! @eq
-    ): Line @find
+        slug: String!
+    ): Line @field(resolver: "App\\GraphQL\\Resolvers\\LineBySlugResolver")
 
     """
     Gares, page par page (20 par défaut, 100 au plus), filtrables par nom, nature et état

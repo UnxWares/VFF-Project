@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Services\LineMerger;
+use App\Services\Lines\LineSlugRedirects;
+use App\Services\Lines\NeutralLineSlugs;
 use App\Services\PlaceNames;
 use App\Services\TraceSplitter;
 use App\Support\CsvSafe;
@@ -206,7 +208,12 @@ class LinkTraces extends Command
     /** Calques qui ne créent jamais de ligne (contexte uniquement). */
     private const NO_CREATE_LAYERS = ['exploitee'];
 
-    private const SLUG_PREFIX = ['archeoferroviaire' => 'archeo', 'openhistoricalmap' => 'ohm'];
+    /**
+     * Préfixe du slug d'une ligne créée, par source (défaut : le nom de la source). Une ligne créée depuis
+     * archeoferroviaire reçoit un slug neutre, sans préfixe (le slug d'une fiche publique ne nomme pas cette
+     * source) : App\Services\Lines\NeutralLineSlugs.
+     */
+    private const SLUG_PREFIX = ['archeoferroviaire' => '', 'openhistoricalmap' => 'ohm'];
 
     private string $source;
 
@@ -2090,7 +2097,11 @@ class LinkTraces extends Command
             WHERE alt_names->>'created_by' = 'vff:link-traces' AND alt_names->>'source' = ?", [$this->source]) as $r) {
             $existing[$r->gk] = ['id' => (int) $r->id, 'slug' => $r->slug, 'alt' => json_decode($r->alt_names ?? '{}', true) ?: []];
         }
+        // Slugs pris : ceux des lignes, plus les anciens slugs retirés et leurs remplaçants (jamais redonnés).
         $slugs = array_flip(DB::table('lines')->pluck('slug')->all());
+        foreach (app(LineSlugRedirects::class)->all() as $from => $to) {
+            $slugs[$from] = $slugs[$to] = true;
+        }
 
         // 1. Lignes planifiées → lignes réelles (réutilise l'id d'une exécution précédente).
         $realId = [];
@@ -2117,11 +2128,8 @@ class LinkTraces extends Command
                 $data['alt_names'] = json_encode($alt, JSON_UNESCAPED_UNICODE);
                 DB::table('lines')->where('id', $id)->update($data);
             } else {
-                $base = $prefix.'-'.(Str::slug($p['name']) ?: 'ligne');
-                $slug = $base;
-                for ($i = 2; isset($slugs[$slug]); $i++) {
-                    $slug = $base.'-'.$i;
-                }
+                $base = ($prefix !== '' ? $prefix.'-' : '').NeutralLineSlugs::fromName($p['name']);
+                $slug = NeutralLineSlugs::free($base, fn (string $s): bool => isset($slugs[$s]));
                 $slugs[$slug] = true;
                 $id = DB::table('lines')->insertGetId($data + ['slug' => $slug, 'created_at' => now()]);
             }

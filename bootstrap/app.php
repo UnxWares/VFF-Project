@@ -15,6 +15,7 @@ use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\EnsureRealtimeEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MarkOfflineReadable;
+use App\Http\Middleware\RedirectRetiredLineSlug;
 use App\Http\Middleware\RequirePrivateBroadcastChannel;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -35,6 +36,7 @@ use Inertia\Inertia;
 use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -100,6 +102,8 @@ return Application::configure(basePath: dirname(__DIR__))
             TrackLastSeen::class,
             // Pages publiques qu'un visiteur non connecté peut relire hors ligne (service worker).
             MarkOfflineReadable::class,
+            // `?line=` portant l'ancien slug d'une ligne renommée : 301 vers le nouveau.
+            RedirectRetiredLineSlug::class,
         ]);
         // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy, Permissions-Policy, HSTS. Dans la pile
         // globale pour couvrir toutes les familles de réponses (web, API, GraphQL, MCP, dictionnaires, fond
@@ -107,7 +111,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(SecurityHeaders::class);
 
         // API publique : erreurs de validation en anglais (pas de langue de page).
-        $middleware->api(prepend: [ApiLocale::class]);
+        $middleware->api(prepend: [ApiLocale::class], append: [RedirectRetiredLineSlug::class]);
 
         // `theme` est posé côté client en JS (clair) pour que le toggle clair/
         // sombre soit instantané sans appel serveur. `locale` est désormais
@@ -135,6 +139,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Accept : sans cela, un paramètre invalide sans `Accept: application/json` redirigeait vers l'accueil.
         // Les pages web, /graphql et /mcp ne sont pas concernés.
         $exceptions->shouldRenderJsonWhen(fn (Request $request, Throwable $e): bool => $request->is('api/*') || $request->expectsJson());
+
+        // Fiche de ligne demandée sous un ancien slug (database/data/line_slug_redirects.php) : 301 vers la
+        // même adresse sous le nouveau, pour le site, l'API et le tracé de la carte, au lieu du 404.
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => RedirectRetiredLineSlug::fromMissingLine($e, $request));
 
         // Page d'erreur d'une URL inconnue (404) ou d'une méthode non autorisée (405) :
         // aucune route n'a été trouvée, le groupe web (SetLocale) n'a pas tourné.
