@@ -3591,6 +3591,21 @@ return [
         'reason' => 'le 15/05/1939 est une suppression temporaire (service repris fin septembre 1939, puis de nouveau supprimé en juillet 1940 et rétabli après la guerre) ; la fermeture définitive aux voyageurs date du service d\'été 1949 (article de la ligne ; article de la commune, oldid 241056468 : « fermée définitivement au service voyageurs en été 1949 »), jour non trouvé',
     ],
 
+    // Saignon : le service des voyageurs s'arrête le 15/01/1934 (décision du 23/11/2026, arrêt des trains) ; la fermeture officielle de la
+    // ligne aux voyageurs, « rendue définitive » le 02/10/1938, est un fait distinct, porté par la note de cet événement. Un second
+    // événement de fermeture aux voyageurs, source « correction », aurait pris la place du premier (une seule fermeture par période) :
+    // la date de fin de service ne change donc pas.
+    [
+        'station' => ['name' => 'Saignon', 'near' => [5.44702, 43.87668, 0.5]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1934-01-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Forcalquier', 222987396),
+        'quote' => 'fermée au trafic voyageurs depuis 1934',
+        'reason' => 'arrêt des trains de voyageurs le 15/01/1934 (articles de la gare de Forcalquier, oldid 222987396, et de la ligne de Forcalquier à Volx, oldid 240748405) ; fermeture officielle aux voyageurs de la ligne le 02/10/1938 (article de la ligne de Cavaillon à Saint-Maime - Dauphin, oldid 241491046 : « L\'ensemble est fermé au trafic voyageurs le 2 octobre 1938 » ; article de Forcalquier : fermeture « rendue définitive » le 2 octobre 1938)',
+    ],
+
     // ── 35. Gares fréquentées en 2020 absentes de l'ère 2020 (gares-2020, 23/11/2026, rapport
     // storage/app/reports/agents/aprem-2111/gares-2020.md).
 

@@ -4,6 +4,7 @@ namespace Tests\Feature\Commands;
 
 use App\Models\Era;
 use App\Services\StationLineExclusions;
+use App\Services\StationLineInclusions;
 use App\Services\StationTerminusOverrides;
 use App\Support\StationNames;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -192,5 +193,32 @@ class StationLineExclusionsTest extends TestCase
             ->assertSuccessful();
         // Seul le couple valide est retiré : les gares dont l'exclusion est ambiguë gardent leur lien.
         $this->assertSame(['hub-bis@'.$alpha->slug => 'segment', 'hub-ter@'.$alpha->slug => 'segment'], $this->links());
+    }
+
+    /**
+     * Inclusion : le lien manquant (gare du RER C, ligne fret seul voisine) est créé avec la méthode reviewed_link, dans les
+     * trois modes, sans réécrire un lien existant ; une exclusion du même couple l'emporte.
+     */
+    public function test_an_included_link_is_created_and_an_exclusion_wins_over_it(): void
+    {
+        $alpha = $this->rfnLine('100000', 'Ligne de Alpha à Bravo');
+        $this->track($alpha, $this->current, [[48.00, 2.0], [48.10, 2.0]]);
+        $far = $this->rfnLine('200000', 'Ligne de Charlie à Delta');
+        $this->track($far, $this->current, [[49.00, 3.0], [49.10, 3.0]]);
+        $this->station('hub', 'Hub', 48.0450, 2.0100);
+        $entry = ['station' => 'hub', 'line' => '200000', 'reason' => 'gare desservie par cette ligne', 'source_url' => self::SOURCE, 'reviewed_at' => '2026-11-23'];
+        $this->exclude([]);
+
+        $this->app->instance(StationLineInclusions::class, new StationLineInclusions([$entry]));
+        $this->artisan('vff:attach-stations')->expectsOutputToContain('inclusions : 1 ajoutées sur 1 valides')->assertSuccessful();
+        $this->assertSame(['hub@'.$far->slug => 'reviewed_link'], array_filter($this->links(), fn ($m) => $m === 'reviewed_link'));
+        foreach ([['--years-only' => true], ['--termini-only' => true]] as $options) {
+            $this->artisan('vff:attach-stations', $options)->expectsOutputToContain('inclusions : 0 ajoutées sur 1 valides')->assertSuccessful();
+            $this->assertSame('reviewed_link', $this->links()['hub@'.$far->slug]);
+        }
+
+        $this->exclude([['station' => 'hub', 'line' => '200000']]);
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $this->assertArrayNotHasKey('hub@'.$far->slug, $this->links());
     }
 }

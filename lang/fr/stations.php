@@ -214,6 +214,7 @@ return [
             'wikidata_p81' => 'Wikidata (ligne desservie)',
             'terminus_name' => 'Extrémité nommée dans le nom de la ligne, à moins de 500 m du tracé',
             'terminus_reviewed' => 'Gare d’extrémité relue à la main d’après une source',
+            'reviewed_link' => 'Lien gare - ligne relu à la main d’après une source',
         ],
         'pk_sources' => [
             'sncf' => 'PK officiel',

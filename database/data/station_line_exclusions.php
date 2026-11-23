@@ -102,4 +102,10 @@ return [
     // recopiés par erreur ; la fiche de Badaroux se retrouvait à 237 km de sa ligne, au milieu des deux points.
     ['station' => 'badaroux', 'line' => 'rfn-020000', 'reason' => 'gare de la ligne de Mende à La Bastide (723000, Lozère) ; l\'enregistrement « Badaroux » de la ligne 020000 (PK 217+109, Haussignemont, Marne) est celui de Blesme-Haussignemont (UIC 87174326) dont le libellé et l\'UIC sont faux dans la liste des gares SNCF',
         'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87174326', 'reviewed_at' => '2026-11-23'],
+
+    // Gare de départ du Train des Mouettes (chemin de fer touristique de Saujon à La Tremblade), à côté de la gare SNCF de Saujon : point
+    // touristique rattaché à la ligne de Saintes à Royan par la seule géométrie (méthode segment). Décision du 23/11/2026 ; le lien avec
+    // la ligne de Saujon à La Grève (545000) reste.
+    ['station' => 'le-train-des-mouettes-saujon', 'line' => 'rfn-544000', 'reason' => 'gare de départ du chemin de fer touristique du Train des Mouettes (ligne de Saujon à La Grève), à proximité de la gare de Saujon sur la ligne de Saintes à Royan, qui ne la dessert pas',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Saujon&oldid=222377940', 'reviewed_at' => '2026-11-23'],
 ];

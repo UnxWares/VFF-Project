@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\StationLineExclusions;
+use App\Services\StationLineInclusions;
 use App\Services\StationLinkChanges;
 use App\Services\StationPkProjector;
 use App\Services\StationTerminusOverrides;
@@ -48,6 +49,8 @@ use Throwable;
  *                  --termini-only, --years-only). Hors rattachement complet, une décision
  *                  retire aussi ce qu'elle contredit : le terminus nommé de son extrémité et
  *                  le terminus relu dont la gare n'est plus celle d'une décision « attach ».
+ *   5 bis. reviewed_link : couples gare - ligne ajoutés à la main (database/data/station_line_inclusions.php,
+ *                  StationLineInclusions), créés s'ils n'existent pas, dans les trois modes, avant les exclusions.
  *   6. exclusions : couples gare - ligne écartés à la main
  *                  (database/data/station_line_exclusions.php, StationLineExclusions), retirés en
  *                  dernier, quelle que soit la méthode qui les avait produits, dans les trois modes
@@ -77,6 +80,8 @@ class AttachStations extends Command
 
     /** Exclusions de couples gare - ligne (étape 6), chargées par handle(). */
     private StationLineExclusions $exclusions;
+
+    private StationLineInclusions $inclusions;
 
     /**
      * Décisions relues valides de ce passage (reviewedDecisions), lues et signalées une seule fois.
@@ -141,8 +146,9 @@ class AttachStations extends Command
         return str_replace('le.', "{$alias}.", self::EVENT_COVERS_STATION);
     }
 
-    public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides, StationLineExclusions $exclusions): int
+    public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides, StationLineExclusions $exclusions, StationLineInclusions $inclusions): int
     {
+        $this->inclusions = $inclusions;
         $this->overrides = $overrides;
         $this->exclusions = $exclusions;
         $this->decisions = null;
@@ -178,7 +184,7 @@ class AttachStations extends Command
     /** --years-only : terminus relus à la main, puis années de desserte des rattachements existants, sauf lignes --except. */
     private function recomputeYears(): void
     {
-        $added = $this->applyTerminusOverrides();
+        $added = [...$this->applyTerminusOverrides(), ...$this->applyLineInclusions()];
         $added = array_values(array_diff($added, $this->applyLineExclusions()));
         if ($added !== []) {
             $this->projectMissingPk($added);
@@ -193,6 +199,7 @@ class AttachStations extends Command
     {
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
         $this->applyTerminusOverrides();
+        $this->applyLineInclusions();
         $this->applyLineExclusions();
         $this->projectMissingPk();
         $this->computeServiceYears();
@@ -310,6 +317,7 @@ class AttachStations extends Command
         // 4. Terminus nommés des lignes sans liste officielle ; 5. terminus relus à la main.
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
         $this->applyTerminusOverrides();
+        $this->applyLineInclusions();
         $this->applyLineExclusions();
 
         $this->projectMissingPk();
@@ -589,6 +597,44 @@ class AttachStations extends Command
             .($absent > 0 ? ", {$absent} lignes absentes de la base" : ''));
 
         return $added;
+    }
+
+    /**
+     * 5 bis. Inclusions de couples gare - ligne (StationLineInclusions) : lien créé (méthode reviewed_link) s'il
+     * n'existe pas déjà ; les exclusions passent ensuite et l'emportent. Entrées invalides signalées et ignorées.
+     *
+     * @return list<int> identifiants des rattachements ajoutés
+     */
+    private function applyLineInclusions(): array
+    {
+        if ($this->inclusions->all() === []) {
+            return [];
+        }
+        ['valid' => $valid, 'errors' => $errors] = $this->inclusions->resolve();
+        foreach ($errors as $error) {
+            $this->warn("  {$error} : ignorée");
+        }
+        $ids = [];
+        foreach ($valid as ['station_id' => $stationId, 'line_id' => $lineId, 'entry' => $e]) {
+            $distance = DB::selectOne(<<<'SQL'
+                SELECT ROUND(MIN(ST_Distance(s.geom::geography, g.geom::geography)))::int AS d
+                FROM stations s, (
+                    SELECT geom FROM line_segments WHERE line_id = :l1
+                    UNION ALL SELECT geom FROM source_traces WHERE line_id = :l2
+                    UNION ALL SELECT geom FROM line_reference_geometries WHERE line_id = :l3
+                ) g
+                WHERE s.id = :s
+            SQL, ['l1' => $lineId, 'l2' => $lineId, 'l3' => $lineId, 's' => $stationId])?->d;
+            if (DB::table('station_lines')->insertOrIgnore([
+                'station_id' => $stationId, 'line_id' => $lineId, 'method' => StationLineInclusions::METHOD,
+                'distance_m' => $distance, 'source_ref' => StationLineInclusions::sourceRef($e), 'created_at' => now(), 'updated_at' => now(),
+            ]) === 1) {
+                $ids[] = (int) DB::table('station_lines')->where('station_id', $stationId)->where('line_id', $lineId)->value('id');
+            }
+        }
+        $this->line('  inclusions : '.count($ids).' ajoutées sur '.count($valid).' valides'.($errors !== [] ? ', '.count($errors).' ignorées' : ''));
+
+        return $ids;
     }
 
     /**
