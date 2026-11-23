@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property list<array{label: string, wikidata_id: ?string}>|null $electrification
  * @property list<array{label: string, mm: ?int, wikidata_id: ?string}>|null $gauges
  * @property array<string, mixed>|null $image
- * @property array<string, array{source: string, ref?: string|null, url?: string, original?: array{amount: float, unit: string}, via?: string, revid?: int, value?: string, units?: int, as_of?: string}>|null $provenance
+ * @property array<string, array{source: string, ref?: string|null, url?: string, original?: array{amount: float, unit: string}, via?: string, revid?: int, lang?: string, value?: string, units?: int, as_of?: string}>|null $provenance
  * @property string|null $service_status `in_service` ou `withdrawn` quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia), nul sinon
  * @property string|null $service_status_checked_at date de lecture de la source (AAAA-MM-JJ)
  * @property string $scope `france` (rattachée à la France dans Wikidata) ou `attested` (circulation en France attestée par une ligne citée)

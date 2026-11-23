@@ -385,6 +385,23 @@ class WikidataMaterialMapperTest extends TestCase
         $this->assertNull($other['in_service_from'], 'une autre série n\'est pas touchée');
     }
 
+    /** Valeur relevée dans l'article d'une autre édition de Wikipédia : la provenance garde la langue, pour le permalien. */
+    public function test_a_value_read_in_another_language_edition_keeps_its_language_in_the_provenance(): void
+    {
+        $entity = $this->bb15000(['P729' => []]);
+
+        // Q132346 (Série 18 SNCB) : six locomotives en service de 1973 à 1974, article anglais.
+        $sheet = $this->mapper->map('Q132346', $entity, ['Q625151'], self::LABELS, [], []);
+        $this->assertSame(1973, $sheet['in_service_from']);
+        $this->assertSame('en', $sheet['provenance']['in_service_from']['lang']);
+        $this->assertSame('Belgian Railways Class 18 (Alsthom)', $sheet['provenance']['in_service_from']['ref']);
+        $this->assertSame('Six locomotives of this type entered service between 1973 and 1974.', $sheet['provenance']['in_service_from']['quote']);
+
+        // Une valeur de l'édition française ne porte pas de langue (français par défaut).
+        $fr = $this->mapper->map('Q2876781', $entity, ['Q625151'], self::LABELS, [], []);
+        $this->assertArrayNotHasKey('lang', $fr['provenance']['in_service_from']);
+    }
+
     /** Photo choisie après relecture (database/data/material_photo_choices.php) : avant l'infobox, licence revérifiée. */
     public function test_a_reviewed_photo_choice_comes_first_and_keeps_its_provenance(): void
     {

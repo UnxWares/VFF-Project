@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Materials;
 
+use App\Http\Resources\MaterialDetailResource;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -127,6 +128,7 @@ class MaterialDataFilesTest extends TestCase
         foreach (self::dateSupplements() as $i => $r) {
             $where = "valeur {$i} ({$r['material']} {$r['field']})";
             $this->assertContains($r['field'], ['in_service_from', 'in_service_to', 'units_built', 'builder'], $where);
+            $this->assertContains($r['lang'] ?? 'fr', ['fr', 'en', 'de', 'it', 'nl'], "{$where} : langue de l'article");
             foreach (['basis', 'source', 'quote'] as $key) {
                 $this->assertNotSame('', trim((string) $r[$key]), "{$where} : {$key}");
             }
@@ -176,6 +178,31 @@ class MaterialDataFilesTest extends TestCase
                 $this->assertGreaterThanOrEqual($fields['in_service_from'], $fields['in_service_to'], "{$qid} : retrait avant la mise en service");
             }
         }
+    }
+
+    /** Passe du 23/11 sur les articles des autres éditions de Wikipédia : la langue est dite, le permalien pointe sur la bonne édition. */
+    public function test_the_values_read_in_other_language_editions_say_their_language_and_link_to_that_edition(): void
+    {
+        $byKey = [];
+        foreach (self::dateSupplements() as $r) {
+            $byKey[$r['material'].':'.$r['field']] = $r;
+        }
+        $this->assertSame(1973, $byKey['Q132346:in_service_from']['value'], 'Série 18 SNCB : six locomotives en service en 1973 et 1974');
+        $this->assertSame('en', $byKey['Q132346:in_service_from']['lang']);
+        $this->assertSame(1859, $byKey['Q105415368:in_service_from']['value'], 'Est 0.250 : mises en service en 1859');
+        $this->assertSame(1937, $byKey['Q105415368:in_service_to']['value'], 'Est 0.250 : retraits de 1892 à 1937');
+        $this->assertSame(1994, $byKey['Q41499495:in_service_from']['value'], 'Breda VLC de Lille : livrés en 1994');
+        $this->assertSame(1934, $byKey['Q125904212:in_service_from']['value'], 'Y 7020 : première livraison (Renault, 1934)');
+        $this->assertSame(1979, $byKey['Q125904212:in_service_to']['value'], 'Y 7020 : dernière radiée en 1979');
+        $this->assertSame('de', $byKey['Q125904212:in_service_to']['lang']);
+
+        // Le permalien suit la langue ; sans langue, l'édition française comme avant.
+        $this->assertSame(
+            'https://de.wikipedia.org/w/index.php?title=SNCF_Y_7020&oldid='.$byKey['Q125904212:in_service_to']['revid'],
+            MaterialDetailResource::sourceUrl('wikipedia', 'SNCF Y 7020', $byKey['Q125904212:in_service_to']['revid'], 'de'),
+        );
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=Z_21500&oldid=7', MaterialDetailResource::sourceUrl('wikipedia', 'Z 21500', 7));
+        $this->assertSame('https://fr.wikipedia.org/wiki/Z_21500', MaterialDetailResource::sourceUrl('wikipedia', 'Z 21500', null, 'xx'), 'langue inconnue : français, jamais un hôte arbitraire');
     }
 
     public function test_the_dates_read_in_the_series_articles_on_23_11_are_present(): void

@@ -277,7 +277,7 @@ class MaterialResource extends JsonResource
             'as_of' => $entry['as_of'] ?? null,
             'checked_at' => $material->service_status !== null ? $material->service_status_checked_at : null,
             'source' => $entry['source'] ?? null,
-            'url' => $entry !== null ? MaterialDetailResource::sourceUrl($entry['source'], $entry['ref'] ?? null, $entry['revid'] ?? null) : null,
+            'url' => $entry !== null ? MaterialDetailResource::sourceUrl($entry['source'], $entry['ref'] ?? null, $entry['revid'] ?? null, $entry['lang'] ?? null) : null,
         ];
     }
 
