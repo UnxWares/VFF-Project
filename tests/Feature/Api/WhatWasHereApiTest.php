@@ -148,6 +148,31 @@ class WhatWasHereApiTest extends TestCase
         $this->assertArrayNotHasKey('commune', $full);
     }
 
+    public function test_the_summary_position_is_kept_neither_in_the_server_cache_nor_in_shared_caches(): void
+    {
+        $here = fn (): array => array_values(array_filter(array_keys($this->cacheEntries()), fn (string $k): bool => str_contains($k, ':here:')));
+
+        // Panneau de la carte : un point choisi sur la carte, gardé en cache par case.
+        $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'year' => 1962]);
+        $this->assertCount(1, $here());
+
+        // « Autour de moi » : la position de l'internaute ne laisse aucune trace dans le cache du serveur.
+        $response = $this->getJson('/api/v1/what-was-here?'.http_build_query(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 5000, 'summary' => 1]));
+        $response->assertOk()->assertJsonStructure(['lines', 'stations', 'commune']);
+        $this->assertCount(1, $here(), 'aucune clé de cache ne contient la case de la position');
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $this->assertStringNotContainsString('public', (string) $response->headers->get('Cache-Control'));
+    }
+
+    /** @return array<string, mixed> entrées du cache de test (magasin `array`) */
+    private function cacheEntries(): array
+    {
+        $store = Cache::getStore();
+        $storage = (new \ReflectionProperty($store, 'storage'))->getValue($store);
+
+        return is_array($storage) ? $storage : [];
+    }
+
     public function test_a_section_event_is_never_a_whole_line_fact(): void
     {
         $now = now();
