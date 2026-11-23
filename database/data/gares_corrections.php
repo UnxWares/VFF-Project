@@ -5707,4 +5707,720 @@ return [
         'reason' => 'article de la ligne « Ligne de Limoges-Bénédictins à Périgueux » (oldid 234971310) : « La ligne a été mise en service le 26 août 1861. ». Remplace le 30/05/1892 déduit de la ligne du Quéroy-Pranzac à Thiviers : Thiviers est l\'une des neuf gares d\'origine de la ligne de Limoges à Périgueux (« Aux neuf gares d\'origine comprises entre Limoges et Périgueux (Beynac, Nexon, Lafarge, Bussière-Galant, La Coquille, Thiviers... »). Confiance moyenne.',
     ],
 
+    // ── 43. Ouvertures des gares FERMÉES aux voyageurs, datées à l'année par Wikidata ou déduites de la ligne, première relecture contre
+    // l'article Wikipédia de la gare (révision citée) et, au besoin, celui de la ligne : les audits précédents n'avaient relu que les gares
+    // encore ouvertes. 120 gares relues (les 84 dont l'article de la gare contredit la date de la base, puis 36 qui la confirment à l'année) ;
+    // 59 corrigées, 41 confirmées, 20 à décider (article lié à un réseau et non à la gare, dates contradictoires dans l'article, date
+    // approximative ; rapport storage/app/reports/agents/aprem-2111/ouvertures-gares-fermees.md). Règle du déménagement (section 37) : une gare
+    // remplacée par une nouvelle garde la date de la première (Saint-Germain-en-Laye-Bel-Air - Fourqueux, Ravezies). Une halte ouverte après
+    // la ligne prend sa propre date, non celle de la ligne (Cognin, Plan-Plascassier, Pont-d'Espenel, Achicourt).
+
+    // Versailles-Matelots (id 16083)
+    [
+        'station' => ['name' => 'Versailles-Matelots', 'uic' => '87393132'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1871-05-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Versailles-Matelots', 232708478),
+        'quote' => 'Cela permet l\'ouverture de la gare à l\'exploitation le 12 mai 1871',
+        'reason' => 'article de la gare (oldid 232708478) : « Cela permet l\'ouverture de la gare à l\'exploitation le 12 mai 1871 ». Précise ou corrige la date de la base (1883-01-01, wikidata).',
+    ],
+
+    // Le Havre-Graville (id 16218)
+    [
+        'station' => ['name' => 'Le Havre-Graville', 'uic' => '87413203'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Havre-Graville', 230878443),
+        'quote' => 'La gare est mise en service en 1882.',
+        'reason' => 'article de la gare (oldid 230878443) : « La gare est mise en service en 1882. ». Remplace l\'année 1847 de Wikidata (ouverture de la ligne de Paris au Havre, qui n\'avait pas cette gare).',
+    ],
+
+    // Couliboeuf (id 16268)
+    [
+        'station' => ['name' => 'Couliboeuf', 'uic' => '87444232'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-02-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne du Mans à Mézidon', 239514750),
+        'quote' => 'Le 1er février 1859 entre Argentan et Mézidon, avec embranchement entre la gare de Coulibœuf et la gare de Falaise',
+        'reason' => 'article de la ligne « Ligne du Mans à Mézidon » (oldid 239514750) : « Le 1er février 1859 entre Argentan et Mézidon, avec embranchement entre la gare de Coulibœuf et la gare de Falaise ». Précise ou corrige la date de la base (1859-01-01, wikidata). L\'infobox de l\'article de la gare (oldid 208419078) donne aussi le 1 février 1859.',
+    ],
+
+    // Myennes (id 17471)
+    [
+        'station' => ['name' => 'Myennes', 'uic' => '87696138'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Myennes', 240518059),
+        'quote' => 'La gare de Myennes est ajoutée, en 1864, sur la ligne ouverte le 21 septembre 1861',
+        'reason' => 'article de la gare (oldid 240518059) : « La gare de Myennes est ajoutée, en 1864, sur la ligne ouverte le 21 septembre 1861 ». Remplace le 21/09/1861 déduit de la ligne : la gare n\'existait pas à l\'ouverture de la ligne.',
+    ],
+
+    // Manduel-Redessan (id 18164)
+    [
+        'station' => ['name' => 'Manduel-Redessan', 'uic' => '87775064'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-08-19',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Manduel - Redessan', 218055638),
+        'quote' => 'la station de Manduel est officiellement mise en service par la Compagnie des mines de la Grand\'Combe et des chemins de fer du Gard lorsqu\'elle ouvre à l\'exploitation la ligne d\'Alais à Beaucaire via Nîmes, le 19 août 1840',
+        'reason' => 'article de la gare (oldid 218055638) : « la station de Manduel est officiellement mise en service par la Compagnie des mines de la Grand\'Combe et des chemins de fer du Gard lorsqu\'elle ouvre à l\'exploitation la ligne d\'Alais à Beaucaire via Nîmes, le 19 août 1840 ». Remplace l\'année 1839 de Wikidata (premier train de la foire de Beaucaire le 15/07/1839, avant la mise en service).',
+    ],
+
+    // Ste-Menehould (id 18560)
+    [
+        'station' => ['name' => 'Ste-Menehould', 'uic' => '87174870'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-07-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sainte-Menehould', 229581713),
+        'quote' => 'La station de Sainte-Menehould est mise en service le 23 juillet 1867 par la Compagnie des chemins de fer de l\'Est lorsqu\'elle ouvre à l\'exploitation la section de Châlons à Sainte-Menehould.',
+        'reason' => 'article de la gare (oldid 229581713) : « La station de Sainte-Menehould est mise en service le 23 juillet 1867 par la Compagnie des chemins de fer de l\'Est lorsqu\'elle ouvre à l\'exploitation la section de Châlons à Sainte-Menehould. ». Précise ou corrige la date de la base (1867-01-01, wikidata).',
+    ],
+
+    // Voellerdingen (id 18781)
+    [
+        'station' => ['name' => 'Voellerdingen', 'uic' => '87215640'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-05-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Vœllerdingen', 188424218),
+        'quote' => 'La gare de Vœllerdingen est mise en service lors de l\'ouverture de la section de voie ferrée de Mommenheim à Kalhausen, le 1 mai 1895.',
+        'reason' => 'article de la gare (oldid 188424218) : « La gare de Vœllerdingen est mise en service lors de l\'ouverture de la section de voie ferrée de Mommenheim à Kalhausen, le 1 mai 1895. ». Précise ou corrige la date de la base (1895-01-01, wikidata).',
+    ],
+
+    // St-Ouen-Garibaldi (id 18798)
+    [
+        'station' => ['name' => 'St-Ouen-Garibaldi', 'uic' => '87271254'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1972-05-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Ouen-Garibaldi', 224691760),
+        'quote' => 'La nouvelle gare est ouverte le 28 mai 1972 dans les chemins de fer et devient le terminus de dix aller-retour quotidiens',
+        'reason' => 'article de la gare (oldid 224691760) : « La nouvelle gare est ouverte le 28 mai 1972 dans les chemins de fer et devient le terminus de dix aller-retour quotidiens ». Remplace le 1874 déduit de la ligne (la ligne de La Plaine à Ermont - Eaubonne est inaugurée en 1908, la gare est créée en 1972).',
+    ],
+
+    // Achicourt (id 19041)
+    [
+        'station' => ['name' => 'Achicourt', 'uic' => '87342154'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1910-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Achicourt', 238683027),
+        'quote' => 'il est complété par une halte voyageurs en 1910',
+        'reason' => 'article de la gare (oldid 238683027) : « il est complété par une halte voyageurs en 1910 ». Remplace le 1876 de Wikidata (simple poste de bifurcation, sans voyageurs).',
+    ],
+
+    // St-Germain-en-Laye-Bel-Air-Fourqueux (id 19086)
+    [
+        'station' => ['name' => 'St-Germain-en-Laye-Bel-Air-Fourqueux', 'uic' => '87366922'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Germain-en-Laye-Bel-Air - Fourqueux', 238757435),
+        'quote' => 'la gare de Fourqueux ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 238757435) : « la gare de Fourqueux ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne). Première gare du lieu (règle du déménagement) : la gare actuelle de 2004 est une nouvelle gare.',
+    ],
+
+    // St-Germain-en-Laye-Grande-Ceinture (id 19108)
+    [
+        'station' => ['name' => 'St-Germain-en-Laye-Grande-Ceinture', 'uic' => '87382804'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Germain-en-Laye-Grande-Ceinture', 240770886),
+        'quote' => 'la gare de Saint-Germain-en-Laye-Grande-Ceinture ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 240770886) : « la gare de Saint-Germain-en-Laye-Grande-Ceinture ouvre aux voyageurs le 4 septembre 1882, lors de l\'inauguration du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // Poissy-Grande-Ceinture (id 19111)
+    [
+        'station' => ['name' => 'Poissy-Grande-Ceinture', 'uic' => '87386565'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Poissy-Grande-Ceinture', 235033809),
+        'quote' => 'La « gare de Poissy (grande ceinture) » est officiellement mise en service le 4 septembre 1882',
+        'reason' => 'article de la gare (oldid 235033809) : « La « gare de Poissy (grande ceinture) » est officiellement mise en service le 4 septembre 1882 ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // St-Cyr-Grande-Ceinture (id 19140)
+    [
+        'station' => ['name' => 'St-Cyr-Grande-Ceinture', 'uic' => '87393850'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-09-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Cyr-Grande-Ceinture', 219957684),
+        'quote' => 'La gare de Saint-Cyr-Grande-Ceinture ouvre au trafic des voyageurs le 4 septembre 1882 lors de l\'inauguration, sur la ligne de Grande ceinture, du service de Versailles-Chantiers à Achères',
+        'reason' => 'article de la gare (oldid 219957684) : « La gare de Saint-Cyr-Grande-Ceinture ouvre au trafic des voyageurs le 4 septembre 1882 lors de l\'inauguration, sur la ligne de Grande ceinture, du service de Versailles-Chantiers à Achères ». Précise ou corrige la date de la base (1877-01-01, déduite de la ligne).',
+    ],
+
+    // Toutainville (id 19267)
+    [
+        'station' => ['name' => 'Toutainville', 'uic' => '87415497'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1889-06-08',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Toutainville', 166062174),
+        'quote' => 'Elle a été ouverte le 8 juin 1889 par la Compagnie des chemins de fer de l\'Ouest.',
+        'reason' => 'article de la gare (oldid 166062174) : « Elle a été ouverte le 8 juin 1889 par la Compagnie des chemins de fer de l\'Ouest. ». Précise ou corrige la date de la base (1867-01-01, déduite de la ligne).',
+    ],
+
+    // Messei (id 19355)
+    [
+        'station' => ['name' => 'Messei', 'uic' => '87448100'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-07-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Argentan à Granville', 240174253),
+        'quote' => '2 juillet 1866 : Argentan à Flers (embranchement de la ligne du Mans à Mézidon)',
+        'reason' => 'article de la ligne « Ligne d\'Argentan à Granville » (oldid 240174253) : « 2 juillet 1866 : Argentan à Flers (embranchement de la ligne du Mans à Mézidon) ». Précise ou corrige la date de la base (1874-05-18, déduite de la ligne). Messei est sur la section d\'Argentan à Flers ; l\'infobox de l\'article de la gare (oldid 232257623) donne 1866.',
+    ],
+
+    // St-Julien (Côtes-d'Armor) (id 19389)
+    [
+        'station' => ['name' => 'St-Julien (Côtes-d\'Armor)', 'uic' => '87473314'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Julien (Côtes-d\'Armor)', 236325504),
+        'quote' => 'La compagnie ouvre une halte à côté du passage à niveau n° 8 en 1873',
+        'reason' => 'article de la gare (oldid 236325504) : « La compagnie ouvre une halte à côté du passage à niveau n° 8 en 1873 ». Remplace l\'année 1872 de Wikidata (la section de la ligne ouvre le 20/11/1871 sans halte).',
+    ],
+
+    // Lambel-Camors (id 19404)
+    [
+        'station' => ['name' => 'Lambel-Camors', 'uic' => '87476515'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1899-05-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lambel - Camors', 235362694),
+        'quote' => 'La halte de Lambel - Camors est mise en service le 29 mai 1899 par la Compagnie du chemin de fer de Paris à Orléans (PO)',
+        'reason' => 'article de la gare (oldid 235362694) : « La halte de Lambel - Camors est mise en service le 29 mai 1899 par la Compagnie du chemin de fer de Paris à Orléans (PO) ». Précise ou corrige la date de la base (1898-01-01, wikidata).',
+    ],
+
+    // Angers-St-Serge (id 19450)
+    [
+        'station' => ['name' => 'Angers-St-Serge', 'uic' => '87484022'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Angers-Saint-Serge', 231419269),
+        'quote' => 'La gare est ouverte en 1878.',
+        'reason' => 'article de la gare (oldid 231419269) : « La gare est ouverte en 1878. ». Précise ou corrige la date de la base (1863-01-01, wikidata).',
+    ],
+
+    // Croix-d'Hins (id 19736)
+    [
+        'station' => ['name' => 'Croix-d\'Hins', 'uic' => '87582437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-05-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Croix-d\'Hins', 240588260),
+        'quote' => 'Elle ouvrit le 7 mai 1841.',
+        'reason' => 'article de la gare (oldid 240588260) : « Elle ouvrit le 7 mai 1841. ». Remplace le 07/07/1841 de Wikidata.',
+    ],
+
+    // Auzits-Aussibals (id 19918)
+    [
+        'station' => ['name' => 'Auzits-Aussibals', 'uic' => '87613240'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Auzits-Aussibal', 238728008),
+        'quote' => 'En 1875, le conseil général se satisfait d\'avoir obtenu la construction de la station, ou gare, d\'Aussibal ouverte uniquement au service des voyageurs.',
+        'reason' => 'article de la gare (oldid 238728008) : « En 1875, le conseil général se satisfait d\'avoir obtenu la construction de la station, ou gare, d\'Aussibal ouverte uniquement au service des voyageurs. ». Remplace le 30/08/1858 déduit de la ligne : la ligne s\'ouvre sans station à Aussibal. Confiance moyenne : l\'article date l\'obtention de la station en 1875, l\'infobox donne 1875.',
+    ],
+
+    // Sincey-lès-Rouvray (id 20211)
+    [
+        'station' => ['name' => 'Sincey-lès-Rouvray', 'uic' => '87694430'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1882-08-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sincey-lès-Rouvray', 232110226),
+        'quote' => 'La gare de Sincey est mise en service le 23 août 1882 dans les chemins de fer par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 232110226) : « La gare de Sincey est mise en service le 23 août 1882 dans les chemins de fer par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Précise ou corrige la date de la base (1876-01-01, wikidata).',
+    ],
+
+    // Chatelay-Chissey (id 20330)
+    [
+        'station' => ['name' => 'Chatelay-Chissey', 'uic' => '87718858'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Chatelay - Chissey', 222067327),
+        'quote' => 'Elle est mise en service en 1867 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 222067327) : « Elle est mise en service en 1867 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Précise ou corrige la date de la base (1870-12-31, déduite de la ligne).',
+    ],
+
+    // Cognin (id 20495)
+    [
+        'station' => ['name' => 'Cognin', 'uic' => '87741405'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1951-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cognin', 235031390),
+        'quote' => 'le projet d\'une halte ferroviaire aboutit en 1951',
+        'reason' => 'article de la gare (oldid 235031390) : « le projet d\'une halte ferroviaire aboutit en 1951 ». Remplace le 1884 déduit de la ligne (inaugurée en 1884 sans arrêt à Cognin).',
+    ],
+
+    // La Calade-Éguilles (id 20612)
+    [
+        'station' => ['name' => 'La Calade-Éguilles', 'uic' => '87751396'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-05-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Calade - Éguilles', 235032396),
+        'quote' => 'Ouverte le 11 mai 1872 avec la ligne de Aix-en-Provence à Pertuis',
+        'reason' => 'article de la gare (oldid 235032396) : « Ouverte le 11 mai 1872 avec la ligne de Aix-en-Provence à Pertuis ». Précise ou corrige la date de la base (1870-01-31, déduite de la ligne).',
+    ],
+
+    // Ste-Anastasie-Garage (id 20648)
+    [
+        'station' => ['name' => 'Ste-Anastasie-Garage', 'uic' => '87755710'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1880-11-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Sainte-Anastasie-sur-Issole', 206880925),
+        'quote' => 'met en service la station de Sainte-Anastasie lors de l\'ouverture de la section de Carnoules à Trets le 29 novembre 1880',
+        'reason' => 'article de la gare (oldid 206880925) : « met en service la station de Sainte-Anastasie lors de l\'ouverture de la section de Carnoules à Trets le 29 novembre 1880 ». Précise ou corrige la date de la base (1880-01-01, wikidata).',
+    ],
+
+    // Ners (id 20823)
+    [
+        'station' => ['name' => 'Ners', 'uic' => '87775338'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1841-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Ners', 235033496),
+        'quote' => 'La gare est mise en service en 1841 par la Compagnie des Mines de la Grand\'Combe et des chemins de fer du Gard.',
+        'reason' => 'article de la gare (oldid 235033496) : « La gare est mise en service en 1841 par la Compagnie des Mines de la Grand\'Combe et des chemins de fer du Gard. ». Remplace le 19/08/1840 déduit de la ligne : la gare est construite entre 1839 et 1841 et mise en service en 1841.',
+    ],
+
+    // Rotangy (id 21061)
+    [
+        'station' => ['name' => 'Rotangy', 'wikidata' => 'Q60851449'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-04-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rotangy', 239716639),
+        'quote' => 'Il sera ouvert le 15 avril 1876.',
+        'reason' => 'article de la gare (oldid 239716639) : « Il sera ouvert le 15 avril 1876. ». Précise ou corrige la date de la base (1874-01-01, déduite de la ligne). Confiance moyenne : la phrase parle de la ligne de Beauvais à Amiens ; l\'infobox de la gare donne 1876.',
+    ],
+
+    // Les tramways départementaux de Vesoul (id 21123)
+    [
+        'station' => ['name' => 'Les tramways départementaux de Vesoul', 'wikidata' => 'Q16638604'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1910-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare des chemins de fer vicinaux de Vesoul', 240982502),
+        'quote' => 'Inauguré en 1910, la gare (généralement nommée « gare du Tacot ») a fonctionné, dans le cadre du service ferroviaire précité, de 1910 à 1938.',
+        'reason' => 'article de la gare (oldid 240982502) : « Inauguré en 1910, la gare (généralement nommée « gare du Tacot ») a fonctionné, dans le cadre du service ferroviaire précité, de 1910 à 1938. ». Gare des chemins de fer vicinaux (voie métrique), distincte de la gare de Vesoul : remplace le 1858 déduit des lignes de la gare de Vesoul.',
+    ],
+
+    // Reuilly (id 21140)
+    [
+        'station' => ['name' => 'Reuilly', 'uic' => '8711401'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-09-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Reuilly (Paris)', 239997910),
+        'quote' => 'La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859.',
+        'reason' => 'article de la gare (oldid 239997910) : « La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859. ». Remplace le 17/08/1853 déduit de la Petite Ceinture.',
+    ],
+
+    // Ravezies (id 21148)
+    [
+        'station' => ['name' => 'Ravezies', 'uic' => '8723531'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Ravezies', 240915040),
+        'quote' => 'La gare est mise en service en 1868 sous le nom de Bordeaux-Saint-Louis en même temps que la ligne du Médoc',
+        'reason' => 'article de la gare (oldid 240915040) : « La gare est mise en service en 1868 sous le nom de Bordeaux-Saint-Louis en même temps que la ligne du Médoc ». Précise ou corrige la date de la base (1968-01-01, wikidata). Première gare du lieu (règle du déménagement) : le 1968 de Wikidata est le déplacement de la gare (22/04/1968).',
+    ],
+
+    // Saint-Sylvestre-Cappel (id 21159)
+    [
+        'station' => ['name' => 'Saint-Sylvestre-Cappel', 'wikidata' => 'Q60846721'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Wervicq (id 21173)
+    [
+        'station' => ['name' => 'Wervicq', 'wikidata' => 'Q56884205'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Wervicq-Sud', 235035066),
+        'quote' => 'La gare de Wervicq-Sud est mise en service en 1897 lors de l\'ouverture de la section Frelinghien - Halluin de la ligne de tramway à écartement métrique d\'Armentières à Halluin',
+        'reason' => 'article de la gare (oldid 235035066) : « La gare de Wervicq-Sud est mise en service en 1897 lors de l\'ouverture de la section Frelinghien - Halluin de la ligne de tramway à écartement métrique d\'Armentières à Halluin ». Précise ou corrige la date de la base (1895-01-01, déduite de la ligne).',
+    ],
+
+    // Winnezeele (id 21206)
+    [
+        'station' => ['name' => 'Winnezeele', 'wikidata' => 'Q60846727'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Étretat (id 21226)
+    [
+        'station' => ['name' => 'Étretat', 'wikidata' => 'Q113835961'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1895-06-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Étretat', 240098795),
+        'quote' => 'elle a été mise en service le 22 juin 1895, son terminus étant la gare d\'Étretat qui ouvrit à cette même occasion',
+        'reason' => 'article de la gare (oldid 240098795) : « elle a été mise en service le 22 juin 1895, son terminus étant la gare d\'Étretat qui ouvrit à cette même occasion ». Précise ou corrige la date de la base (1895-01-01, déduite de la ligne).',
+    ],
+
+    // Jallieu (id 21292)
+    [
+        'station' => ['name' => 'Jallieu', 'wikidata' => 'Q28041425'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1899-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Jallieu', 172660849),
+        'quote' => 'La gare ouvre en 1899, est fermée aux voyageurs en 1931',
+        'reason' => 'article de la gare (oldid 172660849) : « La gare ouvre en 1899, est fermée aux voyageurs en 1931 ». Gare des chemins de fer de l\'Est de Lyon (CFEL) : remplace le 1881 déduit d\'une autre ligne.',
+    ],
+
+    // Courcelles-Ceinture (id 21294)
+    [
+        'station' => ['name' => 'Courcelles-Ceinture', 'wikidata' => 'Q21427130'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-03-25',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Courcelles-Ceinture', 202583562),
+        'quote' => 'La gare de Courcelles-Ceinture est ouverte aux voyageurs le 25 mars 1869 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 202583562) : « La gare de Courcelles-Ceinture est ouverte aux voyageurs le 25 mars 1869 dans les chemins de fer ». Précise ou corrige la date de la base (1854-05-02, déduite de la ligne).',
+    ],
+
+    // La Cantraie (id 21378)
+    [
+        'station' => ['name' => 'La Cantraie', 'wikidata' => 'Q19406991'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1903-01-24',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Cantraie', 166058710),
+        'quote' => 'L\'arrêt de La Cantraie est ouvert en 1903 par approbation « à titre précaire » le 24 janvier 1903 du ministre des Travaux Publics.',
+        'reason' => 'article de la gare (oldid 166058710) : « L\'arrêt de La Cantraie est ouvert en 1903 par approbation « à titre précaire » le 24 janvier 1903 du ministre des Travaux Publics. ». Remplace le 23/12/1877 déduit de la ligne (arrêt créé 26 ans après).',
+    ],
+
+    // Boulogne – Aéroglisseurs (id 21386)
+    [
+        'station' => ['name' => 'Boulogne – Aéroglisseurs', 'uic' => '8731755'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1970-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Boulogne-Aéroglisseurs', 241115734),
+        'quote' => 'La gare de Boulogne-Aéroglisseurs est ouverte en 1970',
+        'reason' => 'article de la gare (oldid 241115734) : « La gare de Boulogne-Aéroglisseurs est ouverte en 1970 ». Précise ou corrige la date de la base (1968-01-01, wikidata).',
+    ],
+
+    // Ancienne gare (id 21391)
+    [
+        'station' => ['name' => 'Ancienne gare', 'wikidata' => 'Q1991017'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-01-24',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Pierrefonds', 235033780),
+        'quote' => 'La nouvelle gare de « Pierrefonds-les-Bains » est inaugurée le 24 janvier 1884 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 235033780) : « La nouvelle gare de « Pierrefonds-les-Bains » est inaugurée le 24 janvier 1884 dans les chemins de fer ». Précise ou corrige la date de la base (1884-01-01, wikidata).',
+    ],
+
+    // Killem (id 21438)
+    [
+        'station' => ['name' => 'Killem', 'wikidata' => 'Q60846737'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Mandres-les-Roses (id 21472)
+    [
+        'station' => ['name' => 'Mandres-les-Roses', 'wikidata' => 'Q96483432'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Mandres', 238222513),
+        'quote' => 'La gare est ouverte pour le transport de voyageurs en 1876',
+        'reason' => 'article de la gare (oldid 238222513) : « La gare est ouverte pour le transport de voyageurs en 1876 ». Remplace le 31/12/1880 déduit de la ligne.',
+    ],
+
+    // Nantes-État (id 21486)
+    [
+        'station' => ['name' => 'Nantes-État', 'uic' => '8748102'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-04-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Nantes-État', 235033466),
+        'quote' => 'exploitée à partir du 15 avril 1876 par la Compagnie des chemins de fer nantais',
+        'reason' => 'article de la gare (oldid 235033466) : « exploitée à partir du 15 avril 1876 par la Compagnie des chemins de fer nantais ». Remplace l\'année 1887 d\'OSM.',
+    ],
+
+    // Le Plan-Plascassier (id 21497)
+    [
+        'station' => ['name' => 'Le Plan-Plascassier', 'wikidata' => 'Q78149772'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1892-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Plan-Plascassier', 240746165),
+        'quote' => 'La « halte du Plan-de-Grasse » est ouverte en 1892 par la Compagnie du PLM.',
+        'reason' => 'article de la gare (oldid 240746165) : « La « halte du Plan-de-Grasse » est ouverte en 1892 par la Compagnie du PLM. ». Remplace le 13/11/1871 déduit de la ligne : il n\'y avait pas de halte à la mise en service.',
+    ],
+
+    // Cepoy (id 21503)
+    [
+        'station' => ['name' => 'Cepoy', 'wikidata' => 'Q115271714'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Cepoy', 200697080),
+        'quote' => 'En 1887, la gare de Cepoy est en cours de construction par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM)',
+        'reason' => 'article de la gare (oldid 200697080) : « En 1887, la gare de Cepoy est en cours de construction par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) ». Titre de section « Station PLM (1888-1937) » et infobox « vers 1888 ». Remplace le 14/08/1860 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // La Bourse (id 21552)
+    [
+        'station' => ['name' => 'La Bourse', 'wikidata' => 'Q27786387'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de la Bourse', 203976606),
+        'quote' => 'Elle est achevée en 1857',
+        'reason' => 'article de la gare (oldid 203976606) : « Elle est achevée en 1857 ». Remplace le 17/08/1851 déduit de la ligne (la station est créée après la ligne, section inaugurée le 06/04/1853).',
+    ],
+
+    // Rexpoëde (id 21564)
+    [
+        'station' => ['name' => 'Rexpoëde', 'wikidata' => 'Q60846734'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Bel-Air (id 21576)
+    [
+        'station' => ['name' => 'Bel-Air', 'wikidata' => 'Q131343811'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-09-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Bel-Air (Paris)', 239900483),
+        'quote' => 'La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859.',
+        'reason' => 'article de la gare (oldid 239900483) : « La ligne de Paris-Bastille à Marles-en-Brie est ouverte le 22 septembre 1859. ». Remplace le 17/08/1853 déduit de la Petite Ceinture.',
+    ],
+
+    // Le Thillot (id 21619)
+    [
+        'station' => ['name' => 'Le Thillot', 'uic' => '8714454'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1879-11-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare du Thillot', 176707893),
+        'quote' => 'Mise en service en 1879 par la Compagnie des chemins de fer de l\'Est',
+        'reason' => 'article de la gare (oldid 176707893) : « Mise en service en 1879 par la Compagnie des chemins de fer de l\'Est ». Précise ou corrige la date de la base (1879-01-01, wikidata). L\'infobox donne le 7 novembre 1879, date de la section de Remiremont à Saint-Maurice-sur-Moselle de la ligne d\'Épinal à Bussang (oldid 219647311). Confiance moyenne.',
+    ],
+
+    // Tocqueville - Gouberville (id 21631)
+    [
+        'station' => ['name' => 'Tocqueville - Gouberville', 'wikidata' => 'Q2689720'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1911-07-08',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Tocqueville - Gouberville', 202420186),
+        'quote' => 'La gare de Tocqueville - Gouberville est mise en service le 8 juillet 1911 par la Compagnie des chemins de fer de la Manche (CFM)',
+        'reason' => 'article de la gare (oldid 202420186) : « La gare de Tocqueville - Gouberville est mise en service le 8 juillet 1911 par la Compagnie des chemins de fer de la Manche (CFM) ». Précise ou corrige la date de la base (1886-01-01, wikidata).',
+    ],
+
+    // Boulevard Ornano (id 21731)
+    [
+        'station' => ['name' => 'Boulevard Ornano', 'wikidata' => 'Q16508091'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1869-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du boulevard Ornano', 241230868),
+        'quote' => 'La gare est ouverte aux voyageurs en 1869.',
+        'reason' => 'article de la gare (oldid 241230868) : « La gare est ouverte aux voyageurs en 1869. ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Grenelle-Ceinture (id 21809)
+    [
+        'station' => ['name' => 'Grenelle-Ceinture', 'wikidata' => 'Q16508000'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Grenelle-Ceinture', 235031977),
+        'quote' => 'La gare de Grenelle-Ceinture est mise en service en 1867.',
+        'reason' => 'article de la gare (oldid 235031977) : « La gare de Grenelle-Ceinture est mise en service en 1867. ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Avenue de Saint-Ouen (id 21878)
+    [
+        'station' => ['name' => 'Avenue de Saint-Ouen', 'wikidata' => 'Q16507976'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-11-16',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de l\'avenue de Saint-Ouen', 228129603),
+        'quote' => 'La gare est ouverte aux voyageurs le 16 novembre 1863 dans les chemins de fer',
+        'reason' => 'article de la gare (oldid 228129603) : « La gare est ouverte aux voyageurs le 16 novembre 1863 dans les chemins de fer ». Remplace le 1862 déduit de la ligne de Petite Ceinture.',
+    ],
+
+    // Herzeele (id 21907)
+    [
+        'station' => ['name' => 'Herzeele', 'wikidata' => 'Q60846730'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Pont-d'Espenel (id 21911)
+    [
+        'station' => ['name' => 'Pont-d\'Espenel', 'wikidata' => 'Q71561821'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1898-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Pont-d\'Espenel', 229517806),
+        'quote' => 'annonce dans le journal officiel, du 28 novembre 1898, l\'ouverture « de la halte du Pont-d\'Espenel (Drôme) au service des voyageurs',
+        'reason' => 'article de la gare (oldid 229517806) : « annonce dans le journal officiel, du 28 novembre 1898, l\'ouverture « de la halte du Pont-d\'Espenel (Drôme) au service des voyageurs ». Remplace le 01/09/1885 déduit de la ligne (section de Crest à Die) : la halte ouvre 13 ans plus tard.',
+    ],
+
+    // La Tâche (id 21920)
+    [
+        'station' => ['name' => 'La Tâche', 'wikidata' => 'Q107142614'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1909-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de La Tâche', 241339803),
+        'quote' => 'les CFD autorisent par délibération, le 29 mars 1908 la construction d\'une halte à l\'emplacement de La Tâche',
+        'reason' => 'article de la gare (oldid 241339803) : « les CFD autorisent par délibération, le 29 mars 1908 la construction d\'une halte à l\'emplacement de La Tâche ». L\'infobox donne 1909. Remplace le 1896 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Bambecque (id 21921)
+    [
+        'station' => ['name' => 'Bambecque', 'wikidata' => 'Q60846732'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1894-09-08',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer de Hazebrouck à Bergues et Hondschoote', 237506140),
+        'quote' => 'La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894',
+        'reason' => 'article de la ligne « Chemin de fer de Hazebrouck à Bergues et Hondschoote » (oldid 237506140) : « La ligne Hazebrouck - Hondschoote et son embranchement de Rexpoëde à Bergues (Porte de Cassel) fut ouverte le 8 septembre 1894 ». L\'article de la gare confirme l\'année 1894. Remplace le 01/07/1897 (autre section du réseau).',
+    ],
+
+    // Brézilhou (id 21932)
+    [
+        'station' => ['name' => 'Brézilhou', 'wikidata' => 'Q86724318'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1938-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Halte de Brézilhou', 224625189),
+        'quote' => 'Cette halte a été mise en service vers 1938 lorsque la SNCF a repris la ligne.',
+        'reason' => 'article de la gare (oldid 224625189) : « Cette halte a été mise en service vers 1938 lorsque la SNCF a repris la ligne. ». Date approximative (« vers »). Remplace le 01/07/1878 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Massia (id 21943)
+    [
+        'station' => ['name' => 'Massia', 'wikidata' => 'Q86724368'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1956-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Halte de Massia', 209241219),
+        'quote' => 'Cette halte a été mise en service vers 1956 lorsque la SNCF a repris la ligne.',
+        'reason' => 'article de la gare (oldid 209241219) : « Cette halte a été mise en service vers 1956 lorsque la SNCF a repris la ligne. ». Date approximative (« vers »). Remplace le 01/07/1878 déduit de la ligne. Confiance moyenne.',
+    ],
+
+    // Limours-État (id 21965)
+    [
+        'station' => ['name' => 'Limours-État', 'wikidata' => 'Q107205111'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1930-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Limours-État', 204050069),
+        'quote' => 'mais ouverte seulement en 1930',
+        'reason' => 'article de la gare (oldid 204050069) : « mais ouverte seulement en 1930 ». Remplace l\'année 1922 de Wikidata (gare achevée en 1922, premiers trains en 1930).',
+    ],
+
 ];
