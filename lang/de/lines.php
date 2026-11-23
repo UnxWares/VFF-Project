@@ -575,6 +575,7 @@ return [
         'tech' => 'Technik',
         'profile' => 'Höhenprofil',
         'speeds' => 'Geschwindigkeiten',
+        'electrification' => 'Elektrifizierung',
         'level-crossings' => 'Bahnübergänge',
         'greenways' => 'Bahntrassenradweg',
         'chronicle' => 'Chronik',

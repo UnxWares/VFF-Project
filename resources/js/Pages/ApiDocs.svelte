@@ -82,6 +82,10 @@
                 { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
                 { path: '/api/v1/lines/{line}/signalling-history', key: 'signalling_history' },
                 { path: '/api/v1/lines/{line}/speeds', key: 'speeds' },
+                {
+                    path: '/api/v1/lines/{line}/electrification-history',
+                    key: 'electrification_history',
+                },
                 { path: '/api/v1/lines/{line}/profile', key: 'profile' },
                 {
                     path: '/api/v1/lines/{line}/profile/points?pk_from_m={pk}&pk_to_m={pk}',
@@ -221,6 +225,7 @@
         'locate_on_line',
         'signalling_history',
         'line_speeds',
+        'line_electrification_history',
         'list_departments',
         'what_was_here',
         'network_in_area',

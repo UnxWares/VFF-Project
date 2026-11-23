@@ -81,7 +81,9 @@ class PageQueryBudgetTest extends TestCase
         // que la table existe, gardé en cache ensuite).
         // 64 : les vitesses maximales le 23/11 (LineSpeeds : ère courante, constat des deux tables en une lecture gardée
         // en cache ensuite, tranches de PK, changements datés). Le diagramme « Où et quand » n'ajoute aucune lecture.
-        $this->assertLessThanOrEqual(64, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 67 : l'histoire de l'électrification le 23/11 (LineElectrificationHistory : constat de la table des tranches SNCF,
+        // tranches de la ligne par son code, événements d'électrification datés ; trois lectures indexées, aucune par élément).
+        $this->assertLessThanOrEqual(67, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));

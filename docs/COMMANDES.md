@@ -328,6 +328,18 @@ quand la part de ses tronçons en service électrifiés atteint le seuil de la f
 | `--dry-run` | Calcule et affiche les lignes qui changent de sens, sans écrire. |
 | `--show=40` | Nombre de lignes affichées par sens. |
 
+### `vff:electrification-history-coverage`
+
+Lecture seule : mesure la couverture de l'histoire de l'électrification (service `LineElectrificationHistory`, lue à la
+volée dans `line_events` et `sncf_line_electrification`, rien à importer). Affiche les lignes électrifiées qui ont au moins
+une date de mise sous tension sûre, avec et sans les raccordements, le nombre de faits rendus par nature et le nombre
+d'événements écartés comme ambigus.
+
+| Option | Effet |
+|:-|:-|
+| `--line=` | Code ou slug d'une ligne : ses tranches SNCF et ses faits datés, un par ligne, pour vérifier à la main. |
+| `--missing=0` | Liste N lignes électrifiées (hors raccordements) sans date sûre. |
+
 ### `vff:merge-split-lines`
 
 Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en six passes rejouables : `sections`,

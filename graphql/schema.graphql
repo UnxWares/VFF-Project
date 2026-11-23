@@ -159,6 +159,15 @@ type Line {
     ): [LineSignallingRange!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
+    Histoire de l'électrification de la ligne : tranches de PK électrifiées aujourd'hui avec leur tension (SNCF
+    Réseau Open Data, jeu `liste-des-lignes-electrifiees`, ODbL) et mises sous tension, conversions de tension et
+    désélectrifications datées, relevées dans les articles Wikipédia de la ligne et dans Wikidata. Même lecture que
+    `GET /api/v1/lines/{line}/electrification-history`. Ne pas confondre avec la fiche (`LineSheet.electrification`,
+    longueurs par tension à l'ère affichée).
+    """
+    electrification_history: LineElectrificationHistory! @field(resolver: "App\\GraphQL\\Resolvers\\LineElectrificationHistoryResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
     Vitesses maximales de la ligne : tranches de points kilométriques de l'ère (SNCF Réseau Open Data,
     jeu `vitesse-maximale-nominale-sur-ligne`, ODbL ; seule l'ère courante, 2030, est renseignée) et
     changements datés relevés dans l'article Wikipédia de la ligne. Même lecture que
@@ -392,6 +401,168 @@ type LineSignallingRange {
 
     "Remarque sur la tranche, en général la source (ex. « Source : SNCF Open Data, mode-de-cantonnement-des-lignes »)."
     note: String
+}
+
+"Histoire de l'électrification d'une ligne (`Line.electrification_history`)."
+type LineElectrificationHistory {
+    "Tranches de PK électrifiées aujourd'hui, dans l'ordre des PK (voisines de même tension réunies). Liste vide hors du réseau de SNCF Réseau."
+    ranges: [LineElectrificationRange!]!
+
+    "État de la ligne, longueur électrifiée selon SNCF et longueur par tension."
+    summary: LineElectrificationSummary!
+
+    "Mises sous tension, conversions et désélectrifications datées et sûres, du plus ancien au plus récent. Un fait absent ne veut pas dire que la portion n'a pas été électrifiée à une autre date."
+    history: [LineElectrificationEvent!]!
+
+    "Provenance : SNCF Réseau (ODbL) pour les tranches, Wikipédia (CC BY-SA 4.0) et Wikidata (CC0) pour l'historique."
+    provenance: LineElectrificationProvenance!
+}
+
+"Tranche de PK électrifiée sous une tension (SNCF Réseau)."
+type LineElectrificationRange {
+    "PK de début, en mètres, dans la numérotation de SNCF Réseau."
+    pk_start_m: Int!
+
+    "PK de fin, en mètres."
+    pk_end_m: Int!
+
+    "PK de début en notation `km+mmm`."
+    pk_start_label: String!
+
+    "PK de fin en notation `km+mmm`."
+    pk_end_label: String!
+
+    "Longueur de la tranche, en mètres."
+    length_m: Int!
+
+    "Tension en volts (`1500`, `25000`, `3000`, `750`), nulle si le jeu ne la donne pas."
+    voltage_v: Int
+
+    "`dc` (continu), `ac` (alternatif), `third_rail` (troisième rail) ou `unknown`."
+    system: String!
+}
+
+"Résumé de l'électrification d'une ligne."
+type LineElectrificationSummary {
+    "La ligne est électrifiée à l'ère courante (toutes sources de VFF)."
+    line_electrified: Boolean!
+
+    "Tension dominante de la ligne, en volts."
+    line_voltage_v: Int
+
+    "Longueur électrifiée selon SNCF Réseau, en mètres."
+    electrified_m: Int!
+
+    "Longueur par tension, la plus longue d'abord."
+    by_voltage: [LineElectrificationShare!]!
+}
+
+"Longueur de ligne électrifiée sous une tension."
+type LineElectrificationShare {
+    "Tension en volts."
+    voltage_v: Int
+
+    "`dc`, `ac`, `third_rail` ou `unknown`."
+    system: String!
+
+    "Longueur, en mètres."
+    length_m: Int!
+}
+
+"Fait daté d'électrification relevé dans une chronologie d'article."
+type LineElectrificationEvent {
+    "`electrification` (mise sous tension), `conversion` (ré-électrification, changement de tension) ou `deelectrification`."
+    kind: String!
+
+    "Tension citée par la phrase, en volts (jamais déduite)."
+    voltage_v: Int
+
+    "`dc`, `ac` ou `third_rail`, quand la tension est citée."
+    system: String
+
+    "Date `AAAA-MM-JJ` (jour et mois manquants valent 01)."
+    date: String!
+
+    "`day`, `month` ou `year`."
+    date_precision: String!
+
+    "`high` (jour ou mois dans la phrase) ou `medium` (année)."
+    reliability: String!
+
+    "`whole_line`, `section` ou `unspecified`."
+    scope: String!
+
+    "Portion concernée, nulle si `scope` n'est pas `section`."
+    section: LineElectrificationSection
+
+    "Source du fait."
+    source: LineElectrificationSource!
+}
+
+"Portion d'une ligne concernée par un fait d'électrification."
+type LineElectrificationSection {
+    "Gare de début citée."
+    from: String
+
+    "Gare de fin citée."
+    to: String
+
+    "PK de début en mètres, quand la portion est placée sur la ligne."
+    pk_start_m: Int
+
+    "PK de fin en mètres."
+    pk_end_m: Int
+}
+
+"Source d'un fait d'électrification."
+type LineElectrificationSource {
+    "`wikipedia`, `wikidata` ou `manual`."
+    provider: String!
+
+    "Permalien de la révision de l'article lue."
+    url: String
+
+    "Courte phrase de l'article (CC BY-SA 4.0), nulle hors Wikipédia."
+    excerpt: String
+}
+
+"Provenance de l'électrification d'une ligne."
+type LineElectrificationProvenance {
+    "Tranches : SNCF Réseau Open Data."
+    ranges: LineElectrificationRangeProvenance!
+
+    "Historique : articles de Wikipédia et Wikidata."
+    history: LineElectrificationHistoryProvenance!
+}
+
+"Provenance des tranches électrifiées."
+type LineElectrificationRangeProvenance {
+    "Producteur."
+    provider: String!
+
+    "Identifiant du jeu de données."
+    dataset: String!
+
+    "Page du jeu de données."
+    url: String!
+
+    "Licence (SPDX)."
+    license: String!
+
+    "Mention à reprendre."
+    mention: String!
+}
+
+"Provenance des faits datés."
+type LineElectrificationHistoryProvenance {
+    "Producteur."
+    provider: String!
+
+    "Licence."
+    license: String!
+
+    "Mention à reprendre."
+    mention: String!
 }
 
 "Vitesses maximales d'une ligne à une ère (`Line.speeds`)."

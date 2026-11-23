@@ -1169,6 +1169,20 @@ fiabilité high ou medium, portion, permalien de la révision lue).
 |---|---|---|---|
 | `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
 
+### `line_electrification_history` : histoire de l'électrification d'une ligne
+
+Mêmes données que `GET /api/v1/lines/{line}/electrification-history` (service `LineElectrificationHistory`), sans les
+phrases de l'article : `ranges` (tranches de PK électrifiées aujourd'hui avec leur tension et leur système `dc`, `ac`,
+`third_rail`, jeu SNCF Réseau `liste-des-lignes-electrifiees`, ODbL), `summary` (état de la ligne, longueur électrifiée,
+longueur par tension) et `history` (mises sous tension, conversions de tension et désélectrifications datées, relevées
+dans les chronologies des articles Wikipédia et dans Wikidata : `kind`, tension seulement si la phrase la cite,
+date et précision, fiabilité high ou medium, portion avec ses PK quand elle est placée, permalien de la révision lue).
+Faits sûrs seulement : travaux, projets, fourchettes de dates et phrases ambiguës sont écartés.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+
 ### `list_departments` : départements et régions
 
 Liste de référence des territoires (Code officiel géographique de l'INSEE, Licence Ouverte 2.0), mêmes données que

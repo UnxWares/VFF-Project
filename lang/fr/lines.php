@@ -576,6 +576,7 @@ return [
         'tech' => 'Technique',
         'profile' => 'Profil en long',
         'speeds' => 'Vitesses',
+        'electrification' => 'Électrification',
         'level-crossings' => 'Passages à niveau',
         'greenways' => 'Voie verte',
         'chronicle' => 'Chronologie',

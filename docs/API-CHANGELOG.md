@@ -21,6 +21,11 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Histoire de l'électrification d'une ligne : tranches de PK électrifiées avec leur tension (SNCF Réseau, ODbL) et mises sous tension,
+  conversions de tension et désélectrifications datées et sûres (Wikipédia, Wikidata) : REST `GET /api/v1/lines/{line}/electrification-history`,
+  GraphQL `Line.electrification_history` (types `LineElectrificationHistory`, `LineElectrificationRange`, `LineElectrificationSummary`,
+  `LineElectrificationShare`, `LineElectrificationEvent`, `LineElectrificationSection`, `LineElectrificationSource`,
+  `LineElectrificationProvenance`), MCP outil `line_electrification_history`. Ajout seul.
 - Fréquentation annuelle des gares (SNCF Gares & Connexions, ODbL) : REST `GET /api/v1/stations/{station}/attendance` et champ
   `attendance` de la fiche `GET /api/v1/stations/{station}` (avec `links.attendance`), GraphQL `Station.attendance` (types
   `StationAttendance`, `StationAttendanceYear`, `StationAttendanceLatest`, `StationAttendanceSource`), MCP outil `station_attendance`.
