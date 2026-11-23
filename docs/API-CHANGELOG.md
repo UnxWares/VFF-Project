@@ -21,6 +21,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /tourist-railways` (chemins de fer touristiques et vélorails exploités aujourd'hui : exploitant, type `steam`/`railcar`/`tram`/`rack`/`velorail`/`train`, écartement, longueur exploitée, année de début, régions, lignes, site officiel, source de chaque fait ; voies vertes sur ancienne voie dans `greenways` ; filtres `type` et `region`). Page : `/tourist-railways`.
 - Ouvrages d'art d'une ligne (tunnels, viaducs, grands ponts), lignes déposées comprises, dans l'ordre des PK : longueur, PK de début
   et de fin estimés sur le profil en long, dates de construction, de mise en service et de fermeture avec leur précision, protection
   monument historique et référence Mérimée, image libre de Commons, ères où la ligne y passe, source de chaque champ (IGN BD TOPO,

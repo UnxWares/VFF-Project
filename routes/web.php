@@ -36,6 +36,7 @@ use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\TouristRailwayController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
@@ -78,6 +79,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     });
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
+// Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.
+Route::get('/tourist-railways', [TouristRailwayController::class, 'index'])->name('tourist-railways');
 // Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).
 Route::get('/chronology', [ChronologyController::class, 'index'])->name('network.chronology');
 // Ce jour-là : ce qui s'est passé un jour du calendrier les années précédentes (aujourd'hui par défaut).

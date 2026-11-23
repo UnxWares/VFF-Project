@@ -135,6 +135,11 @@
             <p class="quiz-link">
                 <Link href="/quiz?game=lines" class="vff-link">{$i18n.t('quiz.links.lines')}</Link>
             </p>
+            <p class="quiz-link">
+                <Link href="/tourist-railways" class="vff-link"
+                    >{$i18n.t('tourist.link_lines')}</Link
+                >
+            </p>
         </PageHero>
 
         <div class="vff-container directory">

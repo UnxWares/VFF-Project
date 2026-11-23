@@ -119,6 +119,7 @@ return [
             'tiles' => 'Vektorkachel (MVT) einer Epoche, für eine MapLibre- oder OpenLayers-Quelle. Sie dient der Anzeige der Karte und ist kein Datenexport. Mit ?fields=map enthält sie nur die Eigenschaften, die die Karte der Website liest, und ist etwa 60 % kleiner.',
             'gtfs' => 'Netz einer Epoche im Format GTFS Static (ZIP-Archiv), mit Shapes nur für Strecken, deren gesamter Verlauf weitergegeben werden darf.',
             'lines' => 'Verzeichnis der Strecken, bestehender und verschwundener, mit denselben Filtern wie die Seite Strecken.',
+            'tourist_railways' => 'Heute betriebene Museumsbahnen und Draisinenbahnen (Betreiber, Art, Spurweite, Länge, Betriebsbeginn, Region, Links) und Bahntrassenradwege auf ehemaligen Strecken, mit der Quelle jeder Angabe.',
             'line' => 'Vollständiger Eintrag einer Strecke wie auf der Website: Kennzahlen, datierte Phasen, belegte Chronik, Bahnhöfe und Quellen.',
             'segments' => 'Einheitliche Abschnitte des Streckenverlaufs zu einer Epoche, in der Reihenfolge der Kilometerpunkte.',
             'history' => 'Chronik einer Strecke: datierte Ereignisse und Zustand zu jeder Epoche.',

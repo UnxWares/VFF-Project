@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
+use App\Http\Controllers\Api\TouristRailwayController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CspReportController;
 use Illuminate\Http\Request;
@@ -106,6 +107,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/on-this-day/{monthDay?}', [OnThisDayController::class, 'show'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('api.on-this-day');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
+    Route::get('/v1/tourist-railways', [TouristRailwayController::class, 'index'])->name('api.tourist-railways');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');

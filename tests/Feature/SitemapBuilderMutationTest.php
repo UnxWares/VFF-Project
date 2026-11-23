@@ -85,10 +85,10 @@ class SitemapBuilderMutationTest extends TestCase
     {
         Accident::factory()->create(['slug' => '2000-01-01-pas-dans-les-pages', 'kind' => 'collision']);
         $all = $this->locs((new SitemapBuilder)->family('https://h.org', 'pages', 1) ?? '');
-        $this->assertCount(22, $all);
+        $this->assertCount(23, $all);
         $this->assertSame('https://h.org/', $all[0]);
         $this->assertSame('https://h.org/whoarewe', $all[1]);
-        $this->assertSame('https://h.org/credits/media', $all[21]);
+        $this->assertSame('https://h.org/credits/media', $all[22]);
         $this->assertStringNotContainsString('lastmod', (string) (new SitemapBuilder)->family('https://h.org', 'pages', 1));
 
         $small = new SitemapBuilder(5);

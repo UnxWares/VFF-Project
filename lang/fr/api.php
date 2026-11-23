@@ -120,6 +120,7 @@ return [
             'tiles' => 'Tuile vectorielle (MVT) d’une ère, pour une source MapLibre ou OpenLayers. Elle sert à l’affichage de la carte, ce n’est pas un export de données. Avec ?fields=map, elle ne garde que les propriétés lues par la carte du site et pèse environ 60 % de moins.',
             'gtfs' => 'Réseau d’une ère au format GTFS Static (archive ZIP), avec les formes des seules lignes dont tout le tracé est redistribuable.',
             'lines' => 'Annuaire des lignes, actuelles et disparues, avec les mêmes filtres que la page Lignes.',
+            'tourist_railways' => 'Chemins de fer touristiques et vélorails exploités aujourd’hui (exploitant, type, écartement, longueur, année de début, région, liens) et voies vertes sur ancienne voie, avec la source de chaque fait.',
             'line' => 'Fiche complète d’une ligne, comme sur le site : chiffres clés, phases datées, chronique sourcée, gares et sources.',
             'segments' => 'Portions homogènes du tracé d’une ligne à une ère, dans l’ordre des points kilométriques.',
             'history' => 'Chronologie d’une ligne : événements datés et état à chaque ère.',

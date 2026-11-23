@@ -65,6 +65,7 @@
             key: 'lines',
             items: [
                 { path: '/api/v1/lines', key: 'lines' },
+                { path: '/api/v1/tourist-railways', key: 'tourist_railways' },
                 { path: '/api/v1/lines/{line}', key: 'line' },
                 { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
                 { path: '/api/v1/lines/{line}/geojson?era={year}', key: 'line_geojson' },
