@@ -255,6 +255,9 @@
         'on_this_day',
         'network_chronology',
         'tourist_railways',
+        'preserved_rolling_stock',
+        'rail_projects',
+        'station_events',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.

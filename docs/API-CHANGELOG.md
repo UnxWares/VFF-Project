@@ -44,6 +44,47 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y prend plus la valeur de cette source. L'API REST et GraphQL ne
   changent pas. Aucun champ n'est retiré.
 
+- Gares : l'ancien slug d'une fiche fondue dans une autre (deux fiches pour une même gare, action `merge` de
+  `database/data/gares_corrections.php`) répond `301` vers la même adresse sous le slug de la fiche gardée, sous-chemin et paramètres
+  gardés, pour toute route REST `GET` ou `HEAD` qui prend `{station}` (fiche, médias, fréquentation, horaires, chronologie...) ; GraphQL
+  `station(slug:)` et les outils MCP renvoient la fiche gardée (`slug` fait foi). Un envoi (`POST`) n'est jamais redirigé. Ajout seul.
+  `curl -sI https://vff-project.org/api/v1/stations/<ancien-slug>` : `HTTP/2 301`, `location: https://vff-project.org/api/v1/stations/<slug-actuel>`.
+  GraphQL : `{ station(slug: "<ancien-slug>") { slug name } }` répond la fiche sous son slug actuel.
+
+- Accidents : dans `review.verification.date.confirmed_by[]` et `place.confirmed_by[]` (REST ; `verification` en GraphQL, JSON), une source
+  `bea-tt` dont la page d'enquête a été relue à la main porte `report` : `title`, `url`, et `number` et `published` quand ils sont connus.
+  Le jour et la commune de cette page priment sur ceux du bilan des enquêtes, et une source primaire lève les notes d'import qu'elle
+  tranche sur la commune ou la date : des fiches passent à `ok` (`rule` = `primary_source`) et deux dates décalées d'un jour par le
+  bilan sont corrigées. Ajout seul. `curl -s https://vff-project.org/api/v1/accidents/<slug> | jq '.data.review.verification.date.confirmed_by[] | select(.report) | .report'`.
+  GraphQL : `{ accident(slug: "<slug>") { verification } }`, puis `verification.date.confirmed_by[].report` dans le JSON.
+
+- Accidents : nouvelle famille de sources `wikipedia-edition` dans `review.verification.families` (REST) et `verification.families`
+  (GraphQL) : les listes d'accidents et les articles dédiés de Wikipédia en anglais et en allemand, lus comme une source de plus à côté
+  des listes françaises (`vff:import-accidents --only=wikipedia-editions`). Un article ne crée jamais de fiche : il se rattache à la fiche
+  du même jour et de la même commune. La règle `wikipedia_editions` de `rule` (Wikipédia en français plus une édition qui cite sa propre
+  référence) passe ainsi sur 47 fiches au lieu de 34. Ajout seul : une valeur de plus dans une liste déjà ouverte.
+
+- Signalisation : `section.location` de l'historique (REST `GET /api/v1/lines/{line}/signalling-history`, GraphQL
+  `Line.signalling_history { section { location } }`, MCP `signalling_history`) prend la valeur `landmarks` : une portion dont une
+  extrémité au moins est un point remarquable de la ligne (bifurcation, raccordement, origine, fin, frontière), placé par la table relue
+  `database/data/line_landmarks.php`, avec la gare de l'autre bout s'il y en a une. Quatorze des quinze faits datés des lignes à grande
+  vitesse, jusque-là `unlocated`, sont placés. Une valeur de plus dans une liste déjà ouverte : un client qui n'attend que `stations`,
+  `article_pk` et `unlocated` doit la traiter comme une portion placée (`pk_start_m`, `pk_end_m`).
+  `curl -s https://vff-project.org/api/v1/lines/rfn-752000/signalling-history | jq '.history[] | select(.section.location == "landmarks")'`.
+  GraphQL : `{ line(slug: "rfn-752000") { signalling_history { system date section { from to location pk_start_m pk_end_m } } } }`.
+
+- Signalisation : la commande centralisée (`CC` : CCVU, CCR, PCD) devient un système à part, avec le rôle `remote_control` (hors
+  cantonnement : elle se combine à BAL, BAPR, block manuel ou téléphonique sans en remplacer aucun) et son propre groupe parmi les faits en
+  vigueur à une ère (`in_force`). Valeur de plus de `system` et de `role` dans REST, GraphQL (`SignallingEvent.system`, `.role`) et MCP
+  (`signalling_history`). 18 faits datés lus dans les articles de Wikipédia (Saumur - Thouars 1982, Epernay - Reims 1962,
+  LGV Sud-Est 2024...). Un client qui filtre sur `role=block` ne les voit pas, comme avant. Ajout seul.
+  `curl -s 'https://vff-project.org/api/v1/lines/rfn-752000/signalling-history?era=2030' | jq '.history[] | select(.system == "CC")'`.
+  GraphQL : `{ line(slug: "rfn-752000") { signalling_history { system role date } } }`.
+
+- Liens gare - ligne : `link_method` (REST `GET /api/v1/lines/{slug}`, `stations[]` ; GraphQL `LineSheetStation.link_method`) prend la
+  valeur `reviewed_link` pour un couple gare - ligne ajouté à la main d'après une source (`database/data/station_line_inclusions.php`). Le
+  lien compte comme un rattachement ferme (contrairement aux terminus nommés). Une valeur de plus dans une liste déjà ouverte ; ne vous en servez que pour l'afficher.
+
 ### Ajouts
 
 - MCP : trois outils, sur les mêmes services que l'API REST. `preserved_rolling_stock` (matériel préservé : exemplaires

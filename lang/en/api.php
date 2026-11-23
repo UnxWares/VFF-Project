@@ -90,7 +90,7 @@ return [
     'endpoints' => [
         'reference' => 'Full reference',
         'title' => 'REST endpoints',
-        'intro' => 'Every address starts with /api/v1 and answers GET requests, in JSON unless stated otherwise. In the paths, {year} is a decade era (1830 to 2030), {line} a line identifier (for example rfn-420000) and {station} a station identifier (for example brest). Long lists are read page by page: follow the links.next link in each response.',
+        'intro' => 'Every address starts with /api/v1 and answers GET requests, in JSON unless stated otherwise. In the paths, {year} is a decade era (1830 to 2030), {line} a line identifier (for example rfn-420000) and {station} a station identifier (for example brest). Long lists are read page by page: follow the links.next link in each response. The slug of a renamed line, of a station merged into another record or of a renamed accident answers with a 301 redirect to the current slug.',
         'label' => 'VFF API REST endpoints',
         'groups' => [
             'network' => 'The network at an era',
@@ -337,6 +337,9 @@ return [
             'on_this_day' => 'What happened on a calendar day in earlier years: openings and closures of lines and stations, electrifications, commissionings, accidents, each with its year, source and sheet link; dates known to the exact day only.',
             'network_chronology' => 'The French railway network year by year since 1827: openings, closures, electrifications, signalling, rolling stock, serious accidents and milestones; overview, counts for a decade or facts for a year, type and region filters; dates to be read with their precision.',
             'tourist_railways' => 'Heritage railways and rail bikes running today: type, operator, gauge, length, start of operation, linked lines and the source of each fact; greenways on request.',
+            'preserved_rolling_stock' => 'Preserved rolling stock that sources cite: units of a series or venues with their pieces, state as stated by the source (never guessed), listed-monument protection (Palissy), each fact with its licence.',
+            'rail_projects' => 'Railway projects not yet in service (reopenings, new lines, high speed lines, RER, electrifications) with their dated and sourced stages; an announced date is never given as certain.',
+            'station_events' => 'Chronology of a station, filtered and paged by cursor: opening, closures, reopening, demolition; date read or inferred, source and licence of each event.',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'The server also offers prompts, which an MCP client shows as ready-made commands. Each one sends the assistant a message saying which tools to call and how to cite the sources. Arguments are completed as you type.',

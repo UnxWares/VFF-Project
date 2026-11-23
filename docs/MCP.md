@@ -249,7 +249,7 @@ jour ou mois donné ; `medium` année seule, date reprise d'une phrase voisine, 
 déduite de l'ouverture ; les faits douteux ne sont pas exposés), `origin` (`text`, `list`, `table`, `infobox`,
 `opening` : TVM d'une ligne à grande vitesse, en service dès l'ouverture), `scope` (`whole_line`, `section`,
 `unspecified`), `section` (`from`, `to` tels qu'écrits ; `location` : `stations` placée par ses gares
-d'extrémité, `article_pk` PK de l'article, `unlocated` non placée ; `pk_start_m`, `pk_end_m` de la portion
+d'extrémité, `landmarks` placée par au moins un point remarquable de la ligne (bifurcation, raccordement, origine, fin, frontière), `article_pk` PK de l'article, `unlocated` non placée ; `pk_start_m`, `pk_end_m` de la portion
 placée ; `from_station`, `to_station` avec `slug`, `name`, `pk_m`) et `source` (`title`, `url` permalien de la
 révision lue, `revision` ; pas de phrase de l'article, comme pour la description des lignes : l'API REST la
 donne). Relevé partiel : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. L'outil

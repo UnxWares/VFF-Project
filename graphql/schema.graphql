@@ -3030,7 +3030,7 @@ type Accident {
     Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
     `wikidata_wikipedia`, `wikipedia_editions` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
     qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
-    lecture `retrieved_at`), `families` (familles qui confirment, dont `press` pour la presse d'époque numérisée),
+    lecture `retrieved_at` ; une source `bea-tt` dont la page d'enquête a été relue ajoute `report` : `title`, `url`, et `number` et `published` quand ils sont connus), `families` (familles qui confirment : `official`, `wikipedia`, `wikidata`, `wikidata-bare`, `wikipedia-edition` pour les listes de Wikipédia en anglais et en allemand, `press` pour la presse d'époque numérisée),
     `deaths` (bilan comparé aux articles de presse), `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
     même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
     """
@@ -5630,7 +5630,7 @@ type LineSheetStation {
     "Vrai pour une gare d'extrémité."
     is_terminal: Boolean!
 
-    "Comment la gare est rattachée à la ligne (`sncf_pk`, `wikidata_p81`, `segment`…)."
+    "Comment la gare est rattachée à la ligne (`sncf_pk`, `wikidata_p81`, `segment`, `reviewed_link` : couple gare - ligne relu à la main d'après une source…)."
     link_method: String
 
     "Première année de desserte par la ligne."

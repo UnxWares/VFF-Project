@@ -91,7 +91,7 @@ return [
     'endpoints' => [
         'reference' => 'Référence détaillée',
         'title' => 'Points d’accès REST',
-        'intro' => 'Toutes les adresses commencent par /api/v1 et répondent en GET, en JSON sauf mention contraire. Dans les chemins, {year} désigne une ère décennale (de 1830 à 2030), {line} l’identifiant d’une ligne (par exemple rfn-420000) et {station} celui d’une gare (par exemple brest). Les listes longues se parcourent page par page : suivez le lien links.next de chaque réponse.',
+        'intro' => 'Toutes les adresses commencent par /api/v1 et répondent en GET, en JSON sauf mention contraire. Dans les chemins, {year} désigne une ère décennale (de 1830 à 2030), {line} l’identifiant d’une ligne (par exemple rfn-420000) et {station} celui d’une gare (par exemple brest). Les listes longues se parcourent page par page : suivez le lien links.next de chaque réponse. Le slug d’une ligne renommée, d’une gare fondue dans une autre fiche ou d’un accident renommé répond par une redirection 301 vers le slug actuel.',
         'label' => 'Points d’accès REST de l’API VFF',
         'groups' => [
             'network' => 'Le réseau à une ère',
@@ -338,6 +338,9 @@ return [
             'on_this_day' => 'Ce qui s’est passé un jour du calendrier les années précédentes : ouvertures et fermetures de lignes et de gares, électrifications, mises en service, accidents, avec l’année, la source et le lien de la fiche ; dates connues au jour seulement.',
             'network_chronology' => 'Le réseau ferré français année par année depuis 1827 : ouvertures, fermetures, électrifications, signalisation, matériel, accidents graves et jalons ; panorama, comptes d’une décennie ou faits d’une année, filtres de type et de région ; dates à lire avec leur précision.',
             'tourist_railways' => 'Chemins de fer touristiques et vélorails en activité : type, exploitant, écartement, longueur, début d’exploitation, lignes rattachées et source de chaque fait ; voies vertes sur demande.',
+            'preserved_rolling_stock' => 'Matériel roulant préservé que des sources citent : exemplaires d’une série ou lieux avec leurs pièces, état dit par la source (jamais deviné), protection monument historique (Palissy), chaque fait avec sa licence.',
+            'rail_projects' => 'Projets ferroviaires pas encore en service (réouvertures, lignes nouvelles, LGV, RER, électrifications) avec leurs étapes datées et sourcées ; une date annoncée n’est jamais donnée pour certaine.',
+            'station_events' => 'Chronologie d’une gare filtrée et paginée par curseur : ouverture, fermetures, réouverture, démolition ; date relevée ou déduite, source et licence de chaque événement.',
         ],
         'prompts_title' => 'Invites',
         'prompts_intro' => 'Le serveur propose aussi des invites (prompts) : un client MCP les affiche comme des commandes prêtes à l’emploi. Chacune envoie à l’assistant un message qui dit quels outils appeler et comment citer les sources. Les arguments se complètent pendant la saisie.',

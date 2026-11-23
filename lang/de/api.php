@@ -90,7 +90,7 @@ return [
     'endpoints' => [
         'reference' => 'Ausführliche Referenz',
         'title' => 'REST-Zugriffspunkte',
-        'intro' => 'Alle Adressen beginnen mit /api/v1 und antworten auf GET, in JSON, sofern nicht anders angegeben. In den Pfaden steht {year} für eine Dekaden-Epoche (1830 bis 2030), {line} für die Kennung einer Strecke (zum Beispiel rfn-420000) und {station} für die eines Bahnhofs (zum Beispiel brest). Lange Listen werden seitenweise gelesen: Folgen Sie dem Link links.next jeder Antwort.',
+        'intro' => 'Alle Adressen beginnen mit /api/v1 und antworten auf GET, in JSON, sofern nicht anders angegeben. In den Pfaden steht {year} für eine Dekaden-Epoche (1830 bis 2030), {line} für die Kennung einer Strecke (zum Beispiel rfn-420000) und {station} für die eines Bahnhofs (zum Beispiel brest). Lange Listen werden seitenweise gelesen: Folgen Sie dem Link links.next jeder Antwort. Der Slug einer umbenannten Linie, eines in einen anderen Datensatz überführten Bahnhofs oder eines umbenannten Unfalls antwortet mit einer 301-Weiterleitung auf den aktuellen Slug.',
         'label' => 'REST-Zugriffspunkte der VFF-API',
         'groups' => [
             'network' => 'Das Netz zu einer Epoche',
@@ -337,6 +337,9 @@ return [
             'on_this_day' => 'Was an einem Kalendertag in früheren Jahren geschah: Eröffnungen und Stilllegungen von Strecken und Bahnhöfen, Elektrifizierungen, Inbetriebnahmen, Unfälle, jeweils mit Jahr, Quelle und Link zur Seite; nur tagesgenaue Daten.',
             'network_chronology' => 'Das französische Bahnnetz Jahr für Jahr seit 1827: Eröffnungen, Stilllegungen, Elektrifizierungen, Signaltechnik, Fahrzeuge, schwere Unfälle und Meilensteine; Überblick, Zahlen eines Jahrzehnts oder Fakten eines Jahres, Filter nach Art und Region; Daten mit ihrer Genauigkeit lesen.',
             'tourist_railways' => 'Museums- und Touristikbahnen und Draisinenbahnen im Betrieb: Art, Betreiber, Spurweite, Länge, Betriebsbeginn, zugehörige Strecken und Quelle jeder Angabe; Radwege auf Wunsch.',
+            'preserved_rolling_stock' => 'Erhaltene Schienenfahrzeuge, die Quellen nennen: Einheiten einer Baureihe oder Standorte mit ihren Stücken, Zustand laut Quelle (nie geraten), Denkmalschutz (Palissy), jede Angabe mit Lizenz.',
+            'rail_projects' => 'Noch nicht in Betrieb genommene Bahnprojekte (Wiedereröffnungen, Neubaustrecken, Schnellfahrstrecken, RER, Elektrifizierungen) mit ihren datierten, belegten Etappen; ein angekündigtes Datum wird nie als sicher angegeben.',
+            'station_events' => 'Chronik eines Bahnhofs, gefiltert und per Cursor seitenweise: Eröffnung, Stilllegungen, Wiedereröffnung, Abriss; gelesenes oder abgeleitetes Datum, Quelle und Lizenz jedes Ereignisses.',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'Der Server bietet auch Prompts an, die ein MCP-Client als fertige Befehle anzeigt. Jeder schickt dem Assistenten eine Nachricht, welche Werkzeuge er aufrufen und wie er die Quellen nennen soll. Die Argumente werden bei der Eingabe ergänzt.',
