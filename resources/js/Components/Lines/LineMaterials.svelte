@@ -6,6 +6,7 @@
     import { mediaLicenseHref, mediaLicenseLabel, mediaSourceHref } from '$lib/mediaCredits.js';
     import {
         doubtText,
+        earliestText,
         endText,
         periodsSummary,
         relationNotes,
@@ -27,7 +28,8 @@
      *
      * Les séries que toutes les sources mettent en doute (essai, présentation, commande, acheminement à
      * vide : `link_doubt`) ne sont pas des tuiles : elles sont rangées dans un groupe replié, avec la raison.
-     *
+     * Une série électrique n'a pas circulé avant l'électrification de la ligne : la borne (`earliest_on_line`)
+     * est dite avec son motif.
      *
      * La photo et le nom mènent à la fiche de la série ; le crédit et les sources sont des liens à part
      * (pas de lien dans un lien).
@@ -37,7 +39,7 @@
      *
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
      *   builders?: string[], link_doubt?: ?string,
-     *   in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
+     *   earliest_on_line?: ?{ reason: string, date: string, precision?: ?string }, in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
      *   relations?: Array<any>, end?: { kind: string, year: ?number, source_url: ?string }, image?: ?{ url: string, width: number, height: number, file: ?string,
      *   author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, fit?: string } }> }}
      */
@@ -77,6 +79,7 @@
                 {@const onLine = m.periods?.length ? periodsSummary(m.periods, t) : null}
                 {@const relations = relationsList(m.relations, m.periods, t)}
                 {@const notes = relationNotes(m.relations, t, lang)}
+                {@const earliest = earliestText(m.earliest_on_line, t, lang)}
                 <li class="vff-tile material-card">
                     <Link class="card-link" href="/materials/{m.slug}">
                         <span class={['photo', { empty: !m.image }]}>
@@ -130,6 +133,7 @@
                     {#if onLine}<span class="on-line"
                             >{t('materials.periods.on_line', { periods: onLine })}</span
                         >{/if}
+                    {#if earliest}<span class="on-line">{earliest}</span>{/if}
                     {#if relations.length}<span class="on-line"
                             >{t('materials.relations.on_line', {
                                 relations: relations.join(' ; '),

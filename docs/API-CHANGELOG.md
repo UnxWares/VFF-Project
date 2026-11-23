@@ -34,6 +34,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 ### Ajouts
 
 - Fiche d'une ligne (REST `GET /api/v1/lines/{slug}`, `materials` ; GraphQL `LineSheet.materials`) : chaque série porte `link_doubt`, la raison pour laquelle toutes les sources mettent en doute qu'elle ait assuré le service sur la ligne (`trial` essais, `one_off` circulation exceptionnelle ou présentation, `order` commande, `positioning` acheminement à vide, `preserved`, `possible`, `diverted`, `restricted`, `component`, `section`, `other`), `null` pour une série qui a circulé. La page web range ces séries dans un groupe replié. Ajout seul.
+- Fiche d'une ligne (`materials`) : une série électrique (locomotive électrique, rame TGV, automotrice à systèmes d'alimentation déclarés) ne commence pas avant l'électrification de la ligne entière connue dans VFF : le début d'une période qui la précède est ramené à cette date (`start_date`, `start_precision`) et la période porte `start_bounded_by` (`electrification`) ; la série porte `earliest_on_line` (`reason`, `date`, `precision`), qui dit la date la plus ancienne possible. Ce n'est pas une date de service.
 - Bibliographie des lignes et des gares : ouvrages et articles qui en traitent (auteurs, titre, éditeur, lieu, année, ISBN, lien vers la
   notice du catalogue général de la BnF ou vers la référence d'origine, raison du rattachement) : REST `GET /api/v1/lines/{line}/bibliography`
   et `GET /api/v1/stations/{station}/bibliography`. Ajout seul.

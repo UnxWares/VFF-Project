@@ -5721,6 +5721,9 @@ type LineSheetMaterial {
     "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
     relations: [LineMaterialRelation!]!
 
+    "Date la plus ancienne possible de la série sur la ligne, quand une règle la borne : une série électrique n'a pas circulé avant l'électrification de la ligne. Nulle sans borne. Ce n'est pas une date de service."
+    earliest_on_line: LineSheetMaterialBound
+
     "Raison pour laquelle toutes les sources mettent en doute que la série ait assuré le service sur la ligne : `trial` (essais), `one_off` (circulation exceptionnelle, présentation, train spécial), `order` (commande), `positioning` (acheminement à vide vers un atelier), `preserved` (préservation), `possible` (possibilité étudiée), `diverted` (train détourné), `restricted` (réservé à une autre portion), `component` (pièce reprise d'une autre série), `section` (section d'essais ou de records) ou `other`. Nulle pour une série qui a circulé. La fiche web range ces séries à part."
     link_doubt: String
 
@@ -5729,6 +5732,18 @@ type LineSheetMaterial {
 
     "Fin de circulation telle que les sources la connaissent (jamais déduite). Les séries de `LineSheet.materials` viennent de la plus récente à la plus ancienne : encore en service sans fin connue sur la ligne, puis fin la plus récente, puis début, puis nom."
     end: LineSheetMaterialEnd!
+}
+
+"Borne de date d'une série sur une ligne."
+type LineSheetMaterialBound {
+    "Motif de la borne : `electrification` (pas avant l'électrification de la ligne)."
+    reason: String!
+
+    "Date de la borne (`AAAA-MM-JJ`)."
+    date: String!
+
+    "Précision de la date : `day`, `month` ou `year`."
+    precision: String!
 }
 
 "Fin de circulation d'une série sur une ligne."
@@ -5792,6 +5807,9 @@ type LineSheetMaterialPeriod {
 
     "Précision du début : `day`, `month` ou `year`."
     start_precision: String
+
+    "Motif quand le début a été ramené à une borne (`electrification` : une série électrique n'a pas circulé avant l'électrification de la ligne), nul sinon."
+    start_bounded_by: String
 
     "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
     end_date: String

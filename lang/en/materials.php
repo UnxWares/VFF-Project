@@ -128,6 +128,9 @@ return [
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',
     ],
+    'earliest' => [
+        'electrification' => 'On this line no earlier than electrification: :date',
+    ],
     'doubt' => [
         'title' => 'Mentioned, service not established (:count)',
         'intro' => 'Sources mention these series on the line without saying they ran in service there.',

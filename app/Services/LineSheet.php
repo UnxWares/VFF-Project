@@ -6,6 +6,7 @@ use App\Models\Line;
 use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
 use App\Models\Material;
+use App\Services\Materials\ElectrificationBound;
 use App\Services\Materials\LineMaterialDoubt;
 use App\Services\Materials\LineMaterialEnd;
 use App\Services\Signalling\SignallingRanges;
@@ -424,12 +425,21 @@ final class LineSheet
             ->map(fn ($links): array => array_values($links->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()))
             ->all();
 
+        // Électricité sans caténaire : une série électrique n'a pas circulé sur la ligne avant son électrification
+        // (ElectrificationBound) ; la borne est servie avec son motif, jamais comme une date de service.
+        $bound = $line->materials->contains(fn ($m): bool => ElectrificationBound::isElectric($m)) ? ElectrificationBound::lineDate($line) : null;
+
         // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
         // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
         // les plus anciennes d'abord.
         // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-        return LineMaterialEnd::sort($line->materials->unique('id')->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks): array {
+        return LineMaterialEnd::sort($line->materials->unique('id')->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks, $bound): array {
             $periods = $materialPeriods[$m->id] ?? [];
+            $earliest = null;
+            if ($bound !== null && ElectrificationBound::appliesTo($m, $bound['date'])) {
+                $periods = ElectrificationBound::clampPeriods($periods, $bound);
+                $earliest = ['reason' => ElectrificationBound::REASON] + $bound;
+            }
 
             return [
                 'slug' => $m->slug,
@@ -448,6 +458,8 @@ final class LineSheet
                 'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $periods) ? $m->in_service_to : null,
                 'periods' => $periods,
                 'relations' => $materialRelations[$m->id] ?? [],
+                // Date la plus ancienne possible sur la ligne et son motif (`reason` : `electrification`), null sans borne.
+                'earliest_on_line' => $earliest,
                 // Lien que toutes les sources mettent en doute (essai, présentation, commande, acheminement à vide…) :
                 // `LineMaterialDoubt::REASONS`, null pour une série qui a circulé. La fiche le range à part.
                 'link_doubt' => empty($periods) ? LineMaterialDoubt::reason($materialLinks[$m->id] ?? []) : null,

@@ -9,6 +9,7 @@ import {
     relationsList,
     splitDoubtful,
     doubtText,
+    earliestText,
 } from '$lib/materialPeriods.js';
 
 // Traduction de test : textes français des clés `materials.periods.*`.
@@ -29,6 +30,7 @@ const fr = {
     'materials.relations.feedstock.rapeseed': 'colza',
     'materials.doubt.reasons.trial': 'essais',
     'materials.doubt.reasons.other': 'mention incertaine',
+    'materials.earliest.electrification': 'Sur la ligne au plus tôt à l’électrification : :date',
 };
 const t = (key, opts = {}) =>
     Object.entries(opts).reduce((s, [k, v]) => s.replace(`:${k}`, String(v)), fr[key] ?? key);
@@ -223,5 +225,21 @@ describe('séries citées sans service attesté', () => {
     it('dit la raison, ou une mention incertaine pour une raison inconnue', () => {
         expect(doubtText('trial', t)).toBe('essais');
         expect(doubtText('nouvelle_raison', t)).toBe('mention incertaine');
+    });
+});
+
+describe('borne d’électrification', () => {
+    it('dit la date la plus ancienne à la précision de la source', () => {
+        expect(
+            earliestText({ reason: 'electrification', date: '1996-06-01', precision: 'month' }, t),
+        ).toBe('Sur la ligne au plus tôt à l’électrification : juin 1996');
+        expect(
+            earliestText({ reason: 'electrification', date: '1996-06-01', precision: 'year' }, t),
+        ).toBe('Sur la ligne au plus tôt à l’électrification : 1996');
+    });
+
+    it('ne dit rien sans borne ni pour un motif inconnu', () => {
+        expect(earliestText(null, t)).toBeNull();
+        expect(earliestText({ reason: 'autre', date: '1996-06-01' }, t)).toBeNull();
     });
 });

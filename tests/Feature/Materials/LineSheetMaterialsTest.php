@@ -3,6 +3,7 @@
 namespace Tests\Feature\Materials;
 
 use App\Models\Line;
+use App\Models\LineEvent;
 use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
 use App\Models\Material;
@@ -82,5 +83,39 @@ class LineSheetMaterialsTest extends TestCase
         LineMaterialPeriod::create(['line_material_id' => $link->id, 'start_date' => '2001-01-01', 'start_precision' => 'year', 'confidence' => 'high', 'origin' => 'line_article', 'fingerprint' => md5((string) microtime()), 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?oldid=1']);
 
         $this->assertNull($this->sheetMaterials()['bb-26000']['link_doubt']);
+    }
+
+    public function test_an_electric_series_is_not_dated_before_the_electrification_of_the_line(): void
+    {
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1996-06-01', 'date_precision' => 'month', 'confidence' => 'high', 'section_from' => 'Paris', 'section_to' => 'Cherbourg']);
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'medium', 'section_length_m' => 31295]);
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1995-01-01', 'date_precision' => 'year', 'confidence' => 'low']);
+        $electric = Material::factory()->create(['slug' => 'bb-16000', 'name' => 'BB 16000', 'type' => 'locomotive_electrique', 'in_service_from' => 1958, 'in_service_to' => null]);
+        $retired = Material::factory()->create(['slug' => 'bb-9200', 'name' => 'BB 9200', 'type' => 'locomotive_electrique', 'in_service_from' => 1957, 'in_service_to' => 1990]);
+        $diesel = Material::factory()->create(['slug' => 'bb-67400', 'name' => 'BB 67400', 'type' => 'locomotive_diesel', 'in_service_from' => 1969, 'in_service_to' => null]);
+        $dated = Material::factory()->create(['slug' => 'bb-15000', 'name' => 'BB 15000', 'type' => 'locomotive_electrique', 'in_service_from' => 1971, 'in_service_to' => null]);
+        foreach ([$electric, $retired, $diesel, $dated] as $m) {
+            $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
+        }
+        LineMaterialPeriod::create(['line_material_id' => LineMaterial::query()->where('material_id', $dated->id)->value('id'), 'start_date' => '1980-01-01', 'start_precision' => 'year', 'end_date' => '2010-01-01', 'end_precision' => 'year', 'confidence' => 'high', 'origin' => 'line_article', 'fingerprint' => md5((string) microtime()), 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?oldid=2']);
+
+        $rows = $this->sheetMaterials();
+
+        $this->assertSame(['reason' => 'electrification', 'date' => '1996-06-01', 'precision' => 'month'], $rows['bb-16000']['earliest_on_line']);
+        $this->assertNull($rows['bb-9200']['earliest_on_line'], 'retirée avant l\'électrification');
+        $this->assertNull($rows['bb-67400']['earliest_on_line'], 'thermique');
+        $this->assertSame('1996-06-01', $rows['bb-15000']['periods'][0]['start_date']);
+        $this->assertSame('month', $rows['bb-15000']['periods'][0]['start_precision']);
+        $this->assertSame('electrification', $rows['bb-15000']['periods'][0]['start_bounded_by']);
+        $this->assertSame('2010-01-01', $rows['bb-15000']['periods'][0]['end_date']);
+    }
+
+    public function test_a_line_without_a_whole_line_electrification_has_no_bound(): void
+    {
+        LineEvent::factory()->create(['line_id' => $this->line->id, 'type' => 'electrification', 'event_date' => '1989-01-01', 'date_precision' => 'year', 'confidence' => 'medium', 'section_length_m' => 31295]);
+        $m = Material::factory()->create(['slug' => 'bb-16000', 'name' => 'BB 16000', 'type' => 'locomotive_electrique']);
+        $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
+
+        $this->assertNull($this->sheetMaterials()['bb-16000']['earliest_on_line']);
     }
 }

@@ -128,6 +128,9 @@ return [
         'source' => 'Quelle',
         'note' => 'Die Jahre stammen aus den Wikipedia-Artikeln über die Strecke und die Baureihen oder aus Wikidata. Fehlt das Ende, heißt das nicht, dass die Baureihe hier noch fährt. Die Quelle jedes Zeitraums steht auf der Seite der Baureihe.',
     ],
+    'earliest' => [
+        'electrification' => 'Auf dieser Strecke frühestens mit der Elektrifizierung: :date',
+    ],
     'doubt' => [
         'title' => 'Erwähnt, Einsatz nicht belegt (:count)',
         'intro' => 'Quellen nennen diese Baureihen auf der Strecke, ohne zu sagen, dass sie dort im Dienst fuhren.',

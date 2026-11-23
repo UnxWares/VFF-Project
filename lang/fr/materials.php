@@ -129,6 +129,9 @@ return [
         'source' => 'source',
         'note' => 'Les années de circulation viennent des articles Wikipédia de la ligne et des séries, ou de Wikidata. Une fin absente ne veut pas dire que la série circule encore. La source de chaque période figure sur la fiche de la série.',
     ],
+    'earliest' => [
+        'electrification' => "Sur la ligne au plus tôt à l’électrification\u{a0}: :date",
+    ],
     'doubt' => [
         'title' => 'Cités, sans service attesté (:count)',
         'intro' => 'Les sources citent ces séries sur la ligne sans dire qu’elles y ont assuré le service.',

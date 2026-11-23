@@ -250,3 +250,20 @@ export function doubtText(reason, t) {
     const key = DOUBT_REASONS.includes(reason) ? reason : 'other';
     return String(t(`materials.doubt.reasons.${key}`));
 }
+
+/**
+ * Borne de date d'une série sur la ligne (`earliest_on_line`) : « Sur la ligne au plus tôt à
+ * l'électrification : juin 1996 ». Null sans borne ou pour un motif inconnu.
+ *
+ * @param {?{ reason: string, date: string, precision?: ?string }} earliest
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface (fr, en, de)
+ */
+export function earliestText(earliest, t, lang = 'fr') {
+    if (!earliest?.date || earliest.reason !== 'electrification') return null;
+    return String(
+        t('materials.earliest.electrification', {
+            date: formatEventDate(earliest.date, earliest.precision ?? 'year', lang),
+        }),
+    );
+}
