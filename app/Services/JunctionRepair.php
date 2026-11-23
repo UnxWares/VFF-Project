@@ -114,6 +114,22 @@ use Illuminate\Support\Facades\DB;
  *      le désordre ou manquées, longueur incompatible avec l'écart de PK, arrivée
  *      de travers sur le bout d'en face. Deux bouts d'un même morceau du tracé
  *      (branches d'un Y) ne bordent pas un trou.
+ *  10. Bout arrêté avant sa gare terminus (allumée par défaut, $extendToStations ;
+ *      option --no-extend-to-stations de vff:build-line-references pour
+ *      l'éteindre) : un bout
+ *      libre qui ne touche aucune autre ligne, au-delà duquel une gare de la
+ *      ligne est à plus de TERMINUS_GAP_M du dessin et à au plus
+ *      TERMINUS_MAX_M du bout, quand une trace source de la ligne (OSM, BD
+ *      TOPO, archeo, OHM, SNCF) passe à moins de TERMINUS_SNAP_M du bout et à
+ *      moins de TERMINUS_SOURCE_M de la gare, est prolongé jusqu'à la gare le
+ *      long de cette trace (jamais en ligne droite) : par les voies précises
+ *      qui la suivent (chaque point à moins de TERMINUS_SOURCE_M d'elle),
+ *      sinon par la trace elle-même (grossière si elle l'est ; jamais une forme
+ *      SNCF Réseau, généralisée, dont les 5 m ne sont pas garantis). Le prolongement
+ *      s'arrête au premier contact (TERMINUS_CONTACT_M) avec le dessin d'une
+ *      autre ligne, posé sur ce dessin (jonction à 0 m), s'il y arrive presque
+ *      parallèle ; refusé s'il croise cette ligne ou une voie précise, double
+ *      la ligne, ou dépasse TERMINUS_MAX_M.
  *
  * Graphe des voies : morceaux du pool (TraceConflation::preparePool, table
  * temporaire cf_pool) dans une fenêtre, nœuds aux intersections (ST_Node, une
@@ -270,6 +286,22 @@ class JunctionRepair
     /** Arrivée en T (règle 7 e) : demi-fenêtre (m) autour du pied du raccord où la voie précise ne doit pas faire d'aller-retour. */
     public const TEE_FOLD_M = 40.0;
 
+    /**
+     * Règle 10 : gare au-delà du bout à plus de TERMINUS_GAP_M du dessin de la ligne et au plus TERMINUS_MAX_M du bout
+     * (c'est aussi la longueur max du prolongement) ; trace source de la ligne à moins de TERMINUS_SOURCE_M de la gare (et
+     * de chaque point du prolongement) et à moins de TERMINUS_SNAP_M du bout ; contact avec le dessin d'une autre ligne
+     * (m).
+     */
+    public const TERMINUS_GAP_M = 30.0;
+
+    public const TERMINUS_MAX_M = 2000.0;
+
+    public const TERMINUS_SOURCE_M = 15.0;
+
+    public const TERMINUS_SNAP_M = 5.0;
+
+    public const TERMINUS_CONTACT_M = 2.0;
+
     /** Long trou (règle 9) : écart max entre les deux bouts (m) ; c'est aussi la longueur max du chemin. */
     public const LONG_GAP_MAX_M = 20000.0;
 
@@ -354,6 +386,12 @@ class JunctionRepair
     /** Paires de bouts examinées au plus par ligne (règle 9). */
     private const LONG_GAP_MAX_PAIRS = 40;
 
+    /**
+     * Règle 10 (bout prolongé jusqu'à sa gare terminus) : allumée par défaut, pour qu'un recalcul ne défasse pas les
+     * prolongements ; --no-extend-to-stations l'éteint.
+     */
+    public bool $extendToStations = true;
+
     /** Diagnostic : décisions (rempli si $debug). */
     public bool $debug = false;
 
@@ -398,7 +436,7 @@ class JunctionRepair
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
      *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
      *                                  long_gap_filled (+ _m),
-     *                                  long_gap_partial, long_gap_left_m, long_gap_refused
+     *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough
      */
     public function repair(int $lineId): array
     {
@@ -412,7 +450,8 @@ class JunctionRepair
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0, 'tee_smoothed' => 0, 'tee_smoothed_m' => 0.0,
             'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'drawing_joined' => 0, 'drawing_joined_m' => 0.0,
             'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
-            'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0];
+            'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0,
+            'terminus_extended' => 0, 'terminus_extended_m' => 0.0, 'terminus_rough' => 0];
 
         // Raccords qui ferment déjà une boucle (8 bis) : retirés avant les sauts, pour que le saut qui reste d'une boîte
         // soit traité comme un saut seul (bout sans issue coupé, S lissé).
@@ -446,6 +485,10 @@ class JunctionRepair
         $this->removeLoopJogs($stats);
         $this->removeSpurs($stats);
         $this->fillLongGaps($stats);
+        // Règle 10, allumée par défaut : en dernier, une fois les bouts raccordés aux autres lignes (5, 5 bis, 7 c).
+        if ($this->extendToStations) {
+            $this->extendToStations($stats);
+        }
 
         if (array_filter($stats)) {
             $this->write();
@@ -1226,6 +1269,280 @@ class JunctionRepair
         $l = hypot($to[0] - $from[0], $to[1] - $from[1]);
 
         return $l > 0 ? [($to[0] - $from[0]) / $l, ($to[1] - $from[1]) / $l] : [0.0, 1.0];
+    }
+
+    // ─── 10. Bout arrêté avant sa gare terminus ────────────────────────
+
+    /**
+     * Règle 10 (cf. docblock), si $extendToStations (allumée par défaut). Bouts libres de la ligne (hors raccords) qui ne touchent
+     * le dessin d'aucune autre ligne : gare terminus visée (terminusStation), chemin le long de la trace source
+     * (terminusPath), arrêt au premier contact avec le dessin d'une autre ligne (stopAtOtherLine), puis contrôles :
+     * longueur, croisement de voie, doublon de la ligne.
+     */
+    private function extendToStations(array &$stats): void
+    {
+        foreach ($this->freeEnds() as $e) {
+            if ($e['conn']) {
+                continue;
+            }
+            if ($this->onOtherDrawing($e['x'], $e['y'], self::SOURCE_JOIN_SNAP_M)) {
+                $this->debug && $this->log[] = ['terminus' => $e['sid'], 'skip' => 'bout déjà sur une autre ligne'];
+
+                continue;
+            }
+            $s = $this->terminusStation($e);
+            if ($s === null) {
+                $this->debug && $this->log[] = ['terminus' => $e['sid'], 'skip' => 'aucune gare terminus que la trace source atteint'];
+
+                continue;
+            }
+            $path = $this->terminusPath($e, $s);
+            $log = ['terminus' => $e['sid'], 'station' => $s['id'], 'd' => round($s['d'], 1)];
+            if ($path === null) {
+                $this->debug && $this->log[] = $log + ['skip' => 'pas de chemin le long de la trace source'];
+
+                continue;
+            }
+            $stop = $this->stopAtOtherLine($path['coords']);
+            if (is_string($stop)) {
+                $this->debug && $this->log[] = $log + ['skip' => $stop];
+
+                continue;
+            }
+            if ($stop !== null) {
+                $path['coords'] = $stop;
+                $path['len'] = $this->plen($stop);
+            }
+            $refusal = match (true) {
+                $path['len'] > self::TERMINUS_MAX_M => 'trop long',
+                $this->crossesPreciseTrack($path['coords'], $e['sid']) => 'croise une voie',
+                $this->doubles($path, [$e['sid']]) => 'double la ligne',
+                default => null,
+            };
+            $this->debug && $this->log[] = $log + ['len' => round($path['len'], 1), 'rough' => $path['rough'], 'contact' => $stop !== null, 'skip' => $refusal];
+            if ($refusal !== null) {
+                continue;
+            }
+            if ($path['rough']) {
+                $this->insertTrace($path);
+                $stats['terminus_rough']++;
+            } else {
+                $this->addPath($path, $e['sid']);
+            }
+            $stats['terminus_extended']++;
+            $stats['terminus_extended_m'] += $path['len'];
+        }
+    }
+
+    /** Le dessin (tracé de référence) d'une autre ligne passe-t-il à moins de $tol m du point ? */
+    private function onOtherDrawing(float $x, float $y, float $tol): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p)
+            SELECT 1 AS x FROM e, line_reference_parts o
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(e.p, :tol), 4326) AND ST_DWithin(ST_Transform(o.geom, 2154), e.p, :tol2)
+            LIMIT 1
+            SQL, ['x' => $x, 'y' => $y, 'line' => $this->lineId, 'tol' => $tol + 1, 'tol2' => $tol]);
+    }
+
+    /**
+     * Gare terminus du bout $e : gare rattachée à la ligne, à au plus TERMINUS_MAX_M du bout, à plus de TERMINUS_GAP_M du
+     * dessin de la ligne, dont le point le plus proche sur ce dessin est le bout lui-même (la gare est au-delà) ; une
+     * trace source de la ligne (pool de recalage, toutes familles) passe à moins de TERMINUS_SOURCE_M de la gare et à
+     * moins de TERMINUS_SNAP_M du bout. La plus proche du bout.
+     *
+     * @param  array{sid: int, k: int, x: float, y: float, az: float, rank: int, conn: bool}  $e
+     * @return array{id: int, x: float, y: float, d: float}|null
+     */
+    private function terminusStation(array $e): ?array
+    {
+        $r = DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p),
+            d AS (SELECT ST_Collect(g) AS g FROM jr_sub WHERE NOT removed)
+            SELECT s.id, ST_X(q.g) AS x, ST_Y(q.g) AS y, ST_Distance(q.g, e.p) AS d
+            FROM station_lines sl JOIN stations s ON s.id = sl.station_id, LATERAL (SELECT ST_Transform(s.geom, 2154) AS g) q, e, d
+            WHERE sl.line_id = :line AND ST_DWithin(q.g, e.p, :max) AND NOT ST_DWithin(q.g, d.g, :gap)
+              AND ST_DWithin(ST_ClosestPoint(d.g, q.g), e.p, 1)
+              AND EXISTS (SELECT 1 FROM cf_pool p WHERE p.line_id = :line2 AND ST_DWithin(p.g, q.g, :src))
+              AND EXISTS (SELECT 1 FROM cf_pool p WHERE p.line_id = :line3 AND ST_DWithin(p.g, e.p, :snap))
+            ORDER BY ST_Distance(q.g, e.p), s.id LIMIT 1
+            SQL, ['x' => $e['x'], 'y' => $e['y'], 'line' => $this->lineId, 'line2' => $this->lineId, 'line3' => $this->lineId,
+            'max' => self::TERMINUS_MAX_M, 'gap' => self::TERMINUS_GAP_M, 'src' => self::TERMINUS_SOURCE_M, 'snap' => self::TERMINUS_SNAP_M]);
+
+        return $r ? ['id' => (int) $r->id, 'x' => (float) $r->x, 'y' => (float) $r->y, 'd' => (float) $r->d] : null;
+    }
+
+    /**
+     * Chemin du bout $e vers la gare $s qui suit la trace source de la ligne (chaque point à moins de TERMINUS_SOURCE_M
+     * d'elle) : d'abord sur les voies précises du pool (route, jusqu'au point de voie précise le plus proche de la gare),
+     * sinon la trace source elle-même quand une seule trace passe au bout et à la gare (rough si elle est grossière :
+     * archeo, OHM ; jamais une forme SNCF Réseau, généralisée jusqu'à 165 m, dont les 5 m ne sont pas garantis). Le
+     * chemin part du bout dans son prolongement (START_DEG).
+     *
+     * @return array{coords: list<array{0: float, 1: float}>, len: float, family: string, ids: list<int>, lines: list<int>, rough: bool}|null
+     */
+    private function terminusPath(array $e, array $s): ?array
+    {
+        $max = min(self::TERMINUS_MAX_M + 100, self::DETOUR * $s['d'] + self::DETOUR_ADD_M);
+        // Point d'arrivée sur une voie précise, près de la gare et de la trace source de la ligne.
+        $p = DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p)
+            SELECT ST_X(q) AS x, ST_Y(q) AS y,
+                   ST_Azimuth(ST_LineInterpolatePoint(t.g, GREATEST(0, f - 8 / ST_Length(t.g))), ST_LineInterpolatePoint(t.g, LEAST(1, f + 8 / ST_Length(t.g)))) AS az
+            FROM s, cf_pool t, LATERAL (SELECT ST_ClosestPoint(t.g, s.p) AS q) c, LATERAL (SELECT ST_LineLocatePoint(t.g, c.q) AS f) l
+            WHERE t.cand AND t.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(t.g, s.p, :src) AND ST_Length(t.g) > 1
+              AND EXISTS (SELECT 1 FROM cf_pool o WHERE o.line_id = :line AND ST_DWithin(o.g, c.q, :src2))
+            ORDER BY ST_Distance(t.g, s.p), t.pid LIMIT 1
+            SQL, ['x' => $s['x'], 'y' => $s['y'], 'src' => self::TERMINUS_SOURCE_M, 'src2' => self::TERMINUS_SOURCE_M, 'line' => $this->lineId]);
+        $best = null;
+        if ($p) {
+            foreach ([(float) $p->az, (float) $p->az + M_PI] as $az) {
+                $r = $this->route($e, ['type' => 'point', 'x' => (float) $p->x, 'y' => (float) $p->y, 'az' => $az, 'snap' => self::SNAP_M], $max);
+                if ($r && ($best === null || $r['len'] < $best['len']) && $this->followsLineSources($r['coords'])) {
+                    $best = $r + ['rough' => false];
+                }
+            }
+        }
+        if ($best !== null) {
+            return $best;
+        }
+
+        // Sinon la trace source elle-même (un seul morceau qui passe au bout et à la gare), hors formes SNCF Réseau.
+        $t = DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:ex, :ey), 2154) AS p), s AS (SELECT ST_SetSRID(ST_MakePoint(:sx, :sy), 2154) AS p)
+            SELECT st.id, st.source, ST_AsText(d.geom) AS wkt
+            FROM e, s, source_traces st, LATERAL ST_Dump(ST_LineMerge(ST_Transform(st.geom, 2154))) d
+            WHERE st.id IN (SELECT p.id FROM cf_pool p WHERE p.line_id = :line AND ST_DWithin(p.g, s.p, :src))
+              AND st.source <> 'sncf' AND ST_DWithin(d.geom, s.p, :src2) AND ST_DWithin(d.geom, e.p, :snap)
+            ORDER BY CASE WHEN st.source IN ('contrib', 'bdtopo', 'osm') THEN 0 ELSE 1 END, ST_Distance(d.geom, s.p) + ST_Distance(d.geom, e.p), st.id
+            LIMIT 1
+            SQL, ['ex' => $e['x'], 'ey' => $e['y'], 'sx' => $s['x'], 'sy' => $s['y'], 'line' => $this->lineId,
+            'src' => self::TERMINUS_SOURCE_M, 'src2' => self::TERMINUS_SOURCE_M, 'snap' => self::TERMINUS_SNAP_M]);
+        $c = $t ? $this->parseWkt($t->wkt) : [];
+        if (count($c) < 2) {
+            return null;
+        }
+        [$a] = $this->projectOn($c, [$e['x'], $e['y']], [0.0, 1.0]);
+        [$b] = $this->projectOn($c, [$s['x'], $s['y']], [0.0, 1.0]);
+        if (abs($b - $a) < 1.0) {
+            return null;
+        }
+        $sub = $a < $b ? $this->subLine($c, $a, $b) : array_reverse($this->subLine($c, $b, $a));
+        $coords = $this->easeInto($sub, [$e['x'], $e['y']]);
+        $len = $this->plen($coords);
+        $head = $this->pointAlong($coords, min(20.0, $len));
+        if ($this->angDiff(atan2($head[0] - $e['x'], $head[1] - $e['y']), $e['az']) > deg2rad(self::START_DEG)) {
+            return null;
+        }
+        $precise = in_array($t->source, ['contrib', 'bdtopo', 'osm'], true);
+
+        return ['coords' => $coords, 'len' => $len, 'family' => $t->source, 'ids' => [(int) $t->id], 'lines' => [$this->lineId], 'rough' => ! $precise];
+    }
+
+    /** Chaque point du chemin (tous les 10 m) est-il à moins de TERMINUS_SOURCE_M d'une trace source de la ligne ? */
+    private function followsLineSources(array $c): bool
+    {
+        $len = $this->plen($c);
+        $pts = [];
+        for ($s = 0.0; $s <= $len; $s += 10.0) {
+            $pts[] = $this->pointAlong($c, $s);
+        }
+        $pts[] = end($c);
+
+        return (int) DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) AS n
+            FROM ST_DumpPoints(ST_GeomFromText(:mp, 2154)) x
+            WHERE NOT EXISTS (SELECT 1 FROM cf_pool p WHERE p.line_id = :line AND ST_DWithin(p.g, x.geom, :tol))
+            SQL, ['mp' => 'MULTIPOINT('.implode(',', array_map(fn ($p) => sprintf('(%.17G %.17G)', $p[0], $p[1]), $pts)).')',
+            'line' => $this->lineId, 'tol' => self::TERMINUS_SOURCE_M])->n === 0;
+    }
+
+    /**
+     * Premier contact du chemin avec le dessin d'une autre ligne (à TERMINUS_CONTACT_M) : null s'il n'y en a pas ; le
+     * chemin coupé au contact et posé sur ce dessin (jonction à 0 m) s'il y arrive presque parallèle (SOURCE_JOIN_DEG)
+     * et que l'écartement est compatible ; sinon la raison du refus (contact dès le premier mètre : il doublerait cette
+     * ligne ; il la croise ; elle ne peut pas partager la voie).
+     *
+     * @param  list<array{0: float, 1: float}>  $c
+     * @return list<array{0: float, 1: float}>|string|null
+     */
+    private function stopAtOtherLine(array $c): array|string|null
+    {
+        $len = $this->plen($c);
+        $r = DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:c, 2154) AS g),
+            o AS (SELECT o.line_id, og.g FROM c, line_reference_parts o, LATERAL ST_Dump(ST_Transform(o.geom, 2154)) d, LATERAL (SELECT d.geom AS g) og
+                  WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(c.g, :tol), 4326) AND ST_DWithin(og.g, c.g, :tol2)),
+            hit AS (SELECT o.line_id, o.g, MIN(ST_LineLocatePoint(c.g, ST_StartPoint(x.geom))) AS f
+                    FROM c, o, LATERAL ST_Dump(ST_CollectionExtract(ST_Intersection(c.g, ST_Buffer(o.g, :tol3)), 2)) x
+                    GROUP BY o.line_id, o.g)
+            SELECT h.line_id, h.f, ST_X(q.p) AS x, ST_Y(q.p) AS y, ST_Azimuth(q.a, q.b) AS oaz,
+                   EXISTS (SELECT 1 FROM lines l WHERE l.id = h.line_id AND CAST(:gauge AS int) IS NOT NULL AND l.gauge_mm_default IS NOT NULL
+                           AND l.gauge_mm_default <> CAST(:gauge2 AS int)) AS other_gauge
+            FROM hit h, c, LATERAL (SELECT ST_ClosestPoint(h.g, ST_LineInterpolatePoint(c.g, h.f)) AS p) p0,
+                 LATERAL (SELECT p0.p, ST_LineLocatePoint(h.g, p0.p) AS fo, ST_Length(h.g) AS lo) z,
+                 LATERAL (SELECT z.p, ST_LineInterpolatePoint(h.g, GREATEST(0, z.fo - 8 / z.lo)) AS a, ST_LineInterpolatePoint(h.g, LEAST(1, z.fo + 8 / z.lo)) AS b) q
+            ORDER BY h.f, h.line_id LIMIT 1
+            SQL, ['c' => $this->wkt($c), 'line' => $this->lineId, 'tol' => self::TERMINUS_CONTACT_M + 1, 'tol2' => self::TERMINUS_CONTACT_M,
+            'tol3' => self::TERMINUS_CONTACT_M, 'gauge' => $this->gauge, 'gauge2' => $this->gauge]);
+        if (! $r) {
+            return null;
+        }
+        $s = (float) $r->f * $len;
+        $cut = $this->subLine($c, 0.0, $s);
+        $a = $this->pointAlong($c, max(0.0, $s - 15));
+        $b = $this->pointAlong($c, $s);
+        // Contact dès le bout : le prolongement longerait (doublerait) cette ligne. Arrivée presque parallèle (aiguillage) :
+        // jonction ; de travers : croisement de la voie de l'autre ligne.
+        $ang = $this->angDiff(atan2($b[0] - $a[0], $b[1] - $a[1]), (float) $r->oaz);
+        $ang = min($ang, M_PI - $ang);
+        if ($r->other_gauge) {
+            return 'autre ligne d\'un autre écartement';
+        }
+        if ($s < 1.0) {
+            return 'doublerait une autre ligne dès le bout';
+        }
+        if ($ang > deg2rad(self::SOURCE_JOIN_DEG)) {
+            return 'croise une autre ligne';
+        }
+        $cut[count($cut) - 1] = [(float) $r->x, (float) $r->y];
+
+        return $cut;
+    }
+
+    /**
+     * Le chemin (hors de ses 2 premiers et 3 derniers m) croise-t-il une portion de la ligne (hors $fromSid) ou une voie
+     * précise du pool sous un angle de plus de OVERSHOOT_CROSS_DEG (pas un aiguillage) ?
+     *
+     * @param  list<array{0: float, 1: float}>  $c
+     */
+    private function crossesPreciseTrack(array $c, int $fromSid): bool
+    {
+        $len = $this->plen($c);
+        if ($len < 10) {
+            return false;
+        }
+
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:c, 2154) AS g)
+            SELECT 1 AS x FROM c
+            WHERE EXISTS (SELECT 1 FROM jr_sub t WHERE NOT t.removed AND t.sid <> :sid AND ST_Intersects(t.g, c.g))
+               OR EXISTS (
+                SELECT 1 FROM cf_pool p, LATERAL ST_Dump(ST_CollectionExtract(ST_Intersection(p.g, c.g), 1)) x,
+                     LATERAL (SELECT ST_LineLocatePoint(c.g, x.geom) AS fc, ST_LineLocatePoint(p.g, x.geom) AS fp, ST_Length(c.g) AS lc, ST_Length(p.g) AS lp) f
+                WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND p.g && c.g AND ST_Intersects(p.g, c.g) AND f.lp > 1
+                  AND degrees(asin(LEAST(1, abs(sin(
+                      ST_Azimuth(ST_LineInterpolatePoint(c.g, GREATEST(0, f.fc - 5 / f.lc)), ST_LineInterpolatePoint(c.g, LEAST(1, f.fc + 5 / f.lc)))
+                      - ST_Azimuth(ST_LineInterpolatePoint(p.g, GREATEST(0, f.fp - 5 / f.lp)), ST_LineInterpolatePoint(p.g, LEAST(1, f.fp + 5 / f.lp)))))))) > :deg)
+            SQL, ['c' => $this->wkt($this->subLine($c, 2.0, $len - 3.0)), 'sid' => $fromSid, 'deg' => self::OVERSHOOT_CROSS_DEG]);
+    }
+
+    /** Ajoute la trace source suivie telle quelle (règle 10) : sa famille et son id, grossière (rang 4) ou précise. */
+    private function insertTrace(array $path): void
+    {
+        $meta = ['source' => $path['family'], 'source_ids' => $path['ids'], 'matched' => null, 'matched_ids' => null];
+        DB::insert('INSERT INTO jr_sub (part_id, sub, conn, rank, added, g) VALUES (NULL, 0, FALSE, ?, ?, ST_GeomFromText(?, 2154))',
+            [['contrib' => 0, 'bdtopo' => 1, 'osm' => 2][$path['family']] ?? 4, json_encode($meta), $this->wkt($path['coords'])]);
     }
 
     // ─── 9. Longs trous sur les voies abandonnées ─────────────────────

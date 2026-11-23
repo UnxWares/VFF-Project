@@ -312,6 +312,7 @@ les sources. Écrit dans les tables du moteur.
 | `--no-single-axis` | Garde les portions dédoublées d'une même ligne. |
 | `--no-junction-repair` | Sans l'étape de continuité sur les voies réelles (sauts, trous, jonctions). |
 | `--no-rounding` | Sans l'arrondi des sommets (segments droits). |
+| `--no-extend-to-stations` | Éteint la règle 10 (allumée par défaut), qui prolonge jusqu'à sa gare terminus, le long de la trace source, un bout arrêté avant elle. |
 | `--report-only` | Mesure la précision du tracé actuel et réécrit les rapports, sans rien reconstruire. |
 | `--shard=i/n` | Une ligne sur `n`, pour des processus parallèles. |
 
@@ -402,6 +403,12 @@ et nettoyage `--no-single-axis`) sont arrivées les 21 et 22/11 ; leur docblock 
   refusée si les écartements diffèrent, si le bout croise déjà le dessin ou si la courbe double la ligne.
 - Règle 8 bis : un raccord droit de moins de 60 m, coudé de plus de 35 degrés, qui ferme une boucle (ses deux bouts déjà reliés par le reste de la
   ligne) est retiré avec le bout de portion qu'il laissait en l'air, sauf si une autre ligne finit sur lui (`3cc2e0d`).
+- Règle 10 (allumée par défaut, `--no-extend-to-stations` l'éteint) : un bout libre arrêté à plus de 30 m d'une gare de sa
+  ligne qui se trouve au-delà de lui, quand une trace rattachée à la ligne passe à moins de 5 m du bout et à moins de
+  15 m de la gare, est prolongé jusqu'à la gare le long de cette trace (sur les voies précises qui la suivent, sinon sur
+  la trace archeo ou OHM elle-même, gardée comme tracé grossier ; jamais sur une forme SNCF Réseau, généralisée, dont
+  les 5 m ne sont pas garantis). Le prolongement s'arrête au premier contact avec le dessin d'une autre ligne (jonction
+  à 0 m) et il est refusé s'il double une autre ligne dès le bout, s'il croise une voie ou s'il dépasse 2 km.
 
 Ces règles ne s'appliquent au réseau qu'au prochain recalcul des lignes (scripts d'application des rapports d'agents, voir
 `REPRISE.md`).

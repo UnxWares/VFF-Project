@@ -75,6 +75,11 @@ use Illuminate\Support\Facades\Storage;
  *    abandonnées non rattachées (OSM, BD TOPO « Sans objet ») quand le chemin
  *    passe les contrôles (gares, PK, autres lignes) ; un chemin qui s'arrête à
  *    moins d'1 km de l'autre bout laisse ce dernier trou visible.
+ *    Règle 10 (allumée par défaut, --no-extend-to-stations l'éteint) : un
+ *    bout arrêté à plus de 30 m de sa gare terminus est prolongé jusqu'à elle
+ *    le long de la trace source qui l'atteint (au plus 2 km ; voies précises,
+ *    sinon trace archeo ou OHM, jamais une forme SNCF Réseau), arrêté au
+ *    contact d'une autre ligne déjà dessinée, jamais en travers d'une voie.
  *
  * 4. Croisement des sources (App\Services\SourceAgreement) : chaque morceau
  *    est redécoupé par indice de confiance (high / medium / low) avec le
@@ -104,6 +109,7 @@ use Illuminate\Support\Facades\Storage;
  *   php artisan vff:build-line-references --report-only     # mesures + rapports CSV
  *   php artisan vff:build-line-references --no-conflate     # ancien comportement
  *   php artisan vff:build-line-references --no-single-axis  # sans l'étape « un seul axe »
+ *   php artisan vff:build-line-references --line=4500 --no-extend-to-stations  # sans la règle 10 (bouts non prolongés jusqu'à leur gare)
  */
 class BuildLineReferences extends Command
 {
@@ -114,6 +120,7 @@ class BuildLineReferences extends Command
         {--no-single-axis : garder les portions dédoublées d\'une même ligne (pas d\'étape « un seul axe »)}
         {--no-junction-repair : sans l\'étape de continuité sur les voies réelles (sauts, trous, jonctions)}
         {--no-rounding : sans l\'arrondi des sommets (tracés gardés en segments droits)}
+        {--no-extend-to-stations : ne pas prolonger jusqu\'à leur gare terminus les bouts arrêtés avant elle (règle 10, allumée par défaut)}
         {--report-only : mesurer la précision du tracé actuel et réécrire les rapports, sans rien reconstruire}
         {--shard= : i/n - ne traiter qu\'une ligne sur n (processus parallèles ; rapports avec --report-only ensuite)}';
 
@@ -192,6 +199,7 @@ class BuildLineReferences extends Command
             return self::SUCCESS;
         }
 
+        $this->junctionRepair->extendToStations = ! $this->option('no-extend-to-stations');
         $t = microtime(true);
         $n = $this->conflation->preparePool($partial ? $this->envelope($lineIds) : null);
         $this->line(sprintf('  pool de géométries : %d traces (%.1f s)', $n, microtime(true) - $t));
@@ -265,6 +273,10 @@ class BuildLineReferences extends Command
             $this->line(sprintf('  longs trous : %d suivis sur une voie abandonnée (%s km), dont %d incomplets (%s km laissés visibles) ; %d refusés',
                 $j['long_gap_filled'] ?? 0, $this->km($j['long_gap_filled_m'] ?? 0), $j['long_gap_partial'] ?? 0, $this->km($j['long_gap_left_m'] ?? 0),
                 $j['long_gap_refused'] ?? 0));
+            if (! $this->option('no-extend-to-stations')) {
+                $this->line(sprintf('  bouts arrêtés avant leur gare terminus : %d prolongés le long de la trace source (%s km), dont %d sur la trace grossière faute de voie précise',
+                    $j['terminus_extended'] ?? 0, $this->km($j['terminus_extended_m'] ?? 0), $j['terminus_rough'] ?? 0));
+            }
         }
         if ($r = $this->roundingStats) {
             $this->line(sprintf('  arrondi des sommets : %d sommets arrondis en arc de cercle (%d points ajoutés)',
