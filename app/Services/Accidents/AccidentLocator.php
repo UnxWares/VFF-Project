@@ -44,7 +44,8 @@ class AccidentLocator
             foreach ($names as [$name, $department]) {
                 $station = $this->stationByName($name, $department ?? $c->departmentCode);
                 if ($station !== null) {
-                    $this->setPoint($c, (float) $station->lat, (float) $station->lng, AccidentLocationPrecision::Station, 'station');
+                    $approximate = $c->approximatePlace;
+                    $this->setPoint($c, (float) $station->lat, (float) $station->lng, $approximate ? AccidentLocationPrecision::Commune : AccidentLocationPrecision::Station, $approximate ? 'commune' : 'station');
                     $this->fromCoordinates($c, keepSource: true);
 
                     return;

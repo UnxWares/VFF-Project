@@ -90,4 +90,25 @@ class NearestStationPrecisionTest extends TestCase
         $locator->locate($real);
         $this->assertSame(AccidentLocationPrecision::Exact, $real->locationPrecision);
     }
+
+    public function test_a_station_named_as_an_approach_is_never_a_position_in_station(): void
+    {
+        $this->buildRailNetwork();
+        $locator = app(AccidentLocator::class);
+
+        // « En gare de Paris-Saint-Lazare » : la gare est le lieu, à 0 m.
+        $inStation = new AccidentCandidate('wikipedia-list:in');
+        $inStation->communeName = 'Paris-Saint-Lazare';
+        $locator->locate($inStation);
+        $this->assertSame(AccidentLocationPrecision::Station, $inStation->locationPrecision);
+
+        // « À l'approche de Paris-Saint-Lazare » (lieu approximatif) : la gare retrouvée par son nom ne donne qu'une
+        // position de commune, qui n'est « à X m » d'aucune gare.
+        $approach = new AccidentCandidate('wikipedia-list:approach');
+        $approach->communeName = 'Paris-Saint-Lazare';
+        $approach->approximatePlace = true;
+        $locator->locate($approach);
+        $this->assertSame(AccidentLocationPrecision::Commune, $approach->locationPrecision);
+        $this->assertNull(app(AccidentLineMatcher::class)->nearestStation($approach));
+    }
 }

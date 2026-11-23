@@ -69,6 +69,12 @@ final class AccidentCandidate
     /** Gare citée par la source (« en gare de Laroche-Migennes »). */
     public ?string $stationHint = null;
 
+    /**
+     * Le lieu cité n'est que proche de l'accident (« à l'approche de », « à l'entrée de », « entre X et Y », « près de ») :
+     * un lieu-dit ou une gare retrouvé par son nom ne donne alors qu'une position de commune, jamais « en gare » à 0 m.
+     */
+    public bool $approximatePlace = false;
+
     /** Point hors de tout contour de commune : distance (m) à la commune la plus proche. */
     public ?int $offshoreM = null;
 
