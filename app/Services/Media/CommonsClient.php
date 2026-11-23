@@ -253,6 +253,39 @@ class CommonsClient
     }
 
     /**
+     * Recherche en texte intégral dans les fichiers (namespace File:), métadonnées comprises, en une
+     * seule requête (générateur `search`), du plus pertinent au moins pertinent.
+     *
+     * @return array<int, array{title: string, info: array<string, mixed>}> pageid → page brute
+     */
+    public function searchFiles(string $query, int $limit = 20): array
+    {
+        $data = $this->commons([
+            'action' => 'query',
+            'generator' => 'search',
+            'gsrsearch' => $query,
+            'gsrnamespace' => 6,
+            'gsrlimit' => max(1, min(50, $limit)),
+            'prop' => 'imageinfo',
+            'iiprop' => 'extmetadata|url|size|mime',
+            'iiurlwidth' => self::THUMB_WIDTH,
+            'iiextmetadatalanguage' => 'fr',
+            'iiextmetadatafilter' => self::EXTMETADATA,
+        ]);
+        $pages = $data['query']['pages'] ?? [];
+        usort($pages, fn (array $a, array $b): int => ($a['index'] ?? 0) <=> ($b['index'] ?? 0));
+        $out = [];
+        foreach ($pages as $p) {
+            if (empty($p['imageinfo'][0]) || ! isset($p['pageid'])) {
+                continue;
+            }
+            $out[(int) $p['pageid']] = ['title' => $p['title'], 'info' => $p['imageinfo'][0]];
+        }
+
+        return $out;
+    }
+
+    /**
      * @param  array<string, scalar>  $selector  `pageids` ou `titles`
      * @return array<int, array{title: string, info: array<string, mixed>}> pageid → page brute
      */

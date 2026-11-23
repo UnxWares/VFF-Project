@@ -134,4 +134,26 @@ class CommonsCoverageTest extends TestCase
         $this->assertSame(Station::class, CommonsCoverage::modelClass('station'));
         $this->assertNull(CommonsCoverage::modelClass('accident'));
     }
+
+    public function test_le_titre_doit_nommer_la_gare_entiere_et_un_mot_de_gare(): void
+    {
+        $t = fn (string $title, string $name) => CommonsCoverage::titleNamesStation(self::meta(['file_title' => $title]), $name);
+        $this->assertTrue($t('File:Gare de Walheim.jpg', 'Walheim'));
+        $this->assertTrue($t('File:Bahnhof Walheim.jpg', 'Walheim'));
+        $this->assertTrue($t('File:Saint-Georges-Motel - la gare.jpg', 'St-Georges-Motel'));
+        $this->assertTrue($t("File:Gare SNCF d'Étel 2019.jpg", 'Étel'));
+        // Un éditeur, un viaduc ou une ligne qui portent le nom ne suffisent pas.
+        $this->assertFalse($t('File:CPA Gare de Bagneaux-sur-Loing Deville 1920.jpg', 'Deville'));
+        $this->assertFalse($t('File:Anchamps - Laifour - Viaduc ferroviaire sur la Meuse.jpg', 'Anchamps'));
+        $this->assertFalse($t('File:Gare routière de Dreux.jpg', 'Dreux'));
+        $this->assertFalse($t('File:Gare de Dreux.jpg', 'Vernouillet'));
+    }
+
+    public function test_la_commune_doit_etre_nommee_dans_le_titre_ou_les_categories(): void
+    {
+        $meta = self::meta(['file_title' => 'File:Gare de Villeneuve.jpg', 'categories' => ['Villeneuve-sur-Yonne']]);
+        $this->assertTrue(CommonsCoverage::mentionsCity($meta, 'Villeneuve-sur-Yonne', 'Villeneuve'));
+        $this->assertFalse(CommonsCoverage::mentionsCity($meta, 'Cabourg', 'Villeneuve'));
+        $this->assertFalse(CommonsCoverage::mentionsCity($meta, null, 'Villeneuve'));
+    }
 }

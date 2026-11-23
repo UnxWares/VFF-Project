@@ -201,6 +201,46 @@ final class CommonsCoverage
         return $word !== null && str_contains($hay, $word);
     }
 
+    /**
+     * Le fichier nomme-t-il aussi la commune (mot distinctif de son nom) dans son titre ou ses
+     * catégories ? Évite les homonymes de gares d'autres communes.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    public static function mentionsCity(array $meta, ?string $city, string $name): bool
+    {
+        $word = $city !== null && $city !== '' ? self::distinctiveWord($city) : null;
+        if ($word === null) {
+            return false;
+        }
+        $hay = self::fold(CommonsMetadata::titleFromFile((string) ($meta['file_title'] ?? '')).' '.implode(' ', (array) ($meta['categories'] ?? [])));
+
+        return str_contains($hay, $word);
+    }
+
+    /**
+     * Le titre du fichier désigne-t-il la gare elle-même : le nom entier de la gare (« Gare de X »,
+     * « Halte de X », « X gare », « Gare SNCF de X »…) accolé à un mot de gare ? Beaucoup plus strict que
+     * mentionsPlace() : écarte un viaduc, une ligne ou un éditeur qui portent le même nom.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    public static function titleNamesStation(array $meta, string $name): bool
+    {
+        $name = preg_replace('/\s*\([^)]*\)\s*$/u', '', $name) ?? $name;
+        $name = preg_replace(['/\bSt-/u', '/\bSte-/u'], ['Saint-', 'Sainte-'], $name) ?? $name;
+        $n = trim(self::fold($name));
+        if (strlen($n) < 4) {
+            return false;
+        }
+        $title = ' '.trim(self::fold(CommonsMetadata::titleFromFile((string) ($meta['file_title'] ?? '')))).' ';
+        $q = preg_quote($n, '/');
+        $words = '(gare|gares|halte|haltes|station|bahnhof|arret)';
+        $pattern = '/ '.$words.'( sncf| ter| ferroviaire| routiere)?( (de|du|des|d|de la|de l|von|zu))? '.$q.' | '.$q.' (la |l |de la |en |cote |vue |facade |batiment )?'.$words.' /';
+
+        return (bool) preg_match($pattern, $title) && ! preg_match('/ gare routiere /', $title);
+    }
+
     private static function distinctiveWord(string $place): ?string
     {
         $best = null;
