@@ -3392,4 +3392,90 @@ return [
         'quote' => 'La gare de La Rapée est une ancienne gare française aux marchandises, désaffectée, de la ligne de Paris-Lyon à Marseille-Saint-Charles à Paris, en France.',
         'reason' => 'gare aux marchandises dès sa construction en 1862 (stockage et desserte des entrepôts de vins de Bercy) : jamais de voyageurs ; à ne pas confondre avec La Rapée-Bercy de la Petite Ceinture',
     ],
+    // ── 31. Tracé de l'ère arrêté avant la gare ou passant à côté (traces-tronques, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/traces-tronques.md). La voie est juste ; c'est la date ou la position de la
+    // gare qui la faisait « active » avant sa section, ou qui écartait sa position du découpage des sections.
+
+    // Chaville - Vélizy : gare de la section Meudon-Val-Fleury - Viroflay-Rive-Gauche de la ligne des Invalides, mise en
+    // service le 31/05/1902. L'ouverture de 1840 était déduite de l'ouverture « toute la ligne » (Paris - Versailles par la
+    // rive gauche, dont la gare de Chaville-Rive-Gauche) : 7 ères 1840 à 1900 sans voie à moins de 250 m.
+    [
+        'station' => ['name' => 'Chaville-Vélizy', 'uic' => '87393173'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1902-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Invalides à Versailles-Rive-Gauche', 240261607),
+        'quote' => 'mise en service du tronçon de Meudon-Val Fleury à Viroflay-Rive-Gauche et desserte complète de la ligne des Invalides à Versailles-Rive-Gauche',
+        'reason' => 'la gare est au PK 13,366 de la ligne des Invalides à Versailles-Rive-Gauche, entre Viroflay-Rive-Gauche et Meudon-Val-Fleury (Gare de Chaville - Vélizy, oldid 232787715) : elle ouvre avec ce tronçon, pas avec la ligne de 1840',
+    ],
+    // La Grave-d'Ambarès (gare inférieure) : halte de la ligne de Chartres à Bordeaux, entre Cubzac-les-Ponts et
+    // Sainte-Eulalie - Carbon-Blanc, sur la section de Cavignac à Bordeaux ouverte en 1886 (correction de la ligne dans
+    // line_event_corrections_traces_tronques.php). L'ouverture de 1874 était celle de la ligne entière (Wikidata).
+    [
+        'station' => ['name' => 'La Grave-d\'Ambarès-Gare-Inférieure', 'uic' => '87491274'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1886-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Mariens - Saint-Yzan', 239281710),
+        'quote' => 'La connexion directe avec la capitale régionale est devenue possible en 1886 lors de la construction d\'un pont franchissant la Dordogne sur la commune de Cubzac-les-Ponts.',
+        'reason' => 'la halte (PK 598,189, entre Cubzac-les-Ponts et Sainte-Eulalie - Carbon-Blanc, Gare de la Grave-d\'Ambarès oldid 223772792) ne peut pas précéder sa section, ouverte en 1886 ; date de la section, la halte peut être plus récente',
+    ],
+    // Moulot : gare de la section Clamecy - Cosne (PK 231,6, Clamecy au PK 226,686) de la ligne de Laroche-Migennes à
+    // Cosne, mise en service le 01/06/1893 et fermée aux voyageurs le 15/05/1938 (date de fermeture de la gare).
+    // L'ouverture de 1855 était celle de la première section (Laroche-Migennes - Auxerre).
+    [
+        'station' => ['name' => 'Moulot', 'near' => [3.472667, 47.453692, 0.5]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1893-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Laroche-Migennes à Cosne', 235261261),
+        'quote' => '1er juin 1893, mise en service de Clamecy à Cosne, avec une double voie ; 15 mai 1938, fermeture du service voyageurs de Clamecy à Cosne',
+        'reason' => 'gare de la section Clamecy - Cosne (PK de lignes-oubliées), ouverte avec elle ; sa fermeture du 15/05/1938 est celle de cette section',
+    ],
+    // Massy - Palaiseau : la fiche est la gare de la Grande Ceinture (position : quais du RER C), ouverte le 01/05/1883 « à
+    // mi-chemin des gares de Massy (actuellement Massy - Verrières) et de Palaiseau » ; la gare de 1854 de la ligne de
+    // Sceaux est Massy - Verrières. Les ères 1860 et 1870 n'avaient aucune voie à moins de 200 m.
+    [
+        'station' => ['name' => 'Massy-Palaiseau', 'uic' => '87393579'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-05-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Massy - Palaiseau', 240526522),
+        'quote' => 'Le 1er mai 1883, le trafic de la ligne de Grande Ceinture ouvre aux voyageurs sur la section de Versailles-Chantiers à Savigny-sur-Orge. Pour créer une correspondance avec la gare de la ligne de Sceaux, une nouvelle station est ouverte aux voyageurs et aux marchandises. Située à mi-chemin des gares de Massy (actuellement Massy - Verrières) et de Palaiseau, dans une plaine encore vierge de toute habitation, elle prend le nom de Massy - Palaiseau.',
+        'reason' => 'ouverture de la gare de la Grande Ceinture, que la fiche désigne (position des quais du RER C)',
+    ],
+    [
+        'station' => ['name' => 'Massy-Palaiseau', 'uic' => '87393579'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1854-01-01'],
+        'source_url' => $wp('Gare de Massy - Palaiseau', 240526522),
+        'reason' => '1854 est l\'ouverture du prolongement de la ligne de Sceaux jusqu\'à Orsay et de la gare de Massy, « actuellement Massy - Verrières » (même article), pas celle de Massy - Palaiseau',
+    ],
+    // Corte et Rennes : position juste (nœud OSM sur le bâtiment voyageurs, orthophoto IGN, rapport gares-sans-voie) mais
+    // signalée (écart des sources de 143 et 206 m, dû à la position du référentiel SNCF). Une gare signalée est écartée du
+    // géocodage des portions (vff:resolve-event-sections) : les sections « Bastia - Corte » et « Rennes - Brest » s'arrêtaient
+    // au point SNCF, 180 et 118 m plus loin, et la gare tombait dans la section suivante, ouverte plus tard (1894, 1863).
+    // La position, sourcée, n'est plus signalée.
+    [
+        'station' => ['name' => 'Corte', 'uic' => '87762013'],
+        'action' => 'position',
+        'lng' => 9.158370,
+        'lat' => 42.303835,
+        'source_url' => 'https://www.openstreetmap.org/node/270887749',
+        'quote' => 'Gare de Corte (nœud OSM railway=station, à 9 m du bâtiment voyageurs OSM ; Wikidata à 26 m)',
+        'reason' => 'position OSM sur la gare (orthophoto IGN) ; le point du référentiel SNCF est 180 m au nord, sur la voie de sortie vers Bastia',
+    ],
+    [
+        'station' => ['name' => 'Rennes', 'uic' => '87471003'],
+        'action' => 'position',
+        'lng' => -1.672381,
+        'lat' => 48.103193,
+        'source_url' => 'https://www.openstreetmap.org/node/4250849558',
+        'quote' => 'Gare de Rennes (nœud OSM railway=station, à 15 m de la gare OSM ; Wikidata à 18 m)',
+        'reason' => 'position OSM sur la halle voyageurs (orthophoto IGN) ; le point du référentiel SNCF est 118 m à l\'est',
+    ],
 ];

@@ -64,4 +64,10 @@ return [
     ['invariant' => 'lines.km_drop_without_event', 'slug' => 'archeo-voie-industrielle-de-bouee-a-cordemais', 'reviewed_at' => $day,
         'source_url' => 'https://vff-project.org/lines/archeo-voie-industrielle-de-bouee-a-cordemais',
         'reason' => 'voie industrielle hors réseau national datée de ses seuls débuts (1970 et 1982, OpenHistoricalMap) et sans fin connue : aucune portion confirmée en service en 2030'],
+    // ── Gares déplacées : la fiche porte la position de la gare actuelle, le tracé de l'ère suit l'ancien emplacement
+    // (traces-tronques, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/traces-tronques.md) ──
+    ['invariant' => 'stations.active_without_track', 'slug' => 'ste-marie-aux-mines', 'source_url' => $wp('Gare de Sainte-Marie-aux-Mines', 238409554), 'reviewed_at' => $day,
+        'reason' => '« La gare de 1864 a été remplacée en 1937 par une gare à un nouvel emplacement dans l\'axe du tunnel » : aux ères 1870 à 1930, le tracé (ancienne gare en impasse, face à l\'avenue Robert Zeller) passe à 188 m de la position, celle de la gare de 1937'],
+    ['invariant' => 'stations.active_without_track', 'slug' => 'strasbourg-neudorf', 'source_url' => $wp('Gare de Strasbourg-Neudorf', 240408199), 'reviewed_at' => $day,
+        'reason' => 'la « station » de 1861 est « installée entre la route de l\'hôpital et la route de Colmar » ; « la voie ferrée est déplacée vers le sud de Neudorf au début du XXe siècle » et la gare voyageurs actuelle est de 1905 : à l\'ère 1870, le tracé de l\'ancienne voie passe à 269 m de la position de la gare de 1905'],
 ];
