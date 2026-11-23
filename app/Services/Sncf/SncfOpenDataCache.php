@@ -20,7 +20,7 @@ final class SncfOpenDataCache
     public const USER_AGENT = 'VFF-Bot/1.0 (+https://vff-project.org)';
 
     /**
-     * @param  list<string>  $fields  champs exportés (`select` de l'API)
+     * @param  list<string>  $fields  champs exportés (`select` de l'API) ; liste vide : toutes les colonnes du jeu
      * @return array{records: list<array<string, mixed>>, license: string, modified: ?string, fetched_at: ?string}
      *
      * @throws \RuntimeException jeu injoignable, en erreur, vide, ou licence et éditeur inattendus
@@ -40,7 +40,7 @@ final class SncfOpenDataCache
         $http = Http::withUserAgent(self::USER_AGENT)->timeout(120);
         try {
             $meta = $http->get(self::API.$dataset);
-            $export = $meta->ok() ? $http->get(self::API.$dataset.'/exports/json', ['select' => implode(',', $fields), 'limit' => -1]) : null;
+            $export = $meta->ok() ? $http->get(self::API.$dataset.'/exports/json', ($fields === [] ? [] : ['select' => implode(',', $fields)]) + ['limit' => -1]) : null;
         } catch (ConnectionException) {
             throw new \RuntimeException("SNCF Open Data injoignable ({$dataset}) : rien lu.");
         }
