@@ -19,7 +19,12 @@ class ElectrificationWorksCorrectionsTest extends TestCase
 
     private const FILE = 'line_event_corrections_electrification.php';
 
-    /** @var array<string, array{0: string, 1: ?string}> ligne => [date de l'événement de travaux, section de départ] */
+    /**
+     * Ligne => [date de l'événement de travaux, section de départ]. PHP range un code sans zéro de tête (884000)
+     * sous une clé entière, d'où int|string et les conversions (string) ci-dessous.
+     *
+     * @var array<int|string, array{0: string, 1: ?string}>
+     */
     private const WORKS = [
         '001000' => ['2019-01-03', 'Gretz-Armainvilliers'],
         '884000' => ['2005-01-31', null],
@@ -63,8 +68,8 @@ class ElectrificationWorksCorrectionsTest extends TestCase
         $this->artisan('vff:apply-event-corrections')->assertSuccessful();
 
         foreach (self::WORKS as $code => $_) {
-            $this->assertSame('other', DB::table('line_events')->where('id', $works[$code])->value('type'), $code);
-            $this->assertSame('electrification', DB::table('line_events')->where('id', $kept[$code])->value('type'), $code);
+            $this->assertSame('other', DB::table('line_events')->where('id', $works[$code])->value('type'), (string) $code);
+            $this->assertSame('electrification', DB::table('line_events')->where('id', $kept[$code])->value('type'), (string) $code);
         }
     }
 
