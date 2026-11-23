@@ -27,12 +27,14 @@ use Illuminate\Support\Facades\DB;
  *   php artisan vff:import-material-periods
  *   php artisan vff:import-material-periods --dry-run -v
  *   php artisan vff:import-material-periods --offline
+ *   php artisan vff:import-material-periods --materials=Q120253257,Q604865   # périodes de ces séries seulement
  */
 class ImportMaterialPeriods extends Command
 {
     protected $signature = 'vff:import-material-periods
         {--offline : n\'appelle jamais Wikidata, lit le cache seulement}
-        {--dry-run : n\'écrit rien en base, affiche le bilan (et les périodes avec -v)}';
+        {--dry-run : n\'écrit rien en base, affiche le bilan (et les périodes avec -v)}
+        {--materials= : éléments Wikidata des seules séries dont les périodes sont écrites, séparés par des virgules}';
 
     protected $description = 'Range les périodes de circulation des séries de matériel sur les lignes, datées par Wikipédia et Wikidata.';
 
@@ -47,7 +49,7 @@ class ImportMaterialPeriods extends Command
 
         ['periods' => $periods, 'stats' => $stats] = $collector->collect((bool) $this->option('offline'));
         $this->info("Articles lus : {$stats['line_articles']} de lignes, {$stats['material_articles']} de séries ; déclarations Wikidata datées : {$stats['wikidata']}.");
-        $this->line("  Faits sans lien ligne × série attesté (écartés) : {$stats['unlinked']}");
+        $this->line("  Faits sans lien ligne × série attesté (écartés) : {$stats['unlinked']} ; périodes contredites par une autre source (retirées) : {$stats['dropped']}");
 
         $byConfidence = array_count_values(array_column($periods, 'confidence'));
         $shown = array_filter($periods, fn (array $p): bool => $p['confidence'] !== 'low');
@@ -66,7 +68,19 @@ class ImportMaterialPeriods extends Command
             }
         }
 
-        $diff = MaterialPeriodCollector::diff($periods);
+        $materialIds = null;
+        if (($option = trim((string) $this->option('materials'))) !== '') {
+            $qids = array_values(array_unique(array_filter(array_map('trim', explode(',', $option)))));
+            $found = DB::table('materials')->whereIn('wikidata_id', $qids)->pluck('id', 'wikidata_id')->map(fn ($id): int => (int) $id)->all();
+            if (($missing = array_diff($qids, array_keys($found))) !== []) {
+                $this->error('--materials : série(s) absente(s) de la base : '.implode(', ', $missing));
+
+                return self::FAILURE;
+            }
+            $materialIds = array_values($found);
+            $this->info('Écriture limitée à '.count($materialIds).' série(s) : '.implode(', ', $qids).'.');
+        }
+        $diff = MaterialPeriodCollector::diff($periods, $materialIds);
         $this->line('  Périodes à créer : '.count($diff['created']).' ; périodes en base à retirer : '.count($diff['removed']));
         if ($this->output->isVerbose() && $diff['removed'] !== []) {
             $gone = DB::table('line_material_periods')->join('line_materials', 'line_materials.id', '=', 'line_material_periods.line_material_id')
@@ -83,7 +97,7 @@ class ImportMaterialPeriods extends Command
 
             return self::SUCCESS;
         }
-        $written = $collector->write($periods);
+        $written = $collector->write($periods, $materialIds);
         $this->info("Périodes : {$written['created']} créée(s), {$written['updated']} mise(s) à jour, {$written['removed']} retirée(s).");
 
         return self::SUCCESS;

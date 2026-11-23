@@ -4,6 +4,7 @@ namespace App\Services\Materials;
 
 use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -18,7 +19,11 @@ use Illuminate\Support\Facades\DB;
  *      ligne par un lien ;
  *   3. relations et itinéraires cités par les articles des séries (MaterialRelations) : période lue dans la
  *      phrase et gardée dans la preuve du lien, avec la relation assurée (colonne `relation`) ;
- *   4. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision.
+ *   4. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision ;
+ *   5. phrases relues à la main (LineMaterialSupplements), qui retirent aussi les périodes qu'une autre source contredit.
+ *
+ * Une phrase qui nomme une version d'une famille de séries (« Omneo Premium » sous un lien vers Regio 2N) date
+ * cette version, pas la famille (MaterialFamilies, comme les liens).
  *
  * Les articles sont ceux que l'import du matériel a mis en cache (SourceCache, storage/app/data/materiel/,
  * mêmes révisions que les preuves des liens) : aucune requête vers Wikipédia ici. Wikidata : une requête,
@@ -49,6 +54,7 @@ final class MaterialPeriodCollector
         private readonly SourceCache $cache,
         private readonly MaterialPeriodExtractor $extractor,
         private readonly ?WikidataMaterialSource $wikidata = null,
+        private readonly ?LineMaterialSupplements $supplements = null,
     ) {}
 
     /**
@@ -83,8 +89,11 @@ final class MaterialPeriodCollector
             }
         }
 
+        // Une phrase qui nomme une version d'une famille (« Omneo Premium » sous un lien vers Regio 2N) la date, elle.
+        $families = MaterialFamilies::fromDatabase($this->cache->load('wikipedia_materials'));
+
         $candidates = [];
-        $stats = ['line_articles' => 0, 'material_articles' => 0, 'facts' => 0, 'unlinked' => 0, 'wikidata' => 0];
+        $stats = ['line_articles' => 0, 'material_articles' => 0, 'facts' => 0, 'unlinked' => 0, 'wikidata' => 0, 'dropped' => 0];
 
         // 1. Articles des lignes : les liens désignent des séries.
         foreach ($this->cache->load('wikipedia_lines') as $requested => $page) {
@@ -105,8 +114,10 @@ final class MaterialPeriodCollector
                     $today,
                 );
                 foreach ($facts as $fact) {
-                    foreach ($lineIds as $lineId) {
-                        $candidates[] = ['line_id' => $lineId, 'material_id' => $fact['id'], 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title']] + $fact;
+                    foreach ($families->attribute([(int) $fact['id']], (string) $fact['excerpt']) as $materialId) {
+                        foreach ($lineIds as $lineId) {
+                            $candidates[] = ['line_id' => $lineId, 'material_id' => $materialId, 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title']] + $fact;
+                        }
                     }
                 }
             }
@@ -141,8 +152,10 @@ final class MaterialPeriodCollector
                     $today,
                 );
                 foreach ($facts as $fact) {
-                    foreach ($lineIds as $lineId) {
-                        $candidates[] = ['line_id' => $lineId, 'material_id' => $fact['id'], 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation] + $fact;
+                    foreach ($families->attribute([(int) $fact['id']], (string) $fact['excerpt']) as $materialId) {
+                        foreach ($lineIds as $lineId) {
+                            $candidates[] = ['line_id' => $lineId, 'material_id' => $materialId, 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation] + $fact;
+                        }
                     }
                 }
             }
@@ -170,7 +183,7 @@ final class MaterialPeriodCollector
                 );
                 foreach ($facts as $fact) {
                     // Comme les liens : un article partagé (redirection) ne vaut que pour la série qu'il nomme.
-                    if (! WikipediaMaterialSections::speaksOf((string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), $fact['excerpt'])) {
+                    if (! $families->speaksOf((int) $materialId, (string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), $fact['excerpt'])) {
                         continue;
                     }
                     // Comme les liens : sur une LGV, seuls les engins de grande vitesse.
@@ -212,6 +225,10 @@ final class MaterialPeriodCollector
             }
         }
 
+        // 5. Phrases relues à la main (database/data/line_material_supplements.php), datées pour la ligne.
+        $supplements = $this->supplements ?? LineMaterialSupplements::fromDatabase();
+        array_push($candidates, ...$supplements->periods());
+
         $periods = [];
         foreach ($candidates as $c) {
             $linkId = $links["{$c['line_id']}:{$c['material_id']}"] ?? null;
@@ -221,6 +238,12 @@ final class MaterialPeriodCollector
                 continue;
             }
             $row = $this->row($linkId, $c, $materials[$c['material_id']] ?? null, isset($shared[$c['line_id']]));
+            // Période contredite par une autre source (début d'une exclusivité lu comme une arrivée…).
+            if ($supplements->drops((int) $c['line_id'], (int) $c['material_id'], $row['start_date'], $row['end_date'])) {
+                $stats['dropped']++;
+
+                continue;
+            }
             $key = $row['fingerprint'];
             if (! isset($periods[$key]) || self::RANK[$row['confidence']] > self::RANK[$periods[$key]['confidence']]) {
                 $periods[$key] = $row;
@@ -237,15 +260,18 @@ final class MaterialPeriodCollector
      * (LineMaterialPeriod::CONTRIBUTED_SOURCES) ne sont jamais touchées ; une période d'une source inconnue de
      * l'import est traitée comme importée, donc effacée si les sources ne la portent plus.
      *
+     * Avec `$materialIds`, seules les périodes des liens de ces séries sont écrites ou retirées.
+     *
      * @param  array<string, array<string, mixed>>  $periods
+     * @param  list<int>|null  $materialIds  séries seules concernées (null : toutes)
      * @return array{created: int, updated: int, removed: int}
      */
-    public function write(array $periods): array
+    public function write(array $periods, ?array $materialIds = null): array
     {
         $stats = ['created' => 0, 'updated' => 0, 'removed' => 0];
-        DB::transaction(function () use ($periods, &$stats): void {
-            $existing = LineMaterialPeriod::query()->imported()->get()->keyBy('fingerprint');
-            foreach ($periods as $fingerprint => $values) {
+        DB::transaction(function () use ($periods, $materialIds, &$stats): void {
+            $existing = self::imported($materialIds)->get()->keyBy('fingerprint');
+            foreach (self::only($periods, $materialIds) as $fingerprint => $values) {
                 $row = $existing->pull($fingerprint);
                 if ($row === null) {
                     LineMaterialPeriod::query()->create($values);
@@ -269,16 +295,47 @@ final class MaterialPeriodCollector
      * Ce que write() changerait : empreintes nouvelles et périodes en base que les sources ne portent plus.
      *
      * @param  array<string, array<string, mixed>>  $periods
+     * @param  list<int>|null  $materialIds  séries seules concernées (null : toutes)
      * @return array{created: list<string>, removed: list<int>}
      */
-    public static function diff(array $periods): array
+    public static function diff(array $periods, ?array $materialIds = null): array
     {
-        $existing = LineMaterialPeriod::query()->imported()->pluck('id', 'fingerprint')->all();
+        $existing = self::imported($materialIds)->pluck('id', 'fingerprint')->all();
+        $periods = self::only($periods, $materialIds);
 
         return [
             'created' => array_values(array_diff(array_map('strval', array_keys($periods)), array_map('strval', array_keys($existing)))),
             'removed' => array_values(array_map('intval', array_diff_key($existing, $periods))),
         ];
+    }
+
+    /**
+     * Périodes importées en base, des liens de ces séries seulement si elles sont données.
+     *
+     * @param  list<int>|null  $materialIds
+     * @return Builder<LineMaterialPeriod>
+     */
+    private static function imported(?array $materialIds): Builder
+    {
+        return LineMaterialPeriod::query()->imported()
+            ->when($materialIds !== null, fn ($q) => $q->whereIn('line_material_id', LineMaterial::query()->whereIn('material_id', $materialIds ?? [])->select('id')));
+    }
+
+    /**
+     * Périodes des liens de ces séries seulement si elles sont données.
+     *
+     * @param  array<string, array<string, mixed>>  $periods
+     * @param  list<int>|null  $materialIds
+     * @return array<string, array<string, mixed>>
+     */
+    private static function only(array $periods, ?array $materialIds): array
+    {
+        if ($materialIds === null) {
+            return $periods;
+        }
+        $links = LineMaterial::query()->whereIn('material_id', $materialIds)->pluck('id')->map(fn ($id): int => (int) $id)->flip()->all();
+
+        return array_filter($periods, fn (array $p): bool => isset($links[(int) $p['line_material_id']]));
     }
 
     /**
@@ -307,7 +364,7 @@ final class MaterialPeriodCollector
             $confidence = 'low';
         }
         // Article de série : « mise en service en 1966 au dépôt de La Chapelle… » date souvent la série, pas sa venue sur la ligne.
-        if ($c['origin'] === MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE && $c['to'] === null && $startYear !== null && $startYear === $from) {
+        if ($c['origin'] === MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE && $c['to'] === null && $startYear !== null && $startYear === $from && ! ($c['reviewed'] ?? false)) {
             $confidence = 'low';
         }
         [$sectionFrom, $sectionTo] = $c['origin'] === MaterialPeriodExtractor::MODE_LINE_ARTICLE ? self::sectionOf((string) $c['heading']) : [null, null];

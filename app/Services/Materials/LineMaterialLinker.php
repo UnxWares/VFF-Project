@@ -3,6 +3,7 @@
 namespace App\Services\Materials;
 
 use App\Models\LineMaterial;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -13,7 +14,12 @@ use Illuminate\Support\Facades\DB;
  *   2. article Wikipédia d'une LIGNE (lines.wikipedia_title) : lien vers l'article d'une série
  *      dans une section « Matériel roulant », « Exploitation », « Desserte »… ;
  *   3. article Wikipédia d'une SÉRIE (materials.wikipedia_fr) : lien vers l'article d'une ligne
- *      dans une section « Utilisation », « Services », « Carrière »…
+ *      dans une section « Utilisation », « Services », « Carrière »… ;
+ *   4. phrase relue à la main que la lecture automatique ne prend pas (LineMaterialSupplements,
+ *      database/data/line_material_supplements.php).
+ *
+ * Une phrase qui nomme une version d'une famille de séries revient à cette version, même quand son lien
+ * pointe vers l'article commun (« [[Regio 2N|Omneo Premium]] (Z 56600) » : Z 56600, MaterialFamilies).
  *
  * Chaque lien garde ses preuves (`evidence` : article, révision, section, phrase citée,
  * permalien) ; un seul lien par couple ligne × série, toutes preuves réunies. Aucune période
@@ -68,6 +74,7 @@ final class LineMaterialLinker
         private readonly ?LineMaterialExclusions $exclusions = null,
         private readonly ?MaterialRelations $relations = null,
         private readonly bool $plannedSections = true,
+        private readonly ?LineMaterialSupplements $supplements = null,
     ) {}
 
     /**
@@ -121,6 +128,11 @@ final class LineMaterialLinker
 
         $this->fromLineArticles($add, $refresh);
         $this->fromMaterialArticles($add, $refresh);
+        // Phrases relues à la main que la lecture automatique ne prend pas (database/data/line_material_supplements.php).
+        $supplements = $this->supplements ?? LineMaterialSupplements::fromDatabase();
+        foreach ($supplements->evidence() as $supplement) {
+            $add($supplement['line_id'], $supplement['material_id'], $supplement['evidence']);
+        }
 
         // Exclusion relue, écartement ou électrification contraires sans source explicite : le lien est
         // écarté (et gardé pour le bilan).
@@ -128,7 +140,7 @@ final class LineMaterialLinker
         $gauges = $this->gauges ?? MaterialGaugeRule::fromDatabase();
         $traction = $this->traction ?? MaterialTractionRule::fromDatabase();
         $this->rejected = [];
-        $this->unresolved = [...$exclusions->unresolvedEntries(), ...$gauges->unresolvedEntries(), ...$traction->unresolvedEntries()];
+        $this->unresolved = [...$exclusions->unresolvedEntries(), ...$gauges->unresolvedEntries(), ...$traction->unresolvedEntries(), ...$supplements->unresolvedEntries()];
         foreach ($links as $key => $link) {
             $evidence = $link['evidence'];
             $reason = $exclusions->apply($link['line_id'], $link['material_id'], $evidence);
@@ -171,14 +183,14 @@ final class LineMaterialLinker
      * et liens importés à retirer.
      *
      * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     * @param  list<int>|null  $materialIds  séries seules concernées (null : toutes)
      * @return array{created: list<string>, updated: list<string>, removed: list<string>}
      */
-    public static function diff(array $links): array
+    public static function diff(array $links, ?array $materialIds = null): array
     {
-        $existing = LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->get()
-            ->keyBy(fn (LineMaterial $l): string => "{$l->line_id}:{$l->material_id}");
+        $existing = self::imported($materialIds)->keyBy(fn (LineMaterial $l): string => "{$l->line_id}:{$l->material_id}");
         $out = ['created' => [], 'updated' => [], 'removed' => []];
-        foreach ($links as $key => $link) {
+        foreach (self::only($links, $materialIds) as $key => $link) {
             $row = $existing->pull((string) $key);
             if ($row === null) {
                 $out['created'][] = (string) $key;
@@ -189,6 +201,30 @@ final class LineMaterialLinker
         $out['removed'] = array_map('strval', $existing->keys()->all());
 
         return $out;
+    }
+
+    /**
+     * Liens importés en base, de ces séries seulement si elles sont données.
+     *
+     * @param  list<int>|null  $materialIds
+     * @return Collection<int, LineMaterial>
+     */
+    private static function imported(?array $materialIds): Collection
+    {
+        return LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)
+            ->when($materialIds !== null, fn ($q) => $q->whereIn('material_id', $materialIds ?? []))->get();
+    }
+
+    /**
+     * Liens de ces séries seulement si elles sont données.
+     *
+     * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     * @param  list<int>|null  $materialIds
+     * @return array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>
+     */
+    private static function only(array $links, ?array $materialIds): array
+    {
+        return $materialIds === null ? $links : array_filter($links, fn (array $l): bool => in_array($l['material_id'], $materialIds, true));
     }
 
     /**
@@ -206,18 +242,20 @@ final class LineMaterialLinker
      * Écrit les liens : un lien importé absent de `$links` est retiré, les liens saisis dans VFF
      * (source nulle ou autre) ne sont jamais touchés.
      *
+     * Avec `$materialIds`, seuls les liens de ces séries sont créés, mis à jour ou retirés : les autres restent tels quels.
+     *
      * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     * @param  list<int>|null  $materialIds  séries seules concernées (null : toutes)
      * @return array{created: int, updated: int, removed: int}
      */
-    public function write(array $links): array
+    public function write(array $links, ?array $materialIds = null): array
     {
         $stats = ['created' => 0, 'updated' => 0, 'removed' => 0];
 
-        DB::transaction(function () use ($links, &$stats): void {
-            $existing = LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->get()
-                ->keyBy(fn (LineMaterial $l): string => "{$l->line_id}:{$l->material_id}");
+        DB::transaction(function () use ($links, $materialIds, &$stats): void {
+            $existing = self::imported($materialIds)->keyBy(fn (LineMaterial $l): string => "{$l->line_id}:{$l->material_id}");
 
-            foreach ($links as $key => $link) {
+            foreach (self::only($links, $materialIds) as $key => $link) {
                 $values = self::attributes($link['evidence']);
                 $row = $existing->pull($key);
                 if ($row === null) {
@@ -317,7 +355,8 @@ final class LineMaterialLinker
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
-                    foreach (array_unique($materialsByTitle[$link['target']] ?? []) as $materialId) {
+                    // « [[Regio 2N|Omneo Premium]] (Z 56600) » : la phrase nomme une version, le lien vaut pour elle.
+                    foreach ($this->families($refresh)->attribute(array_values(array_unique($materialsByTitle[$link['target']] ?? [])), $link['quote']) as $materialId) {
                         foreach ($lineIds as $lineId) {
                             $add($lineId, $materialId, self::wikipediaEvidence(self::KIND_LINE_ARTICLE, $page, $section['title'], $link, count($lineIds) > 1));
                         }
@@ -350,7 +389,7 @@ final class LineMaterialLinker
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
-                    if (! $this->speaksOf((string) $requested, $page, $link['quote'])
+                    if (! $this->speaksOf((int) $materials[$requested], (string) $requested, $page, $link['quote'])
                         || ($planned && ! WikipediaMaterialSections::isPlannedSectionService($link))) {
                         continue;
                     }
@@ -369,19 +408,34 @@ final class LineMaterialLinker
     /** @var array<string, string>|null titre de l'article demandé → nom de la série */
     private ?array $seriesNames = null;
 
+    private ?MaterialFamilies $familyIndex = null;
+
     /**
      * La phrase vaut-elle pour la série dont l'article a été demandé ? Oui si l'article est le sien (titre
-     * demandé = titre final). Une série dont le titre renvoie vers l'article d'une autre (Coradia Liner vers
-     * Régiolis, Z 56500 vers Regio 2N) ne reçoit que les phrases qui la nomment (« Z 56500 ») : le reste de
-     * l'article décrit l'autre série. Règle partagée avec MaterialPeriodCollector.
+     * demandé = titre final), sauf quand elle nomme l'une de ses versions (« les Z 56600 assurent… » dans
+     * l'article Regio 2N revient aux Z 56600). Une série dont le titre renvoie vers l'article d'une autre
+     * (Coradia Liner vers Régiolis, Z 56500 vers Regio 2N) ne reçoit que les phrases qui la nomment
+     * (« Z 56500 », « Omneo Premium ») : le reste de l'article décrit l'autre série. Règle partagée avec
+     * MaterialPeriodCollector (MaterialFamilies).
      *
      * @param  array{title: string}  $page
      */
-    private function speaksOf(string $requested, array $page, string $quote): bool
+    private function speaksOf(int $materialId, string $requested, array $page, string $quote): bool
     {
         $this->seriesNames ??= DB::table('materials')->whereNotNull('wikipedia_fr')->pluck('name', 'wikipedia_fr')->map(fn ($n): string => (string) $n)->all();
 
-        return WikipediaMaterialSections::speaksOf($requested, $page['title'], $this->seriesNames[$requested] ?? $requested, $quote);
+        return $this->families(false)->speaksOf($materialId, $requested, $page['title'], $this->seriesNames[$requested] ?? $requested, $quote);
+    }
+
+    /** Familles de séries d'après les articles des séries (MaterialFamilies), lues une fois. */
+    private function families(bool $refresh): MaterialFamilies
+    {
+        if ($this->familyIndex === null) {
+            $titles = DB::table('materials')->whereNotNull('wikipedia_fr')->pluck('wikipedia_fr')->map(fn ($t): string => (string) $t)->all();
+            $this->familyIndex = MaterialFamilies::fromDatabase($this->wikipedia->sections('wikipedia_materials', $titles, WikipediaMaterialSections::MATERIAL_SECTIONS, $refresh));
+        }
+
+        return $this->familyIndex;
     }
 
     /**
@@ -417,7 +471,7 @@ final class LineMaterialLinker
                     'electric' => self::isElectricOnly((string) $row->type, $row->electrification),
                 ];
                 foreach ($this->relations->links($page, $material) as $link) {
-                    if (! $this->speaksOf((string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
+                    if (! $this->speaksOf((int) $row->id, (string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
                         continue;
                     }
                     // Série qui remplace celle de l'article sur un itinéraire : le lien est pour elle, si son
