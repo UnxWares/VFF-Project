@@ -14,6 +14,7 @@ use App\Services\Materials\RelationRouter;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -741,5 +742,72 @@ class MaterialRelationsTest extends TestCase
         // Fiche de la série sur le site : relations de chaque ligne parcourue.
         $this->withCookie('locale', 'fr')->get('/materials/x-2800')->assertOk()
             ->assertInertia(fn ($page) => $page->where('lines.0.relations.0.label', 'Argentan - Granville')->etc());
+    }
+
+    /** Gares et ligne d'un réseau à part du graphe d'essai (Paris - Orléans, Brive - Montauban). */
+    private function companyNetwork(): void
+    {
+        foreach (['PO1' => 'Ligne PO1', 'BM' => 'Ligne BM'] as $code => $name) {
+            $this->lines[$code] = Line::factory()->create(['code' => $code, 'name' => $name, 'is_lgv' => false]);
+        }
+        foreach (['Orléans' => [1.9, 47.9], 'Brive-la-Gaillarde' => [1.53, 45.15], 'Montauban-Ville-Bourbon' => [1.35, 44.01]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Paris-Montparnasse', 'Orléans', 'PO1', 120);
+        $this->edge('Brive-la-Gaillarde', 'Montauban-Ville-Bourbon', 'BM', 150);
+    }
+
+    /** @return list<string> */
+    private function labels(array $links): array
+    {
+        return array_values(array_unique(array_map(fn (array $l): string => (string) $l['evidence']['route']['label'], $links)));
+    }
+
+    /**
+     * Phrase réelle de l'article du 1CC1 3700 : « Compagnie du chemin de fer de Paris à Orléans » est un nom de
+     * compagnie, seule la ligne de Brive à Montauban est une relation.
+     */
+    public function test_a_company_name_in_the_real_1cc1_3700_sentence_is_not_a_relation(): void
+    {
+        $this->companyNetwork();
+        $real = "De 1943 à 1945, quatre locomotives sont temporairement détachées au dépôt de [[Gare de Limoges-Bénédictins|Limoges]] pour appuyer le parc de la [[Compagnie du chemin de fer de Paris à Orléans]] après l'électrification de la ligne de [[Gare de Brive-la-Gaillarde|Brive]] à [[Gare de Montauban-Ville-Bourbon|Montauban]].\n";
+        $this->assertSame(['Brive-la-Gaillarde - Montauban-Ville-Bourbon'], $this->labels($this->links($this->relations(), $real, 'Carrière')));
+
+        // Les mêmes noms de gare liés dans le nom de la compagnie (écriture que rien n'interdit) : toujours pas une relation.
+        $linked = "De 1943 à 1945, quatre locomotives sont détachées pour appuyer le parc de la Compagnie du chemin de fer de [[Gare de Paris-Montparnasse|Paris]] à [[Gare d'Orléans|Orléans]] après l'électrification de la ligne de [[Gare de Brive-la-Gaillarde|Brive]] à [[Gare de Montauban-Ville-Bourbon|Montauban]].\n";
+        $this->assertSame(['Brive-la-Gaillarde - Montauban-Ville-Bourbon'], $this->labels($this->links($this->relations(), $linked, 'Carrière')));
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function companyNames(): array
+    {
+        return [
+            'compagnie, gares liées' => ["* Locomotives du réseau de la Compagnie du chemin de fer de [[Gare de Paris-Montparnasse|Paris]] à [[Gare d'Orléans|Orléans]] de 1950 à 1960\n"],
+            'chemins de fer, tiret' => ["* Les Chemins de fer de Paris - Orléans, de 1950 à 1960\n"],
+            'compagnie nommée par un tiret' => ["* Engins de la Compagnie Paris - Orléans de 1950 à 1960\n"],
+            'réseau' => ["* Engins du réseau Paris - Orléans de 1950 à 1960\n"],
+            'sigle après le nom' => ["* Engins du Paris - Orléans (PO) de 1950 à 1960\n"],
+            'lien vers la compagnie' => ["* Engins de la [[Compagnie du chemin de fer de Paris à Orléans|Paris - Orléans]] de 1950 à 1960\n"],
+            'compagnie de la Méditerranée' => ["* Engins de la [[Chemins de fer de Paris à Lyon et à la Méditerranée|Paris - Orléans]] de 1950 à 1960\n"],
+        ];
+    }
+
+    #[DataProvider('companyNames')]
+    public function test_a_company_or_network_name_is_never_read_as_a_relation(string $text): void
+    {
+        $this->companyNetwork();
+
+        $this->assertSame([], $this->links($this->relations(), $text));
+    }
+
+    /** Une vraie relation entre les mêmes gares reste lue, y compris près d'un nom de compagnie. */
+    public function test_a_real_relation_between_the_same_stations_is_still_read(): void
+    {
+        $this->companyNetwork();
+
+        $this->assertSame(['Paris - Orléans'], $this->labels($this->links($this->relations(), "* Relation Paris - Orléans de la Compagnie du Midi de 1950 à 1960\n")));
+        $this->assertSame(['Paris - Orléans'], $this->labels($this->links($this->relations(), "* Sur le réseau de l'État, Paris - Orléans de 1950 à 1960\n")));
+        $this->assertSame(['Paris - Orléans'], $this->labels($this->links($this->relations(), "* Chemin de fer Paris - Orléans de 1950 à 1960\n")), 'une ligne, pas une compagnie');
+        $this->assertSame(['Paris - Orléans'], $this->labels($this->links($this->relations(), "* En 1956 dans les chemins de fer Paris - Orléans de 1950 à 1960\n")), 'le bruit « dans les chemins de fer » de l\'article n\'est pas une compagnie');
     }
 }
