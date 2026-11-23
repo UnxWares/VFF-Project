@@ -89,13 +89,15 @@ class ExportOpenDataTest extends TestCase
     protected function tearDown(): void
     {
         // Dossier temporaire propre au test (préfixe vérifié) : fichiers un à un, puis dossiers vides.
+        // Motif « .[!.]* » et non « .* » : « .* » prend aussi « .. », et « ../* » viderait le dossier
+        // temporaire du système (/tmp), ce qui bloquait la suite en CI.
         $this->assertStringStartsWith(sys_get_temp_dir().'/vff-open-data-test-', $this->out);
-        foreach (glob($this->out.'/{,.}*/*', GLOB_BRACE) ?: [] as $file) {
+        foreach (glob($this->out.'/{*,.[!.]*}/*', GLOB_BRACE) ?: [] as $file) {
             if (is_file($file)) {
                 unlink($file);
             }
         }
-        foreach (glob($this->out.'/{,.}*', GLOB_BRACE) ?: [] as $entry) {
+        foreach (glob($this->out.'/{*,.[!.]*}', GLOB_BRACE) ?: [] as $entry) {
             if (is_file($entry)) {
                 unlink($entry);
             } elseif (is_dir($entry) && ! in_array(basename($entry), ['.', '..'], true)) {
