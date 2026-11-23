@@ -38,6 +38,7 @@
         { key: 'graphql', href: '/docs/graphql' },
         { key: 'graphiql', href: '/graphiql' },
         { key: 'schema', href: '/docs/schema.graphql' },
+        { key: 'open_data', href: '/open-data' },
     ];
 
     const access = [{ key: 'readonly' }, { key: 'no_key' }, { key: 'limit' }, { key: 'licence' }];

@@ -21,6 +21,7 @@ return [
             'graphql' => ['title' => 'GraphQL reference', 'text' => 'Types, queries and examples for the schema.'],
             'graphiql' => ['title' => 'GraphiQL', 'text' => 'A console to write and run GraphQL queries.'],
             'schema' => ['title' => 'GraphQL schema (SDL)', 'text' => 'The full schema, as plain text.'],
+            'open_data' => ['title' => 'Open data', 'text' => 'The network by decade, events, accidents and rolling stock as CSV and GeoJSON files, under the ODbL.'],
         ],
     ],
 

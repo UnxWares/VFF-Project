@@ -944,6 +944,33 @@ return [
             // Noms construits par VFF (communes et gares extrémités).
             'derived' => 'vff', 'derived_nearest' => 'vff', 'derived_stations' => 'vff',
         ],
+        // Jeux de données ouverts (vff:export-open-data) : provenance de chaque champ d'une gare (stations.provenance,
+        // clés name, geom, opened_at, closed_at, et stations.position_source). `vff:eras` : fermeture déduite par VFF
+        // de l'état des lignes de chaque ère ; `correction` : correction sourcée de VFF (fournisseur par défaut).
+        'stations.fields' => [
+            'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'osm:note' => 'osm', 'ohm' => 'ohm',
+            'wikidata' => 'wikidata', 'wikidata:qualifiers' => 'wikidata', 'communes' => 'communes',
+            'wikipedia' => 'wikipedia', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro', 'correction' => 'vff', 'inferred:line_event' => 'vff',
+            'inferred:trace' => 'vff', 'vff:eras' => 'vff',
+            // Position recalée sur la voie d'une source (StationPositioning) : la source de la voie.
+            'recalage:osm' => 'osm', 'recalage:ohm' => 'ohm', 'recalage:sncf' => 'sncf', 'recalage:wikidata' => 'wikidata',
+        ],
+        // Provenance des champs d'un accident (accidents.provenance, location_source, toll_source) : `context` et `manual`
+        // sont les fiches et contextes rédigés par VFF (faits seulement), `commune` le centre de la commune (API
+        // Découpage administratif), `station` la position de la gare la plus proche (sa propre provenance est relue
+        // par l'export), `sncf-pn` un passage à niveau de SNCF Réseau.
+        'accidents.fields' => [
+            'wikipedia' => 'wikipedia', 'wikipedia-en' => 'wikipedia-en', 'wikipedia-de' => 'wikipedia-de',
+            'bea-tt' => 'bea-tt', 'wikidata' => 'wikidata', 'vff' => 'vff', 'context' => 'vff', 'manual' => 'vff',
+            'commune' => 'communes', 'station' => 'vff', 'sncf-pn' => 'sncf',
+        ],
+        // Provenance de l'écartement d'une portion (line_segments.gauge_source, vff:enrich-era-segments) : `archeo` est
+        // l'écartement lu dans le calque du tracé d'origine ; event, curated, line et network sont déduits par VFF.
+        'line_segments.gauge_source' => [
+            'wikidata' => 'wikidata', 'osm' => 'osm', 'osm_hist' => 'osm', 'sncf' => 'sncf', 'bdtopo' => 'ign', 'ohm' => 'ohm',
+            'archeo' => 'archeoferroviaire', 'event' => 'vff', 'curated' => 'vff', 'line' => 'vff', 'network' => 'vff',
+        ],
     ],
 
     'composites' => [

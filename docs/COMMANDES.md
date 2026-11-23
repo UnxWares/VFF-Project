@@ -555,6 +555,24 @@ Met à jour l'instantané du contrat de l'API publique (`tests/Fixtures/api-cont
 entrent seuls ; `--accept-removals` accepte aussi un retrait ou un changement de type, à annoncer dans
 [API-CHANGELOG.md](API-CHANGELOG.md) (le test `ApiContractTest` échoue sinon).
 
+### `vff:export-open-data`
+
+Jeux de données ouverts sous ODbL 1.0, lancés à la main (aucune tâche planifiée) : réseau d'une ère (`lignes`,
+`sections`, `gares` en CSV et GeoJSON), `evenements`, `accidents`, `materiel`, chacun avec `LISEZMOI.txt`,
+`LICENCE.txt` et une archive ZIP, plus `catalogue.json` lu par la page `/open-data`. Écrit dans
+`public/downloads/open-data/` (servi en statique, ignoré par git). Lecture seule de la base, idempotente (même base
+et même `--date`, mêmes octets). Seules les sources autorisées par `database/data/source_rights.php` entrent
+(`App\Services\OpenData\OpenDataRights`) ; le reste est retiré ou remplacé par une donnée libre et compté.
+
+| Option | Effet |
+|:-|:-|
+| `--era=` | Ère(s) du réseau, répétable ; défaut : l'ère courante. |
+| `--all-eras` | Réseau de toutes les ères. |
+| `--only=` | `network`, `events`, `accidents`, `materials`, répétable (défaut : tous). |
+| `--lines=` | Échantillon : slugs séparés par des virgules ; écrit dans `storage/app/open-data-sample`, jamais dans le dossier public. |
+| `--output=` | Autre dossier de sortie. |
+| `--date=` | Date du jeu (AAAA-MM-JJ). |
+
 ## Contrôles
 
 ### `vff:check-invariants`

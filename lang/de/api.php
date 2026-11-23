@@ -20,6 +20,7 @@ return [
             'graphql' => ['title' => 'GraphQL-Referenz', 'text' => 'Typen, Abfragen und Beispiele des Schemas.'],
             'graphiql' => ['title' => 'GraphiQL', 'text' => 'Konsole zum Schreiben und Ausführen von GraphQL-Abfragen.'],
             'schema' => ['title' => 'GraphQL-Schema (SDL)', 'text' => 'Das vollständige Schema als Text.'],
+            'open_data' => ['title' => 'Offene Daten', 'text' => 'Das Netz nach Jahrzehnten, Ereignisse, Unfälle und Fahrzeuge als CSV- und GeoJSON-Dateien, unter der ODbL.'],
         ],
     ],
 

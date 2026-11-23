@@ -75,6 +75,12 @@ class SourceRightsReport extends Command
         'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',
         'station_audits' => "SELECT DISTINCT p->>'source' AS v FROM station_audits, jsonb_array_elements(positions) AS p",
         'station_date_candidates' => 'SELECT DISTINCT source AS v FROM station_date_candidates',
+        'stations.fields' => "SELECT DISTINCT p.value AS v FROM stations, jsonb_each_text(COALESCE(provenance, '{}'::jsonb)) AS p
+            WHERE p.key IN ('name', 'geom', 'opened_at', 'closed_at') UNION SELECT DISTINCT position_source FROM stations WHERE position_source IS NOT NULL",
+        'accidents.fields' => "SELECT DISTINCT p.value AS v FROM accidents, jsonb_each_text(COALESCE(provenance, '{}'::jsonb)) AS p
+            UNION SELECT DISTINCT location_source FROM accidents WHERE location_source IS NOT NULL
+            UNION SELECT DISTINCT toll_source FROM accidents WHERE toll_source IS NOT NULL",
+        'line_segments.gauge_source' => 'SELECT DISTINCT gauge_source AS v FROM line_segments WHERE gauge_source IS NOT NULL',
     ];
 
     public function handle(): int

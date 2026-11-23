@@ -27,6 +27,7 @@ use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NetworkFiguresController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OpenDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\SegmentAuditAdminController;
@@ -132,6 +133,10 @@ Route::get('/docs/graphql/{page?}', function (?string $page = null) {
 
     return response()->file($file, ['Content-Type' => 'text/html; charset=UTF-8']);
 })->where('page', '[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*')->name('docs.graphql');
+
+// Jeux de données ouverts (vff:export-open-data, lancée à la main) : catalogue lu dans public/downloads/open-data,
+// fichiers servis en statique sous /downloads/open-data/.
+Route::get('/open-data', OpenDataController::class)->name('open-data');
 
 Route::prefix('credits')->name('credits.')->group(function (): void {
     Route::get('/tech', [CreditsController::class, 'tech'])->name('tech');
