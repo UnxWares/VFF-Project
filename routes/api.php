@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
+use App\Http\Controllers\Api\HeritageController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineArchiveController;
@@ -125,6 +126,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/tourist-railways', [TouristRailwayController::class, 'index'])->name('api.tourist-railways');
+    // Patrimoine ferroviaire protégé (monuments historiques, label ACR) : App\Services\Heritage\HeritageIndex.
+    Route::get('/v1/heritage', [HeritageController::class, 'index'])->name('api.heritage');
     Route::get('/v1/projects', [RailProjectController::class, 'index'])->name('api.projects');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');

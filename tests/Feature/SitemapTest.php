@@ -55,7 +55,7 @@ class SitemapTest extends TestCase
         $this->assertContains(url('/stations/gare-essai'), $this->locs('/sitemap-stations-1.xml'));
         $this->assertContains(url('/materials/serie-essai'), $this->locs('/sitemap-materials-1.xml'));
         $pages = $this->locs('/sitemap-pages-1.xml');
-        foreach (['/', '/whoarewe', '/lines', '/api', '/credits/tech', '/privacy', '/glossary'] as $path) {
+        foreach (['/', '/whoarewe', '/lines', '/api', '/credits/tech', '/privacy', '/glossary', '/heritage'] as $path) {
             $this->assertContains(rtrim(url($path), '/') ?: url('/'), array_map(fn (string $u): string => rtrim($u, '/'), $pages));
         }
         foreach ($pages as $page) {

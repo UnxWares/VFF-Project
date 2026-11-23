@@ -156,6 +156,7 @@ return [
             'station' => 'Fiche complète d’une gare : dates, statut à chaque ère, lignes desservies et sources.',
             'station_events' => 'Chronologie d’une gare : ouverture, fermetures, réouverture, démolition.',
             'station_media' => 'Photos, cartes postales et plans d’une gare, avec leurs droits et leur contribution d’origine.',
+            'heritage' => 'Patrimoine ferroviaire protégé : bâtiments voyageurs et ouvrages d’art classés ou inscrits monuments historiques ou labellisés Architecture contemporaine remarquable, avec date de protection, architecte, construction, style, commune, image libre et notice Mérimée ; filtres par protection, objet, style, architecte, région et époque.',
             'events' => 'Événements datés de toutes les lignes (ouverture, fermeture, électrification, dépose), filtrables par ligne, type, source, département et période.',
             'event' => 'Un événement avec la citation de sa source et le détail de la portion concernée.',
             'media_all' => 'Photos, cartes postales, plans et documents de toutes les lignes et gares, filtrables par licence, par époque et par mise en avant, avec leurs compteurs (facets).',

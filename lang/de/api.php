@@ -155,6 +155,7 @@ return [
             'station' => 'Vollständiger Eintrag eines Bahnhofs: Daten, Status zu jeder Epoche, bediente Strecken und Quellen.',
             'station_events' => 'Chronik eines Bahnhofs: Eröffnung, Schließungen, Wiedereröffnung, Abriss.',
             'station_media' => 'Fotos, Postkarten und Pläne eines Bahnhofs, mit ihren Rechten und dem Beitrag, aus dem sie stammen.',
+            'heritage' => 'Geschütztes Eisenbahnerbe: Empfangsgebäude und Ingenieurbauwerke, die als Monument historique eingestuft oder eingetragen sind oder das Label Architecture contemporaine remarquable tragen, mit Schutzdatum, Architekt, Bauzeit, Stil, Gemeinde, freiem Bild und Mérimée-Eintrag; Filter nach Schutz, Objekt, Stil, Architekt, Region und Bauzeit.',
             'events' => 'Datierte Ereignisse aller Strecken (Eröffnung, Stilllegung, Elektrifizierung, Abbau), filterbar nach Strecke, Typ, Quelle, Département und Zeitraum.',
             'event' => 'Ein Ereignis mit dem Zitat aus seiner Quelle und Angaben zum betroffenen Abschnitt.',
             'media_all' => 'Fotos, Postkarten, Pläne und Dokumente aller Strecken und Bahnhöfe, filterbar nach Lizenz, Zeitraum und Hervorhebung, mit Zählern (facets).',

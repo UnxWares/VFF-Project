@@ -39,6 +39,7 @@ class PublicPagesTest extends TestCase
             'CGU' => ['/use-conditions', 'UseConditions'],
             'accessibilité' => ['/accessibility', 'Accessibility'],
             'glossaire' => ['/glossary', 'Glossary'],
+            'patrimoine protégé' => ['/heritage', 'Heritage/Index'],
             'doc API' => ['/api', 'ApiDocs'],
             'crédits tech' => ['/credits/tech', 'Credits/Tech'],
             'crédits médias' => ['/credits/media', 'Credits/Media'],

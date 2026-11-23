@@ -21,6 +21,7 @@ use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
 use App\Http\Controllers\GlossaryController;
+use App\Http\Controllers\HeritageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
@@ -109,6 +110,8 @@ Route::get('/network', [NetworkFiguresController::class, 'index'])->name('networ
 Route::get('/network/coverage', [CoverageController::class, 'index'])->name('network.coverage');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.
 Route::get('/tourist-railways', [TouristRailwayController::class, 'index'])->name('tourist-railways');
+// Patrimoine ferroviaire protégé : bâtiments voyageurs et ouvrages d'art classés, inscrits ou labellisés (Mérimée, Wikidata).
+Route::get('/heritage', [HeritageController::class, 'index'])->name('heritage');
 // Projets : réouvertures, lignes nouvelles, LGV, RER métropolitains et électrifications, avec l'état et la source de chaque étape.
 Route::get('/projects', [RailProjectController::class, 'index'])->name('projects');
 // Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).

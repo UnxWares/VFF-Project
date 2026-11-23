@@ -145,6 +145,7 @@
                 { path: '/api/v1/stations/{station}', key: 'station' },
                 { path: '/api/v1/stations/{station}/events', key: 'station_events' },
                 { path: '/api/v1/stations/{station}/media', key: 'station_media' },
+                { path: '/api/v1/heritage', key: 'heritage' },
             ],
         },
         {

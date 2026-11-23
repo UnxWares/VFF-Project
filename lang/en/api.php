@@ -155,6 +155,7 @@ return [
             'station' => 'Full entry for a station: dates, status at each era, lines served and sources.',
             'station_events' => 'Chronology of a station: opening, closures, reopening, demolition.',
             'station_media' => 'Photos, postcards and plans of a station, with their rights and the contribution they came from.',
+            'heritage' => 'Protected railway heritage: station buildings and engineering structures listed or registered as historic monuments or awarded the Remarkable contemporary architecture label, with date of protection, architect, construction, style, municipality, free image and Mérimée record; filters by protection, object, style, architect, region and period.',
             'events' => 'Dated events on every line (opening, closure, electrification, lifting), filterable by line, type, source, département and period.',
             'event' => 'One event with the quotation from its source and details of the section concerned.',
             'media_all' => 'Photos, postcards, plans and documents for every line and station, filterable by licence, period and featured status, with their counters (facets).',
