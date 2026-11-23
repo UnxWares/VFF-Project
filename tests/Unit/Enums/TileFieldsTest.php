@@ -38,9 +38,10 @@ class TileFieldsTest extends TestCase
     public function test_every_property_read_on_a_line_click_is_in_the_light_tile(): void
     {
         $railMap = self::source('Components/Map/RailMap.svelte');
-        $start = strpos($railMap, "map.on('click', LINE_LAYERS");
+        // Clic sur un tracé (des deux côtés du rideau) : onLineFeatureClick, jusqu'au rappel du parent.
+        $start = strpos($railMap, 'function onLineFeatureClick(');
         $this->assertNotFalse($start);
-        $end = strpos($railMap, "map.on('mouseenter', LINE_LAYERS", $start);
+        $end = strpos($railMap, "if (typeof onLineClick === 'function')", $start);
         $this->assertNotFalse($end);
         preg_match_all('/\bprops\.([a-z_]+)/', substr($railMap, $start, $end - $start), $m);
         $read = array_unique($m[1]);

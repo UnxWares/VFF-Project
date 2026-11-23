@@ -104,6 +104,7 @@
         greenwayTilesUrl,
     } from '$lib/greenwayMap.js';
     // Gares : fichier de l'époque demandé seulement en approchant du zoom où elles se dessinent.
+    import { createLongPress } from '$lib/placeHistory.js';
     import { STATIONS_MIN_ZOOM, noStations, stationsToLoad } from '$lib/mapStations.js';
     // Rideau de comparaison : deux époques sur la même carte, découpées de part et d'autre.
     import {
@@ -154,6 +155,12 @@
         // Callback appelé au clic sur une ligne. Si fourni, on N'affiche PAS la
         // popup par défaut (le parent gère le rendu via un drawer custom).
         onLineClick = null,
+        // « Qu'y avait-il ici ? » : rappelé avec { lng, lat, x, width } (x : position horizontale du point dans
+        // la carte, largeur de la carte) au clic droit ou à l'appui long (téléphone). Sans lui, aucun geste
+        // n'est capté et le menu du navigateur reste celui d'origine.
+        onPlacePick = null,
+        // Repère posé sur le lieu interrogé ({ lng, lat }) ou null.
+        placeMarker = null,
         // Slot enfants pour overlays positionnés dans le wrapper de la carte
         // (drawer fiche, etc.). Ne s'étend pas au-delà du canvas carto.
         children = null,
@@ -987,7 +994,75 @@
             () => (map.getCanvas().style.cursor = 'pointer'),
         );
         map.on('mouseleave', 'vff-stations-points', () => (map.getCanvas().style.cursor = ''));
+        if (typeof onPlacePick === 'function') setupPlacePick();
     }
+
+    // Clic droit (ordinateur) et appui long (téléphone) : le lieu sous le doigt ou le pointeur.
+    // Le menu du navigateur est remplacé ; l'événement `contextmenu` qui suit un appui long (Android) est ignoré.
+    let lastLongPress = 0;
+    function pickAt(clientX, clientY) {
+        const container = map?.getCanvasContainer();
+        if (!container) return;
+        const box = container.getBoundingClientRect();
+        const x = clientX - box.left;
+        const lngLat = map.unproject([x, clientY - box.top]);
+        onPlacePick?.({ lng: lngLat.lng, lat: lngLat.lat, x, width: box.width });
+    }
+
+    function setupPlacePick() {
+        const container = map.getCanvasContainer();
+        container.style.webkitTouchCallout = 'none';
+        container.addEventListener('contextmenu', (ev) => {
+            ev.preventDefault();
+            if (performance.now() - lastLongPress < 1000) return;
+            pickAt(ev.clientX, ev.clientY);
+        });
+        const press = createLongPress({
+            onPress: (x, y) => {
+                lastLongPress = performance.now();
+                pickAt(x, y);
+            },
+        });
+        container.addEventListener(
+            'touchstart',
+            (ev) => press.start(ev.touches[0].clientX, ev.touches[0].clientY, ev.touches.length),
+            { passive: true },
+        );
+        container.addEventListener(
+            'touchmove',
+            (ev) => press.move(ev.touches[0].clientX, ev.touches[0].clientY),
+            { passive: true },
+        );
+        for (const type of ['touchend', 'touchcancel']) {
+            container.addEventListener(type, press.cancel, { passive: true });
+        }
+    }
+
+    /** Centre de la carte (entrée « Qu'y avait-il ici ? » au clavier), ou null tant qu'elle n'est pas créée. */
+    export function getCenter() {
+        if (!map) return null;
+        const c = map.getCenter();
+        return { lng: c.lng, lat: c.lat };
+    }
+
+    // Repère du lieu interrogé : un rond, caché des lecteurs d'écran (le panneau décrit le lieu).
+    let pin = null;
+    $effect(() => {
+        const at = placeMarker;
+        if (!map || !layersReady || !maplibregl) return;
+        if (!at) {
+            pin?.remove();
+            pin = null;
+            return;
+        }
+        if (!pin) {
+            const el = document.createElement('div');
+            el.className = 'place-pin';
+            el.setAttribute('aria-hidden', 'true');
+            pin = new maplibregl.Marker({ element: el, anchor: 'center' });
+        }
+        pin.setLngLat([at.lng, at.lat]).addTo(map);
+    });
 
     // Vue (centre + zoom) appliquée à la carte. La page d'intégration lit
     // ?center= et ?zoom= dans SON onMount, qui s'exécute APRÈS celui de RailMap :
@@ -1962,6 +2037,19 @@
 </div>
 
 <style>
+    /* Repère du lieu interrogé (« Qu'y avait-il ici ? ») : anneau orange cerné de blanc, lisible sur tout fond. */
+    :global(.place-pin) {
+        width: 22px;
+        height: 22px;
+        box-sizing: border-box;
+        border: 4px solid var(--vff-accent, #ff6500);
+        border-radius: 50%;
+        background-color: transparent;
+        box-shadow:
+            0 0 0 2px #fff,
+            0 0 0 3px rgb(0 0 0 / 45%);
+        pointer-events: none;
+    }
     /* Le cadre (bordure, coins) est posé par la page : la carte remplit simplement sa place. */
     .rail-map-wrapper {
         position: relative;

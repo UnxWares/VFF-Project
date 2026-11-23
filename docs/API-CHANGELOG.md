@@ -21,6 +21,11 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Carte : `GET /api/v1/what-was-here?lat=&lng=&year=` (« Qu'y avait-il ici ? », panneau de la carte `/maps`) : autour d'un point et pour
+  une année, les lignes présentes avec leur état à l'ère, leur PK et leur gare la plus proche, les gares proches, la signalisation, le
+  matériel daté, les événements et les accidents de l'année, avec source et lien de chaque fait. Même service que l'outil MCP
+  `what_was_here`, dont chaque ligne gagne `nearest_station` (slug, name, distance_m). Le point est ramené au centre de sa case de
+  0,001 degré (cache par case et par année) ; un tracé non redistribuable ne donne ni distance ni PK précis. Ajout seul.
 - Patrimoine des gares (base Mérimée, Licence Ouverte 2.0 ; Wikidata, CC0) : REST `GET /api/v1/stations/{station}/heritage`, champ
   `heritage` et `links.heritage` de la fiche `GET /api/v1/stations/{station}`, filtre `heritage` de l'annuaire (REST, GraphQL
   `StationDirectoryFilter.heritage`, MCP `list_stations`), GraphQL `Station.heritage` (types `StationHeritage` et suivants), MCP outil

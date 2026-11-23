@@ -17,6 +17,7 @@
     import EraCurtain from '$components/Map/EraCurtain.svelte';
     import MapListing from '$components/Map/MapListing.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
+    import PlacePanel from '$components/Map/PlacePanel.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, mapViews, readViewParams, writeViewParams } from '$lib/epochViews.js';
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
@@ -25,6 +26,7 @@
     import { readTint, writeTint } from '$lib/eraTint.js';
     import { readMapView, writeMapView } from '$lib/mapView.js';
     import { bboxFromBounds } from '$lib/mapListing.js';
+    import { pastEraFor, validPoint } from '$lib/placeHistory.js';
     import {
         CURTAIN_DEFAULT,
         DEFAULT_COMPARE_MODE,
@@ -249,6 +251,60 @@
         toggles.find((el) => el.offsetParent !== null)?.focus();
     }
 
+    // « Qu'y avait-il ici ? » : lieu interrogé (clic droit, appui long ou centre de la carte) et panneau.
+    // `era` n'est fixée que pour la comparaison (côté du rideau touché) ; sur une seule époque, le panneau
+    // suit la frise.
+    let railMap = $state();
+    let place = $state.raw(null);
+    let lastPastEra = $state(null);
+    const placeAvailable = $derived(view === 'era' || view === 'compare');
+    const placeEra = $derived(view === 'era' ? selectedEra : (place?.era ?? compareTo));
+    const pastEra = $derived(
+        lastPastEra !== null && eras.includes(lastPastEra)
+            ? lastPastEra
+            : pastEraFor(eras, currentEraYear),
+    );
+    $effect(() => {
+        if (view === 'era' && selectedEra !== currentEraYear) lastPastEra = selectedEra;
+    });
+    $effect(() => {
+        if (!placeAvailable) place = null;
+    });
+
+    function openPlace(raw) {
+        const point = validPoint(raw);
+        if (!point) return;
+        placeOpener = null;
+        let era;
+        if (view === 'compare') {
+            // Rideau : l'époque du côté touché ; sinon (différences, clavier) la plus récente.
+            era =
+                drawnView === 'curtain' && raw.width > 0 && (raw.x / raw.width) * 100 < curtainPos
+                    ? compareFrom
+                    : compareTo;
+        }
+        drawerLine = null;
+        place = { ...point, era };
+    }
+    // Ouvert par un bouton : le focus lui revient à la fermeture (sinon il revient à la carte).
+    let placeOpener = null;
+    function openPlaceAtCenter(event) {
+        openPlace(railMap?.getCenter());
+        placeOpener = event?.currentTarget ?? null;
+    }
+    async function closePlace() {
+        const opener = placeOpener;
+        placeOpener = null;
+        place = null;
+        await tick();
+        if (opener?.isConnected && opener.offsetParent !== null) opener.focus();
+    }
+
+    function switchPlaceEra(target) {
+        if (view !== 'era') setView('era');
+        selectedEra = target;
+    }
+
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -421,6 +477,18 @@
                                     bind:tint={() => tintOn, setTint}
                                 />
                             {/if}
+                            {#if placeAvailable}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary embed-btn"
+                                    title={$i18n.t('maps.here.button_title')}
+                                    aria-expanded={place !== null}
+                                    onclick={openPlaceAtCenter}
+                                >
+                                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                                    <span class="embed-label">{$i18n.t('maps.here.button')}</span>
+                                </button>
+                            {/if}
                             {#if listingAvailable}
                                 <button
                                     type="button"
@@ -528,6 +596,17 @@
                             </div>
                         {/if}
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
+                        {#if place && placeAvailable}
+                            <PlacePanel
+                                point={place}
+                                era={placeEra}
+                                currentEra={currentEraYear}
+                                {pastEra}
+                                version={dataVersion}
+                                onClose={closePlace}
+                                onSwitchEra={switchPlaceEra}
+                            />
+                        {/if}
                     {/snippet}
 
                     {#if view === 'schema'}
@@ -546,6 +625,7 @@
                         </SchematicMap>
                     {:else}
                         <RailMap
+                            bind:this={railMap}
                             era={view === 'compare' ? compareFrom : selectedEra}
                             view={drawnView}
                             compareEra={compareTo}
@@ -574,7 +654,12 @@
                             {fitPadding}
                             selectedLine={drawerLine?.slug ?? null}
                             fullscreenContainer={mapFrameEl}
-                            onLineClick={(props) => (drawerLine = props)}
+                            onLineClick={(props) => {
+                                drawerLine = props;
+                                place = null;
+                            }}
+                            onPlacePick={openPlace}
+                            placeMarker={place}
                         >
                             {@render mapOverlays()}
                         </RailMap>
@@ -603,6 +688,17 @@
 
         <div class="vff-container map-after">
             <p class="map-lead">{$i18n.t('maps.hero.subtitle')}</p>
+            {#if placeAvailable}
+                <button
+                    type="button"
+                    class="vff-btn secondary small embed-btn"
+                    aria-expanded={place !== null}
+                    onclick={openPlaceAtCenter}
+                >
+                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                    {$i18n.t('maps.here.button')}
+                </button>
+            {/if}
             {#if listingAvailable}
                 <button
                     type="button"

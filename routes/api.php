@@ -45,6 +45,7 @@ use App\Http\Controllers\Api\StationHeritageController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
 use App\Http\Controllers\Api\TouristRailwayController;
+use App\Http\Controllers\Api\WhatWasHereController;
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\CspReportController;
 use Illuminate\Http\Request;
@@ -64,6 +65,8 @@ Route::middleware(['api.token', 'auth:sanctum', 'throttle:public-api'])->get('/u
 // (api.token) : il relève la limite de débit du compte (limiteur public-api, config/api.php).
 // Limite généreuse (navigation carte = nombreuses tuiles) mais anti-abus.
 Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void {
+    // « Qu'y avait-il ici ? » : lignes, gares et faits datés autour d'un point (panneau de la carte /maps).
+    Route::get('v1/what-was-here', [WhatWasHereController::class, 'show'])->name('api.what-was-here');
     // Longueurs bornées : un entier géant (« 99999999999999999999 ») ne rentre pas
     // dans le paramètre int du contrôleur (TypeError, HTTP 500) → 404 de routage.
     Route::prefix('v1/eras/{year}')
