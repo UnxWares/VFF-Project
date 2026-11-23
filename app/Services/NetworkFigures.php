@@ -206,6 +206,9 @@ final class NetworkFigures
      */
     private function events(array &$rows): void
     {
+        if ($rows === []) {
+            return;
+        }
         $types = array_values(array_unique(array_merge(...array_values(self::EVENT_GROUPS))));
         $marks = implode(',', array_fill(0, count($types), '?'));
         $last = max(array_keys($rows));
@@ -234,6 +237,9 @@ final class NetworkFigures
      */
     private function accidents(array &$rows): void
     {
+        if ($rows === []) {
+            return;
+        }
         $last = max(array_keys($rows));
         $first = min(array_keys($rows));
         $found = Accident::query()
