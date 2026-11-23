@@ -57,11 +57,24 @@ return [
 
     'truncated' => 'Réponse raccourcie pour rester sous la taille maximale : affinez la demande (période, types, limite).',
     'truncated_page' => 'Page raccourcie pour rester sous la taille maximale : next_cursor reprend au premier élément non renvoyé, rien n\'est perdu.',
+    'redirected' => [
+        'line' => 'L’identifiant « :requested » est l’ancienne adresse d’une ligne renommée : la réponse est celle de sa fiche actuelle, « :current ». Utilisez désormais « :current » et dites-le à l’utilisateur s’il a donné l’ancien.',
+        'station' => 'L’identifiant « :requested » est l’ancienne adresse d’une gare fondue dans une autre fiche (même gare) : la réponse est celle de la fiche actuelle, « :current ». Utilisez désormais « :current ».',
+        'accident' => 'L’identifiant « :requested » est l’ancienne adresse d’une fiche d’accident renommée ou fusionnée (même accident) : la réponse est celle de la fiche actuelle, « :current ». Utilisez désormais « :current ».',
+    ],
     'between' => 'entre :from et :to (aucune source ne date ce changement)',
     'today' => 'aujourd’hui',
     'dates' => [
         'unknown_after' => 'date inconnue, après :year (aucune source ne la date)',
         'unknown' => 'date inconnue (aucune source ne la date)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'Une étape dont `done` vaut false est une date PRÉVUE par sa source, jamais certaine : écrivez « prévue en <date> selon <source.label> ». Un projet mis en service sort de cette liste.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'Liste des exemplaires que des sources disent conservés, pas un inventaire : un exemplaire absent n’est pas démoli pour autant, et l’état est celui que rapporte la source à sa date de lecture.',
     ],
 
     'accidents' => [

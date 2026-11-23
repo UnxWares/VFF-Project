@@ -41,6 +41,8 @@ use App\Mcp\Tools\NetworkChronologyTool;
 use App\Mcp\Tools\NetworkEventsTool;
 use App\Mcp\Tools\NetworkInAreaTool;
 use App\Mcp\Tools\OnThisDayTool;
+use App\Mcp\Tools\PreservedRollingStockTool;
+use App\Mcp\Tools\RailProjectsTool;
 use App\Mcp\Tools\SearchTool;
 use App\Mcp\Tools\SegmentAuditsTool;
 use App\Mcp\Tools\SignallingHistoryTool;
@@ -49,6 +51,7 @@ use App\Mcp\Tools\StationAccessibilityTool;
 use App\Mcp\Tools\StationAerialTool;
 use App\Mcp\Tools\StationAttendanceTool;
 use App\Mcp\Tools\StationAuditsTool;
+use App\Mcp\Tools\StationEventsTool;
 use App\Mcp\Tools\StationHeritageTool;
 use App\Mcp\Tools\StationSheetTool;
 use App\Mcp\Tools\StationTimetableTool;
@@ -78,6 +81,10 @@ Invites (prompts) : `present_line` (présenter une ligne avec ses sources), `com
 Lieux et dates : `what_was_here` (autour d'un point et pour une année : lignes présentes et leur état à cet endroit, gares proches, signalisation en vigueur, matériel daté, événements et accidents de l'année) ; `network_in_area` (réseau d'une zone, rectangle ou cercle, à une époque : km en service, fermés, déposés, lignes et gares) ; `compare_line_eras` (une ligne à deux époques : km par catégorie, gares ouvertes ou fermées, signalisation, événements entre les deux) ; `line_stops` (gares d'une ligne dans l'ordre des PK à une époque, avec le lien GTFS de l'ère) ; `station_aerial` (photos aériennes historiques de l'IGN autour d'une gare, 1950 à 1995, Licence Ouverte 2.0). Signalisation à une date : `signalling_history` avec `year`.
 Matériel roulant : `materials` (séries filtrées par catégorie, constructeur, exploitant, ligne, année ; pagination par `page`) puis `get_material` (fiche avec la provenance de chaque champ et les lignes parcourues, chaque lien avec sa preuve et ses périodes de circulation datées) ; `line_materials` (séries d'une ligne avec leurs périodes de circulation : début, fin, précision).
 Ce jour-là : `on_this_day` (ce qui s'est passé un jour du calendrier les années précédentes : ouvertures et fermetures de lignes et de gares, électrifications, mises en service, accidents ; dates connues au jour seulement, chaque fait avec sa source).
+Matériel préservé : `preserved_rolling_stock` (exemplaires conservés d'une série, ou lieux : musées, associations, lignes touristiques, avec numéro, état dit par la source et protection monument historique de la base Palissy ; la liste est celle des sources, pas un inventaire).
+Projets : `rail_projects` (réouvertures, lignes nouvelles, LGV, RER métropolitains, électrifications pas encore en service, chaque étape datée avec sa source ; une étape non franchie est une date PRÉVUE : « prévue en 2028 selon … », jamais certaine).
+Chronologie d'une gare : `station_events` (dates d'ouverture, de fermeture, de réouverture et de démolition, filtrées et paginées ; `is_inferred` = date déduite par VFF, pas un relevé).
+Anciennes adresses : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare ou d'un accident fusionné répond avec la fiche actuelle et le dit dans `redirected` (slug demandé, slug actuel, raison) en tête de réponse : reprenez le slug actuel.
 Chronologie : `network_chronology` (le réseau année par année depuis 1827 : ouvertures, fermetures, électrifications, signalisation, matériel, accidents d'au moins 5 morts, jalons ; une décennie donne les comptes, une année les faits ; filtres de type et de région ; `hidden` compte des faits non détaillés). Tourisme : `tourist_railways` (chemins de fer touristiques et vélorails en activité : type, exploitant, écartement, longueur, début d'exploitation, lignes ; filtres de type et de région ; un champ null est inconnu).
 Dates : ISO AAAA-MM-JJ, à lire avec leur précision (day, month, year) ; n'affichez que la partie connue. La carte est un instantané au 31/12 de chaque décennie (l'ère courante = aujourd'hui).
 Obligations en réutilisant les données : citez « Voies Ferrées de France (vff-project.org) » avec le lien `vff_url` de la réponse et les mentions du bloc `attribution` (ODbL 1.0 : © contributeurs OpenStreetMap, SNCF Open Data…). Les données d'un fournisseur dont `open_licence` vaut false ne se reprennent qu'avec sa mention et son lien. Les faits d'une source à usage non commercial ne sont jamais servis par ce serveur ; un tracé non redistribuable n'est jamais donné en coordonnées (`geometry_withheld`). Ne présentez jamais une date « between » (non datée par une source) comme sûre.
@@ -87,9 +94,9 @@ class VffServer extends Server
 {
     /**
      * Tous les outils tiennent dans la première page de `tools/list` : le défaut du paquet (15) en
-     * laissait de côté pour les clients qui ne suivent pas `nextCursor`.
+     * laissait de côté pour les clients qui ne suivent pas `nextCursor` (50 outils le 23/11/2026).
      */
-    public int $defaultPaginationLength = 50;
+    public int $defaultPaginationLength = 80;
 
     protected array $tools = [
         SearchTool::class,
@@ -139,6 +146,9 @@ class VffServer extends Server
         OnThisDayTool::class,
         NetworkChronologyTool::class,
         TouristRailwaysTool::class,
+        PreservedRollingStockTool::class,
+        RailProjectsTool::class,
+        StationEventsTool::class,
     ];
 
     protected array $resources = [

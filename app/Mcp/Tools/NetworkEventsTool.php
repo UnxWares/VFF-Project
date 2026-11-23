@@ -34,6 +34,9 @@ TXT)]
 #[IsOpenWorld(false)]
 class NetworkEventsTool extends VffTool
 {
+    /** Ancien slug dans `line` ou `station` : filtre sous le slug actuel, dit dans `redirected`. */
+    protected const SLUG_FILTERS = true;
+
     private const CURSOR_COLUMNS = ['line_events.event_date', 'line_events.id'];
 
     protected function rules(): array

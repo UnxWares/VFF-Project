@@ -56,11 +56,24 @@ return [
 
     'truncated' => 'Answer shortened to stay under the maximum size: narrow the request (period, types, limit).',
     'truncated_page' => 'Page shortened to stay under the maximum size: next_cursor resumes at the first item not returned, so nothing is lost.',
+    'redirected' => [
+        'line' => 'The identifier “:requested” is the old address of a renamed line: this answer is its current sheet, “:current”. Use “:current” from now on and tell the user if they gave the old one.',
+        'station' => 'The identifier “:requested” is the old address of a station merged into another record (same station): this answer is the current record, “:current”. Use “:current” from now on.',
+        'accident' => 'The identifier “:requested” is the old address of a renamed or merged accident record (same accident): this answer is the current record, “:current”. Use “:current” from now on.',
+    ],
     'between' => 'between :from and :to (no source dates this change)',
     'today' => 'today',
     'dates' => [
         'unknown_after' => 'date unknown, after :year (no source gives it)',
         'unknown' => 'date unknown (no source gives it)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'A stage whose `done` is false is a date PLANNED by its source, never certain: write “planned for <date> according to <source.label>”. A project that has opened leaves this list.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'List of the units that sources say are preserved, not an inventory: a missing unit is not necessarily scrapped, and the state is the one the source reported when it was read.',
     ],
 
     'accidents' => [

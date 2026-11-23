@@ -3,7 +3,6 @@
 namespace App\Mcp\Tools;
 
 use App\Enums\ServiceEnd;
-use App\Mcp\Support\Lookup;
 use App\Mcp\Support\ServedEventDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Api\MediaGallery;
@@ -53,7 +52,7 @@ class StationSheetTool extends VffTool
 
     protected function answer(array $input, string $lang): Response
     {
-        $station = Lookup::station($input['station']);
+        $station = $this->station($input['station']);
         if ($station === null) {
             return $this->fail('station_not_found', ['query' => $input['station']], ['suggestions' => $this->suggestions($input['station'], 'stations')]);
         }

@@ -35,6 +35,9 @@ TXT)]
 #[IsOpenWorld(false)]
 class LevelCrossingsTool extends VffTool
 {
+    /** Ancien slug dans `line` ou `station` : filtre sous le slug actuel, dit dans `redirected`. */
+    protected const SLUG_FILTERS = true;
+
     protected function rules(): array
     {
         return LevelCrossingQuery::rules() + [
@@ -59,10 +62,6 @@ class LevelCrossingsTool extends VffTool
     protected function answer(array $input, string $lang): Response
     {
         $filters = array_diff_key($input, array_flip(['cursor', 'limit', 'lang']));
-        if (is_string($filters['line'] ?? null)) {
-            // Ancien slug d'une ligne renommée : filtre et réponse sous le slug actuel.
-            $filters['line'] = Line::redirectSlugFor($filters['line']) ?? $filters['line'];
-        }
         $page = app(LevelCrossingQuery::class)->query($filters)
             ->cursorPaginate((int) ($input['limit'] ?? 50), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
         $items = array_map(fn (LevelCrossing $c): array => self::present($c, $lang), array_values($page->items()));

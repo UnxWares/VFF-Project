@@ -9,6 +9,13 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- MCP : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare fondue dans une autre fiche ou d'un accident
+  renommé ou fusionné (argument `line`, `station` ou `accident`, et filtres `line` et `station` de `network_events`, `media`,
+  `accidents`, `materials`, `level_crossings`) répond avec la fiche actuelle comme avant, et le dit désormais en tête de
+  réponse : `redirected`, liste de `kind`, `requested`, `current`, `reason` (`renamed` ou `merged`) et `note`. Les filtres
+  `line` et `station` de `network_events`, `media`, `accidents` et `materials` acceptent maintenant un ancien slug (ils
+  répondaient par une erreur de validation). Ajout seul ; la clé est absente sans ancienne adresse.
+
 - Médias (REST `media`, galeries `lines|stations|materials/{slug}/media`, GraphQL `Media.captions`, outil MCP `media`) : nouveau champ
   `captions` (objet avec les clés `fr`, `en` et `de` présentes seulement pour les langues écrites, ou `null`), la légende par langue d'une
   image proposée par un contributeur. `caption` reste la légende principale (le français, sinon la première langue donnée ; pour une image
@@ -38,6 +45,13 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   changent pas. Aucun champ n'est retiré.
 
 ### Ajouts
+
+- MCP : trois outils, sur les mêmes services que l'API REST. `preserved_rolling_stock` (matériel préservé : exemplaires
+  d'une série ou lieux et leurs pièces, état dit par la source, protection monument historique de la base Palissy, sources
+  avec licence ; filtres `venue_type`, `venue`, `state`, `protected` ; `limit` et `offset`), `rail_projects` (projets
+  ferroviaires et leurs étapes datées et sourcées ; filtres `state`, `kind`, `region`, `line` ; `limit` et `offset`) et
+  `station_events` (chronologie d'une gare filtrée par type, source, date déduite ou relevée et période, paginée par
+  curseur). `get_material` ajoute `preserved_count`. `tools/list` tient en une page de 80 outils.
 
 - GraphQL : `EventContributionInput` (mutation `submitContribution`, `input.event`) reçoit `source_excerpt` (citation courte de la
   source, publiée avec l'événement à la place de sa référence), `corrects_event_id` et `correction_reason` : avec l'identifiant d'un

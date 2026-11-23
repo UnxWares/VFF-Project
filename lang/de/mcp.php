@@ -56,11 +56,24 @@ return [
 
     'truncated' => 'Antwort gekürzt, um unter der Höchstgröße zu bleiben: Grenzen Sie die Anfrage ein (Zeitraum, Typen, Limit).',
     'truncated_page' => 'Seite gekürzt, um unter der Höchstgröße zu bleiben: next_cursor setzt beim ersten nicht gelieferten Element fort, es geht nichts verloren.',
+    'redirected' => [
+        'line' => 'Die Kennung „:requested“ ist die alte Adresse einer umbenannten Strecke: Diese Antwort ist ihr aktuelles Datenblatt, „:current“. Verwenden Sie künftig „:current“ und sagen Sie es dem Nutzer, wenn er die alte Kennung angegeben hat.',
+        'station' => 'Die Kennung „:requested“ ist die alte Adresse eines Bahnhofs, der mit einem anderen Eintrag zusammengeführt wurde (derselbe Bahnhof): Diese Antwort ist der aktuelle Eintrag, „:current“. Verwenden Sie künftig „:current“.',
+        'accident' => 'Die Kennung „:requested“ ist die alte Adresse eines umbenannten oder zusammengeführten Unfalleintrags (derselbe Unfall): Diese Antwort ist der aktuelle Eintrag, „:current“. Verwenden Sie künftig „:current“.',
+    ],
     'between' => 'zwischen :from und :to (keine Quelle datiert diese Änderung)',
     'today' => 'heute',
     'dates' => [
         'unknown_after' => 'Datum unbekannt, nach :year (keine Quelle nennt es)',
         'unknown' => 'Datum unbekannt (keine Quelle nennt es)',
+    ],
+
+    'projects' => [
+        'planned_note' => 'Ein Schritt mit `done` = false ist ein von seiner Quelle GEPLANTES Datum, nie sicher: Schreiben Sie „geplant für <Datum> laut <source.label>“. Ein in Betrieb genommenes Projekt verlässt diese Liste.',
+    ],
+
+    'preserved' => [
+        'coverage_note' => 'Liste der Fahrzeuge, die Quellen als erhalten nennen, kein Inventar: Ein fehlendes Fahrzeug ist nicht unbedingt verschrottet, und der Zustand ist der, den die Quelle zum Zeitpunkt der Lektüre angab.',
     ],
 
     'accidents' => [

@@ -124,7 +124,7 @@ class VffMcpServerTest extends TestCase
         $this->assertEqualsCanonicalizing(
             ['search', 'get_line', 'line_events', 'get_station', 'network_at_era', 'historical_route', 'sources_and_licences',
                 'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras', 'level_crossings', 'line_profile', 'line_audit', 'segment_audits', 'station_audits', 'line_greenways', 'line_infrastructure', 'line_archives', 'line_archive_records', 'line_stories', 'journal', 'line_materials', 'locate_on_line', 'signalling_history', 'list_departments',
-                'network_in_area', 'what_was_here', 'compare_line_eras', 'line_stops', 'station_aerial', 'station_attendance', 'station_timetable', 'station_accessibility', 'line_timetable', 'station_heritage', 'line_speeds', 'line_electrification_history', 'line_structures', 'on_this_day', 'network_chronology', 'tourist_railways'],
+                'network_in_area', 'what_was_here', 'compare_line_eras', 'line_stops', 'station_aerial', 'station_attendance', 'station_timetable', 'station_accessibility', 'line_timetable', 'station_heritage', 'line_speeds', 'line_electrification_history', 'line_structures', 'on_this_day', 'network_chronology', 'tourist_railways', 'preserved_rolling_stock', 'rail_projects', 'station_events'],
             $tools->keys()->all(),
         );
         foreach ($tools as $name => $tool) {

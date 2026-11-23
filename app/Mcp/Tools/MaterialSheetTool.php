@@ -6,6 +6,7 @@ use App\Http\Resources\MaterialDetailResource;
 use App\Mcp\Support\VffTool;
 use App\Models\Material;
 use App\Services\Api\MediaGallery;
+use App\Services\Materials\PreservedRollingStock;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ Fiche complète d'une série de matériel roulant (même contenu que l'API REST 
 Les liens avec les lignes ne viennent que d'une source explicite, jamais d'un nom approchant : Wikidata « véhicule habituellement utilisé » (`source` wikidata), section d'article Wikipédia (wikipedia), ou contribution relue par deux validateurs de VFF (contrib : chaque preuve `kind` contribution donne le titre, la nature et la licence de la source citée et son adresse `url`, nulle pour un ouvrage papier). Une ligne reliée par plusieurs sources a une entrée par source ; `lines_count` compte les lignes. Un champ de `field_sources` de source contrib vient d'une correction validée (référence contribution:<id>).
 `notable_units` : rames ou engins remarquables de la série (ex. rame 01 « Patrick » du TGV Sud-Est), liste vide si aucun ; chacun avec `number`, `nickname`, `facts` (faits datés : `kind`, `date` et `date_to` AAAA-MM-JJ avec `precision` day, month, year ou nulle, `text` en français, reformulé, sans la citation de la source, `source` avec `publisher`, `reported_by`, `date`, `url` à citer, `provider`, `license`, `license_status`) et `unknown` (ce que les sources ne disent pas). Ne complétez pas ce qui est inconnu.
 `media_count` : nombre d'images de la série publiées après validation d'une contribution ; lisez-les (auteur, licence, lien) avec l'outil media et {"material": "<slug>"}.
+`preserved_count` : nombre d'exemplaires préservés de la série que citent les sources (musées, associations, lignes touristiques) ; lisez-les (lieu, état, protection monument historique, sources) avec l'outil preserved_rolling_stock et {"material": "<slug>"}.
 Identifiant : `material` = slug renvoyé par search ou materials (ex. "bb-15000").
 Exemple : {"material": "bb-15000"}.
 TXT)]
@@ -67,7 +69,8 @@ class MaterialSheetTool extends VffTool
         ];
 
         return $this->respond(
-            ['material' => MaterialDetailResource::make($material)->resolve(), 'media_count' => app(MediaGallery::class)->count($material)],
+            ['material' => MaterialDetailResource::make($material)->resolve(), 'media_count' => app(MediaGallery::class)->count($material),
+                'preserved_count' => app(PreservedRollingStock::class)->countFor($material->slug)],
             $providers,
             $lang,
             self::url('/materials/'.$material->slug),
