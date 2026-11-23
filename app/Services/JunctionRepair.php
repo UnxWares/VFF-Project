@@ -79,6 +79,11 @@ use Illuminate\Support\Facades\DB;
  *           de moins de HOLE_MAX_M sur une voie précise que l'étape 2 n'a pas
  *           pu suivre : comblé si la courbe reste partout à moins de
  *           HOLE_TRACK_M de cette voie (rayon d'au moins la moitié du minimum).
+ *        e. arrivée en T : bout d'un tracé imprécis relié par un seul raccord
+ *           droit (au plus JOG_MAX_M, coudé de plus de KINK_DEG) au milieu
+ *           d'une portion précise : fin du tracé et raccord remplacés par la
+ *           courbe de b, jusqu'à la portion dans le sens du cap d'arrivée ; la
+ *           portion reste entière.
  *   8. Allers-retours : le tracé dessiné ne revient jamais sur ses pas. Un
  *      éperon sans issue d'au plus SPUR_MAX_M qui repart en arrière (virage de
  *      plus de HAIRPIN_DEG au milieu d'une portion, ou départ à moins de
@@ -259,6 +264,12 @@ class JunctionRepair
     /** Règle 8 bis : bout de portion laissé en l'air par le retrait du raccord, coupé avec lui jusqu'à cette longueur (m). */
     public const LOOP_STUB_MAX_M = 150.0;
 
+    /** Arrivée en T (règle 7 e) : distance minimale (m) du pied du raccord aux bouts de la portion précise. */
+    public const TEE_MID_M = 5.0;
+
+    /** Arrivée en T (règle 7 e) : demi-fenêtre (m) autour du pied du raccord où la voie précise ne doit pas faire d'aller-retour. */
+    public const TEE_FOLD_M = 40.0;
+
     /** Long trou (règle 9) : écart max entre les deux bouts (m) ; c'est aussi la longueur max du chemin. */
     public const LONG_GAP_MAX_M = 20000.0;
 
@@ -398,7 +409,7 @@ class JunctionRepair
         $stats = ['jog_removed' => 0, 'jog_restored' => 0, 'jog_smoothed' => 0, 'jog_smoothed_m' => 0.0, 'hole_filled' => 0, 'hole_filled_m' => 0.0,
             'rerouted' => 0, 'rerouted_m' => 0.0,
             'stub_trimmed_m' => 0.0, 'remnant_removed_m' => 0.0, 'extended' => 0, 'extended_m' => 0.0, 'overshoot_trimmed_m' => 0.0,
-            'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0,
+            'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0, 'tee_smoothed' => 0, 'tee_smoothed_m' => 0.0,
             'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'drawing_joined' => 0, 'drawing_joined_m' => 0.0,
             'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0];
@@ -426,6 +437,7 @@ class JunctionRepair
         $this->extendToOtherLines($stats);
         $this->trimOvershoots($stats);
         $this->smoothLegs($stats);
+        $this->smoothTees($stats);
         $this->smoothEnds($stats);
         // Après les règles 5 et 7 c, qui posent aussi des bouts sur la voie d'une autre ligne.
         $this->joinOtherLineDrawings($stats);
@@ -2311,6 +2323,198 @@ class JunctionRepair
         }
     }
 
+    /**
+     * Règle 7 e : arrivée en T d'un tracé imprécis. Le bout d'un tracé imprécis S (grossier, courbe estimée) n'est relié
+     * à la ligne que par un raccord droit d'au plus JOG_MAX_M posé au MILIEU d'une portion précise Q (à plus de
+     * TEE_MID_M de ses bouts), à plus de KINK_DEG de Q : la règle 7 b ne le voit pas (elle part d'un bout de Q), et le
+     * dessin fait un T à angle vif (embranchement, ancien tracé, morceau non recalé qui rejoint la voie). Relevé du
+     * 22/11/2026 sur la copie : 112 raccords sous un défaut visible, 30 m à 90° pour la plupart. La fin de S et le raccord
+     * sont remplacés par la courbe de 7 b (fitLeg : rayon minimal du réseau, à moins de LEG_DEV_M du tracé remplacé),
+     * de D sur S à J sur Q, dans le sens de Q le plus proche du cap d'arrivée de S (un aiguillage se prend en pointe
+     * dans le sens de marche). Q reste entière : la jonction se fait sur sa voie, à 0 m. Rien ne change si une autre
+     * ligne finit sur la partie remplacée, si une autre portion de la ligne s'y raccorde, si la voie précise fait un
+     * aller-retour à moins de TEE_FOLD_M du pied, si la courbe double la ligne,
+     * si elle croise une voie (de la ligne, ou d'une autre ligne que la partie remplacée ne croisait pas), ou si la partie
+     * remplacée touche le dessin d'une autre ligne là où ni la courbe ni Q ne le touchent plus.
+     */
+    private function smoothTees(array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $rmin = self::minRadius($net, $this->gauge);
+        $conns = DB::select('SELECT sid FROM jr_sub WHERE conn AND NOT removed AND ST_Length(g) BETWEEN 1 AND ? ORDER BY sid', [self::JOG_MAX_M]);
+        foreach ($conns as $cr) {
+            $csid = (int) $cr->sid;
+            $c = $this->subCoords($csid);
+            if ($c === null || DB::selectOne('SELECT removed FROM jr_sub WHERE sid = ?', [$csid])->removed) {
+                continue;
+            }
+            // Ce qui touche chaque bout du raccord (état courant) : une seule portion de chaque côté.
+            $at = [];
+            foreach ([0, 1] as $k) {
+                $p = $k === 0 ? $c[0] : end($c);
+                $at[$k] = DB::select(<<<'SQL'
+                    SELECT t.sid, t.rank, t.conn, ST_Length(t.g) AS len, ST_LineLocatePoint(t.g, x.p) * ST_Length(t.g) AS s
+                    FROM jr_sub t, (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p) x
+                    WHERE NOT t.removed AND t.sid <> :sid AND ST_DWithin(t.g, x.p, 0.5)
+                    ORDER BY t.sid
+                    SQL, ['x' => $p[0], 'y' => $p[1], 'sid' => $csid]);
+            }
+            if (count($at[0]) !== 1 || count($at[1]) !== 1) {
+                continue;
+            }
+            // Côté T (Q précise, raccord posé en son milieu) et côté S (imprécise, raccord posé sur son bout).
+            $kx = null;
+            foreach ([0, 1] as $k) {
+                $q = $at[$k][0];
+                $o = $at[1 - $k][0];
+                $qMid = (float) $q->s > self::TEE_MID_M && (float) $q->len - (float) $q->s > self::TEE_MID_M;
+                $oEnd = (float) $o->s < 0.5 || (float) $o->len - (float) $o->s < 0.5;
+                if (! $q->conn && (int) $q->rank <= 3 && $qMid && ! $o->conn && (int) $o->rank >= 4 && $oEnd && (float) $o->len >= 20) {
+                    $kx = $k;
+                }
+            }
+            if ($kx === null) {
+                continue;
+            }
+            $qsid = (int) $at[$kx][0]->sid;
+            $ssid = (int) $at[1 - $kx][0]->sid;
+            $q = $this->subCoords($qsid);
+            $sc = $this->subCoords($ssid);
+            if ($q === null || $sc === null) {
+                continue;
+            }
+            // S orientée vers le raccord, puis le raccord jusqu'à X (pied du T sur Q).
+            $cx = $kx === 1 ? $c : array_reverse($c);
+            $sToC = hypot(end($sc)[0] - $cx[0][0], end($sc)[1] - $cx[0][1]) <= 0.5 ? $sc : array_reverse($sc);
+            $slenS = $this->plen($sToC);
+            $clen = $this->plen($cx);
+            $x = end($cx);
+            $qlenAll = $this->plen($q);
+            [$sx] = $this->projectOn($q, $x, [0.0, 1.0]);
+            $qx = $this->pointAlong($q, $sx);
+            // Coude au pied du T (même mesure que la règle 1 : angle entre le raccord et Q, au sens près).
+            $uq = $this->unit($this->pointAlong($q, $sx - 8), $this->pointAlong($q, $sx + 8));
+            $uc = $this->unit($cx[0], $x);
+            $kink = rad2deg(asin(min(1.0, abs($uq[0] * $uc[1] - $uq[1] * $uc[0]))));
+            if ($kink <= self::KINK_DEG) {
+                continue;
+            }
+            // Sens de Q pris par la courbe : le plus proche du cap d'arrivée de S (ses 15 derniers m).
+            $uin = $this->unit($this->pointAlong($sToC, $slenS - 15), end($sToC));
+            $fwd = $uin[0] * $uq[0] + $uin[1] * $uq[1] >= 0;
+            $qp = $fwd ? $this->subLine($q, $sx, $qlenAll) : array_reverse($this->subLine($q, 0.0, $sx));
+            $qp[0] = $qx;
+            $qlen = $this->plen($qp);
+            if ($qlen < 20) {
+                continue;
+            }
+            // Voie précise repliée près du pied (pointe d'un aller-retour dans le tracé, ligne 408 à 46.763361, -1.851328 :
+            // la courbe prenait la voie de l'autre côté de la pointe et le tracé faisait un crochet de 172°) : rien ne change.
+            if ($this->hairpin($this->subLine($q, max(0.0, $sx - self::TEE_FOLD_M), min($qlenAll, $sx + self::TEE_FOLD_M))) !== null) {
+                $this->debug && $this->log[] = ['tee' => $csid, 'skip' => 'voie précise repliée'];
+
+                continue;
+            }
+            $s = $this->subLine($sToC, max(0.0, $slenS - self::LEG_MAX_M), $slenS);
+            foreach (array_slice($cx, 1) as $pt) {
+                $s[] = $pt;
+            }
+            $slen = $this->plen($s);
+            // D sur S (pas sur le raccord), et pas au-delà d'une jonction d'une autre portion de la ligne sur S.
+            $nj = $this->nextJunction($ssid, $sToC, [$csid]);
+            $best = $this->fitLeg($s, $slen, $qp, $qlen, false, $rmin, null, $clen + 10);
+            $this->debug && $this->log[] = ['tee' => $csid, 's' => $ssid, 'q' => $qsid, 'kink' => round($kink), 'fwd' => $fwd, 'clen' => round($clen, 1),
+                'fit' => $best ? [$best['ld'], $best['lj'], round($best['r'])] : null, 'nj' => is_finite($nj) ? round($nj) : null];
+            if ($best === null || $nj - 1 < $best['ld'] - $clen) {
+                continue;
+            }
+            $curve = ['coords' => $best['coords'], 'len' => $this->plen($best['coords'])];
+            if ($this->doubles($curve, [$qsid, $ssid, $csid])) {
+                $this->debug && $this->log[] = ['tee' => $csid, 'skip' => 'double la ligne'];
+
+                continue;
+            }
+            // Partie remplacée (fin de S et raccord) : aucune autre ligne ne doit y finir.
+            $replaced = $this->subLine($s, max(0.0, $slen - $best['ld']), $slen);
+            if ($this->holdsOtherLine($replaced)) {
+                $this->debug && $this->log[] = ['tee' => $csid, 'skip' => 'autre ligne sur la partie remplacée'];
+
+                continue;
+            }
+            // Contact à 0 m : là où la partie remplacée touche le dessin d'une autre ligne, la courbe ou Q le touche encore
+            // (rejeu du 22/11/2026 sur la copie : sans cela, des bouts posés sur une autre ligne s'en écartaient de 2 à 30 m).
+            if ($this->dropsContact($replaced, [$best['coords'], $q])) {
+                $this->debug && $this->log[] = ['tee' => $csid, 'skip' => 'contact perdu'];
+
+                continue;
+            }
+            // La courbe ne croise ni la ligne (Q avant J, reste de S, autres portions) ni une voie d'une autre ligne que
+            // la partie remplacée ne croisait pas (ligne 439000, -1.192914, 48.348848 : la courbe passait par-dessus Q
+            // pour la rejoindre plus loin, le 22/11/2026 sur la copie).
+            if ($this->crossesTrack($best['coords'], [$replaced], $this->subLine($sToC, 0.0, max(0.0, $slenS - ($best['ld'] - $clen) - 2)), [$ssid, $csid])) {
+                $this->debug && $this->log[] = ['tee' => $csid, 'skip' => 'croise une voie'];
+
+                continue;
+            }
+            $cut = ($best['ld'] - $clen) / $slenS;
+            $sAtEnd = hypot(end($sc)[0] - $cx[0][0], end($sc)[1] - $cx[0][1]) <= 0.5;
+            $sAtEnd ? $this->cutSub($ssid, 0.0, 1 - $cut) : $this->cutSub($ssid, $cut, 1.0);
+            $this->removeSubs([$csid]);
+            $this->insertSmoothed($best['coords'], $ssid);
+            $stats['tee_smoothed']++;
+            $stats['tee_smoothed_m'] += $curve['len'];
+        }
+    }
+
+    /**
+     * La polyligne remplacée $replaced touche-t-elle (0,5 m) le dessin d'une autre ligne en un endroit que les polylignes
+     * $kept (courbe posée, portion gardée) ne touchent plus ? La jonction y passerait de 0 m à un écart.
+     *
+     * @param  list<array{0: float, 1: float}>  $replaced
+     * @param  list<list<array{0: float, 1: float}>>  $kept
+     */
+    private function dropsContact(array $replaced, array $kept): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH r AS (SELECT ST_GeomFromText(:r, 2154) AS g, ST_Buffer(ST_GeomFromText(:k, 2154), 0.6) AS k)
+            SELECT 1 AS x FROM r, line_reference_parts o, LATERAL (SELECT ST_Transform(o.geom, 2154) AS g) og
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(r.g, 2), 4326) AND ST_DWithin(og.g, r.g, 0.5)
+              AND NOT ST_Covers(r.k, ST_Intersection(og.g, ST_Buffer(r.g, 0.5)))
+            LIMIT 1
+            SQL, ['r' => $this->wkt($replaced), 'line' => $this->lineId,
+            'k' => 'MULTILINESTRING('.implode(',', array_map(fn ($c) => substr($this->wkt($c), strlen('LINESTRING')), $kept)).')']);
+    }
+
+    /**
+     * La courbe $curve (hors de ses 2 premiers et 3 derniers m, qui touchent les voies qu'elle relie) croise-t-elle une
+     * portion de la ligne (hors $exclude), la partie gardée $kept de la portion d'où elle part, ou le dessin d'une autre
+     * ligne que la partie remplacée $replaced (polylignes) ne croisait pas ?
+     *
+     * @param  list<array{0: float, 1: float}>  $curve
+     * @param  list<list<array{0: float, 1: float}>>  $replaced
+     * @param  list<array{0: float, 1: float}>  $kept
+     * @param  list<int>  $exclude
+     */
+    private function crossesTrack(array $curve, array $replaced, array $kept, array $exclude): bool
+    {
+        $len = $this->plen($curve);
+        if ($len < 10) {
+            return false;
+        }
+
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:c, 2154) AS g, ST_GeomFromText(:r, 2154) AS r, ST_GeomFromText(:k, 2154) AS k)
+            SELECT 1 AS x FROM c
+            WHERE ST_Intersects(c.g, c.k)
+               OR EXISTS (SELECT 1 FROM jr_sub t WHERE NOT t.removed AND t.sid <> ALL(CAST(:ex AS int[])) AND ST_Intersects(t.g, c.g))
+               OR EXISTS (SELECT 1 FROM line_reference_parts o, LATERAL (SELECT ST_Transform(o.geom, 2154) AS g) og
+                          WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Envelope(c.g), 4326)
+                            AND ST_Intersects(og.g, c.g) AND NOT ST_Intersects(og.g, c.r))
+            SQL, ['c' => $this->wkt($this->subLine($curve, 2.0, $len - 3.0)),
+            'r' => 'MULTILINESTRING('.implode(',', array_map(fn ($c) => substr($this->wkt(count($c) >= 2 ? $c : [$c[0], $c[0]]), strlen('LINESTRING')), $replaced)).')',
+            'k' => $this->wkt(count($kept) >= 2 ? $kept : [$curve[0], $curve[0]]), 'ex' => $this->ints($exclude), 'line' => $this->lineId]);
+    }
+
     /** Règle 7 c et d : bouts imprécis arrêtés avant la voie d'une autre ligne, trous que la voie précise ne permet pas de combler. */
     private function smoothEnds(array &$stats): void
     {
@@ -2559,9 +2763,9 @@ class JunctionRepair
      * @param  list<array{0: float, 1: float}>  $qp
      * @return array{coords: list<array{0: float, 1: float}>, ld: float, lj: float, r: float}|null
      */
-    private function fitLeg(array $s, float $slen, array $qp, float $qlen, bool $toEnd, float $rmin, ?array $ref = null): ?array
+    private function fitLeg(array $s, float $slen, array $qp, float $qlen, bool $toEnd, float $rmin, ?array $ref = null, float $minLd = 0.0): ?array
     {
-        $ds = array_values(array_filter(self::LEG_D_STEPS, fn ($d) => $d < $slen - 1e-6));
+        $ds = array_values(array_filter(self::LEG_D_STEPS, fn ($d) => $d < $slen - 1e-6 && $d >= $minLd));
         if ($toEnd || ! $ds) {
             $ds[] = $slen;
         }
