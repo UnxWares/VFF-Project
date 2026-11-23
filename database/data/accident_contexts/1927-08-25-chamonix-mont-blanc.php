@@ -130,6 +130,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 26 août : le train du Montenvers vers la Mer de Glace déraille jeudi à 17 h, la locomotive tombe dans un ravin et entraîne la première voiture, où se trouvaient 60 personnes.',
+            'facts' => ['date' => '1927-08-25', 'commune_insee' => '74056', 'deaths' => 18, 'deaths_provisional' => true],
         ],
         'kb-1927-08-26-overijsselsch-dagblad' => [
             'provider' => 'delpher',

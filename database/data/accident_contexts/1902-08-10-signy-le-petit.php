@@ -46,6 +46,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche du 10 août : départ de Charleville à 6 h 50, société de musique de 200 personnes du personnel des ateliers de Mohon, tender sorti des rails.',
+            'facts' => ['date' => '1902-08-10', 'commune_insee' => '08420', 'deaths' => 3],
         ],
         'delpher-middelburgsche-1902-08-12' => [
             'provider' => 'delpher',

@@ -46,6 +46,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Brève : trois morts près d\'Épinay ; un train heurte un camion à ordures bloqué par le verglas sur un passage à niveau, puis un second train arrive sur les débris ; trente blessés dont dix graves.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '93031', 'deaths' => 3],
         ],
     ],
     'sections' => [

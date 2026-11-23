@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche Reuter du lendemain : express d\'Orléans contre un train chargé de marchandises américaines à environ 300 m de la gare, quatre voitures détruites, 10 morts identifiés, 25 blessés, d\'autres victimes sous les débris. Presse étrangère lointaine, brève, titre du journal non relevé.',
+            'facts' => ['date' => '1918-12-05', 'commune_insee' => '45203', 'deaths' => 10, 'deaths_provisional' => true],
         ],
         'gron-1918-12-07-spoorweg' => [
             'provider' => 'delpher',

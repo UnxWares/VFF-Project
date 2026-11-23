@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même dépêche : deux mécaniciens et un chauffeur tués, nombreux blessés dont deux en danger de mort, tous du personnel des trains.',
         ],
+        'ddb-1911-01-16-deutsche-tageszeitung' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ein neues schweres Eisenbahnunglück',
+            'publisher' => 'Deutsche Tageszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1911-01-16',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/54TJJNC2DOAI4OKI3FUXCOOIU3XZM2XB?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 15 janvier : cet après-midi, entre les gares de Saint-Germain-de-Tallevende et des Maures (ligne de Vire à Mortain), le train 407 de Paris pour Granville heurte un train de ballast à l\'arrêt ; les voitures s\'empilent ; trois morts et de nombreux blessés sortis des décombres jusqu\'ici.',
+            'facts' => ['date' => '1911-01-15', 'commune_insee' => '14584', 'deaths' => 3],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dépêche Havas de Chartres, par Reuter.',
+            'facts' => ['date' => '1920-10-30', 'commune_insee' => '28085', 'deaths' => 1],
         ],
         'petit-parisien-1920-11-01' => [
             'provider' => 'gallica',

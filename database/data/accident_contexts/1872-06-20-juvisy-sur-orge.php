@@ -19,6 +19,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-22',
             'note' => 'Brève : le 20, à Juvisy, le train d\'Orléans à Paris est entré en collision avec un train de marchandises ; la locomotive et le tender ont déraillé, le train a pris feu, cinq personnes sont mortes dans les flammes, vingt à trente sont plus ou moins gravement blessées (texte OCR, chiffre des blessés peu lisible).',
+            'facts' => ['date' => '1872-06-20', 'commune_insee' => '91326', 'deaths' => 5],
         ],
     ],
     'sections' => [

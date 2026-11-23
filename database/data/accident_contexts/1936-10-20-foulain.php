@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Dépêche de Paris du 20 octobre : express Paris-Bâle parti à 22 h, arrêté à Foulain entre Langres et Chaumont, tamponné à 1 h 30 par le rapide Boulogne-Bâle, 2 morts, 4 blessés légers, 1 grave.',
+            'facts' => ['date' => '1936-10-20', 'commune_insee' => '52205', 'deaths' => 2],
         ],
         'delpher-1936-10-21b' => [
             'provider' => 'delpher',

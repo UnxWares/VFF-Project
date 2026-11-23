@@ -102,6 +102,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 30 octobre : hier après-midi, sur la ligne Lyon-Bordeaux, à la gare de Ligueux, un train tiré par deux locomotives déraille, la plate-forme s\'étant sans doute affaissée sous les pluies ; 16 morts recueillis, 5 blessés graves et 25 légers.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '24540', 'deaths' => 16, 'deaths_provisional' => true],
         ],
         'kb-1930-10-31-limburgsch-dagblad' => [
             'provider' => 'delpher',

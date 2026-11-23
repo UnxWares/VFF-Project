@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche : express dédoublé Bordeaux-Paris pris en écharpe à Thouars par un train de marchandises, deux morts et une quinzaine de blessés ; cite Le Petit Parisien du 3 novembre 1899.',
         ],
+        'ddb-1899-11-03-beobachter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève de Paris du 2 novembre',
+            'publisher' => 'Der Beobachter (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1899-11-03',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/RNUCTMKV7NZQ5RAW4VJRAXFIWRMAVSYP?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 2 novembre : l\'express Paris-Bordeaux heurte aujourd\'hui, en gare de Thouars, un train de marchandises ; deux morts et de nombreux blessés, dont un député aux jambes écrasées.',
+            'facts' => ['date' => '1899-11-02', 'commune_insee' => '79329', 'deaths' => 2],
+        ],
     ],
     'sections' => [
         'circumstances' => [

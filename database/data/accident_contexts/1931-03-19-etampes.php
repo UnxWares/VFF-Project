@@ -103,6 +103,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche Belga : un wagon-restaurant où de nombreuses personnes dînaient heurte un train à l\'arrêt ; à minuit, cinq morts dont deux agents et une vingtaine de blessés.',
         ],
+        'ddb-1931-03-21-haaner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schnellzug Paris-Bordeaux entgleist',
+            'publisher' => 'Haaner Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1931-03-21',
+            'locator' => 'p. 8',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/ZJYKIROLOD4PIWRNUOQRYF6DCCJN2JK7?issuepage=8',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 21 mars : l\'express Paris-Bordeaux a déraillé jeudi en gare d\'Étampes ; cinq morts dont deux agents, une cinquantaine de blessés ; la suite de la dépêche (Havas) précise que les derniers wagons, dont le wagon-restaurant, ont heurté un train de voyageurs à l\'arrêt.',
+            'facts' => ['date' => '1931-03-19', 'commune_insee' => '91223', 'deaths' => 5, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

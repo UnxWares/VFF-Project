@@ -19,6 +19,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche, d\'après la presse de l\'époque (Gallica).',
         ],
+        'kb-1914-07-21-nieuwsblad-van-het-noorden' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorweg-ongeluk.',
+            'publisher' => 'Nieuwsblad van het Noorden (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1914-07-21',
+            'locator' => 'article « Spoorweg-ongeluk. », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010667627:mpeg21:a0025:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche Reuter de Toulouse du 20 juillet : le soir même, vers 21 h, un train venant d\'Auch et un train venant de Bayonne se heurtent près du pont d\'Empalot, à 5 km de Toulouse ; six morts et trente blessés.',
+            'facts' => ['date' => '1914-07-20', 'commune_insee' => '31555', 'deaths' => 6],
+        ],
     ],
     'sections' => [
         'course' => [

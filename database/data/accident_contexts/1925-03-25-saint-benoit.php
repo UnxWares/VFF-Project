@@ -60,6 +60,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dépêche Reuter du 25 mars.',
+            'facts' => ['date' => '1925-03-25', 'commune_insee' => '86194', 'deaths' => 5],
         ],
         'figaro-1925-03-26' => [
             'provider' => 'gallica',

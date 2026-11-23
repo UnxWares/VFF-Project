@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher).',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '38563', 'deaths' => 1, 'deaths_provisional' => true],
         ],
         'presse-voiron-c' => [
             'provider' => 'delpher',

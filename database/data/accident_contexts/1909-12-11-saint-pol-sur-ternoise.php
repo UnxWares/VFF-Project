@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Déraillement d\'un train local juste avant la gare de Saint-Pol-sur-Ternoise, attribué à une rupture de rail ; deux agents écrasés par la locomotive, quatre morts et soixante blessés selon les dernières nouvelles.',
+            'facts' => ['date' => '1909-12-11', 'commune_insee' => '62767', 'deaths' => 4],
         ],
         'delpher-tilburgsche-1909-12-13' => [
             'provider' => 'delpher',

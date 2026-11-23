@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Nouvelles des blessés.',
         ],
+        'ddb-1870-05-30-nurnberger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève du 28 mai sur l\'accident près de Poitiers',
+            'publisher' => 'Nürnberger Tagblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1870-05-30',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/YIH7H5YK74GRA7J7WV7URGHGAC7EKSA7?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 28 mai : hier, vers 9 h 47, près du tunnel de Saint-Benoît, à proximité de Poitiers, un train déraille sur un remblai de 36 pieds et six voitures dévalent ; deux morts et cinq blessés graves, les autres voyageurs fortement contusionnés.',
+            'facts' => ['date' => '1870-05-27', 'commune_insee' => '86194', 'deaths' => 2, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Brève du 30 janvier : samedi matin à Châteauneuf-sur-Cher, entre Montluçon et Bourges, collision d\'un express et d\'un train de marchandises ; 10 morts, 40 blessés.',
         ],
+        'ddb-1917-01-27-stuttgarter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück in Frankreich',
+            'publisher' => 'Stuttgarter neues Tagblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1917-01-27',
+            'locator' => 'p. 10',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/YXDX7WC3SK2CPPZOQERZDCNT5THJIHL7?issuepage=10',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 27 janvier : l\'express Montluçon-Bourges heurte vendredi matin à 2 h, près de Châteauneuf-sur-Cher, un train de marchandises ; la locomotive et dix voitures déraillent ; 10 morts et 40 blessés. Le Middelburgsche Courant du 30 janvier dit « samedi matin » : écart de jour non tranché.',
+            'facts' => ['date' => '1917-01-26', 'commune_insee' => '18058', 'deaths' => 10, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [

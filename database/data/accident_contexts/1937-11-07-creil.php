@@ -33,6 +33,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la fiche : collision de trains de marchandises dans le brouillard à la sortie sud de la gare de Creil, un mort et six blessés ; cite Le Matin du 8 novembre 1937.',
         ],
+        'ddb-1937-11-08-harburger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Drei Güterzüge zusammengestoßen. Ein Toter, sechs Verletzte',
+            'publisher' => 'Harburger Anzeigen und Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1937-11-08',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IUP22FTGEM23WUFXR3AXAO2IIXXS47JD?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche de Paris du 8 novembre : dimanche matin vers 4 h, dans la gare de marchandises de Creil, un train de marchandises heurte un autre à l\'arrêt dans le brouillard, puis un troisième train percute la locomotive renversée ; un mort et six blessés.',
+            'facts' => ['date' => '1937-11-07', 'commune_insee' => '60175', 'deaths' => 1],
+        ],
     ],
     'sections' => [
         'circumstances' => [

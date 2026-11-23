@@ -47,6 +47,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article cité par la liste de Wikipédia, avec Le Petit Parisien du 15 février et Le Matin du 16 février 1917.',
         ],
+        'ddb-1917-02-17-ohligser' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève du 17 février 1917 sur l\'accident de Piney',
+            'publisher' => 'Ohligser Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1917-02-17',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/7VSVEBG2APMXOGZ6XE3UAF5YGX3PQXX5?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Brève du 17 février : dans la nuit du mardi au mercredi, à 2 h du matin, l\'express venant de Vitry-le-François heurte en gare de Piney, près de Troyes, un train de voyageurs à l\'arrêt ; deux morts et 25 blessés.',
+            'facts' => ['date' => '1917-02-14', 'commune_insee' => '10287', 'deaths' => 2],
+        ],
     ],
     'sections' => [
         'circumstances' => [
