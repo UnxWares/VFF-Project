@@ -4988,4 +4988,517 @@ return [
         'quote' => 'Fermeture voyageurs le 27 septembre 1986.',
         'reason' => 'le schéma de la ligne place Saint-Samson au PK 4,207 ; la ligne ferme aux voyageurs le 27/09/1986 et aux marchandises le 01/02/1988 (date déduite à tort comme fermeture de la gare)',
     ],
+
+    // ── 41. Ouvertures des gares encore ouvertes datées à l'année par Wikidata ou déduites de la ligne, cinquième relecture contre
+    // l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 42 gares des 120 suivantes par fréquentation
+    // (de Montchanin 0,39 M à Vernaison 0,18 M ; audit-gares-5, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-gares-5.md). Lorsque la gare a déménagé, la fiche garde la date de la première gare
+    // de la ville, comme pour Reims (section 37). Les 27 cas douteux restent à décider (Le Pallet, La Haie-Fouassière, Cros-de-Cagnes,
+    // Évron, Èze, Pontarlier, Saint-Mariens, Rognac, Lentilly-Charpenay, Le Sablon, Vernaison, Saint-Pol-sur-Ternoise, La Souterraine,
+    // Labège-Innopole, Colomiers-Lycée-International, La Hume, Don-Sainghin, Boissy-l'Aillerie, Chars, Cannes-la-Bocca, Romorantin,
+    // Reims-Maison-Blanche, Avesnes, L'Estaque, Rosières, Lillers, Isbergues).
+
+    // Montchanin (id 17447)
+    [
+        'station' => ['name' => 'Montchanin', 'uic' => '87694307'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1861-09-21',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montchanin', 238809912),
+        'quote' => '== Histoire == === Gare PLM (1861-1938) === La gare de Montchanin est mise en service le 21 Septembre 1861 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM), lorsqu\'elle ouvre à l\'exploitation la première section de M',
+        'reason' => 'article de la gare (oldid 238809912) : « mise en service le 21 Septembre 1861 ». Remplace l\'année 1858 de Wikidata.',
+    ],
+
+    // Petit-Vaux (id 16124)
+    [
+        'station' => ['name' => 'Petit-Vaux', 'uic' => '87393652'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-05-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Petit Vaux', 241589595),
+        'quote' => 'Le 1 mai 1883, le trafic de la ligne de Grande Ceinture ouvre aux voyageurs sur la section de Versailles-Chantiers à Savigny-sur-Orge',
+        'reason' => 'article de la gare (oldid 241589595) : « Le 1 mai 1883, le trafic ». Remplace l\'année 1883 de Wikidata (précise au jour).',
+    ],
+
+    // Colomiers (id 17127)
+    [
+        'station' => ['name' => 'Colomiers', 'uic' => '87611467'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1877-10-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Colomiers', 236880416),
+        'quote' => 'La Compagnie des Chemins de fer du Midi met en service sa ligne de Toulouse à Auch le 22 octobre 1877',
+        'reason' => 'article de la gare (oldid 236880416) : « met en service sa ligne de Toulouse à Auch le 22 octobre 1877 ». Remplace l\'année 1960 d\'OpenHistoricalMap (la commune a été transformée dans les années 1960, la gare date de 1877).',
+    ],
+
+    // Ingwiller (id 15402)
+    [
+        'station' => ['name' => 'Ingwiller', 'uic' => '87213785'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1889-12-16',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bouxwiller à Ingwiller', 235341814),
+        'quote' => '=== Chiffres clés === * La ligne fut mise en service le 16 décembre 1889',
+        'reason' => 'article de la ligne « Ligne de Bouxwiller à Ingwiller » (oldid 235341814) : « La ligne fut mise en service le 16 décembre 1889 ». Corrige le 16/11/1889 en base (mois erroné).',
+    ],
+
+    // Munster (id 15210)
+    [
+        'station' => ['name' => 'Munster', 'uic' => '87182394'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1868-12-03',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Colmar-Central à Metzeral', 240511725),
+        'quote' => 'La section de Colmar à Munster est ouverte le 3 décembre 1868 par la Compagnie des chemins de fer de l\'Est',
+        'reason' => 'article de la ligne « Ligne de Colmar-Central à Metzeral » (oldid 240511725) : « La section de Colmar à Munster est ouverte le 3 décembre 1868 ». Précise l\'année 1868 de Wikidata et de l\'infobox au jour.',
+    ],
+
+    // Brignoud (id 17950)
+    [
+        'station' => ['name' => 'Brignoud', 'uic' => '87747451'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-09-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Brignoud', 236558998),
+        'quote' => '== Histoire == Le 15 septembre 1864, la ligne de Grenoble à Montmélian () est mise en service par le PLM',
+        'reason' => 'article de la gare (oldid 236558998) : « Le 15 septembre 1864, la ligne de Grenoble à Montmélian ». Précise l\'année 1864 de Wikidata au jour.',
+    ],
+
+    // Salon (id 18017)
+    [
+        'station' => ['name' => 'Salon', 'uic' => '87753764'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-05-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Avignon à Miramas', 240727914),
+        'quote' => 'sur cinq années : * d’Avignon à Cavaillon, le 29 décembre 1868 ; * de Cavaillon à Cheval-Blanc, le 25 novembre 1872 ; * de Cheval-Blanc à Miramas, le 28 mai 1873',
+        'reason' => 'article de la ligne « Ligne d\'Avignon à Miramas » (oldid 240727914) : « de Cheval-Blanc à Miramas, le 28 mai 1873 ». Précise l\'année 1873 de Wikidata (infobox « mai 1873 ») au jour.',
+    ],
+
+    // Presles-Courcelles (id 15555)
+    [
+        'station' => ['name' => 'Presles-Courcelles', 'uic' => '87276501'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1877-04-05',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinay - Villetaneuse au Tréport - Mers', 241187520),
+        'quote' => 'Beauvais à Abancourt et de Persan - Beaumont à Méru, le 1er juillet 1875 ; * de Méru à Beauvais, le 15 avril 1876 ; * d\'Épinay - Villetaneuse à Persan - Beaumont, le 5 avril 1877',
+        'reason' => 'article de la ligne « Ligne d\'Épinay - Villetaneuse au Tréport - Mers » (oldid 241187520) : « Épinay - Villetaneuse à Persan - Beaumont, le  5 avril 1877 ». Remplace l\'année 1880 de Wikidata (1880 est l\'embranchement Montsoult - Luzarches, la gare est sur la ligne d\'Épinay au Tréport, entre Montsoult - Maffliers et Nointel - Mours).',
+    ],
+
+    // Janzé (id 16328)
+    [
+        'station' => ['name' => 'Janzé', 'uic' => '87471334'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-12-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Janzé', 241212922),
+        'quote' => 'L’inauguration de la ligne a lieu le 28 décembre 1881',
+        'reason' => 'article de la gare (oldid 241212922) : « L’inauguration de la ligne a lieu le 28 décembre 1881 ». Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // St-Germain-des-Fossés (id 17782)
+    [
+        'station' => ['name' => 'St-Germain-des-Fossés', 'uic' => '87732206'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-19',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Germain-des-Fossés', 240408086),
+        'quote' => '= === Mise en service et années de gloire === La Compagnie du chemin de fer Grand-Central de France (« Grand-Central ») met en service le 19 juin 1854, la section de Varennes à Saint-Germain-des-Fossés, via la station intermédiaire de Créchy, de sa ligne de Moulins à Roanne',
+        'reason' => 'article de la gare (oldid 240408086) : « met en service le 19 juin 1854 ». Remplace le 18/06/1854 d\'OpenHistoricalMap.',
+    ],
+
+    // Chasse-sur-Rhône (id 17677)
+    [
+        'station' => ['name' => 'Chasse-sur-Rhône', 'uic' => '87722561'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-06-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Givors-Canal à Chasse-sur-Rhône', 235400294),
+        'quote' => 'La ligne est mise en service le 6 juin 1857',
+        'reason' => 'article de la ligne « Ligne de Givors-Canal à Chasse-sur-Rhône » (oldid 235400294) : « La ligne est mise en service le 6 juin 1857 ». Corrige le 06/06/1852 en base (année erronée : 1852 est l\'adjudication).',
+    ],
+
+    // Chalonnes (id 16513)
+    [
+        'station' => ['name' => 'Chalonnes', 'uic' => '87484204'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-09-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Possonnière à Niort', 241119292),
+        'quote' => 'La section de La Possonnière à Cholet a été mise en service le 24 septembre 1866 et celle de Cholet à Niort le 26 décembre 1868',
+        'reason' => 'article de la ligne « Ligne de La Possonnière à Niort » (oldid 241119292) : « La section de La Possonnière à Cholet a été mise en service le 24 septembre 1866 ». Remplace l\'année 1865 de Wikidata (l\'article de la gare dit « construite en 1865 pour l\'inauguration de la ligne », qui n\'a lieu qu\'en 1866).',
+    ],
+
+    // Hoerdt (id 15400)
+    [
+        'station' => ['name' => 'Hoerdt', 'uic' => '87213686'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-07-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Hœrdt', 241533197),
+        'quote' => '== Histoire == La station de Hœrdt est mise en service le 18 juillet 1855 par la Compagnie des chemins de fer de l\'Est (Est), lorsqu\'elle ouvre à l\'exploitation la section de Vendenheim à Gare de Haguenau de son c',
+        'reason' => 'article de la gare (oldid 241533197) : « La station de Hœrdt est mise en service le 18 juillet 1855 ». Précise l\'année 1855 de Wikidata au jour.',
+    ],
+
+    // St-Maurice-de-Beynost (id 17701)
+    [
+        'station' => ['name' => 'St-Maurice-de-Beynost', 'uic' => '87723536'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-06-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Maurice-de-Beynost', 241398769),
+        'quote' => '== Histoire == La section de ligne, entre Lyon et Ambérieu, ouverte le 23 juin 1856 débute sur la rive droite à la gare de Lyon-Saint-Clair, car le pont sur le Rhône n\'est pas terminé, la ligne longe le fleuve jusqu\'à la ga',
+        'reason' => 'article de la gare (oldid 241398769) : « ouverte le 23 juin 1856 ». Précise l\'année 1856 de Wikidata au jour (l\'infobox de la gare dit « date inconnue »).',
+    ],
+
+    // Reignier (id 17920)
+    [
+        'station' => ['name' => 'Reignier', 'uic' => '87746511'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-06-05',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Aix-les-Bains-Le Revard à Annemasse', 240496723),
+        'quote' => 'trois étapes : * d\'Aix-les-Bains à Annecy le 5 juillet 1866, * de La Roche-sur-Foron à Annemasse le 10 juillet 1883, * d\'Annecy à La Roche-sur-Foron le 5 juin 1884 (ouverture retardée en raison de désordres sur le viaduc d\'Évires)',
+        'reason' => 'article de la ligne « Ligne d\'Aix-les-Bains-Le Revard à Annemasse » (oldid 240496723) : « d\'Annecy à La Roche-sur-Foron le 5 juin 1884 ». Remplace l\'année 1883 de Wikidata (1883 est la section La Roche - Annemasse ; l\'infobox de la gare dit 1884).',
+    ],
+
+    // Beynost (id 17702)
+    [
+        'station' => ['name' => 'Beynost', 'uic' => '87723544'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-06-23',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Beynost', 241398781),
+        'quote' => '== Histoire == La section de ligne, entre Lyon et Ambérieu, ouverte le 23 juin 1856 débute sur la rive droite à la gare de Lyon-Saint-Clair, car le pont sur le Rhône n\'est pas terminé, la ligne longe le fleuve jusqu\'à la ga',
+        'reason' => 'article de la gare (oldid 241398781) : « ouverte le 23 juin 1856 ». Précise l\'année 1856 de Wikidata au jour.',
+    ],
+
+    // Billy-Montigny (id 15930)
+    [
+        'station' => ['name' => 'Billy-Montigny', 'uic' => '87345140'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-01-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Billy-Montigny', 238682909),
+        'quote' => '== Histoire == La station de Billy-Montigny est mise en service et ouverte au service voyageurs le 1 janvier 1864 par la Compagnie des chemins de fer du Nord, le service marchandises ouvre le 8 juin de la même année',
+        'reason' => 'article de la gare (oldid 238682909) : « mise en service et ouverte au service voyageurs le 1 janvier 1864 ». Précise l\'année 1864 de Wikidata au jour.',
+    ],
+
+    // Loches (id 16715)
+    [
+        'station' => ['name' => 'Loches', 'uic' => '87571471'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1878-07-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Loches', 229527084),
+        'quote' => '== Histoire == La gare est ouverte le 15 juillet 1878',
+        'reason' => 'article de la gare (oldid 229527084) : « La gare est ouverte le 15 juillet 1878 ». Précise l\'année 1878 de Wikidata au jour.',
+    ],
+
+    // Mouans-Sartoux (id 21017)
+    [
+        'station' => ['name' => 'Mouans-Sartoux', 'uic' => '87401323'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1871-11-13',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Cannes-la-Bocca à Grasse', 237782258),
+        'quote' => '== Histoire == === Chronologie === * 13 novembre 1871 : ouverture de ligne * 1910 - 1914 : électrification expérimentale en - de la section de Mouans-Sartoux à Grasse * 2 octobre 1938 : fermeture au trafic des voya',
+        'reason' => 'article de la ligne « Ligne de Cannes-la-Bocca à Grasse » (oldid 237782258) : « 13 novembre 1871 : ouverture de ligne ». Précise l\'année 1871 de Wikidata au jour.',
+    ],
+
+    // Montdidier (id 15761)
+    [
+        'station' => ['name' => 'Montdidier', 'uic' => '87313346'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Ormoy-Villers à Boves', 240747767),
+        'quote' => 'La section d\'Estrées-Saint-Denis à Longueau n\'est ouverte que le 1 juin 1883, soit onze mois après la mise en service de la section d\'Ormoy-Villers à Estrées-Saint-Denis',
+        'reason' => 'article de la ligne « Ligne d\'Ormoy-Villers à Boves » (oldid 240747767) : « La section d\'Estrées-Saint-Denis à Longueau n\'est ouverte que le 1 juin 1883 ». Précise l\'année 1883 de Wikidata au jour.',
+    ],
+
+    // Lézignan (Aude) (id 17195)
+    [
+        'station' => ['name' => 'Lézignan (Aude)', 'uic' => '87615112'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-04-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lézignan-Corbières', 237028873),
+        'quote' => '== Histoire == La Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne met en service la section de Toulouse à Béziers et la gare de Lézignan le 22 avril 1857',
+        'reason' => 'article de la gare (oldid 237028873) : « met en service la section de Toulouse à Béziers et la gare de Lézignan le 22 avril 1857 ». Précise l\'année 1857 de Wikidata au jour.',
+    ],
+
+    // St-Étienne-Bellevue (id 17743)
+    [
+        'station' => ['name' => 'St-Étienne-Bellevue', 'uic' => '87726190'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Saint-Étienne-Bellevue', 238736898),
+        'quote' => '== Histoire == La première gare de Bellevue fut construite en 1857',
+        'reason' => 'article de la gare (oldid 238736898) : « La première gare de Bellevue fut construite en 1857 ». Remplace l\'année 1932 de Wikidata (gare actuelle reconstruite en 1932 ; la fiche garde la date de la première gare, règle du déménagement).',
+    ],
+
+    // Cesson-Sévigné (id 15865)
+    [
+        'station' => ['name' => 'Cesson-Sévigné', 'uic' => '87334490'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1994-06-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Cesson-Sévigné', 238687421),
+        'quote' => '== Histoire == La halte est ouverte en 06 1994, la même année que la gare de Rennes-La Poterie',
+        'reason' => 'article de la gare (oldid 238687421) : « La halte est ouverte en 06 1994 ». Précise l\'année 1994 de Wikidata au mois.',
+    ],
+
+    // Sain-Bel (id 17653)
+    [
+        'station' => ['name' => 'Sain-Bel', 'uic' => '87721605'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-11-10',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lyon-Saint-Paul à Montbrison', 234927022),
+        'quote' => 'La ligne a été ouverte en deux étapes : * le 10 novembre 1873, un embranchement ferroviaire est ouvert entre la gare de l\'Arbresle, située sur la ligne du Coteau à Saint-Germain-au-Mont-d\'Or et ouverte en 1866-1868, et Sain-Bel ; * le 17 janvier 1876, les sections de Mo',
+        'reason' => 'article de la ligne « Ligne de Lyon-Saint-Paul à Montbrison » (oldid 234927022) : « le 10 novembre 1873, un embranchement ferroviaire est ouvert entre la gare de l\'Arbresle ». Remplace le 21/11/1873 d\'OpenHistoricalMap.',
+    ],
+
+    // La Valbonne (id 17704)
+    [
+        'station' => ['name' => 'La Valbonne', 'uic' => '87723577'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de La Valbonne', 241398820),
+        'quote' => 'Il fut finalement abandonné au profit de la construction de la gare de La Valbonne en 1872',
+        'reason' => 'article de la gare (oldid 241398820) : « construction de la gare de La Valbonne en 1872 ». Remplace l\'année 1856 de Wikidata (la ligne de 1856 n\'avait pas d\'arrêt ici ; infobox 1872).',
+    ],
+
+    // Weyersheim (id 15399)
+    [
+        'station' => ['name' => 'Weyersheim', 'uic' => '87213678'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1855-07-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Hœrdt', 241533197),
+        'quote' => '== Histoire == La station de Hœrdt est mise en service le 18 juillet 1855 par la Compagnie des chemins de fer de l\'Est (Est), lorsqu\'elle ouvre à l\'exploitation la section de Vendenheim à Gare de Haguenau de son c',
+        'reason' => 'article de Hœrdt (gare voisine) (oldid 241533197) : « La station de Hœrdt est mise en service le 18 juillet 1855 ». Précise l\'année 1855 de Wikidata au jour : Weyersheim est voisine de Hœrdt sur la même section Vendenheim - Haguenau ; l\'article de Weyersheim ne donne aucune date. Confiance moyenne.',
+    ],
+
+    // St-Gilles-Croix-de-Vie (id 16564)
+    [
+        'station' => ['name' => 'St-Gilles-Croix-de-Vie', 'uic' => '87486571'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1881-10-17',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Gilles-Croix-de-Vie', 240257834),
+        'quote' => '== Histoire == Un temps envisagé du côté de Saint-Gilles-sur-Vie, la première gare du terminus de Croix-de-Vie, est ouverte le 17 octobre 1881',
+        'reason' => 'article de la gare (oldid 240257834) : « est ouverte le 17 octobre 1881 ». Précise l\'année 1881 de Wikidata au jour.',
+    ],
+
+    // Laigneville (id 15527)
+    [
+        'station' => ['name' => 'Laigneville', 'uic' => '87276204'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1892-08-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Laigneville', 241483882),
+        'quote' => '== Histoire == L\'inauguration de la \'\'halte de Laigneville\'\' a lieu le 28 août 1892',
+        'reason' => 'article de la gare (oldid 241483882) : « L\'inauguration de la \'\'halte de Laigneville\'\' a lieu le 28 août 1892 ». Précise l\'année 1892 de Wikidata au jour.',
+    ],
+
+    // La Possonnière (id 16518)
+    [
+        'station' => ['name' => 'La Possonnière', 'uic' => '87484337'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1851-08-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Tours à Saint-Nazaire', 235999065),
+        'quote' => '= Chronologie === * Le 20 décembre 1848 : ouverture de Tours à Saumur * Le 1 août 1849 : ouverture de Saumur à Angers * Le 21 août 1851 : ouverture d\'Angers à Nantes * Le 1 janvier 1854 : ouverture du prolongement sur les quais du port de Nantes * Le 10 août 1857 : ouverture de Nantes à Saint-Nazaire ===',
+        'reason' => 'article de la ligne « Ligne de Tours à Saint-Nazaire » (oldid 235999065) : « Le 21 août 1851 : ouverture d\'Angers à Nantes ». Corrige le 17/08/1851 en base.',
+    ],
+
+    // Lancey (id 16254)
+    [
+        'station' => ['name' => 'Lancey', 'uic' => '87417501'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-09-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lancey', 236558749),
+        'quote' => '== Histoire == Le 15 septembre 1864, le PLM met en service la ligne de allant de Grenoble à Montmélian',
+        'reason' => 'article de la gare (oldid 236558749) : « Le 15 septembre 1864, le PLM met en service ». Précise l\'année 1864 de Wikidata au jour.',
+    ],
+
+    // Aurillac (id 17261)
+    [
+        'station' => ['name' => 'Aurillac', 'uic' => '87645002'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare d\'Aurillac', 241271782),
+        'quote' => 'En 1866, la Compagnie du chemin de fer de Paris à Orléans met en service une ligne entre Figeac et Aurillac (section de l\'actuelle ligne de Figeac à Arvant)',
+        'reason' => 'article de la gare (oldid 241271782) : « En 1866, la Compagnie du chemin de fer de Paris à Orléans met en service une ligne entre Figeac et Aurillac ». Remplace l\'année 1861 déduite de la ligne. Confiance moyenne.',
+    ],
+
+    // Marquise-Rinxent (id 15841)
+    [
+        'station' => ['name' => 'Marquise-Rinxent', 'uic' => '87317339'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1867-01-07',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Boulogne-Ville à Calais-Maritime', 240637467),
+        'quote' => 'ompagnie des chemins de fer du Nord * 26 juillet 1861 : prorogation de la concession (les travaux n\'ont pas commencé) * 7 janvier 1867 : mise en service par la Compagnie du Nord de la ligne entre Boulogne et les Fontinettes * mai 1994 : mise en service de l\'électrification === Premières étud',
+        'reason' => 'article de la ligne « Ligne de Boulogne-Ville à Calais-Maritime » (oldid 240637467) : « 7 janvier 1867 : mise en service ». Précise l\'année 1867 déduite de la ligne au jour.',
+    ],
+
+    // La Borne-Blanche (id 15535)
+    [
+        'station' => ['name' => 'La Borne-Blanche', 'uic' => '87276287'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1964-12-06',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Borne Blanche', 241066633),
+        'quote' => '6 décembre 1964 (construction en mai 1962)',
+        'reason' => 'article de la gare (oldid 241066633) : « 6 décembre 1964 (construction en mai 1962) ». Remplace le mois de mai 1962 de Wikidata (construction), l\'infobox donne la mise en service le 6 décembre 1964.',
+    ],
+
+    // Villabé (id 17359)
+    [
+        'station' => ['name' => 'Villabé', 'uic' => '87681619'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1897-06-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Corbeil-Essonnes à Montereau', 241117450),
+        'quote' => 'Elle a été mise en service le 1 juin 1897 et inaugurée le 27 juin 1897',
+        'reason' => 'article de la ligne « Ligne de Corbeil-Essonnes à Montereau » (oldid 241117450) : « Elle a été mise en service le 1 juin 1897 ». Précise l\'année 1897 de Wikidata au jour (la gare ouvre dès l\'inauguration de la ligne).',
+    ],
+
+    // Châtel-Nomexy (id 15034)
+    [
+        'station' => ['name' => 'Châtel-Nomexy', 'uic' => '87144071'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-06-24',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Blainville - Damelevières à Lure', 240009224),
+        'quote' => 'La ligne a été ouverte en trois étapes : * de Blainville à Épinal, le 24 juin 1857 ; * d\'Épinal à Aillevillers, le 24 septembre 1863, terminant ainsi la liaison Vesoul – Nancy ; * d\'Aillevillers à Lure, le 25 avril 1878, l',
+        'reason' => 'article de la ligne « Ligne de Blainville - Damelevières à Lure » (oldid 240009224) : « de Blainville à Épinal, le 24 juin 1857 ». Précise l\'année 1857 de Wikidata au jour.',
+    ],
+
+    // Ste-Musse (id 17864)
+    [
+        'station' => ['name' => 'Ste-Musse', 'uic' => '87742262'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2022-12-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Toulon-Sainte-Musse', 238999681),
+        'quote' => 'La halte est mise en service le 11 décembre 2022, à l\'issue de travaux de création commencés en janvier 2022',
+        'reason' => 'article de la gare (oldid 238999681) : « La halte est mise en service le 11 décembre 2022 ». Précise l\'année 2022 de Wikidata au jour.',
+    ],
+
+    // Lavaur (id 17217)
+    [
+        'station' => ['name' => 'Lavaur', 'uic' => '87615476'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-03-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Lavaur', 237165105),
+        'quote' => '== Histoire == La station de Lavaur est mise en service le 4 mars 1888 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne (Midi), lorsqu\'elle ouvre à l\'exploitation la section de Saint',
+        'reason' => 'article de la gare (oldid 237165105) : « La station de Lavaur est mise en service le 4 mars 1888 ». Précise l\'année 1888 de Wikidata au jour.',
+    ],
+
+    // Oudon (id 16465)
+    [
+        'station' => ['name' => 'Oudon', 'uic' => '87481184'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1851-08-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Tours à Saint-Nazaire', 235999065),
+        'quote' => '= Chronologie === * Le 20 décembre 1848 : ouverture de Tours à Saumur * Le 1 août 1849 : ouverture de Saumur à Angers * Le 21 août 1851 : ouverture d\'Angers à Nantes * Le 1 janvier 1854 : ouverture du prolongement sur les quais du port de Nantes * Le 10 août 1857 : ouverture de Nantes à Saint-Nazaire ===',
+        'reason' => 'article de la ligne « Ligne de Tours à Saint-Nazaire » (oldid 235999065) : « Le 21 août 1851 : ouverture d\'Angers à Nantes ». Remplace l\'année 1848 d\'OpenStreetMap (1848 est l\'ouverture de Tours à Saumur, loin d\'Oudon).',
+    ],
+
+    // St-Pierre-d'Albigny (id 17840)
+    [
+        'station' => ['name' => 'St-Pierre-d\'Albigny', 'uic' => '87741223'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-10-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Culoz à Modane (frontière)', 238204405),
+        'quote' => 'mb|[[Pont Victor-Emmanuel à Cruet à l\'emplacement de la ligne en rive gauche de l\'Isère, en service de 1856 à 1876.]] * 20 octobre 1856 : d\'Aix-les-Bains à Saint-Jean-de-Maurienne',
+        'reason' => 'article de la ligne « Ligne de Culoz à Modane (frontière) » (oldid 238204405) : « 20 octobre 1856 : d\'Aix-les-Bains à Saint-Jean-de-Maurienne ». Précise l\'année 1856 de Wikidata au jour (premier voyage ; l\'inauguration officielle est en 1857). Confiance moyenne.',
+    ],
+
+    // Groisy-Thorens-la-Caille (id 17911)
+    [
+        'station' => ['name' => 'Groisy-Thorens-la-Caille', 'uic' => '87746248'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-06-05',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Aix-les-Bains-Le Revard à Annemasse', 240496723),
+        'quote' => 'trois étapes : * d\'Aix-les-Bains à Annecy le 5 juillet 1866, * de La Roche-sur-Foron à Annemasse le 10 juillet 1883, * d\'Annecy à La Roche-sur-Foron le 5 juin 1884 (ouverture retardée en raison de désordres sur le viaduc d\'Évires)',
+        'reason' => 'article de la ligne « Ligne d\'Aix-les-Bains-Le Revard à Annemasse » (oldid 240496723) : « d\'Annecy à La Roche-sur-Foron le 5 juin 1884 ». Remplace l\'année 1883 de Wikidata (1883 est la section La Roche - Annemasse). Confiance moyenne : l\'article de la gare ne donne aucune date.',
+    ],
+
+    // Réaumont-St-Cassien (id 17943)
+    [
+        'station' => ['name' => 'Réaumont-St-Cassien', 'uic' => '87747279'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-07-10',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble)', 241143131),
+        'quote' => 'Le tronçon de Saint-Rambert à Rives a été ouvert le 5 novembre 1856, celui de Rives à Piquepierre le 10 juillet 1857, prolongé jusqu\'à Grenoble le 1 juillet 1858 après achèvement du pont sur l\'Isère',
+        'reason' => 'article de la ligne « Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble) » (oldid 241143131) : « celui de Rives à Piquepierre le 10 juillet 1857 ». Corrige le 12/07/1857 en base. Confiance moyenne : l\'article de la gare ne donne aucune date.',
+    ],
+
+    // St-Loubès (id 16923)
+    [
+        'station' => ['name' => 'St-Loubès', 'uic' => '87584730'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1852-09-20',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean', 240534824),
+        'quote' => 's rentable sans prolongement, et préférèrent attendre l\'achèvement de la section de Libourne à Bordeaux pour équiper et mettre en service l\'ensemble le 20 septembre 1852',
+        'reason' => 'article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : « mettre en service l\'ensemble le 20 septembre 1852 ». Précise l\'année 1852 de Wikidata au jour (section Libourne - Bordeaux). Confiance moyenne.',
+    ],
 ];
