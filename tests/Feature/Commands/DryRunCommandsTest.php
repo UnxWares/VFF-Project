@@ -32,10 +32,10 @@ class DryRunCommandsTest extends TestCase
 
     /** Commandes à --dry-run (cf. CommandContractTest : la liste doit rester à jour). */
     public const COVERED = [
-        'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-commons-stations', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:commons-allowlist', 'vff:compute-line-profiles',
+        'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-commons-stations', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:commons-allowlist', 'vff:compute-line-profiles', 'vff:compute-network-figures',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-candidates', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
-        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-open-data-media', 'vff:import-panoramax-media', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
+        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-line-speeds', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-open-data-media', 'vff:import-panoramax-media', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
         'vff:import-station-closures', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:neutralize-line-slugs', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
@@ -62,6 +62,7 @@ class DryRunCommandsTest extends TestCase
         // Fichier de candidats d'une gare absente de la base : lu, rien à écrire.
         'vff:import-commons-candidates' => ['file' => 'tests/Fixtures/Commons/candidates-extrait.jsonl'],
         'vff:import-signalling-history' => ['--offline' => true],
+        'vff:import-line-speeds' => ['--offline' => true],
         'vff:import-material-periods' => ['--offline' => true],
         'vff:import-gallica' => ['--offline' => true],
         // Caches du bac à sable vides : le jeu est ignoré, aucune requête réseau.
