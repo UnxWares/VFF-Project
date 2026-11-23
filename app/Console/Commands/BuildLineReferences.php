@@ -103,7 +103,9 @@ use Illuminate\Support\Facades\Storage;
  *    la portion qu'ils prolongent, bulle courte (moins de 100 m, deux chemins
  *    à moins de 5 m entre les deux mêmes nœuds) dont un côté longe le dessin
  *    d'une autre ligne : ce côté retiré, sans contact à 0 m perdu
- *    (Lyon-Perrache, 830000 sur la voie convergente de 750000). Sans lui, le
+ *    (Lyon-Perrache, 830000 sur la voie convergente de 750000), sauf pour une
+ *    autre ligne qui y arrive en le longeant : sa jonction est à refaire, et
+ *    la commande indique les lignes à reconstruire ensuite. Sans lui, le
  *    moteur décennal produit des tronçons en double et des tronçons de
  *    longueur nulle.
  *
@@ -189,6 +191,13 @@ class BuildLineReferences extends Command
 
     /** Nettoyage final : bouts superposés retirés, raccords en double, extrémités recollées, raccords fusionnés. */
     private array $tidyStats = [];
+
+    /**
+     * Nettoyage final : lignes dont une extrémité posée sur un côté de bulle retiré est à raccorder de nouveau.
+     *
+     * @var array<int, true>
+     */
+    private array $rejoinLines = [];
 
     /** Continuité sur les voies réelles (JunctionRepair) : sauts, trous, changements de voie, prolongements, dépassements. */
     private array $repairStats = [];
@@ -319,6 +328,11 @@ class BuildLineReferences extends Command
             $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m, et %s m de bulles le long d\'une autre ligne), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
                 $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['bubble_m'] ?? 0, 0, ',', ' '), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
                 number_format($n['isolated_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
+        }
+        if ($this->rejoinLines) {
+            $codes = DB::table('lines')->whereIn('id', array_keys($this->rejoinLines))->orderBy('id')->pluck('code', 'id');
+            $this->warn(sprintf('  bulles : %d extrémités d\'autres lignes posées sur un côté retiré, à raccorder de nouveau : reconstruire ensuite --line=%s (%s)',
+                $this->tidyStats['bubble_rejoin'] ?? 0, implode(',', $codes->keys()->all()), implode(', ', $codes->all())));
         }
         if ($x = $this->exclusionStats) {
             $this->line(sprintf('  retraits à la main : %d voies sources écartées, %d fragments retirés (%s m)%s',
@@ -601,6 +615,7 @@ class BuildLineReferences extends Command
             foreach ($this->singleAxis->tidy($lineId) as $k => $v) {
                 $this->tidyStats[$k] = ($this->tidyStats[$k] ?? 0) + $v;
             }
+            $this->rejoinLines += array_fill_keys($this->singleAxis->rejoinLines, true);
             $this->timings['nettoyage'] = ($this->timings['nettoyage'] ?? 0) + microtime(true) - $t;
         }
 

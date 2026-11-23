@@ -160,6 +160,14 @@ class SingleAxis
 
     private bool $tidyReady = false;
 
+    /**
+     * Lignes dont une extrémité posée sur un côté de bulle retiré par le dernier tidy() (cf. trimEndBubbles) est à
+     * raccorder de nouveau : leur tracé de référence est à reconstruire ensuite.
+     *
+     * @var list<int>
+     */
+    public array $rejoinLines = [];
+
     /** Diagnostic : séries examinées et décision (rempli si $debug). */
     public bool $debug = false;
 
@@ -247,10 +255,11 @@ class SingleAxis
      * tracé source retirés sont listés dans line_reference_duplicates (cause
      * « superposition », ou « fragment isolé »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m et bubble_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m et bubble_m (compris dans les deux premiers), bubble_rejoin (extrémités d'autres lignes à raccorder de nouveau, cf. rejoinLines), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
      */
     public function tidy(int $lineId): array
     {
+        $this->rejoinLines = [];
         $this->prepareTidy();
         DB::delete('DELETE FROM tx_sub');
         DB::insert(<<<'SQL'
@@ -574,7 +583,8 @@ class SingleAxis
      * de cette autre ligne, empruntée deux fois. Le côté le plus proche (en moyenne) de ce dessin part : le début de A
      * (A commence alors en Q, sur l'extrémité de B) ou la fin de B (B finit alors en P, sur l'extrémité de A). Rien ne
      * part si une autre portion de la ligne finit sur ce côté hors de P et de Q, ou si l'extrémité d'une autre ligne
-     * posée dessus (SNAP_M) ne toucherait plus le reste de la ligne : pas de contact à 0 m perdu.
+     * posée dessus (SNAP_M) ne toucherait plus le reste de la ligne : pas de contact à 0 m perdu. Une seule exception
+     * (cf. bubbleSideRejoins) : l'autre ligne arrive sur ce côté en le longeant, sur la voie qu'elle dessine elle-même.
      */
     private function trimEndBubbles(int $lineId, array &$stats, array &$records): void
     {
@@ -626,7 +636,8 @@ class SingleAxis
             }
             [$csid, $f0, $f1, $keep] = $cutA ? [$sid, $a0, $a1, (int) $c->k === 0 ? [$a1, 1.0] : [0.0, $a0]]
                 : [$bsid, $b0, $b1, (int) $c->bk === 0 ? [$b1, 1.0] : [0.0, $b0]];
-            if (! $this->bubbleSideFree($lineId, $csid, $f0, $f1, $cutA ? $bsid : $sid)) {
+            $rejoin = $this->bubbleSideRejoins($lineId, $csid, $f0, $f1, $cutA ? $bsid : $sid);
+            if ($rejoin === null) {
                 continue;
             }
             $cut = DB::selectOne("SELECT encode(ST_AsEWKB(ST_LineSubstring(g, ?, ?)), 'hex') AS ewkb, ST_Length(g) * CAST(? AS float8) AS m FROM tx_sub WHERE sid = ?",
@@ -636,32 +647,54 @@ class SingleAxis
             $stats['bubble_m'] = ($stats['bubble_m'] ?? 0) + (float) $cut->m;
             $records[] = ['sid' => $csid, 'ksid' => $cutA ? $bsid : $sid, 'ewkb' => $cut->ewkb];
             $done[$sid] = $done[$bsid] = true;
+            $stats['bubble_rejoin'] = ($stats['bubble_rejoin'] ?? 0) + count($rejoin);
+            $this->rejoinLines = array_values(array_unique([...$this->rejoinLines, ...$rejoin]));
         }
     }
 
     /**
      * Côté [f0, f1] de la portion $sid retirable (cf. trimEndBubbles) : aucune autre portion de la ligne (hors $other)
-     * n'y finit, et toute extrémité d'une autre ligne posée dessus touche encore le reste de la ligne (SNAP_M).
+     * n'y finit, et toute extrémité d'une autre ligne posée dessus (SNAP_M) touche encore le reste de la ligne. Rend
+     * null si le côté reste, sinon les lignes dont l'extrémité est à raccorder de nouveau.
+     *
+     * Exception, la seule : l'extrémité d'une autre ligne qui arrive sur ce côté en le longeant (sa portion est à moins
+     * de NEAR_M du côté sur au moins BUBBLE_MIN_M). Cette ligne dessine elle-même la voie du côté retiré, et sa jonction
+     * s'est posée sur le double que la ligne y dessinait : à Lyon-Perrache, la règle 11 de 750000 finit sur le côté de
+     * 33 m de 830000, et ce contact gardait la bulle d'un rejeu à l'autre (le saut de 830000 n'est pas lissé, règle
+     * 1 bis de JunctionRepair, pour la même raison). Le côté longeant l'autre à moins de NEAR_M, l'extrémité reste à
+     * quelques mètres de la voie gardée (1,6 m à Perrache) : la reconstruction de cette ligne la raccorde de nouveau à
+     * 0 m (règles 5 bis et 11). Une ligne qui arrive en travers (embranchement) garde le côté.
+     *
+     * @return list<int>|null
      */
-    private function bubbleSideFree(int $lineId, int $sid, float $f0, float $f1, int $other): bool
+    private function bubbleSideRejoins(int $lineId, int $sid, float $f0, float $f1, int $other): ?array
     {
-        return (bool) DB::selectOne(<<<'SQL'
+        $r = DB::selectOne(<<<'SQL'
             WITH s AS (SELECT ST_LineSubstring(g, :f0, :f1) AS g FROM tx_sub WHERE sid = :sid),
             k AS (SELECT ST_Collect(x.g) AS g FROM (
                       SELECT t.g FROM tx_sub t WHERE NOT t.removed AND t.sid <> :sid2
                       UNION ALL SELECT ST_LineSubstring(t.g, 0, :g0) FROM tx_sub t WHERE t.sid = :sid3 AND CAST(:g0b AS float8) > 0
-                      UNION ALL SELECT ST_LineSubstring(t.g, :g1, 1) FROM tx_sub t WHERE t.sid = :sid4 AND CAST(:g1b AS float8) < 1) x)
+                      UNION ALL SELECT ST_LineSubstring(t.g, :g1, 1) FROM tx_sub t WHERE t.sid = :sid4 AND CAST(:g1b AS float8) < 1) x),
+            o AS (SELECT r.line_id, e.p, ST_Transform(d.geom, 2154) AS g
+                  FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, s,
+                       LATERAL (VALUES (ST_Transform(ST_StartPoint(d.geom), 2154)), (ST_Transform(ST_EndPoint(d.geom), 2154))) e(p)
+                  WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(s.g, 2), 4326) AND ST_DWithin(s.g, e.p, :snap2)),
+            lost AS (SELECT o.line_id, ST_Length(ST_Intersection(o.g, ST_Buffer(s.g, :near))) >= :along AS along
+                     FROM o, k, s WHERE NOT ST_DWithin(k.g, o.p, :snap3))
             SELECT NOT EXISTS (
                        SELECT 1 FROM tx_sub t, s, LATERAL (VALUES (ST_StartPoint(t.g)), (ST_EndPoint(t.g))) e(p)
                        WHERE NOT t.removed AND t.sid <> :sid5 AND t.sid <> :other AND ST_DWithin(s.g, e.p, :snap))
-               AND NOT EXISTS (
-                       SELECT 1 FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, s, k,
-                            LATERAL (VALUES (ST_Transform(ST_StartPoint(d.geom), 2154)), (ST_Transform(ST_EndPoint(d.geom), 2154))) e(p)
-                       WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(s.g, 2), 4326)
-                         AND ST_DWithin(s.g, e.p, :snap2) AND NOT ST_DWithin(k.g, e.p, :snap3)) AS ok
+                   AND NOT EXISTS (SELECT 1 FROM lost WHERE NOT lost.along) AS ok,
+                   (SELECT string_agg(DISTINCT CAST(lost.line_id AS text), ',') FROM lost) AS rejoin
             FROM s, k
             SQL, ['f0' => $f0, 'f1' => $f1, 'sid' => $sid, 'sid2' => $sid, 'sid3' => $sid, 'sid4' => $sid, 'sid5' => $sid, 'other' => $other,
-            'g0' => $f0, 'g0b' => $f0, 'g1' => $f1, 'g1b' => $f1, 'line' => $lineId, 'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M])?->ok;
+            'g0' => $f0, 'g0b' => $f0, 'g1' => $f1, 'g1b' => $f1, 'line' => $lineId, 'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M,
+            'near' => self::NEAR_M, 'along' => self::BUBBLE_MIN_M]);
+        if ($r === null || ! $r->ok) {
+            return null;
+        }
+
+        return $r->rejoin === null ? [] : array_map(intval(...), explode(',', $r->rejoin));
     }
 
     /**

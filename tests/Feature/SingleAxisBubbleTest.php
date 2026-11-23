@@ -15,7 +15,9 @@ use Tests\TestCase;
  * Extrait réel (tests/Fixtures/Bubble/lyon-perrache.json, lu en lecture seule sur vff le 23/11/2026) : carré de 600 m
  * à la sortie sud de Lyon-Perrache, tracés de référence de 750000 et 830000, voies BD TOPO et OSM, gares. 830000 y
  * dessine deux fois, à 3 m, 33 m de voie entre les deux mêmes nœuds : le début de sa portion de 2,4 km emprunte la
- * voie convergente que dessine 750000. Sources et licences : tests/Fixtures/SOURCES.md.
+ * voie convergente que dessine 750000. Second extrait (lyon-perrache-rejoin.json, même carré, lu le 23/11/2026 après le
+ * rejeu de 750000 de 8 h 34) : la jonction latérale de 750000 (règle 11) finit sur le côté de 33 m, et ce contact
+ * gardait la bulle à chaque reconstruction de 830000. Sources et licences : tests/Fixtures/SOURCES.md.
  * Réseaux fabriqués en Lambert-93 autour de (650 000, 6 860 000) : portion B d'ouest en est sur y = 0 jusqu'à Q (40, 0),
  * portion A qui part de P (0, 0), sur B, longe B à 3 m au nord et rejoint Q, puis continue vers l'est.
  */
@@ -160,6 +162,50 @@ class SingleAxisBubbleTest extends TestCase
         $this->assertSame(0.0, (float) ($again['bubble_m'] ?? 0));
     }
 
+    public function test_lyon_perrache_bubble_held_by_the_lateral_junction_of_750000_is_removed_and_750000_listed(): void
+    {
+        // Pas de ST_Node sur cet extrait (cf. bubbles) : le côté retiré se lit par les distances.
+        $this->loadFixture('lyon-perrache-rejoin');
+        $end = [841659.85, 6518324.59];
+        $this->assertLessThan(0.05, $this->distance(830, 841664.0, 6518319.8, false), 'côté de 33 m présent');
+        $this->assertLessThan(0.01, $this->distance(830, $end[0], $end[1], false), '750000 finit sur ce côté');
+        $contacts = $this->contacts(830);
+        $free = $this->freeEnds(830);
+        $len = $this->length(830);
+        $axis = new SingleAxis;
+
+        $stats = $axis->tidy(830);
+
+        $this->assertGreaterThan(1.0, $this->distance(830, 841664.0, 6518319.8, false), 'côté de la voie convergente retiré');
+        $this->assertLessThan(0.1, $this->distance(830, 841668.8, 6518319.0, false), 'voie de 830000 gardée');
+        $this->assertEqualsWithDelta(33.0, $len - $this->length(830), 3.0);
+        $this->assertEqualsWithDelta(33.0, $stats['bubble_m'] ?? 0, 3.0);
+        // La jonction de 750000, à 1,6 m de la voie gardée, est à refaire par la reconstruction de 750000.
+        $this->assertSame(1, $stats['bubble_rejoin'] ?? 0);
+        $this->assertSame([626], $axis->rejoinLines);
+        $this->assertEqualsWithDelta(1.57, $this->distance(830, $end[0], $end[1], false), 0.05);
+        $this->assertSame(array_values(array_diff($contacts, ['626:841660:6518325'])), $this->contacts(830), 'seul ce contact est à refaire');
+        $this->assertSame($free, $this->freeEnds(830), 'aucun bout libre de plus');
+
+        $again = (new SingleAxis)->tidy(830);
+        $this->assertSame(0.0, (float) ($again['bubble_m'] ?? 0));
+    }
+
+    public function test_bubble_side_where_another_line_ends_along_its_own_drawing_is_removed_and_that_line_listed(): void
+    {
+        // M dessine le côté A sur 18 m et y finit, à 3 m de B : sa jonction s'est posée sur le double de L.
+        [$l, $o] = $this->network(40, [[-150, 60], [8, 3], [26, 3]]);
+        $axis = new SingleAxis;
+
+        $stats = $axis->tidy($l);
+
+        $this->assertSame([], $this->bubbles($l));
+        $this->assertLessThan(0.01, $this->distance($l, 20, 0), 'côté B gardé');
+        $this->assertGreaterThan(2.5, $this->distance($l, 20, 3), 'côté A retiré');
+        $this->assertSame(1, $stats['bubble_rejoin'] ?? 0);
+        $this->assertSame([$o], $axis->rejoinLines);
+    }
+
     public function test_bubble_along_another_line_loses_the_side_it_draws_and_keeps_the_junction(): void
     {
         // M dessine le côté A (voie convergente) et finit en Q.
@@ -213,6 +259,21 @@ class SingleAxisBubbleTest extends TestCase
         $this->assertCount(1, $this->bubbles($l));
         $this->assertEqualsWithDelta($len, $this->length($l), 0.01);
         $this->assertLessThan(0.5, $this->distance($l, 20, 3), 'N touche encore L');
+    }
+
+    public function test_bubble_side_holding_the_end_of_a_line_running_along_it_too_briefly_stays(): void
+    {
+        // M dessine le côté A ; N y arrive en travers et ne le longe que sur 4 m (9 m à moins de NEAR_M, moins de
+        // BUBBLE_MIN_M) : embranchement, gardé.
+        [$l] = $this->network(40, [[-150, 60], [8, 3], [32, 3], [40, 0]]);
+        $n = Line::factory()->create(['code' => '900003']);
+        $this->part($n->id, [[16, 80], [16, 3], [20, 3]]);
+        $axis = new SingleAxis;
+
+        $axis->tidy($l);
+
+        $this->assertCount(1, $this->bubbles($l));
+        $this->assertSame([], $axis->rejoinLines);
     }
 
     public function test_bubble_longer_than_a_short_run_stays(): void
