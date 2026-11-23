@@ -157,4 +157,55 @@ return [
         'line' => '648000', 'article' => 'Gare de Gimont-Cahuzac', 'system' => 'BAPR', 'date' => '2010', 'scope' => 'section', 'from' => 'L\'Isle-Jourdain', 'to' => 'Auch',
         'quote' => 'En 2010, la gare est équipée du système de signalisation Block automatique à permissivité restreinte (BAPR) dans le cadre de l\'équipement de l\'ensemble de la ligne',
     ],
+    // Relevé du 23/11 (signalisation-classique) : articles de lignes classiques, phrases datées.
+    // Longueau - Boulogne : premier BAL du Nord, Amiens - Saint-Roch.
+    [
+        'line' => '311000', 'system' => 'BAL', 'date' => '1937', 'scope' => 'section', 'from' => 'Amiens', 'to' => 'Saint-Roch',
+        'quote' => 'En 1937, peu avant sa dissolution, la Compagnie du Nord met en place le block automatique lumineux sur la courte section d\'Amiens à la bifurcation de Saint-Roch',
+    ],
+    // Boulogne - Calais : BAL de Boulogne-Ville à Wimille.
+    [
+        'line' => '314000', 'system' => 'BAL', 'date' => '1980', 'scope' => 'section', 'from' => 'Boulogne-Ville', 'to' => 'Wimille',
+        'quote' => 'En 1980, il est étendu jusqu\'à Wimille - Wimereux, tandis que le block automatique lumineux (BAL) est installé de Boulogne-Ville à Wimille.',
+    ],
+    // Sainte-Pazanne - Pornic : BAPR à compteurs d'essieux.
+    [
+        'line' => '536000', 'system' => 'BAPR', 'date' => '2010', 'scope' => 'whole_line',
+        'quote' => 'Le block automatique à permissivité restreinte (BAPR) de régime de voie banalisée par compteurs d\'essieux équipe la ligne depuis 2010.',
+    ],
+    // Thionville - Apach : BAL au jour près.
+    [
+        'line' => '178000', 'system' => 'BAL', 'date' => '1988-05-24', 'scope' => 'section', 'from' => 'Thionville', 'to' => 'Apach',
+        'quote' => 'le 24 mai 1988, la ligne est dotée du block automatique lumineux (BAL) de Thionville à Apach',
+    ],
+    // Tours - Le Mans : BAPR à la place du block manuel de double voie.
+    [
+        'line' => '561000', 'system' => 'BAPR', 'date' => '2010-06-13', 'scope' => 'section', 'from' => 'Arnage', 'to' => 'La Membrolle-sur-Choisille',
+        'quote' => 'est remplacé par le block automatique à permissivité restreinte à comptage d\'essieux le 13 juin 2010.',
+    ],
+    // Clisson - Cholet : BAPR après la régénération.
+    [
+        'line' => '527000', 'system' => 'BAPR', 'date' => '2021-03-29', 'scope' => 'whole_line',
+        'quote' => 'La mise en service du BAPR est effective le 29 mars 2021',
+    ],
+    // Saint-Benoît - La Rochelle : BAPR avec l'électrification pour le TGV.
+    [
+        'line' => '538000', 'system' => 'BAPR', 'date' => '1993', 'scope' => 'whole_line',
+        'quote' => 'électrification en 25 kV 50 Hz et mise en place du BAPR et d\'une commande centralisée de voie unique à Niort en remplacement du block manuel.',
+    ],
+    // Mâcon - Ambérieu : BAL en gares pour le passage des TGV.
+    [
+        'line' => '883000', 'system' => 'BAL', 'date' => '1981-07-16', 'scope' => 'unspecified',
+        'quote' => 'le 16 juillet 1981, pour permettre la circulation des TGV par le LGV, mise en service du BAL en gares de Pont-de-Veyle et de Vonnas',
+    ],
+    // Ermont - Champ-de-Mars : BAL de Saint-Ouen à Champ-de-Mars (l'année est celle de la phrase).
+    [
+        'line' => '962000', 'system' => 'BAL', 'date' => '1988', 'scope' => 'section', 'from' => 'Saint-Ouen', 'to' => 'Champ-de-Mars',
+        'quote' => 'est mise sous tension le 21 juin 1988 ; trois jours après, le tronçon Saint-Ouen - Champ-de-Mars voit la mise en service du BAL et des IPCS',
+    ],
+    // Dijon - Vallorbe : BAL à la place du block manuel unifié.
+    [
+        'line' => '850000', 'system' => 'BAL', 'date' => '1976', 'scope' => 'unspecified',
+        'quote' => 'L\'espacement des trains est assuré par le BAL mis en service en 1976 en remplacement d\'un block manuel unifié SNCF.',
+    ],
 ];
