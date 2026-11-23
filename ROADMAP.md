@@ -317,7 +317,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Suivi des erreurs et de la disponibilité (phase 0) : Kener et GlitchTip choisis, installation et moniteurs décrits dans `docs/SUIVI-PRODUCTION.md`
 - [x] Requêtes vers Wikimédia polies : une requête à la fois pour Wikipédia, `maxlag` partout, User-Agent du projet
 - [x] Sauvegardes du poste de développement : dépôts chiffrés côté client, rétention quotidienne, hebdomadaire et mensuelle, contrôle d'intégrité chaque dimanche ; dumps de la base ciblés avant chaque écriture
-- [ ] Sauvegarde de la base de production : à décider avec l'hébergement
+- [~] Sauvegarde de la base de production : kit prêt et essayé sur une base de test (`deploy/backup/`, `docs/SAUVEGARDE.md` : dump quotidien contrôlé, rotation 7/4/6, envoi chiffré restic, battement, essai de restauration dans une base temporaire), reste à choisir la destination avec l'hébergement
 
 ---
 

@@ -1,0 +1,21 @@
+# Sauvegarde quotidienne de la base de production de VFF (SERVEUR seulement, NON INSTALLÉ sur le poste de développement).
+# Procédure d'installation : docs/SAUVEGARDE.md. Les scripts sont copiés dans /opt/vff/backup (propriétaire root).
+[Unit]
+Description=VFF - sauvegarde logique de la base de production
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=vffbackup
+Group=vffbackup
+ExecStart=/opt/vff/backup/vff-backup.sh /etc/vff/backup.env
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=4h
+# Durcissement : le service n'écrit que dans le dossier des sauvegardes.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/vff

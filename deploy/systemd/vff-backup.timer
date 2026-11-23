@@ -1,0 +1,13 @@
+# Déclenche vff-backup.service chaque nuit à 3 h 15 ; rattrape un passage manqué (serveur éteint) au démarrage.
+# SERVEUR seulement, NON INSTALLÉ sur le poste de développement.
+[Unit]
+Description=VFF - sauvegarde quotidienne de la base
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=10min
+Persistent=true
+Unit=vff-backup.service
+
+[Install]
+WantedBy=timers.target
