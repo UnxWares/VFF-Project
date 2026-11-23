@@ -121,6 +121,17 @@ export function positionItems(positions, t, lang = 'fr') {
 }
 
 /**
+ * Une option de la liste : `plate` (code de la ligne) ou `detail` (ligne de précision) quand son groupe en a.
+ *
+ * @typedef {object} SearchItem
+ * @property {string} href
+ * @property {string} name
+ * @property {string} [icon]
+ * @property {string | null} [plate]
+ * @property {string | null} [detail]
+ */
+
+/**
  * Groupes de résultats, dans l'ordre affiché : position sur une ligne (PK), rubriques, lignes, gares, matériel roulant, accidents,
  * termes du glossaire, communes, puis
  * « Tous les résultats » (page de résultats, puis annuaires filtrés, une fois la recherche faite). Les groupes vides sont
@@ -146,6 +157,7 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
     const accidents = results.accidents ?? [];
     const communes = results.communes ?? [];
     const glossary = results.glossary ?? [];
+    /** @type {{ type: string, label: string, items: SearchItem[] }[]} */
     const groups = [
         {
             type: 'position',

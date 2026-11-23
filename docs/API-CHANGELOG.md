@@ -120,6 +120,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   (`LineMaterialPeriodPortion`, `LineMaterialPortionEnd`). `section` reste la portion telle que l'écrit le titre de section. Ajout seul.
   `curl -s https://vff-project.org/api/v1/lines/<slug>/materials | jq '.data[].periods[] | select(.portion) | .portion'`.
 
+- Recherche : le glossaire dans GraphQL et sur la page `/search`. La requête GraphQL `search` renvoie `glossary`
+  (`SearchGlossaryTerm` : `slug`, `name(lang: "fr" | "en" | "de")`, `abbr` ; au plus `limit` termes, mêmes termes et même ordre
+  que `glossary` de `GET /api/v1/search`). La page `/search` a un groupe « Glossaire » (`type=glossary`) entre le matériel
+  roulant et les communes, avec le nom dans la langue de la page. Ajouts seuls.
+  `curl -s https://vff-project.org/graphql -H 'Content-Type: application/json' -d '{"query":"{ search(query: \"tvm 430\") { glossary { slug name abbr } } }"}'`.
+
 - Recherche : termes du glossaire. REST `GET /api/v1/search` renvoie `glossary` (5 termes au plus : `type`, `slug`, `name`,
   `names` en `fr`, `en` et `de`, `abbr`), le serveur MCP accepte `glossary` dans `kinds` de `search` (cherché par défaut, avec
   `vff_url` vers `/glossary#{slug}`). Trouvés par le nom, le sigle ou le développé dans l'une des trois langues (`TVM 430`,

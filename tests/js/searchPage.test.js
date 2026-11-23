@@ -3,7 +3,14 @@
 import { render } from 'svelte/server';
 import { describe, expect, it, vi } from 'vitest';
 import { setupI18n } from '$lib/i18n.js';
-import { resultDetail, searchHref, searchParams, splitAround, typeTabs } from '$lib/searchPage.js';
+import {
+    resultDetail,
+    resultHref,
+    searchHref,
+    searchParams,
+    splitAround,
+    typeTabs,
+} from '$lib/searchPage.js';
 import { searchPageHref } from '$lib/siteSearch.js';
 import SearchIndex from '../../resources/js/Pages/Search/Index.svelte';
 
@@ -203,5 +210,63 @@ describe('communes', () => {
         expect(tabs.at(-1).href).toBe('/search?q=angou&type=commune');
         const item = { department_code: '16', department_name: 'Charente' };
         expect(resultDetail('commune', item, (k) => k)).toBe('Charente (16)');
+    });
+});
+
+describe('glossaire', () => {
+    it('onglet Glossaire avant les communes, détail = sigle seulement quand il diffère du nom', () => {
+        const tabs = typeTabs({
+            q: 'tvm',
+            type: '',
+            state: '',
+            dept: '',
+            counts: { line: 1, glossary: 3, commune: 2 },
+            total: 6,
+        });
+        expect(tabs.map((tab) => tab.type)).toEqual(['', 'line', 'glossary', 'commune']);
+        expect(tabs[2].href).toBe('/search?q=tvm&type=glossary');
+        expect(resultDetail('glossary', { name: 'Caténaire', abbr: null }, (k) => k)).toBe('');
+        expect(
+            resultDetail('glossary', { name: 'Contrôle de vitesse', abbr: 'KVB' }, (k) => k),
+        ).toBe('KVB');
+    });
+    it('un terme mène à son ancre dans /glossary, les autres types à leur fiche', () => {
+        expect(resultHref('glossary', 'tvm-430')).toBe('/glossary#tvm-430');
+        expect(resultHref('commune', '16015-angouleme')).toBe('/communes/16015-angouleme');
+        expect(resultHref('line', 'rfn-570000')).toBe('/lines/rfn-570000');
+    });
+    it('la page rend le groupe avec le lien vers l ancre du terme', () => {
+        const rendered = render(SearchIndex, {
+            props: {
+                query: 'kvb',
+                searched: true,
+                filters: { type: '', state: '', dept: '' },
+                groups: [
+                    {
+                        type: 'glossary',
+                        total: 1,
+                        approximate: false,
+                        current_page: 1,
+                        last_page: 1,
+                        per_page: 5,
+                        items: [
+                            {
+                                slug: 'kvb',
+                                name: 'Contrôle de vitesse par balises',
+                                highlight: [
+                                    { text: 'Contrôle de vitesse par balises', mark: false },
+                                ],
+                                abbr: 'KVB',
+                            },
+                        ],
+                    },
+                ],
+                counts: { glossary: 1 },
+                total: 1,
+            },
+        });
+        const body = rendered.body.replace(/<!--[^>]*-->/g, '');
+        expect(body).toContain('href="/glossary#kvb"');
+        expect(body).toContain('aria-labelledby="search-group-glossary"');
     });
 });

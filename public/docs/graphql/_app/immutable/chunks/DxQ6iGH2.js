@@ -180,7 +180,9 @@ type Query {
   """
   Recherche par nom, comme \`GET /api/v1/search\` et l'outil MCP \`search\` : lignes (nom, autres noms ou code
   à 6 chiffres, avec ou sans espace), gares (nom, commune, anciens noms, code UIC), matériels roulants et
-  accidents (par nom dans l'une des trois langues, commune ou date : \`1891\`, \`07/2013\`, \`2013-07-12\`).
+  accidents (par nom dans l'une des trois langues, commune ou date : \`1891\`, \`07/2013\`, \`2013-07-12\`),
+  plus les termes du glossaire (\`glossary\` : nom dans l'une des trois langues, sigle ou développé, comme
+  « TVM 430 » ou « overhead line »).
   Casse, accents, tirets, apostrophes et abréviations (St, Ste, N.-D., s/, lès) indifférents, petits mots
   facultatifs, mots dans n'importe quel ordre ; tri par pertinence (nom exact, début du nom, début d'un mot,
   tous les mots, puis le reste) ; noms approchés (\`approximate\`) quand moins de 3 fiches correspondent.
@@ -6020,6 +6022,8 @@ type SearchResults {
   materials: [SearchMaterial!]!
   "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
   accidents: [SearchAccident!]!
+  "Termes du glossaire (\`/glossary\`) dont le nom, dans l'une des trois langues, le sigle ou le développé correspond."
+  glossary: [SearchGlossaryTerm!]!
 }
 
 
@@ -6106,6 +6110,20 @@ type SearchAccident {
   lng: Float
   "Vrai pour un nom approché (faute de frappe), proposé parce que moins de 3 fiches correspondaient mot pour mot."
   approximate: Boolean!
+}
+
+
+"Un terme du glossaire trouvé par la recherche."
+type SearchGlossaryTerm {
+  "Identifiant du terme : ancre de sa définition dans la page \`/glossary#{slug}\`."
+  slug: String!
+  "Nom du terme."
+  name(
+    "Langue : \`fr\` (par défaut), \`en\` ou \`de\`."
+    lang: String = "fr"
+  ): String!
+  "Sigle du terme (\`KVB\`, \`TVM\`), nul s'il n'en a pas."
+  abbr: String
 }
 
 
