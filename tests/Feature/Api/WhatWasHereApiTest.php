@@ -5,11 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Accident;
 use App\Models\Line;
 use App\Models\LineSegment;
+use App\Support\Monitoring\PositionlessError;
 use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
+use PDOException;
 use Tests\Support\BuildsRailNetwork;
 use Tests\TestCase;
 
@@ -162,6 +166,55 @@ class WhatWasHereApiTest extends TestCase
         $this->assertCount(1, $here(), 'aucune clé de cache ne contient la case de la position');
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
         $this->assertStringNotContainsString('public', (string) $response->headers->get('Cache-Control'));
+    }
+
+    public function test_a_summary_error_is_reported_without_the_position(): void
+    {
+        // Une requête annulée (délai dépassé) : Laravel écrit dans son journal le message de l'erreur, qui recopie la
+        // requête SQL avec ses valeurs, donc la latitude et la longitude de l'internaute.
+        DB::beforeExecuting(function (string $query, array $bindings): void {
+            if (str_contains($query, 'ST_MakePoint')) {
+                throw new QueryException('pgsql', $query, $bindings, new PDOException('SQLSTATE[57014]: Query canceled: canceling statement due to statement timeout'));
+            }
+        });
+        Exceptions::fake();
+
+        $this->getJson('/api/v1/what-was-here?'.http_build_query(['lat' => 48.8765, 'lng' => 2.3245, 'radius_m' => 5000, 'summary' => 1]))
+            ->assertStatus(500);
+
+        Exceptions::assertReported(function (PositionlessError $e): bool {
+            $logged = (string) $e;
+            $this->assertNull($e->getPrevious(), 'aucune erreur précédente (le journal l\'écrirait en entier)');
+            $this->assertStringContainsString(QueryException::class, $logged);
+            $this->assertStringContainsString('statement timeout', $logged);
+            foreach (['48.876', '2.324', '48,876', '2,324'] as $coordinate) {
+                $this->assertStringNotContainsString($coordinate, $logged);
+            }
+
+            return true;
+        });
+    }
+
+    public function test_a_map_panel_error_keeps_its_query_for_the_diagnosis(): void
+    {
+        // Panneau de la carte : un point choisi sur la carte, pas la position de l'internaute.
+        DB::beforeExecuting(function (string $query, array $bindings): void {
+            if (str_contains($query, 'ST_MakePoint')) {
+                throw new QueryException('pgsql', $query, $bindings, new PDOException('SQLSTATE[57014]: Query canceled'));
+            }
+        });
+        Exceptions::fake();
+
+        $this->getJson('/api/v1/what-was-here?'.http_build_query(['lat' => self::LAT, 'lng' => self::LNG, 'year' => 1962]))
+            ->assertStatus(500);
+
+        Exceptions::assertReported(QueryException::class);
+    }
+
+    public function test_the_withheld_error_message_has_neither_sql_nor_decimal_number(): void
+    {
+        $this->assertSame('SQLSTATE[57014]: Query canceled', PositionlessError::message('SQLSTATE[57014]: Query canceled (Connection: pgsql, SQL: select ST_MakePoint(2.3245, 48.8765))'));
+        $this->assertSame('Point [n], -[n] hors de la France', PositionlessError::message('Point 48.8765, -4,49 hors de la France'));
     }
 
     /** @return array<string, mixed> entrées du cache de test (magasin `array`) */

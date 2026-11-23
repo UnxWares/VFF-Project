@@ -112,6 +112,15 @@ pas activé (UDP 443 à ouvrir et `listen 443 quic` à ajouter si souhaité).
   change** (`make docs-graphql`), mettre à jour cette ligne (`docs/SECURITE-CSP.md`) ; un test la compare à Laravel.
 - **`/icons/`** : 30 jours. **`/`** (autres fichiers de `public/`, comme `robots.txt`, `favicon.ico`,
   `share/`) : un jour ; sinon la requête passe à Laravel.
+- **`/api/v1/what-was-here`** (page « Autour de moi ») : la requête porte la position arrondie de l'internaute
+  (`?lat=…&lng=…`). Le journal d'accès ne l'écrit pas (`$uri`), mais une erreur de nginx (PHP-FPM injoignable,
+  délai dépassé) écrit la ligne de requête entière avec l'adresse IP complète, quel que soit `log_format`
+  (vérifié avec nginx 1.30 : `connect() … failed …, client: 127.0.0.1, request: "GET /…?lat=48.111&lng=2.222"`).
+  Cette location n'a donc pas de journal d'erreurs (`error_log /dev/null`) et appelle PHP-FPM directement :
+  après une redirection interne vers `/index.php`, c'est le journal de cette dernière location qui servirait.
+  **La politique de confidentialité compte sur cette règle** (« ni dans ses journaux techniques ») : ne pas la
+  retirer sans changer le texte. Côté PHP-FPM, ne pas activer `access.log` avec la chaîne de requête (`%q`, ou
+  `%{REQUEST_URI}e`) ; le journal d'accès de PHP-FPM est désactivé par défaut.
 - **PHP-FPM** : `location = /index.php` n'ajoute aucun `add_header`. Laravel pose HSTS, `nosniff`,
   `X-Frame-Options` (sauf `/embed/*`, intégrable ailleurs), `Referrer-Policy`, `Permissions-Policy` et la
   CSP des pages : les ajouter ici créerait des doublons. nginx ne met jamais en cache une réponse PHP.

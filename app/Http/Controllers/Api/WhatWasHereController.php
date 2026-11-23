@@ -8,9 +8,12 @@ use App\Mcp\Support\Attribution;
 use App\Mcp\Support\WikipediaExcerpts;
 use App\Services\Map\WhatWasHere;
 use App\Services\MapDataCache;
+use App\Support\Monitoring\PositionlessError;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Throwable;
 
 #[Group('Cartographie par ère', "Le réseau tel qu'il était à la fin d'une décennie : tracés et gares en GeoJSON, tuiles vectorielles MVT pour MapLibre.", weight: 1)]
 class WhatWasHereController extends Controller
@@ -33,7 +36,8 @@ class WhatWasHereController extends Controller
      * au plus, une `history` par ligne (années d'ouverture, de fermeture aux voyageurs, au fret, de fermeture, de
      * dépose), les années d'ouverture et de fermeture des gares, et la `commune` du point ; sans signalisation,
      * matériel, événements ni accidents. Même case de 0,001 degré ; la réponse n'est gardée ni dans le cache du serveur
-     * ni dans les caches partagés (`Cache-Control: private, no-store`) : la position n'est ni stockée ni journalisée.
+     * ni dans les caches partagés (`Cache-Control: private, no-store`), et une erreur de calcul est journalisée sans la
+     * position (ni requête SQL ni coordonnée dans le message).
      *
      * **Droits** : pour un tracé qui ne vient pas d'une source redistribuable, `geometry_withheld` vaut `true`,
      * `distance_m` est `null` et `pk_m` est arrondi à 100 m. Les faits d'une source à usage non commercial ne
@@ -72,9 +76,18 @@ class WhatWasHereController extends Controller
         };
 
         // « Autour de moi » : le point est la position de l'internaute (arrondie). Jamais rangée dans le cache du
-        // serveur (sa clé contiendrait la case) ni dans un cache partagé.
+        // serveur (sa clé contiendrait la case) ni dans un cache partagé, ni recopiée dans le journal par une erreur
+        // (le message d'une erreur SQL contient les valeurs de la requête) : PositionlessError la remplace.
         if ($summary) {
-            return new Response(json_encode($compute(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), 200, [
+            try {
+                $payload = $compute();
+            } catch (HttpExceptionInterface $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                throw PositionlessError::from($e);
+            }
+
+            return new Response(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), 200, [
                 'Content-Type' => 'application/json',
                 'Cache-Control' => 'private, no-store',
             ]);
