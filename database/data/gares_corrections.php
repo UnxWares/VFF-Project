@@ -2996,6 +2996,9 @@ return [
     // ── 22. Ouvertures au jour lues dans l'article de la gare (audit-gares-suite, 22/11/2026) : données dans
     // database/data/gares_dates_articles.php (même format, une entrée par gare ; règles de sélection en tête de ce fichier).
     ...require __DIR__.'/gares_dates_articles.php',
+    // Corrections du chantier « invariants-gares-nuit » (23/11/2026) : gares dont la date ne vient pas de l'entrée d'une
+    // autre liste (Wikidata, OpenStreetMap, OpenHistoricalMap).
+    ...require __DIR__.'/gares_dates_invariants.php',
 
     // ── Restes de la fiche gare (storage/app/reports/agents/aprem-2111/restes-fiches.md) : gares dont la date retenue
     // venait d'une autre ligne ou d'une décision administrative tardive.

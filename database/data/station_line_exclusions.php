@@ -77,4 +77,22 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode('Chemins_de_fer_départementaux_de_Rhône_et_Loire').'&oldid=226987797', 'reviewed_at' => $day],
     ['station' => 'marcillac', 'line' => 'archeo-ligne-de-decazeville-a-marcillac', 'reason' => 'voie étroite de 66 cm des mines de fer de Cabrol (1852-1856) ; Wikidata place la gare de Marcillac sur la ligne de Capdenac à Rodez seulement',
         'source_url' => 'https://fr.wikipedia.org/wiki/Decazeville', 'reviewed_at' => $day],
+
+    // Relecture de l'invariant stations.opened_before_lines (chantier « invariants-gares-nuit », 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/invariants-gares-nuit.md) : gares d'autres réseaux ou de lignes sans code,
+    // rattachées par projection de segment à la ligne nationale voisine.
+    // Gares des chemins de fer départementaux ou de tramways nées d'objets OpenHistoricalMap homonymes des gares du réseau
+    // national (leurs objets sont déjà écartés des gares SNCF par la section 10 a de gares_corrections.php).
+    ['station' => 'nogent-sur-seine-cfd', 'line' => 'rfn-1000', 'reason' => 'objet OpenHistoricalMap « Nogent sur Seine (CFD) » (1925 à 1939) : gare des chemins de fer départementaux, pas de la ligne de Paris-Est à Mulhouse-Ville',
+        'source_url' => 'https://www.openhistoricalmap.org/node/2181732475', 'reviewed_at' => '2026-11-23'],
+    ['station' => 'souppes-cfd', 'line' => 'rfn-750000', 'reason' => 'objet OpenHistoricalMap « Souppes (CFD) » (1888 à 1959) : gare des chemins de fer départementaux, pas de la ligne du Bourbonnais',
+        'source_url' => 'https://www.openhistoricalmap.org/node/2181780573', 'reviewed_at' => '2026-11-23'],
+    ['station' => 'morez-plm', 'line' => 'rfn-878000', 'reason' => 'objet OpenHistoricalMap « Morez PLM » (exploitant NStCM, 1921 à 1958) : terminus du Nyon - Saint-Cergue - Morez, pas de la ligne d\'Andelot à La Cluse',
+        'source_url' => 'https://www.openhistoricalmap.org/node/2087817589', 'reviewed_at' => '2026-11-23'],
+    ['station' => 'lavaur-81', 'line' => 'rfn-738000', 'reason' => 'objet OpenHistoricalMap « Lavaur » (exploitant TVT, voie de 60 cm, 1903 à 1937) : gare des tramways à vapeur du Tarn, pas de la ligne SNCF',
+        'source_url' => 'https://www.openhistoricalmap.org/node/2134788821', 'reviewed_at' => '2026-11-23'],
+    // Halte du Fourvière Ouest-Lyonnais (Lyon-Saint-Just - Vaugneray, 19 avril 1886), voie métrique, rattachée par projection à la
+    // ligne de Paray-le-Monial à Givors-Canal qui passe à proximité.
+    ['station' => 'etoile-dalai', 'line' => 'rfn-775000', 'reason' => 'halte du Fourvière Ouest-Lyonnais (ligne de Lyon-Saint-Just à Vaugneray, ouverte le 19 avril 1886), pas de la ligne de Paray-le-Monial à Givors-Canal',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode('Fourvière_Ouest-Lyonnais').'&oldid=239282879', 'reviewed_at' => '2026-11-23'],
 ];

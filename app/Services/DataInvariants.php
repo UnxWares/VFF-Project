@@ -219,7 +219,50 @@ class DataInvariants
     ];
 
     /** @param  list<string>|null  $only  clés (ou préfixes, ex. « segments ») à vérifier */
-    public function __construct(private ?array $only = null) {}
+    private ?InvariantExceptions $exceptions;
+
+    public function __construct(private ?array $only = null, ?InvariantExceptions $exceptions = null)
+    {
+        $this->exceptions = $exceptions;
+    }
+
+    /**
+     * Condition SQL qui écarte les cas légitimes listés dans database/data/invariant_exceptions.php pour un invariant
+     * (App\Services\InvariantExceptions) : « AND alias.slug NOT IN (...) », vide s'il n'y en a pas.
+     */
+    private function exceptionClause(string $invariant, string $alias): string
+    {
+        $slugs = ($this->exceptions ??= new InvariantExceptions)->slugs($invariant);
+        if ($slugs === []) {
+            return '';
+        }
+        $pdo = DB::connection()->getPdo();
+
+        return " AND {$alias}.slug NOT IN (".implode(', ', array_map(fn (string $slug) => $pdo->quote($slug), $slugs)).')';
+    }
+
+    /**
+     * Condition SQL « la gare est le terminus nommé d'une section dont l'ouverture tombe à son ouverture, à
+     * STATION_OPENED_TOLERANCE_DAYS près » : la section est celle de la gare même si sa géométrie résolue s'arrête à plus
+     * de 300 m, si son PK sort de la fenêtre ou si elle n'est pas résolue (le nom suffit, quelle que soit la résolution). Noms comparés sans accent, tiret ni abréviation (vff_search_key), la
+     * parenthèse du nom de la gare retirée (« Rédange (Moselle) »), le nom de la section pouvant être le début de celui de
+     * la gare (« Prades » pour « Prades-Molitg-les-Bains »). Alias de la gare : s.
+     */
+    private function namedTerminusOpening(): string
+    {
+        $days = self::STATION_OPENED_TOLERANCE_DAYS;
+        $name = "vff_search_key(regexp_replace(s.name, '\\s*\\(.*\\)\\s*\$', ''))";
+
+        return <<<SQL
+            AND NOT EXISTS (
+                SELECT 1 FROM station_lines slt
+                JOIN line_events let ON let.line_id = slt.line_id AND let.type IN ('opening', 'opening_passenger') AND let.date_precision = 'day'
+                WHERE slt.station_id = s.id AND let.event_date <= s.opened_at + {$days}
+                  AND ({$name} = vff_search_key(let.section_from) OR {$name} = vff_search_key(let.section_to)
+                       OR {$name} LIKE vff_search_key(let.section_from) || ' %' OR {$name} LIKE vff_search_key(let.section_to) || ' %')
+            )
+            SQL;
+    }
 
     /**
      * Invariant dont la requête échoue : compté violé (1 cas), avec le message dans `error`.
@@ -449,7 +492,7 @@ class DataInvariants
                   AND ST_DWithin(ls.geom::geography, s.geom::geography, {$r})
                 LIMIT 1
             ) near ON true
-            WHERE se.status = 'active' AND NOT se.uncertain AND near.hit IS NULL
+            WHERE se.status = 'active' AND NOT se.uncertain AND near.hit IS NULL{$this->exceptionClause('stations.active_without_track', 's')}
             SQL, fn ($r) => sprintf('%d : %s (gare #%d)', $r->year, $r->name, $r->id), order: 'sort, name');
     }
 
@@ -575,7 +618,7 @@ class DataInvariants
             JOIN e ON e.prev_id = p.era_id
             LEFT JOIN km c ON c.line_id = p.line_id AND c.era_id = e.id
             JOIN lines l ON l.id = p.line_id
-            WHERE p.km > 0 AND COALESCE(c.kept_km, 0) < p.km * ? AND p.km - COALESCE(c.kept_km, 0) >= ?
+            WHERE p.km > 0 AND COALESCE(c.kept_km, 0) < p.km * ? AND p.km - COALESCE(c.kept_km, 0) >= ?{$this->exceptionClause('lines.km_drop_without_event', 'l')}
               AND NOT EXISTS (
                   SELECT 1 FROM line_events ev
                   WHERE ev.line_id = p.line_id
@@ -1067,6 +1110,7 @@ class DataInvariants
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND COALESCE(s.provenance->>'opened_at', '') NOT LIKE 'inferred:%'
               AND COALESCE(s.provenance->>'kind', '') = ''
+              {$this->namedTerminusOpening()}{$this->exceptionClause('stations.opened_before_lines', 's')}
             GROUP BY s.id
             HAVING MIN(le.event_date) - s.opened_at > {$days}
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
@@ -1096,7 +1140,7 @@ class DataInvariants
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
-              AND COALESCE(s.provenance->>'kind', '') = ''
+              AND COALESCE(s.provenance->>'kind', '') = ''{$this->exceptionClause('stations.ohm_opened_before_lines', 's')}
             GROUP BY s.id
             HAVING MIN(le.event_date) > s.opened_at + INTERVAL '{$months} months'
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
@@ -1132,7 +1176,7 @@ class DataInvariants
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
                  AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND s.provenance->>'opened_at' = 'ohm'
-              AND COALESCE(s.provenance->>'kind', '') = ''
+              AND COALESCE(s.provenance->>'kind', '') = ''{$this->exceptionClause('stations.ohm_opened_off_section', 's')}
             GROUP BY s.id
             HAVING BOOL_AND(s.opened_at < le.event_date - INTERVAL '{$months} months' OR s.opened_at > le.event_date + INTERVAL '{$years} years')
                AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
