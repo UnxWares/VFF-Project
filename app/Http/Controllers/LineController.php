@@ -7,6 +7,7 @@ use App\Models\Era;
 use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
 use App\Services\Archives\LineArchives;
+use App\Services\Companies\CompanyFigures;
 use App\Services\Greenways\LineGreenways;
 use App\Services\Journal\JournalRepository;
 use App\Services\LevelCrossings\LineLevelCrossings;
@@ -170,6 +171,8 @@ class LineController extends Controller
             ...$page,
             // Géométrie de la carte, lue par la page quand la carte s'affiche (LinePortionsController).
             'portions_url' => LinePortionsController::url($line->slug, $page['portions_version']),
+            // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures).
+            'companies' => CompanyFigures::forLine($line->id),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
             'greenways' => $greenways->forSheet($line),

@@ -76,6 +76,7 @@
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
      *   journal?: Array<{ slug: string, title: string, lang: string }>,
+     *   companies?: Array<{ slug: string, name: string, from_year: number, to_year: number|null, to_basis: string }>,
      * }} */
     let {
         line,
@@ -121,6 +122,8 @@
         story_events = [],
         // Articles du journal de bord qui parlent de la ligne (App\Services\Journal\JournalRepository::aboutLine).
         journal = [],
+        // Compagnies rattachées à la ligne par un événement de concession daté (App\Services\Companies\CompanyFigures::forLine).
+        companies = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -570,6 +573,32 @@
                 <p class="operator">
                     <i class="bi bi-building" aria-hidden="true"></i>
                     <span lang={srcLang}>{line.historical_operator}</span>
+                </p>
+            {/if}
+            {#if companies.length}
+                <p class="operator companies" title={t('companies.line.basis_hint')}>
+                    <i class="bi bi-buildings" aria-hidden="true"></i>
+                    <span>
+                        <span class="vff-sr-only">{t('companies.line.title')} : </span>
+                        {#each companies as c, i (c.slug + c.from_year)}{#if i > 0},
+                            {/if}<a href="/companies/{c.slug}"
+                                >{c.to_basis === 'unknown'
+                                    ? t('companies.line.from_only', {
+                                          name: c.name,
+                                          from: c.from_year,
+                                      })
+                                    : c.to_year
+                                      ? t('companies.line.from_to', {
+                                            name: c.name,
+                                            from: c.from_year,
+                                            to: c.to_year,
+                                        })
+                                      : t('companies.line.since', {
+                                            name: c.name,
+                                            from: c.from_year,
+                                        })}</a
+                            >{/each}
+                    </span>
                 </p>
             {/if}
         </SheetHero>

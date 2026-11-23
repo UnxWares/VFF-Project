@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AccidentController;
 use App\Http\Controllers\Api\AccidentStatisticsController;
 use App\Http\Controllers\Api\ChronologyController;
 use App\Http\Controllers\Api\CommuneController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DepartmentHistoryController;
 use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
@@ -150,6 +151,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Le rail d'un département décennie par décennie et le tableau des départements (en cache : vff:compute-department-figures).
     Route::get('/v1/departments/{department}/history', [DepartmentHistoryController::class, 'show'])->where('department', '[0-9]{2,3}|2[ABab]')->name('api.departments.history');
     Route::get('/v1/stats/departments', [DepartmentHistoryController::class, 'index'])->name('api.stats.departments');
+    // Les compagnies de chemins de fer historiques (lignes rattachées par événement daté, réseau par décennie ; en cache : vff:compute-company-figures).
+    Route::get('/v1/companies', [CompanyController::class, 'index'])->name('api.companies.index');
+    Route::get('/v1/companies/{company}', [CompanyController::class, 'show'])->where('company', '[a-z0-9-]{2,40}')->name('api.companies.show');
     Route::get('/v1/communes/{insee}', [CommuneController::class, 'show'])->where('insee', '[0-9]{5}|2[ABab][0-9]{3}')->name('api.communes.show');
     Route::get('/v1/regions', [TerritoryController::class, 'regions'])->name('api.regions.index');
     Route::get('/v1/regions/{region}', [TerritoryController::class, 'region'])->where('region', '[0-9]{2}')->name('api.regions.show');

@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Models\Material;
 use App\Models\Station;
 use App\Services\Communes\CommuneRail;
+use App\Services\Companies\CompanyFigures;
 use App\Services\Departments\DepartmentFigures;
 use App\Support\Seo\StructuredData;
 use Illuminate\Database\Eloquent\Model;
@@ -37,11 +38,11 @@ final class SitemapBuilder
     public const TTL = 3600;
 
     /** Familles de fiches, dans l'ordre de l'index. */
-    public const FAMILIES = ['pages', 'lines', 'stations', 'communes', 'departments', 'materials', 'accidents'];
+    public const FAMILIES = ['pages', 'lines', 'stations', 'communes', 'departments', 'companies', 'materials', 'accidents'];
 
     /** Pages éditoriales et annuaires : noms de routes. */
     private const PAGES = [
-        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'accidents.index', 'accidents.statistics', 'network.figures', 'departments.index', 'network.chronology', 'network.on-this-day', 'nearby', 'tourist-railways', 'projects', 'glossary', 'quiz',
+        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'accidents.index', 'accidents.statistics', 'network.figures', 'departments.index', 'companies.index', 'network.chronology', 'network.on-this-day', 'nearby', 'tourist-railways', 'projects', 'glossary', 'quiz',
         'contribute', 'contribute.reputation', 'donate', 'legal', 'privacy', 'use-conditions', 'accessibility',
         'api.docs', 'docs.swagger', 'credits.tech', 'credits.media',
     ];
@@ -131,6 +132,15 @@ final class SitemapBuilder
             return;
         }
 
+        if ($family === 'companies') {
+            // Compagnies dont les chiffres sont calculés (cache de vff:compute-company-figures), comme les départements.
+            foreach (array_slice($this->companySlugs(), ($page - 1) * $this->pageSize, $this->pageSize) as $slug) {
+                yield ['/companies/'.$slug, null];
+            }
+
+            return;
+        }
+
         $query = match ($family) {
             'lines' => $this->table(Line::class)->selectRaw('slug, coalesce(encyclopedia_updated_at, updated_at) as modified'),
             'stations' => $this->table(Station::class)->select('slug', 'updated_at as modified'),
@@ -164,6 +174,7 @@ final class SitemapBuilder
             'materials' => $this->table(Material::class)->count(),
             'communes' => DB::table('communes')->where('type', 'commune-actuelle')->whereRaw('code_insee = ANY(?::text[])', [self::codeArray()])->count(),
             'departments' => count($this->departmentSlugs()),
+            'companies' => count($this->companySlugs()),
             default => Accident::query()->count(),
         };
     }
@@ -172,6 +183,12 @@ final class SitemapBuilder
     private function departmentSlugs(): array
     {
         return array_column((new DepartmentFigures)->index()['departments'] ?? [], 'slug');
+    }
+
+    /** @return list<string> adresses des fiches de compagnie calculées (CompanyFigures) */
+    private function companySlugs(): array
+    {
+        return array_column((new CompanyFigures)->index()['companies'] ?? [], 'slug');
     }
 
     /** Communes qui ont du rail (CommuneRail::codes), en tableau PostgreSQL. */

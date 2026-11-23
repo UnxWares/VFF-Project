@@ -25,6 +25,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /companies` et `GET /companies/{company}` (compagnies de chemins de fer historiques : Nord, Est, Ouest, Paris-Orléans, PLM, Midi, État, Alsace-Lorraine, SNCF, Réseau ferré de France, SNCF Réseau, Grand-Central et réseaux secondaires ; dates de création et de fin, siège, événements sourcés, lignes rattachées par un événement de concession daté avec la raison de la fin du rattachement `to_basis`, réseau par décennie, tracé simplifié à l'ère de plus grande extension, couverture par ère). Chiffres en cache, calculés par `vff:compute-company-figures` ; 503 tant qu'ils ne le sont pas. Ajout seul.
 - REST : `GET /projects` (projets ferroviaires pas encore en service : réouvertures voyageurs, lignes nouvelles et LGV, RER métropolitains, électrifications ; état `study`/`debate`/`dup`/`funding`/`works`/`suspended`, étapes avec date à leur précision, `done` = franchie ou prévue, source de chaque étape, porteurs, fiches de ligne ; filtres `state`, `kind` et `region`). Une date prévue n'est jamais certaine : à lire avec sa source. Page : `/projects`. Ajout seul.
 - Accessibilité et services des gares (SNCF Gares & Connexions et SNCF Voyageurs, ODbL) : REST
   `GET /api/v1/stations/{station}/accessibility` et champ `accessibility` de la fiche `GET /api/v1/stations/{station}` (avec

@@ -34,7 +34,7 @@ class ApiDocsTest extends TestCase
         '/eras/{year}/schematic.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
-        '/tourist-railways', '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
+        '/tourist-railways', '/projects', '/companies', '/companies/{company}', '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
         '/lines/{line}/gpx', '/lines/{line}/kml',
         '/lines/{line}/history',
         '/lines/{line}/pk',

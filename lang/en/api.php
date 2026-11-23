@@ -104,6 +104,7 @@ return [
             'materials_accidents' => 'Rolling stock and accidents',
             'tools' => 'Search, routes and sources',
             'territories' => 'Departments and regions',
+            'companies' => 'Railway companies',
             'journal' => 'Logbook',
         ],
         'items' => [
@@ -172,6 +173,8 @@ return [
             'source' => 'One provider from the register, identified by the provenance.provider key used in other responses.',
             'departments' => 'French departments with their INSEE code, their region and the number of lines, stations and accidents recorded: the values accepted by the department parameter.',
             'department' => 'One department, with links to its lines, stations, events and accidents.',
+            'companies' => 'The historical railway companies (Nord, Est, Ouest, PO, PLM, Midi, État, Alsace-Lorraine, SNCF, secondary networks): dates of creation and end, head office, number of attached lines, network at its peak and coverage by decade.',
+            'company' => 'One company: dated and sourced events, lines attached by a dated concession event (start, end and reason for the end), network by decade and a simplified drawing at its peak.',
             'regions' => 'Regions with their departments and counts: the values accepted by the region parameter.',
             'region' => 'One region, with the same links.',
         ],

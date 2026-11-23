@@ -102,6 +102,7 @@ return [
             'materials_accidents' => 'Matériel roulant et accidents',
             'tools' => 'Recherche, itinéraires et sources',
             'territories' => 'Départements et régions',
+            'companies' => 'Compagnies de chemins de fer',
             'journal' => 'Journal de bord',
         ],
         'items' => [
@@ -173,6 +174,8 @@ return [
             'source' => 'Un fournisseur du registre, désigné par la clé provenance.provider des autres réponses.',
             'departments' => 'Départements avec leur code INSEE, leur région et le nombre de lignes, de gares et d’accidents recensés : les valeurs acceptées par le paramètre department.',
             'department' => 'Un département, avec les liens vers ses lignes, ses gares, ses événements et ses accidents.',
+            'companies' => 'Les compagnies de chemins de fer historiques (Nord, Est, Ouest, PO, PLM, Midi, État, Alsace-Lorraine, SNCF, réseaux secondaires) : dates de création et de fin, siège, nombre de lignes rattachées, réseau au plus haut et couverture par décennie.',
+            'company' => 'Une compagnie : événements datés et sourcés, lignes rattachées par un événement de concession daté (début, fin et raison de la fin), réseau par décennie et tracé simplifié à son plus haut.',
             'regions' => 'Régions avec leurs départements et leurs compteurs : les valeurs acceptées par le paramètre region.',
             'region' => 'Une région, avec les mêmes liens.',
         ],

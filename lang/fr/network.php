@@ -11,6 +11,7 @@ return [
     'link_chronology' => 'Année par année, les faits derrière ces chiffres : la chronologie du rail en France',
     'link_on_this_day' => 'Un jour du calendrier : ce qui s’est passé ce jour-là les années précédentes',
     'link_departments' => 'Le rail département par département : kilomètres en 1930 et aujourd’hui, part fermée',
+    'link_companies' => 'Les compagnies de chemins de fer : Nord, Est, PLM, SNCF et les autres, leurs dates et leurs lignes',
     'link_projects' => 'Les projets de réouverture et de lignes nouvelles : état, dates des étapes et sources',
     'today' => 'Aujourd’hui',
     'km' => ":value\u{00A0}km",

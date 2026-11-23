@@ -156,6 +156,13 @@
             ],
         },
         {
+            key: 'companies',
+            items: [
+                { path: '/api/v1/companies', key: 'companies' },
+                { path: '/api/v1/companies/{company}', key: 'company' },
+            ],
+        },
+        {
             key: 'events_media',
             items: [
                 { path: '/api/v1/events', key: 'events' },

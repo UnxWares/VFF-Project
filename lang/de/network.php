@@ -11,6 +11,7 @@ return [
     'link_chronology' => 'Jahr für Jahr, die Fakten hinter diesen Zahlen: die Chronik der Eisenbahn in Frankreich',
     'link_on_this_day' => 'Ein Tag des Kalenders: was an diesem Tag in früheren Jahren geschah',
     'link_departments' => 'Die Schiene, Département für Département: Kilometer 1930 und heute, stillgelegter Anteil',
+    'link_companies' => 'Die Eisenbahngesellschaften: Nord, Est, PLM, SNCF und die anderen, ihre Daten und ihre Strecken',
     'link_projects' => 'Projekte für Wiedereröffnungen und Neubaustrecken: Stand, Etappendaten und Quellen',
     'today' => 'Heute',
     'km' => ':value km',

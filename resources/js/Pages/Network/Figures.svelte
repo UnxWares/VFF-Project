@@ -425,6 +425,9 @@
                 <Link href="/departments" class="vff-link">{t('link_departments')}</Link>
             </p>
             <p class="note">
+                <Link href="/companies" class="vff-link">{t('link_companies')}</Link>
+            </p>
+            <p class="note">
                 <Link href="/projects" class="vff-link">{t('link_projects')}</Link>
             </p>
         </SectionBlock>

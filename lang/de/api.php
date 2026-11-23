@@ -101,6 +101,7 @@ return [
             'materials_accidents' => 'Rollmaterial und Unfälle',
             'tools' => 'Suche, Routen und Quellen',
             'territories' => 'Departements und Regionen',
+            'companies' => 'Eisenbahngesellschaften',
             'journal' => 'Logbuch',
         ],
         'items' => [
@@ -172,6 +173,8 @@ return [
             'source' => 'Ein Anbieter aus dem Verzeichnis, bezeichnet durch den Schlüssel provenance.provider der anderen Antworten.',
             'departments' => 'Französische Departements mit INSEE-Code, Region und der Zahl der erfassten Strecken, Bahnhöfe und Unfälle: die Werte, die der Parameter department annimmt.',
             'department' => 'Ein Departement, mit Links zu seinen Strecken, Bahnhöfen, Ereignissen und Unfällen.',
+            'companies' => 'Die historischen Eisenbahngesellschaften (Nord, Est, Ouest, PO, PLM, Midi, État, Alsace-Lorraine, SNCF, Nebenbahnnetze): Gründung und Ende, Sitz, Zahl der zugeordneten Strecken, Netz auf dem Höchststand und Abdeckung je Jahrzehnt.',
+            'company' => 'Eine Gesellschaft: datierte und belegte Ereignisse, durch ein datiertes Konzessionsereignis zugeordnete Strecken (Beginn, Ende und Grund des Endes), Netz je Jahrzehnt und vereinfachte Zeichnung auf dem Höchststand.',
             'regions' => 'Regionen mit ihren Departements und Zählern: die Werte, die der Parameter region annimmt.',
             'region' => 'Eine Region, mit denselben Links.',
         ],

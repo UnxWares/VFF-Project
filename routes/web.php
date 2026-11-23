@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChronologyController;
 use App\Http\Controllers\CommuneController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
@@ -91,6 +92,15 @@ Route::get('/communes/{slug}', [CommuneController::class, 'show'])
 Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
 Route::get('/departments/{slug}', [DepartmentController::class, 'show'])
     ->where('slug', '(?:[0-9]{2,3}|2[ABab])(?:-[a-z0-9-]*)?')->name('departments.show');
+// Les compagnies de chemins de fer historiques (Nord, Est, Ouest, PO, PLM, Midi, État, Alsace-Lorraine, SNCF, réseaux secondaires) : agrégats en cache.
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+// Carte et lignes d'une compagnie, lues par la page à la demande : débit limité comme /materials/{slug}/map.json
+// (le premier calcul de la carte lit les tracés de toutes les lignes rattachées).
+Route::get('/companies/{slug}/map.json', [CompanyController::class, 'map'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('throttle:public-api')->name('companies.map');
+Route::get('/companies/{slug}/lines.json', [CompanyController::class, 'lines'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('throttle:public-api')->name('companies.lines');
+Route::get('/companies/{slug}', [CompanyController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('companies.show');
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.

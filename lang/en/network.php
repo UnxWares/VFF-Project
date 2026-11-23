@@ -11,6 +11,7 @@ return [
     'link_chronology' => 'Year by year, the facts behind these figures: the chronology of French railways',
     'link_on_this_day' => 'A day of the calendar: what happened on this day in earlier years',
     'link_departments' => 'Rail, department by department: kilometres in 1930 and today, share closed',
+    'link_companies' => 'The railway companies: Nord, Est, PLM, SNCF and the others, their dates and their lines',
     'link_projects' => 'Reopening and new line projects: status, stage dates and sources',
     'today' => 'Today',
     'km' => ':value km',
