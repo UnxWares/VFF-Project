@@ -5443,6 +5443,114 @@ type StationSheet {
     nul si inconnu).
     """
     links: JSON
+
+    """
+    Vie de la gare en une liste datée, du plus ancien au plus récent, comme la section « Chronologie » de la page :
+    événements de la gare (les dates d'un même événement qui se recouvrent ne font qu'une entrée, les autres sources
+    dans `also`), début et fin de desserte par chaque ligne, noms portés et datés, accidents dont la gare est la gare
+    la plus proche du lieu (3 km au plus, 30 au plus). Même liste que `chronology` de `GET /api/v1/stations/{station}`.
+    """
+    chronology: [StationChronologyEntry!]!
+
+    """
+    Vues aériennes historiques de l'IGN autour de la gare (BD ORTHO historique 1950-1965, 1965-1980, 1980-1995,
+    Licence Ouverte 2.0), comme `GET /api/v1/stations/{station}/aerial` : une par période ; l'image répond 404 quand
+    la période ne couvre pas la gare.
+    """
+    aerial_views: [StationAerialView!]! @field(resolver: "App\\GraphQL\\Resolvers\\StationAerialViewsField")
+}
+
+"Une entrée de la chronologie d'une gare."
+type StationChronologyEntry {
+    """
+    Genre : `event` (événement de la gare, voir `type`), `line_start` et `line_end` (début et fin de la desserte par
+    une ligne, sans événement de la gare à la même date), `name` (nom porté), `accident` (accident près de la gare).
+    """
+    kind: String!
+
+    "Nature d'un événement de la gare (`kind` = `event`) : `opening`, `reopening`, `closure_passenger`, `closure_freight`, `closure`, `demolition`."
+    type: String
+
+    "Date (`AAAA-MM-JJ`), à lire avec `precision` ; une année seule a pour jour et mois 01."
+    date: String!
+
+    """
+    Précision de `date` : `day`, `month`, `year`, `decade`, `after` (après l'année), `before` (avant l'année), `range`
+    (entre `after` + 1 et l'année de `date` ; sans `after`, au plus tard l'année de `date`).
+    """
+    precision: String!
+
+    "Borne basse d'un intervalle (précision `range`) : date postérieure à cette année. Nulle sinon."
+    after: Int
+
+    "Vrai si la date est déduite (lignes, tracés) et non lue dans une source qui parle de la gare : date estimée."
+    estimated: Boolean!
+
+    "Faux pour une date d'ouverture ou de fermeture avancée par une source, mais qui n'est pas celle retenue par la fiche."
+    retained: Boolean!
+
+    "Source de la date : `wikidata`, `wikipedia`, `ohm`, `osm`, `correction`, `inferred:line_event`, `line_events` (chronologie de la ligne), `vff_accidents` (fiche d'accident de VFF)…"
+    source: String!
+
+    "Lien vers la source, quand il existe."
+    source_url: String
+
+    "Autres sources de la même date, moins précises ou égales (`source`, `source_url`, `date`, `precision`, `estimated`, `note`)."
+    also: JSON!
+
+    "Précision sur le contexte, rédigée ou citée."
+    note: String
+
+    "Lignes dont la desserte commence (`role` = `start`) ou finit (`end`) à cette date : `slug`, `code`, `name`, `role`, `links`."
+    lines: JSON!
+
+    "Événement de ligne qui date une desserte (`GET /api/v1/events/{id}`), nul sinon."
+    event_id: Int
+
+    "Accident (`kind` = `accident`) : `slug`, `name`, `date`, `date_precision`, `kind`, `deaths`, `injuries`, `distance_m`, `location_precision`, `to_review`, `links`."
+    accident: JSON
+
+    "Nom porté (`kind` = `name`) : `name`, `from` (année), `to` (année, nulle si inconnue)."
+    name: JSON
+
+    "Liens : `event` (événement de ligne, nul sinon)."
+    links: JSON
+}
+
+"Vue aérienne historique de l'IGN autour d'une gare (500 m sur 300 m)."
+type StationAerialView {
+    "Période : `1950-1965`, `1965-1980` ou `1980-1995`."
+    period: String!
+
+    "Première année de la période."
+    from: Int!
+
+    "Dernière année de la période."
+    to: Int!
+
+    "Adresse de l'image JPEG (relais de VFF, 404 hors couverture)."
+    url: String!
+
+    "Couche du WMS de la Géoplateforme."
+    layer: String!
+
+    "Mention à reproduire avec l'image."
+    attribution: String!
+
+    "Licence."
+    license: String!
+
+    "Lien vers le texte de la licence."
+    license_url: String!
+
+    "Lien « Remonter le temps » de l'IGN pour comparer avec aujourd'hui."
+    source_url: String!
+
+    "Vrai : usage commercial permis."
+    commercial_ok: Boolean!
+
+    "Vrai : œuvres dérivées permises."
+    derivatives_ok: Boolean!
 }
 
 "Une ligne de l'annuaire, avec son état à l'ère de référence."

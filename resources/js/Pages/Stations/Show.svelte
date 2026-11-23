@@ -11,6 +11,7 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
+    import StationChronology from '$components/Stations/StationChronology.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -25,12 +26,12 @@
     let {
         station,
         eras = [],
-        events = [],
         lines = [],
         sources = [],
         neighbors = [],
         media_count = 0,
         aerial_views = [],
+        chronology = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -165,23 +166,6 @@
             ].includes(k),
         ),
     );
-    /**
-     * Ouverture déduite des lignes et bornée par la carte (précision range de la fiche) : l'événement
-     * « ouverture » déduit porte l'année de la ligne, qui n'est que la borne basse de l'intervalle.
-     */
-    const isBoundedOpening = (e) =>
-        e.type === 'opening' &&
-        e.inferred &&
-        station.opened_precision === 'range' &&
-        station.opened_after != null &&
-        Number(String(e.date ?? '').slice(0, 4)) === station.opened_after + 1;
-    const eventDate = (e) =>
-        isBoundedOpening(e)
-            ? formatOpening(station.opened_at, 'range', station.opened_after)
-            : formatDate(e.date, e.precision);
-
-    const hasInferredEvent = $derived(events.some((e) => e.inferred));
-
     /** Coordonnées lisibles (la mini-carte n'est pas lisible sans la vue) : « 45,8344° N », « 1,2630° E ». */
     const deg = (v, pos, neg) =>
         `${Math.abs(v).toLocaleString(lang, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}° ${v >= 0 ? pos : neg}`;
@@ -282,53 +266,12 @@
             <StationEraStrip {eras} />
         </SheetSection>
 
-        <SheetSection id="history" title={$i18n.t('stations.sections.history')}>
-            {#if events.length}
-                <ol class="timeline">
-                    {#each events as e, i (i)}
-                        <li class={{ inferred: e.inferred }}>
-                            <p class="when">
-                                {#if e.date}
-                                    <time datetime={isBoundedOpening(e) ? undefined : e.date}
-                                        >{eventDate(e)}</time
-                                    >
-                                {/if}
-                            </p>
-                            <div class="what">
-                                <p class="ev-type">
-                                    {$i18n.t(`stations.events.${e.type}`)}
-                                    {#if e.inferred}<span class="vff-badge muted"
-                                            >{$i18n.t('stations.events.inferred')}</span
-                                        >{/if}
-                                </p>
-                                {#if e.note}<p class="ev-note" lang={e.note_lang}>{e.note}</p>{/if}
-                                <p class="ev-source">
-                                    {#if e.source_url}
-                                        <a
-                                            href={e.source_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            >{sourceName(e.source)}<i
-                                                class="bi bi-box-arrow-up-right vff-ext"
-                                                aria-hidden="true"
-                                            ></i><span class="vff-sr-only">
-                                                ({$i18n.t('common.new_tab')})</span
-                                            ></a
-                                        >
-                                    {:else}
-                                        {sourceName(e.source)}
-                                    {/if}
-                                </p>
-                            </div>
-                        </li>
-                    {/each}
-                </ol>
-                {#if hasInferredEvent}
-                    <p class="footnote">{$i18n.t('stations.events.inferred_hint')}</p>
-                {/if}
-            {:else}
-                <EmptyState icon="bi-calendar-x" title={$i18n.t('stations.events.none')} />
-            {/if}
+        <SheetSection
+            id="history"
+            title={$i18n.t('stations.sections.history')}
+            intro={$i18n.t('stations.chronology.intro')}
+        >
+            <StationChronology entries={chronology} views={aerial_views} name={station.name} />
         </SheetSection>
 
         <SheetSection title={$i18n.t('stations.sections.lines')} id="lines" count={lines.length}>
@@ -627,97 +570,6 @@
         color: var(--vff-text);
     }
 
-    /* Chronologie : date à gauche, fait à droite, filet vertical orange discret dans la gouttière. */
-    .timeline {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    .timeline li {
-        position: relative;
-        display: grid;
-        grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
-        gap: 4px 32px;
-        padding: 0 0 var(--vff-space-5) 28px;
-    }
-    .timeline li::before {
-        content: '';
-        position: absolute;
-        top: 7px;
-        left: 0;
-        width: 12px;
-        height: 12px;
-        box-sizing: border-box;
-        border: 2px solid var(--vff-accent);
-        border-radius: 50%;
-        background-color: var(--vff-accent);
-    }
-    /* Date déduite : point creux gris (un contour en tirets, à 12 px, se lisait comme un cercle
-       cassé). */
-    .timeline li.inferred::before {
-        border-color: var(--vff-text-muted);
-        background-color: var(--vff-bg);
-    }
-    /* Trait entre deux points, à 5 px de chacun (point de 12 px à 7 px du haut : il finit 2 px
-       sous le bas de l'élément, 5 px avant le point suivant). */
-    .timeline li:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        top: 24px;
-        bottom: -2px;
-        left: 5px;
-        width: 2px;
-        background-color: var(--vff-border-strong);
-    }
-    .timeline p {
-        margin: 0;
-    }
-    .when {
-        font-family: var(--vff-font-display);
-        font-size: var(--vff-fs-h3);
-        font-weight: 700;
-        line-height: 1.35;
-        font-variant-numeric: tabular-nums;
-        color: var(--vff-text);
-    }
-    .ev-type {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 4px 12px;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-md);
-        font-weight: 600;
-        line-height: 1.5;
-        color: var(--vff-text);
-    }
-    .ev-note {
-        margin-top: 4px;
-        font-size: var(--vff-fs-sm);
-        line-height: 1.55;
-        color: var(--vff-text);
-    }
-    .ev-source a,
-    .src-link a {
-        display: inline-flex;
-        align-items: center;
-        min-height: 24px;
-    }
-    .ev-source {
-        margin-top: 4px;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        color: var(--vff-text-muted);
-    }
-    .footnote {
-        max-width: var(--vff-measure);
-        margin: 0;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        line-height: 1.5;
-        color: var(--vff-text-muted);
-    }
-
     /* Lignes desservies : lignes de tableau à filets (comme un livret), tout le bloc cliquable. */
     .lines-list {
         margin: 0;
@@ -898,6 +750,11 @@
     .src-name strong {
         font-size: var(--vff-fs-md);
     }
+    .src-link a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+    }
     .src-link {
         margin-top: 4px;
         overflow-wrap: anywhere;
@@ -981,9 +838,6 @@
     @media (max-width: 600px) {
         .map-frame {
             --map-h: 320px;
-        }
-        .timeline li {
-            grid-template-columns: minmax(0, 1fr);
         }
         .line-row,
         .source {

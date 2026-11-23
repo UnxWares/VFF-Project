@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class StationSheet
 {
-    public function __construct(private readonly SourceRights $rights) {}
+    public function __construct(private readonly SourceRights $rights, private readonly StationChronology $chronology) {}
 
     /**
      * Fiche complète d'une gare (props de la page Stations/Show, reprises par l'API publique
@@ -56,7 +56,7 @@ final class StationSheet
 
         $locale = app()->getLocale();
 
-        return [
+        $page = [
             'station' => [
                 'id' => $sid,
                 'slug' => $station->slug,
@@ -136,6 +136,11 @@ final class StationSheet
                 'lng' => (float) $n->lng, 'lat' => (float) $n->lat, 'distance_m' => (int) $n->distance_m,
             ], $neighbors),
         ];
+        // Vie de la gare en une liste datée : événements regroupés, dessertes des lignes, noms, accidents proches.
+        $page['chronology'] = StationChronology::build($page['station'], $page['events'], $page['lines'],
+            $this->chronology->accidents($sid, $locale));
+
+        return $page;
     }
 
     /**

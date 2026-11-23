@@ -170,6 +170,24 @@ class StationController extends Controller
      *   `{"date": "1879-03-31", "precision": "day", "event_id": 416}`,
      *   `service_end` = `{"date": "1938-05-15", "precision": "day",
      *   "event_id": 417}` (fermeture aux voyageurs) ;
+     * - `chronology` : vie de la gare en une liste datée, du plus ancien au
+     *   plus récent (section « Chronologie » de la page). `kind` : `event`
+     *   (événement de la gare, nature dans `type`), `line_start` / `line_end`
+     *   (début, fin de la desserte par une ligne sans événement de la gare à
+     *   la même date ; sinon la ligne est jointe à l'événement dans `lines`,
+     *   avec `role` `start` ou `end`), `name` (nom porté et daté par une
+     *   source : `name.name`, `name.from`, `name.to`), `accident` (accident
+     *   dont la gare est la gare la plus proche du lieu, à 3 km au plus, 30
+     *   au plus : bloc `accident` avec `distance_m`, `location_precision` et
+     *   `to_review`). Chaque entrée a sa `date`, sa `precision` (`day`,
+     *   `month`, `year`, `decade`, `after`, `before`, `range` avec `after`),
+     *   `estimated` (date déduite des lignes ou des tracés), sa `source` et
+     *   `source_url`. Les dates d'un même événement qui se recouvrent (« 1934 »
+     *   de Wikidata, « 23 juillet 1934 » de Wikipédia) ne font qu'une entrée,
+     *   la plus précise ; les autres sources sont dans `also`. `retained` vaut
+     *   `false` pour une date d'ouverture ou de fermeture avancée par une
+     *   source mais différente de celle de la fiche. `event_id` et
+     *   `links.event` : événement de ligne qui date une desserte ;
      * - `sources` : provenance brute, en lecture seule, de chaque source
      *   rattachée. Identité : `source`, `ref` (identifiant dans la source),
      *   `name`, `url` (lien vers l'objet), `lifecycle` (état selon la source),
@@ -203,7 +221,7 @@ class StationController extends Controller
      *   donne aucun quai pour la gare, ce qui ne veut pas dire qu'elle n'en a
      *   pas (gare fermée, halte absente du jeu) ;
      * - `links` : page web (`web`) et points d'accès liés : chronologie
-     *   paginée (`events`), médias (`media`), accidents survenus près de la
+     *   paginée (`events`), vues aériennes de l'IGN (`aerial`), médias (`media`), accidents survenus près de la
      *   gare (`accidents` : ceux dont elle est la gare la plus proche du
      *   lieu), département de la gare (`department`). Chaque ligne de `lines`
      *   et chaque gare de `neighbors` porte aussi `links` (`web`, `api`).

@@ -16,6 +16,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Fiche gare (REST `GET /api/v1/stations/{station}`, GraphQL `StationSheet`) : nouveau champ `chronology`, la vie de la gare en une
+  liste datée (événements de la gare regroupés quand leurs dates se recouvrent, autres sources dans `also`, `retained: false` pour une
+  date contredite par la fiche ; début et fin de desserte par chaque ligne ; noms portés et datés ; accidents dont la gare est la plus
+  proche, à 3 km au plus), chaque date avec `precision`, `estimated` et sa source. REST : `links.aerial` vers
+  `/stations/{station}/aerial`. GraphQL : `StationSheet.aerial_views` (vues aériennes de l'IGN, mêmes champs que le point d'accès REST),
+  types `StationChronologyEntry` et `StationAerialView`. Ajout seul.
 - MCP : cinq outils. `what_was_here` (autour d'un point et pour une année : lignes présentes et leur état à cet endroit, gares
   proches, signalisation en vigueur, matériel daté, événements et accidents de l'année), `network_in_area` (réseau d'un
   rectangle ou d'un cercle à une époque : km en service, fermés, déposés, lignes et gares ; erreurs `invalid_area`,

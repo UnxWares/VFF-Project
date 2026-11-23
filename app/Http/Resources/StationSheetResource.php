@@ -66,9 +66,13 @@ class StationSheetResource extends JsonResource
             ]], self::items($page['neighbors'])),
             // Quais (SNCF Réseau, ODbL) : null quand le jeu « Liste des quais » n'en donne aucun pour la gare.
             'platforms' => app(StationPlatforms::class)->forStation((int) $station['id']),
+            // Vie de la gare en une liste datée (App\Services\StationChronology), liens absolus.
+            'chronology' => array_map(fn (array $e): array => self::chronologyEntry($e), $page['chronology'] ?? []),
             'links' => [
                 'web' => url('/stations/'.$station['slug']),
                 'events' => route('api.stations.events', $station['slug']),
+                // Vues aériennes historiques de l'IGN (1950-1965, 1965-1980, 1980-1995).
+                'aerial' => route('api.stations.aerial', $station['slug']),
                 'media' => route('api.media.index', ['station' => $station['slug']]),
                 // Accidents dont cette gare est la gare la plus proche du lieu (accidents.nearest_station_id).
                 'accidents' => route('api.accidents.index', ['station' => $station['slug']]),
@@ -97,6 +101,31 @@ class StationSheetResource extends JsonResource
         }
 
         return $item;
+    }
+
+    /**
+     * Entrée de la chronologie avec ses liens absolus : source (fiche d'accident du site), lignes (`web`, `api`),
+     * accident (`web`, `api`) et événement de ligne (`GET /api/v1/events/{id}`) qui date une desserte.
+     *
+     * @param  array<string, mixed>  $e
+     * @return array<string, mixed>
+     */
+    public static function chronologyEntry(array $e): array
+    {
+        if (is_string($e['source_url'] ?? null) && str_starts_with($e['source_url'], '/')) {
+            $e['source_url'] = url($e['source_url']);
+        }
+        $e['lines'] = array_map(fn (array $l): array => $l + ['links' => [
+            'web' => url('/lines/'.$l['slug']), 'api' => route('api.lines.show', $l['slug']),
+        ]], $e['lines'] ?? []);
+        if (is_array($e['accident'] ?? null)) {
+            $e['accident'] += ['links' => [
+                'web' => url('/accidents/'.$e['accident']['slug']), 'api' => route('api.accidents.show', $e['accident']['slug']),
+            ]];
+        }
+        $e['links'] = ['event' => is_int($e['event_id'] ?? null) ? route('api.events.show', $e['event_id']) : null];
+
+        return $e;
     }
 
     /**
