@@ -204,4 +204,23 @@ class HeritageIndexTest extends TestCase
 
         $this->assertSame(['registered', '1965-03-02', null], [$item['protection'], $item['protection_date'], $item['scope']]);
     }
+
+    public function test_the_details_of_a_structure_come_from_the_one_notice_it_cites_never_from_another(): void
+    {
+        // Garabit cite PA00093681 (inscrite) ; une autre notice, plus protégée et avec auteur, lui est aussi rapprochée.
+        $garabit = (int) DB::table('structures')->where('name', 'viaduc de Garabit')->value('id');
+        $row = fn (string $ref, string $protection, string $title, array $architects): array => ['structure_id' => $garabit, 'protection' => $protection, 'title' => $title,
+            'ref' => $ref, 'ref_url' => 'https://www.pop.culture.gouv.fr/notice/merimee/'.$ref, 'architects' => json_encode($architects), 'match_score' => 100,
+            'source' => 'merimee', 'created_at' => now(), 'updated_at' => now()];
+        DB::table('structure_heritage')->insert([
+            $row('PA00093592', 'classified', 'Autre viaduc', [['name' => 'Autre auteur', 'role' => 'ingénieur']]),
+            $row('PA00093681', 'registered', 'Viaduc cité', []),
+        ]);
+        Cache::flush();
+
+        $item = array_column($this->items(), null, 'name')['viaduc de Garabit'];
+
+        $this->assertSame(['Viaduc cité', 'PA00093681', []], [$item['title'], $item['reference']['id'], $item['architects']]);
+        $this->assertSame('https://www.pop.culture.gouv.fr/notice/merimee/PA00093681', $item['reference']['url']);
+    }
 }

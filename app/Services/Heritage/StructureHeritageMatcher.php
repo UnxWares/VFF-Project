@@ -19,9 +19,11 @@ use App\Services\Sncf\StationAttendanceMatcher;
  *   - écart : 100 m 30 points, 300 m 25, 700 m 15, 1,5 km 5 ;
  *   - chemin de fer : ouvrage porté par une ligne de VFF 15, sinon notice qui parle de chemin de fer 10 ; sans l'un ni l'autre,
  *     la notice (un pont de route) est écartée.
- * Le meilleur ouvrage est gardé s'il atteint MIN_SCORE et devance le suivant d'au moins MIN_MARGIN. Seule la meilleure
- * notice d'un genre de protection par ouvrage est écrite ; deux notices pour un même ouvrage (Rouzat : deux références) sont
- * toutes deux gardées, la plus protégée sert à l'affichage.
+ * Le meilleur ouvrage est gardé s'il atteint MIN_SCORE et devance le suivant d'au moins MIN_MARGIN. Toutes les notices
+ * rapprochées sont écrites, une ligne par couple (ouvrage, référence) : deux notices pour un même ouvrage (Rouzat : deux
+ * références) sont toutes deux gardées, et `HeritageIndex` en choisit une seule pour l'affichage (celle que l'ouvrage cite, sinon
+ * la plus protégée). Les textes sont ramenés à la taille des colonnes de la table (`fit`) ; une notice dont la référence
+ * dépasse la colonne est écartée (`invalid-ref`) sans faire échouer les autres.
  */
 final class StructureHeritageMatcher
 {
@@ -30,6 +32,15 @@ final class StructureHeritageMatcher
     public const MIN_MARGIN = 15;
 
     public const RADIUS_M = 1500;
+
+    /** Tailles des colonnes de `structure_heritage` (migration 2026_12_16_000000). */
+    public const MAX_TITLE = 255;
+
+    public const MAX_DENOMINATION = 120;
+
+    public const MAX_PERIOD = 60;
+
+    public const MAX_REF = 20;
 
     private const STRENGTH = ['classified' => 4, 'registered' => 3, 'acr' => 2];
 
@@ -66,6 +77,11 @@ final class StructureHeritageMatcher
         $unmatched = [];
         $scored = [];
         foreach ($records as $record) {
+            if (mb_strlen((string) $record['ref']) > self::MAX_REF) {
+                $unmatched[] = $record + ['why' => 'invalid-ref'];
+
+                continue;
+            }
             $found = isset($byRef[$record['ref']])
                 ? ['structure' => $byRef[$record['ref']][0], 'score' => 100, 'distance' => null, 'reasons' => ['référence Mérimée déjà portée par l\'ouvrage +100']]
                 : $this->match($record);
@@ -252,12 +268,12 @@ final class StructureHeritageMatcher
             'protection_date' => $primary['date'],
             'scope' => ($record['protection'] ?? null) === $primary['kind'] ? ($record['scope'] ?? null) : null,
             'designations' => array_values($designations),
-            'title' => $record['title'] !== '' ? $record['title'] : null,
-            'denomination' => $record['denomination'] !== '' ? $record['denomination'] : null,
+            'title' => self::fit($record['title'], self::MAX_TITLE),
+            'denomination' => self::fit($record['denomination'], self::MAX_DENOMINATION),
             'architects' => $record['architects'],
             'built_from' => $record['built_from'],
             'built_to' => $record['built_to'],
-            'built_period' => $record['built_period'],
+            'built_period' => self::fit($record['built_period'], self::MAX_PERIOD),
             'ref' => $record['ref'],
             'ref_url' => MerimeeSource::NOTICE_URL.$record['ref'],
             'match_score' => $score,
@@ -265,6 +281,28 @@ final class StructureHeritageMatcher
             'source' => 'merimee',
             'source_updated' => $merimeeUpdated,
         ];
+    }
+
+    /**
+     * Texte ramené à `$max` caractères au plus : coupé au dernier mot entier (suivi de « … »), ou null s'il est vide.
+     * Une colonne `varchar(n)` refuse tout dépassement : sans cela, une seule notice trop longue ferait échouer tout l'import.
+     */
+    public static function fit(mixed $text, int $max): ?string
+    {
+        $text = trim((string) $text);
+        if ($text === '') {
+            return null;
+        }
+        if (mb_strlen($text) <= $max) {
+            return $text;
+        }
+        $cut = mb_substr($text, 0, $max - 1);
+        $space = mb_strrpos($cut, ' ');
+        if ($space !== false && $space >= (int) ($max / 2)) {
+            $cut = mb_substr($cut, 0, $space);
+        }
+
+        return rtrim($cut, ' ,;:.-').'…';
     }
 
     private static function distance(float $lat1, float $lng1, float $lat2, float $lng2): float

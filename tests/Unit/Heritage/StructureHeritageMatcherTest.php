@@ -106,4 +106,33 @@ class StructureHeritageMatcherTest extends TestCase
         $this->assertSame(-30, StructureHeritageMatcher::nameScore(['fades'], 'viaduc de Garabit'));
         $this->assertSame(0, StructureHeritageMatcher::nameScore(['fades'], ''));
     }
+
+    public function test_texts_longer_than_the_columns_are_cut_at_a_word_and_never_fail_the_import(): void
+    {
+        $long = str_repeat('Viaduc ferroviaire de la grande vallée ', 10);
+        $record = self::record('PA00093592', 'viaduct', 'Viaduc de Garabit', 44.9750, 3.1770, ['denomination' => $long, 'built_period' => str_repeat('2e moitié du 19e siècle ', 5)]);
+        $record['title'] = 'Viaduc de Garabit '.$long;
+        $row = (new StructureHeritageMatcher(self::structures()))->build([$record])['rows'][0];
+
+        $this->assertLessThanOrEqual(255, mb_strlen($row['title']));
+        $this->assertLessThanOrEqual(120, mb_strlen($row['denomination']));
+        $this->assertLessThanOrEqual(60, mb_strlen($row['built_period']));
+        $this->assertStringEndsWith('…', $row['denomination']);
+        $this->assertStringStartsWith('Viaduc de Garabit', $row['title']);
+        $this->assertStringNotContainsString('  ', $row['denomination']);
+        $this->assertSame('Viaduc', StructureHeritageMatcher::fit(' Viaduc ', 20));
+        $this->assertNull(StructureHeritageMatcher::fit('  ', 20));
+        $this->assertSame('étéé…', StructureHeritageMatcher::fit('étéétéété', 5), 'un mot unique plus long que la colonne est coupé net');
+    }
+
+    public function test_a_notice_whose_reference_does_not_fit_the_column_is_set_aside_without_dropping_the_others(): void
+    {
+        $result = (new StructureHeritageMatcher(self::structures()))->build([
+            self::record('PA'.str_repeat('0', 30), 'viaduct', 'Viaduc de Garabit', 44.9750, 3.1770),
+            self::record('PA00093592', 'viaduct', 'Viaduc de Garabit', 44.9750, 3.1770),
+        ]);
+
+        $this->assertSame(['PA00093592'], array_column($result['rows'], 'ref'));
+        $this->assertSame(['invalid-ref'], array_column($result['unmatched'], 'why'));
+    }
 }

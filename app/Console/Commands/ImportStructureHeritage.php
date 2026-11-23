@@ -77,6 +77,12 @@ class ImportStructureHeritage extends Command
             $this->warn(sprintf('  %s : %s (%s, %s)', $u['why'], $u['title'], $u['commune'], $u['ref']));
         }
 
+        foreach ($result['unmatched'] as $u) {
+            if ($u['why'] === 'invalid-ref') {
+                $this->warn(sprintf('  notice écartée, référence trop longue pour la table : %s (%s)', $u['ref'], $u['title']));
+            }
+        }
+
         if ($csv = rtrim((string) $this->option('csv'), '/')) {
             if (! is_dir($csv)) {
                 mkdir($csv, 0775, true);

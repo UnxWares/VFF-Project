@@ -134,7 +134,8 @@ final class HeritageIndex
     {
         $detail = Schema::hasTable('structure_heritage');
         try {
-            // La notice Mérimée rapprochée la plus protégée de l'ouvrage, quand la table existe.
+            // Une seule notice Mérimée par ouvrage, dont viennent le titre, les auteurs, la datation ET la référence : celle que l'ouvrage
+            // cite (`merimee_ref`) quand elle est rapprochée, sinon la plus protégée. Quand la table existe.
             $rows = DB::select(
                 'SELECT st.id, st.kind, st.name, st.merimee_ref, st.image, st.built_on, st.lat, st.lon,
                         '.($detail ? 'COALESCE(NULLIF(st.heritage, \'protected\'), sh.protection) AS heritage, sh.protection_date, sh.scope, sh.architects, sh.built_from AS sh_from,
@@ -146,7 +147,7 @@ final class HeritageIndex
                         l.slug AS line_slug, l.name AS line_name
                    FROM structures st
                    '.($detail ? 'LEFT JOIN LATERAL (SELECT * FROM structure_heritage h WHERE h.structure_id = st.id
-                                       ORDER BY CASE h.protection WHEN \'classified\' THEN 1 WHEN \'registered\' THEN 2 ELSE 3 END, (h.architects IS NULL), h.ref LIMIT 1) sh ON true' : '').'
+                                       ORDER BY (h.ref IS DISTINCT FROM st.merimee_ref), CASE h.protection WHEN \'classified\' THEN 1 WHEN \'registered\' THEN 2 ELSE 3 END, (h.architects IS NULL), h.ref LIMIT 1) sh ON true' : '').'
                    LEFT JOIN LATERAL (SELECT nom, departement FROM communes WHERE type = \'commune-actuelle\'
                                        ORDER BY geom <-> ST_SetSRID(ST_MakePoint(st.lon, st.lat), 4326) LIMIT 1) c ON true
                    LEFT JOIN LATERAL (SELECT l2.slug, l2.name FROM line_structures ls JOIN lines l2 ON l2.id = ls.line_id
@@ -168,7 +169,8 @@ final class HeritageIndex
                 }
             }
             $from = $r->built_on !== null ? (int) substr((string) $r->built_on, 0, 4) : ($r->sh_from !== null ? (int) $r->sh_from : null);
-            $reference = $r->merimee_ref ?? $r->sh_ref;
+            // Même notice que le titre et les auteurs (jamais la référence d'une notice avec les détails d'une autre).
+            $reference = $r->sh_ref ?? $r->merimee_ref;
             // La date et la portée de la notice sont celles de SA protection : quand la protection montrée est une
             // autre (Wikidata dit « inscrit », la notice « classé »), sa date est celle de la même mention dans la
             // notice, sinon aucune (jamais la date du classement sous « inscrit »).
@@ -187,7 +189,7 @@ final class HeritageIndex
                 name: (string) ($r->name ?? ''), title: $r->sh_title, protection: (string) $r->heritage, date: $date, scope: $scope,
                 architects: $architects, from: $from, to: $r->sh_to !== null ? (int) $r->sh_to : null, period: $from === null ? $r->sh_period : null,
                 style: null, commune: $r->commune, department: $r->departement,
-                reference: $reference, referenceUrl: $r->merimee_ref !== null ? self::MERIMEE_URL.$r->merimee_ref : $r->sh_ref_url,
+                reference: $reference, referenceUrl: $r->sh_ref !== null ? $r->sh_ref_url : ($r->merimee_ref !== null ? self::MERIMEE_URL.$r->merimee_ref : null),
                 image: $free ? ['url' => $img['thumb_url'], 'source_url' => $img['source_url'] ?? null, 'license' => $img['license'] ?? null, 'author' => $img['author'] ?? null] : null,
                 station: null, line: $r->line_slug !== null ? ['slug' => (string) $r->line_slug, 'name' => (string) $r->line_name] : null,
                 lat: (float) $r->lat, lng: (float) $r->lon,
