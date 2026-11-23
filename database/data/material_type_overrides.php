@@ -60,7 +60,7 @@ return [
         'type' => 'locomotive_electrique',
         'name' => '2D2 5546 à 5550', // aucun libellé français ni anglais dans Wikidata : nom de l'article allemand, à la façon des autres séries
         'source' => 'https://de.wikipedia.org/w/index.php?title=SNCF_2D2_5546%E2%80%935550&oldid=266953909',
-        'quote' => 'Die Elektrolokomotiven 2D2 5546–5550',
+        'quote' => 'Die Elektrolokomotiven 2D2 5546-5550',
         'wikidata' => 'P279 Q625151 (locomotive électrique)',
     ],
     [

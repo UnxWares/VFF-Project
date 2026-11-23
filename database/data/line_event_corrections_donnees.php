@@ -1519,7 +1519,7 @@ return [
         'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1867-10-01'],
         'label' => 'Ouverture de Vitré - Fougères (ligne de Vitré à Pontorson), date prise pour la section Laval - Vitré (OHM)',
         'source_url' => $wp('Gare de Vitré', 232112833),
-        'quote' => '1 octobre 1867 : ouverture de la section Vitré – Fougères de la ligne Vitré – Pontorson.',
+        'quote' => '1 octobre 1867 : ouverture de la section Vitré - Fougères de la ligne Vitré - Pontorson.',
         'reason' => 'le 1er octobre 1867 est l\'ouverture de Vitré - Fougères ; Laval - Rennes ouvre le 1er mai 1857 (même article)',
     ],
     [
@@ -1531,7 +1531,7 @@ return [
         'from' => 'Laval',
         'to' => 'Vitré',
         'source_url' => $wp('Gare de Vitré', 232112833),
-        'quote' => '1 mai 1857 : ouverture de la section Laval – Rennes de la ligne Paris-Montparnasse – Brest.',
+        'quote' => '1 mai 1857 : ouverture de la section Laval - Rennes de la ligne Paris-Montparnasse - Brest.',
         'reason' => 'ouverture de Laval à Rennes (donc de Laval à Vitré) en mai 1857 (article de la ligne de Paris-Montparnasse à Brest, oldid 239547071 : « puis enfin Rennes en mai 1857 » ; mois seul, l\'article de la gare donne aussi le 15/04/1857 pour une première voie)',
     ],
 ];
