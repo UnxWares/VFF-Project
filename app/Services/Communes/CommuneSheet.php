@@ -5,6 +5,7 @@ namespace App\Services\Communes;
 use App\Mcp\Support\NonCommercialSources;
 use App\Models\Accident;
 use App\Support\FrenchDepartments;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,7 +24,8 @@ use Illuminate\Support\Facades\DB;
  * - communes voisines qui ont du rail ; carte : contour, gares et tracés de la commune.
  *
  * Une commune sans gare ni ligne n'a pas de fiche (page() renvoie null). Lecture seule, quelques dizaines de
- * millisecondes (Paris : une seconde environ) : chaque requête passe par les index géométriques.
+ * millisecondes (Paris : une seconde environ) : chaque requête passe par les index géométriques. La fiche est gardée
+ * TTL secondes en cache par commune et par langue (page publique sans limite de débit, 16 000 communes à parcourir).
  */
 final class CommuneSheet
 {
@@ -35,6 +37,12 @@ final class CommuneSheet
 
     /** Entrées de la chronologie au plus (les plus récentes d'abord retirées, jamais les ouvertures). */
     public const CHRONOLOGY_LIMIT = 400;
+
+    /** Durée de garde d'une fiche (secondes), comme la liste des communes qui ont du rail (CommuneRail::TTL). */
+    public const TTL = 86400;
+
+    /** Préfixe de la clé de cache d'une fiche (suivi du code INSEE et de la langue). */
+    public const CACHE_KEY = 'communes:sheet:v1:';
 
     /** Statuts d'une portion qui porte des trains (cf. SegmentStatus::isActive). */
     private const ACTIVE = ['in_service', 'single_track'];
@@ -68,6 +76,17 @@ final class CommuneSheet
      * @return array<string, mixed>|null
      */
     public function page(string $insee, string $locale): ?array
+    {
+        /** @var array<string, mixed>|null */
+        return Cache::remember(self::CACHE_KEY.$insee.':'.$locale, self::TTL, fn (): ?array => $this->compute($insee, $locale));
+    }
+
+    /**
+     * La fiche calculée, sans cache.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function compute(string $insee, string $locale): ?array
     {
         $commune = DB::table('communes')->where('code_insee', $insee)->where('type', 'commune-actuelle')
             ->first(['code_insee', 'nom', 'departement', 'population']);

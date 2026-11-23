@@ -120,6 +120,20 @@ class CommuneSheetTest extends TestCase
             ->where('neighbors.0.slug', '99100-testville'));
     }
 
+    public function test_the_sheet_is_computed_once_per_commune_and_language(): void
+    {
+        $this->get('/communes/99100-testville')->assertOk();
+        DB::enableQueryLog();
+        $this->get('/communes/99100-testville')->assertOk();
+        $this->getJson('/api/v1/communes/99100')->assertOk()->assertJsonPath('data.commune.name', 'Testville');
+        $spatial = array_filter(DB::getQueryLog(), fn (array $q): bool => str_contains($q['query'], 'commune_contours'));
+        $this->assertSame([], array_values($spatial), 'la deuxième lecture ne refait aucune requête géométrique');
+
+        // Une autre langue a sa propre fiche (noms des accidents).
+        $this->assertNotNull(app(CommuneSheet::class)->page('99100', 'en'));
+        $this->assertTrue(Cache::has(CommuneSheet::CACHE_KEY.'99100:en'));
+    }
+
     public function test_a_closed_line_shows_its_state_and_a_wrong_name_redirects_to_the_canonical_address(): void
     {
         DB::table('line_segments')->where('line_id', $this->line->id)->where('era_id', $this->currentEra->id)->update(['status' => 'abandoned']);
