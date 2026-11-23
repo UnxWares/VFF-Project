@@ -297,4 +297,14 @@ return [
         'line' => '250000', 'article' => 'Gare de Lourches', 'system' => 'CC', 'date' => '2014-11', 'scope' => 'unspecified',
         'quote' => 'La commande des voies principales est assurée depuis le PCD de Somain depuis novembre 2014, à cette occasion le BMU a été remplacé par du BAL.',
     ],
+    // Paris-Est - Mulhouse : première expérimentation de l'ETCS niveau 1 de la SNCF, entre Marles-en-Brie et Tournan (article sur l'ETCS).
+    [
+        'line' => '001000', 'article' => 'Système européen de contrôle des trains', 'system' => 'ETCS_L1', 'date' => '2000', 'scope' => 'section', 'from' => 'Marles-en-Brie', 'to' => 'Tournan',
+        'quote' => '* 2000 : SNCF, Marles-en-Brie - Tournan (ETCS niveau 1)',
+    ],
+    // Strasbourg - Saint-Louis : ETCS niveau 1 du corridor de fret.
+    [
+        'line' => '115000', 'system' => 'ETCS_L1', 'date' => '2022', 'scope' => 'whole_line',
+        'quote' => 'La ligne fait partie du Corridor européen C (Anvers - Bâle / Lyon) et est équipée de l\'ETCS niveau 1 depuis 2022.',
+    ],
 ];
