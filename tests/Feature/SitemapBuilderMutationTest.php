@@ -52,12 +52,13 @@ class SitemapBuilderMutationTest extends TestCase
                 'https://vff-project.org/sitemap-pages-1.xml',
                 'https://vff-project.org/sitemap-lines-1.xml',
                 'https://vff-project.org/sitemap-stations-1.xml',
+                'https://vff-project.org/sitemap-communes-1.xml',
                 'https://vff-project.org/sitemap-materials-1.xml',
                 'https://vff-project.org/sitemap-accidents-1.xml',
             ],
             $this->locs($xml),
         );
-        $this->assertSame(6, substr_count($xml, '<sitemap>'));
+        $this->assertSame(7, substr_count($xml, '<sitemap>'));
         $this->assertStringContainsString("<sitemap>\n", $xml);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\CatalogSearch;
+use App\Services\Communes\CommuneRail;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -14,7 +15,7 @@ use Illuminate\Http\Request;
 class SearchController extends Controller
 {
     /**
-     * Recherche de lignes, gares, matériels et accidents.
+     * Recherche de lignes, gares, matériels, accidents et communes.
      *
      * Recherche par nom pour l'autocomplétion : jusqu'à 8 lignes (nom, autres noms ou code à 6 chiffres, avec
      * ou sans espace : `570 000`), 8 gares (nom, commune, anciens noms, début du code UIC ou numéro de
@@ -36,10 +37,15 @@ class SearchController extends Controller
      * « TGV Patrick ») trouve sa série, placée en tête avec `notable_unit` (numéro et surnom de la rame) ;
      * `notable_unit` est nul sinon.
      *
+     * `communes` : jusqu'à 8 communes qui ont une gare ou une ligne (celles qui ont une fiche `/communes/{slug}` et
+     * `GET /communes/{insee}`), par leur nom, avec le code INSEE (`insee`), le département et la population ; sans
+     * noms approchés. Elles ne changent ni l'ordre ni le contenu des autres catégories.
+     *
      * @response array{
      *     lines: array<array{type: 'line', slug: string, name: string, code: ?string, approximate: bool}>,
      *     stations: array<array{type: 'station', slug: string, name: string, city: ?string, department_code: ?string, lat: float, lng: float, approximate: bool}>,
      *     materials: array<array{type: 'material', slug: string, name: string, kind: string, builder: ?string, notable_unit: ?array{number: string, nickname: ?string}, approximate: bool}>,
+     *     communes: array<array{type: 'commune', insee: string, slug: string, name: string, department_code: ?string, department_name: ?string, population: ?int}>,
      *     accidents: array<array{type: 'accident', slug: string, name: string, names: array{fr: string, en: string, de: string}, date: string, date_precision: 'day'|'month'|'year', kind: string, commune: ?string, department_code: ?string, lat: ?float, lng: ?float, approximate: bool}>
      * }
      */
@@ -48,11 +54,17 @@ class SearchController extends Controller
         'lines' => [['type' => 'line', 'slug' => 'rfn-420000', 'name' => 'Ligne de Paris-Montparnasse à Brest', 'code' => '420000', 'approximate' => false]],
         'stations' => [['type' => 'station', 'slug' => 'brest', 'name' => 'Brest', 'city' => 'Brest', 'department_code' => '29', 'lat' => 48.3876941, 'lng' => -4.4800927, 'approximate' => false]],
         'materials' => [],
+        'communes' => [['type' => 'commune', 'insee' => '29019', 'slug' => '29019-brest', 'name' => 'Brest', 'department_code' => '29', 'department_name' => 'Finistère', 'population' => 139602]],
         'accidents' => [],
     ]])]
-    public function index(Request $request, CatalogSearch $search): JsonResponse
+    public function index(Request $request, CatalogSearch $search, CommuneRail $communes): JsonResponse
     {
-        return response()->json($search->search($request->query('q')))
+        $q = CatalogSearch::normalizeQuery($request->query('q'));
+
+        return response()->json([
+            ...$search->search($q),
+            'communes' => mb_strlen($q) >= CatalogSearch::MIN_LENGTH ? $communes->search($q) : [],
+        ])
             ->header('Cache-Control', 'public, max-age=30');
     }
 }

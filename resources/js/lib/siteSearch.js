@@ -33,6 +33,12 @@ export function stationDetail(station) {
     return [place, dept].filter(Boolean).join(' ') || null;
 }
 
+/** Département d'une commune trouvée : « Charente (16) », le code seul sans nom. */
+export function communeDetail(commune) {
+    if (commune.department_name) return `${commune.department_name} (${commune.department_code})`;
+    return commune.department_code ? `(${commune.department_code})` : null;
+}
+
 /**
  * Date et lieu d'un accident trouvé : « 12 juillet 2013, Brétigny-sur-Orge (91) » ; la date suit sa
  * précision (« juillet 2013 », « 1891 »), le lieu manque quand la commune est inconnue.
@@ -48,14 +54,14 @@ export function accidentDetail(accident, lang = 'fr') {
 }
 
 /**
- * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, accidents, puis
+ * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, accidents, communes, puis
  * « Tous les résultats » (page de résultats, puis annuaires filtrés, une fois la recherche faite). Les groupes vides sont
  * retirés ; chaque option reçoit un indice continu et un identifiant (aria-activedescendant).
  *
  * @param {object} p
  * @param {string} p.query texte saisi, sans espaces autour
  * @param {boolean} p.suggestions champ vide = toutes les rubriques
- * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[] }} p.results réponse de l'API
+ * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[], communes?: any[] }} p.results réponse de l'API
  * @param {boolean} p.searched la réponse correspond au texte saisi (ou l'appel a échoué)
  * @param {(key: string, params?: object) => string} p.t traduction
  * @param {string} p.idPrefix préfixe des identifiants
@@ -70,6 +76,7 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
             : SITE_PAGES.filter((p) => fold(t(p.key)).includes(fold(query)));
     const encoded = encodeURIComponent(query);
     const accidents = results.accidents ?? [];
+    const communes = results.communes ?? [];
     const groups = [
         {
             type: 'page',
@@ -125,6 +132,16 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 name: a.names?.[lang] ?? a.name,
                 icon: 'bi-exclamation-triangle',
                 detail: accidentDetail(a, lang),
+            })),
+        },
+        {
+            type: 'commune',
+            label: t('nav.search.communes'),
+            items: communes.map((c) => ({
+                href: `/communes/${c.slug}`,
+                name: c.name,
+                icon: 'bi-geo-alt',
+                detail: communeDetail(c),
             })),
         },
         {

@@ -9,6 +9,7 @@ use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChronologyController;
+use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
@@ -78,6 +79,9 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
         }
         abort(404);
     });
+// Le rail d'une commune (gares, lignes, chronologie, carte) : seulement celles qui ont une gare ou une ligne.
+Route::get('/communes/{slug}', [CommuneController::class, 'show'])
+    ->where('slug', '(?:[0-9]{5}|2[AB][0-9]{3})(?:-[a-z0-9-]*)?')->name('communes.show');
 // Le réseau en chiffres : longueurs, gares, électrification, fermetures et accidents par décennie (agrégats en cache).
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.

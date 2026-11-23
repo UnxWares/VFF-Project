@@ -44,6 +44,7 @@ return [
         'stations' => 'Gares',
         'materials' => 'Matériel roulant',
         'accidents' => 'Accidents',
+        'communes' => 'Communes',
         'more' => 'Tous les résultats',
         'all_results' => "Tous les résultats pour «\u{00A0}:query\u{00A0}»",
         'all_lines' => "Toutes les lignes contenant «\u{00A0}:query\u{00A0}»",

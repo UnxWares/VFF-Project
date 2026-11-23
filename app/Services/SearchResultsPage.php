@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Models\Material;
 use App\Services\Api\AccidentQuery;
 use App\Services\Api\MaterialQuery;
+use App\Services\Communes\CommuneRail;
 use App\Support\FrenchDepartments;
 use App\Support\Search\SearchFields;
 use App\Support\Search\SearchHighlight;
@@ -14,12 +15,16 @@ use App\Support\Search\SearchQuery;
 use App\Support\Search\SearchText;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Page de résultats de la recherche (/search) : lignes, gares, accidents et matériel roulant trouvés, comptés et
  * paginés. Aucune règle propre : chaque groupe passe par la requête de son annuaire (LineDirectory,
  * StationDirectory, AccidentQuery, MaterialQuery), donc par la recherche commune App\Support\Search (mêmes
  * correspondances, même pertinence, noms approchés quand rien ne correspond mot pour mot). Lecture seule.
+ *
+ * Communes : celles qui ont une gare ou une ligne (CommuneRail), par leur nom, en dernier groupe ; elles ne changent
+ * ni l'ordre ni le contenu des quatre autres groupes. Pas de noms approchés ni de filtres.
  *
  * Vue « tout » : les premiers résultats de chaque groupe (PREVIEW). Vue d'un type : ses résultats page par page
  * (PER_PAGE). Les filtres d'état (`open` en service, `closed` fermée) et de département ne valent que pour les
@@ -32,7 +37,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 final class SearchResultsPage
 {
     /** Types de résultats, dans l'ordre de la page. */
-    public const TYPES = ['line', 'station', 'accident', 'material'];
+    public const TYPES = ['line', 'station', 'accident', 'material', 'commune'];
 
     /** Types qui ont les filtres d'état et de département. */
     public const FILTERABLE = ['line', 'station'];
@@ -56,6 +61,7 @@ final class SearchResultsPage
         private readonly StationDirectory $stations,
         private readonly AccidentQuery $accidents,
         private readonly MaterialQuery $materials,
+        private readonly CommuneRail $communes,
     ) {}
 
     /**
@@ -149,6 +155,7 @@ final class SearchResultsPage
                 $this->materials->whereSearch(Material::query()->select('materials.id', 'materials.slug', 'materials.name', 'materials.type', 'materials.builder'), $q),
                 $search->onlyApproximate(Material::query(), SearchFields::keys('material', 'materials.')),
             ],
+            'commune' => [$this->communes->builder($q) ?? DB::table('communes')->whereRaw('FALSE'), false],
             default => throw new \InvalidArgumentException("Type de résultat inconnu : {$type}"),
         };
     }
@@ -186,6 +193,10 @@ final class SearchResultsPage
             $builder->selectRaw("s.id, s.slug, s.name, s.city, s.department_code, {$status} AS status");
 
             return $this->stations->orderByRelevance($builder, $q, $approximate)->orderByRaw('s.name COLLATE "fr-x-icu", s.id');
+        }
+        if ($type === 'commune') {
+            /** @var QueryBuilder $builder */
+            return $this->communes->ordered($builder, $q)->select(CommuneRail::COLUMNS);
         }
         if ($type === 'accident' && CatalogSearch::dateCondition($q) !== null) {
             return $builder->orderBy('accidents.occurred_on')->orderBy('accidents.id');
@@ -234,6 +245,9 @@ final class SearchResultsPage
                 'department_code' => $s->department_code,
                 'status' => $s->status,
             ], $rows);
+        }
+        if ($type === 'commune') {
+            return array_map(fn (object $c): array => (($row = CommuneRail::present($c)) + ['highlight' => $mark($row['name'])]), $rows);
         }
         if ($type === 'accident') {
             $locale = app()->getLocale();

@@ -44,6 +44,7 @@ return [
         'stations' => 'Bahnhöfe',
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',
+        'communes' => 'Gemeinden',
         'more' => 'Alle Ergebnisse',
         'all_results' => 'Alle Ergebnisse für „:query“',
         'all_lines' => 'Alle Strecken mit „:query“',

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     SITE_PAGES,
     accidentDetail,
+    communeDetail,
     fold,
     isSearchShortcut,
     searchGroups,
@@ -278,5 +279,50 @@ describe('isOutside (fermeture d’une fenêtre au clic extérieur)', () => {
         expect(isOutside(rect, 100, 50)).toBe(false);
         expect(isOutside(rect, 99, 200)).toBe(true);
         expect(isOutside(rect, 300, 460)).toBe(true);
+    });
+});
+
+describe('communes', () => {
+    const commune = {
+        type: 'commune',
+        slug: '16015-angouleme',
+        name: 'Angoulême',
+        department_code: '16',
+        department_name: 'Charente',
+    };
+
+    it('communeDetail : département avec son nom, ou le code seul', () => {
+        expect(communeDetail(commune)).toBe('Charente (16)');
+        expect(communeDetail({ ...commune, department_name: null })).toBe('(16)');
+        expect(communeDetail({ name: 'X', department_code: null })).toBeNull();
+    });
+
+    it('un groupe Communes vient après les accidents et avant « Tous les résultats »', () => {
+        const groups = searchGroups({
+            query: 'angou',
+            suggestions: false,
+            results: { ...EMPTY, accidents: [], communes: [commune] },
+            searched: true,
+            t,
+            idPrefix: 'x',
+        });
+        expect(groups.map((g) => g.type)).toEqual(['commune', 'more']);
+        expect(groups[0].items[0]).toMatchObject({
+            href: '/communes/16015-angouleme',
+            name: 'Angoulême',
+            detail: 'Charente (16)',
+        });
+    });
+
+    it("sans communes dans la réponse, aucun groupe : l'ordre des autres fiches ne change pas", () => {
+        const groups = searchGroups({
+            query: 'angou',
+            suggestions: false,
+            results: EMPTY,
+            searched: true,
+            t,
+            idPrefix: 'x',
+        });
+        expect(groups.map((g) => g.type)).toEqual(['more']);
     });
 });

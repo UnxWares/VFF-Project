@@ -21,6 +21,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Communes : `GET /api/v1/communes/{insee}` (le rail d'une commune : gares avec leur état et leurs dates, lignes qui la traversent
+  avec au moins 50 m de voie, événements des portions qui y passent, accidents ; 404 sans gare ni ligne) et clé `communes` de
+  `GET /api/v1/search` (communes qui ont du rail, par leur nom : `insee`, `slug`, département, population ; sans noms approchés).
+  Page : `/communes/{insee}-{nom}`. Ajout seul.
 - Matériel roulant : `GET /api/v1/materials/timeline` (frise des séries : traction, mise en service et retrait à leur précision,
   exemplaires construits ; filtres `group`, `builder`, `in_service_at` ; séries sans date comptées dans `meta.undated`, jamais
   estimées). Page : `/materials/timeline`. Ajout seul.

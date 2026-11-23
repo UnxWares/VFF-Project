@@ -188,3 +188,20 @@ describe('page de résultats rendue', () => {
         expect(body).toContain('search.line_code');
     });
 });
+
+describe('communes', () => {
+    it('onglet Communes après les autres types, détail = département', () => {
+        const tabs = typeTabs({
+            q: 'angou',
+            type: '',
+            state: '',
+            dept: '',
+            counts: { line: 1, station: 1, commune: 2 },
+            total: 4,
+        });
+        expect(tabs.map((tab) => tab.type)).toEqual(['', 'line', 'station', 'commune']);
+        expect(tabs.at(-1).href).toBe('/search?q=angou&type=commune');
+        const item = { department_code: '16', department_name: 'Charente' };
+        expect(resultDetail('commune', item, (k) => k)).toBe('Charente (16)');
+    });
+});

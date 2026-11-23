@@ -44,6 +44,7 @@ return [
         'stations' => 'Stations',
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',
+        'communes' => 'Communes',
         'more' => 'All results',
         'all_results' => 'All results for “:query”',
         'all_lines' => 'All lines containing “:query”',

@@ -79,7 +79,7 @@ class SearchPageTest extends TestCase
             ->component('Search/Index')
             ->where('query', 'st hilaire')
             ->where('searched', true)
-            ->where('counts', ['line' => 2, 'station' => 3, 'accident' => 1, 'material' => 0])
+            ->where('counts', ['line' => 2, 'station' => 3, 'accident' => 1, 'material' => 0, 'commune' => 0])
             ->where('total', 6)
             ->where('approximate', false)
             ->where('suggestion', null)

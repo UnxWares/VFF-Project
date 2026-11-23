@@ -1,10 +1,10 @@
 // Page de résultats de la recherche (Pages/Search/Index.svelte) : logique pure, testée par tests/js/searchPage.test.js.
 // Les résultats viennent de SearchPageController (App\Services\SearchResultsPage).
 
-import { accidentDetail, stationDetail } from './siteSearch.js';
+import { accidentDetail, communeDetail, stationDetail } from './siteSearch.js';
 
 /** Types de résultats, dans l'ordre de la page ('' = tout). */
-export const SEARCH_TYPES = ['', 'line', 'station', 'accident', 'material'];
+export const SEARCH_TYPES = ['', 'line', 'station', 'accident', 'material', 'commune'];
 
 /** Types qui ont les filtres d'état et de département. */
 export const FILTERABLE_TYPES = ['line', 'station'];
@@ -70,9 +70,9 @@ export function splitAround(template, marker) {
 
 /**
  * Ligne de détail d'un résultat : état d'une ligne ; commune, département et statut d'une gare ; date, lieu et
- * nature d'un accident ; famille et constructeur d'un matériel. Parties séparées par « · ».
+ * nature d'un accident ; famille et constructeur d'un matériel ; département d'une commune. Parties séparées par « · ».
  *
- * @param {'line'|'station'|'accident'|'material'} type
+ * @param {'line'|'station'|'accident'|'material'|'commune'} type
  * @param {any} item résultat de son groupe (SearchResultsPage::present)
  * @param {(key: string, params?: object) => string} t
  * @param {string} [lang]
@@ -85,6 +85,8 @@ export function resultDetail(type, item, t, lang = 'fr') {
               ? [stationDetail(item), item.status ? t(`stations.statuses.${item.status}`) : null]
               : type === 'accident'
                 ? [accidentDetail(item, lang), item.kind ? t(`accidents.kinds.${item.kind}`) : null]
-                : [item.kind ? t(`materials.types.${item.kind}`) : null, item.builder ?? null];
+                : type === 'commune'
+                  ? [communeDetail(item)]
+                  : [item.kind ? t(`materials.types.${item.kind}`) : null, item.builder ?? null];
     return parts.filter(Boolean).join(' · ');
 }
