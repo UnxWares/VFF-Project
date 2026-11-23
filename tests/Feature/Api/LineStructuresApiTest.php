@@ -105,7 +105,7 @@ class LineStructuresApiTest extends TestCase
 
     public function test_the_line_sheet_receives_the_structures(): void
     {
-        $this->get('/lines/rfn-722000')->assertOk()->assertInertia(fn ($page) => $page
+        $this->getWithDeferredProps('/lines/rfn-722000')->assertOk()->assertInertia(fn ($page) => $page
             ->where('structures.summary.count', 3)
             ->where('structures.items.1.name', 'viaduc de Garabit')
             ->missing('structures.items.0.sources'));

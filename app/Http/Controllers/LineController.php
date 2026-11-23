@@ -39,6 +39,9 @@ class LineController extends Controller
     /** Part électrifiée (%) sous laquelle une ligne n'est électrifiée qu'à la marge (voies d'une gare, raccordement). */
     public const MARGINAL_ELECTRIFIED_PCT = LineStats::MARGINAL_ELECTRIFIED_PCT;
 
+    /** Groupe des props différées de la fiche (Inertia::defer) : une seule requête après le premier affichage. */
+    public const DEFERRED_GROUP = 'sheet';
+
     /**
      * Liste paginée et filtrée des lignes.
      *
@@ -161,39 +164,65 @@ class LineController extends Controller
      * les archives » ; API : `/api/v1/lines/{slug}/archives`) avec les notices des Archives SNCF
      * (`/api/v1/lines/{slug}/archive-records`), et les événements qui ont une histoire (lien
      * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
+     *
+     * Le premier affichage ne porte que le haut de la fiche ; les sections plus bas sont des props différées
+     * (Inertia::defer, groupe DEFERRED_GROUP), que la page demande en une requête juste après s'être affichée.
+     * Les réponses REST et GraphQL de la fiche ne changent pas (LineSheet::build sans `forPage`).
      */
     public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
-        $page = $sheet->build($line, forPage: true);
+        // Premier affichage : le haut de la fiche (LineSheet::PAGE_KEYS : en-tête, tracé, « Où et quand », « À propos »,
+        // histoire, décennies, gares, chronologie). Fiche construite une fois, et seulement quand la réponse la demande :
+        // le chargement des props différées (requête partielle) ne la refait pas.
+        $built = null;
+        $core = function () use (&$built, $sheet, $line): array {
+            return $built ??= $sheet->build($line, forPage: true);
+        };
+        $props = [];
+        foreach (LineSheet::PAGE_KEYS as $key) {
+            $props[$key] = fn () => $core()[$key];
+        }
+
+        // Plus bas dans la page : props différées, demandées par la page juste après son premier affichage, en un seul
+        // groupe (une requête) ; la page pose à leur place un état de chargement (chantier « budget des fiches », 23/11/2026).
+        $later = null;
+        $deferred = function () use (&$later, $sheet, $line): array {
+            return $later ??= $sheet->pageDeferred($line);
+        };
+        foreach (LineSheet::PAGE_DEFERRED as $key) {
+            $props[$key] = Inertia::defer(fn () => $deferred()[$key], self::DEFERRED_GROUP);
+        }
+        $defer = fn (callable $callback) => Inertia::defer($callback, self::DEFERRED_GROUP);
 
         return Inertia::render('Lines/Show', [
             // Sans ce que la page n'affiche pas ou lit à part (LineSheet::PAGE_OMITTED, données complètes dans l'API).
-            ...$page,
+            ...$props,
             // Géométrie de la carte, lue par la page quand la carte s'affiche (LinePortionsController).
-            'portions_url' => LinePortionsController::url($line->slug, $page['portions_version']),
-            // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures).
-            'companies' => CompanyFigures::forLine($line->id),
-            'accidents' => $accidents->forLine($line, app()->getLocale()),
-            'level_crossings' => $crossings->forSheet($line),
-            'greenways' => $greenways->forSheet($line),
-            'signalling_history' => $signallingHistory->forSheet($line),
-            'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
+            'portions_url' => fn () => LinePortionsController::url($line->slug, $core()['portions_version']),
+            // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures) : en-tête.
+            'companies' => fn () => CompanyFigures::forLine($line->id),
+            'accidents' => $defer(fn () => $accidents->forLine($line, app()->getLocale())),
+            'level_crossings' => $defer(fn () => $crossings->forSheet($line)),
+            'greenways' => $defer(fn () => $greenways->forSheet($line)),
+            'signalling_history' => $defer(fn () => $signallingHistory->forSheet($line)),
+            'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
             // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
-            'structures' => $structures->forSheet($line),
+            'structures' => $defer(fn () => $structures->forSheet($line)),
             // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).
-            'speeds' => ($era = Era::where('is_current', true)->first()) === null ? null
-                : $speeds->forLine($line->id, $era->id, (int) $era->year),
+            'speeds' => $defer(fn () => ($era = Era::where('is_current', true)->first()) === null ? null
+                : $speeds->forLine($line->id, $era->id, (int) $era->year)),
             // Histoire de l'électrification : tranches SNCF et mises sous tension datées (API : /api/v1/lines/{slug}/electrification-history).
-            'electrification_history' => $electrification->forLine($line),
-            'trace_export_eras' => $traceExport->exportableEraYears($line),
-            'archives' => $archives->forSheet($line),
+            'electrification_history' => $defer(fn () => $electrification->forLine($line)),
+            // Téléchargement du tracé, sous la carte : au premier affichage.
+            'trace_export_eras' => fn () => $traceExport->exportableEraYears($line),
+            'archives' => $defer(fn () => $archives->forSheet($line)),
             // Notices des fonds d'archives (Archives SNCF), sous les documents de Gallica dans la même section.
-            'archive_records' => $archives->recordsForSheet($line),
+            'archive_records' => $defer(fn () => $archives->recordsForSheet($line)),
             // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
             // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
-            'story_events' => array_column($stories->available($line), 'event_ids'),
+            'story_events' => $defer(fn () => array_column($stories->available($line), 'event_ids')),
             // Articles du journal de bord qui parlent de la ligne (lien sous la description).
-            'journal' => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
+            'journal' => fn () => $line->code === null ? [] : $journal->aboutLine((string) $line->code, app()->getLocale()),
         ]);
     }
 }

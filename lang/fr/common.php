@@ -35,4 +35,8 @@ return [
         'page' => 'Page',
         'of' => 'sur',
     ],
+
+    // Fiche : sections chargées juste après le premier affichage (props différées), état de chargement.
+    'sheet_loading' => 'Chargement de la suite de la fiche…',
+    'sheet_loading_label' => 'Suite de la fiche, en cours de chargement',
 ];

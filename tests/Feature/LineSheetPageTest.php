@@ -123,7 +123,7 @@ class LineSheetPageTest extends TestCase
 
     public function test_phases_are_dated_by_real_events_and_open_on_the_greatest_extent(): void
     {
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->where('portions_count', 2)
             ->where('phases', function ($phases) {
@@ -163,7 +163,7 @@ class LineSheetPageTest extends TestCase
 
     public function test_chronicle_groups_events_by_portion_with_notes_and_conflicts(): void
     {
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('chronicle.events', 6)
             ->where('chronicle', function ($c) {
                 $events = $this->rows($c['events'])->groupBy('type')->map->first();
@@ -182,7 +182,7 @@ class LineSheetPageTest extends TestCase
 
     public function test_all_stations_of_the_line_are_listed_in_route_order(): void
     {
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('stations', 3)
             ->where('stations.0.slug', 'briouze')
             ->where('stations.1.slug', 'la-ferte-mace')
@@ -234,7 +234,7 @@ class LineSheetPageTest extends TestCase
         DB::table('station_eras')->insert(['station_id' => $voisine->id, 'era_id' => $this->eras[2030]->id, 'status' => 'active',
             'created_at' => now(), 'updated_at' => now()]);
 
-        $this->get('/lines/ligne-fermee')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-fermee')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('stations', 3)
             ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === ['origine', 'milieu', 'terminus'])
             ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === ['1946-03-02', '1946-03-02', '1944-09-30'])
@@ -258,7 +258,7 @@ class LineSheetPageTest extends TestCase
         // Une seule longueur par fiche : le tracé de VFF, toutes portions (A en service, B déposée),
         // la même que le rail, les phases et les décennies (14,6 km) ; la part en service (A, 7,3 km)
         // dans active_length_km ; plus de second chiffre « à son apogée ».
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', 14.6)
             ->where('stats.active_length_km', 7.3)
@@ -278,7 +278,7 @@ class LineSheetPageTest extends TestCase
             'geom' => DB::raw("ST_GeomFromText('".self::B."', 4326)"), 'status' => 'in_service',
             'traffic_type' => 'freight', 'length_meters' => 7300, 'created_at' => now(), 'updated_at' => now()]);
 
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', fn ($km) => abs($km - 14.6) < 0.2)
             ->where('stats.active_length_km', fn ($km) => abs($km - 14.6) < 0.2)
@@ -303,7 +303,7 @@ class LineSheetPageTest extends TestCase
         DB::table('line_segments')->where('line_id', $this->line->id)->where('era_id', $this->eras[2030]->id)
             ->update(['status' => $status]);
 
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('line.current_state', $state)
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', 14.6)
@@ -318,7 +318,7 @@ class LineSheetPageTest extends TestCase
         $service = app(LineStations::class);
         $expected = collect($service->forLine($this->line->id)['stations']);
         $byEra = collect($service->byEra($this->line->id))->keyBy('year');
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === $expected->pluck('slug')->all())
             ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === $expected->pluck('closed_at')->all())
             ->where('stats.station_count', $expected->count())
@@ -338,13 +338,13 @@ class LineSheetPageTest extends TestCase
         DB::table('line_segments')->insert(['line_id' => $bare->id, 'era_id' => $this->eras[2030]->id,
             'geom' => DB::raw("ST_GeomFromText('".self::A."', 4326)"), 'status' => 'in_service', 'traffic_type' => 'mixed',
             'length_meters' => 7300, 'created_at' => now(), 'updated_at' => now()]);
-        $this->get('/lines/ligne-sans-gare')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-sans-gare')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('stations', 0)->where('stats.station_count', 0)->where('stats.station_open_count', 0));
     }
 
     public function test_names_description_and_signalling(): void
     {
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('line.names', function ($names) {
                 $byName = $this->rows($names)->keyBy('name');
                 $this->assertSame('wikidata', $byName['Ligne de Couterne à Briouze']['source']);
@@ -377,7 +377,7 @@ class LineSheetPageTest extends TestCase
             'signalling' => 'ETCS_L2', 'signalling_systems' => json_encode(['ETCS_L2', 'TVM-300']),
             'train_protection' => json_encode(['ERTMS_L2', 'TVM-300']), 'kvb_equipped' => false, 'created_at' => now(), 'updated_at' => now()]);
 
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stats.signalling', 'BAPR-VB, ETCS_L2, TVM-300')
             ->where('signalling.1.signalling_systems', ['ETCS_L2', 'TVM-300'])
             // La TVM est nommée comme cantonnement : pas une seconde fois dans le contrôle de vitesse.
@@ -390,7 +390,7 @@ class LineSheetPageTest extends TestCase
         // « Section de Briouze » (ouverte en 1869, Wikipédia) : l'ouverture datée du 06/12/1869 de la
         // portion A est son étape ; celle de 1881 (portion B) tombe hors de ses années d'ouverture.
         $opening = (int) DB::table('line_events')->where('line_id', $this->line->id)->where('event_date', '1869-12-06')->value('id');
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('sections', 1)
             ->where('sections.0.name', 'Section de Briouze')
             ->where('sections.0.stages', function ($stages) use ($opening) {
@@ -421,7 +421,7 @@ class LineSheetPageTest extends TestCase
             ['station_id' => $briouze, 'era_id' => $this->eras[1940]->id, 'status' => 'declassified', 'created_at' => now(), 'updated_at' => now()],
             ['station_id' => $briouze, 'era_id' => $this->eras[1950]->id, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
         ]);
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('decades', function ($decades) {
                 $d1940 = $this->rows($decades)->firstWhere('year', 1940)['stations'];
                 $this->assertSame(1, $d1940['closed']);
@@ -436,7 +436,7 @@ class LineSheetPageTest extends TestCase
     public function test_line_without_any_segment_has_no_phase(): void
     {
         $empty = Line::factory()->create(['type' => null, 'alt_names' => null, 'description' => null]);
-        $this->get('/lines/'.$empty->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/'.$empty->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('phases', 0)->where('portions_count', 0)->where('best_phase', null)->has('decades', 0)
             ->where('line.names', [])->where('line.description_source', null));
     }
@@ -491,7 +491,7 @@ class LineSheetPageTest extends TestCase
             return json_decode((string) $response->json('result.content.0.text'), true)['line']['phases'];
         };
 
-        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('phases.1.date', '1881-03-15')->etc());
 
         $first = $phases();

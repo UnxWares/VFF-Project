@@ -35,4 +35,8 @@ return [
         'page' => 'Seite',
         'of' => 'von',
     ],
+
+    // Steckbrief: Abschnitte, die direkt nach der ersten Anzeige geladen werden (verzögerte Props).
+    'sheet_loading' => 'Der Rest der Seite wird geladen …',
+    'sheet_loading_label' => 'Rest der Seite, wird geladen',
 ];

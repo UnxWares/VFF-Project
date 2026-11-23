@@ -115,19 +115,19 @@ class SheetContentPageTest extends TestCase
 
     public function test_other_names_without_duplicates_nor_another_line(): void
     {
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             // « Ligne Limoges-Bénédictins - Angoulême » = le titre ; « Ligne Angoulême-Limoges » et « Voie ferrée
             // Angoulême-Limoges » = « Ligne Limoges-Angoulême » ; le raccordement est la ligne 590306.
             ->where('line.alt_names', ['Ligne Limoges-Angoulême'])
             ->where('line.name_lang', null)
         );
-        $this->withHeader('Accept-Language', 'en')->get('/lines/ligne-test-610000')->assertOk()
+        $this->withHeader('Accept-Language', 'en')->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('line.name_lang', 'fr'));
     }
 
     public function test_one_length_and_technical_summary(): void
     {
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', fn ($km) => $km > 19 && $km < 21)
             ->where('stats.active_length_km', fn ($km) => $km > 8 && $km < 8.5)
@@ -146,7 +146,7 @@ class SheetContentPageTest extends TestCase
 
     public function test_data_sources_have_valid_links_and_name_what_was_used(): void
     {
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('sources', function ($sources) {
                 $byType = $this->rows($sources)->keyBy('type');
                 $this->assertSame('https://ressources.data.sncf.com/', $byType['sncf-classification']['url']);
@@ -161,13 +161,13 @@ class SheetContentPageTest extends TestCase
         );
         // Aucun signal SNCF (ligne hors réseau ferré national) : pas de « classement SNCF » cité.
         DB::table('line_sources')->update(['fields_provided' => json_encode(['signal' => 'aucun'])]);
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('sources', fn ($s) => ! $this->rows($s)->pluck('type')->contains('sncf-classification')));
     }
 
     public function test_chronicle_is_written_for_readers(): void
     {
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('chronicle', function ($c) {
                 $events = $this->rows($c['events'])->keyBy('type');
                 $closure = $events['closure'];
@@ -190,7 +190,7 @@ class SheetContentPageTest extends TestCase
                 return true;
             })
         );
-        $this->withHeader('Accept-Language', 'en')->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->withHeader('Accept-Language', 'en')->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('chronicle.events', fn ($e) => $this->rows($e)->firstWhere('type', 'closure')['correction_lang'] === 'fr'
                 && $this->rows($e)->firstWhere('type', 'closure')['description'] === 'Closure (all traffic) from Saillat-Chassenon to Angoulême'));
     }
@@ -207,14 +207,14 @@ class SheetContentPageTest extends TestCase
     public function test_station_neighbours_leave_out_excluded_records(): void
     {
         Station::factory()->create(['slug' => 'st-junien', 'name' => 'St-Junien', 'geom' => Point::makeGeodetic(45.80, 1.12)]);
-        $this->get('/stations/saillat-chassenon')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/saillat-chassenon')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('neighbors', fn ($n) => $this->rows($n)->pluck('slug')->all() === ['st-junien'])
             ->where('station.description_lang', null));
         // Description en français sur la page anglaise : signalée pour l'attribut lang.
-        $this->withHeader('Accept-Language', 'en')->get('/stations/saillat-chassenon')->assertOk()
+        $this->withHeader('Accept-Language', 'en')->getWithDeferredProps('/stations/saillat-chassenon')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('station.description_lang', 'fr'));
         Station::where('slug', 'saillat-chassenon')->update(['description' => null]);
-        $this->withHeader('Accept-Language', 'de')->get('/stations/saillat-chassenon')->assertOk()
+        $this->withHeader('Accept-Language', 'de')->getWithDeferredProps('/stations/saillat-chassenon')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('station.description_lang', null));
     }
 
@@ -224,7 +224,7 @@ class SheetContentPageTest extends TestCase
         DB::table('line_segments')->where('line_id', $this->line->id)->where('era_id', $this->eras[2030]->id)->where('status', 'abandoned')
             ->update(['status' => 'in_service', 'traffic_type' => 'unknown']);
         $this->line->update(['description' => 'Elle constitue la ligne no 752 000 du réseau ferré national.']);
-        $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('line.current_traffic', 'mixed')
             ->where('line.description', 'Elle constitue la ligne n° 752 000 du réseau ferré national.'));
     }

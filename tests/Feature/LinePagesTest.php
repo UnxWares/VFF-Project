@@ -100,7 +100,7 @@ class LinePagesTest extends TestCase
                 'pk_m' => $pk, 'created_at' => now(), 'updated_at' => now()]);
         }
 
-        $this->get('/lines/'.$this->line->slug)
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
@@ -147,7 +147,7 @@ class LinePagesTest extends TestCase
                 'in_service_from' => null, 'in_service_to' => null, 'service_status' => null])->id);
         }
 
-        $this->get("/lines/{$this->line->slug}")
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('materials', fn ($materials) => $this->rows($materials)->pluck('name')->reject(fn (string $n): bool => $n === 'Z 6400')->values()->all()
@@ -168,7 +168,7 @@ class LinePagesTest extends TestCase
         ]);
         $this->line->materials()->attach($series->id);
 
-        $this->get("/lines/{$this->line->slug}")
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', $series->slug)['builders'] === $names));
@@ -192,7 +192,7 @@ class LinePagesTest extends TestCase
         ]);
         $this->line->materials()->attach($series->id);
 
-        $this->get("/lines/{$this->line->slug}")
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', 'br-52')['builders'] === ['Henschel', 'Krauss-Maffei']));
@@ -207,7 +207,7 @@ class LinePagesTest extends TestCase
         // Sans gare rattachée (station_lines), la fiche n'invente pas de gares le long du
         // tracé : la liste, l'en-tête et les décennies suivent App\Services\LineStations,
         // comme la carte et la fiche gare (les arrêts line_stops seuls ne suffisent pas).
-        $this->get('/lines/'.$this->line->slug)
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
@@ -220,7 +220,7 @@ class LinePagesTest extends TestCase
     {
         $empty = Line::factory()->create(['type' => null]);
 
-        $this->get('/lines/'.$empty->slug)
+        $this->getWithDeferredProps('/lines/'.$empty->slug)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
@@ -232,6 +232,6 @@ class LinePagesTest extends TestCase
 
     public function test_unknown_line_is_404(): void
     {
-        $this->get('/lines/ligne-qui-n-existe-pas')->assertNotFound();
+        $this->getWithDeferredProps('/lines/ligne-qui-n-existe-pas')->assertNotFound();
     }
 }

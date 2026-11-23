@@ -125,7 +125,7 @@ class PublicPagesTest extends TestCase
 
     public function test_station_page_lists_serving_lines_and_neighbors(): void
     {
-        $this->get('/stations/'.$this->origin->slug)
+        $this->getWithDeferredProps('/stations/'.$this->origin->slug)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Stations/Show')
@@ -142,7 +142,7 @@ class PublicPagesTest extends TestCase
 
     public function test_unknown_station_is_404(): void
     {
-        $this->get('/stations/gare-inexistante')->assertNotFound();
+        $this->getWithDeferredProps('/stations/gare-inexistante')->assertNotFound();
     }
 
     public function test_locale_switch_sets_cookie_and_translates_shared_props(): void

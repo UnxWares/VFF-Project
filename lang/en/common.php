@@ -35,4 +35,8 @@ return [
         'page' => 'Page',
         'of' => 'of',
     ],
+
+    // Sheet: sections loaded right after the first render (deferred props), loading state.
+    'sheet_loading' => 'Loading the rest of the page…',
+    'sheet_loading_label' => 'Rest of the page, loading',
 ];

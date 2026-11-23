@@ -393,12 +393,12 @@ class LineProfilesTest extends TestCase
     public function test_line_sheet_receives_the_profile_only_once_computed(): void
     {
         $this->fakeIgn();
-        $this->get('/lines/'.$this->line->slug)->assertOk()
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('profile', null));
 
         $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
 
-        $this->get('/lines/'.$this->line->slug)->assertOk()
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('profile.summary.max_altitude_m', 120)
                 ->has('profile.stations', 2)
@@ -415,7 +415,7 @@ class LineProfilesTest extends TestCase
             DB::table('line_profile_points')->insert($chunk);
         }
         $profile->update(['length_m' => 624_750]);
-        $sheet = $this->get('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props']['profile'];
+        $sheet = $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props']['profile'];
         $this->assertLessThanOrEqual(LineProfiles::SHEET_MAX_POINTS, count($sheet['points']));
         $this->assertGreaterThan(500, count($sheet['points']));
         $this->assertEquals([0, 100, null], $sheet['points'][0]);

@@ -84,9 +84,9 @@ class StationAttendanceApiTest extends TestCase
 
     public function test_the_web_page_gets_the_attendance_prop(): void
     {
-        $this->get('/stations/angouleme')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/stations/angouleme')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Stations/Show')->where('attendance.latest.year', 2025)->where('attendance.series_break', true));
-        $this->get('/stations/sans-chiffre')->assertOk()->assertInertia(fn (Assert $page) => $page->where('attendance', null));
+        $this->getWithDeferredProps('/stations/sans-chiffre')->assertOk()->assertInertia(fn (Assert $page) => $page->where('attendance', null));
     }
 
     public function test_graphql_and_mcp_serve_the_same_content(): void

@@ -144,7 +144,7 @@ WIKI;
         $this->assertSame([['max_speed_kmh' => 140, 'length_m' => 23350], ['max_speed_kmh' => 60, 'length_m' => 3190]], $gql['summary']['by_speed']);
         $this->assertSame(230000000, $gql['history'][1]['source']['revision']);
 
-        $this->get('/lines/rfn-536000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-536000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('speeds.summary.max_speed_kmh', 140)
             ->has('speeds.ranges', 2)
             ->has('speeds.history', 2));

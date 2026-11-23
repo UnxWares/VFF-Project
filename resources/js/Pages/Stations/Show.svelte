@@ -9,6 +9,7 @@
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SheetPending from '$components/Sheet/SheetPending.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
     import StationAccessibility from '$components/Stations/StationAccessibility.svelte';
@@ -26,22 +27,33 @@
     } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
 
-    /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). */
+    /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). Gares
+     * voisines, nombre d'images et fréquentation arrivent juste après le premier affichage (props différées,
+     * groupe « sheet ») : absentes (undefined) jusque-là. */
     let {
         station,
         eras = [],
         lines = [],
         sources = [],
-        neighbors = [],
-        media_count = 0,
         aerial_views = [],
         chronology = [],
-        attendance = null,
         heritage = null,
+        neighbors: neighborsProp,
+        media_count: mediaCountProp,
+        attendance: attendanceProp,
     } = $props();
+
+    // Bas de la page pas encore reçu (une valeur nulle est une réponse : section absente).
+    const pending = $derived(
+        [neighborsProp, mediaCountProp, attendanceProp].some((v) => v === undefined),
+    );
+    const neighbors = $derived(neighborsProp ?? []);
+    const media_count = $derived(mediaCountProp ?? 0);
+    const attendance = $derived(attendanceProp ?? null);
 
     /** Autres noms de la fiche ; le nom actuel daté (renamed) n'est que dans la chronologie. */
     const altNames = $derived((station.alt_names ?? []).filter((a) => !a.renamed));
+
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
@@ -386,64 +398,73 @@
 
         <StationAccessibility slug={station.slug} name={station.name} />
 
-        <StationAttendance {attendance} name={station.name} />
+        {#if pending}
+            <!-- Fréquentation, situation et photos : reçues juste après le premier affichage (props différées). -->
+            <SheetPending ids={['attendance', 'location', 'gallery']} />
+        {:else}
+            <StationAttendance {attendance} name={station.name} />
 
-        <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
-            <div class={['location', { solo: !neighbors.length }]}>
-                <div class="map-col">
-                    <div class="map-frame">
-                        <StationMiniMap {station} {neighbors} height="100%" />
+            <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
+                <div class={['location', { solo: !neighbors.length }]}>
+                    <div class="map-col">
+                        <div class="map-frame">
+                            <StationMiniMap {station} {neighbors} height="100%" />
+                        </div>
+                        <p class="map-note">
+                            <!-- « lon », jamais « lng » : i18next lit `lng` comme la langue voulue. -->
+                            {$i18n.t('stations.map.summary', { lat: latText, lon: lngText })}
+                            <a href={osmUrl} target="_blank" rel="noopener noreferrer"
+                                >{$i18n.t('stations.map.open_osm')}<i
+                                    class="bi bi-box-arrow-up-right vff-ext"
+                                    aria-hidden="true"
+                                ></i><span class="vff-sr-only">
+                                    ({$i18n.t('common.new_tab')})</span
+                                ></a
+                            >
+                        </p>
                     </div>
-                    <p class="map-note">
-                        <!-- « lon », jamais « lng » : i18next lit `lng` comme la langue voulue. -->
-                        {$i18n.t('stations.map.summary', { lat: latText, lon: lngText })}
-                        <a href={osmUrl} target="_blank" rel="noopener noreferrer"
-                            >{$i18n.t('stations.map.open_osm')}<i
-                                class="bi bi-box-arrow-up-right vff-ext"
-                                aria-hidden="true"
-                            ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
-                        >
-                    </p>
+                    {#if neighbors.length}
+                        <div class="near">
+                            <h3 id="neighbors">{$i18n.t('stations.sections.neighbors')}</h3>
+                            <ul class="near-list" aria-labelledby="neighbors">
+                                {#each neighbors as n (n.slug)}
+                                    <li>
+                                        <a class="near-link" href="/stations/{n.slug}">
+                                            {@render statusMark(n.status)}
+                                            <span class="near-name">
+                                                <span class="vff-sr-only"
+                                                    >{$i18n.t(`stations.statuses.${n.status}`, {
+                                                        defaultValue: '',
+                                                    })}.
+                                                </span>{n.name}{#if showCity(n)}<span
+                                                        class="near-city"
+                                                    >
+                                                        {n.city}</span
+                                                    >{/if}
+                                            </span>
+                                            <span class="near-dist"
+                                                >{nb(
+                                                    t('stations.neighbors_distance', {
+                                                        km: formatPk(n.distance_m, 1),
+                                                    }),
+                                                )}</span
+                                            >
+                                        </a>
+                                    </li>
+                                {/each}
+                            </ul>
+                        </div>
+                    {/if}
                 </div>
-                {#if neighbors.length}
-                    <div class="near">
-                        <h3 id="neighbors">{$i18n.t('stations.sections.neighbors')}</h3>
-                        <ul class="near-list" aria-labelledby="neighbors">
-                            {#each neighbors as n (n.slug)}
-                                <li>
-                                    <a class="near-link" href="/stations/{n.slug}">
-                                        {@render statusMark(n.status)}
-                                        <span class="near-name">
-                                            <span class="vff-sr-only"
-                                                >{$i18n.t(`stations.statuses.${n.status}`, {
-                                                    defaultValue: '',
-                                                })}.
-                                            </span>{n.name}{#if showCity(n)}<span class="near-city">
-                                                    {n.city}</span
-                                                >{/if}
-                                        </span>
-                                        <span class="near-dist"
-                                            >{nb(
-                                                t('stations.neighbors_distance', {
-                                                    km: formatPk(n.distance_m, 1),
-                                                }),
-                                            )}</span
-                                        >
-                                    </a>
-                                </li>
-                            {/each}
-                        </ul>
-                    </div>
-                {/if}
-            </div>
-        </SheetSection>
+            </SheetSection>
 
-        {#if media_count > 0}
-            <SheetGallery
-                endpoint="/api/v1/stations/{encodeURIComponent(station.slug)}/media"
-                intro={t('media.subtitle_station')}
-                count={media_count}
-            />
+            {#if media_count > 0}
+                <SheetGallery
+                    endpoint="/api/v1/stations/{encodeURIComponent(station.slug)}/media"
+                    intro={t('media.subtitle_station')}
+                    count={media_count}
+                />
+            {/if}
         {/if}
 
         <StationAerialViews views={aerial_views} name={station.name} />

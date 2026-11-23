@@ -91,7 +91,7 @@ class MaterialRelationNotesTest extends TestCase
         $this->link($x2800, [['label' => 'Argentan - Granville', 'from' => 'Argentan', 'to' => 'Granville']]);
 
         // Page : relations sans période, fait sourcé, vignette de 330 px et crédit ; pas de photo : null.
-        $this->withCookie('locale', 'fr')->get('/lines/rfn-405000')->assertOk()
+        $this->withCookie('locale', 'fr')->getWithDeferredProps('/lines/rfn-405000')->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('materials.0.name', 'Régiolis')
                 ->where('materials.0.relations.0.label', 'Paris-Montparnasse - Granville')

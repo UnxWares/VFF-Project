@@ -53,7 +53,7 @@ final class LineStations
      * sources_status (statut des sources, diffère si incertaine), note, stop
      * (arrêt de CETTE ligne à l'ère, line_stops)}.
      */
-    public function forLine(int $lineId): array
+    public function forLine(int $lineId, ?string $lineName = null): array
     {
         $eras = DB::table('eras')->orderBy('year')->get(['id', 'year', 'is_current']);
         $dates = StationServiceDates::columns();
@@ -89,7 +89,8 @@ final class LineStations
             ->get(['ls.station_id', 'e.year']) as $r) {
             $stops[(int) $r->station_id][(int) $r->year] = true;
         }
-        $lineName = (string) DB::table('lines')->where('id', $lineId)->value('name');
+        // Nom de la ligne pour les terminus : celui de l'appelant quand il a déjà la ligne (LineSheet), sinon lu ici.
+        $lineName ??= (string) DB::table('lines')->where('id', $lineId)->value('name');
         $terminals = $this->terminals($lineId, $lineName, array_values(array_filter($rows, fn ($r) => $r->kind === null)));
         $current = $eras->firstWhere('is_current', true);
 

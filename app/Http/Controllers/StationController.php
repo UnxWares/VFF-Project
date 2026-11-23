@@ -29,6 +29,12 @@ class StationController extends Controller
 {
     use ReadsListFilters;
 
+    /** Clés de StationSheet::page reçues au premier affichage de la fiche (sans les gares voisines, différées). */
+    public const PAGE_KEYS = ['station', 'eras', 'events', 'lines', 'sources', 'chronology'];
+
+    /** Groupe des props différées de la fiche (Inertia::defer) : une seule requête après le premier affichage. */
+    public const DEFERRED_GROUP = 'sheet';
+
     public function index(Request $request, StationDirectory $directory): Response
     {
         $q = $this->filterString($request, 'q', trim: true);
@@ -108,18 +114,29 @@ class StationController extends Controller
 
     public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance, StationHeritage $heritage): Response
     {
-        $page = $sheet->page($station);
+        // Premier affichage : en-tête, « À propos », patrimoine, décennies, chronologie, lignes et sources. Fiche
+        // construite une fois, et seulement quand la réponse la demande : le chargement des props différées ne la refait pas.
+        $built = null;
+        $core = function () use (&$built, $sheet, $station): array {
+            return $built ??= $sheet->page($station, withNeighbors: false);
+        };
+        // Plus bas dans la page : props différées, demandées juste après le premier affichage, en un seul groupe
+        // (une requête) ; la page pose à leur place un état de chargement (chantier « budget des fiches », 23/11/2026).
+        $defer = fn (callable $callback) => Inertia::defer($callback, self::DEFERRED_GROUP);
 
         return Inertia::render('Stations/Show', [
-            ...$page,
-            // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
-            'media_count' => $gallery->count($station),
-            // Vues aériennes historiques de l'IGN (relais /media/aerial) : une par période, absente si hors couverture.
-            'aerial_views' => AerialImages::views($station->slug, $page['station']['lat'], $page['station']['lng'], (int) $station->id),
-            // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
-            'attendance' => $attendance->forStation((int) $station->id),
+            ...array_map(fn (string $key) => fn () => $core()[$key], array_combine(self::PAGE_KEYS, self::PAGE_KEYS)),
             // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Wikidata) : nul sans table ou sans donnée.
-            'heritage' => $heritage->forStation((int) $station->id),
+            // Au premier affichage : la section suit « À propos ».
+            'heritage' => fn () => $heritage->forStation((int) $station->id),
+            // Vues aériennes historiques de l'IGN (relais /media/aerial) : une par période, absente si hors couverture.
+            'aerial_views' => fn () => AerialImages::views($station->slug, $core()['station']['lat'], $core()['station']['lng'], (int) $station->id),
+            // Gares voisines (carte et liste de la section « Situation »).
+            'neighbors' => $defer(fn () => $sheet->neighbors((int) $station->id)),
+            // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
+            'media_count' => $defer(fn () => $gallery->count($station)),
+            // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
+            'attendance' => $defer(fn () => $attendance->forStation((int) $station->id)),
         ]);
     }
 }

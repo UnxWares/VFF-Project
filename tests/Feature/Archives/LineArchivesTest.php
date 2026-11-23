@@ -136,7 +136,7 @@ class LineArchivesTest extends TestCase
 
     public function test_the_line_page_groups_identical_documents_and_omits_the_section_when_empty(): void
     {
-        $this->get('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->where('archives.total', 5)
             ->where('archives.fetched_on', '2026-11-20')
@@ -150,7 +150,7 @@ class LineArchivesTest extends TestCase
             ->where('archives.items.3.date', null)
             ->where('archives.items.3.date_precision', 'unknown'));
 
-        $this->get('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('archives.total', 0)
             ->where('archives.items', []));
     }

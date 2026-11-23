@@ -105,7 +105,7 @@ class LineElectrificationHistoryTest extends TestCase
             ->assertJsonPath('data.line.electrification_history.provenance.ranges.license', 'ODbL-1.0');
         $this->assertCount(2, $gql->json('data.line.electrification_history.history'));
 
-        $this->get('/lines/rfn-420000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-420000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('electrification_history.ranges', 2)
             ->has('electrification_history.history', 2));
     }

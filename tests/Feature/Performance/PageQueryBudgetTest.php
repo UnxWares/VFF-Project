@@ -45,6 +45,38 @@ class PageQueryBudgetTest extends TestCase
         return $queries;
     }
 
+    /**
+     * Chargement des props différées d'une fiche, tel que la page le demande après son premier affichage
+     * (requête partielle Inertia du groupe « sheet ») : les requêtes lancées et les props reçues.
+     *
+     * @return array{0: list<string>, 1: array<string, mixed>}
+     */
+    private function deferredLoad(string $url, string $component): array
+    {
+        $first = $this->get($url)->assertOk()->viewData('page');
+        $keys = $first['deferredProps']['sheet'] ?? [];
+        $this->assertNotEmpty($keys, 'props différées annoncées dans le groupe « sheet »');
+        foreach ($keys as $key) {
+            $this->assertArrayNotHasKey($key, $first['props'], "{$key} : absente du premier affichage");
+        }
+        $queries = [];
+        DB::listen(function (QueryExecuted $query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+        $props = $this->get($url, [
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $first['version'],
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia-Partial-Component' => $component,
+            'X-Inertia-Partial-Data' => implode(',', $keys),
+        ])->assertOk()->json('props');
+        foreach ($keys as $key) {
+            $this->assertArrayHasKey($key, $props, "{$key} : reçue par le chargement différé");
+        }
+
+        return [$queries, $props];
+    }
+
     /** @return array<string, array{0: string, 1: int}> */
     public static function pages(): array
     {
@@ -85,9 +117,16 @@ class PageQueryBudgetTest extends TestCase
         // tranches de la ligne par son code, événements d'électrification datés ; trois lectures indexées, aucune par élément).
         // 68 : les ouvrages d'art le 23/11 (LineStructures::forSheet : une lecture indexée des ouvrages de la ligne, et l'ère
         // courante seulement quand la ligne a des ouvrages).
-        $this->assertLessThanOrEqual(68, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 40 depuis le chantier « budget des fiches » du 23/11 (storage/app/reports/agents/aprem-2111/budget-fiches.md) : le
+        // premier affichage ne porte que le haut de la fiche (LineSheet::PAGE_KEYS : en-tête, tracé, « Où et quand », « À propos »,
+        // histoire, décennies, gares, chronologie) ; tout ce qui est plus bas arrive par les props différées (LineSheet::PAGE_DEFERRED
+        // et les sections de LineController::show : un groupe, une requête, voir plus bas), et LineStats lit en deux requêtes ce
+        // qu'elle lisait en cinq. Sur ces 40, 16 ne sont faites qu'une fois tant que les tronçons ne changent pas (phases et
+        // portions, longueurs, terminus, départements, constat de la table des voies, gardés en cache) : la visite suivante en fait 24, sous l'objectif de 30.
+        $this->assertLessThanOrEqual(40, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
+        $this->assertLessThanOrEqual(24, count($warm), count($warm)." requêtes à la seconde visite\n".implode("\n", $warm));
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));
         // La page ne lit plus la géométrie de l'ère affichée (LineSheet::PAGE_OMITTED).
         $this->assertEmpty(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'ST_AsGeoJSON(ls.geom, 6)')));
@@ -112,7 +151,33 @@ class PageQueryBudgetTest extends TestCase
         // 9 avec la chronologie de la fiche (accidents proches). 11 depuis le 23/11 : la fréquentation de la gare (existence
         // de la table, un constat positif est ensuite en cache, puis une lecture indexée par gare). 13 : le patrimoine de la gare (même schéma : existence de la table, constat
         // positif en cache, puis une lecture indexée par gare).
-        $this->assertLessThanOrEqual(13, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 8 depuis le chantier « budget des fiches » du 23/11 : gares voisines, nombre d'images et fréquentation arrivent par
+        // les props différées (StationController::show : un groupe, une requête) ; la position de la gare est lue dans sa
+        // géométrie, déjà chargée (une requête de moins, pour l'API aussi). Le patrimoine reste au premier affichage : sa
+        // section suit « À propos ». Seconde visite : 7 (constat de la table du patrimoine en cache).
+        $this->assertLessThanOrEqual(8, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+    }
+
+    public function test_line_sheet_loads_its_lower_sections_in_one_deferred_request(): void
+    {
+        [$queries, $props] = $this->deferredLoad('/lines/'.$this->line->slug, 'Lines/Show');
+
+        // Le haut de la fiche n'est pas reconstruit : ni gares de la ligne, ni calcul des phases.
+        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, "provenance->>'closed_after' AS closed_after")
+            || str_contains($sql, 'tmp_line_portions'))));
+        foreach (LineSheet::PAGE_KEYS as $key) {
+            $this->assertArrayNotHasKey($key, $props, "{$key} : pas renvoyée par le chargement différé");
+        }
+        $this->assertLessThanOrEqual(26, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+    }
+
+    public function test_station_sheet_loads_its_lower_sections_in_one_deferred_request(): void
+    {
+        [$queries, $props] = $this->deferredLoad('/stations/'.$this->origin->slug, 'Stations/Show');
+
+        $this->assertArrayHasKey('neighbors', $props);
+        $this->assertArrayNotHasKey('chronology', $props);
+        $this->assertLessThanOrEqual(6, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_the_last_segment_update_is_read_through_an_index(): void
@@ -153,11 +218,15 @@ class PageQueryBudgetTest extends TestCase
     {
         $full = app(LineSheet::class)->build($this->line->fresh());
         $page = app(LineSheet::class)->build($this->line->fresh(), forPage: true);
+        $later = app(LineSheet::class)->pageDeferred($this->line->fresh());
 
         foreach (LineSheet::PAGE_OMITTED as $key) {
             $this->assertArrayHasKey($key, $full);
             $this->assertArrayNotHasKey($key, $page);
         }
+        // Premier affichage : les clés annoncées, dans l'ordre ; le reste arrive par les props différées.
+        $this->assertSame(LineSheet::PAGE_KEYS, array_keys($page));
+        $this->assertSame(LineSheet::PAGE_DEFERRED, array_keys($later));
         $this->assertSame('LineString', $full['segments'][0]['features'][0]['geometry']['type']);
         $this->assertSame('LineString', $full['portions'][0]['geometry']['type']);
         // La page reçoit, à la place des portions, leur nombre et leur version (LineSheet::PAGE_ADDED).
@@ -166,9 +235,14 @@ class PageQueryBudgetTest extends TestCase
         $expected['stations'] = $expected['stations']->map(
             fn (array $s): array => array_diff_key($s, array_flip(LineSheet::PAGE_STATION_OMITTED)),
         )->values();
-        $this->assertSame(json_encode($expected), json_encode(array_diff_key($page, array_flip(LineSheet::PAGE_ADDED))));
+        // Premier affichage et props différées réunis : la fiche de l'API, valeur pour valeur.
+        $shown = [...array_diff_key($page, array_flip(LineSheet::PAGE_ADDED)), ...$later];
+        $this->assertEquals(json_decode((string) json_encode($expected), true), json_decode((string) json_encode($shown), true));
         $this->assertSame(count($full['portions']), $page['portions_count']);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{12}$/', $page['portions_version']);
+        // La fiche complète garde l'ordre de ses clés (contrat de l'API).
+        $this->assertSame(['line', 'sources', 'stats', 'segments', 'era_summary', 'portions', 'phases', 'best_phase',
+            'phases_unexplained', 'decades', 'chronicle', 'stations', 'signalling', 'sections', 'events', 'heritage', 'materials'], array_keys($full));
         $this->getJson('/api/v1/lines/'.$this->line->slug)->assertOk()->assertJsonPath('data.era_summary.0.year', 1960);
     }
 }

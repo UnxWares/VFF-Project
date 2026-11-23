@@ -41,6 +41,7 @@
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SheetPending from '$components/Sheet/SheetPending.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
     import GlossaryText from '$components/GlossaryText.svelte';
@@ -58,10 +59,12 @@
         stageNotes,
     } from '$lib/linePhases.js';
 
-    /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API).
+    /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API). Les props
+     * du bas de la page (LineSheet::PAGE_DEFERRED et sections de LineController::show) arrivent juste après
+     * le premier affichage (Inertia::defer) : absentes jusque-là.
      * @type {{
      *   line: Record<string, any>, stats: Record<string, any>, segments: Array<any>, stations: Array<any>,
-     *   events: Array<any>, materials: Array<any>, signalling?: Array<any>, sections?: Array<any>,
+     *   events: Array<any>, materials?: Array<any>, signalling?: Array<any>, sections?: Array<any>,
      *   era_summary?: Array<any>, heritage?: Array<any>, sources?: Array<any>,
      *   portions_count?: number, portions_url?: string|null, phases?: Array<any>, best_phase?: number|null,
      *   phases_unexplained?: Array<{ from: string, to: string, portions: Array<number>, length_m: number }>,
@@ -82,11 +85,6 @@
         line,
         stats,
         stations = [],
-        materials = [],
-        signalling = [],
-        sections = [],
-        heritage = [],
-        sources = [],
         // Portions de la carte : leur nombre ici, leur géométrie lue à part quand la carte s'affiche
         // (App\Http\Controllers\LinePortionsController, lib/linePortions.js).
         portions_count = 0,
@@ -96,35 +94,83 @@
         best_phase = null,
         decades = [],
         chronicle = { events: [], groups: [], notes: [], conflicts: [] },
-        // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
-        accidents = [],
-        // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
-        level_crossings = { total: 0, summary: [], items: [] },
-        // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
-        greenways = { total_length_m: 0, osm_date: null, items: [] },
-        // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
-        signalling_history = [],
-        // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
-        profile = null,
-        // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
-        structures = { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
-        // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
-        speeds = null,
-        // Électrification par PK (SNCF Réseau) et mises sous tension datées (App\Services\Traction\LineElectrificationHistory).
-        electrification_history = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
         trace_export_eras = [],
-        // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
-        archives = { total: 0, fetched_on: null, items: [] },
-        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
-        archive_records = { total: 0, fetched_on: null, items: [] },
-        // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
-        story_events = [],
         // Articles du journal de bord qui parlent de la ligne (App\Services\Journal\JournalRepository::aboutLine).
         journal = [],
         // Compagnies rattachées à la ligne par un événement de concession daté (App\Services\Companies\CompanyFigures::forLine).
         companies = [],
+        // Plus bas dans la page : props différées (LineController::show, groupe « sheet »), absentes (undefined)
+        // au premier affichage, reçues juste après ; `pending` tant qu'elles manquent, valeurs vides par défaut.
+        materials: materialsProp,
+        signalling: signallingProp,
+        sections: sectionsProp,
+        heritage: heritageProp,
+        sources: sourcesProp,
+        // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
+        accidents: accidentsProp,
+        // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
+        level_crossings: levelCrossingsProp,
+        // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
+        greenways: greenwaysProp,
+        // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
+        signalling_history: signallingHistoryProp,
+        // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
+        profile: profileProp,
+        // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
+        structures: structuresProp,
+        // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
+        speeds: speedsProp,
+        // Électrification par PK (SNCF Réseau) et mises sous tension datées (App\Services\Traction\LineElectrificationHistory).
+        electrification_history: electrificationProp,
+        // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
+        archives: archivesProp,
+        // Notices des Archives SNCF, dans la même section (App\Services\Archives\LineArchives::recordsForSheet).
+        archive_records: archiveRecordsProp,
+        // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
+        story_events: storyEventsProp,
     } = $props();
+
+    const deferredProps = $derived([
+        materialsProp,
+        signallingProp,
+        sectionsProp,
+        heritageProp,
+        sourcesProp,
+        accidentsProp,
+        levelCrossingsProp,
+        greenwaysProp,
+        signallingHistoryProp,
+        profileProp,
+        structuresProp,
+        speedsProp,
+        electrificationProp,
+        archivesProp,
+        archiveRecordsProp,
+        storyEventsProp,
+    ]);
+    // Sections du bas de la page pas encore reçues (une valeur nulle est une réponse : section absente).
+    const pending = $derived(deferredProps.some((v) => v === undefined));
+    const materials = $derived(materialsProp ?? []);
+    const signalling = $derived(signallingProp ?? []);
+    const sections = $derived(sectionsProp ?? []);
+    const heritage = $derived(heritageProp ?? []);
+    const sources = $derived(sourcesProp ?? []);
+    const accidents = $derived(accidentsProp ?? []);
+    const level_crossings = $derived(levelCrossingsProp ?? { total: 0, summary: [], items: [] });
+    const greenways = $derived(greenwaysProp ?? { total_length_m: 0, osm_date: null, items: [] });
+    const signalling_history = $derived(signallingHistoryProp ?? []);
+    const profile = $derived(profileProp ?? null);
+    const structures = $derived(
+        structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
+    );
+    const speeds = $derived(speedsProp ?? null);
+    const electrification_history = $derived(electrificationProp ?? null);
+    const archives = $derived(archivesProp ?? { total: 0, fetched_on: null, items: [] });
+    const archive_records = $derived(
+        archiveRecordsProp ?? { total: 0, fetched_on: null, items: [] },
+    );
+    const story_events = $derived(storyEventsProp ?? []);
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -1036,6 +1082,23 @@
             {/if}
         </SheetSection>
 
+        {#if pending}
+            <!-- Sections du bas de la page : reçues juste après le premier affichage (props différées). -->
+            <SheetPending
+                ids={[
+                    'sections',
+                    'heritage',
+                    'tech',
+                    'profile',
+                    'speeds',
+                    'electrification',
+                    'structures',
+                    'level-crossings',
+                    'greenways',
+                ]}
+            />
+        {/if}
+
         {#if sections.length}
             <SheetSection
                 id="sections"
@@ -1181,7 +1244,7 @@
             </SheetSection>
         {/if}
 
-        {#if stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length}
+        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length)}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1274,9 +1337,13 @@
                                             ></i>
                                             <span
                                                 ><span class="sig-kind"
-                                                    >{#if r.signalling !== 'NONE'}{isCabin(r.signalling)
+                                                    >{#if r.signalling !== 'NONE'}{isCabin(
+                                                            r.signalling,
+                                                        )
                                                             ? t('lines.signalling.cabin')
-                                                            : t('lines.signalling.block')}{/if}</span
+                                                            : t(
+                                                                  'lines.signalling.block',
+                                                              )}{/if}</span
                                                 >
                                                 {systemsLabel(r, t)}</span
                                             >
@@ -1340,6 +1407,17 @@
             <SheetSection title={t('lines.section.chronicle')} id="chronicle">
                 <LineChronicle {chronicle} stories={story_events} lineSlug={line.slug} />
             </SheetSection>
+        {/if}
+
+        {#if pending}
+            <SheetPending
+                ids={[
+                    'materials',
+                    'accidents',
+                    'archives',
+                    ...(chronicle?.notes?.length ? [] : ['notes']),
+                ]}
+            />
         {/if}
 
         {#if materials.length}

@@ -91,7 +91,7 @@ class LineMaterialEndTest extends TestCase
         // Daté sur la ligne d'abord (X 72500 jusqu'en 2019), puis l'état de la série (Régiolis en service, X 2800 retiré).
         $order = ['X 72500', 'Régiolis', 'X 2800'];
 
-        $this->withCookie('locale', 'fr')->get('/lines/rfn-405000')->assertOk()
+        $this->withCookie('locale', 'fr')->getWithDeferredProps('/lines/rfn-405000')->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('materials.0.name', 'X 72500')
                 ->where('materials.0.end.year', 2019)

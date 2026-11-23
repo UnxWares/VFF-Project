@@ -135,7 +135,7 @@ class MaterialPeriodsTest extends TestCase
         $period = $this->link($this->cc72000)->periods()->where('origin', 'material_article')->firstOrFail();
         $this->assertSame(['1977-01-01', 'medium'], [$period->end_date->toDateString(), $period->confidence],
             'l\'article de la série contredit le retrait de 1964 : la phrase précise passe avant');
-        $this->get('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('materials', function ($materials): bool {
                 $cc = $this->rows($materials)->firstWhere('slug', 'cc-72000');
 
@@ -183,7 +183,7 @@ class MaterialPeriodsTest extends TestCase
 
         // Le plus récent d'abord (LineMaterialEnd) : le B 82500, sur la ligne à partir du 6 septembre 2009, et le
         // X 72500 qu'il remplace ce jour-là (même année : le nom départage), puis les CC 72000 jusqu'en 2001.
-        $this->get('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('materials.0.slug', 'b-82500')
             ->where('materials.0.end.kind', 'unknown')
             ->where('materials.0.end.since', 2009)

@@ -173,7 +173,7 @@ class EventStoriesTest extends TestCase
 
     public function test_the_page_shows_the_story_and_returns_404_without_one(): void
     {
-        $this->get('/lines/rfn-340000/stories/'.$this->opening->id)->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-340000/stories/'.$this->opening->id)->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Story')
             ->where('story.line.slug', 'rfn-340000')
             ->where('story.event.id', $this->opening->id)
@@ -183,15 +183,15 @@ class EventStoriesTest extends TestCase
             ->where('story.attribution', LineArchives::ATTRIBUTION));
 
         $concession = $this->event('concession', '1843-01-01');
-        $this->get('/lines/rfn-340000/stories/'.$concession->id)->assertNotFound();
-        $this->get('/lines/rfn-340000/stories/99999999')->assertNotFound();
+        $this->getWithDeferredProps('/lines/rfn-340000/stories/'.$concession->id)->assertNotFound();
+        $this->getWithDeferredProps('/lines/rfn-340000/stories/99999999')->assertNotFound();
         Line::factory()->create(['slug' => 'rfn-1000']);
-        $this->get('/lines/rfn-1000/stories/'.$this->opening->id)->assertNotFound();
+        $this->getWithDeferredProps('/lines/rfn-1000/stories/'.$this->opening->id)->assertNotFound();
     }
 
     public function test_the_page_writes_share_tags_for_robots(): void
     {
-        $html = (string) $this->get('/lines/rfn-340000/stories/'.$this->opening->id)->assertOk()->getContent();
+        $html = (string) $this->getWithDeferredProps('/lines/rfn-340000/stories/'.$this->opening->id)->assertOk()->getContent();
 
         $this->assertStringContainsString('/lines/rfn-340000/stories/'.$this->opening->id, $html);
         $this->assertStringContainsString('https://upload.wikimedia.org/1839.jpg', $html);
@@ -201,7 +201,7 @@ class EventStoriesTest extends TestCase
     {
         $this->event('concession', '1843-01-01');
 
-        $this->get('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->where('story_events', [[$this->opening->id]]));
     }
@@ -238,9 +238,9 @@ class EventStoriesTest extends TestCase
         }
 
         // Les autres adresses redirigent (301) vers celle de l'histoire, sur le site et dans l'API.
-        $this->get('/lines/rfn-340000/stories/'.$this->opening->id)->assertStatus(301)
+        $this->getWithDeferredProps('/lines/rfn-340000/stories/'.$this->opening->id)->assertStatus(301)
             ->assertRedirect(route('lines.stories.show', ['line' => 'rfn-340000', 'event' => $sure->id]));
-        $this->get('/lines/rfn-340000/stories/'.$sure->id)->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-340000/stories/'.$sure->id)->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('story.event.id', $sure->id)->has('story.sources', 3));
         $this->getJson('/api/v1/lines/rfn-340000/stories/'.$wikipedia->id)->assertStatus(301)
             ->assertRedirect(route('api.lines.stories.show', ['line' => 'rfn-340000', 'event' => $sure->id]));
@@ -264,7 +264,7 @@ class EventStoriesTest extends TestCase
         $this->assertNotContains($this->opening->id, array_column(array_column($mcpList['stories'], 'event'), 'id'));
 
         // La fiche : un fait par liste, l'adresse d'abord (un seul lien « Voir l'histoire »).
-        $this->get('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('story_events', function (Collection $facts) use ($sure, $wikipedia): bool {
                 /** @var list<list<int>> $all */
                 $all = $facts->all();

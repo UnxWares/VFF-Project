@@ -26,33 +26,22 @@ final class StationSheet
      * décennie, chronologie, lignes desservies, sources et gares voisines (10 km, 12 au plus). Les
      * notes générées sont dans la langue courante de l'application. `$withRaw` ajoute à chaque source
      * sa date de lecture et ses attributs bruts (API publique : provenance en lecture seule) ; la page
-     * web n'en a pas besoin.
+     * web n'en a pas besoin. `$withNeighbors` faux : sans les gares voisines, que la page web lit après son
+     * premier affichage (neighbors(), props différées de StationController::show).
      *
      * @return array<string, mixed>
      */
-    public function page(Station $station, bool $withRaw = false): array
+    public function page(Station $station, bool $withRaw = false, bool $withNeighbors = true): array
     {
         $sid = $station->id;
-        $coords = DB::selectOne('SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat FROM stations WHERE id = ?', [$sid]);
+        // Position lue dans la géométrie déjà chargée avec la gare (plus de requête à part).
+        $point = $station->geom;
 
         $eras = $this->eras($sid);
         $events = $this->events($sid);
         $lines = $this->lines($sid);
         $sources = $this->sources($sid);
         $rawBySource = $withRaw ? $this->rawBySource($sid) : [];
-
-        // Gares voisines, comme l'annuaire : ni point technique ni fiche exclue du réseau ferré par une
-        // correction sourcée (« Safari Train », petit train d'un zoo, apparaissait près de Lisieux).
-        $neighbors = DB::select(<<<'SQL'
-            SELECT s.slug, s.name, s.type, s.city, CASE WHEN s.source_status = 'gone' THEN 'gone' ELSE s.status END AS status,
-                   ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
-                   ST_Distance(s.geom::geography, ref.geom::geography) AS distance_m
-            FROM stations s CROSS JOIN (SELECT geom FROM stations WHERE id = ?) ref
-            WHERE s.id <> ? AND s.geom && ST_Expand(ref.geom, 0.15) AND ST_DWithin(s.geom::geography, ref.geom::geography, 10000)
-              AND COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')
-            ORDER BY distance_m ASC
-            LIMIT 12
-        SQL, [$sid, $sid]);
 
         $locale = app()->getLocale();
 
@@ -86,8 +75,8 @@ final class StationSheet
                 'position_source' => $station->position_source,
                 'position_spread_m' => $station->position_spread_m,
                 'position_flagged' => (bool) $station->position_flagged,
-                'lng' => (float) $coords->lng,
-                'lat' => (float) $coords->lat,
+                'lng' => $point?->getLongitude() ?? 0.0,
+                'lat' => $point?->getLatitude() ?? 0.0,
             ],
             // Notes générées (gabarits lang/{fr,en,de}/generated.php) dans la langue de la page ; note_lang = fr
             // quand une partie reste en français (citation d'une source).
@@ -133,16 +122,42 @@ final class StationSheet
                 'precision_m' => is_numeric($s->precision_m) ? (int) $s->precision_m : null,
                 'url' => self::sourceUrl($s),
             ] + ($withRaw ? self::rawFor($rawBySource, $s) : []), $sources),
-            'neighbors' => array_map(fn ($n) => [
-                'slug' => $n->slug, 'name' => $n->name, 'type' => $n->type, 'city' => $n->city, 'status' => $n->status,
-                'lng' => (float) $n->lng, 'lat' => (float) $n->lat, 'distance_m' => (int) $n->distance_m,
-            ], $neighbors),
         ];
         // Vie de la gare en une liste datée : événements regroupés, dessertes des lignes, noms, accidents proches.
         $page['chronology'] = StationChronology::build($page['station'], $page['events'], $page['lines'],
             $this->chronology->accidents($sid, $locale));
+        if ($withNeighbors) {
+            // Même place qu'avant dans la fiche (API) : après les sources, avant la chronologie.
+            $page = [...array_diff_key($page, ['chronology' => true]), 'neighbors' => $this->neighbors($sid), 'chronology' => $page['chronology']];
+        }
 
         return $page;
+    }
+
+    /**
+     * Gares voisines (10 km, 12 au plus, de la plus proche à la plus éloignée) : `neighbors` de la fiche.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function neighbors(int $sid): array
+    {
+        // Gares voisines, comme l'annuaire : ni point technique ni fiche exclue du réseau ferré par une
+        // correction sourcée (« Safari Train », petit train d'un zoo, apparaissait près de Lisieux).
+        $neighbors = DB::select(<<<'SQL'
+            SELECT s.slug, s.name, s.type, s.city, CASE WHEN s.source_status = 'gone' THEN 'gone' ELSE s.status END AS status,
+                   ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
+                   ST_Distance(s.geom::geography, ref.geom::geography) AS distance_m
+            FROM stations s CROSS JOIN (SELECT geom FROM stations WHERE id = ?) ref
+            WHERE s.id <> ? AND s.geom && ST_Expand(ref.geom, 0.15) AND ST_DWithin(s.geom::geography, ref.geom::geography, 10000)
+              AND COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')
+            ORDER BY distance_m ASC
+            LIMIT 12
+        SQL, [$sid, $sid]);
+
+        return array_map(fn ($n) => [
+            'slug' => $n->slug, 'name' => $n->name, 'type' => $n->type, 'city' => $n->city, 'status' => $n->status,
+            'lng' => (float) $n->lng, 'lat' => (float) $n->lat, 'distance_m' => (int) $n->distance_m,
+        ], $neighbors);
     }
 
     /**

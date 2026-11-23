@@ -122,7 +122,7 @@ class GreenwaySurfacesTest extends TestCase
 
     public function test_the_line_sheet_has_the_section_only_when_a_greenway_is_linked(): void
     {
-        $this->get('/lines/rfn-436000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-436000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->where('greenways.total_length_m', 15161 + 4000 + 700)
             ->where('greenways.osm_date', '2026-11-18')
@@ -132,7 +132,7 @@ class GreenwaySurfacesTest extends TestCase
             ])
             ->has('greenways.items', 3));
 
-        $this->get('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-1000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('greenways.total_length_m', 0)
             ->where('greenways.osm_date', null)
             ->where('greenways.items', []));

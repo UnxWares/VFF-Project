@@ -169,7 +169,7 @@ WIKI;
         $this->assertSame(['high', 'medium'], array_column($facts, 'reliability'));
         $this->assertArrayNotHasKey('excerpt', app(LineSignallingHistory::class)->forSheet($this->line)[0]['source']);
 
-        $this->get('/lines/rfn-974000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-974000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
             ->has('signalling_history', 2)
             ->where('signalling_history.0.system', 'BAL')
@@ -184,7 +184,7 @@ WIKI;
 
     public function test_the_sheet_has_an_empty_history_when_nothing_is_known(): void
     {
-        $this->get('/lines/rfn-974000')->assertOk()->assertInertia(fn (Assert $page) => $page->where('signalling_history', []));
+        $this->getWithDeferredProps('/lines/rfn-974000')->assertOk()->assertInertia(fn (Assert $page) => $page->where('signalling_history', []));
     }
 
     public function test_the_rest_endpoint_gives_the_facts_with_provenance_and_the_cc_by_sa_attribution(): void

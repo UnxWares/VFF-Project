@@ -102,7 +102,7 @@ class HiddenAccidentsTest extends TestCase
             ->where('facets.lines.0.count', 1)
             ->where('facets.decades', [['decade' => 2000, 'count' => 1]]));
         $this->get('/accidents/2006-11-10-chaville')->assertNotFound();
-        $this->get('/lines/rfn-420000')->assertOk()->assertInertia(fn (Assert $page) => $page
+        $this->getWithDeferredProps('/lines/rfn-420000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('accidents', 1)
             ->where('accidents.0.slug', '2006-11-09-chaville'));
     }

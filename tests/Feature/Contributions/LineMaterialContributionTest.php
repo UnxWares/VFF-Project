@@ -424,7 +424,7 @@ class LineMaterialContributionTest extends TestCase
     {
         LineMaterial::query()->create(['line_id' => $this->line->id, 'material_id' => $this->material->id, 'source' => 'contrib', 'confidence' => 'high', 'evidence' => []]);
 
-        $this->get("/lines/{$this->line->slug}")->assertOk()
+        $this->getWithDeferredProps("/lines/{$this->line->slug}")->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('materials', fn ($materials): bool => count(array_filter(
                 (array) json_decode((string) json_encode($materials), true),
                 fn (array $m): bool => $m['slug'] === $this->material->slug,
