@@ -103,7 +103,7 @@ return [
     ],
     'gare-de-bifurcation' => [
         'name' => 'Junction station',
-        'definition' => 'A station built where two lines part, and where passengers can change from one line to the other. Many large interchange stations owe their existence to a junction.',
+        'definition' => 'A station built where two lines part, and where passengers can change from one line to the other. It can stand in a small place: in 1867 the jury of the universal exhibition quoted Tergnier as an example of the importance of a junction station in a “place of no importance”.',
     ],
     'ite' => [
         'name' => 'ITE',
@@ -133,7 +133,7 @@ return [
     ],
     'embarcadere' => [
         'name' => 'Embarcadère',
-        'definition' => 'An old name for a station, above all a terminus, used in the 19th century for the first railways. It survives in some station names, such as the Sceaux embarcadère station.',
+        'definition' => 'Name used in the 19th century for the station of the first railways: Paris-Saint-Lazare, opened in 1837 for the line from Paris to Saint-Germain-en-Laye, was then an “embarcadère”. The word survives in some station names, such as the Sceaux embarcadère station.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -218,11 +218,11 @@ return [
     ],
     'tvm-300' => [
         'name' => 'TVM 300',
-        'definition' => 'First version of the track-to-train transmission, brought into service with the LGV Sud-Est in 1981 and used again on the LGV Atlantique. The code sent through the rails gives the train the speed not to exceed on the next block; it was designed for speeds up to 300 km/h.',
+        'definition' => 'First version of the track-to-train transmission (TVM), analogue: the UM 71 track circuit sends one speed instruction out of 18 through the rails, checked in steps, with no target distance or average profile. It equips the LGV Sud-Est (first commercial service on 27 September 1981, in TVM 260 then 270 at the start), the LGV Atlantique (24 September 1989) and the northern section of the LGV Rhône-Alpes (13 December 1992).',
     ],
     'tvm-430' => [
         'name' => 'TVM 430',
-        'definition' => 'Later version of the track-to-train transmission, introduced with the LGV Nord in 1993 and used again on more recent high-speed lines. It sends more information and supervises continuous braking, which allows trains to run closer together and at up to 320 km/h.',
+        'definition' => 'Digital version of the track-to-train transmission (TVM), installed first on the LGV Nord (first section from Gonesse to Arras put into service on 23 May 1993) and then on more recent high-speed lines. Its 27-bit message carries a speed instruction, a target distance and an average profile, so that the train can follow a continuous speed control curve, even when the emergency brake is applied; it codes speeds up to 320 km/h.',
     ],
     'etcs' => [
         'name' => 'ETCS',
@@ -240,7 +240,7 @@ return [
     ],
     'ertms-niveau-2' => [
         'name' => 'ERTMS level 2',
-        'definition' => 'The second level of ETCS: the movement authority is sent continuously by GSM-R radio and shown in the cab. Eurobalises are only used to locate the train; train detection stays on the ground (track circuits or axle counters) and lineside signals become optional.',
+        'definition' => 'The second level of ETCS: the train reports its position continuously to the Radio Block Centre (RBC), which sends back the movement authority by GSM-R radio, shown in the cab. Eurobalises are only used to locate the train; train detection stays on the ground (track circuits).',
     ],
     'gsm-r' => [
         'name' => 'GSM-R',
@@ -254,7 +254,7 @@ return [
     'prci' => [
         'name' => 'PRCI',
         'full' => 'Poste à relais à commande informatique (relay interlocking with computer control)',
-        'definition' => 'A signal box where the interlocking between points and signals is done by relays, and routes are set by a computer: the signaller sets whole routes from a panel or a screen, rather than each device.',
+        'definition' => 'A signal box where the interlocking between points and signals is done by relays, and routes are set by a computer: a keyboard and a screen replace the panel of the relay box with geographical wiring, and the signaller can programme sequences of routes. The first one entered service in France in 1984.',
     ],
     'electrification' => [
         'name' => 'Electrification',
@@ -479,11 +479,11 @@ return [
     ],
     'element-automoteur' => [
         'name' => 'Multiple unit',
-        'definition' => 'Rolling stock that runs on its own engines, without a locomotive, made of one or more cars permanently coupled. The term covers electric multiple units, railcars and bi-mode units; SNCF speaks of EAD (diesel), EAE (electric) or EAB (bi-mode).',
+        'definition' => 'A multiple unit made of several cars permanently coupled, running on its own engines without a locomotive. SNCF classes them by motive power: EAD (diesel), EAE (electric) or EAB (bi-mode). Single-car railcars and motor coaches form a separate category.',
     ],
     'rame-a-turbine-a-gaz' => [
         'name' => 'Gas turbine trainset',
-        'definition' => 'A multiple-unit trainset powered by gas turbines burning diesel fuel, built in France in the 1970s: first units (ETG), then trainsets (RTG), still in service in the early 2000s.',
+        'definition' => 'A multiple-unit trainset whose traction comes from gas turbines, built in France in the 1970s: first the gas turbine units (ETG), fourteen sets in service between 1970 and 1972 with a turbine and a diesel engine, then the gas turbine trainsets (RTG), 44 built and delivered from 1973 and run on diesel fuel. The last turbotrain ended its service in France in December 2004.',
     ],
     'rame' => [
         'name' => 'Trainset',

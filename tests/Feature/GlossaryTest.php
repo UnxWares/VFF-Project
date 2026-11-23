@@ -173,6 +173,28 @@ class GlossaryTest extends TestCase
         $this->assertNull(Glossary::find('inconnu', 'fr'));
     }
 
+    public function test_the_signalling_and_rolling_stock_dates_follow_their_sources(): void
+    {
+        foreach (['fr', 'en', 'de'] as $locale) {
+            $tvm300 = Glossary::find('tvm-300', $locale);
+            $tvm430 = Glossary::find('tvm-430', $locale);
+            $rtg = Glossary::find('rame-a-turbine-a-gaz', $locale);
+            $this->assertNotNull($tvm300);
+            $this->assertNotNull($tvm430);
+            $this->assertNotNull($rtg);
+            // TVM 300 : LGV Atlantique (24/09/1989) et nord de la LGV Rhône-Alpes (13/12/1992), pas « 1981 = TVM 300 ».
+            $this->assertMatchesRegularExpression('/1989/', $tvm300['definition']);
+            $this->assertMatchesRegularExpression('/1992/', $tvm300['definition']);
+            $this->assertMatchesRegularExpression('/260/', $tvm300['definition']);
+            $this->assertDoesNotMatchRegularExpression('/300 km\/h/', $tvm300['definition']);
+            // TVM 430 : première section de la LGV Nord le 23/05/1993.
+            $this->assertMatchesRegularExpression('/23(\.|\s)\s?(mai|May|Mai)/u', $tvm430['definition']);
+            $this->assertStringContainsString('1993', $tvm430['definition']);
+            // RTG : dernier service en décembre 2004.
+            $this->assertStringContainsString('2004', $rtg['definition']);
+        }
+    }
+
     public function test_the_glossary_is_in_the_sitemap(): void
     {
         $this->assertStringContainsString('/glossary</loc>', (string) $this->get('/sitemap-pages-1.xml')->getContent());

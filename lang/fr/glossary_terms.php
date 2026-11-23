@@ -103,7 +103,7 @@ return [
     ],
     'gare-de-bifurcation' => [
         'name' => 'Gare de bifurcation',
-        'definition' => 'Gare établie à l’endroit où deux lignes se séparent, et où les voyageurs peuvent changer de ligne. Beaucoup de grandes gares de correspondance doivent leur existence à une bifurcation.',
+        'definition' => 'Gare établie à l’endroit où deux lignes se séparent, et où les voyageurs peuvent changer de ligne. Elle peut se trouver dans une petite localité : en 1867, le jury de l’exposition universelle citait Tergnier comme exemple de l’importance d’une gare de bifurcation dans une « localité sans importance ».',
     ],
     'ite' => [
         'name' => 'ITE',
@@ -133,7 +133,7 @@ return [
     ],
     'embarcadere' => [
         'name' => 'Embarcadère',
-        'definition' => 'Nom ancien d’une gare, surtout d’une gare terminus, employé au XIXe siècle pour les premiers chemins de fer. Il survit dans certains noms de gares, comme la gare embarcadère de Sceaux.',
+        'definition' => 'Nom employé au XIXe siècle pour la gare des premiers chemins de fer : la gare Saint-Lazare, ouverte en 1837 pour la ligne de Paris à Saint-Germain-en-Laye, était alors un « embarcadère ». Le mot survit dans certains noms de gares, comme la gare embarcadère de Sceaux.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -218,11 +218,11 @@ return [
     ],
     'tvm-300' => [
         'name' => 'TVM 300',
-        'definition' => 'Première version de la transmission voie-machine, mise en service avec la LGV Sud-Est en 1981 et reprise sur la LGV Atlantique. Le code transmis par les rails donne au train la vitesse à ne pas dépasser sur le canton suivant ; elle a été conçue pour des vitesses allant jusqu’à 300 km/h.',
+        'definition' => 'Première version de la transmission voie-machine (TVM), analogique : le circuit de voie UM 71 transmet par les rails une consigne de vitesse parmi 18, contrôlée par paliers, sans distance but ni profil. Elle équipe la LGV Sud-Est (première mise en service commerciale le 27 septembre 1981, en TVM 260 puis 270 à l’origine), la LGV Atlantique (24 septembre 1989) et la section nord de la LGV Rhône-Alpes (13 décembre 1992).',
     ],
     'tvm-430' => [
         'name' => 'TVM 430',
-        'definition' => 'Version suivante de la transmission voie-machine, introduite avec la LGV Nord en 1993 et reprise sur des LGV plus récentes. Elle transmet davantage d’informations et supervise un freinage continu, ce qui permet de rapprocher les trains et de rouler jusqu’à 320 km/h.',
+        'definition' => 'Version numérique de la transmission voie-machine (TVM), installée d’abord sur la LGV Nord (première section de Gonesse à Arras mise en service le 23 mai 1993) puis sur les LGV plus récentes. Son message de 27 bits comprend une consigne de vitesse, une distance but et un profil moyen, ce qui permet au train de suivre une courbe de contrôle continue de la vitesse, y compris en cas de freinage d’urgence ; elle code des vitesses jusqu’à 320 km/h.',
     ],
     'etcs' => [
         'name' => 'ETCS',
@@ -240,7 +240,7 @@ return [
     ],
     'ertms-niveau-2' => [
         'name' => 'ERTMS niveau 2',
-        'definition' => 'Deuxième niveau de l’ETCS : l’autorisation de mouvement est transmise en continu par la radio GSM-R et affichée en cabine. Les eurobalises ne servent plus qu’à repérer la position du train ; la détection des trains reste faite au sol (circuits de voie ou compteurs d’essieux) et les signaux latéraux deviennent facultatifs.',
+        'definition' => 'Deuxième niveau de l’ETCS : le train transmet en continu sa position au Radio Block Centre (RBC), qui lui renvoie l’autorisation de mouvement par la radio GSM-R, affichée en cabine. Les eurobalises ne servent plus qu’à repérer le train ; la détection des trains reste faite au sol (circuits de voie).',
     ],
     'gsm-r' => [
         'name' => 'GSM-R',
@@ -254,7 +254,7 @@ return [
     'prci' => [
         'name' => 'PRCI',
         'full' => 'Poste à relais à commande informatique',
-        'definition' => 'Poste d’aiguillage où les enclenchements entre aiguilles et signaux sont réalisés par des relais, et la commande des itinéraires par un calculateur : l’agent commande des itinéraires entiers depuis un pupitre ou un écran, et non plus chaque appareil.',
+        'definition' => 'Poste d’aiguillage où les enclenchements entre aiguilles et signaux sont réalisés par des relais, et la commande des itinéraires par un calculateur : un clavier et un écran remplacent le pupitre du poste à relais à câblage géographique, et l’agent peut programmer des séquences d’itinéraires. Le premier est entré en service en France en 1984.',
     ],
     'electrification' => [
         'name' => 'Électrification',
@@ -479,11 +479,11 @@ return [
     ],
     'element-automoteur' => [
         'name' => 'Élément automoteur',
-        'definition' => 'Matériel qui roule seul grâce à ses propres moteurs, sans locomotive, formé d’une ou plusieurs caisses accouplées en permanence. Le terme regroupe automotrices électriques, autorails et bimodes ; la SNCF parle d’EAD (diesel), d’EAE (électrique) ou d’EAB (bimode).',
+        'definition' => 'Rame automotrice formée de plusieurs caisses accouplées en permanence, qui roule seule grâce à ses propres moteurs, sans locomotive. La SNCF les classe selon leur motorisation : EAD (diesel), EAE (électrique) ou EAB (bimode). Les automotrices et autorails à une seule caisse forment une catégorie distincte.',
     ],
     'rame-a-turbine-a-gaz' => [
         'name' => 'Rame à turbine à gaz',
-        'definition' => 'Rame automotrice dont les moteurs sont des turbines à gaz brûlant du carburant diesel, construite en France dans les années 1970 : d’abord des éléments (ETG), puis des rames (RTG), encore en service au début des années 2000.',
+        'definition' => 'Rame automotrice dont la traction est assurée par des turbines à gaz, construite en France dans les années 1970 : d’abord les éléments à turbine à gaz (ETG), quatorze rames entrées en service entre 1970 et 1972 avec une turbine et un moteur diesel, puis les rames à turbine à gaz (RTG), quarante-quatre exemplaires livrés à partir de 1973 et alimentés au gazole. Le dernier turbotrain a terminé son service en France en décembre 2004.',
     ],
     'rame' => [
         'name' => 'Rame',

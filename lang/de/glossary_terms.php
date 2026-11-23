@@ -103,7 +103,7 @@ return [
     ],
     'gare-de-bifurcation' => [
         'name' => 'Abzweigbahnhof',
-        'definition' => 'Bahnhof an der Stelle, an der sich zwei Strecken trennen und an dem die Reisenden von einer Strecke auf die andere umsteigen können. Viele große Umsteigebahnhöfe verdanken ihre Entstehung einer Abzweigung.',
+        'definition' => 'Bahnhof an der Stelle, an der sich zwei Strecken trennen und an dem die Reisenden von einer Strecke auf die andere umsteigen können. Er kann in einem kleinen Ort liegen: 1867 nannte die Jury der Weltausstellung Tergnier als Beispiel für die Bedeutung eines Abzweigbahnhofs in einem „Ort ohne Bedeutung“.',
     ],
     'ite' => [
         'name' => 'ITE',
@@ -133,7 +133,7 @@ return [
     ],
     'embarcadere' => [
         'name' => 'Embarcadère (frühe Endstation)',
-        'definition' => 'Alter Name für einen Bahnhof, vor allem für einen Endbahnhof, der im 19. Jahrhundert bei den ersten Eisenbahnen gebräuchlich war. Er hat sich in einigen Bahnhofsnamen erhalten, etwa im Bahnhof Embarcadère de Sceaux.',
+        'definition' => 'Im 19. Jahrhundert gebräuchlicher Name für den Bahnhof der ersten Eisenbahnen: Paris-Saint-Lazare, 1837 für die Strecke von Paris nach Saint-Germain-en-Laye eröffnet, war damals ein „embarcadère“. Das Wort hat sich in einigen Bahnhofsnamen erhalten, etwa im Bahnhof Embarcadère de Sceaux.',
     ],
     'lgv' => [
         'name' => 'LGV',
@@ -218,11 +218,11 @@ return [
     ],
     'tvm-300' => [
         'name' => 'TVM 300',
-        'definition' => 'Erste Version der TVM (Übertragung zwischen Gleis und Fahrzeug), 1981 mit der LGV Sud-Est in Betrieb genommen und auf der LGV Atlantique wieder eingesetzt. Der über die Schienen übertragene Code gibt dem Zug die Geschwindigkeit vor, die im nächsten Block nicht überschritten werden darf; sie wurde für Geschwindigkeiten bis 300 km/h ausgelegt.',
+        'definition' => 'Erste, analoge Version der TVM (Übertragung zwischen Gleis und Fahrzeug): Der Gleisstromkreis UM 71 überträgt über die Schienen einen von 18 Geschwindigkeitswerten, die stufenweise überwacht werden, ohne Zielentfernung und mittleres Profil. Sie ist auf der LGV Sud-Est (erste kommerzielle Inbetriebnahme am 27. September 1981, anfangs mit TVM 260, dann 270), der LGV Atlantique (24. September 1989) und dem Nordabschnitt der LGV Rhône-Alpes (13. Dezember 1992) installiert.',
     ],
     'tvm-430' => [
         'name' => 'TVM 430',
-        'definition' => 'Spätere Version der TVM, 1993 mit der LGV Nord eingeführt und auf neueren Hochgeschwindigkeitsstrecken wieder eingesetzt. Sie überträgt mehr Informationen und überwacht ein durchgehendes Bremsen, sodass die Züge dichter aufeinander folgen und bis zu 320 km/h fahren können.',
+        'definition' => 'Digitale Version der TVM, zuerst auf der LGV Nord eingebaut (erster Abschnitt von Gonesse bis Arras am 23. Mai 1993 in Betrieb genommen), dann auf neueren Hochgeschwindigkeitsstrecken. Ihre 27-Bit-Nachricht enthält einen Geschwindigkeitswert, eine Zielentfernung und ein mittleres Profil, sodass der Zug einer durchgehenden Geschwindigkeitsüberwachungskurve folgen kann, auch bei einer Notbremsung; sie kodiert Geschwindigkeiten bis 320 km/h.',
     ],
     'etcs' => [
         'name' => 'ETCS',
@@ -240,7 +240,7 @@ return [
     ],
     'ertms-niveau-2' => [
         'name' => 'ERTMS Level 2',
-        'definition' => 'Zweite Stufe des ETCS: Die Fahrerlaubnis wird fortlaufend über den GSM-R-Funk übertragen und im Führerstand angezeigt. Die Eurobalisen dienen nur noch zur Ortung des Zuges; die Zugortung erfolgt weiterhin am Boden (Gleisstromkreise oder Achszähler), und Signale am Streckenrand sind nicht mehr zwingend.',
+        'definition' => 'Zweite Stufe des ETCS: Der Zug meldet seine Position fortlaufend an das Radio Block Centre (RBC), das ihm die Fahrerlaubnis über den GSM-R-Funk zurücksendet; sie wird im Führerstand angezeigt. Die Eurobalisen dienen nur noch zur Ortung des Zuges; die Zugortung erfolgt weiterhin am Boden (Gleisstromkreise).',
     ],
     'gsm-r' => [
         'name' => 'GSM-R',
@@ -254,7 +254,7 @@ return [
     'prci' => [
         'name' => 'PRCI',
         'full' => 'Poste à relais à commande informatique (Relaisstellwerk mit Rechnersteuerung)',
-        'definition' => 'Stellwerk, in dem die Abhängigkeiten zwischen Weichen und Signalen durch Relais hergestellt werden und die Fahrstraßen von einem Rechner gestellt werden: Der Bedienstete stellt ganze Fahrstraßen von einem Pult oder Bildschirm aus, nicht mehr jede Einrichtung einzeln.',
+        'definition' => 'Stellwerk, in dem die Abhängigkeiten zwischen Weichen und Signalen durch Relais hergestellt werden und die Fahrstraßen von einem Rechner gestellt werden: Tastatur und Bildschirm ersetzen das Pult des Relaisstellwerks mit geografischer Verdrahtung, und der Bedienstete kann Fahrstraßenfolgen programmieren. Das erste ging 1984 in Frankreich in Betrieb.',
     ],
     'electrification' => [
         'name' => 'Elektrifizierung',
@@ -479,11 +479,11 @@ return [
     ],
     'element-automoteur' => [
         'name' => 'Triebzug (élément automoteur)',
-        'definition' => 'Fahrzeug, das mit eigenen Motoren ohne Lokomotive fährt und aus einem oder mehreren dauerhaft gekuppelten Wagenkästen besteht. Der Begriff umfasst Elektrotriebzüge, Schienenbusse und Zweikraftzüge; die SNCF spricht von EAD (Diesel), EAE (elektrisch) oder EAB (bimodal).',
+        'definition' => 'Triebzug aus mehreren dauerhaft gekuppelten Wagenkästen, der mit eigenen Motoren ohne Lokomotive fährt. Die SNCF ordnet sie nach dem Antrieb ein: EAD (Diesel), EAE (elektrisch) oder EAB (bimodal). Einteilige Triebwagen und Schienenbusse bilden eine eigene Kategorie.',
     ],
     'rame-a-turbine-a-gaz' => [
         'name' => 'Gasturbinentriebzug',
-        'definition' => 'Triebzug, dessen Antrieb aus Gasturbinen besteht, die Dieselkraftstoff verbrennen. Er wurde in den 1970er-Jahren in Frankreich gebaut: zuerst als Einheiten (ETG), dann als Züge (RTG), die bis in die frühen 2000er-Jahre im Einsatz waren.',
+        'definition' => 'Triebzug, dessen Antrieb aus Gasturbinen besteht und der in den 1970er-Jahren in Frankreich gebaut wurde: zuerst die Gasturbineneinheiten (ETG), vierzehn Züge, die von 1970 bis 1972 mit einer Turbine und einem Dieselmotor in Dienst gingen, dann die Gasturbinenzüge (RTG), 44 Stück, ab 1973 geliefert und mit Dieselkraftstoff betrieben. Der letzte Turbotrain beendete seinen Dienst in Frankreich im Dezember 2004.',
     ],
     'rame' => [
         'name' => 'Zugeinheit (Rame)',
