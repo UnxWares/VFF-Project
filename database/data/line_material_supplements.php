@@ -22,7 +22,7 @@
  * comme un début de circulation…), retirée par vff:import-material-periods. `start` et `end` : dates telles que
  * l'import les écrit (null pour une borne absente).
  *
- * Relecture du 23/11/2026 (rapport storage/app/reports/agents/aprem-2111/regio2n-omneo.md).
+ * Relecture du 23/11/2026 (rapports storage/app/reports/agents/aprem-2111/regio2n-omneo.md et materiel-manques.md).
  *
  * @return array{
  *     links: list<array{line: string, material: string, kind: string, article: string, revid: int, section: string, quote: string, from?: array{date: string, precision: string}|null, to?: array{date: string, precision: string}|null}>,
@@ -59,6 +59,54 @@ return [
             'section' => 'Desserte > Liaisons Krono+ (grandes lignes)',
             'quote' => 'La dernière circulation des BB 26000 a eu lieu le 2 février 2021. Depuis cette date, des rames Omneo Premium assurent le service sur la ligne.',
             'to' => ['date' => '2021-02-02', 'precision' => 'day'],
+        ],
+        [
+            'line' => '366000',
+            'material' => 'Q265728', // Rame à turbine à gaz : citée sans lien (article « Turbotrain ») par l'article de la ligne
+            'kind' => 'wikipedia_material_article',
+            'article' => 'Rame à turbine à gaz',
+            'revid' => 239497908,
+            'section' => 'Version française > Relations françaises desservies par les RTG',
+            'quote' => 'Paris - Cherbourg : de 1975 au 1 juin 1996, en remplacement des ETG mutés progressivement à Vénissieux.',
+            'from' => ['date' => '1975-01-01', 'precision' => 'year'],
+            'to' => ['date' => '1996-06-01', 'precision' => 'day'],
+        ],
+        [
+            'line' => '366000',
+            'material' => 'Q3588105', // Élément à turbine à gaz : fin sur la relation, remplacé par les RTG
+            'kind' => 'wikipedia_material_article',
+            'article' => 'Élément à turbine à gaz',
+            'revid' => 225161072,
+            'section' => 'Introduction',
+            'quote' => 'Ils sont cependant remplacés dès 1975, sur cette relation dont la fréquentation s\'est fortement accrue, par les rames à turbine à gaz (RTG, turbotrains de seconde génération), plus puissantes et d\'une capacité supérieure.',
+            'to' => ['date' => '1975-01-01', 'precision' => 'year'],
+        ],
+        [
+            'line' => '366000',
+            'material' => 'Q3570526', // X 72500 : Caen - Mézidon est la section de la ligne que la phrase dessert (liste TER Normandie)
+            'kind' => 'wikipedia_material_article',
+            'article' => 'X 72500',
+            'revid' => 239956152,
+            'section' => 'Relations assurées > TER Normandie',
+            'quote' => 'Caen - Mézidon - Argentan - Alençon - Le Mans - Tours',
+        ],
+        [
+            'line' => '340000',
+            'material' => 'Q137669875', // Z 56800 (Omneo Premium Citi, seconde commande normande)
+            'kind' => 'wikipedia_material_article',
+            'article' => 'Regio 2N',
+            'revid' => 241518027,
+            'section' => 'Relations effectuées > TER > Normandie',
+            'quote' => 'Paris-Saint-Lazare - Rouen-Rive-Droite (Omneo Premium Citi, Z 56800)',
+        ],
+        [
+            'line' => '366000',
+            'material' => 'Q137669875', // Z 56800 : Paris - Serquigny passe par Mantes - Évreux - Serquigny
+            'kind' => 'wikipedia_material_article',
+            'article' => 'Regio 2N',
+            'revid' => 241518027,
+            'section' => 'Relations effectuées > TER > Normandie',
+            'quote' => 'Paris-Saint-Lazare - Serquigny (Omneo Premium Citi, Z 56800)',
         ],
     ],
     'dropped_periods' => [
