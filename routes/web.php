@@ -17,6 +17,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
+use App\Http\Controllers\GlossaryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
@@ -129,6 +130,8 @@ Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
 Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDocument::Privacy->currentVersion()]))->name('privacy');
 Route::get('/use-conditions', fn () => Inertia::render('UseConditions', ['updated' => LegalDocument::UseConditions->currentVersion()]))->name('use-conditions');
 Route::get('/accessibility', fn () => Inertia::render('Accessibility'))->name('accessibility');
+// Glossaire du vocabulaire ferroviaire (resources/content/glossary, lang/*/glossary_terms.php).
+Route::get('/glossary', [GlossaryController::class, 'index'])->name('glossary');
 
 // Limites de débit par profil (config/api.php), affichées dans « Authentification et quotas » ;
 // règles de livraison des webhooks (config/webhooks.php), affichées dans « Webhooks ».

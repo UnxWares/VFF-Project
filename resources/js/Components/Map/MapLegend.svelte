@@ -1,5 +1,6 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import GlossaryText from '$components/GlossaryText.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
         HERITAGE_STYLES,
@@ -459,7 +460,7 @@
             </li>
         {/if}
     </ul>
-    <p class="legend-hint">{$i18n.t('maps.signalling.kvb_note')}</p>
+    <p class="legend-hint"><GlossaryText text={String($i18n.t('maps.signalling.kvb_note'))} /></p>
     {#if signallingPast}
         <p class="legend-hint">{$i18n.t('maps.signalling.history.source_note')}</p>
     {:else}

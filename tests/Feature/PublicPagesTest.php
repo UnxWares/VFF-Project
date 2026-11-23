@@ -38,6 +38,7 @@ class PublicPagesTest extends TestCase
             'confidentialité' => ['/privacy', 'Privacy'],
             'CGU' => ['/use-conditions', 'UseConditions'],
             'accessibilité' => ['/accessibility', 'Accessibility'],
+            'glossaire' => ['/glossary', 'Glossary'],
             'doc API' => ['/api', 'ApiDocs'],
             'crédits tech' => ['/credits/tech', 'Credits/Tech'],
             'crédits médias' => ['/credits/media', 'Credits/Media'],

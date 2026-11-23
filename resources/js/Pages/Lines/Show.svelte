@@ -42,6 +42,7 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
+    import GlossaryText from '$components/GlossaryText.svelte';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
@@ -1195,7 +1196,7 @@
 
                 {#if signalling.length}
                     <h3 class="sub">{t('lines.section.signalling')}</h3>
-                    <p class="section-intro">{signallingIntro}</p>
+                    <p class="section-intro"><GlossaryText text={signallingIntro} /></p>
                     <p class="sig-more">
                         <a class="vff-link" href="/maps?layer=signalling"
                             >{t('lines.sheet.tech.signalling_map')}</a
