@@ -1504,4 +1504,34 @@ return [
         'quote' => 'au terme d\'une procédure irrégulière',
         'reason' => 'Le Pouzin - Privas (PK 640,962 à 658,900) : décision de déclassement de RFF annulée faute de consultation de la région Rhône-Alpes (article 49 du décret du 5 mai 1997)',
     ],
+
+    // 420000 Paris-Montparnasse - Brest, section Laval - Vitré (Port-Brillet, Le Genest) : les cinq « ouvertures »
+    // OpenHistoricalMap du 01/10/1867 (Laval - Le Genest, deux portions près de Port-Brillet, près du Genest, près de
+    // Vitré) datent la section de 1867. Or le 01/10/1867 est l'ouverture de Vitré - Fougères (ligne de Vitré à
+    // Pontorson, autre ligne partant de la même gare), et la section Laval - Rennes ouvre en mai 1857 (article de la
+    // gare de Vitré, qui sépare les deux dates ; article de la ligne : « puis enfin Rennes en mai 1857 » ; Histoire de
+    // la Mayenne : « la ligne Paris-Rennes est inaugurée en mai 1857 », gare de Laval en 1855). Le 1er mai 1857 est
+    // aussi le jour d'ouverture déjà en base pour Rennes - Vitré (OpenHistoricalMap). Rapport
+    // storage/app/reports/agents/aprem-2111/lignes-sources-nuit.md.
+    [
+        'line' => '420000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1867-10-01'],
+        'label' => 'Ouverture de Vitré - Fougères (ligne de Vitré à Pontorson), date prise pour la section Laval - Vitré (OHM)',
+        'source_url' => $wp('Gare de Vitré', 232112833),
+        'quote' => '1 octobre 1867 : ouverture de la section Vitré – Fougères de la ligne Vitré – Pontorson.',
+        'reason' => 'le 1er octobre 1867 est l\'ouverture de Vitré - Fougères ; Laval - Rennes ouvre le 1er mai 1857 (même article)',
+    ],
+    [
+        'line' => '420000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-05-01',
+        'precision' => 'month',
+        'from' => 'Laval',
+        'to' => 'Vitré',
+        'source_url' => $wp('Gare de Vitré', 232112833),
+        'quote' => '1 mai 1857 : ouverture de la section Laval – Rennes de la ligne Paris-Montparnasse – Brest.',
+        'reason' => 'ouverture de Laval à Rennes (donc de Laval à Vitré) en mai 1857 (article de la ligne de Paris-Montparnasse à Brest, oldid 239547071 : « puis enfin Rennes en mai 1857 » ; mois seul, l\'article de la gare donne aussi le 15/04/1857 pour une première voie)',
+    ],
 ];
