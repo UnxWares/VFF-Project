@@ -9,7 +9,9 @@ namespace App\Services\Signalling;
  *
  * Codes : BAL, BAPR, BM (toutes variantes de block manuel), CT (cantonnement téléphonique), TVM-300, TVM-430
  * ou TVM (version non dite), ETCS_L1, ETCS_L2 ou ETCS (niveau non dit), KVB (contrôle de vitesse, jamais un
- * cantonnement).
+ * cantonnement), CC (commande centralisée : CCVU, CCR, PCD ; commande à distance des postes depuis un poste central,
+ * jamais un cantonnement, elle se combine avec l'un d'eux). CC n'est pas repérée dans les textes (mentions) : trop de
+ * sens voisins (centre de commande de métro, PRCI, CTC), ses faits sont relus à la main (compléments et sources).
  */
 final class SignallingSystems
 {
@@ -25,7 +27,7 @@ final class SignallingSystems
     ];
 
     /** Année avant laquelle le système n'existait pas : une date plus ancienne est une erreur de lecture probable. */
-    private const FIRST_YEAR = ['BAL' => 1925, 'BAPR' => 1935, 'BM' => 1850, 'CT' => 1850, 'TVM' => 1976, 'ETCS' => 1998, 'KVB' => 1980];
+    private const FIRST_YEAR = ['BAL' => 1925, 'BAPR' => 1935, 'BM' => 1850, 'CT' => 1850, 'TVM' => 1976, 'ETCS' => 1998, 'KVB' => 1980, 'CC' => 1930];
 
     /**
      * Systèmes cités dans un texte, avec leur position (en caractères) et leur code, dans l'ordre du texte.

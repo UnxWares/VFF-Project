@@ -165,6 +165,28 @@ WIKI;
         $this->assertSame(0, DB::table('line_signalling_history_map')->join('eras', 'eras.id', '=', 'line_signalling_history_map.era_id')->where('eras.is_current', true)->count());
     }
 
+    public function test_remote_control_is_drawn_on_top_of_the_block_system_in_its_own_family_without_replacing_it(): void
+    {
+        $this->article('Ligne de Saint-Cloud à Saint-Nom-la-Bretèche', self::ARTICLE."\nUne commande centralisée de voie banalisée est mise en service en 1985 d'Alphaville à Betaville.\n", 240844633);
+        $supplements = tempnam(sys_get_temp_dir(), 'vff-supplements-');
+        $this->beforeApplicationDestroyed(fn () => @unlink($supplements));
+        file_put_contents($supplements, '<?php return '.var_export([[
+            'line' => '974000', 'system' => 'CC', 'date' => '1985', 'scope' => 'section', 'from' => 'Alphaville', 'to' => 'Betaville',
+            'quote' => 'Une commande centralisée de voie banalisée est mise en service en 1985 d\'Alphaville à Betaville.',
+        ]], true).';');
+        $this->import(['--supplements' => $supplements]);
+
+        $this->assertSame('remote_control', DB::table('line_signalling_events')->where('system', 'CC')->value('role'));
+        $rows = DB::table('line_signalling_history_map as h')->join('line_signalling_events as e', 'e.id', '=', 'h.event_id')
+            ->join('eras', 'eras.id', '=', 'h.era_id')->where('eras.year', 1990)->orderBy('h.sort')
+            ->get(['e.system', 'h.family', 'h.location', 'h.sort']);
+        $this->assertSame([['BM', 'manual_block'], ['BAL', 'automatic_block'], ['CC', 'centralized_control']], $rows->map(fn ($r) => [$r->system, $r->family])->all(), 'la commande centralisée est dessinée par-dessus, le BAL est gardé');
+        $this->assertSame('section', $rows->last()->location);
+        $this->assertGreaterThan(300_000_000, (int) $rows->last()->sort, 'rang au-dessus de tout cantonnement');
+        $this->assertSame(0, DB::table('line_signalling_history_map as h')->join('line_signalling_events as e', 'e.id', '=', 'h.event_id')
+            ->join('eras', 'eras.id', '=', 'h.era_id')->where('eras.year', 1950)->where('e.system', 'CC')->count(), 'pas de commande centralisée avant sa date');
+    }
+
     public function test_a_closed_section_is_not_drawn_at_that_era(): void
     {
         DB::table('line_segments')->where('era_id', $this->era1990->id)->update(['status' => 'dismantled']);

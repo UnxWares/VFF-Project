@@ -86,7 +86,8 @@
         levelCrossingTilesUrl,
     } from '$lib/levelCrossingMap.js';
     import {
-        SIGNALLING_DASH_GROUPS,
+        SIGNALLING_BLOCK_LAYER_IDS,
+        SIGNALLING_CONTROL_LAYER_ID,
         SIGNALLING_LAYER_IDS,
         SIGNALLING_SOURCE_ID,
         signallingLayers,
@@ -1767,16 +1768,17 @@
     const levelCrossingAt = (point) => featureAt(point, [LEVEL_CROSSING_LAYER_ID]);
     // Gare sous le clic (point exact, comme le clic de la couche) : elle passe avant la signalisation.
     const stationAt = (point) => featureAt(point, ['vff-stations-points'], 0);
-    const signallingAt = (point) =>
-        featureAt(
-            point,
-            SIGNALLING_DASH_GROUPS.map((g) => g.id),
-            4,
-        );
+    const signallingAt = (point) => featureAt(point, SIGNALLING_BLOCK_LAYER_IDS, 4);
+    // Commande centralisée sous le clic (époques passées) : ajoutée à la bulle du cantonnement, ou seule sinon.
+    const controlAt = (point) => featureAt(point, [SIGNALLING_CONTROL_LAYER_ID], 4);
     /** Point ou tranche d'un calque facultatif sous le clic (prioritaire sur les tracés). */
     const greenwayAt = (point) => featureAt(point, [GREENWAY_LINE_LAYER_ID], 4);
     const overlayAt = (point) =>
-        accidentAt(point) ?? levelCrossingAt(point) ?? signallingAt(point) ?? greenwayAt(point);
+        accidentAt(point) ??
+        levelCrossingAt(point) ??
+        signallingAt(point) ??
+        controlAt(point) ??
+        greenwayAt(point);
 
     function openOverlayPopup(html, lineSlug, lngLat) {
         const href = lineSlug ? `/lines/${encodeURIComponent(lineSlug)}` : null;
@@ -1848,18 +1850,26 @@
             for (const layer of signallingLayers()) map.addLayer(layer, before);
             map.on('click', (e) => {
                 if (accidentAt(e.point) || levelCrossingAt(e.point) || stationAt(e.point)) return;
-                const f = signallingAt(e.point);
+                const control = controlAt(e.point);
+                const f = signallingAt(e.point) ?? control;
                 if (!f) return;
                 const { t, language } = get(i18n);
                 openOverlayPopup(
-                    (link) => signallingPopupHtml(f.properties, t, language, link),
+                    (link) =>
+                        signallingPopupHtml(
+                            f.properties,
+                            t,
+                            language,
+                            link,
+                            control?.properties ?? null,
+                        ),
                     f.properties.line_slug,
                     e.lngLat,
                 );
             });
-            for (const g of SIGNALLING_DASH_GROUPS) {
-                map.on('mouseenter', g.id, () => (map.getCanvas().style.cursor = 'pointer'));
-                map.on('mouseleave', g.id, () => (map.getCanvas().style.cursor = ''));
+            for (const id of [...SIGNALLING_BLOCK_LAYER_IDS, SIGNALLING_CONTROL_LAYER_ID]) {
+                map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
+                map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
             }
             if (mode === 'signalling') applyColoringLabels(mode);
         }
@@ -1892,7 +1902,12 @@
             );
             for (const layer of greenwayLayers()) map.addLayer(layer, before ?? overlayBefore());
             map.on('click', (e) => {
-                if (accidentAt(e.point) || levelCrossingAt(e.point) || signallingAt(e.point))
+                if (
+                    accidentAt(e.point) ||
+                    levelCrossingAt(e.point) ||
+                    signallingAt(e.point) ||
+                    controlAt(e.point)
+                )
                     return;
                 if (stationAt(e.point)) return;
                 const f = greenwayAt(e.point);

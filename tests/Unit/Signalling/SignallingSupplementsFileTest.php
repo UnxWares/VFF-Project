@@ -48,9 +48,18 @@ class SignallingSupplementsFileTest extends TestCase
         $this->assertSame('speed_control', $facts[0]['role']);
     }
 
+    public function test_remote_control_is_accepted_with_its_own_role_and_is_never_a_block_system(): void
+    {
+        ['facts' => $facts, 'errors' => $errors] = SignallingSupplementsFile::parse([self::entry(['system' => 'CC', 'date' => '1962-01-21', 'scope' => 'unspecified'])], new \DateTimeImmutable(self::TODAY));
+
+        $this->assertSame([], $errors);
+        $this->assertSame(['CC', 'remote_control', '1962-01-21'], [$facts[0]['system'], $facts[0]['role'], $facts[0]['date']]);
+    }
+
     /** @return iterable<string, array{0: array<string, mixed>, 1: string}> */
     public static function refused(): iterable
     {
+        yield 'commande centralisée avant 1930' => [['system' => 'CC', 'date' => '1925', 'scope' => 'unspecified'], 'date antérieure au système'];
         yield 'système inconnu' => [['system' => 'CBTC'], 'système inconnu'];
         yield 'date illisible' => [['date' => '23/09/1981'], 'date illisible'];
         yield 'date impossible' => [['date' => '1981-02-30'], 'date impossible'];
@@ -99,5 +108,8 @@ class SignallingSupplementsFileTest extends TestCase
             $this->assertMatchesRegularExpression('/^\d{6}$/', $f['line'], 'code SNCF Réseau à 6 chiffres');
             $this->assertMatchesRegularExpression('/\b(?:1[89]|20)\d\d\b/', $f['quote'].' '.$f['date'], $f['line']);
         }
+        $remote = array_filter($facts, fn (array $f): bool => $f['system'] === 'CC');
+        $this->assertGreaterThanOrEqual(15, count($remote), 'faits de commande centralisée relevés dans les articles');
+        $this->assertSame(['remote_control'], array_values(array_unique(array_column($remote, 'role'))));
     }
 }

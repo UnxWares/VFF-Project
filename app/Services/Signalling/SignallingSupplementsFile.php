@@ -16,7 +16,7 @@ use App\Enums\SignallingRole;
  *            liens ⟦…⟧ ôtés). L'import la
  *              cherche dans l'article lu : absente (l'article a changé), le fait n'est pas rangé et la commande
  *              échoue. Elle devient l'extrait du fait ;
- *   system   : BAL, BAPR, BM, CT, TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS ou KVB ;
+ *   system   : BAL, BAPR, BM, CT, CC (commande centralisée), TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS ou KVB ;
  *   date     : AAAA-MM-JJ, AAAA-MM ou AAAA, comme la phrase (jamais une date déduite) ;
  *   scope    : whole_line, section (avec from et to : gares telles que l'article les nomme) ou unspecified.
  *
@@ -99,7 +99,7 @@ final class SignallingSupplementsFile
                 return "champ « {$key} » manquant";
             }
         }
-        if (SignallingRole::forSystem((string) $entry['system']) === null || ! preg_match('/^(?:BAL|BAPR|BM|CT|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/', (string) $entry['system'])) {
+        if (SignallingRole::forSystem((string) $entry['system']) === null || ! preg_match('/^(?:BAL|BAPR|BM|CT|CC|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/', (string) $entry['system'])) {
             return 'système inconnu';
         }
         $value = (string) $entry['date'];

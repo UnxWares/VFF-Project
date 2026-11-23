@@ -208,4 +208,93 @@ return [
         'line' => '850000', 'system' => 'BAL', 'date' => '1976', 'scope' => 'unspecified',
         'quote' => 'L\'espacement des trains est assuré par le BAL mis en service en 1976 en remplacement d\'un block manuel unifié SNCF.',
     ],
+    // Commande centralisée (système CC : CCVU, CCR, PCD, télécommande de postes depuis un poste central). Ce n'est pas un
+    // cantonnement : elle se combine avec le BAL, le BAPR ou le block manuel de la même ligne sans les remplacer. Relevé et
+    // vérifications : storage/app/reports/agents/aprem-2111/commande-centralisee.md. Les faits où l'article dit seulement
+    // « télécommandé depuis » un poste central (et non « commande centralisée ») sont rangés aussi, c'est la même fonction.
+    // Saumur - Thouars : commande centralisée de voie banalisée avec l'électrification.
+    [
+        'line' => '500000', 'system' => 'CC', 'date' => '1982', 'scope' => 'section', 'from' => 'Saumur', 'to' => 'Thouars',
+        'quote' => 'La section de Saumur à Thouars est électrifiée en 25 kV et équipée d\'une commande centralisée de voie banalisée en 1982',
+    ],
+    // Saint-Benoît - La Rochelle : commande centralisée de voie unique à Niort, avec le BAPR, pour le TGV.
+    [
+        'line' => '538000', 'system' => 'CC', 'date' => '1993', 'scope' => 'unspecified',
+        'quote' => 'Pour permettre la mise en service du TGV sur Paris - La Rochelle en 1993, la ligne est profondément modernisée : électrification en 25 kV 50 Hz et mise en place du BAPR et d\'une commande centralisée de voie unique à Niort en remplacement du block manuel.',
+    ],
+    // Épernay - Reims : commande centralisée de la circulation depuis le poste de Reims, avec le BAL.
+    [
+        'line' => '074000', 'system' => 'CC', 'date' => '1962-01-21', 'scope' => 'unspecified',
+        'quote' => 'Le trafic est géré grâce à une commande centralisée de la circulation assurée depuis le PC de Reims, opérationnel le 21 janvier 1962.',
+    ],
+    // Corse : CCVU sur tout le réseau (Bastia - Ajaccio, Ponte-Leccia - Calvi) ; première tranche Bastia - Casamozza en 2007.
+    [
+        'line' => '995000', 'article' => 'Chemins de fer de la Corse', 'system' => 'CC', 'date' => '2025-11-03', 'scope' => 'whole_line',
+        'quote' => 'Depuis le 3 novembre 2025, l\'intégralité du réseau est équipé de la commande centralisée de voie unique (CCVU).',
+    ],
+    [
+        'line' => '996000', 'article' => 'Chemins de fer de la Corse', 'system' => 'CC', 'date' => '2025-11-03', 'scope' => 'whole_line',
+        'quote' => 'Depuis le 3 novembre 2025, l\'intégralité du réseau est équipé de la commande centralisée de voie unique (CCVU).',
+    ],
+    [
+        'line' => '995000', 'system' => 'CC', 'date' => '2007', 'scope' => 'section', 'from' => 'Bastia', 'to' => 'Casamozza',
+        'quote' => 'La première tranche est mise en service fin 2007 et concerne la section suburbaine Bastia - Casamozza',
+    ],
+    // LGV Sud-Est : commande centralisée mise en service avec l'ETCS (mise en service technique du 9 au 12 novembre 2024).
+    [
+        'line' => '752000', 'system' => 'CC', 'date' => '2024-11', 'scope' => 'unspecified',
+        'quote' => 'Du 9 au 12 novembre 2024 : mise en service technique de l\'ETCS sur la ligne et de la commande centralisée.',
+    ],
+    // Montsoult - Luzarches : la commande centralisée de voie gauche fait place à un poste de commande à distance (PCD).
+    [
+        'line' => '315000', 'system' => 'CC', 'date' => '2010', 'scope' => 'unspecified',
+        'quote' => 'Pendant l\'été 2010 après de gros travaux d’infrastructure sur la ligne (« renouvellement voie ballast » (RVB) et redécoupage du mode de cantonnement), la commande centralisée a été remplacée par un poste de commande à distance (PCD)',
+    ],
+    // Valence - Moirans : poste de commande à distance construit à Moirans.
+    [
+        'line' => '908000', 'system' => 'CC', 'date' => '2006', 'scope' => 'unspecified',
+        'quote' => 'En 2006, un PIPC est mis en service, avec son Poste de Commande à Distance (PCD) construit à Moirans',
+    ],
+    // Bordeaux - Irun : postes télécommandés depuis Bordeaux (2002, 2016) et depuis le PCD de Morcenx (2019).
+    [
+        'line' => '655000', 'system' => 'CC', 'date' => '2002', 'scope' => 'section', 'from' => 'Talence-Médoquine', 'to' => 'Gazinet-Cestas',
+        'quote' => 'En 2002, à Talence-Médoquine et à Gazinet-Cestas, deux PRCI sont mis en service, télécommandés depuis Bordeaux.',
+    ],
+    [
+        'line' => '655000', 'system' => 'CC', 'date' => '2016', 'scope' => 'unspecified',
+        'quote' => 'Un PRS informatisé est mis en service en 2016 à Pessac, télécommandé depuis Bordeaux',
+    ],
+    [
+        'line' => '655000', 'system' => 'CC', 'date' => '2019-06-24', 'scope' => 'section', 'from' => 'Morcenx', 'to' => 'Dax',
+        'quote' => 'Le 24 juin 2019, un autre PRS informatisé est installé à Laluque (télécommandé depuis le poste de commandes à distance (PCD) de Morcenx), permettant la création de deux pas d\'IPCS de Morcenx à Dax.',
+    ],
+    // Lisieux - Trouville-Deauville : le poste de Lisieux télécommande ceux de Pont-l'Évêque, puis de Trouville - Deauville.
+    [
+        'line' => '390000', 'system' => 'CC', 'date' => '1994-06-03', 'scope' => 'section', 'from' => 'Lisieux', 'to' => 'Pont-l\'Évêque',
+        'quote' => 'À compter du 3 juin 1994, il télécommande un poste de même type installé à Pont-l\'Évêque, puis à partir du 14 avril 1995, celui de Trouville - Deauville.',
+    ],
+    [
+        'line' => '390000', 'system' => 'CC', 'date' => '1995-04-14', 'scope' => 'section', 'from' => 'Pont-l\'Évêque', 'to' => 'Trouville - Deauville',
+        'quote' => 'À compter du 3 juin 1994, il télécommande un poste de même type installé à Pont-l\'Évêque, puis à partir du 14 avril 1995, celui de Trouville - Deauville.',
+    ],
+    // Neuville - Cergy-Préfecture : PRCI télécommandé depuis Cergy - Saint-Christophe.
+    [
+        'line' => '326000', 'system' => 'CC', 'date' => '1994-07-09', 'scope' => 'unspecified',
+        'quote' => 'Un nouveau poste d\'aiguillage à relais à commande informatique (PRCI), télécommandé depuis Cergy - Saint-Christophe, est mis en service le 9 juillet 1994.',
+    ],
+    // Ermont - Champ-de-Mars (ligne des Docks) : PRCI de Saint-Ouen-les-Docks télécommandé depuis Gennevilliers.
+    [
+        'line' => '962000', 'system' => 'CC', 'date' => '1987-08-27', 'scope' => 'unspecified',
+        'quote' => 'avec le nouveau PRCI de Gennevilliers puis du poste PRCI de Saint-Ouen-les-Docks le 27 août 1987, normalement télécommandé depuis Gennevilliers',
+    ],
+    // Paris - Marseille : installations de sécurité de Dijon - Blaisy télécommandées depuis le poste de Dijon.
+    [
+        'line' => '830000', 'system' => 'CC', 'date' => '1949', 'scope' => 'section', 'from' => 'Dijon', 'to' => 'Blaisy',
+        'quote' => 'L\'ensemble des installations de sécurité du parcours Dijon - Blaisy ont été télécommandées par le poste de commandement de Dijon de 1949 jusqu\'au 23 août 2010',
+    ],
+    // Busigny - Somain : voies principales de Lourches commandées depuis le PCD de Somain.
+    [
+        'line' => '250000', 'article' => 'Gare de Lourches', 'system' => 'CC', 'date' => '2014-11', 'scope' => 'unspecified',
+        'quote' => 'La commande des voies principales est assurée depuis le PCD de Somain depuis novembre 2014, à cette occasion le BMU a été remplacé par du BAL.',
+    ],
 ];

@@ -19,7 +19,11 @@
     import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
     import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_GROUPS } from '$lib/levelCrossingMap.js';
-    import { SIGNALLING_FAMILIES, SIGNALLING_UNKNOWN_OPACITY } from '$lib/signallingMap.js';
+    import {
+        SIGNALLING_CONTROL,
+        SIGNALLING_FAMILIES,
+        SIGNALLING_UNKNOWN_OPACITY,
+    } from '$lib/signallingMap.js';
     import { GREENWAY_COLOR } from '$lib/greenwayMap.js';
     import { OVERLAY_HALO } from '$lib/overlayPalette.js';
     import { SCHEMA_CATEGORIES, categoryColors, paletteFor } from '$lib/schematicMap.js';
@@ -114,6 +118,8 @@
     // un trait fin et pâle couvre une ligne entière dont la portion n'est pas connue.
     const signallingPast = $derived(view === 'era' && era !== null && era !== currentEra);
     const unknownSwatch = swatchStyle(SIGNALLING_FAMILIES[0].color, null, false);
+    // Commande centralisée (époques passées) : trait fin sombre en pointillés, posé sur le cantonnement.
+    const controlSwatch = swatchStyle(SIGNALLING_CONTROL.color, SIGNALLING_CONTROL.dash, false);
     const compareRows = COMPARE_CHANGES.map((c) => ({
         key: c.key,
         swatch: swatchStyle(c.color, c.dash, c.key !== 'kept'),
@@ -447,6 +453,12 @@
             </li>
         {/each}
         {#if signallingPast}
+            <li>
+                <span class="legend-row">
+                    <i class="swatch" style={controlSwatch} aria-hidden="true"></i>
+                    <span>{$i18n.t(`maps.signalling.families.${SIGNALLING_CONTROL.key}`)}</span>
+                </span>
+            </li>
             <li>
                 <span class="legend-row">
                     <i

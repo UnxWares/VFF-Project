@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+    SIGNALLING_BLOCK_LAYER_IDS,
     SIGNALLING_CASING_LAYER_ID,
+    SIGNALLING_CONTROL,
+    SIGNALLING_CONTROL_LAYER_ID,
     SIGNALLING_DASH_GROUPS,
     SIGNALLING_FAMILIES,
     SIGNALLING_LAYER_IDS,
@@ -32,7 +35,7 @@ describe('familles et couches', () => {
         const all = SIGNALLING_DASH_GROUPS.flatMap((g) => g.keys);
         expect(all.sort()).toEqual(SIGNALLING_FAMILIES.map((f) => f.key).sort());
         expect(SIGNALLING_DASH_GROUPS).toHaveLength(3);
-        expect(SIGNALLING_LAYER_IDS).toHaveLength(4);
+        expect(SIGNALLING_LAYER_IDS).toHaveLength(5);
     });
 
     it('le trait double la couleur : tirets et pointillés pour les blocks manuels et téléphoniques', () => {
@@ -54,7 +57,9 @@ describe('familles et couches', () => {
                 compile(value, spec('paint_line', prop));
             }
         }
-        const strokes = layers.filter((l) => l.id !== SIGNALLING_CASING_LAYER_ID);
+        const strokes = layers.filter(
+            (l) => l.id !== SIGNALLING_CASING_LAYER_ID && l.id !== SIGNALLING_CONTROL_LAYER_ID,
+        );
         for (const f of SIGNALLING_FAMILIES) {
             const layer = strokes.find((l) => l.filter && matches(l.filter, { family: f.key }));
             expect(layer, f.key).toBeDefined();
@@ -63,6 +68,24 @@ describe('familles et couches', () => {
                 strokes.filter((l) => l.filter && matches(l.filter, { family: f.key })),
             ).toHaveLength(1);
         }
+    });
+
+    it('la commande centralisée n’est pas un cantonnement : une couche à part, par-dessus, hors des familles', () => {
+        expect(SIGNALLING_FAMILIES.map((f) => f.key)).not.toContain(SIGNALLING_CONTROL.key);
+        const layers = signallingLayers();
+        expect(layers.at(-1).id).toBe(SIGNALLING_CONTROL_LAYER_ID);
+        const control = layers.at(-1);
+        expect(matches(control.filter, { family: SIGNALLING_CONTROL.key })).toBe(true);
+        expect(matches(control.filter, { family: 'automatic_block' })).toBe(false);
+        // Ni les traits de cantonnement ni leur liseré ne dessinent la commande centralisée.
+        for (const layer of layers.slice(0, -1)) {
+            expect(matches(layer.filter, { family: SIGNALLING_CONTROL.key }), layer.id).toBe(false);
+        }
+        for (const [prop, value] of Object.entries(control.paint)) {
+            if (prop !== 'line-dasharray') compile(value, spec('paint_line', prop));
+        }
+        expect(SIGNALLING_BLOCK_LAYER_IDS).not.toContain(SIGNALLING_CONTROL_LAYER_ID);
+        expect(SIGNALLING_LAYER_IDS).toContain(SIGNALLING_CONTROL_LAYER_ID);
     });
 
     it('le liseré a le même filtre que les traits : pas de trait blanc seul pour une famille inconnue', () => {
@@ -166,6 +189,37 @@ describe('signallingPopupHtml', () => {
         // Code sans traduction : le code lui-même.
         expect(html).toContain('</span>KVB</li>');
         expect(html).toContain('8+285 - 344+700');
+    });
+
+    it('époque passée : la commande centralisée est nommée à part, et ajoutée à la bulle du cantonnement', () => {
+        const block = {
+            history: true,
+            line_name: 'Ligne A',
+            family: 'automatic_block',
+            signalling: 'BAL',
+            date: '1990-01-01',
+            date_precision: 'year',
+            location: 'line',
+        };
+        const control = {
+            family: 'centralized_control',
+            signalling: 'CC',
+            date: '1962-01-21',
+            date_precision: 'day',
+        };
+        const alone = signallingPopupHtml(
+            { ...block, ...control, line_name: 'Ligne A', location: 'line' },
+            t,
+            'fr',
+            '',
+        );
+        expect(alone).toContain('maps.signalling.control_label');
+        expect(alone).not.toContain('maps.signalling.block_label');
+        const both = signallingPopupHtml(block, t, 'fr', '', control);
+        expect(both).toContain('maps.signalling.block_label');
+        expect(both).toContain('maps.signalling.control_label');
+        expect(both).toContain('maps.signalling.history.control_since');
+        expect(signallingPopupHtml(block, t, 'fr', '', null)).not.toContain('control_label');
     });
 
     it('signalisation en cabine sur LGV', () => {

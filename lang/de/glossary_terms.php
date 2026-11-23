@@ -164,6 +164,15 @@ return [
         'full' => 'Block manuel de voie unique (Streckenblock der eingleisigen Strecke)',
         'definition' => 'Variante des nicht selbsttätigen Streckenblocks für eingleisige Strecken: Sie verhindert, dass ein Zug zum nächsten Bahnhof geschickt wird, solange dort ein Gegenzug eingefahren ist.',
     ],
+    'commande-centralisee' => [
+        'name' => 'Zentrale Fernsteuerung',
+        'definition' => 'System, das von einer Zentrale aus die Weichen und Signale mehrerer Bahnhöfe oder Stellwerke einer Strecke fernbedient. Es heißt auch commande centralisée du réseau (CCR) oder poste de commande à distance (PCD). Es ist kein Blocksystem: Es wird mit BAL, BAPR, Handblock oder Fernsprechblock kombiniert, die die Züge im Abstand halten, und ersetzt keines davon.',
+    ],
+    'ccvu' => [
+        'name' => 'CCVU',
+        'full' => 'Commande centralisée de voie unique (zentrale Fernsteuerung einer eingleisigen Strecke)',
+        'definition' => 'Zentrale Fernsteuerung einer eingleisigen Strecke: Eine Zentrale bedient die Weichen und Signale der Kreuzungsbahnhöfe und zeigt die Position der Züge in Echtzeit an. Sie ersetzt die Telefonabsprachen zwischen den Bahnhöfen des Handblocks. Es ist kein Blocksystem.',
+    ],
     'controle-de-vitesse' => [
         'name' => 'Geschwindigkeitsüberwachung (Zugbeeinflussung)',
         'definition' => 'System, das die Geschwindigkeit eines Zuges überwacht und eine Bremsung auslöst, wenn er die zulässige Geschwindigkeit überschreitet oder ein haltzeigendes Signal überfährt. Die Enzyklopädie trennt es vom Streckenblock: KVB etwa überwacht die Geschwindigkeit, hält die Züge aber nicht auf Abstand.',

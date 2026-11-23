@@ -12,6 +12,8 @@ const known = {
     'lines.signalling.block': 'Cantonnement :',
     'lines.signalling.cabin': 'Signalisation en cabine :',
     'lines.signalling.protection': 'Contrôle de vitesse :',
+    'lines.signalling.remote_control': 'Commande centralisée :',
+    'signalling_history.system.CC': 'Commande centralisée (CCVU, CCR, PCD)',
     'lines.signalling.codes.BAL': 'BAL, block automatique lumineux',
     'lines.signalling.codes.KVB': 'KVB, contrôle de vitesse par balises',
     'signalling_history.system.BM': 'BM, block manuel',
@@ -117,6 +119,22 @@ describe('historyRows', () => {
         expect(rows[0].kind).toBe('Cantonnement :');
         expect(rows[1].kind).toBe('Contrôle de vitesse :');
         expect(rows[1].system).toContain('KVB');
+    });
+
+    it('la commande centralisée a son propre rôle, ni cantonnement ni contrôle de vitesse', () => {
+        const [row] = historyRows(
+            [
+                fact({
+                    system: 'CC',
+                    role: 'remote_control',
+                    date: '1962-01-21',
+                    date_precision: 'day',
+                }),
+            ],
+            { t, lang: 'fr', pkWord: 'PK' },
+        );
+        expect(row.kind).toBe('Commande centralisée :');
+        expect(row.system).toBe('Commande centralisée (CCVU, CCR, PCD)');
     });
 
     it('chaque ligne a une clé unique et le lien de sa source', () => {

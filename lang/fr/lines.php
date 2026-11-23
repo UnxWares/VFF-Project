@@ -121,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB). Sur une LGV, la signalisation est en cabine.',
         'protection' => 'Contrôle de vitesse :',
+        'remote_control' => 'Commande centralisée :',
         'cabin' => 'Signalisation en cabine :',
         'block' => 'Cantonnement :',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -139,6 +140,7 @@ return [
             'CAPI' => 'CAPI, cantonnement assisté par informatique',
             'CT' => 'Cantonnement téléphonique de double voie',
             'CT-VU' => 'Cantonnement téléphonique de voie unique',
+            'CC' => 'CC, commande centralisée (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (jusqu’à 300 km/h)',
             'TVM-430' => 'TVM 430 (jusqu’à 320 km/h)',
             'ETCS_L1' => 'ETCS niveau 1',

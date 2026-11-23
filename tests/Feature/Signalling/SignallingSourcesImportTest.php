@@ -111,13 +111,16 @@ class SignallingSourcesImportTest extends TestCase
         // Article absent du cache : la ligne n'est pas lue, l'import complet retire ses faits de Wikipédia
         // (orphelins), jamais ceux des documents.
         $this->line->update(['wikipedia_title' => 'LGV Sud-Est']);
-        // Sans correction (celle du vrai fichier viserait un fait de l'article, absent ici).
+        // Sans correction ni fait relu (ceux du vrai fichier visent des phrases de l'article, absent ici).
         $noCorrections = $this->file.'.corrections.php';
+        $noSupplements = $this->file.'.supplements.php';
         file_put_contents($noCorrections, '<?php return [];');
+        file_put_contents($noSupplements, '<?php return [];');
         try {
-            $this->artisan('vff:import-signalling-history', ['--offline' => true, '--corrections' => $noCorrections, '--cache-dir' => sys_get_temp_dir().'/vff-cache-absent-'.bin2hex(random_bytes(4))])->assertSuccessful();
+            $this->artisan('vff:import-signalling-history', ['--offline' => true, '--corrections' => $noCorrections, '--supplements' => $noSupplements, '--cache-dir' => sys_get_temp_dir().'/vff-cache-absent-'.bin2hex(random_bytes(4))])->assertSuccessful();
         } finally {
             unlink($noCorrections);
+            unlink($noSupplements);
         }
 
         $this->assertSame(['manual'], DB::table('line_signalling_events')->pluck('source')->all());

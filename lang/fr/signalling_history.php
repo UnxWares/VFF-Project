@@ -8,6 +8,7 @@ return [
     'system' => [
         'BM' => 'BM, block manuel',
         'CT' => 'Cantonnement téléphonique',
+        'CC' => 'Commande centralisée (CCVU, CCR, PCD)',
         'TVM' => 'TVM',
         'ETCS' => 'ETCS',
     ],

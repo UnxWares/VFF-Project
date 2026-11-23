@@ -8,6 +8,7 @@ return [
     'system' => [
         'BM' => 'BM, Handblock',
         'CT' => 'Fernsprechblock',
+        'CC' => 'Zentrale Fernsteuerung (CCVU, CCR, PCD)',
         'TVM' => 'TVM',
         'ETCS' => 'ETCS',
     ],

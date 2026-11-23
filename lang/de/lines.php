@@ -121,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Blocksystem (Zugfolge: BAL, BAPR, BM…) und Zugbeeinflussung (KVB, TVM, ETCS) entlang der Strecke, heutiger Zustand. Quelle: SNCF Réseau Open Data (Blocksysteme, mit KVB ausgerüstete Strecken). Auf einer Schnellfahrstrecke wird im Führerstand signalisiert.',
         'protection' => 'Zugbeeinflussung:',
+        'remote_control' => 'Zentrale Fernsteuerung:',
         'cabin' => 'Führerstandssignalisierung:',
         'block' => 'Blocksystem:',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -139,6 +140,7 @@ return [
             'CAPI' => 'CAPI, rechnergestützter Block',
             'CT' => 'Fernsprechblock, zweigleisig',
             'CT-VU' => 'Fernsprechblock, eingleisig',
+            'CC' => 'CC, zentrale Fernsteuerung (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (bis 300 km/h)',
             'TVM-430' => 'TVM 430 (bis 320 km/h)',
             'ETCS_L1' => 'ETCS Level 1',

@@ -18,6 +18,7 @@ const ROLE_KEYS = {
     block: 'lines.signalling.block',
     cab: 'lines.signalling.cabin',
     speed_control: 'lines.signalling.protection',
+    remote_control: 'lines.signalling.remote_control',
 };
 
 /** @param {(key: string, opts?: object) => string} t fonction de traduction ($i18n.t) */

@@ -120,6 +120,8 @@ class EnumRulesTest extends TestCase
             yield $system => [$system, SignallingRole::Cab];
         }
         yield 'KVB' => ['KVB', SignallingRole::SpeedControl];
+        yield 'CC' => ['CC', SignallingRole::RemoteControl];
+        yield 'CCVU n’est pas un code' => ['CCVU', null];
         yield 'BAL sans préfixe exact' => ['BALX', null];
     }
 

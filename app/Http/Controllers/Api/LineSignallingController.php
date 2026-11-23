@@ -130,11 +130,13 @@ class LineSignallingController extends Controller
      *
      * Pour chaque fait :
      * - `system` : `BAL` (block automatique lumineux), `BAPR` (block automatique à permissivité restreinte),
-     *   `BM` (block manuel, toutes variantes), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430` ou `TVM`
+     *   `BM` (block manuel, toutes variantes), `CT` (cantonnement téléphonique), `CC` (commande centralisée : CCVU, CCR,
+     *   PCD, commande à distance des postes depuis un poste central ; ce n'est pas un cantonnement), `TVM-300`, `TVM-430` ou `TVM`
      *   (version non précisée), `ETCS_L1`, `ETCS_L2` ou `ETCS` (niveau non précisé), `KVB` ;
      * - `role` : `block` (cantonnement, qui espace les trains), `cab` (signalisation en cabine, TVM et ETCS : à
      *   la fois cantonnement et contrôle de vitesse ; une ligne à grande vitesse n'a pas de BAL), `speed_control`
-     *   (contrôle de vitesse : le KVB n'est **jamais** un cantonnement) ;
+     *   (contrôle de vitesse : le KVB n'est **jamais** un cantonnement), `remote_control` (commande centralisée `CC` :
+     *   commande à distance des postes, qui se combine avec un cantonnement sans le remplacer) ;
      * - `date` (`AAAA-MM-JJ`) et `date_precision` (`day`, `month` ou `year` : le jour ou le mois manquants
      *   sont complétés par `01`, ne les lisez pas comme une date exacte) ;
      * - `reliability` : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine

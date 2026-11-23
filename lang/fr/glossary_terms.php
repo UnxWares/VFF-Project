@@ -164,6 +164,15 @@ return [
         'full' => 'Block manuel de voie unique',
         'definition' => 'Variante du block manuel pour voie unique : elle empêche d’envoyer un train vers la gare suivante tant qu’un train venant en sens inverse y est engagé.',
     ],
+    'commande-centralisee' => [
+        'name' => 'Commande centralisée',
+        'definition' => 'Système qui commande à distance, depuis un poste central, les aiguillages et les signaux de plusieurs gares ou postes d’une ligne. Elle porte aussi les noms de commande centralisée du réseau (CCR) et de poste de commande à distance (PCD). Ce n’est pas un mode de cantonnement : elle se combine avec le BAL, le BAPR, le block manuel ou le cantonnement téléphonique, qui espacent les trains, et ne remplace aucun d’eux.',
+    ],
+    'ccvu' => [
+        'name' => 'CCVU',
+        'full' => 'Commande centralisée de voie unique',
+        'definition' => 'Commande centralisée d’une ligne à voie unique : un poste central commande les aiguillages et les signaux des gares où les trains se croisent, et affiche en temps réel la position des trains. Elle remplace les échanges téléphoniques entre gares du block manuel. Ce n’est pas un mode de cantonnement.',
+    ],
     'controle-de-vitesse' => [
         'name' => 'Contrôle de vitesse',
         'definition' => 'Système qui surveille la vitesse d’un train et déclenche un freinage s’il dépasse la vitesse autorisée ou franchit un signal fermé. L’encyclopédie le distingue du cantonnement : le KVB, par exemple, contrôle la vitesse mais n’espace pas les trains.',

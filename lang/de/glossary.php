@@ -45,6 +45,7 @@ return [
         'BAPR' => 'Block automatique à permissivité restreinte (selbsttätiger Streckenblock mit eingeschränkter Permissivität)',
         'BM' => 'Block manuel (nicht selbsttätiger Streckenblock)',
         'BMVU' => 'Block manuel de voie unique (Streckenblock der eingleisigen Strecke)',
+        'CCVU' => 'Commande centralisée de voie unique (zentrale Fernsteuerung einer eingleisigen Strecke)',
         'KVB' => 'Contrôle de vitesse par balises (Geschwindigkeitskontrolle durch Balisen)',
         'TVM' => 'Transmission voie-machine (Übertragung Strecke-Fahrzeug)',
         'ETCS' => 'European Train Control System (Europäisches Zugsicherungssystem)',

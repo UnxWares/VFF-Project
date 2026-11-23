@@ -12,7 +12,7 @@ use App\Enums\SignallingRole;
  *
  * Un fait du fichier :
  *   line        : code SNCF Réseau à 6 chiffres (ou slug VFF) ;
- *   system      : BAL, BAPR, BM, CT, TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS ou KVB ;
+ *   system      : BAL, BAPR, BM, CT, CC (commande centralisée), TVM-300, TVM-430, TVM, ETCS_L1, ETCS_L2, ETCS ou KVB ;
  *   date        : AAAA-MM-JJ, AAAA-MM ou AAAA ; la précision (day, month, year) se lit sur la forme ;
  *   scope       : whole_line, section (avec from et to : gares telles que les documents les nomment, ou
  *                 pk_start_m et pk_end_m : PK en mètres donnés par un document) ou unspecified ;
@@ -110,7 +110,7 @@ final class SignallingSourcesFile
                 return "champ « {$key} » manquant";
             }
         }
-        if (SignallingRole::forSystem((string) $entry['system']) === null || ! preg_match('/^(?:BAL|BAPR|BM|CT|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/', (string) $entry['system'])) {
+        if (SignallingRole::forSystem((string) $entry['system']) === null || ! preg_match('/^(?:BAL|BAPR|BM|CT|CC|TVM|TVM-300|TVM-430|ETCS|ETCS_L1|ETCS_L2|KVB)$/', (string) $entry['system'])) {
             return 'système inconnu';
         }
         if (isset($entry['replaces']) && SignallingRole::forSystem((string) $entry['replaces']) === null) {

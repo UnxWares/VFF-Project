@@ -121,6 +121,7 @@ return [
     'signalling' => [
         'intro' => 'Block system (train spacing: BAL, BAPR, BM…) and train protection (KVB, TVM, ETCS) along the route, current state. Source: SNCF Réseau Open Data (block systems, lines fitted with KVB). On a high-speed line, signalling is in the cab.',
         'protection' => 'Train protection:',
+        'remote_control' => 'Centralised control:',
         'cabin' => 'Cab signalling:',
         'block' => 'Block system:',
         // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
@@ -139,6 +140,7 @@ return [
             'CAPI' => 'CAPI, computer-assisted block',
             'CT' => 'Telephone block, double track',
             'CT-VU' => 'Telephone block, single track',
+            'CC' => 'CC, centralised control (CCVU, CCR, PCD)',
             'TVM-300' => 'TVM 300 (up to 300 km/h)',
             'TVM-430' => 'TVM 430 (up to 320 km/h)',
             'ETCS_L1' => 'ETCS level 1',

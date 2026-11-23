@@ -45,6 +45,7 @@ return [
         'BAPR' => 'Block automatique à permissivité restreinte (automatic block with restricted permissiveness)',
         'BM' => 'Block manuel (manual block)',
         'BMVU' => 'Block manuel de voie unique (single-track manual block)',
+        'CCVU' => 'Commande centralisée de voie unique (single-track centralised control)',
         'KVB' => 'Contrôle de vitesse par balises (speed control by beacons)',
         'TVM' => 'Transmission voie-machine (track-to-train transmission)',
         'ETCS' => 'European Train Control System',

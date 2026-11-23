@@ -857,7 +857,7 @@ type Line {
 
   """
   Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
-  ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox) ou dans
+  ETCS, KVB, commande centralisée), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox) ou dans
   d'autres documents datés (`source.provider: manual`, avec `source.documents`), du plus ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
   par `GET /api/v1/lines/{line}/signalling` de l'API REST. Seuls les faits sûrs sont donnés (jour ou mois
   précis, ou année), et un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide
@@ -867,7 +867,7 @@ type Line {
   même année, même portion) n'est pas répété.
   """
   signalling_history(
-    "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
+    "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB, commande centralisée) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
     era: Int
   ): [SignallingEvent!]!
 
@@ -5144,10 +5144,10 @@ presse : `source.provider` vaut `manual`) : un fait par système, date et portio
 vitesse (`role: speed_control`), jamais un cantonnement.
 """
 type SignallingEvent {
-  "Système : `BAL`, `BAPR`, `BM` (block manuel), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430`, `TVM`, `ETCS_L1`, `ETCS_L2`, `ETCS` (niveau non précisé) ou `KVB`."
+  "Système : `BAL`, `BAPR`, `BM` (block manuel), `CT` (cantonnement téléphonique), `CC` (commande centralisée), `TVM-300`, `TVM-430`, `TVM`, `ETCS_L1`, `ETCS_L2`, `ETCS` (niveau non précisé) ou `KVB`."
   system: String!
 
-  "Rôle : `block` (cantonnement), `cab` (signalisation en cabine, TVM et ETCS : cantonnement et contrôle à la fois) ou `speed_control` (contrôle de vitesse : KVB)."
+  "Rôle : `block` (cantonnement), `cab` (signalisation en cabine, TVM et ETCS : cantonnement et contrôle à la fois), `speed_control` (contrôle de vitesse : KVB) ou `remote_control` (commande centralisée, `CC` : commande à distance des postes, qui n'est pas un cantonnement et s'ajoute à l'un d'eux)."
   role: String!
 
   "Date de la mise en service. Lisez-la avec `date_precision` : le jour et le mois valent `01` quand l'article ne les donne pas."

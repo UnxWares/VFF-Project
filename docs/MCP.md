@@ -231,9 +231,10 @@ Renvoie `line` :
 - `event_count`, `events` (même forme que `line_events`), `events_omitted`.
 
 `signalling.history` est un historique à part de l'état actuel (`block_systems_km`, SNCF Réseau) : il
-n'en corrige rien. Chaque fait : `system` (`BAL`, `BAPR`, `BM`, `CT`, `TVM-300`, `TVM-430`, `TVM`,
+n'en corrige rien. Chaque fait : `system` (`BAL`, `BAPR`, `BM`, `CT`, `CC`, `TVM-300`, `TVM-430`, `TVM`,
 `ETCS_L1`, `ETCS_L2`, `ETCS`, `KVB`), `role` (`block` cantonnement, `cab` signalisation en cabine, TVM et
-ETCS, `speed_control` contrôle de vitesse : le KVB n'est jamais un cantonnement), `date` et
+ETCS, `speed_control` contrôle de vitesse : le KVB n'est jamais un cantonnement, `remote_control` commande
+centralisée CCVU, CCR ou PCD : commande à distance des postes, qui n'est pas un cantonnement), `date` et
 `date_precision` (`day`, `month`, `year` : le jour et le mois manquants valent `01`), `reliability` (`high`
 jour ou mois donné ; `medium` année seule, date reprise d'une phrase voisine, qui peut être au jour, ou date
 déduite de l'ouverture ; les faits douteux ne sont pas exposés), `origin` (`text`, `list`, `table`, `infobox`,

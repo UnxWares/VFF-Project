@@ -37,11 +37,25 @@ export const SIGNALLING_DASH_GROUPS = [
     keys: SIGNALLING_FAMILIES.filter((f) => JSON.stringify(f.dash) === key).map((f) => f.key),
 }));
 
+/**
+ * Commande centralisée (famille `centralized_control`, époques passées seulement) : elle commande les
+ * postes depuis un poste central et se combine avec un cantonnement, qu'elle ne remplace pas. Ce n'est
+ * donc pas une famille de cantonnement (elle reste hors de SIGNALLING_FAMILIES, de la coloration des
+ * lignes et de la légende des tranches actuelles) : un trait fin sombre en pointillés, posé par-dessus
+ * le trait du cantonnement.
+ */
+export const SIGNALLING_CONTROL = { key: 'centralized_control', color: '#1f2937', dash: [0.1, 2] };
+export const SIGNALLING_CONTROL_LAYER_ID = 'vff-signalling-control';
+
 /** Toutes les couches du calque (pour les masquer ou les interroger d'un coup). */
 export const SIGNALLING_LAYER_IDS = [
     SIGNALLING_CASING_LAYER_ID,
     ...SIGNALLING_DASH_GROUPS.map((g) => g.id),
+    SIGNALLING_CONTROL_LAYER_ID,
 ];
+
+/** Couches de cantonnement qui répondent au clic ; la commande centralisée, par-dessus, s'ajoute à leur bulle. */
+export const SIGNALLING_BLOCK_LAYER_IDS = SIGNALLING_DASH_GROUPS.map((g) => g.id);
 
 /**
  * Adresse des tuiles de l'ère : l'état de SNCF Réseau pour l'ère courante, les mises en service datées
@@ -71,7 +85,7 @@ export const SIGNALLING_UNKNOWN_OPACITY = 0.55;
 // Faits récents et portions placées au-dessus (`sort` des tuiles historiques ; 0 pour l'état actuel).
 const SORT_KEY = ['coalesce', ['get', 'sort'], 0];
 
-/** Couches de bas en haut : liseré clair, puis une couche par motif de trait. */
+/** Couches de bas en haut : liseré clair, une couche par motif de trait, puis la commande centralisée. */
 export function signallingLayers() {
     const color = [
         'match',
@@ -108,6 +122,20 @@ export function signallingLayers() {
                 ...(g.dash ? { 'line-dasharray': g.dash } : {}),
             },
         })),
+        {
+            id: SIGNALLING_CONTROL_LAYER_ID,
+            type: 'line',
+            source: SIGNALLING_SOURCE_ID,
+            'source-layer': SIGNALLING_SOURCE_LAYER,
+            filter: ['==', ['get', 'family'], SIGNALLING_CONTROL.key],
+            layout: { 'line-join': 'round', 'line-cap': 'round', 'line-sort-key': SORT_KEY },
+            paint: {
+                'line-color': SIGNALLING_CONTROL.color,
+                'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1, 9, 1.6, 13, 2.4],
+                'line-opacity': ['case', UNKNOWN, SIGNALLING_UNKNOWN_OPACITY, 1],
+                'line-dasharray': SIGNALLING_CONTROL.dash,
+            },
+        },
     ];
 }
 
@@ -157,10 +185,11 @@ export function codeLabel(code, t) {
  * @param {(key: string, opts?: object) => string} t
  * @param {string} lang
  * @param {string} link
+ * @param {Record<string, any>|null} [control] commande centralisée sous le clic (époque passée)
  */
-export function signallingPopupHtml(p, t, lang, link) {
+export function signallingPopupHtml(p, t, lang, link, control = null) {
     if (p.history === true || p.history === 'true')
-        return signallingHistoryPopupHtml(p, t, lang, link);
+        return signallingHistoryPopupHtml(p, t, lang, link, control);
     const sep = colon(lang);
     const row = (label, value) =>
         `<li><span class="rail-popup-label">${escapeHtml(label)}${sep}</span>${escapeHtml(value)}</li>`;
@@ -214,12 +243,15 @@ export function historyPortion(p, t) {
  * @param {(key: string, opts?: object) => string} t
  * @param {string} lang
  * @param {string} link lien vers la fiche ligne
+ * @param {Record<string, any>|null} [control] trait de commande centralisée sous le clic : une ligne en plus
  */
-export function signallingHistoryPopupHtml(p, t, lang, link) {
+export function signallingHistoryPopupHtml(p, t, lang, link, control = null) {
     const sep = colon(lang);
     const row = (label, value) =>
         `<li><span class="rail-popup-label">${escapeHtml(label)}${sep}</span>${escapeHtml(value)}</li>`;
     const cab = p.family === 'cab';
+    const remote = p.family === SIGNALLING_CONTROL.key;
+    const when = (f) => formatEventDate(f.date, f.date_precision, formatLocale(lang));
     const source = p.source_url
         ? `<li class="rail-popup-note"><a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(
               t('maps.signalling.history.source', { title: p.source_title ?? '' }),
@@ -227,16 +259,23 @@ export function signallingHistoryPopupHtml(p, t, lang, link) {
         : '';
     const rows = [
         row(
-            t(cab ? 'maps.signalling.cab_label' : 'maps.signalling.block_label'),
+            t(
+                remote
+                    ? 'maps.signalling.control_label'
+                    : cab
+                      ? 'maps.signalling.cab_label'
+                      : 'maps.signalling.block_label',
+            ),
             systemLabel(p.signalling, t),
         ),
-        p.date
+        p.date ? row(t('maps.signalling.history.date_label'), when(p)) : '',
+        row(t('maps.signalling.history.portion_label'), historyPortion(p, t)),
+        control && !remote && control.date
             ? row(
-                  t('maps.signalling.history.date_label'),
-                  formatEventDate(p.date, p.date_precision, formatLocale(lang)),
+                  t('maps.signalling.control_label'),
+                  t('maps.signalling.history.control_since', { date: when(control) }),
               )
             : '',
-        row(t('maps.signalling.history.portion_label'), historyPortion(p, t)),
         p.origin === 'opening'
             ? `<li class="rail-popup-note">${escapeHtml(t('maps.signalling.history.opening'))}</li>`
             : '',

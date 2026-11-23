@@ -742,6 +742,11 @@ Wikipédia, permalien de la révision lue, origine `text`, fiabilité `high` pou
 Un complément se neutralise par une correction comme tout fait de Wikipédia. Un complément d'une ligne absente de la base
 est ignoré.
 
+La commande centralisée (système `CC` : CCVU, CCR, PCD, rôle `remote_control`) ne se lit que dans ces faits relus : l'extracteur
+ne la repère pas dans les textes. Ce n'est pas un cantonnement : un fait `CC` ne remplace aucun BAL, BAPR ou block manuel (et
+n'est remplacé que par une autre commande centralisée), et la carte des époques passées la dessine en trait fin pointillé
+par-dessus le cantonnement.
+
 Une correction vise un fait par sa ligne, son système, sa date et sa portion, et porte une action, des sources (un
 document officiel ou deux sites différents), une citation et une raison :
 

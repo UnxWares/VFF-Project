@@ -164,6 +164,15 @@ return [
         'full' => 'Block manuel de voie unique (single-track manual block)',
         'definition' => 'The manual block variant for single track: it prevents a train being sent towards the next station while a train coming the other way is already committed to it.',
     ],
+    'commande-centralisee' => [
+        'name' => 'Centralised control',
+        'definition' => 'System that remotely operates, from a central post, the points and signals of several stations or signal boxes along a line. It is also called commande centralisée du réseau (CCR) or poste de commande à distance (PCD). It is not a block system: it is combined with BAL, BAPR, manual block or telephone block, which keep trains apart, and replaces none of them.',
+    ],
+    'ccvu' => [
+        'name' => 'CCVU',
+        'full' => 'Commande centralisée de voie unique (single-track centralised control)',
+        'definition' => 'Centralised control of a single-track line: a central post operates the points and signals of the stations where trains cross and shows the live position of the trains. It replaces the telephone exchanges between stations of the manual block. It is not a block system.',
+    ],
     'controle-de-vitesse' => [
         'name' => 'Speed supervision',
         'definition' => 'A system that monitors a train’s speed and triggers braking if it exceeds the permitted speed or passes a closed signal. The encyclopaedia keeps it apart from the block system: KVB, for instance, supervises speed but does not space trains.',

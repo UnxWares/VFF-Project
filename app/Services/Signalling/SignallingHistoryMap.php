@@ -21,7 +21,9 @@ use Illuminate\Support\Facades\DB;
  *   - toute la ligne d'après l'article : le tracé en service de la ligne à cette ère, `location = line` ;
  *   - portion inconnue, ou nommée mais non placée : le même tracé, `location = unknown` (dessiné plus pâle,
  *     la bulle dit « ligne entière, section inconnue »).
- * Seuls le cantonnement et la signalisation en cabine sont dessinés ; le KVB (contrôle de vitesse) ne l'est pas.
+ * Le cantonnement et la signalisation en cabine sont dessinés, ainsi que la commande centralisée (CC), qui n'est pas un
+ * cantonnement : elle se combine avec l'un d'eux, d'où un trait fin posé par-dessus (rôle `remote_control`, rang le plus haut).
+ * Le KVB (contrôle de vitesse) ne l'est pas.
  */
 final class SignallingHistoryMap
 {
@@ -30,6 +32,12 @@ final class SignallingHistoryMap
 
     /** Marge (m) autour du tracé de l'ère pour garder une portion placée. */
     private const CLIP_M = 60;
+
+    /** Rôles dessinés (SignallingRole) : cantonnement, signalisation en cabine, commande centralisée. */
+    private const DRAWN_ROLES = ['block', 'cab', 'remote_control'];
+
+    /** Rang de tracé de la commande centralisée : au-dessus de tout cantonnement, quelle que soit la date. */
+    private const CONTROL_SORT = 200_000_000;
 
     private const TTL = 86_400;
 
@@ -46,13 +54,13 @@ final class SignallingHistoryMap
     {
         $eras = DB::table('eras')->where('is_current', false)->orderBy('year')->get(['id', 'year']);
         $lineIds = DB::table('line_signalling_events')->whereIn('confidence', LineSignallingHistory::SHOWN)
-            ->whereIn('role', ['block', 'cab'])->distinct()->orderBy('line_id')->pluck('line_id')->map(fn ($id): int => (int) $id)->all();
+            ->whereIn('role', self::DRAWN_ROLES)->distinct()->orderBy('line_id')->pluck('line_id')->map(fn ($id): int => (int) $id)->all();
 
         $written = DB::transaction(function () use ($eras, $lineIds): int {
             DB::table('line_signalling_history_map')->delete();
             $written = 0;
             foreach ($lineIds as $lineId) {
-                $facts = array_values(array_filter($this->history->factsOf($lineId), fn (array $f): bool => in_array($f['role'], ['block', 'cab'], true)));
+                $facts = array_values(array_filter($this->history->factsOf($lineId), fn (array $f): bool => in_array($f['role'], self::DRAWN_ROLES, true)));
                 foreach ($eras as $era) {
                     foreach (SignallingHistoryState::inForce($facts, SignallingHistoryState::until((int) $era->year, false)) as $fact) {
                         $written += $this->draw((int) $era->id, $lineId, $fact);
@@ -82,7 +90,7 @@ final class SignallingHistoryMap
             && DB::table('line_signalling_events')->where('id', $fact['id'])->whereNotNull('section_geom')->exists();
         $location = $placed ? 'section' : ($fact['scope'] === 'whole_line' ? 'line' : 'unknown');
         // Les faits les plus récents passent dessus ; une portion placée passe sur un tracé de ligne entière.
-        $sort = ($placed ? 100_000_000 : 0) + (int) str_replace('-', '', (string) $fact['date']);
+        $sort = ($fact['role'] === 'remote_control' ? self::CONTROL_SORT : 0) + ($placed ? 100_000_000 : 0) + (int) str_replace('-', '', (string) $fact['date']);
         $statuses = "'".implode("','", self::IN_SERVICE)."'";
         $geometry = $placed
             ? 'ST_Multi(ST_CollectionExtract(ST_Intersection(e.section_geom, ST_Transform(ST_Buffer(ST_Transform(t.g, 2154), '.self::CLIP_M.'), 4326)), 2))'
