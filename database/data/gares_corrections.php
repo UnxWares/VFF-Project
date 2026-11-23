@@ -4545,4 +4545,81 @@ return [
         'quote' => '1 septembre 1849 dans les chemins de fer, ancienne gare de Chalon-Ville',
         'reason' => 'article de la gare (oldid 233473917, infobox) et article de la ligne « Ligne de Paris-Lyon à Marseille-Saint-Charles » (oldid 241214704) : ouverture au public de la section Dijon - Chalon-sur-Saône le 1er septembre 1849. La fiche garde la date de la première gare de la ville (gare actuelle de 1893) comme pour Reims ; précise l\'année 1849 de Wikidata au jour.',
     ],
+
+    // ── 39. Anomalies de gares relevées par l'audit des fermetures (gares-anomalies, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/gares-anomalies.md).
+
+    // Pamiers - Limoux et Bram - Belvèze : le service des voyageurs est fermé le 18/04/1939 (Moulin-Neuf - Pamiers : 15/05/1939), puis
+    // rétabli du 05/05/1941 au 06/05/1946 par une voiture ajoutée au train de marchandises (« trains reliant Bram à Lavelanet et
+    // desservant Mirepoix ») : la fermeture définitive aux voyageurs des gares de Belvèze, Moulin-Neuf et Mirepoix est celle du 06/05/1946
+    // (même cas qu'Auger-Saint-Vincent). Les sections Pamiers - Mirepoix et Belvèze - Limoux, sans train depuis le 01/06/1941, n'ont pas
+    // été rouvertes : Belvèze n'est pas dans la section fermée le 18/04/1939 sans retour, elle est le terminus des trains de Bram.
+    [
+        'station' => ['name' => 'Belvèze', 'near' => [2.08917, 43.12133, 0.5]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1946-05-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bram à Belvèze', 216790588),
+        'quote' => 'Du 5 mai 1941 au 6 mai 1946 a eu lieu réouverture temporaire aux voyageurs avec des trains reliant Bram à Lavelanet et desservant Mirepoix',
+        'reason' => 'le 15/05/1939 (ou le 18/04/1939) est une suppression temporaire : le service voyageurs est rétabli du 05/05/1941 au 06/05/1946 sur Bram - Belvèze - Moulin-Neuf - Lavelanet (articles de la ligne de Bram à Belvèze, oldid 216790588, de la ligne de Moulin-Neuf à Lavelanet, oldid 221071157, et de la ligne de Pamiers à Limoux, oldid 238677089) ; la fermeture définitive est celle du 06/05/1946',
+    ],
+    [
+        'station' => ['name' => 'Moulin-Neuf', 'near' => [1.95275, 43.07808, 0.5]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1946-05-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Moulin-Neuf à Lavelanet', 221071157),
+        'quote' => 'Il y eut une réouverture temporaire du service voyageur du 5 mai 1941 au 6 mai 1946',
+        'reason' => 'bifurcation de Lavelanet : les trains reliant Bram à Lavelanet et desservant Mirepoix (qui repartent en marche arrière jusqu\'à Moulin-Neuf, faute de plaque tournante à Mirepoix) y passent ; aucune fermeture aux voyageurs n\'était inscrite (la fiche gardait la fin du fret de 1973), la fermeture définitive est celle du 06/05/1946',
+    ],
+    [
+        'station' => ['name' => 'Mirepoix', 'uic' => '8761545'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1946-05-06',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Bram à Belvèze', 216790588),
+        'quote' => 'Du 5 mai 1941 au 6 mai 1946 a eu lieu réouverture temporaire aux voyageurs avec des trains reliant Bram à Lavelanet et desservant Mirepoix',
+        'reason' => 'le 15/05/1939 (fermeture du service voyageurs, article de la gare oldid 239381589) est une suppression temporaire : Mirepoix est desservie par les trains de Bram à Lavelanet du 05/05/1941 au 06/05/1946, date de la fermeture définitive',
+    ],
+
+    // Bourogne : gare de la ligne de Belfort à Delle, fermée aux voyageurs en 1992 avec toute la ligne. La réouverture du 09/12/2018 ne
+    // concerne que Danjoutin, Meroux, Morvillars, Grandvillars, Joncherey et Delle : Bourogne, sans halte neuve, reste fermée. La date
+    // de 2010 était déduite (fin d'un trafic de déchets jusqu'en 2007) et ne repose sur rien.
+    [
+        'station' => ['name' => 'Bourogne', 'near' => [6.92612, 47.56196, 0.5]],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1992-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Belfort à Delle', 241021512),
+        'quote' => 'abandon du trafic voyageurs en 1992',
+        'reason' => 'la gare reste fermée à la réouverture de 2018 (la liste des arrêts de la ligne rouverte ne la compte pas) ; la date de 2010 était déduite, jour de 1992 non trouvé',
+    ],
+
+    // CdN : arrêt de la ligne à voie métrique de Lens à Frévent (Chemins de fer économiques du Nord, PK 53,74), fermée le 31/05/1948 ; la
+    // date de 1955 venait d'une ligne de Lens voisine sans rapport.
+    [
+        'station' => ['name' => 'CdN', 'near' => [2.82814, 50.42769, 0.5]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1948-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Chemin de fer Lens - Frévent', 228842949),
+        'quote' => 'fermeture le 31 mai 1948',
+        'reason' => 'arrêt du schéma du chemin de fer Lens - Frévent (PK 53,74, icône d\'arrêt supprimé) ; fin de la ligne le 31/05/1948 ; la date de 1955 venait d\'une autre ligne de Lens',
+    ],
+
+    // Passerelle Atlantis - Vilmorin : la passerelle couverte (« le lien », OSM building=train_station, bridge=yes) du pôle de Massy -
+    // Palaiseau, ouverte le 31/01/2012 pour relier les gares RATP, SNCF et gares routières ; ce n'est pas une gare de la ligne de Sceaux.
+    [
+        'station' => ['name' => 'Passerelle Atlantis - Vilmorin', 'osm' => 'w417349802'],
+        'action' => 'kind',
+        'kind' => 'excluded',
+        'source_url' => $wp('Gare de Massy - Palaiseau', 240526522),
+        'quote' => 'la construction de la nouvelle passerelle, le « lien » en raison du lien qu\'il créera entre les deux parties de la ville',
+        'reason' => 'passerelle piétonne couverte du pôle de gares de Massy - Palaiseau (objet OSM bridge=yes, hall principal de la passerelle), pas une gare : la gare est celle de Massy - Palaiseau',
+    ],
 ];
