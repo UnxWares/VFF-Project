@@ -30,10 +30,16 @@ class FactoryDepartmentsTest extends TestCase
     public function test_no_php_test_uses_a_reserved_department(): void
     {
         $quoted = implode('|', StationFactory::RESERVED_DEPARTMENTS);
+        // Exemption étroite : ce test pur (sans base) vérifie qu'un code postal à 4 chiffres commençant
+        // par 97 donne '09' (zéro de tête) ; aucun objet de remplissage n'y entre en jeu.
+        $exempt = ['Unit/Sncf/StationAttendanceMatcherBoundaryTest.php' => ['09']];
         $found = [];
         foreach (Finder::create()->files()->in(base_path('tests'))->name('*.php')->notName('FactoryDepartmentsTest.php') as $file) {
             if (preg_match_all('/[\'"=]('.$quoted.')[\'"&]/', $file->getContents(), $matches) > 0) {
-                $found[$file->getRelativePathname()] = array_values(array_unique($matches[1]));
+                $codes = array_diff(array_unique($matches[1]), $exempt[$file->getRelativePathname()] ?? []);
+                if ($codes !== []) {
+                    $found[$file->getRelativePathname()] = array_values($codes);
+                }
             }
         }
 

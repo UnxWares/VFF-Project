@@ -46,7 +46,7 @@ class SearchPageTest extends TestCase
         return $line;
     }
 
-    private function station(string $name, string $status = 'active', string $dept = '07'): Station
+    private function station(string $name, string $status = 'active', string $dept = '11'): Station
     {
         return Station::factory()->create([
             'name' => $name, 'city' => $name, 'status' => $status, 'source_status' => $status,
@@ -58,9 +58,9 @@ class SearchPageTest extends TestCase
     {
         $this->line('Ligne de Saint-Hilaire à Landivy', '421000', 'in_service');
         $this->line('Ligne de Saint-Hilaire-au-Temple à Hagondange', '088000', 'abandoned');
-        $this->station('Saint-Hilaire', 'active', '07');
-        $this->station('St-Hilaire-de-Chaléons', 'declassified', '09');
-        $this->station('Saint-Hilaire-du-Rosier', 'active', '09');
+        $this->station('Saint-Hilaire', 'active', '11');
+        $this->station('St-Hilaire-de-Chaléons', 'declassified', '12');
+        $this->station('Saint-Hilaire-du-Rosier', 'active', '12');
         Accident::factory()->create([
             'name' => ['fr' => 'Déraillement à Saint-Hilaire', 'en' => 'Saint-Hilaire derailment', 'de' => 'Entgleisung in Saint-Hilaire'],
             'commune_name' => 'Saint-Hilaire',
@@ -128,10 +128,10 @@ class SearchPageTest extends TestCase
                 // Total de l'onglet « Tout », qui retire les filtres : sans eux.
                 ->where('total', 6)
                 ->where('groups.0.items.0.name', 'St-Hilaire-de-Chaléons')
-                ->where('departments', [['code' => '09', 'name' => 'Ariège', 'count' => 1]])
+                ->where('departments', [['code' => '12', 'name' => 'Aveyron', 'count' => 1]])
             );
 
-        $this->get('/search?q=hilaire&type=station&dept=09')
+        $this->get('/search?q=hilaire&type=station&dept=12')
             ->assertInertia(fn (Assert $page) => $page->where('groups.0.total', 2));
 
         $this->get('/search?q=hilaire&type=line&state=open')
@@ -146,7 +146,7 @@ class SearchPageTest extends TestCase
         $this->seedCatalog();
 
         // État sur les accidents, département inconnu, type inconnu : sans effet.
-        $this->get('/search?q=hilaire&type=accident&state=closed&dept=07')
+        $this->get('/search?q=hilaire&type=accident&state=closed&dept=11')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('filters', ['type' => 'accident', 'state' => '', 'dept' => ''])
                 ->where('groups.0.total', 1)

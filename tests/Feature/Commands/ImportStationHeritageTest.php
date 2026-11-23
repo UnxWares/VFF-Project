@@ -37,7 +37,7 @@ class ImportStationHeritageTest extends TestCase
         $this->station('bravo-ville', 'Bravo-Ville', 'Bravo', '13', 43.3005, 5.4005);
         $this->station('charlie', 'Charlie', 'Charlie', '33', 44.801, -0.56);
         $this->station('delta', 'Delta', 'Delta', '69', 45.75, 4.85);
-        $this->station('sans-patrimoine', 'Sans patrimoine', 'Ailleurs', '07', 44.0, 4.0, 'Q1009');
+        $this->station('sans-patrimoine', 'Sans patrimoine', 'Ailleurs', '11', 44.0, 4.0, 'Q1009');
     }
 
     public function test_dry_run_measures_without_writing_anything(): void

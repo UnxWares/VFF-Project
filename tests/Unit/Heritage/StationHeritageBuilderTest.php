@@ -23,7 +23,7 @@ class StationHeritageBuilderTest extends TestCase
             $s(3, 'bravo-nord', 'Bravo-Nord', 'Bravo', '13', 'active', null, 43.3500, 5.4500),
             $s(4, 'charlie', 'Charlie', 'Charlie', '33', 'declassified', null, 44.8010, -0.5600),
             $s(5, 'delta', 'Delta', 'Delta', '69', 'active', null, 45.7500, 4.8500),
-            $s(6, 'sans-patrimoine', 'Sans patrimoine', 'Ailleurs', '07', 'active', 'Q1009', 44.0, 4.0),
+            $s(6, 'sans-patrimoine', 'Sans patrimoine', 'Ailleurs', '11', 'active', 'Q1009', 44.0, 4.0),
         ];
     }
 
