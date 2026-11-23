@@ -157,6 +157,16 @@ class StationController extends Controller
      *   (`line_closed`, `station_closed` ou `null`), `active_current`
      *   (desservie par une portion en service aujourd'hui), `era_years`
      *   (décennies où la gare est un arrêt de la ligne) ;
+     * - `lines[].neighbours` : gares voisines le long de la ligne, par PK
+     *   croissant : `previous` et `next` (chacune `null` en bout de ligne ;
+     *   `neighbours` vaut `null` quand le PK de la gare sur la ligne est
+     *   inconnu). Chaque voisine donne `slug`, `name`, `type`, `status`
+     *   (statut d'aujourd'hui : `active`, `tourist`, `no_commercial`,
+     *   `declassified` ou `gone`), `distance_m` (distance le long de la ligne,
+     *   écart de PK en mètres), `last_open_era` (dernière ère où elle était
+     *   ouverte, seulement si elle ne l'est plus, sinon `null`) et `links`.
+     *   Sont écartés les points techniques, les fiches hors réseau ferré et
+     *   les gares jamais desservies par la ligne ;
      * - `lines[].service_start` / `lines[].service_end` : date de l'événement
      *   de ligne qui ouvre (ferme) la desserte de la gare, quand elle est
      *   sûre. `date` (`AAAA-MM-JJ`) se lit avec `precision` : `day`, `month`

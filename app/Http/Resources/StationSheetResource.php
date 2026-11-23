@@ -115,6 +115,17 @@ class StationSheetResource extends JsonResource
                 ]];
             }
         }
+        // Gares précédente et suivante le long de la ligne (App\Services\LineNeighbours) : liens absolus.
+        if (is_array($item['neighbours'] ?? null)) {
+            foreach (['previous', 'next'] as $side) {
+                $n = $item['neighbours'][$side] ?? null;
+                if (is_array($n)) {
+                    $item['neighbours'][$side] = $n + ['links' => [
+                        'web' => url('/stations/'.$n['slug']), 'api' => route('api.stations.show', $n['slug']),
+                    ]];
+                }
+            }
+        }
 
         return $item;
     }

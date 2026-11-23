@@ -6037,6 +6037,39 @@ type StationLine {
 
     "Décennies où la gare est un arrêt de la ligne."
     era_years: [Int!]!
+
+    "Gares précédente et suivante le long de la ligne, par PK ; nul quand le PK de la gare sur la ligne est inconnu."
+    neighbours: StationLineNeighbours
+}
+
+"Gares voisines d'une gare le long d'une ligne (par PK croissant)."
+type StationLineNeighbours {
+    "Gare au PK immédiatement inférieur ; nulle en début de ligne."
+    previous: StationLineNeighbour
+
+    "Gare au PK immédiatement supérieur ; nulle en bout de ligne."
+    next: StationLineNeighbour
+}
+
+"Une gare voisine sur une ligne."
+type StationLineNeighbour {
+    "Slug de la gare."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+
+    "Type : `gare`, `halte`…"
+    type: String
+
+    "Statut aujourd'hui : `active`, `tourist`, `no_commercial`, `declassified` ou `gone`."
+    status: String
+
+    "Distance le long de la ligne (écart de PK), en mètres."
+    distance_m: Int!
+
+    "Dernière ère (année) où la gare était ouverte ; nulle si elle l'est encore ou si aucune ère ne l'atteste."
+    last_open_era: Int
 }
 
 "Une source rattachée à une gare."

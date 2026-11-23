@@ -127,6 +127,18 @@ return [
     'lines' => [
         'none' => 'Diesem Bahnhof ist keine Strecke zugeordnet.',
         'pk' => 'PK :pk',
+        // Gares voisines sur la ligne (LineNeighbours) : précédente et suivante par PK.
+        'neighbours' => [
+            'previous' => 'Vorheriger Bahnhof',
+            'next' => 'Nächster Bahnhof',
+            'see_era' => 'Epoche ansehen',
+            'state' => [
+                'declassified' => 'stillgelegt',
+                'gone' => 'verschwunden',
+                'no_commercial' => 'nur Güterverkehr',
+                'tourist' => 'Museumsbahn',
+            ],
+        ],
         'period_from_to' => 'Bedient von :from bis :to',
         'period_from' => 'Bedient seit :from',
         'period_to' => 'Bedient bis :to',

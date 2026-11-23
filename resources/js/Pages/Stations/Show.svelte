@@ -220,6 +220,33 @@
     ]}
 />
 
+{#snippet lineNeighbour(n, side)}
+    <span class={['line-neighbour', side]}>
+        <span class="vff-sr-only">{$i18n.t(`stations.lines.neighbours.${side}`)} : </span>
+        {#if side === 'previous'}<span aria-hidden="true">←&nbsp;</span>{/if}<a
+            class="neighbour-name"
+            href="/stations/{n.slug}">{n.name}</a
+        >
+        <span class="neighbour-dist"
+            >&middot; {nb(
+                t('stations.neighbors_distance', { km: formatPk(n.distance_m, 1) }),
+            )}</span
+        >
+        {#if n.status !== 'active'}
+            <span class="neighbour-state"
+                >({$i18n.t(`stations.lines.neighbours.state.${n.status}`, {
+                    defaultValue: '',
+                })}{#if n.last_open_era}, <a
+                        class="neighbour-era"
+                        href="/maps?era={n.last_open_era}"
+                        >{$i18n.t('stations.lines.neighbours.see_era')}</a
+                    >{/if})</span
+            >
+        {/if}
+        {#if side === 'next'}<span aria-hidden="true">&nbsp;→</span>{/if}
+    </span>
+{/snippet}
+
 {#snippet statusMark(status)}
     <span
         class="mark"
@@ -334,6 +361,16 @@
                                     {$i18n.t('stations.lines.stop_in_eras', {
                                         list: eraRanges(l.era_years),
                                     })}
+                                </p>
+                            {/if}
+                            {#if l.neighbours}
+                                <p class="line-neighbours">
+                                    {#if l.neighbours.previous}
+                                        {@render lineNeighbour(l.neighbours.previous, 'previous')}
+                                    {/if}
+                                    {#if l.neighbours.next}
+                                        {@render lineNeighbour(l.neighbours.next, 'next')}
+                                    {/if}
                                 </p>
                             {/if}
                         </li>
@@ -646,6 +683,38 @@
     }
     .line-name:focus-visible {
         outline-offset: 0;
+    }
+    /* Gares voisines sur la ligne : une rangée, précédente à gauche, suivante à droite. Les liens passent
+       au-dessus du lien qui couvre toute la ligne. */
+    .line-neighbours {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 4px 24px;
+        padding-top: 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+    .line-neighbour.next {
+        margin-left: auto;
+        text-align: right;
+    }
+    .line-neighbour a {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        padding: 4px 0;
+        color: var(--vff-text);
+        text-underline-offset: 3px;
+    }
+    .line-neighbour a:hover {
+        color: var(--vff-accent-ink);
+    }
+    .neighbour-dist {
+        font-variant-numeric: tabular-nums;
     }
     .line-meta {
         display: flex;

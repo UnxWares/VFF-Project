@@ -1964,6 +1964,7 @@
     "gql StationLine.last_year_kind": "String",
     "gql StationLine.method": "String",
     "gql StationLine.name": "String!",
+    "gql StationLine.neighbours": "StationLineNeighbours",
     "gql StationLine.network": "String",
     "gql StationLine.never_served": "String",
     "gql StationLine.pk_m": "Int",

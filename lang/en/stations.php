@@ -127,6 +127,18 @@ return [
     'lines' => [
         'none' => 'No line attached to this station.',
         'pk' => 'PK :pk',
+        // Gares voisines sur la ligne (LineNeighbours) : précédente et suivante par PK.
+        'neighbours' => [
+            'previous' => 'Previous station',
+            'next' => 'Next station',
+            'see_era' => 'see the era',
+            'state' => [
+                'declassified' => 'closed',
+                'gone' => 'gone',
+                'no_commercial' => 'freight only',
+                'tourist' => 'heritage trains',
+            ],
+        ],
         'period_from_to' => 'Served from :from to :to',
         'period_from' => 'Served since :from',
         'period_to' => 'Served until :to',

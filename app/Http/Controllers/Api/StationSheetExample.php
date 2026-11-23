@@ -85,6 +85,8 @@ final class StationSheetExample
                     'never_served' => null,
                     'active_current' => true,
                     'era_years' => [1870],
+                    // Brest est le bout de ligne : pas de gare suivante vers l'ouest.
+                    'neighbours' => ['previous' => ['slug' => 'le-rody', 'name' => 'Le Rody', 'type' => 'gare', 'status' => 'declassified', 'distance_m' => 4090, 'last_open_era' => 2020, 'links' => ['web' => 'https://vff-project.org/stations/le-rody', 'api' => 'https://vff-project.org/api/v1/stations/le-rody']], 'next' => null],
                     'links' => ['web' => 'https://vff-project.org/lines/rfn-420000', 'api' => 'https://vff-project.org/api/v1/lines/rfn-420000'],
                 ],
             ],

@@ -122,6 +122,8 @@ final class StationSheet
                 'service_end' => $bounds['end'],
                 'active_current' => (bool) $l->active_current,
                 'era_years' => json_decode($l->era_years, true) ?? [],
+                // Gares précédente et suivante le long de la ligne (par PK) ; nul sans PK (LineNeighbours).
+                'neighbours' => LineNeighbours::of($l),
             ], $lines),
             'sources' => array_map(fn ($s) => [
                 'source' => $s->source, 'ref' => $s->source_ref, 'name' => $s->name, 'lifecycle' => $s->lifecycle,
@@ -188,9 +190,11 @@ final class StationSheet
         // Dates de début et de fin de desserte et événements sources (StationServiceDates::bounds).
         $dates = StationServiceDates::columns();
         $nullDates = StationServiceDates::NULL_COLUMNS;
+        // Gares précédente et suivante le long de chaque ligne (par PK), dans la même requête.
+        $neighbours = LineNeighbours::columns();
         $lines = DB::select(<<<SQL
             SELECT l.slug, l.code, l.name, l.network, sl.method, sl.pk_m, sl.pk_source, sl.distance_m,
-                   sl.first_year, sl.last_year, sl.years_source, {$activeCurrent} AS active_current, {$dates},
+                   sl.first_year, sl.last_year, sl.years_source, {$activeCurrent} AS active_current, {$dates}, {$neighbours},
                    COALESCE((SELECT ARRAY_TO_JSON(ARRAY_AGG(e.year ORDER BY e.year)) FROM line_stops ls JOIN eras e ON e.id = ls.era_id
                              WHERE ls.line_id = l.id AND ls.station_id = sl.station_id), '[]'::json) AS era_years
             FROM station_lines sl JOIN lines l ON l.id = sl.line_id JOIN stations s ON s.id = sl.station_id
@@ -198,11 +202,12 @@ final class StationSheet
             ORDER BY sl.last_year IS NOT NULL, sl.first_year NULLS LAST, l.name
         SQL, [$stationId, $stationId]);
         if ($lines === []) {
+            $nullNeighbours = LineNeighbours::NULL_COLUMNS;
             $lines = DB::select(<<<SQL
                 SELECT l.slug, l.code, l.name, l.network, 'segment' AS method, NULL AS pk_m, NULL AS pk_source,
                        MIN(ROUND(ST_Distance(s.geom::geography, ls.geom::geography)))::int AS distance_m,
                        NULL AS first_year, NULL AS last_year, NULL AS years_source, {$activeCurrent} AS active_current,
-                       {$nullDates}, '[]'::json AS era_years
+                       {$nullDates}, {$nullNeighbours}, '[]'::json AS era_years
                 FROM stations s
                 JOIN line_segments ls ON ls.geom && ST_Expand(s.geom, 0.005) AND ST_DWithin(ls.geom::geography, s.geom::geography, 300)
                 JOIN lines l ON l.id = ls.line_id
