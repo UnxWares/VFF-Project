@@ -138,7 +138,7 @@ class CommonsAllowlistTest extends TestCase
         $this->assertTrue($allowlist->contains('Propose.jpg'), 'proposition en attente');
         $this->assertTrue($allowlist->contains('Morez_viaduc_des_Crottes01_2014-09-06.jpg'), 'image du journal');
         $this->assertGreaterThanOrEqual(5, $meta['count']);
-        $this->assertSame(['media', 'accident_images', 'materials', 'journal', 'contributions'], array_keys($meta['sources']));
+        $this->assertSame(['media', 'accident_images', 'materials', 'station_heritage', 'journal', 'contributions'], array_keys($meta['sources']));
     }
 
     public function test_dry_run_counts_without_writing_the_list(): void

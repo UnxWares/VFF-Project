@@ -34,6 +34,8 @@
     let dept = $state(filters.dept ?? '');
     // svelte-ignore state_referenced_locally
     let flagged = $state(!!filters.flagged);
+    // svelte-ignore state_referenced_locally
+    let heritage = $state(!!filters.heritage);
     // Tri choisi par le visiteur, '' sinon (pertinence avec une recherche, nom sans : $lib/directorySort.js).
     // svelte-ignore state_referenced_locally
     let sort = $state(sort_chosen ? (filters.sort ?? '') : '');
@@ -49,7 +51,7 @@
     ];
     const shownSort = $derived(effectiveSort(sort, q));
     const sorts = $derived(sortOptions(SORTS, q));
-    const hasFilters = $derived(!!(q || status || era || dept || flagged));
+    const hasFilters = $derived(!!(q || status || era || dept || flagged || heritage));
     const fmt = (n) => (n ?? 0).toLocaleString($i18n.language ?? 'fr');
     const showInferredNote = $derived(
         stations.data.some(
@@ -69,6 +71,7 @@
             era,
             dept,
             flagged: flagged ? 1 : '',
+            heritage: heritage ? 1 : '',
             sort: sortParam(sort, q),
             ...extra,
         };
@@ -98,6 +101,7 @@
         clearTimeout(debounceTimer);
         q = status = era = dept = '';
         flagged = false;
+        heritage = false;
         sort = '';
         router.get('/stations', {}, { preserveState: true, replace: true });
     }
@@ -242,6 +246,14 @@
                         {/each}
                     </select>
                 </div>
+                <label class="vff-check wide">
+                    <input
+                        type="checkbox"
+                        bind:checked={heritage}
+                        onchange={() => applyFilters(true)}
+                    />
+                    {$i18n.t('stations.heritage_only')}
+                </label>
                 <label class="vff-check wide">
                     <input
                         type="checkbox"

@@ -21,6 +21,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Patrimoine des gares (base Mérimée, Licence Ouverte 2.0 ; Wikidata, CC0) : REST `GET /api/v1/stations/{station}/heritage`, champ
+  `heritage` et `links.heritage` de la fiche `GET /api/v1/stations/{station}`, filtre `heritage` de l'annuaire (REST, GraphQL
+  `StationDirectoryFilter.heritage`, MCP `list_stations`), GraphQL `Station.heritage` (types `StationHeritage` et suivants), MCP outil
+  `station_heritage`. `null` quand VFF ne connaît aucun patrimoine pour la gare. Ajout seul.
 - REST : `GET /tourist-railways` (chemins de fer touristiques et vélorails exploités aujourd'hui : exploitant, type `steam`/`railcar`/`tram`/`rack`/`velorail`/`train`, écartement, longueur exploitée, année de début, régions, lignes, site officiel, source de chaque fait ; voies vertes sur ancienne voie dans `greenways` ; filtres `type` et `region`). Page : `/tourist-railways`.
 - Ouvrages d'art d'une ligne (tunnels, viaducs, grands ponts), lignes déposées comprises, dans l'ordre des PK : longueur, PK de début
   et de fin estimés sur le profil en long, dates de construction, de mise en service et de fermeture avec leur précision, protection

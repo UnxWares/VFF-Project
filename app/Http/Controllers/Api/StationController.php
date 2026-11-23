@@ -74,6 +74,7 @@ class StationController extends Controller
     #[QueryParameter('region', 'Code INSEE de la région (`11`, `24`, `27`, `28`, `32`, `44`, `52`, `53`, `75`, `76`, `84`, `93`, `94`, outre-mer `01` à `06`) : gares de ses départements. Liste avec les noms : `/regions`.', type: 'string', example: '53')]
     #[QueryParameter('era', "Année d'une ère (décennie de 1830 à 2030) : statut à cette ère, gares absentes de l'ère exclues. Une année sans ère donne HTTP 422.", type: 'int', example: 1930)]
     #[QueryParameter('flagged', 'Seulement les gares dont la position est à vérifier : `true` ou `false`.', type: 'boolean', example: false)]
+    #[QueryParameter('heritage', 'Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable : `true` ou `false`.', type: 'boolean', example: false)]
     #[QueryParameter('sort', 'Clé de tri : `name` (par défaut), `city`, `opened` ou `closed`.', type: 'string', default: 'name', example: 'opened')]
     #[QueryParameter('order', 'Sens du tri : `asc` (par défaut) ou `desc`.', type: 'string', default: 'asc', example: 'asc')]
     #[QueryParameter('facets', 'Ajouter le nombre de gares par statut (`meta.facets`) et par département (`meta.department_facets`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: true)]
@@ -211,6 +212,10 @@ class StationController extends Controller
      *   par année depuis 2015, `latest`, `series_break` (méthode de calcul différente à partir de 2025),
      *   `attribution` et `provenance` ; même bloc que `GET /api/v1/stations/{station}/attendance`. `null` quand
      *   les jeux n'en donnent aucune pour la gare ;
+     * - `heritage` : patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou
+     *   inscrits, label Architecture contemporaine remarquable, Inventaire général) : protection et date de l'arrêté,
+     *   architectes, construction, style, référence Mérimée avec son lien, image libre ; même bloc que
+     *   `GET /api/v1/stations/{station}/heritage`. `null` quand VFF ne connaît aucun patrimoine pour la gare ;
      * - `platforms` : quais de la gare d'après le jeu « Liste des quais » de
      *   SNCF Réseau (ODbL, état actuel du réseau, jeu mis à jour le
      *   `dataset_modified`) : `count` (quais distincts ; un quai central qui

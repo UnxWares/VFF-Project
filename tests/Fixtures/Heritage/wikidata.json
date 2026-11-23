@@ -1,0 +1,45 @@
+{
+  "fetched_at": "2026-11-23 02:00:00",
+  "items": {
+    "Q1001": {
+      "protections": [
+        {
+          "kind": "registered",
+          "class": "Q10387575",
+          "date": "1984-12-28"
+        }
+      ],
+      "refs": [
+        "PA00000001"
+      ],
+      "architects": [
+        "Victor Laloux"
+      ],
+      "built": 1896,
+      "style": "architecture néo-classique",
+      "image": {
+        "file": "Gare Alpha.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Gare_Alpha.jpg/500px-Gare_Alpha.jpg",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Gare_Alpha.jpg",
+        "license": "CC BY-SA 4.0",
+        "author": "Un photographe"
+      }
+    },
+    "Q1009": {
+      "protections": [
+        {
+          "kind": "inventory",
+          "class": "Q16739336",
+          "date": null
+        }
+      ],
+      "refs": [
+        "IA00000009"
+      ],
+      "architects": [],
+      "built": null,
+      "style": null,
+      "image": null
+    }
+  }
+}

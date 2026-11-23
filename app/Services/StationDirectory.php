@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Era;
+use App\Services\Heritage\StationHeritage;
 use App\Support\FrenchDepartments;
 use App\Support\Search\SearchFields;
 use App\Support\Search\SearchQuery;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * tirets, accents, abréviations et petits mots indifférents, mots dans n'importe quel ordre, noms approchés si
  * rien ne correspond mot pour mot), `department` (code
  * INSEE), `region` (code INSEE de la région : gares de ses départements), `era` (année d'une ère : statut de la gare à cette ère, gares absentes de l'ère exclues),
- * `flagged` (position à vérifier), `status` (statut affiché, cf. STATUSES).
+ * `flagged` (position à vérifier), `heritage` (bâtiment ou ouvrage protégé : monument historique ou label ACR), `status` (statut affiché, cf. STATUSES).
  *
  * Les points techniques (postes, garages, points d'une LGV) et les fiches exclues du réseau ferré
  * par une correction sourcée (tramway, petit train d'un zoo) ne sont jamais des gares de l'annuaire.
@@ -58,6 +59,9 @@ final class StationDirectory
             ->when($dept !== '', fn ($b) => $b->where('s.department_code', $dept))
             ->when($region !== '', fn ($b) => $b->whereIn('s.department_code', FrenchDepartments::inRegion($region)))
             ->when(filter_var($filters['flagged'] ?? false, FILTER_VALIDATE_BOOL), fn ($b) => $b->where('s.position_flagged', true))
+            ->when(filter_var($filters['heritage'] ?? false, FILTER_VALIDATE_BOOL), fn ($b) => StationHeritage::ready()
+                ? $b->whereExists(fn ($e) => $e->selectRaw('1')->from('station_heritage as sh')->whereColumn('sh.station_id', 's.id')->whereIn('sh.protection', ['classified', 'registered', 'acr']))
+                : $b->whereRaw('false'))
             ->whereRaw("COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')");
     }
 

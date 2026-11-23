@@ -523,6 +523,7 @@ Renvoie `era_year` et `lines` : `slug`, `code`, `name`, `network`, `historical_o
 | `region` | code INSEE de la région | non | Gares de ses départements. Codes et noms : `list_departments`. |
 | `era` | décennie 1830 à 2030 | non | Statut à cette ère ; gares absentes de l'ère exclues. |
 | `flagged` | booléen | non | Position à vérifier. |
+| `heritage` | booléen | non | Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable. |
 | `sort` | `name`, `city`, `opened`, `closed` | non | Tri (valeurs manquantes en dernier). |
 | `order` | `asc`, `desc` | non | Sens du tri. |
 | `facets` | booléen | non | Ajoute le nombre de gares par statut (`facets`) et par département (`department_facets`, sans le filtre `department`). |
@@ -1361,6 +1362,26 @@ Renvoie `attendance` (nul quand les jeux n'en donnent aucune pour la gare : cela
 
 ```json
 {"station": "angouleme"}
+```
+
+### `station_heritage` : patrimoine d'une gare
+
+Mêmes données que `GET /api/v1/stations/{station}/heritage` (service `StationHeritage`) : bâtiment voyageurs et ouvrages
+protégés (monument historique classé ou inscrit, label Architecture contemporaine remarquable, Inventaire général),
+d'après la base Mérimée du ministère de la Culture (Licence Ouverte 2.0) et Wikidata (CC0).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `heritage` (nul quand VFF ne connaît aucun patrimoine pour la gare) : `items[]` (bâtiment voyageurs d'abord :
+`element`, `protection`, `protection_date`, `scope`, `architects[]`, `built`, `style`, `reference`, `image`, `source`,
+`match_method`, `provenance`), `protected`, `attribution`. `match_method` dit comment la gare a été trouvée : `wikidata` est
+sûr, `name-commune` et `proximity` se présentent avec prudence.
+
+```json
+{"station": "limoges-benedictins"}
 ```
 
 ### `on_this_day` : ce jour-là

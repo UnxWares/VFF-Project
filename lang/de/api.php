@@ -324,6 +324,7 @@ return [
             'line_stops' => 'Bahnhöfe einer Strecke in der Reihenfolge der Streckenkilometer zu einer Epoche, mit ihrem Zustand und dem Link zum GTFS-Archiv der Epoche.',
             'station_aerial' => 'Historische Luftbilder des IGN rund um einen Bahnhof (1950 bis 1995), mit Nachweis und Licence Ouverte 2.0.',
             'station_attendance' => 'Jährliche Fahrgastzahlen eines Bahnhofs seit 2015 (Reisende und Nichtreisende), SNCF Gares & Connexions, ODbL; 2025 ist mit 2015-2024 nicht vergleichbar (andere Methode).',
+            'station_heritage' => 'Denkmalschutz des Empfangsgebäudes und der Bauwerke eines Bahnhofs: eingestuftes (classé) oder eingetragenes (inscrit) Monument historique mit Datum des Erlasses, Label Architecture contemporaine remarquable, Architekt, Bauzeit, Mérimée-Eintrag (Licence Ouverte 2.0) und Wikidata (CC0).',
             'on_this_day' => 'Was an einem Kalendertag in früheren Jahren geschah: Eröffnungen und Stilllegungen von Strecken und Bahnhöfen, Elektrifizierungen, Inbetriebnahmen, Unfälle, jeweils mit Jahr, Quelle und Link zur Seite; nur tagesgenaue Daten.',
         ],
         'prompts_title' => 'Prompts',

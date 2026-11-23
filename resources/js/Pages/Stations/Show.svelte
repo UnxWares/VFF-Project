@@ -13,6 +13,7 @@
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
     import StationAttendance from '$components/Stations/StationAttendance.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
+    import StationHeritage from '$components/Stations/StationHeritage.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -34,6 +35,7 @@
         aerial_views = [],
         chronology = [],
         attendance = null,
+        heritage = null,
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -42,6 +44,7 @@
     // Sommaire collant : SheetToc n'affiche que les sections présentes.
     const TOC = [
         'about',
+        'heritage',
         'eras',
         'history',
         'lines',
@@ -269,6 +272,8 @@
                 </div>
             </SheetSection>
         {/if}
+
+        <StationHeritage {heritage} name={station.name} />
 
         <SheetSection
             id="eras"

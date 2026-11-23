@@ -325,6 +325,7 @@ return [
             'line_stops' => 'Gares d’une ligne dans l’ordre des points kilométriques à une époque, avec leur état et le lien de l’archive GTFS de l’ère.',
             'station_aerial' => 'Vues aériennes historiques de l’IGN autour d’une gare (1950 à 1995), avec crédit et Licence Ouverte 2.0.',
             'station_attendance' => 'Fréquentation annuelle d’une gare depuis 2015 (voyageurs et non-voyageurs), SNCF Gares & Connexions, ODbL ; 2025 ne se compare pas à 2015-2024 (autre méthode).',
+            'station_heritage' => 'Patrimoine du bâtiment voyageurs et des ouvrages d’une gare : monument historique classé ou inscrit avec la date de l’arrêté, label Architecture contemporaine remarquable, architecte, construction, notice Mérimée (Licence Ouverte 2.0) et Wikidata (CC0).',
             'on_this_day' => 'Ce qui s’est passé un jour du calendrier les années précédentes : ouvertures et fermetures de lignes et de gares, électrifications, mises en service, accidents, avec l’année, la source et le lien de la fiche ; dates connues au jour seulement.',
         ],
         'prompts_title' => 'Invites',

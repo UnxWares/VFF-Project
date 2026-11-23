@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Station;
 use App\Services\Api\MediaGallery;
+use App\Services\Heritage\StationHeritage;
 use App\Services\Media\Aerial\AerialImages;
 use App\Services\Sncf\StationAttendance;
 use App\Services\StationDirectory;
@@ -34,6 +35,7 @@ class StationController extends Controller
         $status = $this->filterString($request, 'status');
         $dept = $this->filterString($request, 'dept', trim: true);
         $flagged = $request->boolean('flagged');
+        $heritage = $request->boolean('heritage');
         $sort = $this->filterString($request, 'sort');
         // Sans tri choisi : pertinence avec une recherche, sinon le nom.
         $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : '';
@@ -41,7 +43,7 @@ class StationController extends Controller
         $eras = Era::orderBy('year')->get(['id', 'year', 'is_current']);
         $era = $request->integer('era') ? $eras->firstWhere('year', $request->integer('era')) : null;
 
-        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged];
+        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged, 'heritage' => $heritage];
         $approximate = $directory->approximate($filters, $era);
         $base = $directory->base($filters, $era, $approximate);
         $statusExpr = $directory->statusExpression($era);
@@ -73,7 +75,7 @@ class StationController extends Controller
                 'last_page' => $list->lastPage(),
                 'total' => $list->total(),
             ],
-            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'sort' => $order],
+            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'heritage' => $heritage, 'sort' => $order],
             // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
             'sort_chosen' => $sort !== '',
             // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.
@@ -103,7 +105,7 @@ class StationController extends Controller
         };
     }
 
-    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance): Response
+    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery, StationAttendance $attendance, StationHeritage $heritage): Response
     {
         $page = $sheet->page($station);
 
@@ -115,6 +117,8 @@ class StationController extends Controller
             'aerial_views' => AerialImages::views($station->slug, $page['station']['lat'], $page['station']['lng'], (int) $station->id),
             // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
             'attendance' => $attendance->forStation((int) $station->id),
+            // Patrimoine du bâtiment voyageurs et des ouvrages (Mérimée, Wikidata) : nul sans table ou sans donnée.
+            'heritage' => $heritage->forStation((int) $station->id),
         ]);
     }
 }

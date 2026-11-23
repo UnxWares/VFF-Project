@@ -238,6 +238,7 @@
         'line_stops',
         'station_aerial',
         'station_attendance',
+        'station_heritage',
         'on_this_day',
         'sources_and_licences',
     ];

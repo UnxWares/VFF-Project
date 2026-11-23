@@ -160,6 +160,23 @@ return [
             'domaines' => ['wikidata.org'],
             'lu_le' => '2026-10-20',
         ],
+        'pop' => [
+            'nom' => 'POP, Plateforme ouverte du patrimoine (base Mérimée, ministère de la Culture)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 2.0 (Etalab)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/immeubles-proteges-au-titre-des-monuments-historiques-2',
+                'https://www.pop.culture.gouv.fr/',
+            ],
+            'citation' => 'Jeu « Immeubles protégés au titre des Monuments Historiques » publié par le ministère de la Culture sur data.gouv.fr, licence « lov2 » (Licence Ouverte v2.0), dernière mise à jour le 2026-11-19.',
+            'obligations' => 'Mention de la paternité (« Ministère de la Culture, base Mérimée, POP ») et de la date de mise à jour. '
+                .'Seul le fichier officiel du ministère est lu (ministere-culture.s3.sbg.io.cloud.ovh.net/POP/merimee.csv), pas les copies de tiers (Toulouse métropole, départements). '
+                .'La licence est revérifiée à chaque téléchargement (vff:import-station-heritage, table station_heritage).',
+            'remarques' => 'Seule la base Mérimée des monuments historiques est lue (références PA) ; l\'Inventaire général et le label Architecture contemporaine remarquable viennent de Wikidata (P1435, P380).',
+            'domaines' => ['pop.culture.gouv.fr'],
+            'lu_le' => '2026-11-23',
+        ],
         'commons' => [
             'nom' => 'Wikimedia Commons',
             'statut' => 'sur',
@@ -936,6 +953,8 @@ return [
         'line_radio_portions' => ['sncf' => 'sncf'],
         // Fréquentation annuelle des gares (vff:import-sncf-attendance) : SNCF Gares & Connexions, ODbL, colonne source = sncf.
         'station_attendances' => ['sncf' => 'sncf'],
+        // Gares et ouvrages protégés (vff:import-station-heritage) : base Mérimée du ministère de la Culture (Licence Ouverte 2.0) et Wikidata (CC0).
+        'station_heritage' => ['merimee' => 'pop', 'wikidata' => 'wikidata'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
         // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
         // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.

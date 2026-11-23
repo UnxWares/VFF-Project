@@ -46,6 +46,7 @@ use App\Mcp\Tools\SourcesTool;
 use App\Mcp\Tools\StationAerialTool;
 use App\Mcp\Tools\StationAttendanceTool;
 use App\Mcp\Tools\StationAuditsTool;
+use App\Mcp\Tools\StationHeritageTool;
 use App\Mcp\Tools\StationSheetTool;
 use App\Mcp\Tools\WhatWasHereTool;
 use Laravel\Mcp\Server;
@@ -125,6 +126,7 @@ class VffServer extends Server
         LineStopsTool::class,
         StationAerialTool::class,
         StationAttendanceTool::class,
+        StationHeritageTool::class,
         OnThisDayTool::class,
     ];
 

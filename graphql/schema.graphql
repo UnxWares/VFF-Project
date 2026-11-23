@@ -1466,6 +1466,15 @@ type Station {
     reproduire : `attribution`.
     """
     attendance: StationAttendance @field(resolver: "App\\GraphQL\\Resolvers\\StationAttendanceField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
+    Patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou inscrits, label
+    Architecture contemporaine remarquable, Inventaire général), d'après la base Mérimée du ministère de la Culture
+    (Licence Ouverte 2.0) et Wikidata (CC0), `vff:import-station-heritage`. Même bloc que `heritage` de
+    `GET /api/v1/stations/{station}` et `GET /api/v1/stations/{station}/heritage`. Nul quand VFF ne connaît aucun
+    patrimoine pour la gare : ce n'est pas « sans intérêt ». Mention à reproduire : `attribution`.
+    """
+    heritage: StationHeritage @field(resolver: "App\\GraphQL\\Resolvers\\StationHeritageField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 "Fréquentation annuelle d'une gare (SNCF Gares & Connexions, ODbL)."
@@ -1529,6 +1538,131 @@ type StationAttendanceLatest {
 
     "Année de mise en ligne du jeu qui porte cette année (la fréquentation de 2025 est publiée en 2026)."
     published_year: Int
+}
+
+"Patrimoine d'une gare : bâtiment voyageurs et ouvrages protégés, labellisés ou recensés."
+type StationHeritage {
+    "Le bâtiment voyageurs d'abord, puis les ouvrages (remise, halle, quai monumental), du plus protégé au moins protégé."
+    items: [StationHeritageItem!]!
+
+    "Vrai quand un bâtiment ou un ouvrage est classé ou inscrit aux monuments historiques."
+    protected: Boolean!
+
+    "Mention des sources à reproduire avec les données (Mérimée, Licence Ouverte 2.0 ; Wikidata, CC0 ; Commons)."
+    attribution: String!
+}
+
+"Un bâtiment ou un ouvrage de gare et sa protection."
+type StationHeritageItem {
+    "`building` (bâtiment voyageurs) ou `works` (ouvrage de la gare)."
+    element: String!
+
+    "La plus forte des protections : `classified` (classé monument historique), `registered` (inscrit), `acr` (label Architecture contemporaine remarquable), `inventory` (recensé à l'Inventaire général, sans protection)."
+    protection: String!
+
+    "Date de l'arrêté de protection (`AAAA-MM-JJ`), nulle si la source n'en donne pas."
+    protection_date: String
+
+    "`partial` quand seules certaines parties sont protégées, nul sinon."
+    scope: String
+
+    "Toutes les mentions de l'objet (classement, inscription, label), avec leur date."
+    designations: [StationHeritageDesignation!]!
+
+    "Titre de la notice Mérimée."
+    title: String
+
+    "Dénomination Mérimée (`gare`, `remise ferroviaire`…)."
+    denomination: String
+
+    "Auteurs : architectes, ingénieurs, mais aussi sculpteurs ou verriers selon la notice (voir `role`)."
+    architects: [StationHeritageArchitect!]!
+
+    "Construction : années, ou siècle quand la notice ne donne pas d'année."
+    built: StationHeritageBuilt!
+
+    "Style architectural (Wikidata, P149), nul sinon."
+    style: String
+
+    "Notice Mérimée ou Inventaire, à défaut l'élément Wikidata."
+    reference: StationHeritageReference!
+
+    "Élément Wikidata de la gare."
+    wikidata_id: String
+
+    "Image libre de Wikimedia Commons liée par Wikidata, nulle sinon."
+    image: StationHeritageImage
+
+    "Source principale de la ligne : `merimee` ou `wikidata`."
+    source: String!
+
+    "Date de mise à jour du fichier Mérimée lu (`AAAA-MM-JJ`)."
+    source_updated: String
+
+    "Comment la gare a été trouvée : `wikidata`, `name-commune`, `proximity`, `commune-unique`."
+    match_method: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
+}
+
+"Une mention de patrimoine."
+type StationHeritageDesignation {
+    "`classified`, `registered`, `acr` ou `inventory`."
+    kind: String!
+
+    "Date (`AAAA-MM-JJ`), nulle si inconnue."
+    date: String
+}
+
+"Un auteur d'un bâtiment, tel que la notice Mérimée le nomme."
+type StationHeritageArchitect {
+    name: String!
+
+    "Rôle écrit par la notice (`architecte`, `ingénieur`, `sculpteur`…), nul sinon."
+    role: String
+}
+
+"Dates de construction."
+type StationHeritageBuilt {
+    "Première année de la datation."
+    from: Int
+
+    "Dernière année quand la datation est un intervalle."
+    to: Int
+
+    "Siècle de la campagne principale (« 1er quart 20e siècle »)."
+    period: String
+}
+
+"Référence d'un objet patrimonial."
+type StationHeritageReference {
+    "Identifiant : référence Mérimée (`PA00100349`), de l'Inventaire (`IA…`) ou élément Wikidata."
+    id: String!
+
+    "`PA` (monument historique), `IA` (Inventaire), `EA` ou `Q` (Wikidata)."
+    kind: String!
+
+    "Lien vers la notice de la Plateforme ouverte du patrimoine ou la page Wikidata."
+    url: String
+}
+
+"Image d'un bâtiment, avec sa licence."
+type StationHeritageImage {
+    "Vignette sur upload.wikimedia.org."
+    url: String!
+
+    "Page du fichier sur Wikimedia Commons."
+    source_url: String
+
+    "Nom du fichier sur Commons."
+    file: String
+
+    "Licence du fichier."
+    license: String
+
+    "Auteur du fichier."
+    author: String
 }
 
 "Un jeu SNCF d'où viennent des chiffres de fréquentation."
@@ -6039,6 +6173,9 @@ input StationDirectoryFilter {
 
     "Année d'une ère : statut à cette ère, gares absentes exclues."
     era: Int
+
+    "Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable."
+    heritage: Boolean
 
     "Seulement les gares dont la position est à vérifier."
     flagged: Boolean
