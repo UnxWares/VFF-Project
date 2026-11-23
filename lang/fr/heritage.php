@@ -77,7 +77,7 @@ return [
 
     'group_count' => ':count monuments',
     'group_none' => 'Architecte non renseigné',
-    'group_intro' => 'Les monuments regroupés par architecte ou compagnie, du plus fécond au moins fécond. Les ouvrages d’art n’ont pas d’architecte dans les sources : ils figurent dans le dernier groupe.',
+    'group_intro' => 'Les monuments regroupés par architecte ou compagnie, du plus fécond au moins fécond. Les ouvrages d’art dont la notice Mérimée ne nomme aucun auteur figurent dans le dernier groupe.',
 
     'show_more' => 'Afficher :count de plus',
     'empty_title' => 'Aucun monument ne correspond',

@@ -168,4 +168,25 @@ class HeritageIndexTest extends TestCase
         (new \ReflectionProperty(StationHeritage::class, 'ready'))->setValue(null, null);
         $this->get('/heritage')->assertOk()->assertInertia(fn (Assert $page) => $page->has('data.items', 2));
     }
+
+    public function test_a_merimee_notice_matched_to_a_structure_adds_its_architect_and_its_date_and_a_protected_structure_wikidata_did_not_know(): void
+    {
+        $garabit = (int) DB::table('structures')->where('name', 'viaduc de Garabit')->value('id');
+        $pont = (int) DB::table('structures')->where('name', 'pont ordinaire')->value('id');
+        $row = fn (int $id, string $ref, string $protection, ?string $date, array $architects): array => ['structure_id' => $id, 'protection' => $protection, 'protection_date' => $date, 'ref' => $ref,
+            'ref_url' => 'https://www.pop.culture.gouv.fr/notice/merimee/'.$ref, 'architects' => json_encode($architects), 'match_score' => 100, 'source' => 'merimee', 'built_from' => 1884, 'created_at' => now(), 'updated_at' => now()];
+        DB::table('structure_heritage')->insert([
+            $row($garabit, 'PA00093592', 'classified', '2017-10-18', [['name' => 'Gustave Eiffel', 'role' => 'ingénieur']]),
+            $row($pont, 'PA00000777', 'registered', '1984-12-28', []),
+        ]);
+        Cache::flush();
+
+        $byName = array_column($this->items(), null, 'name');
+
+        $this->assertSame(['Gustave Eiffel'], $byName['viaduc de Garabit']['architects']);
+        $this->assertSame('2017-10-18', $byName['viaduc de Garabit']['protection_date']);
+        $this->assertSame(1880, $byName['viaduc de Garabit']['built']['year'], 'la date de Wikidata reste la première');
+        $this->assertSame(['registered', 'bridge', 1884], [$byName['pont ordinaire']['protection'], $byName['pont ordinaire']['object'], $byName['pont ordinaire']['built']['year']]);
+        $this->assertSame('https://www.pop.culture.gouv.fr/notice/merimee/PA00000777', $byName['pont ordinaire']['reference']['url']);
+    }
 }

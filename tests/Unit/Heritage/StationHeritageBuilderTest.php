@@ -136,4 +136,56 @@ class StationHeritageBuilderTest extends TestCase
             $this->assertEqualsCanonicalizing($columns, array_keys($row));
         }
     }
+
+    /** @return array<string, mixed> */
+    private static function works(string $title, string $commune, ?float $lat, ?float $lng, string $element = 'works'): array
+    {
+        return ['ref' => 'PA99999999', 'title' => $title, 'denomination' => '', 'element' => $element, 'commune' => $commune, 'department' => '00', 'lat' => $lat, 'lng' => $lng];
+    }
+
+    public function test_a_depot_works_far_from_the_station_is_attached_by_points_when_the_commune_has_one_open_station(): void
+    {
+        $builder = new StationHeritageBuilder(self::stations());
+
+        // Delta : une seule gare ouverte dans la commune, rotonde à 700 m (30 + 20 + 10 + 15 = 75).
+        $found = $builder->rescue(self::works('Rotonde SNCF', 'Delta', 45.7562, 4.8500));
+
+        $this->assertSame('delta', $found['station']->slug);
+        $this->assertSame(75, $found['score']);
+        $this->assertContains('seule gare ouverte de la commune +15', $found['reasons']);
+    }
+
+    public function test_the_gare_saint_name_without_de_is_found_even_when_stations_write_st(): void
+    {
+        $stations = [...self::stations(), (object) ['id' => 7, 'slug' => 'bordeaux-st-jean', 'name' => 'Bordeaux-St-Jean', 'city' => 'Bordeaux', 'department_code' => '33', 'status' => 'active', 'wikidata_id' => null, 'lat' => 44.826, 'lng' => -0.556]];
+        $found = (new StationHeritageBuilder($stations))->rescue(self::works('Ancien château d\'eau de la gare Saint-Jean', 'Bordeaux', 44.8211, -0.5594));
+
+        $this->assertSame('bordeaux-st-jean', $found['station']->slug);
+        $this->assertContains('nom cité +40', $found['reasons']);
+    }
+
+    public function test_two_stations_with_close_scores_leave_the_notice_unattached(): void
+    {
+        // Bravo-Ville (80 m) et Bravo-Nord (6 km) : l'écart de points suffit ; deux gares à 600 m et 650 m, non.
+        $stations = [
+            (object) ['id' => 1, 'slug' => 'a', 'name' => 'Aa', 'city' => 'Zeta', 'department_code' => '00', 'status' => 'active', 'wikidata_id' => null, 'lat' => 45.0, 'lng' => 4.0],
+            (object) ['id' => 2, 'slug' => 'b', 'name' => 'Bb', 'city' => 'Zeta', 'department_code' => '00', 'status' => 'active', 'wikidata_id' => null, 'lat' => 45.0, 'lng' => 4.0009],
+        ];
+
+        $this->assertNull((new StationHeritageBuilder($stations))->rescue(self::works('Rotonde SNCF', 'Zeta', 45.0, 4.0004)));
+    }
+
+    public function test_a_station_building_needs_more_points_than_a_depot_works(): void
+    {
+        // Gare départementale à 800 m de la seule gare ouverte de la commune : 75 points, 85 exigés pour un bâtiment voyageurs.
+        $builder = new StationHeritageBuilder(self::stations());
+
+        $this->assertNull($builder->rescue(self::works('Ancienne gare départementale', 'Delta', 45.7572, 4.8500, 'building')));
+        $this->assertNotNull($builder->rescue(self::works('Ancienne gare départementale', 'Delta', 45.7572, 4.8500, 'works')));
+    }
+
+    public function test_a_notice_without_coordinates_and_without_the_name_stays_unattached(): void
+    {
+        $this->assertNull((new StationHeritageBuilder(self::stations()))->rescue(self::works('Rotonde SNCF', 'Ailleurs', null, null)));
+    }
 }

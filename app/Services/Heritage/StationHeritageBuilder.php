@@ -17,7 +17,8 @@ use App\Services\Sncf\StationAttendanceMatcher;
  *   2. `name-commune` : le nom de la gare figure dans le titre de la notice, dans la commune (ou à moins de 1,5 km) ;
  *   3. `proximity` : une seule gare à moins de 250 m des coordonnées de la notice (500 m pour un ouvrage de gare, dans
  *      la même commune), ou la plus proche si la suivante est deux fois plus loin ;
- *   4. `commune-unique` : notice sans coordonnées, une seule gare ouverte dans la commune.
+ *   4. `commune-unique` : notice sans coordonnées, une seule gare ouverte dans la commune ;
+ *   5. `scored` : notice restée sans gare, gare à moins de 3 km au meilleur score expliqué (rescue).
  * Une notice qui reste sans gare, ou ambiguë, n'est pas écrite : le rapport la liste.
  */
 final class StationHeritageBuilder
@@ -53,7 +54,7 @@ final class StationHeritageBuilder
      * @param  list<array<string, mixed>>  $records  notices Mérimée
      * @param  array<string, array<string, mixed>>  $wikidata  éléments par identifiant Q
      * @param  string|null  $merimeeUpdated  date de mise à jour du fichier Mérimée
-     * @return array{rows: list<array<string, mixed>>, unmatched: list<array<string, mixed>>, methods: array<string, int>}
+     * @return array{rows: list<array<string, mixed>>, unmatched: list<array<string, mixed>>, methods: array<string, int>, scored: list<array<string, mixed>>}
      */
     public function build(array $records, array $wikidata, ?string $merimeeUpdated = null): array
     {
@@ -89,15 +90,21 @@ final class StationHeritageBuilder
 
         // 2 à 4. Notices restantes.
         $unmatched = [];
+        $scored = [];
         foreach ($records as $record) {
             if (isset($used[$record['ref']])) {
                 continue;
             }
             $found = $this->match($record);
             if ($found['station'] === null) {
-                $unmatched[] = $record + ['why' => $found['method']];
+                $rescued = $this->rescue($record);
+                if ($rescued === null) {
+                    $unmatched[] = $record + ['why' => $found['method']];
 
-                continue;
+                    continue;
+                }
+                $found = ['station' => $rescued['station'], 'method' => 'scored', 'distance' => $rescued['distance']];
+                $scored[] = ['record' => $record, 'station' => $rescued['station'], 'score' => $rescued['score'], 'reasons' => $rescued['reasons']];
             }
             $station = $found['station'];
             $item = $record['element'] === 'building' && ! empty($station->wikidata_id) ? ($wikidata[$station->wikidata_id] ?? null) : null;
@@ -109,7 +116,7 @@ final class StationHeritageBuilder
             $methods[$found['method']] = ($methods[$found['method']] ?? 0) + 1;
         }
 
-        return ['rows' => array_values($rows), 'unmatched' => $unmatched, 'methods' => $methods];
+        return ['rows' => array_values($rows), 'unmatched' => $unmatched, 'methods' => $methods, 'scored' => $scored];
     }
 
     /**
@@ -202,6 +209,105 @@ final class StationHeritageBuilder
         }
 
         return ['station' => null, 'method' => 'unmatched', 'distance' => null];
+    }
+
+    /** Score minimal d'un rattachement par points (rattachement 5), et écart minimal avec la deuxième gare. */
+    public const RESCUE_MIN_SCORE = 75;
+
+    /** Une gare (bâtiment voyageurs) demande plus de preuves qu'un ouvrage de dépôt : le nom de la gare, ou moins de 500 m. */
+    public const RESCUE_MIN_SCORE_BUILDING = 85;
+
+    public const RESCUE_MIN_MARGIN = 15;
+
+    /**
+     * Rattachement 5, `scored` : pour une notice que les règles 2 à 4 n'ont pas placée (rotonde ou château d'eau loin de la
+     * gare, « gare Saint-Jean » sans « de »). Chaque gare à moins de 3 km reçoit des points, la meilleure est gardée
+     * seulement si elle atteint RESCUE_MIN_SCORE et devance la suivante d'au moins RESCUE_MIN_MARGIN :
+     *   - même commune : 30 ; distance 250 m : 35, 500 m : 30, 1 km : 20, 2 km : 10, 3 km : 5 ;
+     *   - nom de la gare cité par la notice (« gare Saint-Jean », nom entier ou sans qualificatif) : 40 ;
+     *   - gare ouverte au trafic (active ou touristique) : 10 ; seule gare ouverte de la commune : 15 de plus.
+     * Un doute (deux gares proches du même score) laisse la notice non rattachée.
+     *
+     * @param  array<string, mixed>  $record
+     * @return array{station: object, score: int, distance: ?int, reasons: list<string>}|null
+     */
+    public function rescue(array $record): ?array
+    {
+        $title = self::fold($record['title'].' '.$record['denomination']);
+        $commune = StationAttendanceMatcher::normalize($record['commune']);
+        $hasPoint = $record['lat'] !== null && $record['lng'] !== null;
+        $mention = preg_match('/\bgare\s+(?:de la |de l[\x{2019}\']|de |du |d[\x{2019}\']|des )?([A-Z\x{C0}-\x{DD}][^,(]*?)(?:\s+(?:ou|dite?|dit)\b|,|\(|$)/u', $record['title'], $m) === 1
+            ? self::fold($m[1]) : '';
+
+        $inCommune = [];
+        foreach ($this->byId as $s) {
+            if ($this->inCommune($s, $commune) && in_array($s->status, ['active', 'tourist'], true)) {
+                $inCommune[] = $s;
+            }
+        }
+        $candidates = [];
+        foreach ($this->byId as $s) {
+            $sameCommune = $this->inCommune($s, $commune);
+            $distance = $hasPoint ? (int) round(self::distance($record['lat'], $record['lng'], (float) $s->lat, (float) $s->lng)) : null;
+            if (! $sameCommune && ($distance === null || $distance > 3000)) {
+                continue;
+            }
+            $score = 0;
+            $reasons = [];
+            if ($sameCommune) {
+                $score += 30;
+                $reasons[] = 'même commune +30';
+            }
+            if ($distance !== null) {
+                $points = $distance <= 250 ? 35 : ($distance <= 500 ? 30 : ($distance <= 1000 ? 20 : ($distance <= 2000 ? 10 : ($distance <= 3000 ? 5 : 0))));
+                $score += $points;
+                $reasons[] = "à {$distance} m +{$points}";
+            }
+            $name = self::fold(preg_replace('/^gare (de |d\')?/iu', '', (string) $s->name) ?? (string) $s->name);
+            $base = self::fold(preg_split('/[-(]/u', (string) $s->name)[0] ?? '');
+            $cited = (strlen($name) >= 5 && str_contains($title, $name)) || (strlen($mention) >= 4 && (str_contains($name, $mention) || str_contains($mention, $name)))
+                || ($sameCommune && strlen($base) >= 5 && str_contains($title, $base));
+            if ($cited) {
+                $score += 40;
+                $reasons[] = 'nom cité +40';
+            }
+            $open = in_array($s->status, ['active', 'tourist'], true);
+            if ($open) {
+                $score += 10;
+                $reasons[] = 'gare ouverte +10';
+                if ($sameCommune && count($inCommune) === 1) {
+                    $score += 15;
+                    $reasons[] = 'seule gare ouverte de la commune +15';
+                }
+            }
+            $candidates[] = ['station' => $s, 'score' => $score, 'distance' => $distance, 'reasons' => $reasons];
+        }
+        usort($candidates, fn (array $a, array $b): int => $b['score'] <=> $a['score'] ?: ($a['distance'] ?? 0) <=> ($b['distance'] ?? 0));
+        $minimum = $record['element'] === 'building' ? self::RESCUE_MIN_SCORE_BUILDING : self::RESCUE_MIN_SCORE;
+        if ($candidates === [] || $candidates[0]['score'] < $minimum) {
+            return null;
+        }
+        if (isset($candidates[1]) && $candidates[0]['score'] - $candidates[1]['score'] < self::RESCUE_MIN_MARGIN) {
+            return null;
+        }
+
+        return $candidates[0];
+    }
+
+    /** Commune de la gare : la même, ou un arrondissement de celle-ci (« Marseille 3e Arrondissement » pour « Marseille »). */
+    private function inCommune(object $station, string $commune): bool
+    {
+        $city = StationAttendanceMatcher::normalize((string) $station->city);
+
+        return $commune !== '' && ($city === $commune || (str_starts_with($city, $commune) && ctype_digit(substr($city, strlen($commune), 1))));
+    }
+
+    /** Nom sans accents ni espaces, « Saint » écrit « st » : « gare Saint-Jean » et « Bordeaux-St-Jean » se retrouvent. */
+    private static function fold(string $text): string
+    {
+        $text = (string) preg_replace('/\bsaint(e?)\b/iu', 'st$1', $text);
+
+        return StationAttendanceMatcher::normalize($text);
     }
 
     /**

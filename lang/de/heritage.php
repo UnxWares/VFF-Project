@@ -77,7 +77,7 @@ return [
 
     'group_count' => ':count Denkmäler',
     'group_none' => 'Architekt nicht erfasst',
-    'group_intro' => 'Die Denkmäler nach Architekt oder Gesellschaft gruppiert, die produktivsten zuerst. Ingenieurbauwerke haben in den Quellen keinen Architekten: Sie stehen in der letzten Gruppe.',
+    'group_intro' => 'Die Denkmäler nach Architekt oder Gesellschaft gruppiert, die produktivsten zuerst. Ingenieurbauwerke, deren Mérimée-Eintrag keinen Urheber nennt, stehen in der letzten Gruppe.',
 
     'show_more' => ':count weitere anzeigen',
     'empty_title' => 'Kein Denkmal gefunden',
