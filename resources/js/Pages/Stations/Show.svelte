@@ -39,6 +39,8 @@
         heritage = null,
     } = $props();
 
+    /** Autres noms de la fiche ; le nom actuel daté (renamed) n'est que dans la chronologie. */
+    const altNames = $derived((station.alt_names ?? []).filter((a) => !a.renamed));
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
@@ -248,14 +250,14 @@
                 {@render statusMark(station.status)}
                 {$i18n.t(`stations.statuses.${station.status}`)}
             </p>
-            {#if station.alt_names?.length}
+            {#if altNames.length}
                 <p class="alt-names">
                     {$i18n.t('stations.also_known_as_label')}
-                    {#each station.alt_names as a, i (i)}
+                    {#each altNames as a, i (i)}
                         <span class="alt"
                             >{a.name}{#if a.from || a.to}&nbsp;({a.from ?? '…'}-{a.to ??
                                     '…'}){/if}</span
-                        >{i < station.alt_names.length - 1 ? ', ' : ''}
+                        >{i < altNames.length - 1 ? ', ' : ''}
                     {/each}
                 </p>
             {/if}

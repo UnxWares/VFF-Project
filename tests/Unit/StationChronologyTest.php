@@ -132,6 +132,21 @@ class StationChronologyTest extends TestCase
         $this->assertSame(['1869-01-01', 'year', 'ohm'], [$entries[1]['date'], $entries[1]['precision'], $entries[1]['source']]);
     }
 
+    public function test_a_name_known_only_by_its_end_or_by_a_decade_is_placed_with_its_own_precision(): void
+    {
+        $entries = StationChronology::build(self::station([
+            'name' => 'Masséna',
+            'alt_names' => [
+                ['name' => 'Orléans-Ceinture', 'from' => null, 'to' => 1970, 'to_date' => '1970', 'to_precision' => 'decade', 'source' => 'wikipedia_history', 'source_url' => 'https://fr.wikipedia.org/w/index.php?oldid=1'],
+                ['name' => 'Gunderchingen', 'from' => 1940, 'to' => 1944, 'from_date' => '1940-07-01', 'from_precision' => 'day', 'source' => 'wikipedia_history'],
+            ],
+        ]), [], []);
+
+        $this->assertSame(['1940-07-01', 'day', null], [$entries[0]['date'], $entries[0]['precision'], $entries[0]['source_url']]);
+        $this->assertSame(['1970-01-01', 'decade', 'https://fr.wikipedia.org/w/index.php?oldid=1'], [$entries[1]['date'], $entries[1]['precision'], $entries[1]['source_url']]);
+        $this->assertSame(['name' => 'Orléans-Ceinture', 'from' => null, 'to' => 1970], $entries[1]['name']);
+    }
+
     public function test_accidents_take_their_place_with_a_link_to_their_record(): void
     {
         $accident = ['slug' => '1925-04-09-paris', 'name' => 'Collision à Paris', 'date' => '1925-04-09', 'date_precision' => 'day',

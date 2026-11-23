@@ -285,13 +285,20 @@ final class StationChronology
         $own = $key((string) $station['name']);
         $out = [];
         foreach ((array) ($station['alt_names'] ?? []) as $a) {
-            $from = is_array($a) ? ($a['from'] ?? null) : null;
-            if (! is_array($a) || ! is_string($a['name'] ?? null) || ! is_numeric($from) || $key($a['name']) === $own) {
+            if (! is_array($a) || ! is_string($a['name'] ?? null) || ($key($a['name']) === $own && ! ($a['renamed'] ?? false))) {
                 continue;
             }
+            $from = is_numeric($a['from'] ?? null) ? (int) $a['from'] : null;
             $to = is_numeric($a['to'] ?? null) ? (int) $a['to'] : null;
-            $out[] = self::entry('name', null, ((int) $from).'-01-01', 'year', (string) ($a['source'] ?? 'vff'), null)
-                + ['name' => ['name' => $a['name'], 'from' => (int) $from, 'to' => $to]];
+            if ($from === null && $to === null) {
+                continue;
+            }
+            // Un nom dont on ne connaît que la fin (« Orléans-Ceinture » jusqu'en 1970) est placé à sa fin.
+            [$date, $precision] = $from !== null
+                ? self::partial($a['from_date'] ?? null, $a['from_precision'] ?? null, $from)
+                : self::partial($a['to_date'] ?? null, $a['to_precision'] ?? null, (int) $to);
+            $out[] = self::entry('name', null, $date, $precision, (string) ($a['source'] ?? 'vff'), is_string($a['source_url'] ?? null) && $a['source_url'] !== '' ? $a['source_url'] : null)
+                + ['name' => ['name' => $a['name'], 'from' => $from, 'to' => $to]];
         }
 
         return $out;
@@ -310,6 +317,21 @@ final class StationChronology
             'estimated' => $estimated, 'retained' => true, 'source' => $source, 'source_url' => $url, 'also' => [],
             'note' => $note, 'note_lang' => $noteLang, 'lines' => [], 'event_id' => null,
         ];
+    }
+
+    /**
+     * Date ISO complète et précision d'une date écrite à l'année, au mois ou au jour (`2024`, `1940-07`, `1940-07-01`).
+     *
+     * @return array{0: string, 1: string}
+     */
+    private static function partial(mixed $date, mixed $precision, int $year): array
+    {
+        $d = is_string($date) ? $date : '';
+        if (in_array($precision, ['day', 'month', 'decade'], true) && preg_match('/^\d{4}(-\d\d){0,2}$/', $d) === 1 && (int) substr($d, 0, 4) === $year) {
+            return [str_pad($d, 10, strlen($d) === 4 ? '-01-01' : '-01'), (string) $precision];
+        }
+
+        return [sprintf('%04d-01-01', $year), 'year'];
     }
 
     /**

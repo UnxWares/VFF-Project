@@ -9,6 +9,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Gares : dans `chronology[]` (REST, fiche web), une entrée `name` peut avoir `name.from` nul : nom dont on ne connaît que la fin
+  (« Orléans-Ceinture » jusqu'aux années 1970), placé à sa fin avec la précision de sa date (`day`, `month`, `year` ou `decade`) et le lien de
+  sa source (`vff:import-station-names` : historique des articles de Wikipédia, noms de Wikidata). Aucun champ n'est retiré.
+
 - Accidents : `nearest_station` (REST, GraphQL, MCP `get_accident`) vaut désormais `null` quand le lieu n'est connu qu'à la commune
   près (`location.precision` = `commune`, centre de la commune) : la gare « la plus proche » d'un centre de commune n'était qu'une
   coïncidence (sept accidents de Paris rattachés à Paris-Nord « à 0 m »). Le filtre `station` de `GET /api/v1/accidents` et la

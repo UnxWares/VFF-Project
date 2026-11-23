@@ -177,7 +177,9 @@ class StationController extends Controller
      *   (début, fin de la desserte par une ligne sans événement de la gare à
      *   la même date ; sinon la ligne est jointe à l'événement dans `lines`,
      *   avec `role` `start` ou `end`), `name` (nom porté et daté par une
-     *   source : `name.name`, `name.from`, `name.to`), `accident` (accident
+     *   source : `name.name`, `name.from`, `name.to` ; `name.from` est nul
+     *   pour un nom dont on ne connaît que la fin, l'entrée est alors datée
+     *   de `name.to`), `accident` (accident
      *   dont la gare est la gare la plus proche du lieu, à 3 km au plus, 30
      *   au plus : bloc `accident` avec `distance_m`, `location_precision` et
      *   `to_review`). Chaque entrée a sa `date`, sa `precision` (`day`,

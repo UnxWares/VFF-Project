@@ -61,6 +61,7 @@
     }
 
     function namePeriod(n) {
+        if (!n.from) return t('stations.chronology.name_until', { to: n.to });
         return n.to
             ? t('stations.chronology.name_from_to', { from: n.from, to: n.to })
             : t('stations.chronology.name_from', { from: n.from });
