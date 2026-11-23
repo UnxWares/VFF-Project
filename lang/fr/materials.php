@@ -149,6 +149,9 @@ return [
             'other' => 'mention incertaine',
         ],
     ],
+    'family' => [
+        'of' => "Famille\u{a0}:",
+    ],
     'end' => [
         'line' => 'Sur la ligne jusqu’en :year',
         'series_in_service' => 'Série encore en service',

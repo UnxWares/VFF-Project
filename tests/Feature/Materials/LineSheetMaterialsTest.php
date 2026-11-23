@@ -118,4 +118,30 @@ class LineSheetMaterialsTest extends TestCase
 
         $this->assertNull($this->sheetMaterials()['bb-16000']['earliest_on_line']);
     }
+
+    public function test_a_family_is_not_listed_next_to_its_versions(): void
+    {
+        $agc = Material::factory()->create(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité', 'type' => 'automotrice']);
+        $x = Material::factory()->create(['slug' => 'x-76500', 'name' => 'X 76500', 'type' => 'autorail']);
+        $z = Material::factory()->create(['slug' => 'z-27500', 'name' => 'Z 27500', 'type' => 'automotrice']);
+        $other = Material::factory()->create(['slug' => 'bb-67400', 'name' => 'BB 67400', 'type' => 'locomotive_diesel']);
+        foreach ([$agc, $x, $z, $other] as $m) {
+            $this->link($m, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
+        }
+
+        $rows = $this->sheetMaterials();
+
+        $this->assertFalse($rows->has('autorail-grande-capacite'));
+        $this->assertSame(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité'], $rows['x-76500']['family']);
+        $this->assertSame('autorail-grande-capacite', $rows['z-27500']['family']['slug']);
+        $this->assertNull($rows['bb-67400']['family']);
+    }
+
+    public function test_a_family_alone_on_a_line_stays_listed(): void
+    {
+        $agc = Material::factory()->create(['slug' => 'autorail-grande-capacite', 'name' => 'Autorail grande capacité', 'type' => 'automotrice']);
+        $this->link($agc, 'high', [['kind' => 'wikipedia_line_article', 'quote' => 'Phrase.']]);
+
+        $this->assertTrue($this->sheetMaterials()->has('autorail-grande-capacite'));
+    }
 }

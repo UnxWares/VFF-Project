@@ -148,6 +148,9 @@ return [
             'other' => 'unsichere Erwähnung',
         ],
     ],
+    'family' => [
+        'of' => 'Familie:',
+    ],
     'end' => [
         'line' => 'Auf der Strecke bis :year',
         'series_in_service' => 'Baureihe noch im Einsatz',

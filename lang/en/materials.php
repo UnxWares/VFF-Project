@@ -148,6 +148,9 @@ return [
             'other' => 'uncertain mention',
         ],
     ],
+    'family' => [
+        'of' => 'Family:',
+    ],
     'end' => [
         'line' => 'On the line until :year',
         'series_in_service' => 'Series still in service',

@@ -29,7 +29,7 @@
      * Les séries que toutes les sources mettent en doute (essai, présentation, commande, acheminement à
      * vide : `link_doubt`) ne sont pas des tuiles : elles sont rangées dans un groupe replié, avec la raison.
      * Une série électrique n'a pas circulé avant l'électrification de la ligne : la borne (`earliest_on_line`)
-     * est dite avec son motif.
+     * est dite avec son motif. La famille d'une série (`family`) est nommée, jamais listée à côté d'elle.
      *
      * La photo et le nom mènent à la fiche de la série ; le crédit et les sources sont des liens à part
      * (pas de lien dans un lien).
@@ -38,7 +38,7 @@
      * sur la fiche de la série.
      *
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
-     *   builders?: string[], link_doubt?: ?string,
+     *   builders?: string[], link_doubt?: ?string, family?: ?{ slug: string, name: string },
      *   earliest_on_line?: ?{ reason: string, date: string, precision?: ?string }, in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
      *   relations?: Array<any>, end?: { kind: string, year: ?number, source_url: ?string }, image?: ?{ url: string, width: number, height: number, file: ?string,
      *   author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, fit?: string } }> }}
@@ -120,6 +120,11 @@
                         </p>
                     {/if}
                     <span class="meta">{t(`materials.type.${m.type}`)}</span>
+                    {#if m.family}<span class="meta"
+                            >{t('materials.family.of')}{SPACE}<Link
+                                href="/materials/{m.family.slug}">{m.family.name}</Link
+                            ></span
+                        >{/if}
                     {#if builders}<span class="meta">{builders}</span>{/if}
                     {#if service}<span class="meta">{service}</span>{/if}
                     {#if m.end}<span class="meta end"

@@ -9,6 +9,7 @@ use App\Models\Material;
 use App\Services\Materials\ElectrificationBound;
 use App\Services\Materials\LineMaterialDoubt;
 use App\Services\Materials\LineMaterialEnd;
+use App\Services\Materials\MaterialFamilyMembers;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -429,11 +430,29 @@ final class LineSheet
         // (ElectrificationBound) ; la borne est servie avec son motif, jamais comme une date de service.
         $bound = $line->materials->contains(fn ($m): bool => ElectrificationBound::isElectric($m)) ? ElectrificationBound::lineDate($line) : null;
 
+        // Séries et leurs versions liées à la même ligne : la famille n'est pas montrée à côté de ses versions.
+        $slugs = $line->materials->pluck('slug')->all();
+        $hidden = [];
+        $familyOf = [];
+        foreach ($line->materials as $m) {
+            $family = MaterialFamilyMembers::familyOf($m->slug);
+            if ($family !== null && in_array($family, $slugs, true)) {
+                $familyOf[$m->slug] = $family;
+            }
+        }
+        $familyNames = $line->materials->whereIn('slug', array_unique(array_values($familyOf)))->pluck('name', 'slug')->all();
+        foreach ($line->materials->whereIn('slug', array_unique(array_values($familyOf))) as $family) {
+            // Une famille qui porte des périodes sûres que ses versions n'ont pas garde sa tuile.
+            if (empty($materialPeriods[$family->id])) {
+                $hidden[$family->slug] = true;
+            }
+        }
+
         // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
         // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
         // les plus anciennes d'abord.
         // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-        return LineMaterialEnd::sort($line->materials->unique('id')->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks, $bound): array {
+        return LineMaterialEnd::sort($line->materials->unique('id')->reject(fn ($m) => isset($hidden[$m->slug]))->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks, $bound, $familyOf, $familyNames): array {
             $periods = $materialPeriods[$m->id] ?? [];
             $earliest = null;
             if ($bound !== null && ElectrificationBound::appliesTo($m, $bound['date'])) {
@@ -463,6 +482,8 @@ final class LineSheet
                 // Lien que toutes les sources mettent en doute (essai, présentation, commande, acheminement à vide…) :
                 // `LineMaterialDoubt::REASONS`, null pour une série qui a circulé. La fiche le range à part.
                 'link_doubt' => empty($periods) ? LineMaterialDoubt::reason($materialLinks[$m->id] ?? []) : null,
+                // Famille dont la série est une version, quand la famille est aussi liée à la ligne.
+                'family' => isset($familyOf[$m->slug]) ? ['slug' => $familyOf[$m->slug], 'name' => $familyNames[$familyOf[$m->slug]] ?? $familyOf[$m->slug]] : null,
                 // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
                 'image' => Material::thumbnail($m->image),
                 // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.

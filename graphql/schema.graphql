@@ -5727,6 +5727,9 @@ type LineSheetMaterial {
     "Raison pour laquelle toutes les sources mettent en doute que la série ait assuré le service sur la ligne : `trial` (essais), `one_off` (circulation exceptionnelle, présentation, train spécial), `order` (commande), `positioning` (acheminement à vide vers un atelier), `preserved` (préservation), `possible` (possibilité étudiée), `diverted` (train détourné), `restricted` (réservé à une autre portion), `component` (pièce reprise d'une autre série), `section` (section d'essais ou de records) ou `other`. Nulle pour une série qui a circulé. La fiche web range ces séries à part."
     link_doubt: String
 
+    "Famille dont la série est une version, quand la famille est aussi liée à la ligne (la famille n'est alors pas listée à côté de ses versions) : `Autorail grande capacité` pour le X 76500, Z 27500 et B 82500. Nulle sinon."
+    family: LineSheetMaterialFamily
+
     "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo ou quand la photo ne convient pas (original trop petit, plan, dessin, intérieur, ou écartée après relecture : `database/data/material_photo_exclusions.php`). Image complète : `Material.image`."
     image: LineSheetMaterialImage
 
@@ -5744,6 +5747,15 @@ type LineSheetMaterialBound {
 
     "Précision de la date : `day`, `month` ou `year`."
     precision: String!
+}
+
+"Famille d'une série (voir `LineSheetMaterial.family`)."
+type LineSheetMaterialFamily {
+    "Slug de la famille."
+    slug: String!
+
+    "Nom de la famille."
+    name: String!
 }
 
 "Fin de circulation d'une série sur une ligne."
