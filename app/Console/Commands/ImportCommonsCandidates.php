@@ -94,7 +94,7 @@ class ImportCommonsCandidates extends Command
             $rows = [];
             $featured = false;
             $pos = $rec['subject'] === 'station'
-                ? DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lon, city FROM stations WHERE id = ?', [$rec['id']])
+                ? DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lon, city, (SELECT COUNT(*) FROM stations o WHERE o.id <> stations.id AND o.search_name = stations.search_name) AS homonyms FROM stations WHERE id = ?', [$rec['id']])
                 : null;
             foreach ($rec['files'] as $f) {
                 $meta = $f['meta'] ?? [];
@@ -107,6 +107,11 @@ class ImportCommonsCandidates extends Command
                     $via === 'search' && (! CommonsCoverage::titleIsRailway((string) ($meta['file_title'] ?? ''))
                         || ! CommonsCoverage::titleNamesStation($meta, (string) ($rec['name'] ?? ''))
                         || ! CommonsCoverage::mentionsCity($meta, $pos->city ?? null, (string) ($rec['name'] ?? ''))) => 'hors_sujet',
+                    // Nom partagé avec une autre gare de VFF (homonymes) : la recherche par texte ne peut pas trancher.
+                    $via === 'search' && ($pos->homonyms ?? 0) > 0 => 'homonyme',
+                    $via === 'search' && ($meta['mime'] ?? '') === 'image/png' => 'hors_sujet',
+                    $via === 'search' && (preg_match('#^https?://#i', (string) ($meta['author'] ?? '')) === 1
+                        || preg_match('/\b(thermale|mines?)\b/iu', (string) ($meta['file_title'] ?? '')) === 1) => 'hors_sujet',
                     default => null,
                 };
                 $reason ??= $pos !== null

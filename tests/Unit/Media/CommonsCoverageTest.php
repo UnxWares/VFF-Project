@@ -147,6 +147,12 @@ class CommonsCoverageTest extends TestCase
         $this->assertFalse($t('File:Anchamps - Laifour - Viaduc ferroviaire sur la Meuse.jpg', 'Anchamps'));
         $this->assertFalse($t('File:Gare routière de Dreux.jpg', 'Dreux'));
         $this->assertFalse($t('File:Gare de Dreux.jpg', 'Vernouillet'));
+        $this->assertFalse($t('File:Gare de Saint-Benoit - Saint-Aignan 02.jpg', 'Saint-Benoit'));
+        $this->assertFalse($t('File:Bahnhof Kirchheim (Teck) 11.jpg', 'Kirchheim'));
+        $this->assertFalse($t('File:Pantin Sainte-Marthe Station 1.jpg', 'Sainte-Marthe'));
+        $this->assertFalse($t('File:Mont-Saint-Éloi - Gare - 1.JPG', 'St-Éloi'));
+        $this->assertTrue($t('File:Périssac - Gare 1.jpg', 'Périssac'));
+        $this->assertTrue($t('File:Gare de Puget-sur-Argens 3.jpg', 'Puget-sur-Argens'));
     }
 
     public function test_la_commune_doit_etre_nommee_dans_le_titre_ou_les_categories(): void

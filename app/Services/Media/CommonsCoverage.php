@@ -236,7 +236,13 @@ final class CommonsCoverage
         $title = ' '.trim(self::fold(CommonsMetadata::titleFromFile((string) ($meta['file_title'] ?? '')))).' ';
         $q = preg_quote($n, '/');
         $words = '(gare|gares|halte|haltes|station|bahnhof|arret)';
-        $pattern = '/ '.$words.'( sncf| ter| ferroviaire| routiere)?( (de|du|des|d|de la|de l|von|zu))? '.$q.' | '.$q.' (la |l |de la |en |cote |vue |facade |batiment )?'.$words.' /';
+        // « Gare de X » : ce qui suit X doit être un chiffre, une date, ou un mot de description (pas un autre
+        // lieu : « Gare de Saint-Benoit - Saint-Aignan », « Bahnhof Kirchheim (Teck) »).
+        $tail = '( \d.*| (vue|vers|facade|quai|quais|batiment|cote|entree|exterieur|interieur|ancienne|photo|depuis|apres|avant|sncf|ter|xix|xx).*)?';
+        $prefixForm = '^ ?(cpa |carte postale )?'.$words.'( sncf| ter| ferroviaire)?( (de|du|des|d|de la|de l|von|zu))? '.$q.$tail.' $';
+        // « X - la gare » : le nom ouvre le titre (pas de commune ou d'autre lieu devant).
+        $suffixForm = '^ '.$q.' (la |l |de la |en |cote |vue |facade |batiment )?'.$words.' ';
+        $pattern = '/'.$prefixForm.'|'.$suffixForm.'/';
 
         return (bool) preg_match($pattern, $title) && ! preg_match('/ gare routiere /', $title);
     }
