@@ -6,6 +6,7 @@ use App\Models\Line;
 use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
 use App\Models\Material;
+use App\Services\Materials\LineMaterialDoubt;
 use App\Services\Materials\LineMaterialEnd;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
@@ -427,28 +428,35 @@ final class LineSheet
         // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
         // les plus anciennes d'abord.
         // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-        return LineMaterialEnd::sort($line->materials->unique('id')->values()->map(fn ($m) => [
-            'slug' => $m->slug,
-            'name' => $m->name,
-            'type' => $m->type,
-            // `builder` : noms joints, coupés à 255 caractères (« … ») pour les séries aux nombreux
-            // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon. Un
-            // constructeur sans libellé (identifiant Wikidata seul) n'est dans aucun des deux.
-            'builder' => $m->builder,
-            'builders' => $m->builderNames(),
-            'in_service_from' => $m->in_service_from,
-            // Retrait de la série contredit par une période datée sur cette ligne (CC 80000 : retrait 1964 d'après
-            // Wikidata, « jusqu'en 1977 » sur Paris - Argentan - Granville d'après son article) : il n'est pas
-            // montré comme un fait, et reste lisible dans `in_service_to_contradicted`.
-            'in_service_to' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? null : $m->in_service_to,
-            'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? $m->in_service_to : null,
-            'periods' => $materialPeriods[$m->id] ?? [],
-            'relations' => $materialRelations[$m->id] ?? [],
-            // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
-            'image' => Material::thumbnail($m->image),
-            // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.
-            'end' => LineMaterialEnd::of($m, $materialPeriods[$m->id] ?? []),
-        ])->all());
+        return LineMaterialEnd::sort($line->materials->unique('id')->values()->map(function ($m) use ($materialPeriods, $materialRelations, $materialLinks): array {
+            $periods = $materialPeriods[$m->id] ?? [];
+
+            return [
+                'slug' => $m->slug,
+                'name' => $m->name,
+                'type' => $m->type,
+                // `builder` : noms joints, coupés à 255 caractères (« … ») pour les séries aux nombreux
+                // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon. Un
+                // constructeur sans libellé (identifiant Wikidata seul) n'est dans aucun des deux.
+                'builder' => $m->builder,
+                'builders' => $m->builderNames(),
+                'in_service_from' => $m->in_service_from,
+                // Retrait de la série contredit par une période datée sur cette ligne (CC 80000 : retrait 1964 d'après
+                // Wikidata, « jusqu'en 1977 » sur Paris - Argentan - Granville d'après son article) : il n'est pas
+                // montré comme un fait, et reste lisible dans `in_service_to_contradicted`.
+                'in_service_to' => self::contradictedRetirement($m->in_service_to, $periods) ? null : $m->in_service_to,
+                'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $periods) ? $m->in_service_to : null,
+                'periods' => $periods,
+                'relations' => $materialRelations[$m->id] ?? [],
+                // Lien que toutes les sources mettent en doute (essai, présentation, commande, acheminement à vide…) :
+                // `LineMaterialDoubt::REASONS`, null pour une série qui a circulé. La fiche le range à part.
+                'link_doubt' => empty($periods) ? LineMaterialDoubt::reason($materialLinks[$m->id] ?? []) : null,
+                // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
+                'image' => Material::thumbnail($m->image),
+                // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.
+                'end' => LineMaterialEnd::of($m, $periods),
+            ];
+        })->all());
     }
 
     /**

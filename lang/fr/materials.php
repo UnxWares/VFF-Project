@@ -129,6 +129,23 @@ return [
         'source' => 'source',
         'note' => 'Les années de circulation viennent des articles Wikipédia de la ligne et des séries, ou de Wikidata. Une fin absente ne veut pas dire que la série circule encore. La source de chaque période figure sur la fiche de la série.',
     ],
+    'doubt' => [
+        'title' => 'Cités, sans service attesté (:count)',
+        'intro' => 'Les sources citent ces séries sur la ligne sans dire qu’elles y ont assuré le service.',
+        'reasons' => [
+            'trial' => 'essais',
+            'one_off' => 'circulation exceptionnelle ou présentation',
+            'order' => 'commande',
+            'positioning' => 'acheminement à vide',
+            'preserved' => 'préservation',
+            'possible' => 'possibilité étudiée',
+            'diverted' => 'train détourné',
+            'restricted' => 'réservé à une autre portion',
+            'component' => 'pièce reprise d’une autre série',
+            'section' => 'essais ou records',
+            'other' => 'mention incertaine',
+        ],
+    ],
     'end' => [
         'line' => 'Sur la ligne jusqu’en :year',
         'series_in_service' => 'Série encore en service',

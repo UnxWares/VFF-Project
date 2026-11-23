@@ -33,6 +33,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Fiche d'une ligne (REST `GET /api/v1/lines/{slug}`, `materials` ; GraphQL `LineSheet.materials`) : chaque série porte `link_doubt`, la raison pour laquelle toutes les sources mettent en doute qu'elle ait assuré le service sur la ligne (`trial` essais, `one_off` circulation exceptionnelle ou présentation, `order` commande, `positioning` acheminement à vide, `preserved`, `possible`, `diverted`, `restricted`, `component`, `section`, `other`), `null` pour une série qui a circulé. La page web range ces séries dans un groupe replié. Ajout seul.
 - Bibliographie des lignes et des gares : ouvrages et articles qui en traitent (auteurs, titre, éditeur, lieu, année, ISBN, lien vers la
   notice du catalogue général de la BnF ou vers la référence d'origine, raison du rattachement) : REST `GET /api/v1/lines/{line}/bibliography`
   et `GET /api/v1/stations/{station}/bibliography`. Ajout seul.

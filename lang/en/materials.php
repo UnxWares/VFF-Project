@@ -128,6 +128,23 @@ return [
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',
     ],
+    'doubt' => [
+        'title' => 'Mentioned, service not established (:count)',
+        'intro' => 'Sources mention these series on the line without saying they ran in service there.',
+        'reasons' => [
+            'trial' => 'trials',
+            'one_off' => 'one-off run or presentation',
+            'order' => 'on order',
+            'positioning' => 'empty-stock move',
+            'preserved' => 'preservation',
+            'possible' => 'possibility studied',
+            'diverted' => 'diverted train',
+            'restricted' => 'limited to another section',
+            'component' => 'part taken from another series',
+            'section' => 'trials or records',
+            'other' => 'uncertain mention',
+        ],
+    ],
     'end' => [
         'line' => 'On the line until :year',
         'series_in_service' => 'Series still in service',

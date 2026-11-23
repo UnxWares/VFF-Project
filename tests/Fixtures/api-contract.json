@@ -951,6 +951,7 @@
     "gql LineSheetMaterial.in_service_from": "Int",
     "gql LineSheetMaterial.in_service_to": "Int",
     "gql LineSheetMaterial.in_service_to_contradicted": "Int",
+    "gql LineSheetMaterial.link_doubt": "String",
     "gql LineSheetMaterial.name": "String!",
     "gql LineSheetMaterial.periods": "[LineSheetMaterialPeriod!]!",
     "gql LineSheetMaterial.relations": "[LineMaterialRelation!]!",

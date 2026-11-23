@@ -128,6 +128,23 @@ return [
         'source' => 'Quelle',
         'note' => 'Die Jahre stammen aus den Wikipedia-Artikeln über die Strecke und die Baureihen oder aus Wikidata. Fehlt das Ende, heißt das nicht, dass die Baureihe hier noch fährt. Die Quelle jedes Zeitraums steht auf der Seite der Baureihe.',
     ],
+    'doubt' => [
+        'title' => 'Erwähnt, Einsatz nicht belegt (:count)',
+        'intro' => 'Quellen nennen diese Baureihen auf der Strecke, ohne zu sagen, dass sie dort im Dienst fuhren.',
+        'reasons' => [
+            'trial' => 'Erprobung',
+            'one_off' => 'Sonderfahrt oder Vorstellung',
+            'order' => 'bestellt',
+            'positioning' => 'Überführungsfahrt',
+            'preserved' => 'Erhaltung',
+            'possible' => 'Möglichkeit geprüft',
+            'diverted' => 'umgeleiteter Zug',
+            'restricted' => 'auf anderen Abschnitt beschränkt',
+            'component' => 'Teil einer anderen Baureihe',
+            'section' => 'Erprobung oder Rekorde',
+            'other' => 'unsichere Erwähnung',
+        ],
+    ],
     'end' => [
         'line' => 'Auf der Strecke bis :year',
         'series_in_service' => 'Baureihe noch im Einsatz',

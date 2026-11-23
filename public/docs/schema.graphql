@@ -3656,7 +3656,8 @@ type Accident {
   Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
   `wikidata_wikipedia`, `wikipedia_editions` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
   qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
-  lecture `retrieved_at`), `families`, `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
+  lecture `retrieved_at`), `families` (familles qui confirment, dont `press` pour la presse d'époque numérisée),
+  `deaths` (bilan comparé aux articles de presse), `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
   même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
   """
   verification: JSON
@@ -6020,6 +6021,9 @@ type LineSheetMaterial {
 
   "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
   relations: [LineMaterialRelation!]!
+
+  "Raison pour laquelle toutes les sources mettent en doute que la série ait assuré le service sur la ligne : `trial` (essais), `one_off` (circulation exceptionnelle, présentation, train spécial), `order` (commande), `positioning` (acheminement à vide vers un atelier), `preserved` (préservation), `possible` (possibilité étudiée), `diverted` (train détourné), `restricted` (réservé à une autre portion), `component` (pièce reprise d'une autre série), `section` (section d'essais ou de records) ou `other`. Nulle pour une série qui a circulé. La fiche web range ces séries à part."
+  link_doubt: String
 
   "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo ou quand la photo ne convient pas (original trop petit, plan, dessin, intérieur, ou écartée après relecture : `database/data/material_photo_exclusions.php`). Image complète : `Material.image`."
   image: LineSheetMaterialImage
