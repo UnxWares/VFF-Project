@@ -1343,6 +1343,25 @@ Renvoie `attendance` (nul quand les jeux n'en donnent aucune pour la gare : cela
 {"station": "angouleme"}
 ```
 
+### `on_this_day` : ce jour-là
+
+Mêmes données que `GET /api/v1/on-this-day` et la page `/on-this-day` (service `OnThisDay`) : ce qui s'est passé un jour du
+calendrier les années précédentes, trié par année. Seuls des faits dont la date est connue au jour sont servis, avec au moins
+une source publiable ; les accidents « à vérifier » ne sont pas servis.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `month`, `day` | entiers | non | Mois (1 à 12) et jour du mois ; ensemble ou pas du tout (par défaut : aujourd'hui). 29 février accepté. |
+| `types` | liste | non | `milestone`, `opening`, `reopening`, `closure`, `electrification`, `signalling`, `demolition`, `accident`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `day` (« MM-JJ »), `count`, `facts[]` (`subject`, `kind`, `traffic`, `year`, `years_ago`, `date`, `when`, `title`,
+`detail`, `deaths`, `path`, `line` ou `station`, `sources[]`) et `coverage` (jours de l'année qui ont au moins un fait).
+
+```json
+{"month": 11, "day": 23}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |

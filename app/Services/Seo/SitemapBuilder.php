@@ -38,7 +38,7 @@ final class SitemapBuilder
 
     /** Pages éditoriales et annuaires : noms de routes. */
     private const PAGES = [
-        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'accidents.index', 'network.figures', 'network.chronology', 'quiz',
+        'home', 'whoarewe', 'maps', 'lines.index', 'stations.index', 'materials.index', 'accidents.index', 'network.figures', 'network.chronology', 'network.on-this-day', 'quiz',
         'contribute', 'contribute.reputation', 'donate', 'legal', 'privacy', 'use-conditions', 'accessibility',
         'api.docs', 'docs.swagger', 'credits.tech', 'credits.media',
     ];

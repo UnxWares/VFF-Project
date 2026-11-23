@@ -9,6 +9,7 @@ return [
     'computed' => 'Calculé le :date',
     'link_home' => 'Le réseau en chiffres, décennie par décennie',
     'link_chronology' => 'Année par année, les faits derrière ces chiffres : la chronologie du rail en France',
+    'link_on_this_day' => 'Un jour du calendrier : ce qui s’est passé ce jour-là les années précédentes',
     'today' => 'Aujourd’hui',
     'km' => ":value\u{00A0}km",
     'period_until' => 'jusqu’en :to',

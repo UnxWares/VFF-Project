@@ -9,6 +9,7 @@ return [
     'computed' => 'Berechnet am :date',
     'link_home' => 'Das Netz in Zahlen, Jahrzehnt für Jahrzehnt',
     'link_chronology' => 'Jahr für Jahr, die Fakten hinter diesen Zahlen: die Chronik der Eisenbahn in Frankreich',
+    'link_on_this_day' => 'Ein Tag des Kalenders: was an diesem Tag in früheren Jahren geschah',
     'today' => 'Heute',
     'km' => ':value km',
     'period_until' => 'bis :to',

@@ -9,6 +9,7 @@ return [
     'computed' => 'Calculated on :date',
     'link_home' => 'The network in figures, decade by decade',
     'link_chronology' => 'Year by year, the facts behind these figures: the chronology of French railways',
+    'link_on_this_day' => 'A day of the calendar: what happened on this day in earlier years',
     'today' => 'Today',
     'km' => ':value km',
     'period_until' => 'up to :to',

@@ -28,6 +28,7 @@ use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NetworkFiguresController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnThisDayController;
 use App\Http\Controllers\OpenDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
@@ -79,6 +80,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 // Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).
 Route::get('/chronology', [ChronologyController::class, 'index'])->name('network.chronology');
+// Ce jour-là : ce qui s'est passé un jour du calendrier les années précédentes (aujourd'hui par défaut).
+Route::get('/on-this-day/{monthDay?}', [OnThisDayController::class, 'index'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('network.on-this-day');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');

@@ -321,6 +321,7 @@ return [
             'line_stops' => 'Stations of a line in kilometre point order in a given period, with their state and the link to the GTFS archive of the era.',
             'station_aerial' => 'Historical IGN aerial views around a station (1950 to 1995), with credit and Licence Ouverte 2.0.',
             'station_attendance' => 'Yearly footfall of a station since 2015 (passengers and non-passengers), SNCF Gares & Connexions, ODbL; 2025 is not comparable with 2015-2024 (another method).',
+            'on_this_day' => 'What happened on a calendar day in earlier years: openings and closures of lines and stations, electrifications, commissionings, accidents, each with its year, source and sheet link; dates known to the exact day only.',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'The server also offers prompts, which an MCP client shows as ready-made commands. Each one sends the assistant a message saying which tools to call and how to cite the sources. Arguments are completed as you type.',

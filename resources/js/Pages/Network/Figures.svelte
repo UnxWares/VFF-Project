@@ -418,6 +418,9 @@
             <p class="note">
                 <Link href="/chronology" class="vff-link">{t('link_chronology')}</Link>
             </p>
+            <p class="note">
+                <Link href="/on-this-day" class="vff-link">{t('link_on_this_day')}</Link>
+            </p>
         </SectionBlock>
     </main>
 </Layout>

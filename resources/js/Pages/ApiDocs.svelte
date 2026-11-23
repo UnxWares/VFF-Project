@@ -235,6 +235,7 @@
         'line_stops',
         'station_aerial',
         'station_attendance',
+        'on_this_day',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.

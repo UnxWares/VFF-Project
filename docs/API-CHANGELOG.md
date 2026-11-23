@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Ce jour-là : REST `GET /api/v1/on-this-day/{MM-JJ}` (aujourd'hui sans date ; filtres `types` et `lang`, `meta.coverage`), page `/on-this-day` et
+  outil MCP `on_this_day` : ce qui s'est passé ce jour du calendrier les années précédentes, faits datés au jour avec au moins une source
+  publiable, accidents relus seulement. Ajout seul.
 - REST : `GET /chronology` et `GET /chronology/{decade}` (chronologie du rail en France, année par année depuis 1827 : ouvertures, réouvertures, fermetures, électrifications, signalisation, séries de matériel, accidents graves et jalons nationaux ; filtres `types`, `region`, `lang` ; chaque fait avec sa date à sa précision, sa fiche et ses sources publiables, les faits sans source publiable comptés dans `hidden`). Page : `/chronology`. Calcul : `vff:compute-network-chronology`.
 - REST : `GET /api/v1/materials/{material}/map`, les lignes d'une série avec leur tracé allégé (MultiLineString à 40 m près, 4 décimales),
   la fiabilité du lien, sa source (`source_url`, `article`, `quote`) et les périodes datées ; règle des droits des tracés comme
