@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\ManualStations;
 use App\Services\StationCorrections;
 use App\Services\StationMerger;
+use App\Services\StationNames\ConsolidationCarryOver;
 use App\Services\StationTimeline;
 use App\Support\StationNames;
 use Illuminate\Console\Command;
@@ -666,6 +667,17 @@ class ConsolidateStations extends Command
         // Slugs déjà pris par les gares conservées.
         $existing = DB::table('stations')->pluck('slug', 'id')->all();
         $existingNames = DB::table('stations')->pluck('name', 'id')->all();
+        // Ce que la consolidation ne produit pas (autres noms des autres sources, clés de provenance) est reporté.
+        $ownedSources = array_values(array_unique(array_merge(array_keys(self::SOURCE_ORDER), array_map(fn ($r) => $r->source, $this->recs))));
+        $currentAlt = [];
+        $currentProv = [];
+        foreach (DB::table('stations')->get(['id', 'alt_names', 'provenance']) as $row) {
+            $alt = json_decode((string) $row->alt_names, true);
+            $prov = json_decode((string) $row->provenance, true);
+            $currentAlt[(int) $row->id] = is_array($alt) ? array_values($alt) : [];
+            $currentProv[(int) $row->id] = is_array($prov) ? $prov : [];
+        }
+        $carriedAlt = [];
         $usedSlugs = array_flip($existing);
         $keptIds = [];
 
@@ -719,6 +731,7 @@ class ConsolidateStations extends Command
         foreach ($built as $cid => $s) {
             foreach ($s['id'] ? ($this->clusters[$cid]['absorbed_ids'] ?? []) : [] as $absorbed) {
                 if (isset($existing[$absorbed]) && ! isset($keptIds[$absorbed])) {
+                    $carriedAlt[(int) $s['id']] = [...($carriedAlt[(int) $s['id']] ?? []), ...ConsolidationCarryOver::foreignAltNames($currentAlt[(int) $absorbed] ?? [], $ownedSources)];
                     $moved = array_filter($merger->merge((int) $absorbed, (int) $s['id']));
                     $this->line(sprintf('  fiche %d (%s) fondue dans %d : %s', $absorbed, $existing[$absorbed], $s['id'],
                         $moved === [] ? 'rien à reprendre' : implode(', ', array_map(fn ($k, $v) => "{$k} {$v}", array_keys($moved), $moved))));
@@ -742,8 +755,20 @@ class ConsolidateStations extends Command
         $bar = $this->output->createProgressBar(count($built));
         foreach ($built as $cid => $s) {
             $row = array_intersect_key($s, array_flip($cols));
+            $prov = $s['provenance'];
+            if ($s['id']) {
+                $old = (int) $s['id'];
+                $carried = [...ConsolidationCarryOver::foreignAltNames($currentAlt[$old] ?? [], $ownedSources), ...($carriedAlt[$old] ?? [])];
+                $s['alt_names'] = ConsolidationCarryOver::withCarried($s['alt_names'], $carried);
+                if (ConsolidationCarryOver::revertsToPlaceName($currentAlt[$old] ?? [], (string) ($existingNames[$old] ?? ''), (string) $s['name'])) {
+                    // Nom ferroviaire posé par vff:import-station-names : la consolidation ne le rend pas au nom du lieu.
+                    $row['name'] = $existingNames[$old];
+                    $prov['name'] = $currentProv[$old]['name'] ?? $prov['name'];
+                }
+                $prov += ConsolidationCarryOver::foreignProvenance($currentProv[$old] ?? []);
+            }
             $row['alt_names'] = json_encode($s['alt_names'], JSON_UNESCAPED_UNICODE);
-            $row['provenance'] = json_encode($s['provenance']);
+            $row['provenance'] = json_encode($prov);
             $row['updated_at'] = $now;
             $geom = DB::raw(sprintf('ST_SetSRID(ST_MakePoint(%.7F, %.7F), 4326)', $s['lon'], $s['lat']));
             if ($s['id']) {
