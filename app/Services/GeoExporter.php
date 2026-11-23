@@ -299,7 +299,8 @@ class GeoExporter
             SELECT
                 s.id, s.slug, s.name, s.type, se.status, se.uncertain, se.note,
                 s.city, s.department_code, s.uic_code,
-                EXTRACT(YEAR FROM s.opened_at)::int AS opened_year,
+                EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, s.opened_precision,
+                s.provenance->>'opened_after' AS opened_after,
                 EXTRACT(YEAR FROM s.closed_at)::int AS closed_year, s.closed_at, s.closed_precision,
                 s.provenance->>'closed_after' AS closed_after,
                 ST_AsGeoJSON(s.geom, 6)::json AS geometry
@@ -333,6 +334,10 @@ class GeoExporter
                     'department_code' => $row->department_code,
                     'uic' => $row->uic_code,
                     'opened_year' => $row->opened_year,
+                    // Ouverture encadrée (précision range : correction sourcée, règle G3) : entre opened_after + 1
+                    // et opened_year, la borne haute ; opened_after nul pour toute autre précision.
+                    'opened_precision' => $row->opened_year !== null ? ($row->opened_precision ?? 'day') : null,
+                    'opened_after' => $row->opened_precision === StationTimeline::RANGE && is_numeric($row->opened_after) ? (int) $row->opened_after : null,
                     // Date de fermeture retenue, la même que la fiche gare et la fiche ligne
                     // (StationTimeline::resolveClosure) ; précision range : fermée après closed_after.
                     'closed_year' => $row->closed_year,

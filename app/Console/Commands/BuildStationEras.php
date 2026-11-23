@@ -156,9 +156,14 @@ class BuildStationEras extends Command
         $evidence = $this->currentEvidence();
         $tourist = DB::table('line_segments')->exists() ? (new StationLineCoverage)->touristStations() : [];
         $todayStatus = [];
+        // Ouvertures encadrées (bornes « après » et « avant » d'une correction sourcée) : ères incertaines entre les bornes.
+        $openingBounds = [];
         // Indices pour la chronologie (canonicalEvents) : fret seul aujourd'hui, gare desservie selon gares-de-voyageurs.
         $hints = [];
         foreach ($stations as $sid => $s) {
+            if (($bounds = StationTimeline::openingBounds($events[$sid] ?? [])) !== null) {
+                $openingBounds[$sid] = $bounds;
+            }
             $hints[$sid] = ['freight_today' => ($s->source_status ?? $s->status) === StationTimeline::FREIGHT || ($evidence[$sid]['sncf_freight'] ?? false),
                 'served_seen' => ($evidence[$sid]['voyageurs'] ?? false) ? ($evidence[$sid]['voyageurs_seen'] ?? null) : null];
             $todayStatus[$sid] = isset($forcedCurrent[$sid])
@@ -271,7 +276,14 @@ class BuildStationEras extends Command
                 if (StationTimeline::heritageLineEndsFreight($status, $heritageLines, $uncertain, (bool) $era->is_current)) {
                     [$status, $uncertain, $undatedNote, $note] = [StationTimeline::CLOSED, false, null, StationTimeline::NOTE_HERITAGE_NO_FREIGHT];
                 }
+                // Ouverture encadrée : avant la borne haute, l'existence de la gare n'est pas affirmée (incertaine).
+                $openingNote = $status === StationTimeline::CLOSED ? null
+                    : StationTimeline::boundedOpeningNote($openingBounds[$sid] ?? null, (int) $era->year, $status, (bool) $era->is_current);
+                if ($openingNote !== null) {
+                    $uncertain = true;
+                }
                 $entries[$sid] = ['status' => $status, 'note' => $note, 'uncertain' => $uncertain, 'undated_note' => $undatedNote,
+                    'opening_note' => $openingNote,
                     // Aucune ouverture propre : l'existence de la gare n'est déduite que de ses lignes.
                     'tourist' => $isTourist, 'attested' => $attested,
                     'inferred_only' => ! collect($evs)->contains(fn ($e) => $e['type'] === 'opening' && ! ($e['inferred'] ?? false)),
@@ -314,6 +326,9 @@ class BuildStationEras extends Command
                 }
                 if (! $era->is_current && ($x['undated_note'] ?? null) !== null) {
                     $note = trim(($note ? $note.' · ' : '').$x['undated_note']);
+                }
+                if (($x['opening_note'] ?? null) !== null) {
+                    $note = trim(($note ? $note.' · ' : '').$x['opening_note']);
                 }
                 $rows[] = ['station_id' => $sid, 'era_id' => $era->id, 'status' => $x['status'], 'uncertain' => $x['uncertain'],
                     'note' => $note, 'created_at' => now(), 'updated_at' => now()];
@@ -542,16 +557,48 @@ class BuildStationEras extends Command
      * Ouverture corrigée (correction sourcée « add opening », StationCorrections) : c'est la date de la
      * fiche gare (stations.opened_at), pas celle de la source neutralisée que vff:consolidate-stations y
      * avait mise (Mâcon-Loché-TGV : Wikidata 19/09/1981, l'article de la gare et la LGV 27/09/1981).
+     * Ouverture encadrée (bornes « après » et « avant », StationTimeline::openingBounds) : précision range,
+     * opened_at = la borne haute, à défaut la première fermeture datée, à défaut aujourd'hui ; opened_after =
+     * la borne basse (absente sans elle). Jamais la date de la ligne que la correction a démontrée fausse.
      */
     private function applyCorrectedOpenings(): void
     {
         DB::statement(<<<'SQL'
             UPDATE stations s SET opened_at = e.event_date, opened_precision = e.date_precision,
-                   provenance = COALESCE(s.provenance, '{}'::jsonb) || jsonb_build_object('opened_at', 'correction')
+                   provenance = (COALESCE(s.provenance, '{}'::jsonb) - 'opened_after') || jsonb_build_object('opened_at', 'correction')
             FROM (SELECT DISTINCT ON (station_id) station_id, event_date, date_precision FROM station_events
-                  WHERE source = 'correction' AND type = 'opening' AND NOT is_inferred ORDER BY station_id, event_date) e
-            WHERE e.station_id = s.id AND (s.opened_at IS DISTINCT FROM e.event_date OR s.provenance->>'opened_at' IS DISTINCT FROM 'correction')
+                  WHERE source = 'correction' AND type = 'opening' AND NOT is_inferred AND date_precision NOT IN ('after', 'before')
+                  ORDER BY station_id, event_date) e
+            WHERE e.station_id = s.id AND (s.opened_at IS DISTINCT FROM e.event_date OR s.opened_precision IS DISTINCT FROM e.date_precision
+                  OR s.provenance->>'opened_at' IS DISTINCT FROM 'correction' OR jsonb_exists(s.provenance, 'opened_after'))
         SQL);
+
+        $events = [];
+        foreach (DB::table('station_events')->where('source', StationTimeline::CORRECTION)->where('is_inferred', false)
+            ->whereIn('type', ['opening', 'closure', 'closure_passenger', 'demolition'])
+            ->whereIn('station_id', DB::table('station_events')->select('station_id')->where('source', StationTimeline::CORRECTION)
+                ->where('type', 'opening')->whereIn('date_precision', [StationTimeline::AFTER, StationTimeline::BEFORE]))
+            ->get(['station_id', 'type', 'event_date', 'date_precision', 'source']) as $e) {
+            $events[(int) $e->station_id][] = ['type' => $e->type, 'date' => (string) $e->event_date, 'precision' => $e->date_precision,
+                'source' => $e->source, 'inferred' => false];
+        }
+        $today = $this->today();
+        foreach ($events as $sid => $list) {
+            $bounds = StationTimeline::openingBounds($list);
+            if ($bounds === null) {
+                continue; // une ouverture datée de la même gare l'emporte (requête ci-dessus)
+            }
+            // Sans borne haute : la gare était ouverte avant sa première fermeture datée, ou l'est aujourd'hui.
+            $ends = array_column(array_filter($list, fn (array $e): bool => $e['type'] !== 'opening'
+                && in_array($e['precision'], ['day', 'month', 'year'], true) && $e['date'] <= $today), 'date');
+            $upper = $bounds['before'] ?? ($ends === [] ? $today : min($ends));
+            DB::update(<<<'SQL'
+                UPDATE stations SET opened_at = ?::date, opened_precision = 'range',
+                       provenance = (COALESCE(provenance, '{}'::jsonb) - 'opened_after' - 'opened_rule')
+                           || jsonb_strip_nulls(jsonb_build_object('opened_at', 'correction', 'opened_after', ?::int))
+                WHERE id = ?
+            SQL, [$upper, $bounds['after'], $sid]);
+        }
     }
 
     /**
@@ -612,11 +659,13 @@ class BuildStationEras extends Command
      */
     private function reconcileServiceYears(): void
     {
-        $first = DB::affectingStatement(<<<'SQL'
-            UPDATE station_lines sl SET first_year = EXTRACT(YEAR FROM s.opened_at)::int, years_source = COALESCE(sl.years_source, 'station')
+        // Ouverture encadrée (précision range) : la borne basse, jamais la borne haute (StationTimeline::openedYearFloorSql).
+        $floor = StationTimeline::openedYearFloorSql('s');
+        $first = DB::affectingStatement(<<<SQL
+            UPDATE station_lines sl SET first_year = {$floor}, years_source = COALESCE(sl.years_source, 'station')
             FROM stations s
-            WHERE s.id = sl.station_id AND s.opened_at IS NOT NULL
-              AND (sl.first_year IS NULL OR sl.first_year < EXTRACT(YEAR FROM s.opened_at))
+            WHERE s.id = sl.station_id AND s.opened_at IS NOT NULL AND {$floor} IS NOT NULL
+              AND (sl.first_year IS NULL OR sl.first_year < {$floor})
         SQL);
         $last = DB::affectingStatement(<<<'SQL'
             UPDATE station_lines sl SET last_year = EXTRACT(YEAR FROM s.closed_at)::int, years_source = COALESCE(sl.years_source, 'station')
@@ -635,7 +684,7 @@ class BuildStationEras extends Command
             FROM stations s
             WHERE s.id = sl.station_id AND sl.years_source IS DISTINCT FROM 'never_served'
               AND ((sl.last_year < sl.first_year
-                    AND ((s.opened_at IS NOT NULL AND sl.first_year = EXTRACT(YEAR FROM s.opened_at))
+                    AND ((s.opened_at IS NOT NULL AND sl.first_year = {$floor})
                       OR (s.closed_at IS NOT NULL AND sl.last_year = EXTRACT(YEAR FROM s.closed_at))))
                 OR (s.opened_at IS NOT NULL AND COALESCE(s.provenance->>'opened_at', '') NOT LIKE 'inferred:%'
                     AND {$lineClosedFirst})
@@ -732,13 +781,21 @@ class BuildStationEras extends Command
         $explicit = array_values(array_filter($evs, fn ($e) => ! $e['inferred']));
         // « Fermée après 1950 » (précision after) n'est pas une date : la fermeture
         // déduite des lignes reste utilisée à côté (la note d'incertitude s'en sert).
+        // « Ouverte après 1890 » (ouverture encadrée) est une borne sourcée : plus d'ouverture déduite.
         $has = fn (array $list, array $types) => (bool) array_filter($list, fn ($e) => in_array($e['type'], $types, true)
-            && ($e['precision'] ?? 'day') !== StationTimeline::AFTER);
+            && (($e['precision'] ?? 'day') !== StationTimeline::AFTER || $e['type'] === 'opening'));
         $out = $explicit;
         foreach ([['opening'], ['closure', 'demolition'], ['closure_passenger'], ['reopening']] as $types) {
             if (! $has($explicit, $types)) {
                 $out = array_merge($out, array_values(array_filter($evs, fn ($e) => $e['inferred'] && in_array($e['type'], $types, true))));
             }
+        }
+        // Une ouverture corrigée (correction sourcée, database/data/gares_corrections.php) remplace celles des
+        // autres sources : sans cela, la plus ancienne l'emportait et la date démontrée fausse restait sur la carte
+        // (Breitenbach, 1868 de Wikidata contre le 01/11/1893 de sa section).
+        $corrected = fn (array $e): bool => $e['type'] === 'opening' && ($e['source'] ?? null) === StationTimeline::CORRECTION;
+        if (array_filter($out, $corrected) !== []) {
+            $out = array_values(array_filter($out, fn ($e) => $e['type'] !== 'opening' || $corrected($e)));
         }
         // Plusieurs sources pour l'ouverture : on garde la plus ancienne
         // (les autres décrivent souvent la même ouverture à une autre précision).
@@ -793,7 +850,8 @@ class BuildStationEras extends Command
         $line = GeneratedText::lineInSentenceSql('l.name');
         $xLine = GeneratedText::lineInSentenceSql('x.lname');
         // Une fermeture « après 1950 » (date_precision = after) n'est pas une date : elle ne bloque pas la déduction.
-        $explicit = fn (string $types) => "NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id AND NOT x.is_inferred AND x.type IN ({$types}) AND x.date_precision <> 'after')";
+        // Une ouverture « après 1890 » (borne d'une ouverture encadrée, StationTimeline::openingBounds) la bloque.
+        $explicit = fn (string $types) => "NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id AND NOT x.is_inferred AND x.type IN ({$types}) AND (x.date_precision <> 'after' OR x.type = 'opening'))";
         // Deux événements de ligne à la même date : départage fixe (avant, l'ordre physique des lignes
         // décidait, et la date d'une gare changeait d'un passage à l'autre). D'abord la précision la MOINS
         // fine : une source « au jour » qui tombe sur le 1er du mois d'une autre source « au mois » ne fait
@@ -965,7 +1023,8 @@ class BuildStationEras extends Command
 
         // Dates retenues sur la fiche quand la gare n'en a pas de propre. L'intervalle de la règle G3
         // (boundOpeningsByMap) est recalculé à chaque passage, à partir de la date déduite.
-        DB::statement("UPDATE stations SET provenance = provenance - 'opened_after' - 'opened_rule' WHERE jsonb_exists_any(provenance, ARRAY['opened_after', 'opened_rule'])");
+        // Une ouverture encadrée par une correction (applyCorrectedOpenings, déjà passée) garde sa borne basse.
+        DB::statement("UPDATE stations SET provenance = provenance - 'opened_after' - 'opened_rule' WHERE jsonb_exists_any(provenance, ARRAY['opened_after', 'opened_rule']) AND provenance->>'opened_at' IS DISTINCT FROM 'correction'");
         DB::statement(<<<'SQL'
             UPDATE stations s SET opened_at = e.event_date, opened_precision = e.date_precision,
                    provenance = COALESCE(s.provenance, '{}'::jsonb) || jsonb_build_object('opened_at', e.source)

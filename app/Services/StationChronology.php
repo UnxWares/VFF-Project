@@ -173,8 +173,11 @@ final class StationChronology
             : self::span($date, $precision);
 
         $found = false;
+        if ($precision === 'range') {
+            [$entries, $found] = self::foldBounds($entries, $type, $date, $after);
+        }
         foreach ($entries as $i => $e) {
-            if ($e['type'] !== $type) {
+            if ($e['type'] !== $type || ($e['precision'] === 'range' && $found)) {
                 continue;
             }
             $overlaps = $span !== null && $e['_span'] !== null && $e['_span'][0] <= $span[1] && $e['_span'][1] >= $span[0];
@@ -196,6 +199,40 @@ final class StationChronology
         }
 
         return $entries;
+    }
+
+    /**
+     * Bornes « après » et « avant » d'un même événement (ouverture encadrée par une correction sourcée,
+     * StationTimeline::openingBounds) : une seule entrée, l'intervalle de la fiche (« entre 1891 et 1907 »), les
+     * bornes d'une autre source dans `also`. Sans borne, rien ne change.
+     *
+     * @param  list<array<string, mixed>>  $entries
+     * @return array{0: list<array<string, mixed>>, 1: bool} entrées, vrai si l'intervalle a pris la place d'une borne
+     */
+    private static function foldBounds(array $entries, string $type, string $date, ?int $after): array
+    {
+        $first = null;
+        $out = [];
+        foreach ($entries as $e) {
+            if ($e['type'] !== $type || ! in_array($e['precision'], ['after', 'before'], true)) {
+                $out[] = $e;
+
+                continue;
+            }
+            if ($first === null) {
+                $first = count($out);
+                $out[] = array_replace($e, ['date' => $date, 'precision' => 'range', 'after' => $after, 'retained' => true]);
+
+                continue;
+            }
+            if ($e['source'] === $out[$first]['source']) {
+                continue; // l'autre borne de la même source : déjà dans l'intervalle
+            }
+            $out[$first]['also'][] = ['source' => $e['source'], 'source_url' => $e['source_url'], 'date' => $e['date'],
+                'precision' => $e['precision'], 'estimated' => $e['estimated'], 'note' => $e['note'], 'note_lang' => $e['note_lang']];
+        }
+
+        return [$out, $first !== null];
     }
 
     /**

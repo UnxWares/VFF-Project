@@ -9,6 +9,15 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Gares, ouverture encadrée par une correction sourcée : une halte créée après sa ligne sans date connue (Compans, Renescure,
+  Saint-Étienne-du-Rouvray, Sainte-Colombe-Septveilles) n'a plus la date de sa ligne mais un intervalle, comme les ouvertures
+  de la règle G3 : `opened_precision` = `range`, `opened_at` = la borne haute (aujourd'hui sans borne haute connue) et
+  `opened_after` = l'année qui précède la borne basse (REST, GraphQL, MCP, annuaire, liste des gares d'une ligne). La
+  chronologie de la fiche en fait une seule entrée `range`. Ajouts : `opened_precision` et `opened_after` dans les propriétés
+  de `GET /api/v1/eras/{year}/stations.geojson` (`opened_year` y reste la borne haute d'une ouverture `range`), et la colonne
+  `opened_after` dans `gares.csv` des jeux ouverts. Une ouverture corrigée remplace désormais aussi sur la carte la date plus
+  ancienne d'une autre source. Étaples-Le Touquet, Rue et Neufchâtel-Hardelot ouvrent le 21/12/1847 (et non le 21/11).
+
 - Recherche (REST `GET /api/v1/search`, GraphQL `search`, MCP `search`, pages Gares et Accidents et leurs API de liste) : le
   classement change pour quelques requêtes. La gare ouverte aux voyageurs d'une commune dont le nom commence par celui de la
   commune vaut un nom exact (`strasbourg` donne Strasbourg-Ville avant l'ancienne gare Strasbourg) ; à pertinence égale, la gare

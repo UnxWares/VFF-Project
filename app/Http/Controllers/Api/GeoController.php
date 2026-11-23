@@ -192,7 +192,10 @@ class GeoController extends Controller
      * - `uic` : code UIC à 8 chiffres ; `department_code` : département (INSEE) ;
      * - `opened_year`, `closed_year`, `closed_at` (AAAA-MM-JJ) et `closed_precision`
      *   (`day`, `month`, `year`, ou `range` : fermée après l'année `closed_after`) ;
-     *   n'affichez que la partie connue de la date (ex. « 1938 » si `year`).
+     *   n'affichez que la partie connue de la date (ex. « 1938 » si `year`) ;
+     * - `opened_precision` (`day`, `month`, `year`, ou `range` : ouverture encadrée, entre
+     *   `opened_after` + 1 et `opened_year`, la borne haute) et `opened_after` (nul hors `range`) :
+     *   une ouverture `range` ne s'écrit jamais comme l'année `opened_year`.
      *
      * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
      *
@@ -213,6 +216,8 @@ class GeoController extends Controller
      *             department_code: ?string,
      *             uic: ?string,
      *             opened_year: ?int,
+     *             opened_precision: ?string,
+     *             opened_after: ?int,
      *             closed_year: ?int,
      *             closed_at: ?string,
      *             closed_precision: ?string,
@@ -233,7 +238,7 @@ class GeoController extends Controller
                 'slug' => 'bondy', 'name' => 'Bondy', 'type' => 'gare', 'status' => 'active',
                 'sources_status' => 'active', 'service' => 'passenger', 'city' => 'Bondy',
                 'department_code' => '93', 'uic' => '87113407', 'opened_year' => 1849,
-                'closed_year' => null, 'closed_at' => null, 'closed_precision' => null,
+                'opened_precision' => 'year', 'opened_after' => null, 'closed_year' => null, 'closed_at' => null, 'closed_precision' => null,
                 'closed_after' => null, 'note' => null,
             ],
         ]],

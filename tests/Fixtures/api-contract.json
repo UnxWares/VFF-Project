@@ -4169,6 +4169,8 @@
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.department_code": "string",
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.name": "string",
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.note": "string",
+    "rest field GET /eras/{year}/stations.geojson 200 features[].properties.opened_after": "integer",
+    "rest field GET /eras/{year}/stations.geojson 200 features[].properties.opened_precision": "string",
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.opened_year": "integer",
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.service": "string",
     "rest field GET /eras/{year}/stations.geojson 200 features[].properties.slug": "string",

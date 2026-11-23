@@ -4,6 +4,7 @@ namespace App\Services\OpenData;
 
 use App\Enums\AccidentKind;
 use App\Models\Era;
+use App\Services\StationTimeline;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -48,7 +49,7 @@ final class OpenDataExporter
         'first_opening_source', 'last_closure_on', 'last_closure_precision', 'last_closure_source', 'geometry_sections', 'geometry_withheld_sections', 'geometry_sources'];
 
     public const STATION_FIELDS = ['station_id', 'slug', 'name', 'name_source', 'type', 'era', 'status', 'uncertain', 'city',
-        'department_code', 'uic_code', 'wikidata_id', 'opened_on', 'opened_precision', 'opened_source', 'closed_on',
+        'department_code', 'uic_code', 'wikidata_id', 'opened_on', 'opened_precision', 'opened_after', 'opened_source', 'closed_on',
         'closed_precision', 'closed_source', 'lat', 'lon', 'geometry_status', 'geometry_source'];
 
     public const EVENT_FIELDS = ['event_id', 'line_id', 'line_slug', 'line_code', 'type', 'event_date', 'date_precision',
@@ -515,6 +516,9 @@ final class OpenDataExporter
                 'wikidata_id' => $r->wikidata_id,
                 'opened_on' => $opened,
                 'opened_precision' => $opened !== null ? $r->opened_precision : null,
+                // Ouverture encadrée (précision range) : entre opened_after + 1 et l'année de opened_on, la borne haute.
+                'opened_after' => $opened !== null && $r->opened_precision === StationTimeline::RANGE && is_numeric($item['prov']['opened_after'] ?? null)
+                    ? (int) $item['prov']['opened_after'] : null,
                 'opened_source' => $openedSource,
                 'closed_on' => $closed,
                 'closed_precision' => $closed !== null ? $r->closed_precision : null,

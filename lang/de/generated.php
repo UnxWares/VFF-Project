@@ -23,6 +23,8 @@ return [
         'undated_before' => 'Undatierte Schließung (vor :year)',
         'undated_after' => 'Undatierte Schließung (nach :year)',
         'closure_decade' => 'Schließung in den :decade',
+        'opening_range' => 'Eröffnungsdatum unbekannt (zwischen :from und :to)',
+        'opening_not_before' => 'Eröffnungsdatum unbekannt (nicht vor :year)',
         'line_opening' => 'Eröffnung der Strecke :line',
         'trace_opening' => 'Eröffnung des Streckenverlaufs, der den Bahnhof bedient',
         'line_service_end' => 'Ende der Bedienung durch die Strecke :line',

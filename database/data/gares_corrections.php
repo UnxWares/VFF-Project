@@ -12921,4 +12921,107 @@ return [
         'reason' => 'station des lignes de tramway T3a et T3b, seule source de la fiche, hors du réseau ferré',
     ],
 
+    // ── 54. Ouvertures encadrées et coquille du 21 novembre 1847 (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/ouvertures-bornees.md). Quatre haltes créées après leur ligne, sans date connue
+    // (rapport gares-a-decider.md) : la date de la base (celle de la ligne, ou de Wikidata) est démontrée fausse ou non
+    // attestée, aucune source ne la remplace ; une ouverture encadrée (precision range : « after » = ouverte après cette
+    // année, « date » = au plus tard ce jour, null sans borne haute) la remplace sans inventer de date. Étaples, Rue et
+    // Neufchâtel-Hardelot : la section d'Abbeville à Neufchâtel ouvre le 21 décembre 1847 (et non le 21 novembre).
+
+    // Compans (id 15504)
+    [
+        'station' => ['name' => 'Compans', 'uic' => '87272047'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1890,
+        'date' => '1907-12-31',
+        'source_url' => $wp('Gare de Compans', 235031417),
+        'quote' => 'Le 1er mars 1891 la Petite Gazette de Dammartin annonce un accord entre la compagnie du Nord et la municipalité pour l\'ouverture prochaine d\'une halte près du village. Au début des années 1900 (avant 1907), le conseiller municipal Decoudun [...] édite une carte postale présentant la halte de Compans',
+        'reason' => 'article de la gare « Gare de Compans » (oldid 235031417, d\'après Plancke, Histoire du chemin de fer de Seine-et-Marne, p. 421 et 429) : aucune halte à la mise en service de la section le 31 août 1861, ouverture prochaine annoncée le 1er mars 1891, halte en service sur une carte postale d\'avant 1907. Ouverture entre 1891 et 1907, jour inconnu ; remplace le 31 août 1861 déduit de la ligne.',
+    ],
+
+    // Renescure (id 15602)
+    [
+        'station' => ['name' => 'Renescure', 'uic' => '87281451'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1888,
+        'date' => null,
+        'source_url' => $wp('Gare de Renescure', 235034049),
+        'quote' => 'lors de sa séance du 22 août 1889 le Conseil général adopte le vœu, présenté par messieurs Degroote et Deschodt, demandant à la Compagnie d\'ouvrir rapidement la halte, qu\'elle à l\'intention d\'établir, à l\'exploitation',
+        'reason' => 'article de la gare « Gare de Renescure » (oldid 235034049) : halte demandée dès 1873, refusée par la Compagnie du Nord en 1884, encore à ouvrir le 22 août 1889 ; aucune source ne date son ouverture. Ouverture pas avant 1889, sans borne haute (halte desservie aujourd\'hui) ; remplace le 1er septembre 1848 déduit de la ligne de Lille aux Fontinettes.',
+    ],
+
+    // St-Étienne-du-Rouvray (id 16201)
+    [
+        'station' => ['name' => 'St-Étienne-du-Rouvray', 'uic' => '87411215'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1875,
+        'date' => '1911-12-31',
+        'source_url' => $wp('Gare de Saint-Étienne-du-Rouvray', 233612313),
+        'quote' => 'la Compagnie de l\'Ouest a été autorisée à créer une gare de voyageurs et de marchandises à Saint-Étienne-du-Rouvray, par décret des 5 mai et 17 juillet 1876 [...] l\'établissement est désigné en 1911 comme gare de secours',
+        'reason' => 'article de la gare « Gare de Saint-Étienne-du-Rouvray » (oldid 233612313, d\'après la Collection des lois de Duvergier, 1876, et un rapport au Sénat) : la gare est créée après les décrets de 1876 qui l\'autorisent, et elle existe en 1911, désignée gare de secours. Ouverture entre 1876 et 1911, jour inconnu ; remplace le 9 mai 1843 déduit de la ligne de Paris-Saint-Lazare au Havre.',
+    ],
+
+    // Ste-Colombe-Septveilles (id 14902)
+    [
+        'station' => ['name' => 'Ste-Colombe-Septveilles', 'uic' => '87116178'],
+        'action' => 'add',
+        'type' => 'opening',
+        'precision' => 'range',
+        'after' => 1857,
+        'date' => '1868-12-31',
+        'source_url' => $wp('Gare de Sainte-Colombe-Septveilles', 230108728),
+        'quote' => 'La halte n\'est qu\'une maison de garde-barrière lors de la mise en service de l\'embranchement de Longueville à Provins par la compagnie des chemins de fer de l\'Est le 11 décembre 1858. En 1868, la halte était l\'une des moins fréquentées de tout le réseau de l\'Est avec seulement 504 billets vendus dans l\'année.',
+        'reason' => 'article de la gare « Gare de Sainte-Colombe-Septveilles » (oldid 230108728, d\'après Plancke, p. 313, et Histoire du chemin de fer de Seine-et-Marne, tome I, p. 41) : simple maison de garde-barrière à la mise en service de l\'embranchement le 11 décembre 1858, halte en service en 1868 (504 billets). Ouverture entre 1858 et 1868, jour inconnu ; remplace l\'année 1858 de Wikidata.',
+    ],
+    [
+        'station' => ['name' => 'Ste-Colombe-Septveilles', 'uic' => '87116178'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1858-01-01'],
+        'source_url' => $wp('Gare de Sainte-Colombe-Septveilles', 230108728),
+        'quote' => 'La halte n\'est qu\'une maison de garde-barrière lors de la mise en service de l\'embranchement de Longueville à Provins par la compagnie des chemins de fer de l\'Est le 11 décembre 1858.',
+        'reason' => 'l\'année 1858 de Wikidata est celle de la mise en service de l\'embranchement, où l\'article ne montre qu\'une maison de garde-barrière : elle ne date pas la halte, encadrée entre 1858 et 1868 par la correction ci-dessus.',
+    ],
+
+    // Étaples-Le Touquet (id 15822)
+    [
+        'station' => ['name' => 'Étaples-Le Touquet', 'uic' => '87317065'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Longueau à Boulogne-Ville', 235223334),
+        'quote' => '21 décembre 1847 dans les chemins de fer : ouverture d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la ligne « Ligne de Longueau à Boulogne-Ville » (oldid 235223334, chronologie et section Histoire) : la section d\'Abbeville à Neufchâtel, où se trouve Étaples, est ouverte le 21 décembre 1847 ; même jour dans les articles « Gare d\'Abbeville » (oldid 239672829, d\'après l\'Atlas de Joanne), « Gare de Noyelles-sur-Mer » (oldid 241493567) et le texte des articles de Rue et de Neufchâtel-Hardelot. Le 21 novembre 1847 de l\'article de la gare (oldid 240483736) est une coquille, comme celui de Rang-du-Fliers. Remplace le 21 novembre 1847.',
+    ],
+
+    // Neufchâtel-Hardelot (id 15824)
+    [
+        'station' => ['name' => 'Neufchâtel-Hardelot', 'uic' => '87317099'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Neufchâtel-Hardelot', 238682987),
+        'quote' => 'La « station de Neufchâtel » est mise en service le 21 décembre 1847 par la Compagnie du chemin de fer d\'Amiens à Boulogne lorsqu\'elle ouvre à l\'exploitation la section d\'Abbeville à Neufchâtel',
+        'reason' => 'article de la gare « Gare de Neufchâtel-Hardelot » (oldid 238682987), section Histoire : mise en service le 21 décembre 1847 avec la section d\'Abbeville à Neufchâtel ; même jour dans l\'article de la ligne de Longueau à Boulogne-Ville (oldid 235223334). Le 21 novembre 1847 de l\'infobox est une coquille. Remplace le 21 novembre 1847.',
+    ],
+
+    // Rue (id 15844)
+    [
+        'station' => ['name' => 'Rue', 'uic' => '87317404'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1847-12-21',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Rue', 240454995),
+        'quote' => 'La « station de Rue » est mise en service le 21 décembre 1847',
+        'reason' => 'article de la gare « Gare de Rue » (oldid 240454995), section Histoire, d\'après Palau, Le rail en France : mise en service le 21 décembre 1847 ; même jour pour la section d\'Abbeville à Neufchâtel dans l\'article de la ligne de Longueau à Boulogne-Ville (oldid 235223334). Le 21 novembre 1847 de l\'infobox est une coquille. Remplace le 21 novembre 1847.',
+    ],
+
 ];
