@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\JunctionRepair;
+use App\Services\LineReferenceExclusions;
 use App\Services\SingleAxis;
 use App\Services\SourceAgreement;
 use App\Services\TraceConflation;
@@ -94,6 +95,11 @@ use Illuminate\Support\Facades\Storage;
  *    la portion qu'ils prolongent. Sans lui, le moteur décennal produit des
  *    tronçons en double et des tronçons de longueur nulle.
  *
+ * 5 bis. Retraits à la main (App\Services\LineReferenceExclusions, database/data/line_reference_exclusions.php) :
+ *    une voie source listée pour une ligne n'entre pas dans son tracé (ni tracé rattaché, ni voie proposée par le
+ *    recalage et la continuité) ; un fragment listé (ligne, point, longueur maximale) est retiré après le nettoyage.
+ *    Relus à chaque reconstruction : un recalcul ne fait pas revenir ce qui a été retiré.
+ *
  * 6. Arrondi des sommets (App\Support\TrackRounding) : chaque sommet où le
  *    tracé tourne de 6 à 35° devient un arc de cercle tangent aux deux segments
  *    (cassures résiduelles de 3° au plus, au plus 2 m du sommet d'origine).
@@ -174,6 +180,11 @@ class BuildLineReferences extends Command
     /** Continuité sur les voies réelles (JunctionRepair) : sauts, trous, changements de voie, prolongements, dépassements. */
     private array $repairStats = [];
 
+    /** Retraits à la main : voies exclues, fragments retirés (nombre, m), entrées sans fragment trouvé. */
+    private array $exclusionStats = [];
+
+    private LineReferenceExclusions $exclusions;
+
     /** Arrondi des sommets : sommets arrondis, points ajoutés. */
     private array $roundingStats = [];
 
@@ -192,6 +203,10 @@ class BuildLineReferences extends Command
     public function handle(): int
     {
         ini_set('memory_limit', '2G');
+        $this->exclusions = app(LineReferenceExclusions::class);
+        foreach ($this->exclusions->errors() as $error) {
+            $this->warn('  retraits à la main : '.$error.' (non appliqué)');
+        }
         $lineIds = $this->targetLines();
         $partial = (bool) $this->option('line') || (bool) $this->option('shard');
         $this->info(count($lineIds).' lignes à traiter');
@@ -286,6 +301,11 @@ class BuildLineReferences extends Command
             $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
                 $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
                 number_format($n['isolated_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
+        }
+        if ($x = $this->exclusionStats) {
+            $this->line(sprintf('  retraits à la main : %d voies sources écartées, %d fragments retirés (%s m)%s',
+                $x['traces'] ?? 0, $x['removed'] ?? 0, number_format($x['removed_m'] ?? 0, 0, ',', ' '),
+                ($x['missing'] ?? []) ? ' ; sans fragment trouvé : retraits n° '.implode(', ', $x['missing']) : ''));
         }
 
         $t = microtime(true);
@@ -412,22 +432,59 @@ class BuildLineReferences extends Command
         DB::delete('DELETE FROM line_reference_divergences WHERE line_id = ?', [$lineId]);
         DB::delete('DELETE FROM line_reference_duplicates WHERE line_id = ?', [$lineId]);
 
+        // Voies écartées à la main pour cette ligne (LineReferenceExclusions) : hors des tracés rattachés et du recalage.
+        // Une voie écartée en entier sort aussi du pool pour toute la ligne (la continuité ne la reprend pas) ; une
+        // voie coupée autour d'un point y revient avant la continuité, qui peut refaire le passage le long de la
+        // voie réelle (courbe estimée). Tout est remis pour la ligne suivante (l'annulation de la transaction aussi).
+        $cuts = $this->exclusions->tracesFor($lineId);
+        $whole = array_column(array_filter($cuts, fn ($c) => $c['radius_m'] === null), 'id');
+        $partial = array_values(array_filter($cuts, fn ($c) => $c['radius_m'] !== null));
+        $cutArgs = [
+            'ci' => $this->pgIds(array_column($partial, 'id')),
+            'cx' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lon']), $partial)).'}',
+            'cy' => '{'.implode(',', array_map(fn ($c) => sprintf('%.7F', $c['lat']), $partial)).'}',
+            'cr' => '{'.implode(',', array_map(fn ($c) => sprintf('%.2F', $c['radius_m']), $partial)).'}',
+        ];
+        // Zone retirée d'une voie (Lambert-93), NULL si la voie n'est pas coupée.
+        $zone = static fn (string $id): string => "(SELECT ST_Union(ST_Buffer(ST_Transform(ST_SetSRID(ST_MakePoint(c.x, c.y), 4326), 2154), c.r, 16))
+            FROM unnest(CAST(:ci AS bigint[]), CAST(:cx AS float8[]), CAST(:cy AS float8[]), CAST(:cr AS float8[])) c(i, x, y, r) WHERE c.i = {$id})";
+        $zoneHeld = $zone('h.id');
+        $zoneTrace = $zone('source_traces.id');
+        $held = $cuts && DB::selectOne("SELECT to_regclass('pg_temp.cf_pool') IS NOT NULL AS ok")->ok === true;
+        if ($held) {
+            $ids = $this->pgIds(array_column($cuts, 'id'));
+            DB::statement('CREATE TEMP TABLE IF NOT EXISTS lr_held (LIKE cf_pool)');
+            DB::insert('INSERT INTO lr_held SELECT * FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$ids]);
+            DB::delete('DELETE FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$ids]);
+            DB::insert(<<<SQL
+                INSERT INTO cf_pool (id, family, cls, prio, cand, line_id, len, g)
+                SELECT h.id, h.family, h.cls, h.prio, h.cand, h.line_id, ST_Length(d.geom), d.geom
+                FROM lr_held h, LATERAL (SELECT {$zoneHeld} AS z) z, LATERAL ST_Dump(ST_CollectionExtract(ST_Difference(h.g, z.z), 2)) d
+                WHERE z.z IS NOT NULL AND ST_Length(d.geom) > 0.5
+                SQL, $cutArgs);
+        }
+        $this->exclusionStats['traces'] = ($this->exclusionStats['traces'] ?? 0) + count($cuts);
+
         // Géométrie déjà retenue (EWKB hex, Lambert-93), enrichie source après source.
         $acc = null;
         $this->junctionRecords = [];
         foreach (self::SOURCES as [$source, $tolerance, $filter, $coarse]) {
             $g = DB::selectOne(<<<SQL
-                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(ST_Transform(geom, 2154)))), 'hex') AS ewkb,
-                       jsonb_agg(id ORDER BY id)::text AS ids
-                FROM source_traces
-                WHERE line_id = :line AND source = :source AND {$filter}
+                SELECT encode(ST_AsEWKB(ST_UnaryUnion(ST_Collect(g))), 'hex') AS ewkb, jsonb_agg(id ORDER BY id)::text AS ids
+                FROM (
+                    SELECT id, CASE WHEN z.z IS NULL THEN ST_Transform(geom, 2154) ELSE ST_CollectionExtract(ST_Difference(ST_Transform(geom, 2154), z.z), 2) END AS g
+                    FROM source_traces, LATERAL (SELECT {$zoneTrace} AS z) z
+                    WHERE line_id = :line AND source = :source AND {$filter}
+                      AND id <> ALL(CAST(:excluded AS bigint[]))
                   -- Une correction validée (contrib) remplace les tracés qu'elle désigne.
                   AND id NOT IN (
                       SELECT (jsonb_array_elements_text(properties->'supersedes'))::bigint
                       FROM source_traces WHERE source = 'contrib' AND properties->'supersedes' IS NOT NULL -- (pas l'opérateur « ? » : PDO le prend pour un paramètre)
                   )
+                ) t
+                WHERE NOT ST_IsEmpty(g)
                 HAVING COUNT(*) > 0
-                SQL, ['line' => $lineId, 'source' => $source]);
+                SQL, ['line' => $lineId, 'source' => $source, 'excluded' => $this->pgIds($whole)] + $cutArgs);
             if (! $g || ! $g->ewkb) {
                 continue;
             }
@@ -481,6 +538,10 @@ class BuildLineReferences extends Command
                 SQL, ['geoms' => '{'.implode(',', array_filter(array_merge([$acc], array_column($added, 2)))).'}'])->ewkb;
         }
 
+        if ($held) {
+            $this->restorePool(array_column($partial, 'id'));
+        }
+
         // Trous de la ligne comblés tout droit par la voie précise (avant « un seul axe » : voie continue).
         if (! $this->option('no-junction-repair') && ! $this->option('no-single-axis') && ! $this->option('no-conflate')) {
             $t = microtime(true);
@@ -523,6 +584,15 @@ class BuildLineReferences extends Command
                 $this->tidyStats[$k] = ($this->tidyStats[$k] ?? 0) + $v;
             }
             $this->timings['nettoyage'] = ($this->timings['nettoyage'] ?? 0) + microtime(true) - $t;
+        }
+
+        // Fragments retirés à la main (après le nettoyage, qui pourrait sinon les recoller), puis voies remises au pool.
+        $f = $this->exclusions->removeFragments($lineId);
+        $this->exclusionStats['removed'] = ($this->exclusionStats['removed'] ?? 0) + $f['removed'];
+        $this->exclusionStats['removed_m'] = ($this->exclusionStats['removed_m'] ?? 0) + $f['removed_m'];
+        $this->exclusionStats['missing'] = array_merge($this->exclusionStats['missing'] ?? [], $f['missing']);
+        if ($held) {
+            $this->restorePool($whole);
         }
 
         // Arrondi des sommets, une fois le tracé définitif (après le nettoyage qui recolle les extrémités).
@@ -959,6 +1029,17 @@ class BuildLineReferences extends Command
     private function km(float $m): string
     {
         return number_format($m / 1000, 1, ',', ' ');
+    }
+
+    /** Remet au pool de géométries les voies retenues pour la ligne (retirées ou coupées le temps du calcul). */
+    private function restorePool(array $ids): void
+    {
+        if (! $ids) {
+            return;
+        }
+        DB::delete('DELETE FROM cf_pool WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
+        DB::insert('INSERT INTO cf_pool SELECT * FROM lr_held WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
+        DB::delete('DELETE FROM lr_held WHERE id = ANY(CAST(? AS bigint[]))', [$this->pgIds($ids)]);
     }
 
     private function pgIds(array $ids): string
