@@ -3915,4 +3915,297 @@ return [
         'quote' => 'infobox, mise en service : 28 décembre 1868',
         'reason' => 'article de la gare (oldid 235031029) ; article de la ligne « Ligne de La Possonnière à Niort » (oldid 241119292) : « celle de Cholet à Niort le 26 décembre 1868 ». Remplace année 1866 de Wikidata (section La Possonnière - Cholet, qui ne va pas à Bressuire) ; le 28/12/1868 de l\'infobox et le 26/12/1868 de la ligne diffèrent de deux jours, année retenue.',
     ],
+
+    // ── 37. Ouvertures des gares encore ouvertes datées à l'année par Wikidata ou déduites de la ligne, suite de la relecture contre
+    // l'article de la gare (révision citée) et la chronologie de l'article de la ligne : 10 des 14 cas laissés à décider par la
+    // section 36 (Reims, Puteaux, Les Aubrais, La Celle-Saint-Cloud, Lourdes, Montréjeau, Aiguillon, Pertuis, Aubiat, Urt) et 16 gares
+    // des 60 suivantes par fréquentation (audit-gares-2, 23/11/2026, rapport storage/app/reports/agents/aprem-2111/audit-gares-2.md).
+    // Une section de ligne ou la ligne entière donnait l'année ; la gare ouvre le jour de sa propre section, ou plus tard (halte).
+
+    // Reims (id 15069)
+    [
+        'station' => ['name' => 'Reims', 'uic' => '87171009'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1854-06-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Reims', 241441206),
+        'quote' => 'Ouvert en 1854 par la Compagnie des chemins de fer de l\'Est, l\'embarcadère est alors le terminus de la ligne d\'Épernay à Reims',
+        'reason' => 'article de la gare (oldid 241441206) : le premier embarcadère de 1854 est le terminus de la ligne d\'Épernay à Reims ; article de la ligne « Ligne d\'Épernay à Reims » (oldid 235341667) : « La ligne est ouverte à l\'exploitation au service des voyageurs le 5 juin 1854 » (Palau). La gare actuelle de 1858 (10/06/1858) remplace cet embarcadère, la fiche garde l\'ouverture de la première gare. Remplace année 1854 de Wikidata.',
+    ],
+    // Puteaux (id 16030)
+    [
+        'station' => ['name' => 'Puteaux', 'uic' => '87382382'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1840-07-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Puteaux', 237145215),
+        'quote' => 'La station est ouverte le 18 juillet 1840 par la Société anonyme du chemin de fer de Paris à Saint-Cloud et Versailles.',
+        'reason' => 'article de la gare (oldid 237145215), date répétée dans l\'infobox et le texte. L\'article de la ligne « Ligne de Paris-Saint-Lazare à Versailles-Rive-Droite » (oldid 235113118) donne l\'ouverture de la ligne le 2 août 1839 sans citer Puteaux : la station est donc ouverte après la ligne (halte créée plus tard, phrase explicite). Remplace année 1839 de Wikidata (ouverture de la ligne).',
+    ],
+    // Les Aubrais-Orléans (id 16621)
+    [
+        'station' => ['name' => 'Les Aubrais-Orléans', 'uic' => '87543017'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1853-09-28',
+        'precision' => 'day',
+        'source_url' => $wp('Gare des Aubrais', 240222394),
+        'quote' => 'La première gare, construite au lieu-dit Les Aubrais, est inaugurée le 28 septembre 1853.',
+        'reason' => 'article de la gare (oldid 240222394) ; article de la ligne « Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean » (oldid 240534824) : une gare de passage est ouverte au lieu-dit Les Aubrais, « d\'abord provisoirement en 1853 ». Remplace année 1843 de Wikidata (ouverture de Paris - Orléans, la gare des Aubrais n\'existe pas encore).',
+    ],
+    // La Celle-St-Cloud (id 16031)
+    [
+        'station' => ['name' => 'La Celle-St-Cloud', 'uic' => '87382432'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1959-10-04',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de La Celle-Saint-Cloud', 241224946),
+        'quote' => 'Ouverte le 4 octobre 1959, c\'est une gare de la Société nationale des chemins de fer français (SNCF)',
+        'reason' => 'article de la gare (oldid 241224946) : la ligne de 1884 traverse la commune « sans arrêt sur une distance de 4,7 kilomètres », les demandes de halte de 1895 et 1925 n\'aboutissent qu\'en 1959 ; article de la ligne « Ligne de Saint-Cloud à Saint-Nom-la-Bretèche - Forêt-de-Marly » (oldid 240844633) : ligne ouverte le 5 mai 1884 avec six points d\'arrêt, dont aucun à La Celle-Saint-Cloud. Remplace année 1884 déduite de la ligne.',
+    ],
+    // Lourdes (id 17283)
+    [
+        'station' => ['name' => 'Lourdes', 'uic' => '87671339'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-04-20',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Tarbes', 240593753),
+        'quote' => 'La section de Tarbes à Lourdes est mise en service le 20 avril 1866',
+        'reason' => 'article de la gare de Tarbes (oldid 240593753), confirmé par l\'infobox de l\'article de la gare de Lourdes (oldid 238810479, 20 avril 1866) et par l\'article de la gare d\'Ossun (oldid 235030562, même section le 20 avril 1866). Remplace année 1867 de Wikidata (ouverture de la section Lourdes - Pau).',
+    ],
+    // Montréjeau-Gourdan-Polignan (id 17110)
+    [
+        'station' => ['name' => 'Montréjeau-Gourdan-Polignan', 'uic' => '87611152'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1862-06-09',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Saint-Gaudens', 237169186),
+        'quote' => 'La gare de Saint-Gaudens est mise en service le 9 juin 1862 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne lorsqu\'elle ouvre la section de Portet-Saint-Simon à Montréjeau, qui permet la circulation des trains depuis Toulouse.',
+        'reason' => 'article de la gare de Saint-Gaudens (oldid 237169186) : section Portet-Saint-Simon - Montréjeau ouverte le 9 juin 1862 ; article de la gare de Montréjeau (oldid 239467932) : même jour et même section, mais l\'article écrit 1863 dans l\'infobox et dans une phrase et 1862 dans son introduction ; 1862 est retenu (deux articles et l\'année de Wikidata contre une seule phrase, qui contredit l\'introduction de son propre article). Le jour (9 juin) est identique partout. Remplace année 1862 de Wikidata par le jour.',
+    ],
+    // Aiguillon (id 16941)
+    [
+        'station' => ['name' => 'Aiguillon', 'uic' => '87586693'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-05-29',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aiguillon', 223772493),
+        'quote' => 'La station d\'Aiguillon est mise en service le 29 mai 1856 par la Compagnie des chemins de fer du Midi et du Canal latéral à la Garonne (Midi), lorsqu\'elle ouvre à l\'exploitation la section de Tonneins à Valence-d\'Agen',
+        'reason' => 'article de la gare (oldid 223772493, introduction et catégorie : 1856 ; l\'infobox écrit 1855 par erreur) ; article de la ligne « Ligne de Bordeaux-Saint-Jean à Sète-Ville » (oldid 234926948) : « 29 mai 1856 : ouverture de Tonneins à Valence-d\'Agen ». Précise l\'année 1856 de Wikidata.',
+    ],
+    // Pertuis (id 17970)
+    [
+        'station' => ['name' => 'Pertuis', 'uic' => '87751362'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1872-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Pertuis', 241561871),
+        'quote' => 'infobox, mise en service : 15 mai 1872',
+        'reason' => 'article de la gare (oldid 241561871, 15 mai 1872) ; article de la ligne « Ligne de Lyon-Perrache à Marseille-Saint-Charles (via Grenoble) » (oldid 241143131) : « De Pertuis à Aix-en-Provence le 11 mai 1872 ». Les deux dates diffèrent de quatre jours et l\'article de la ligne de Cheval-Blanc à Pertuis (oldid 241491042) ouvre l\'exploitation en octobre 1871 et le service voyageurs le 25 novembre 1872 : année 1872 retenue, jour non tranché. Remplace année 1863 de Wikidata.',
+    ],
+    // Aubiat (id 17798)
+    [
+        'station' => ['name' => 'Aubiat', 'uic' => '87734111'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1899-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Aubiat', 235118777),
+        'quote' => 'En 1853 l\'enquête faite pour choisir l\'emplacement des gares conclut que le projet de création d\'une gare à Aubiat est abandonné [...] Elle est finalement ouverte au service voyageur le 15 mai 1899.',
+        'reason' => 'article de la gare (oldid 235118777) : le projet de 1853 est abandonné, la halte ouvre en 1899 (halte créée bien après la ligne, phrase explicite, 1911 : halte nommée Aubiat). Remplace année 1855 de Wikidata (ouverture de la ligne).',
+    ],
+    // Urt (id 17303)
+    [
+        'station' => ['name' => 'Urt', 'uic' => '87672386'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1864-01-25',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Urt', 240100205),
+        'quote' => 'infobox, mise en service : 25 janvier 1864 ; le premier chantier pour l\'arrivée du chemin de fer sur la commune est ouvert en 1862 [...] retards repoussant l\'ouverture prévue le 1 novembre 1863.',
+        'reason' => 'article de la gare (oldid 240100205, introduction « mise en service en 1864 », catégorie 1864, historique des retards de chantier depuis 1862). Remplace année 1862 de Wikidata (début des travaux). L\'article de la ligne « Ligne de Toulouse à Bayonne » (oldid 241301414) ne détaille pas la section.',
+    ],
+    // Garges-Sarcelles (id 15526)
+    [
+        'station' => ['name' => 'Garges-Sarcelles', 'uic' => '87276196'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1959-01-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Garges - Sarcelles', 240682562),
+        'quote' => 'La gare est finalement ouverte le 11 janvier 1959, comme simple point d\'arrêt',
+        'reason' => 'article de la gare (oldid 240682562) : halte créée plus d\'un siècle après la ligne directe de Paris à Lille (10 mai et 1er juin 1859, article de la ligne « Ligne de Paris-Nord à Lille », oldid 241487697). Remplace année 1959 de Wikidata par le jour.',
+    ],
+    // Bois-Colombes (id 15971)
+    [
+        'station' => ['name' => 'Bois-Colombes', 'uic' => '87381079'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1857-11-01',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Bois-Colombes', 238099461),
+        'quote' => 'La gare du « Bois de Colombes » est ouverte le 1 novembre 1857 par la Compagnie des chemins de fer de l\'Ouest.',
+        'reason' => 'article de la gare (oldid 238099461) : halte créée six ans après la ligne d\'Asnières à Argenteuil (28 avril 1851), phrase explicite. Remplace année 1857 de Wikidata par le jour.',
+    ],
+    // Bécon-les-Bruyères (id 16019)
+    [
+        'station' => ['name' => 'Bécon-les-Bruyères', 'uic' => '87382002'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1891-10-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Bécon-les-Bruyères', 239336909),
+        'quote' => 'La gare de Bécon-les-Bruyères est ouverte en octobre 1891, et inaugurée le 1 juillet 1892 par M. Alexandre Ribot',
+        'reason' => 'article de la gare (oldid 239336909) : ouverture au public en octobre 1891, inauguration le 1er juillet 1892 (l\'infobox donne l\'inauguration). Remplace le mois de mars 2017 d\'OSM (rénovation).',
+    ],
+    // Vert-Galant (id 15479)
+    [
+        'station' => ['name' => 'Vert-Galant', 'uic' => '87271437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1890-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare du Vert-Galant', 238165661),
+        'quote' => 'ce n\'est qu\'en 1890 qu\'un arrêt voit le jour. Cette halte prend le nom officiel de Vaujours, puis de Vert-Galant en 1895.',
+        'reason' => 'article de la gare (oldid 238165661, infobox : 1890) : halte créée en 1890, le bâtiment de gare est inauguré en 1929. Remplace le 31/08/1861 déduit de la ligne (ouverture de la ligne, la halte n\'existait pas).',
+    ],
+    // Vigneux-sur-Seine (id 17342)
+    [
+        'station' => ['name' => 'Vigneux-sur-Seine', 'uic' => '87681304'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-05-18',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Vigneux-sur-Seine', 241289556),
+        'quote' => 'La compagnie du PLM ouvre la section de Villeneuve Saint-Georges à Juvisy le 18 mai 1863 et ouvre par la même la gare de Vigneux',
+        'reason' => 'article de la gare (oldid 241289556) ; article de la ligne « Ligne de Villeneuve-Saint-Georges à Montargis » (oldid 236077985) : « le tronçon Villeneuve-Saint-Georges - Juvisy est ouvert le 18 mai 1863. La gare de Vigneux fut ouverte lors du raccordement. » Remplace année 1973 de Wikidata (reconstruction du bâtiment voyageurs).',
+    ],
+    // Valenciennes (id 15910)
+    [
+        'station' => ['name' => 'Valenciennes', 'uic' => '87343004'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1842-11-14',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Douai à Blanc-Misseron', 235337712),
+        'quote' => '14 novembre 1842 : ouverture du tronçon de Valenciennes à Quiévrain',
+        'reason' => 'article de la ligne « Ligne de Douai à Blanc-Misseron » (oldid 235337712), section qui part de Valenciennes ; article de la gare (oldid 241339108, infobox : 1842) : « la plus ancienne du réseau de la Compagnie des chemins de fer du Nord ». Remplace année 1909 de Wikidata (bâtiment actuel).',
+    ],
+    // Chartres (id 16132)
+    [
+        'station' => ['name' => 'Chartres', 'uic' => '87394007'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-07-12',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Chartres', 239710073),
+        'quote' => 'infobox, mise en service : 12 juillet 1849 (reconstruction : 1933)',
+        'reason' => 'article de la gare (oldid 239710073) ; article de la ligne « Ligne de Paris-Montparnasse à Brest » (oldid 239547071) : « elle atteint Chartres le 12 juillet 1849 ». Précise l\'année 1849 de Wikidata.',
+    ],
+    // Annecy (id 17906)
+    [
+        'station' => ['name' => 'Annecy', 'uic' => '87746008'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1866-07-05',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Annecy', 238985694),
+        'quote' => 'Le 5 juillet 1866, mise en service de la ligne entre Aix-les-Bains et Annecy, par le PLM.',
+        'reason' => 'article de la gare (oldid 238985694) ; article de la ligne « Ligne d\'Aix-les-Bains-Le Revard à Annemasse » (oldid 240496723) : « d\'Aix-les-Bains à Annecy le 5 juillet 1866 » (Annecy est le terminus de la section). Précise l\'année 1866 de Wikidata.',
+    ],
+    // Amiens (id 15800)
+    [
+        'station' => ['name' => 'Amiens', 'uic' => '87313874'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-06-20',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Amiens', 241229268),
+        'quote' => 'Le 20 juin 1846 a lieu la mise en service de l\'embarcadère d\'Amiens, dessiné par l\'architecte Alfred Armand',
+        'reason' => 'article de la gare (oldid 241229268) ; article de la ligne « Ligne de Douai à Blanc-Misseron » (oldid 235337712) : la ligne de Paris-Nord à Lille est « ouverte le même jour » que Douai - Valenciennes, le 20 juin 1846. Précise l\'année 1846 de Wikidata.',
+    ],
+    // Goussainville (id 15531)
+    [
+        'station' => ['name' => 'Goussainville', 'uic' => '87276246'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1859-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Goussainville', 238918665),
+        'quote' => 'La ligne de Saint-Denis à Creil via Survilliers fut ouverte en 1859 par la compagnie du Nord',
+        'reason' => 'article de la gare (oldid 238918665) ; article de la ligne « Ligne de Paris-Nord à Lille » (oldid 241487697) : nouvel itinéraire de Villiers-le-Bel à Creil ouvert le 1er juin 1859. Remplace le 25/01/1846 déduit de la ligne (ancien itinéraire par Pontoise, qui ne passe pas à Goussainville). Année retenue, jour de la gare non cité.',
+    ],
+    // Besançon-Viotte (id 17586)
+    [
+        'station' => ['name' => 'Besançon-Viotte', 'uic' => '87718007'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-04-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Besançon-Viotte', 241433030),
+        'quote' => 'Ouverte en 1856 par la Compagnie du chemin de fer de Paris à Lyon',
+        'reason' => 'article de la gare (oldid 241433030, infobox : 1856) ; article de la ligne « Ligne de Dole-Ville à Belfort » (oldid 241427688) : « le 7 avril 1856 pour la section de Dole à Besançon » (Besançon est le terminus de la section). Remplace année 1855 de Wikidata (gare en bois provisoire construite en 1855).',
+    ],
+    // Épinay-sur-Seine TT (id 17508)
+    [
+        'station' => ['name' => 'Épinay-sur-Seine TT', 'uic' => '87697292'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2017-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne 11 du tramway d\'Île-de-France', 238239715),
+        'quote' => '1 juillet 2017 : mise en service partielle entre Épinay-sur-Seine et Le Bourget',
+        'reason' => 'article de la ligne 11 du tramway d\'Île-de-France (oldid 238239715) : Épinay-sur-Seine est le terminus de la section ouverte le 1er juillet 2017 ; cette fiche est l\'arrêt du tram-train (ligne 960000, Tangentielle Nord), pas la gare du RER C de 1908. Remplace le 1908 déduit du tracé.',
+    ],
+    // Pierrefite-Stains TT (id 17511)
+    [
+        'station' => ['name' => 'Pierrefite-Stains TT', 'uic' => '87697326'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '2017-07-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne 11 du tramway d\'Île-de-France', 238239715),
+        'quote' => '1 juillet 2017 : mise en service partielle entre Épinay-sur-Seine et Le Bourget',
+        'reason' => 'article de la ligne 11 du tramway d\'Île-de-France (oldid 238239715) : Pierrefitte - Stains est un arrêt de la section Épinay-sur-Seine - Le Bourget ouverte le 1er juillet 2017 (même jour que Villetaneuse-Université, déjà daté) ; cette fiche est l\'arrêt du tram-train (ligne 960000), pas la gare du RER D. Remplace le 1859 déduit du tracé.',
+    ],
+    // Val-d'Argenteuil (id 16007)
+    [
+        'station' => ['name' => 'Val-d\'Argenteuil', 'uic' => '87381798'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1970-12-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare du Val d\'Argenteuil', 240274594),
+        'quote' => 'infobox, mise en service : décembre 1970 (Bernard Collardey, Les trains de banlieue, p. 130)',
+        'reason' => 'article de la gare (oldid 240274594, infobox citant Collardey). Précise l\'année 1970 de Wikidata au mois.',
+    ],
+    // Boussy-St-Antoine (id 17368)
+    [
+        'station' => ['name' => 'Boussy-St-Antoine', 'uic' => '87682138'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1969-06-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare de Boussy-Saint-Antoine', 238031038),
+        'quote' => 'infobox, mise en service : juin 1969',
+        'reason' => 'article de la gare (oldid 238031038, infobox et catégorie 1969). Précise l\'année 1969 de Wikidata au mois.',
+    ],
+    // Le Blanc-Mesnil (id 15483)
+    [
+        'station' => ['name' => 'Le Blanc-Mesnil', 'uic' => '87271478'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1980-06-01',
+        'precision' => 'month',
+        'source_url' => $wp('Gare du Blanc-Mesnil', 233856627),
+        'quote' => 'La gare du Blanc-Mesnil n\'est mise en service que début juin 1980',
+        'reason' => 'article de la gare (oldid 233856627, infobox : 1980). Précise l\'année 1980 de Wikidata au mois.',
+    ],
 ];
