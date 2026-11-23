@@ -171,6 +171,26 @@ return [
         'pause' => 'Wiedergabe anhalten',
     ],
 
+    // Wiedergabe der Epochen (EraPlayer): Die Karte geht von einem Jahrzehnt zum nächsten bis heute.
+    'playback' => [
+        'label' => 'Wiedergabe der Epochen',
+        'play' => 'Epochen abspielen',
+        'pause' => 'Pausieren',
+        'replay' => 'Von vorn abspielen',
+        'prev' => 'Vorheriges Jahrzehnt',
+        'next' => 'Nächstes Jahrzehnt',
+        'close' => 'Wiedergabe beenden',
+        'speed' => 'Geschwindigkeit',
+        'speed_slow' => 'Langsam',
+        'speed_normal' => 'Normal',
+        'km' => ':km km Strecken in Betrieb',
+        'km_today' => 'Heute, :km km Strecken in Betrieb',
+        'step_only' => 'Reduzierte Bewegung: Gehen Sie Jahrzehnt für Jahrzehnt weiter.',
+        'status_playing' => 'Die Epochen werden abgespielt',
+        'status_paused' => 'Wiedergabe pausiert, :year',
+        'status_ended' => 'Wiedergabe beendet, heutiges Netz',
+    ],
+
     // Streckeninfo beim Klick auf die Karte (LineDrawer) und Popup der eingebetteten Karte.
     'drawer' => [
         'fallback_line_name' => 'Streckensegment',
@@ -221,7 +241,7 @@ return [
     'read' => [
         'title' => 'Die Karte lesen',
         'era_term' => 'Epoche',
-        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander. Je älter die Epoche, desto mehr geht die Hintergrundkarte ins Sepia; mit dem Kästchen „Ältere Epochen tönen“ unter der Schaltfläche „Ebenen“ schalten Sie die Tönung ab.',
+        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander bis heute, mit der Länge der Strecken in Betrieb in jeder Epoche; jede Geste auf der Karte hält sie an, und die Tasten für das vorherige und das nächste Jahrzehnt gehen Schritt für Schritt. Je älter die Epoche, desto mehr geht die Hintergrundkarte ins Sepia; mit dem Kästchen „Ältere Epochen tönen“ unter der Schaltfläche „Ebenen“ schalten Sie die Tönung ab.',
         'color_term' => 'Farbe',
         'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
         'line_term' => 'Linie',

@@ -106,6 +106,7 @@
     // Gares : fichier de l'époque demandé seulement en approchant du zoom où elles se dessinent.
     import { createLongPress } from '$lib/placeHistory.js';
     import { STATIONS_MIN_ZOOM, noStations, stationsToLoad } from '$lib/mapStations.js';
+    import { tileUrl, tilesCovering } from '$lib/eraPlayback.js';
     // Rideau de comparaison : deux époques sur la même carte, découpées de part et d'autre.
     import {
         CLIP_END_ID,
@@ -228,6 +229,11 @@
         // fin de chaque déplacement : le parent en tire la « Liste de ce qui est affiché » (alternative
         // textuelle à la carte, lib/mapListing.js).
         onBoundsChange = null,
+        // Lecture des époques (lib/eraPlayback.js) : rappelé avec l'année quand la carte a fini de dessiner
+        // une ère (premier « idle » après le changement), et ère suivante à précharger (tuiles de la zone
+        // visible, cache du navigateur) ou null. Une seule ère d'avance, jamais toutes.
+        onEraShown = null,
+        preloadEra = null,
         // Teinte d'époque du fond (lib/eraTint.js) voulue par le visiteur. Coupée aussi quand le
         // système demande un contraste renforcé, hors de la vue « une décennie » et sous un fond
         // historique de l'IGN (rendu d'origine).
@@ -868,8 +874,71 @@
             map.setPaintProperty('vff-stations-points', 'circle-opacity', 1);
             map.setPaintProperty('vff-stations-points', 'circle-stroke-opacity', 1);
             map.setPaintProperty('vff-stations-labels', 'text-opacity', 1);
+            reportShown(year);
         }, FADE_MS);
     }
+
+    // ── Lecture des époques : ère dessinée, ère suivante préchargée ──
+    // L'ère est « montrée » au premier idle qui suit le changement de tuiles (tuiles chargées et fondu
+    // fini) ; un changement plus récent rend caduc l'avis du précédent.
+    let shownToken = 0;
+    function reportShown(year) {
+        if (typeof onEraShown !== 'function' || !map) return;
+        const token = ++shownToken;
+        map.once('idle', () => {
+            if (token === shownToken && map) onEraShown(year);
+        });
+    }
+
+    // Tuiles (et gares, assez près) de l'ère suivante sur la zone visible, demandées en basse priorité :
+    // le navigateur les garde en cache (max-age des tuiles), MapLibre les y trouve au changement d'ère.
+    // Rien n'est gardé en mémoire ici, sinon l'adresse et l'heure de la demande (pas de seconde demande
+    // tant que le cache la sert encore).
+    const PREFETCH_TTL_MS = 50_000;
+    // Simple registre, rien de réactif.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const prefetchedAt = new Map();
+    function prefetchEra(year) {
+        if (!map) return;
+        const b = map.getBounds();
+        const zoomNow = map.getZoom();
+        const bounds = {
+            west: b.getWest(),
+            south: b.getSouth(),
+            east: b.getEast(),
+            north: b.getNorth(),
+        };
+        const template = tilesUrlForEra(year);
+        const urls = tilesCovering(bounds, zoomNow).map((tile) => tileUrl(template, tile));
+        const stations = stationsToLoad(zoomNow, stationsUrlForEra(year), null);
+        if (stations) urls.push(stations);
+        const now = Date.now();
+        for (const [url, at] of prefetchedAt)
+            if (now - at > PREFETCH_TTL_MS) prefetchedAt.delete(url);
+        for (const url of urls) {
+            if (prefetchedAt.has(url)) continue;
+            prefetchedAt.set(url, now);
+            fetch(url, { priority: 'low' })
+                .then((r) => r.arrayBuffer())
+                .catch(() => prefetchedAt.delete(url));
+        }
+    }
+
+    $effect(() => {
+        const year = preloadEra;
+        if (year == null || !map || !layersReady) return;
+        const run = () => prefetchEra(year);
+        // Après le fondu en cours : l'ère affichée passe d'abord.
+        const timer = setTimeout(() => {
+            if (!map) return;
+            if (map.loaded()) run();
+            else map.once('idle', run);
+        }, FADE_MS + 50);
+        return () => {
+            clearTimeout(timer);
+            map?.off('idle', run);
+        };
+    });
 
     // Lien d'une bulle vers la fiche : même onglet (navigation Inertia) sur le site, nouvel
     // onglet signalé dans la carte intégrée (sinon la fiche s'ouvrirait dans le cadre du site hôte).
@@ -1178,6 +1247,7 @@
                 onZoomChange(map.getZoom());
                 map.on('zoomend', () => onZoomChange(map.getZoom()));
             }
+            reportShown(era);
         });
     }
 

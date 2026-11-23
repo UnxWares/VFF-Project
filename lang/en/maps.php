@@ -171,6 +171,26 @@ return [
         'pause' => 'Stop playing',
     ],
 
+    // Era playback (EraPlayer): the map moves from one decade to the next up to today.
+    'playback' => [
+        'label' => 'Era playback',
+        'play' => 'Play the eras',
+        'pause' => 'Pause',
+        'replay' => 'Play again from the start',
+        'prev' => 'Previous decade',
+        'next' => 'Next decade',
+        'close' => 'Leave playback',
+        'speed' => 'Speed',
+        'speed_slow' => 'Slow',
+        'speed_normal' => 'Normal',
+        'km' => ':km km of lines in service',
+        'km_today' => 'Today, :km km of lines in service',
+        'step_only' => 'Reduced motion: move one decade at a time.',
+        'status_playing' => 'Playing the eras',
+        'status_paused' => 'Playback paused, :year',
+        'status_ended' => 'Playback finished, today’s network',
+    ],
+
     // Line sheet on click (LineDrawer) and popup of the embedded map.
     'drawer' => [
         'fallback_line_name' => 'Segment',
@@ -221,7 +241,7 @@ return [
     'read' => [
         'title' => 'Reading the map',
         'era_term' => 'Era',
-        'era_text' => 'The timeline below the map selects the decade, from 1830 to today. The play button steps through the decades one by one. The older the period, the closer the base map is to sepia; untick “Tint older periods” under the Layers button to remove the tint.',
+        'era_text' => 'The timeline below the map selects the decade, from 1830 to today. The play button runs through the decades up to today, with the length of lines in service at each era; any gesture on the map stops it, and the previous and next buttons move one step at a time. The older the period, the closer the base map is to sepia; untick “Tint older periods” under the Layers button to remove the tint.',
         'color_term' => 'Colour',
         'color_text' => 'On a line in service, the colour shows what runs on it: purple for high speed, orange for the conventional network open to passengers and freight, blue for freight only, green for a line run by an association. The Electrification and Gauge modes of the legend colour the same routes by voltage or track gauge.',
         'line_term' => 'Stroke',

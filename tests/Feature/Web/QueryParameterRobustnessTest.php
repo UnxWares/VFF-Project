@@ -59,7 +59,7 @@ class QueryParameterRobustnessTest extends TestCase
                     ->component($component)
                     ->where('currentEraYear', 2030)
                     ->has('eras', 2)
-                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true])
+                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true, 'open_km' => null])
                     ->where('eras.1.is_current', true));
         }
     }

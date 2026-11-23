@@ -171,6 +171,26 @@ return [
         'pause' => 'Arrêter le défilement',
     ],
 
+    // Lecture des époques (EraPlayer) : la carte passe d'une décennie à la suivante jusqu'à aujourd'hui.
+    'playback' => [
+        'label' => 'Lecture des époques',
+        'play' => 'Lire les époques',
+        'pause' => 'Mettre en pause',
+        'replay' => 'Relire depuis le début',
+        'prev' => 'Décennie précédente',
+        'next' => 'Décennie suivante',
+        'close' => 'Quitter la lecture',
+        'speed' => 'Vitesse',
+        'speed_slow' => 'Lente',
+        'speed_normal' => 'Normale',
+        'km' => ':km km de lignes en service',
+        'km_today' => 'Aujourd’hui, :km km de lignes en service',
+        'step_only' => 'Animations réduites : avancez décennie par décennie.',
+        'status_playing' => 'Lecture des époques en cours',
+        'status_paused' => 'Lecture en pause, :year',
+        'status_ended' => 'Lecture terminée, réseau d’aujourd’hui',
+    ],
+
     // Fiche d'une ligne au clic sur la carte (LineDrawer) et bulle de la carte intégrée.
     'drawer' => [
         'fallback_line_name' => 'Tronçon',
@@ -221,7 +241,7 @@ return [
     'read' => [
         'title' => 'Lire la carte',
         'era_term' => 'Époque',
-        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies une à une. Plus l’époque est ancienne, plus le fond de carte tire vers le sépia ; la case « Teinte des époques anciennes », dans le bouton Calques, coupe cette teinte.',
+        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies jusqu’à aujourd’hui, avec la longueur de lignes en service à chaque époque ; un geste sur la carte l’arrête, et les boutons précédent et suivant avancent pas à pas. Plus l’époque est ancienne, plus le fond de carte tire vers le sépia ; la case « Teinte des époques anciennes », dans le bouton Calques, coupe cette teinte.',
         'color_term' => 'Couleur',
         'color_text' => 'Sur une ligne en service, la couleur dit ce qui y circule : violet pour la grande vitesse, orange pour le réseau classique ouvert aux voyageurs et au fret, bleu pour le fret seul, vert pour une ligne exploitée par une association. Les modes Électrification et Écartement de la légende colorent les mêmes tracés selon la tension ou l’écartement des voies.',
         'line_term' => 'Trait',

@@ -1,5 +1,6 @@
 <script>
-    import { onMount, tick, untrack } from 'svelte';
+    import { onDestroy, onMount, tick, untrack } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
@@ -15,6 +16,7 @@
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import EraCurtain from '$components/Map/EraCurtain.svelte';
+    import EraPlayer from '$components/Map/EraPlayer.svelte';
     import MapListing from '$components/Map/MapListing.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
     import PlacePanel from '$components/Map/PlacePanel.svelte';
@@ -33,6 +35,14 @@
         readCompareParams,
         writeCompareParams,
     } from '$lib/eraCurtain.js';
+    import {
+        DEFAULT_SPEED,
+        createPlayback,
+        isPlaybackGesture,
+        openKmByYear,
+        playbackYears,
+        stepYear,
+    } from '$lib/eraPlayback.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -122,6 +132,8 @@
     }
 
     function setView(next) {
+        // Un autre choix de vue quitte la lecture des époques (sans revenir à la vue d'avant).
+        if (playbackOpen) closePlayback(false);
         if (next === 'compare' && compareFrom === null) {
             [compareFrom, compareTo] = defaultPair(selectedEra, eras, currentEraYear) ?? [];
         }
@@ -379,6 +391,112 @@
                   minZoom: LEVEL_CROSSING_MIN_ZOOM,
               }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
     );
+
+    // ── Lecture des époques (lib/eraPlayback.js, EraPlayer.svelte) ──
+    // La carte passe d'une décennie à la suivante, de la première ère reconstituée à aujourd'hui, sans se
+    // recharger ; l'adresse suit (effet plus bas). Ouverte par le bouton lecture de la frise ; le rideau et
+    // les autres vues laissent la place à la carte d'une décennie, puis reviennent en quittant la lecture.
+    // Animations réduites demandées par le système : pas de lecture automatique, pas à pas seulement.
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
+    const playbackYearList = $derived(playbackYears(erasProp?.length ? erasProp : eras));
+    const openKm = $derived(openKmByYear(erasProp));
+    let playbackOpen = $state(false);
+    let playbackPlaying = $state(false);
+    let playbackEnded = $state(false);
+    let playbackSpeed = $state(DEFAULT_SPEED);
+    let playbackStatus = $state('');
+    let playbackButton = $state();
+    let viewBeforePlayback = null;
+    // Seule l'ère suivante est préchargée, pendant la lecture.
+    const preloadEra = $derived(
+        playbackPlaying ? stepYear(playbackYearList, selectedEra, 1) : null,
+    );
+    const playbackYearText = (year) =>
+        year === currentEraYear ? $i18n.t('maps.timeline.value_today') : String(year);
+
+    const playback = createPlayback({
+        years: () => playbackYearList,
+        getYear: () => selectedEra,
+        onStep: (year) => (selectedEra = year),
+        onChange: ({ playing, ended }) => {
+            playbackPlaying = playing;
+            playbackEnded = ended;
+            playbackStatus = playing
+                ? $i18n.t('maps.playback.status_playing')
+                : ended
+                  ? $i18n.t('maps.playback.status_ended')
+                  : $i18n.t('maps.playback.status_paused', { year: playbackYearText(selectedEra) });
+        },
+    });
+    onDestroy(() => playback.destroy());
+
+    async function openPlayback() {
+        if (playbackOpen) {
+            if (!reducedMotion.current) playback.toggle();
+            return;
+        }
+        if (view !== 'era') {
+            viewBeforePlayback = view;
+            drawerLine = null;
+            flyTarget = null;
+            view = 'era';
+        }
+        playbackOpen = true;
+        if (!reducedMotion.current) playback.play();
+        await tick();
+        (
+            playbackButton ??
+            /** @type {HTMLElement|null} */ (
+                mapFrameEl?.querySelector('.era-player button:not(:disabled)')
+            )
+        )?.focus();
+    }
+
+    // Quitter : la vue d'avant revient (rideau compris) ; le focus revient au bouton de la frise s'il est là.
+    async function closePlayback(restore = true) {
+        playback.pause();
+        playbackOpen = false;
+        playbackStatus = '';
+        const previous = viewBeforePlayback;
+        viewBeforePlayback = null;
+        if (!restore) return;
+        if (previous) setView(previous);
+        await tick();
+        /** @type {HTMLElement|null} */
+        const back =
+            mapFrameEl?.querySelector('.timeline .play-btn') ??
+            mapFrameEl?.querySelector('.toolbar-view button');
+        back?.focus();
+    }
+
+    function stepPlayback(delta) {
+        const moved = delta > 0 ? playback.next() : playback.prev();
+        if (moved) playbackStatus = playbackYearText(selectedEra);
+    }
+
+    function setPlaybackSpeed(next) {
+        playback.setSpeed(next);
+        playbackSpeed = playback.speed;
+    }
+
+    // Au moindre geste hors des commandes de la lecture (appui, molette, touche), la lecture s'arrête.
+    $effect(() => {
+        if (!playbackPlaying) return;
+        const stop = (/** @type {Event} */ e) => {
+            if (isPlaybackGesture(e)) playback.pause();
+        };
+        const types = ['pointerdown', 'wheel', 'keydown'];
+        for (const type of types)
+            window.addEventListener(type, stop, { capture: true, passive: true });
+        return () => {
+            for (const type of types) window.removeEventListener(type, stop, { capture: true });
+        };
+    });
+
+    // Système passé en animations réduites pendant la lecture : arrêt, pas à pas seulement.
+    $effect(() => {
+        if (reducedMotion.current) untrack(() => playback.pause());
+    });
 
     // Le rideau entre dans l'adresse un court instant après le dernier mouvement.
     $effect(() => {
@@ -643,6 +761,8 @@
                             onZoomChange={(z) => (mapZoom = z)}
                             onViewChange={writeViewToUrl}
                             onBoundsChange={(bounds) => (mapBbox = bboxFromBounds(bounds))}
+                            onEraShown={(year) => playback.shown(year)}
+                            {preloadEra}
                             center={mapCenter}
                             zoom={mapStartZoom}
                             {dataVersion}
@@ -673,6 +793,25 @@
                             bind:to={compareTo}
                             bind:mode={() => compareMode, setCompareMode}
                         />
+                    {:else if playbackOpen && view === 'era'}
+                        <!-- Lecture des époques : la barre de lecture remplace la frise, la carte reste entière. -->
+                        <EraPlayer
+                            year={selectedEra}
+                            years={playbackYearList}
+                            todayEra={currentEraYear}
+                            openKm={openKm[selectedEra] ?? null}
+                            playing={playbackPlaying}
+                            ended={playbackEnded}
+                            speed={playbackSpeed}
+                            stepOnly={reducedMotion.current}
+                            status={playbackStatus}
+                            bind:playButton={playbackButton}
+                            onToggle={() => playback.toggle()}
+                            onPrev={() => stepPlayback(-1)}
+                            onNext={() => stepPlayback(1)}
+                            onSpeed={setPlaybackSpeed}
+                            onClose={() => closePlayback()}
+                        />
                     {:else if view === 'era' || view === 'schema'}
                         <TimelineSlider
                             {eras}
@@ -680,6 +819,8 @@
                             currentEra={currentEraYear}
                             labels={eraLabels}
                             bind:value={selectedEra}
+                            onPlay={openPlayback}
+                            playing={playbackPlaying}
                         />
                     {/if}
                 </div>
