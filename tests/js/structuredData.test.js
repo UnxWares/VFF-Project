@@ -132,6 +132,16 @@ describe('breadcrumbSchema', () => {
     });
 });
 
+describe('imageObject, légende par langue', () => {
+    const media = { ...MEDIA, caption: 'La gare en 1962', captions: { en: 'The station in 1962' } };
+
+    it('prend la légende de la langue de la page, sinon la principale', () => {
+        expect(imageObject(media, 'en').caption).toBe('The station in 1962');
+        expect(imageObject(media, 'de').caption).toBe('La gare en 1962');
+        expect(imageObject(media).caption).toBe('La gare en 1962');
+    });
+});
+
 describe('imageObject', () => {
     it('reprend auteur, crédit et page source du média', () => {
         const img = compact(imageObject(MEDIA));

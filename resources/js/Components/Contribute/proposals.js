@@ -613,9 +613,20 @@ export function mediaTargetText(p, t, lang) {
  */
 function captionFacts(commons, p, t) {
     if (commons) {
-        return commons.caption
-            ? [{ id: 'caption', label: t('proposals.review.caption'), text: commons.caption }]
-            : [];
+        const own = p.captions && typeof p.captions === 'object' ? p.captions : {};
+        return [
+            ...(commons.caption
+                ? [{ id: 'caption', label: t('proposals.review.caption'), text: commons.caption }]
+                : []),
+            ...['en', 'de']
+                .filter((lang) => text(own[lang]))
+                .map((lang) => ({
+                    id: `caption_${lang}`,
+                    label: t(`proposals.review.captions.${lang}`),
+                    text: own[lang],
+                    lang,
+                })),
+        ];
     }
     const captions = p.captions && typeof p.captions === 'object' ? p.captions : null;
     if (!captions) {

@@ -1631,7 +1631,7 @@ type Media {
   title: String
   "Légende du média."
   caption: String
-  "Légende par langue, quand l'image proposée sur le site en a reçu dans plusieurs langues ; nulle sinon (voir \`caption\`)."
+  "Légende par langue, quand l'image proposée sur le site en a reçu dans plusieurs langues ; nulle sinon (voir \`caption\`). Pour une image de Wikimedia Commons, \`caption\` reste la légende de Commons et \`captions\` ne porte que les ajouts en anglais et en allemand."
   captions: MediaCaptions
   "Adresse de la vignette (environ 500 px), chez le fournisseur pour un média externe."
   thumb_url: String
@@ -4436,7 +4436,7 @@ type SignallingEventSection {
   from: String
   "Lieu d'arrivée tel qu'écrit dans l'article, nul s'il n'est pas cité."
   to: String
-  "Placement : \`stations\` (les deux gares d'extrémité trouvées sur la ligne, avec leur PK calé), \`article_pk\` (PK donnés par l'article) ou \`unlocated\` (lieux introuvables ou ambigus : aucun PK n'est inventé)."
+  "Placement : \`stations\` (les deux gares d'extrémité trouvées sur la ligne, avec leur PK calé), \`landmarks\` (au moins une extrémité est un point remarquable de la ligne : bifurcation, raccordement, origine, fin ou frontière, au PK relevé dans les sources ouvertes ; la gare de l'autre extrémité est donnée s'il y en a une), \`article_pk\` (PK donnés par l'article) ou \`unlocated\` (lieux introuvables ou ambigus : aucun PK n'est inventé)."
   location: String!
   "PK de début de la portion placée, en mètres (numérotation de SNCF Réseau), nul si elle n'est pas placée."
   pk_start_m: Int
@@ -6417,9 +6417,9 @@ input MediaContributionInput {
   title: String
   "Avec \`upload\` : légende facultative en français, 800 caractères au plus."
   caption: String
-  "Avec \`upload\` : légende facultative en anglais, 800 caractères au plus."
+  "Avec \`upload\` ou \`commons\` : légende facultative en anglais, 800 caractères au plus (pour Commons, en plus de la légende de Commons)."
   caption_en: String
-  "Avec \`upload\` : légende facultative en allemand, 800 caractères au plus."
+  "Avec \`upload\` ou \`commons\` : légende facultative en allemand, 800 caractères au plus (pour Commons, en plus de la légende de Commons)."
   caption_de: String
   "Avec \`upload\` : auteur de la photo ou du document, de 2 à 200 caractères, publié avec l'image."
   author: String

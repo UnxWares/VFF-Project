@@ -126,7 +126,7 @@ final class PageMetadata
         foreach ($images as $media) {
             $url = StructuredData::imageUrl($media);
             if ($url !== null) {
-                $first = ['url' => $url, 'alt' => $media['caption'] ?? null];
+                $first = ['url' => $url, 'alt' => StructuredData::caption($media, $this->lang())];
                 break;
             }
         }
@@ -177,7 +177,7 @@ final class PageMetadata
 
         return $this->build($origin, $path, $title.', '.$date.' - '.$line['name'].' - VFF', $title.', '.$date,
             __('stories.meta_description', ['event' => $title, 'date' => $date, 'line' => $line['name']]), 'article',
-            $url === null ? null : ['url' => $url, 'alt' => $first['caption'] ?? null],
+            $url === null ? null : ['url' => $url, 'alt' => StructuredData::caption($first, $this->lang())],
             [StructuredData::breadcrumb($origin, [
                 ['name' => __('common.app_full'), 'path' => '/'],
                 ['name' => __('nav.lines'), 'path' => '/lines'],

@@ -1,9 +1,10 @@
-// Position GPS enregistrée dans une photo JPEG (EXIF), lue dans le navigateur avant l'envoi du
+// Position GPS enregistrée dans une photo JPEG, PNG (bloc eXIf) ou WebP (bloc EXIF), lue dans le navigateur avant l'envoi du
 // formulaire « Proposer une image ». Rien n'est envoyé : le formulaire propose seulement de
 // recopier cette position dans les coordonnées, que le contributeur peut corriger ou laisser
 // vides. Le serveur retire de toute façon l'EXIF du fichier (ImageSanitizer).
 //
-// Lecture de la structure seule : segments JPEG jusqu'au premier APP1 « Exif », en-tête TIFF
+// Lecture de la structure seule : segments JPEG jusqu'au premier APP1 « Exif » (blocs PNG ou WebP
+// jusqu'au bloc eXIf ou EXIF, qui peut suivre les pixels), en-tête TIFF
 // (II ou MM), IFD0, pointeur GPS (0x8825), puis latitude (1, 2) et longitude (3, 4) en degrés,
 // minutes et secondes rationnels. Tout fichier inattendu donne null, sans erreur.
 
@@ -15,8 +16,11 @@ const TAG_LNG = 0x0004;
 const TYPE_ASCII = 2;
 const TYPE_RATIONAL = 5;
 
-/** Octets lus au plus : l'EXIF se trouve au début du fichier (segment APP1, 64 Kio au plus). */
+/** Octets lus au plus d'un JPEG : l'EXIF se trouve au début du fichier (segment APP1, 64 Kio au plus). */
 export const EXIF_READ_BYTES = 256 * 1024;
+
+/** Octets lus au plus d'un PNG ou d'un WebP : le bloc EXIF peut suivre les pixels (taille de fichier maximale du formulaire, avec marge). */
+export const EXIF_READ_BYTES_FULL = 16 * 1024 * 1024;
 
 /**
  * Entrées d'un répertoire TIFF (IFD), par étiquette.
@@ -101,14 +105,70 @@ function exifStart(view) {
 }
 
 /**
- * Position GPS d'une photo JPEG, en degrés décimaux arrondis à 6 décimales, ou null (pas de JPEG,
+ * Début de l'en-tête TIFF du bloc eXIf d'un PNG, null s'il n'y en a pas.
+ * @param {DataView} view
+ */
+function pngExifStart(view) {
+    if (
+        view.byteLength < 12 ||
+        view.getUint32(0) !== 0x89504e47 ||
+        view.getUint32(4) !== 0x0d0a1a0a
+    )
+        return null;
+    let at = 8;
+    while (at + 12 <= view.byteLength) {
+        const size = view.getUint32(at);
+        const type = view.getUint32(at + 4);
+        if (type === 0x65584966) return at + 8; // « eXIf »
+        if (type === 0x49454e44) return null; // « IEND »
+        at += 12 + size;
+    }
+    return null;
+}
+
+/**
+ * Début de l'en-tête TIFF du bloc EXIF d'un WebP, null s'il n'y en a pas. Certains outils font
+ * précéder les données de « Exif\0\0 », comme dans un JPEG.
+ * @param {DataView} view
+ */
+function webpExifStart(view) {
+    if (
+        view.byteLength < 20 ||
+        view.getUint32(0) !== 0x52494646 ||
+        view.getUint32(8) !== 0x57454250
+    )
+        return null;
+    let at = 12;
+    while (at + 8 <= view.byteLength) {
+        const size = view.getUint32(at + 4, true);
+        if (view.getUint32(at) === 0x45584946) {
+            // « EXIF »
+            const start = at + 8;
+            const prefixed = start + 6 <= view.byteLength && view.getUint32(start) === 0x45786966;
+            return prefixed ? start + 6 : start;
+        }
+        at += 8 + size + (size % 2);
+    }
+    return null;
+}
+
+/**
+ * Début de l'en-tête TIFF de l'EXIF d'une image JPEG, PNG ou WebP, null s'il n'y en a pas.
+ * @param {DataView} view
+ */
+function tiffStart(view) {
+    return exifStart(view) ?? pngExifStart(view) ?? webpExifStart(view);
+}
+
+/**
+ * Position GPS d'une photo JPEG, PNG ou WebP, en degrés décimaux arrondis à 6 décimales, ou null (pas de JPEG,
  * pas d'EXIF, pas de position, position hors des bornes ou au point 0, 0 laissé par certains appareils).
- * @param {ArrayBuffer} buffer début du fichier (EXIF_READ_BYTES suffisent)
+ * @param {ArrayBuffer} buffer début du fichier (EXIF_READ_BYTES pour un JPEG, le fichier entier pour un PNG ou un WebP)
  * @returns {{ lat: number, lng: number }|null}
  */
 export function exifPosition(buffer) {
     const view = new DataView(buffer);
-    const tiff = exifStart(view);
+    const tiff = tiffStart(view);
     if (tiff === null || tiff + 8 > view.byteLength) return null;
     const order = view.getUint16(tiff);
     if (order !== 0x4949 && order !== 0x4d4d) return null;
@@ -135,14 +195,17 @@ export function exifPosition(buffer) {
 
 /**
  * Position GPS d'un fichier choisi dans le formulaire (lecture locale du début du fichier), null
- * pour un fichier qui n'est pas un JPEG ou qui n'en a pas.
+ * pour un fichier qui n'est pas un JPEG, un PNG ou un WebP, ou qui n'a pas de position.
  * @param {Blob} file
  * @returns {Promise<{ lat: number, lng: number }|null>}
  */
 export async function fileExifPosition(file) {
-    if (file.type !== 'image/jpeg') return null;
+    const whole = file.type === 'image/png' || file.type === 'image/webp';
+    if (file.type !== 'image/jpeg' && !whole) return null;
     try {
-        return exifPosition(await file.slice(0, EXIF_READ_BYTES).arrayBuffer());
+        return exifPosition(
+            await file.slice(0, whole ? EXIF_READ_BYTES_FULL : EXIF_READ_BYTES).arrayBuffer(),
+        );
     } catch {
         return null;
     }

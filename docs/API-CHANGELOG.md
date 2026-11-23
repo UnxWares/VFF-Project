@@ -9,6 +9,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Médias (REST `media`, galeries `lines|stations|materials/{slug}/media`, GraphQL `Media.captions`, outil MCP `media`) : nouveau champ
+  `captions` (objet avec les clés `fr`, `en` et `de` présentes seulement pour les langues écrites, ou `null`), la légende par langue d'une
+  image proposée par un contributeur. `caption` reste la légende principale (le français, sinon la première langue donnée ; pour une image
+  de Wikimedia Commons, celle de Commons) : un client qui ignore `captions` continue de fonctionner. Pour une image de Commons, `captions`
+  ne porte que les ajouts en anglais et en allemand, jamais de `fr`. Montrez `captions[lang]` quand elle existe, sinon `caption`. Ajout seul.
+
 - Gares : dans `chronology[]` (REST, fiche web), une entrée `name` peut avoir `name.from` nul : nom dont on ne connaît que la fin
   (« Orléans-Ceinture » jusqu'aux années 1970), placé à sa fin avec la précision de sa date (`day`, `month`, `year` ou `decade`) et le lien de
   sa source (`vff:import-station-names` : historique des articles de Wikipédia, noms de Wikidata). Aucun champ n'est retiré.

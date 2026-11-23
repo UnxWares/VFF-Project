@@ -250,4 +250,23 @@ class StructuredDataTest extends TestCase
         $this->assertSame('1000 B', $schema['hasPart'][0]['distribution'][0]['contentSize']);
         $this->assertSame('Réseau par décennie Aujourd’hui', $schema['hasPart'][1]['name']);
     }
+
+    public function test_the_caption_follows_the_page_language_then_falls_back_to_the_main_one(): void
+    {
+        $media = [
+            'caption' => 'La gare en 1962', 'captions' => ['en' => 'The station in 1962', 'de' => '  '],
+            'display_url' => 'https://x/1.jpg',
+        ];
+
+        $this->assertSame('The station in 1962', StructuredData::caption($media, 'en'));
+        $this->assertSame('La gare en 1962', StructuredData::caption($media, 'de'), 'légende vide : la principale');
+        $this->assertSame('La gare en 1962', StructuredData::caption($media, 'fr'));
+        $this->assertNull(StructuredData::caption(['caption' => ''], 'en'));
+        $this->assertNull(StructuredData::caption(null, 'en'));
+
+        app()->setLocale('en');
+        $this->assertSame('The station in 1962', StructuredData::imageObject($media)['caption']);
+        app()->setLocale('fr');
+        $this->assertSame('La gare en 1962', StructuredData::imageObject($media)['caption']);
+    }
 }

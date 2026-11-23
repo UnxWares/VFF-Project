@@ -187,6 +187,7 @@ return [
         'title_hint' => 'Ce que montre l’image, par exemple « Gare de Nontron, côté quai ».',
         'caption' => 'Légende',
         'caption_hint' => 'Facultative, dans une ou plusieurs langues : contexte, matériel visible, sens de la prise de vue. Chaque visiteur lit celle de sa langue, sinon la légende en français.',
+        'caption_commons_hint' => 'Facultative : ajoutez une légende en anglais ou en allemand en plus de celle de Wikimedia Commons, que les visiteurs de ces langues liront à sa place. Sans elle, la légende de Commons est montrée.',
         'caption_langs' => [
             'fr' => 'En français',
             'en' => 'En anglais',

@@ -624,6 +624,42 @@ class MediaContributionTest extends TestCase
         $this->assertSame([], Storage::disk(MediaContributions::PUBLIC_DISK)->allFiles());
     }
 
+    public function test_a_commons_file_keeps_its_caption_and_gets_english_and_german_captions(): void
+    {
+        $this->fakeCommons();
+
+        $contribution = $this->submit($this->member(), $this->commons([
+            'caption' => 'Ignorée : la légende française vient de Commons',
+            'caption_en' => '  The station seen from the road. ',
+            'caption_de' => 'Der Bahnhof von der Straße aus.',
+        ]));
+        $this->assertEquals([
+            'en' => 'The station seen from the road.',
+            'de' => 'Der Bahnhof von der Straße aus.',
+        ], $contribution->payload['captions']);
+
+        $this->publish($contribution);
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $this->assertSame('The station seen from the road.', $media->captions()['en']);
+        $this->assertArrayNotHasKey('fr', $media->captions());
+
+        $this->getJson("/api/v1/media/{$media->id}")->assertOk()
+            ->assertJsonPath('data.captions.de', 'Der Bahnhof von der Straße aus.')
+            ->assertJsonPath('data.captions.fr', null);
+        $this->postJson('/graphql', ['query' => '{ media(first: 5) { edges { node { captions { fr en de } } } } }'])
+            ->assertJsonPath('data.media.edges.0.node.captions.en', 'The station seen from the road.');
+    }
+
+    public function test_a_commons_file_without_extra_captions_has_none(): void
+    {
+        $this->fakeCommons();
+        $contribution = $this->submit($this->member(), $this->commons());
+        $this->assertNull($contribution->payload['captions']);
+        $this->publish($contribution);
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $this->assertNull($media->captions());
+    }
+
     /** @return array<string, array{0: string, 1: string, 2: bool, 3: string}> */
     public static function refusedCommonsFiles(): array
     {

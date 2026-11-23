@@ -110,7 +110,10 @@ L'image publiée entre dans `media` rattachée à la série ; l'API la donne ave
   titre, l'auteur, la licence et la miniature par l'API publique de Commons (une requête, User-Agent
   générique de `CommonsClient`, sans reprise longue ; résultat gardé une heure en cache). Refus : format
   autre qu'une image ou un document numérisé, licence inconnue, non libre ou non commerciale. Rien
-  n'est téléchargé : l'image reste hébergée par Wikimedia.
+  n'est téléchargé : l'image reste hébergée par Wikimedia. Le contributeur peut y ajouter une légende en
+  anglais (`caption_en`) et en allemand (`caption_de`) : rangées dans `provider_meta.captions` (jamais de
+  `fr`), servies par `captions` avec la légende de Commons dans `caption` ; chaque visiteur lit celle de
+  sa langue, sinon celle de Commons.
 - **Fichier déposé** (`source` = `upload`) : JPEG, PNG ou WebP, 10 Mo au plus, chaque côté de 400 à
   12 000 pixels, auteur, licence de la liste fermée `ContentLicense::forMedia()` (domaine public,
   CC0 1.0, CC BY et CC BY-SA en versions 4.0, 3.0, 2.5 et 2.0, Licence Ouverte 2.0 : toutes
@@ -122,9 +125,11 @@ L'image publiée entre dans `media` rattachée à la série ; l'API la donne ave
   française, sinon la première donnée ; les trois sont gardées dans `provider_meta.captions` et
   servies par l'API (`captions`, REST et GraphQL) ; la galerie des fiches montre celle de la langue
   de la page.
-- **Position GPS d'une photo** : le navigateur lit la position de l'EXIF d'un JPEG choisi
-  (`resources/js/lib/exifPosition.js`) et propose de la recopier dans les coordonnées ; rien n'est
-  envoyé sans ce geste. Le fichier, lui, est toujours enregistré sans sa position.
+- **Position GPS d'une photo** : le navigateur lit la position de l'EXIF d'un JPEG (segment APP1),
+  d'un PNG (bloc `eXIf`) ou d'un WebP (bloc `EXIF`) choisi (`resources/js/lib/exifPosition.js` ; un
+  PNG ou un WebP est lu en entier, car ce bloc peut suivre les pixels) et propose de la recopier dans
+  les coordonnées ; rien n'est envoyé sans ce geste. Le fichier, lui, est toujours enregistré sans sa
+  position (`ImageSanitizer` retire `eXIf` et `EXIF`, tests `ImageSanitizerTest`).
 
 Contrôles d'un fichier déposé (`ImageSanitizer`, sans GD ni Imagick : lecture de la structure du
 fichier) : type lu dans les premiers octets et confirmé par `getimagesizefromstring()`, jamais

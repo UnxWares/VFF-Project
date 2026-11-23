@@ -117,8 +117,10 @@ final readonly class MediaContributions
             'title' => ['exclude_unless:source,upload', 'required', 'string', 'min:3', 'max:250'],
             // Légende facultative en français (`caption`), en anglais et en allemand.
             'caption' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
-            'caption_en' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
-            'caption_de' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
+            // Fichier Commons : légendes en anglais et en allemand en plus de celle de Commons (jamais la française,
+            // que Commons donne déjà dans sa langue).
+            'caption_en' => ['exclude_unless:source,upload,commons', 'nullable', 'string', 'max:800'],
+            'caption_de' => ['exclude_unless:source,upload,commons', 'nullable', 'string', 'max:800'],
             'author' => ['exclude_unless:source,upload', 'required', 'string', 'min:2', 'max:200'],
             'license' => ['exclude_unless:source,upload', 'required', 'string', Rule::in(ContentLicense::mediaValues())],
             'captured_precision' => ['exclude_unless:source,upload', 'nullable', 'required_with:captured_date', 'string', Rule::in(TraceContributionService::PRECISIONS)],
@@ -190,7 +192,13 @@ final readonly class MediaContributions
             $meta = $this->commonsFile((string) $data['commons_url']);
             $this->ensureNewCommons((int) $meta['page_id'], $mediableType, $mediableId);
 
-            return ['payload' => [...$common, 'commons' => self::commonsSummary($meta)], 'target' => $target, 'image' => null];
+            $captions = array_diff_key(self::captions($data), ['fr' => true]);
+
+            return [
+                'payload' => [...$common, 'commons' => self::commonsSummary($meta), 'captions' => $captions === [] ? null : $captions],
+                'target' => $target,
+                'image' => null,
+            ];
         }
 
         $file = $data['file'];
@@ -290,7 +298,7 @@ final readonly class MediaContributions
             if ($this->commonsAttached((int) $meta['page_id'], $mediableType, $mediableId)) {
                 throw new ContributionNotPublishable(PublicationFailure::AlreadyPresent, "Fichier Commons {$meta['page_id']} déjà rattaché (contribution {$contribution->id})");
             }
-            $id = DB::table('media')->insertGetId($this->commonsRow($contribution, $meta, $mediableType, $mediableId));
+            $id = DB::table('media')->insertGetId($this->commonsRow($contribution, $meta, $mediableType, $mediableId, is_array($p['captions'] ?? null) ? $p['captions'] : []));
 
             return ['media_id' => (int) $id, 'file_path' => null];
         }
@@ -568,12 +576,17 @@ final readonly class MediaContributions
     /**
      * @param  array<string, mixed>  $meta
      * @param  class-string  $mediableType
+     * @param  array<string, mixed>  $captions  légendes du contributeur par langue (en, de)
      * @return array<string, mixed>
      */
-    private function commonsRow(Contribution $contribution, array $meta, string $mediableType, int $mediableId): array
+    private function commonsRow(Contribution $contribution, array $meta, string $mediableType, int $mediableId, array $captions = []): array
     {
         $lat = $meta['lat'] ?? null;
         $lon = $meta['lon'] ?? null;
+        $captions = array_filter(
+            array_intersect_key($captions, ['en' => true, 'de' => true]),
+            fn (mixed $text): bool => is_string($text) && trim($text) !== '',
+        );
 
         return [
             'mediable_type' => $mediableType,
@@ -611,6 +624,8 @@ final readonly class MediaContributions
                 'date_precision' => $meta['date_precision'] ?? null,
                 'credit' => $meta['credit'] ?? null,
                 'attribution_required' => $meta['attribution_required'] ?? null,
+                // Légendes anglaise et allemande du contributeur ; `caption` reste celle de Commons.
+                'captions' => $captions === [] ? null : $captions,
             ], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'created_at' => now(),
             'updated_at' => now(),

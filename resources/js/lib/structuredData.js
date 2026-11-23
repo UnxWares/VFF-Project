@@ -5,6 +5,7 @@
 // Règle : rien d'inventé. Une propriété n'est écrite que si la donnée existe dans la base (pas de
 // licence devinée, pas de coordonnées approchées, pas de logo d'emprunt) ; une valeur vide est
 // retirée de l'objet plutôt qu'écrite à null.
+import { mediaCaption } from './mediaCredits.js';
 
 /** Éditeur et hébergeur de VFF (mentions légales). */
 export const PUBLISHER = Object.freeze({
@@ -165,8 +166,9 @@ export function breadcrumbSchema(origin, items) {
  * Média de la base (ressource MediaResource de l'API) en ImageObject, avec auteur et licence tels
  * que la base les donne. Null sans image affichable.
  * @param {Record<string, any>} m
+ * @param {string|null} [lang] langue de la page : la légende de cette langue quand elle existe (`captions`)
  */
-export function imageObject(m) {
+export function imageObject(m, lang = null) {
     const url = m?.display_url ?? m?.thumb_url;
     if (!url) return null;
     return {
@@ -174,7 +176,7 @@ export function imageObject(m) {
         contentUrl: url,
         thumbnailUrl: m.thumb_url !== url ? m.thumb_url : undefined,
         name: m.title,
-        caption: shorten(m.caption),
+        caption: shorten(mediaCaption(m, lang)),
         width: m.width || undefined,
         height: m.height || undefined,
         creator: m.author ? { '@type': 'Person', name: m.author } : undefined,
@@ -190,7 +192,7 @@ export function imageObject(m) {
  * Fiche ligne : un lieu (Place, ou TouristAttraction pour une ligne au trafic touristique) précisé par
  * l'élément Wikidata « ligne de chemin de fer », avec ses gares terminus (`containsPlace`) et sa
  * longueur officielle quand elle décrit la ligne entière (`additionalProperty`, en km).
- * @param {{ origin: string, line: Record<string, any>, description?: string|null, images?: Array<any>, stations?: Array<any>, lengthLabel?: string }} o
+ * @param {{ origin: string, line: Record<string, any>, description?: string|null, images?: Array<any>, stations?: Array<any>, lengthLabel?: string, lang?: string|null }} o
  */
 export function lineSchema({
     origin,
@@ -199,6 +201,7 @@ export function lineSchema({
     images = [],
     stations = [],
     lengthLabel = 'Longueur officielle (km)',
+    lang = null,
 }) {
     const url = absoluteUrl(origin, `/lines/${line.slug}`);
     const length = (line.facts ?? []).find(
@@ -238,7 +241,7 @@ export function lineSchema({
                       unitCode: 'KMT',
                       unitText: 'km',
                   },
-        image: images.map(imageObject).filter(Boolean),
+        image: images.map((m) => imageObject(m, lang)).filter(Boolean),
     };
 }
 

@@ -476,12 +476,15 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 | `limit` | entier 1 à 60 | non | Médias par appel (20 par défaut). |
 | `cursor` | chaîne opaque | non | Page suivante. |
 
-Chaque média : `title`, `caption`, `thumb_url`, `display_url`, `source_url` (page d'origine),
+Chaque média : `title`, `caption`, `captions`, `thumb_url`, `display_url`, `source_url` (page d'origine),
 dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, `rights_status`,
 `commercial_ok`, `share_alike`, `derivatives_ok` (`false` : licence sans modification, image à montrer entière),
 `rights_uncertain` (`true` : licence du fonds incertaine, à signaler),
 `location`, `subject` (ligne, gare, série ou événement) et
 `contribution_id` (numéro de la contribution validée qui a publié l'image, `null` pour un import).
+`captions` (`fr`, `en`, `de`, seules les langues écrites, sinon `null`) est la légende par langue des images proposées par les
+contributeurs : montrez celle de la langue de l'utilisateur, à défaut `caption`. Pour une image Commons, `caption` reste la légende de
+Commons (sa langue n'est pas connue) et `captions` ne porte que les ajouts en anglais et en allemand ; elle n'a jamais de `fr`.
 Une image proposée et encore en attente de validation n'est jamais renvoyée, ni une image sous licence non commerciale
 quand l'instance les masque (réglage `VFF_MEDIA_SHOW_NON_COMMERCIAL`). **Affichez toujours
 `attribution` et le lien `source_url` avec l'image.**

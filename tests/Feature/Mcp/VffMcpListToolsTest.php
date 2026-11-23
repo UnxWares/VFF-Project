@@ -168,6 +168,28 @@ class VffMcpListToolsTest extends TestCase
         $this->assertSame('Gare A 2', $next['media'][0]['title']);
     }
 
+    public function test_media_serves_its_captions_by_language(): void
+    {
+        $a = Station::where('slug', 'a')->value('id');
+        DB::table('media')->insert([
+            'mediable_type' => Station::class, 'mediable_id' => $a, 'provider' => 'commons', 'external_id' => 'ext-cap',
+            'type' => 'photo', 'title' => 'Gare A légendée', 'caption' => 'Légende de Commons', 'mime_type' => 'image/jpeg',
+            'thumb_url' => 'https://upload.wikimedia.org/cap.jpg', 'source_url' => 'https://commons.wikimedia.org/wiki/File:Cap.jpg',
+            'author' => 'Auteur', 'license' => 'CC BY-SA 4.0', 'attribution' => 'Auteur, CC BY-SA 4.0', 'rights_status' => 'open_license',
+            'commercial_ok' => true, 'created_at' => now(), 'updated_at' => now(),
+            'provider_meta' => json_encode(['captions' => ['en' => 'Commons caption, English', 'de' => 'Bildunterschrift']]),
+        ]);
+
+        [$data, $error] = $this->tool('media', ['station' => 'a', 'order' => 'desc', 'limit' => 5]);
+        $this->assertFalse($error);
+        $captioned = array_values(array_filter($data['media'], fn (array $m): bool => $m['title'] === 'Gare A légendée'))[0];
+        $this->assertSame('Légende de Commons', $captioned['caption']);
+        $this->assertSame(['en' => 'Commons caption, English', 'de' => 'Bildunterschrift'], $captioned['captions']);
+        $plain = array_values(array_filter($data['media'], fn (array $m): bool => $m['title'] === 'Gare A 1'))[0];
+        $this->assertArrayHasKey('captions', $plain);
+        $this->assertNull($plain['captions']);
+    }
+
     public function test_media_of_a_rolling_stock_series(): void
     {
         $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);

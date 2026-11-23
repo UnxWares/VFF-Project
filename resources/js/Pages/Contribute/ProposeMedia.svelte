@@ -54,6 +54,9 @@
         { lang: 'de', field: 'caption_de' },
     ];
 
+    /** Fichier Commons : légendes en plus de celle de Commons, en anglais et en allemand seulement. */
+    const COMMONS_CAPTIONS = CAPTIONS.filter((c) => c.lang !== 'fr');
+
     // Fiche présélectionnée depuis sa page (valeurs initiales voulues).
     const initial = untrack(() => preselected);
     let targetType = $state(
@@ -256,7 +259,13 @@
             notes: form.notes.trim() || null,
         };
         if (form.source === 'commons') {
-            return { source: 'commons', ...target, commons_url: form.commons_url.trim() };
+            return {
+                source: 'commons',
+                ...target,
+                commons_url: form.commons_url.trim(),
+                caption_en: form.caption_en.trim() || null,
+                caption_de: form.caption_de.trim() || null,
+            };
         }
         return {
             source: 'upload',
@@ -559,6 +568,7 @@
                                 </figcaption>
                             </figure>
                         {/if}
+                        {@render captionFields(COMMONS_CAPTIONS, 'caption_commons_hint')}
                         <p class="intro">{$i18n.t('proposals.media.commons_note')}</p>
                     {:else}
                         <Field
@@ -671,30 +681,7 @@
                                 />
                             {/snippet}
                         </Field>
-                        <fieldset class="choices" aria-describedby="media-caption-hint">
-                            <legend class="vff-label">{$i18n.t('proposals.media.caption')}</legend>
-                            <p class="vff-hint" id="media-caption-hint">
-                                {$i18n.t('proposals.media.caption_hint')}
-                            </p>
-                            {#each CAPTIONS as caption (caption.lang)}
-                                <Field
-                                    id="media-caption-{caption.lang}"
-                                    label={$i18n.t(`proposals.media.caption_langs.${caption.lang}`)}
-                                    error={errorFor(caption.field)}
-                                >
-                                    {#snippet children(attrs)}
-                                        <textarea
-                                            {...attrs}
-                                            class="vff-textarea"
-                                            rows="2"
-                                            lang={caption.lang}
-                                            maxlength={LIMITS.caption}
-                                            bind:value={form[caption.field]}
-                                        ></textarea>
-                                    {/snippet}
-                                </Field>
-                            {/each}
-                        </fieldset>
+                        {@render captionFields(CAPTIONS, 'caption_hint')}
                     </fieldset>
 
                     <fieldset class="vff-panel group">
@@ -937,6 +924,33 @@
         </div>
     </main>
 </Layout>
+
+{#snippet captionFields(captions, hintKey)}
+    <fieldset class="choices" aria-describedby="media-caption-hint">
+        <legend class="vff-label">{$i18n.t('proposals.media.caption')}</legend>
+        <p class="vff-hint" id="media-caption-hint">
+            {$i18n.t(`proposals.media.${hintKey}`)}
+        </p>
+        {#each captions as caption (caption.lang)}
+            <Field
+                id="media-caption-{caption.lang}"
+                label={$i18n.t(`proposals.media.caption_langs.${caption.lang}`)}
+                error={errorFor(caption.field)}
+            >
+                {#snippet children(attrs)}
+                    <textarea
+                        {...attrs}
+                        class="vff-textarea"
+                        rows="2"
+                        lang={caption.lang}
+                        maxlength={LIMITS.caption}
+                        bind:value={form[caption.field]}
+                    ></textarea>
+                {/snippet}
+            </Field>
+        {/each}
+    </fieldset>
+{/snippet}
 
 <style>
     .back {

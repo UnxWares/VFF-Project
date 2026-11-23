@@ -187,6 +187,7 @@ return [
         'title_hint' => 'What the image shows, for example "Nontron station, platform side".',
         'caption' => 'Caption',
         'caption_hint' => 'Optional, in one or more languages: context, rolling stock in view, direction of the shot. Each visitor reads the one in their language, otherwise the French caption.',
+        'caption_commons_hint' => 'Optional: add a caption in English or German next to the Wikimedia Commons one. Visitors reading those languages see it instead; without it, the Commons caption is shown.',
         'caption_langs' => [
             'fr' => 'In French',
             'en' => 'In English',

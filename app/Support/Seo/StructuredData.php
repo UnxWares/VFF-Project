@@ -194,6 +194,20 @@ final class StructuredData
     }
 
     /**
+     * Légende d'un média (ressource MediaResource) dans la langue de la page quand les contributeurs
+     * l'ont écrite (`captions`), sinon la légende principale (`caption`), null sans légende.
+     *
+     * @param  array<string, mixed>|null  $m
+     */
+    public static function caption(?array $m, string $lang): ?string
+    {
+        $own = $m['captions'][$lang] ?? null;
+        $text = is_string($own) && trim($own) !== '' ? $own : ($m['caption'] ?? null);
+
+        return is_string($text) && $text !== '' ? $text : null;
+    }
+
+    /**
      * Média de la base (ressource MediaResource de l'API) en ImageObject, avec auteur et licence tels
      * que la base les donne. Null sans image affichable.
      *
@@ -213,7 +227,7 @@ final class StructuredData
             'contentUrl' => $url,
             'thumbnailUrl' => $thumb !== $url ? $thumb : null,
             'name' => $m['title'] ?? null,
-            'caption' => self::shorten($m['caption'] ?? null),
+            'caption' => self::shorten(self::caption($m, app()->getLocale())),
             'width' => ($m['width'] ?? 0) ?: null,
             'height' => ($m['height'] ?? 0) ?: null,
             'creator' => ($m['author'] ?? null) ? ['@type' => 'Person', 'name' => $m['author']] : null,

@@ -45,6 +45,7 @@
     import SheetPending from '$components/Sheet/SheetPending.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
+    import { mediaCaption } from '$lib/mediaCredits.js';
     import GlossaryText from '$components/GlossaryText.svelte';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
@@ -572,7 +573,10 @@
     path={`/lines/${line.slug}`}
     type="article"
     image={seoImages[0]
-        ? { url: seoImages[0].display_url ?? seoImages[0].thumb_url, alt: seoImages[0].caption }
+        ? {
+              url: seoImages[0].display_url ?? seoImages[0].thumb_url,
+              alt: mediaCaption(seoImages[0], lang),
+          }
         : null}
     jsonLd={(origin) => [
         lineSchema({
@@ -583,6 +587,7 @@
             images: seoImages,
             stations,
             lengthLabel: t('lines.json_ld.length'),
+            lang,
         }),
         breadcrumbSchema(origin, [
             { name: t('common.app_full'), path: '/' },

@@ -28,11 +28,31 @@ const segment = (marker, body) => [
 ];
 
 /**
- * Photo JPEG minimale dont l'EXIF porte une position (degrés, minutes, secondes), comme celle des
+ * Photo JPEG minimale dont l’EXIF porte une position (degrés, minutes, secondes), comme celle des
  * tests PHP (tests/Support/BuildsTestImages::jpegWithLocation).
  * @param {{ lat: number[], latRef: string, lng: number[], lngRef: string, little?: boolean, withGps?: boolean }} o
  */
-function jpeg({ lat, latRef, lng, lngRef, little = true, withGps = true }) {
+function jpeg(options) {
+    const exif = [0x45, 0x78, 0x69, 0x66, 0, 0, ...tiffWithGps(options)];
+    const bytes = [
+        0xff,
+        0xd8,
+        ...segment(0xe0, [0x4a, 0x46, 0x49, 0x46, 0]),
+        ...segment(0xe1, exif),
+        0xff,
+        0xda,
+        0,
+        2,
+    ];
+    return new Uint8Array(bytes).buffer;
+}
+
+/**
+ * Bloc TIFF d'un EXIF dont le répertoire GPS porte une position.
+ * @param {{ lat: number[], latRef: string, lng: number[], lngRef: string, little?: boolean, withGps?: boolean }} o
+ * @returns {number[]}
+ */
+function tiffWithGps({ lat, latRef, lng, lngRef, little = true, withGps = true }) {
     const tiff = [];
     const u16 = (v) => (little ? [v & 0xff, v >> 8] : [v >> 8, v & 0xff]);
     const u32 = (v) =>
@@ -57,18 +77,63 @@ function jpeg({ lat, latRef, lng, lngRef, little = true, withGps = true }) {
         ...u32(0),
     );
     for (const v of [...lat, ...lng]) tiff.push(...u32(Math.round(v * 100)), ...u32(100));
-    const exif = [0x45, 0x78, 0x69, 0x66, 0, 0, ...tiff];
-    const bytes = [
-        0xff,
-        0xd8,
-        ...segment(0xe0, [0x4a, 0x46, 0x49, 0x46, 0]),
-        ...segment(0xe1, exif),
-        0xff,
-        0xda,
+    return tiff;
+}
+
+const ascii4 = (/** @type {string} */ text) => [...text].map((c) => c.charCodeAt(0));
+const be32 = (/** @type {number} */ v) => [v >>> 24, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+const le32 = (/** @type {number} */ v) => [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, v >>> 24];
+
+/**
+ * PNG minimal : pixels (IDAT) puis bloc eXIf avant IEND, comme le font plusieurs outils.
+ * @param {Parameters<typeof tiffWithGps>[0]} options
+ */
+function png(options) {
+    const chunk = (/** @type {string} */ type, /** @type {number[]} */ data) => [
+        ...be32(data.length),
+        ...ascii4(type),
+        ...data,
         0,
-        2,
+        0,
+        0,
+        0,
     ];
-    return new Uint8Array(bytes).buffer;
+    return new Uint8Array([
+        0x89,
+        0x50,
+        0x4e,
+        0x47,
+        0x0d,
+        0x0a,
+        0x1a,
+        0x0a,
+        ...chunk('IHDR', new Array(13).fill(0)),
+        ...chunk('IDAT', [1, 2, 3]),
+        ...chunk('eXIf', tiffWithGps(options)),
+        ...chunk('IEND', []),
+    ]).buffer;
+}
+
+/**
+ * WebP minimal : VP8X, image, puis bloc EXIF (avec ou sans le préfixe « Exif\0\0 »).
+ * @param {Parameters<typeof tiffWithGps>[0]} options
+ * @param {boolean} [prefixed]
+ */
+function webp(options, prefixed = false) {
+    const chunk = (/** @type {string} */ type, /** @type {number[]} */ data) => [
+        ...ascii4(type),
+        ...le32(data.length),
+        ...data,
+        ...(data.length % 2 ? [0] : []),
+    ];
+    const exif = [...(prefixed ? [0x45, 0x78, 0x69, 0x66, 0, 0] : []), ...tiffWithGps(options)];
+    const body = [
+        ...ascii4('WEBP'),
+        ...chunk('VP8X', [0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        ...chunk('VP8 ', [1, 2, 3]),
+        ...chunk('EXIF', exif),
+    ];
+    return new Uint8Array([...ascii4('RIFF'), ...le32(body.length), ...body]).buffer;
 }
 
 describe('exifPosition', () => {
@@ -119,8 +184,39 @@ describe('exifPosition', () => {
             lat: 48.8445,
             lng: 2.2196,
         });
-        expect(await fileExifPosition(new Blob([buffer], { type: 'image/png' }))).toBeNull();
+        expect(await fileExifPosition(new Blob([buffer], { type: 'image/gif' }))).toBeNull();
         expect(EXIF_READ_BYTES).toBeGreaterThanOrEqual(65536);
+    });
+
+    const position = { lat: [45, 30, 0], latRef: 'N', lng: [0, 39, 41.04], lngRef: 'E' };
+
+    it('lit la position d’un PNG (bloc eXIf) et d’un WebP (bloc EXIF), avec ou sans préfixe', () => {
+        for (const little of [true, false]) {
+            expect(exifPosition(png({ ...position, little }))).toEqual({ lat: 45.5, lng: 0.6614 });
+            expect(exifPosition(webp({ ...position, little }))).toEqual({ lat: 45.5, lng: 0.6614 });
+        }
+        expect(exifPosition(webp(position, true))).toEqual({ lat: 45.5, lng: 0.6614 });
+    });
+
+    it('ne trouve rien dans un PNG ou un WebP sans position, et ne plante pas s’ils sont tronqués', () => {
+        expect(exifPosition(png({ ...position, withGps: false }))).toBeNull();
+        expect(exifPosition(webp({ ...position, withGps: false }))).toBeNull();
+        for (const file of [new Uint8Array(png(position)), new Uint8Array(webp(position))]) {
+            for (let size = 0; size < file.length; size += 5) {
+                expect(() => exifPosition(file.slice(0, size).buffer)).not.toThrow();
+            }
+        }
+    });
+
+    it('lit la position d’un fichier PNG ou WebP choisi en entier, le bloc suivant les pixels', async () => {
+        expect(await fileExifPosition(new Blob([png(position)], { type: 'image/png' }))).toEqual({
+            lat: 45.5,
+            lng: 0.6614,
+        });
+        expect(await fileExifPosition(new Blob([webp(position)], { type: 'image/webp' }))).toEqual({
+            lat: 45.5,
+            lng: 0.6614,
+        });
     });
 });
 
@@ -249,5 +345,39 @@ describe('légendes par langue', () => {
         expect(mediaHeading(media, 'de')).toBe('Blick von der Fußgängerbrücke.');
         expect(mediaHeading(media)).toBe('Vue prise depuis la passerelle.');
         expect(mediaCaptionLang({ caption: 'Légende venue de Commons' }, 'de')).toBeUndefined();
+    });
+
+    it('montre pour un fichier Commons sa légende puis les légendes ajoutées en anglais et en allemand', () => {
+        const commons = {
+            source: 'commons',
+            target_type: 'line',
+            line_name: 'Ligne de Paris à Versailles',
+            commons: {
+                title: 'Gare.jpg',
+                caption: 'La gare en 1962',
+                author: 'A',
+                license: 'CC BY 4.0',
+            },
+            captions: { en: 'The station in 1962', de: 'Der Bahnhof 1962' },
+        };
+        const facts = mediaFacts(commons, t, 'fr').filter((f) => f.id.startsWith('caption'));
+        expect(facts.map((f) => [f.id, f.text])).toEqual([
+            ['caption', 'La gare en 1962'],
+            ['caption_en', 'The station in 1962'],
+            ['caption_de', 'Der Bahnhof 1962'],
+        ]);
+        expect(facts[0].lang).toBeUndefined();
+        expect(facts[1].lang).toBe('en');
+    });
+
+    it('affiche la légende de Commons sans langue connue, sinon celle de la langue de la page', () => {
+        const media = {
+            caption: 'La gare en 1962',
+            captions: { en: 'The station in 1962', de: 'Der Bahnhof 1962' },
+        };
+        expect(mediaCaption(media, 'fr')).toBe('La gare en 1962');
+        expect(mediaCaptionLang(media, 'fr')).toBeUndefined();
+        expect(mediaCaption(media, 'en')).toBe('The station in 1962');
+        expect(mediaCaptionLang(media, 'en')).toBe('en');
     });
 });

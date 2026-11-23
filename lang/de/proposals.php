@@ -187,6 +187,7 @@ return [
         'title_hint' => 'Was das Bild zeigt, zum Beispiel „Bahnhof Nontron, Bahnsteigseite“.',
         'caption' => 'Bildunterschrift',
         'caption_hint' => 'Freiwillig, in einer oder mehreren Sprachen: Zusammenhang, sichtbare Fahrzeuge, Blickrichtung. Jeder Besucher liest die Bildunterschrift in seiner Sprache, sonst die französische.',
+        'caption_commons_hint' => 'Freiwillig: Ergänzen Sie eine englische oder deutsche Bildunterschrift zu der von Wikimedia Commons. Besucher dieser Sprachen lesen sie an deren Stelle; ohne sie wird die Bildunterschrift von Commons gezeigt.',
         'caption_langs' => [
             'fr' => 'Auf Französisch',
             'en' => 'Auf Englisch',
