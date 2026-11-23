@@ -54,8 +54,11 @@ pg createdb --maintenance-db="$base_admin" "$temp"
 cree=1
 
 log "3/5 restauration (pg_restore, ${DUMP_JOBS:-2} tâches)"
-# Sans --clean : la base est neuve ; sans propriétaires (le rôle d'origine peut ne pas exister ici).
-pg pg_restore --dbname="$temp" --no-owner --no-privileges --exit-on-error --jobs="${DUMP_JOBS:-2}" "$dump"
+# Sans --clean : la base est neuve ; sans propriétaires (le rôle d'origine peut ne pas exister ici). Les extensions
+# viennent de template1 (créées par postgres, docs/MISE-EN-PRODUCTION.md, étape 3) : vff_backup n'en est pas
+# propriétaire, donc « COMMENT ON EXTENSION » échouerait ; --no-comments l'évite (les commentaires ne sont pas
+# contrôlés ici).
+pg pg_restore --dbname="$temp" --no-owner --no-privileges --no-comments --exit-on-error --jobs="${DUMP_JOBS:-2}" "$dump"
 
 log "4/5 comptes de lignes des tables clés"
 if [ -f "$dump.counts" ]; then
@@ -78,8 +81,14 @@ fi
 log "5/5 invariants de données (vff:check-invariants) sur la base restaurée"
 if [ -n "${APP_DIR:-}" ] && [ -f "${APP_DIR}/artisan" ]; then
     set +e
-    # DB_DATABASE force la base temporaire pour l'application (jamais celle du .env).
-    ( cd "$APP_DIR" && DB_DATABASE="$temp" ${ARTISAN_CMD:-php artisan} vff:check-invariants --no-interaction )
+    # DB_* force la base temporaire et le rôle de sauvegarde (jamais la base du .env). En production la configuration
+    # est en cache (php artisan optimize) et Laravel y ignorerait ces variables : APP_CONFIG_CACHE désigne un fichier
+    # qui n'existe pas, donc .env est relu et les variables posées ici l'emportent. Mot de passe vide : libpq le lit
+    # dans PGPASSFILE. Journal sur la sortie d'erreur (storage/ est en lecture seule pour ce service).
+    ( cd "$APP_DIR" && APP_CONFIG_CACHE="/tmp/vff-restauration-sans-cache-$$.php" LOG_CHANNEL=stderr \
+        DB_CONNECTION=pgsql DB_HOST="${PGHOST:-127.0.0.1}" DB_PORT="${PGPORT:-5432}" DB_DATABASE="$temp" \
+        DB_USERNAME="${PGUSER:?}" DB_PASSWORD="" \
+        ${ARTISAN_CMD:-php artisan} vff:check-invariants --no-interaction )
     inv=$?
     set -e
     if [ "$inv" -eq 1 ] && [ "${INVARIANTS_STRICT:-0}" != "1" ]; then

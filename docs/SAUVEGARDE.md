@@ -1,7 +1,8 @@
 # Sauvegarde de la base de production
 
 État au 23/11/2026 : le kit est prêt et essayé sur un poste de développement (base de test). Reste à choisir la
-destination hors site avec l'hébergement, à installer sur le serveur et à brancher le suivi. Rien n'est installé ni
+destination hors site avec l'hébergement, à installer sur le serveur et à brancher le suivi : étape 7 de
+`docs/MISE-EN-PRODUCTION.md` (`deploy/bin/mise-en-production.sh --appliquer --etape sauvegarde`). Rien n'est installé ni
 activé sur le poste de développement : les unités systemd `deploy/systemd/vff-backup.*` et
 `vff-restore-test.*` sont pour le serveur seulement.
 
@@ -52,9 +53,10 @@ CREATE ROLE vff_backup LOGIN PASSWORD '…' CREATEDB;   -- mot de passe dans /et
 GRANT pg_read_all_data TO vff_backup;
 ```
 
-`CREATEDB` ne sert qu'à l'essai de restauration. Les extensions (PostGIS notamment) se recréent à la restauration :
-sur un serveur où le rôle n'est pas superutilisateur, créer d'abord les extensions dans une base modèle, ou lancer
-l'essai avec un rôle qui peut les créer. Les binaires `pg_dump` et `pg_restore` doivent être de version supérieure ou
+`CREATEDB` ne sert qu'à l'essai de restauration. PostGIS n'est pas une extension « de confiance » : `vff_backup`
+ne peut pas la créer. Les extensions de la base sont donc créées par `postgres` dans `template1`, d'où l'essai tire
+ses bases neuves (étape 3 de `docs/MISE-EN-PRODUCTION.md`, faite par le script), et l'essai restaure avec
+`--no-comments` (le commentaire d'une extension n'est modifiable que par son propriétaire). Les binaires `pg_dump` et `pg_restore` doivent être de version supérieure ou
 égale à celle du serveur (PostgreSQL 18 aujourd'hui) : `PG_BIN_DIR` désigne le bon dossier.
 
 ## 3. Envoi chiffré hors site : restic vers un S3 suisse (recommandé)
@@ -148,8 +150,10 @@ RESTORE_KEEP=1 …                                                              
 Le script : (1) vérifie l'empreinte SHA-256 ; (2) crée `vff_restauration_<date>_<pid>` ; (3) `pg_restore --no-owner
 --no-privileges --exit-on-error --jobs=2` ; (4) compte les lignes des tables clés et les compare à celles notées au
 moment du dump (écart toléré `COUNT_TOLERANCE_PCT`, 2 % par défaut, car la base vivante bouge pendant le dump) ;
-(5) lance `vff:check-invariants` sur la base restaurée (variable `DB_DATABASE` posée pour l'application, jamais le
-`.env`) ; puis supprime la base temporaire et envoie le battement de l'essai. Un invariant de données violé est
+(5) lance `vff:check-invariants` sur la base restaurée (variables `DB_DATABASE`, `DB_USERNAME` et `DB_HOST` posées
+pour l'application sous le rôle `vff_backup`, mot de passe lu dans `PGPASSFILE`, jamais la base du `.env` ;
+`APP_CONFIG_CACHE` désigne un fichier absent, car avec la configuration en cache de la production Laravel ignorerait
+ces variables et lirait la base en service) ; puis supprime la base temporaire et envoie le battement de l'essai. Un invariant de données violé est
 signalé sans faire échouer l'essai (`INVARIANTS_STRICT=1` pour le rendre bloquant) : ces invariants jugent la
 qualité des données, pas la sauvegarde.
 
@@ -179,19 +183,27 @@ au premier passage sur le serveur.
 
 ## 7. Installation sur le serveur (à faire avec l'hébergement)
 
+Faite par `deploy/bin/mise-en-production.sh --appliquer --etape sauvegarde` (étape 7 de
+`docs/MISE-EN-PRODUCTION.md`, avec les commandes qui remplissent `/etc/vff/backup.env`, `/etc/vff/pgpass` et
+`/etc/vff/restic-password`). À la main, l'équivalent est :
+
 ```bash
-install -d -o root -g root /opt/vff/backup /etc/vff
-install -m 755 deploy/backup/*.sh /opt/vff/backup/
-install -m 600 -o vffbackup deploy/backup/backup.env.example /etc/vff/backup.env   # puis remplir
-install -d -o vffbackup -m 700 /var/backups/vff
-cp deploy/systemd/vff-backup.* deploy/systemd/vff-restore-test.* /etc/systemd/system/
-systemctl daemon-reload
-systemctl start vff-backup.service        # premier passage à la main : relever durée et taille
-systemctl enable --now vff-backup.timer vff-restore-test.timer
+sudo useradd --system --home-dir /var/backups/vff --no-create-home --shell /usr/sbin/nologin vffbackup
+sudo usermod -aG vff vffbackup                      # lit /srv/vff/.env (640, groupe vff) pour l'essai de restauration
+sudo install -d -o root -g root /opt/vff/backup
+sudo install -d -o root -g vffbackup -m 750 /etc/vff
+sudo install -m 755 deploy/backup/lib.sh deploy/backup/vff-backup.sh deploy/backup/vff-restore-test.sh /opt/vff/backup/
+sudo install -m 600 -o vffbackup -g vffbackup deploy/backup/backup.env.example /etc/vff/backup.env   # puis remplir
+sudo install -d -o vffbackup -g vffbackup -m 700 /var/backups/vff
+sudo install -m 644 deploy/systemd/vff-backup.service deploy/systemd/vff-backup.timer \
+    deploy/systemd/vff-restore-test.service deploy/systemd/vff-restore-test.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start vff-backup.service        # premier passage à la main : relever durée et taille
+sudo systemctl enable --now vff-backup.timer vff-restore-test.timer
 ```
 
-Compte `vffbackup` : utilisateur système sans connexion ; pour l'essai de restauration, il lit le dossier de
-l'application (`APP_DIR`) et lance `ARTISAN_CMD`.
+Compte `vffbackup` : utilisateur système sans connexion, du groupe `vff` ; pour l'essai de restauration, il lit le
+dossier de l'application (`APP_DIR=/srv/vff`) et lance `ARTISAN_CMD`.
 
 ## 8. Reste à décider
 

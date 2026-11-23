@@ -2,7 +2,8 @@
 
 Kit pour le **serveur de production** d'UnxWares. Rien de tout cela n'est installé ni activé sur un poste de
 travail (les unités de `deploy/systemd/` sans sous-dossier restent celles du développement). État : prêt, reste
-à poser sur le serveur.
+à poser sur le serveur, dans l'ordre du parcours `docs/MISE-EN-PRODUCTION.md` (étapes 10 à 12, script
+`deploy/bin/mise-en-production.sh`).
 
 ## Fichiers
 
@@ -44,6 +45,7 @@ réel est désactivé, ne pas activer `vff-reverb.service`.
 | ----------------------------------------------------- | ----------------------------------------------------------------------- |
 | `APP_ENV`, `APP_DEBUG`                                | `production`, `false`                                                   |
 | `QUEUE_CONNECTION`, `CACHE_STORE`, `SESSION_DRIVER`   | `redis` (Valkey ; le client est nommé `redis` par Laravel)              |
+| `REDIS_CLIENT`, `REDIS_PASSWORD`                      | `phpredis` (extension `php8.5-redis`), `requirepass` de Valkey          |
 | `BROADCAST_CONNECTION`, `REALTIME_ENABLED`            | `reverb`, `true`                                                        |
 | `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`| valeurs aléatoires propres au serveur (la clé est publique, pas le secret) |
 | `REVERB_SERVER_HOST`, `REVERB_SERVER_PORT`            | `127.0.0.1`, `8080` (où Reverb écoute)                                  |

@@ -24,7 +24,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée, hors de ce bilan |
 | 10 - Extension historique | 🟡 couverture 1830-2030 faite ; fusion des sources à 1 m : pilote du Calvados à appliquer, puis passe nationale ; modèle sur photos aériennes (GPU, sur accord) |
 | 11 - Communauté | 🟡 faite côté site ; restent les dons (association UWOSC à créer), les partenariats et le choix du fond de carte libre en ligne |
-| 12 - Mise en production | 🟡 tout ce qui se prépare sans serveur est prêt et documenté ; restent la messagerie, l'hébergement et la pose des services sur le serveur |
+| 12 - Mise en production | 🟡 tout ce qui se prépare sans serveur est prêt et documenté, en un seul parcours (`docs/MISE-EN-PRODUCTION.md`, `deploy/bin/mise-en-production.sh --verifier`) ; restent la messagerie (MX), l'hébergement et le déroulé du parcours sur le serveur |
 | 13 - Nouveaux domaines | 🟡 domaines en place ; signalisation datée (164 faits, sources libres lues), médias et accidents en enrichissement continu |
 
 **En base (développement, lecture du 23/11/2026 vers 15 h)** : 2 690 lignes, 9 395 gares, 15 841 événements datés, 114 803 médias (4 697 gares et 623 lignes illustrées), 21 époques, 885 séries de matériel roulant, 951 fiches d'accidents, 164 faits datés de signalisation, profil en long de 2 630 lignes (729 534 points), 1 094 portions de voies, 1 528 de radio sol-train et 5 507 quais de SNCF Réseau. Les adresses de lignes neutres sont appliquées (aucune adresse `archeo-` restante). Le moteur de la carte est rejoué par étapes : certains chiffres bougent encore.
@@ -34,7 +34,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 **Ce qui reste**, hors 3D (bilan point par point : `storage/app/reports/agents/aprem-2111/roadmap-cloture.md`) :
 
 1. **À appliquer en base** (code commité et testé, scripts prêts, lancés par le coordinateur dans l'ordre de `aprem-2111/APREM.md`, points 72 à 75) : gares et lignes, matériel, fusion des lignes du même couloir, seconde série d'ouvertures datées au jour, pilote de fusion du Calvados, altitude de la voie estimée, passe réseau Panoramax, trous du tracé, accidents relus dans la presse, fiches de gares fusionnées ; puis repasser les audits des tronçons et des gares.
-2. **Serveur de production** : messagerie de `vff-project.org`, hébergement chez UnxWares, Kener et GlitchTip, planificateur, Reverb, relais des vignettes de Commons, fond de carte servi par nginx, sauvegarde de la base (`docs/DEPLOIEMENT-SERVICES.md`, `docs/SUIVI-PRODUCTION.md`, `docs/SAUVEGARDE.md`).
+2. **Serveur de production** : messagerie de `vff-project.org`, hébergement chez UnxWares, Kener et GlitchTip, planificateur, Reverb, relais des vignettes de Commons, fond de carte servi par nginx, sauvegarde de la base : un seul parcours en 19 étapes, `docs/MISE-EN-PRODUCTION.md` (`deploy/bin/mise-en-production.sh --verifier` dit ce qui manque).
 3. **Décisions de Baptiste** : liste courte en tête de `storage/app/reports/agents/QUESTIONS.md`.
 4. **Travail de données continu**, avec le seuil qui le rend « fait » :
    - audit des gares : toutes les gares de plus de 100 000 voyageurs par an relues (634 gares relues dans l'ordre de fréquentation, jusqu'à 50 000 voyageurs) et chaque cas « à décider » tranché (62 restent) ;
@@ -70,7 +70,7 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] Suite Playwright de fumée avec axe-core (54 tests : pages principales, deux largeurs d'écran, français et anglais), en local et en CI (`docs/TESTS-E2E.md`)
 - [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
 - [x] Suivi des erreurs et de la disponibilité, part application : page de santé `/up/details` (base, Valkey, file, disque, âge du calcul de l'ère, version), erreurs du serveur vers GlitchTip ou Bugsink si une adresse DSN est configurée (sans donnée personnelle), erreurs JavaScript du navigateur journalisées, `docs/SUIVI-ERREURS.md`
-- [ ] Suivi des erreurs et de la disponibilité, part hébergement : installer Kener et GlitchTip (docs/SUIVI-PRODUCTION.md) sur l'infrastructure d'UnxWares, poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN` et `APP_VERSION`, configurer moniteurs et alertes
+- [ ] Suivi des erreurs et de la disponibilité, part hébergement : installer Kener et GlitchTip sur l'infrastructure d'UnxWares, poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN` et `APP_VERSION`, configurer moniteurs et alertes (étape 17 de `docs/MISE-EN-PRODUCTION.md`, détail dans `docs/SUIVI-PRODUCTION.md`)
 - [x] Hooks avant commit (Lefthook) : installés (`node_modules/.bin/lefthook install --force` avec un `core.hooksPath` local au dépôt ; `lefthook-local.yml`, non suivi, relance les crochets globaux de chaque poste)
 
 🎯 **Jalon "Foundations Done"** : atteint.
@@ -234,7 +234,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Documentation [Magidoc](https://magidoc.js.org/) sur `/docs/graphql` + GraphiQL
 - [x] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés : jeton personnel avec la capacité `contribute` (case du profil, décochée par défaut) ou session du site avec contrôle CSRF ; mêmes règles et même code que l'espace de validation du site (`App\Services\Contributions`)
 - [x] Subscriptions (WebSocket) pour suivre les contributions en temps réel, côté application : Laravel Reverb, canaux Laravel Echo (`contributions` public, `review-queue` et `users.{id}.contributions` privés), abonnements GraphQL `contributionApplied`, `myContributionChanged` et `reviewQueueChanged`, file de validation mise à jour sans recharger la page ; désactivé par défaut (`REALTIME_ENABLED`, `docs/API.md` section « Temps réel »)
-- [~] Temps réel en production : prêt, reste à poser sur le serveur (unités `deploy/systemd/production/`, script `deploy/bin/verify-production.sh`, `docs/DEPLOIEMENT-SERVICES.md`) ; à faire : lancer Reverb (`php artisan reverb:start` sous superviseur), activer le proxy WebSocket nginx (`deploy/nginx/snippets/vff-reverb.conf`) et les variables `REALTIME_*` et `REVERB_*` (`docs/DEPLOIEMENT-NGINX.md`, section « Temps réel ») ; les webhooks `contribution.applied` couvrent le besoin en attendant
+- [~] Temps réel en production : prêt, reste à poser sur le serveur (étape 12 de `docs/MISE-EN-PRODUCTION.md` : variables `REALTIME_*` et `REVERB_*`, `vff-reverb.service` ; l'étape 14 active le proxy WebSocket nginx `deploy/nginx/snippets/vff-reverb.conf`) ; les webhooks `contribution.applied` couvrent le besoin en attendant
 - [x] **REST reste la référence** pour les consommateurs externes, GraphQL est un complément
 
 ---
@@ -312,18 +312,18 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Domaine officiel `vff-project.org`
 - [x] Configuration nginx de référence pour la production : en-têtes de sécurité, cache, plages PMTiles, journaux anonymisés (`deploy/nginx/`, `docs/DEPLOIEMENT-NGINX.md`)
 - [x] Pages légales complètes (2026-10-21) : mentions légales, politique de confidentialité, conditions générales d'utilisation, déclaration d'accessibilité
-- [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien
-- [ ] Hébergement sur l'infrastructure d'UnxWares (le domaine pointe aujourd'hui sur un serveur Hetzner Cloud à Helsinki)
-- [~] Planificateur Laravel en production (recalcul quotidien de l'époque 2030) : code prêt (tâches, verrous, journal, signalement d'échec, battement vers `/up/details`, entretien, tests, `docs/PLANIFICATION.md`) ; prêt, reste à poser sur le serveur d'UnxWares (minuteur et service `deploy/systemd/production/`, `docs/DEPLOIEMENT-SERVICES.md`)
-- [~] Relais des vignettes de Wikimedia Commons par VFF (`VFF_COMMONS_PROXY`, désactivé par défaut) : liste blanche stricte des chemins (seuls les fichiers que VFF cite, liste recalculée toutes les dix minutes dans Valkey), cache disque borné (`vff:commons-cache-prune`), vignettes WebP, aucun cookie tiers ; reste à l'activer en production avec le cache nginx (`docs/DEPLOIEMENT-NGINX.md`)
+- [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien ; MX, SPF, DKIM, DMARC et CAA attendus listés à l'étape 19 de `docs/MISE-EN-PRODUCTION.md` (à poser par Baptiste)
+- [ ] Hébergement sur l'infrastructure d'UnxWares : parcours complet dans `docs/MISE-EN-PRODUCTION.md` (prérequis, 19 étapes avec commande, contrôle et retour arrière), script idempotent `deploy/bin/mise-en-production.sh` (`--verifier` ne change rien et dit ce qui manque, `--appliquer` s'arrête à la première erreur, aucune suppression), pool PHP-FPM `deploy/php-fpm/vff.conf` ; reste à l'exécuter sur le serveur
+- [~] Planificateur Laravel en production (recalcul quotidien de l'époque 2030) : code prêt (tâches, verrous, journal, signalement d'échec, battement vers `/up/details`, entretien, tests, `docs/PLANIFICATION.md`) ; reste à poser sur le serveur d'UnxWares (étape 11 de `docs/MISE-EN-PRODUCTION.md`, minuteur et service `deploy/systemd/production/`)
+- [~] Relais des vignettes de Wikimedia Commons par VFF (`VFF_COMMONS_PROXY`, désactivé par défaut) : liste blanche stricte des chemins (seuls les fichiers que VFF cite, liste recalculée toutes les dix minutes dans Valkey), cache disque borné (`vff:commons-cache-prune`), vignettes WebP, aucun cookie tiers ; reste à l'activer en production avec le cache nginx (étape 16 de `docs/MISE-EN-PRODUCTION.md`, `docs/DEPLOIEMENT-NGINX.md`)
 - [x] Flux du journal et plans du site servis sans session ni cookie, adresses absolues construites depuis `app.url`
 - [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
 - [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
 - [x] Audit de conformité RGAA interne complet (100 % après la correction de Swagger UI et Magidoc le soir du 19/11, totalement conforme), taux publié dans la déclaration
-- [ ] Suivi des erreurs et de la disponibilité (phase 0) : Kener et GlitchTip choisis, installation et moniteurs décrits dans `docs/SUIVI-PRODUCTION.md`
+- [ ] Suivi des erreurs et de la disponibilité (phase 0) : Kener et GlitchTip choisis, installation et moniteurs décrits dans `docs/SUIVI-PRODUCTION.md`, commandes à l'étape 17 de `docs/MISE-EN-PRODUCTION.md`
 - [x] Requêtes vers Wikimédia polies : une requête à la fois pour Wikipédia, `maxlag` partout, User-Agent du projet
 - [x] Sauvegardes du poste de développement : dépôts chiffrés côté client, rétention quotidienne, hebdomadaire et mensuelle, contrôle d'intégrité chaque dimanche ; dumps de la base ciblés avant chaque écriture
-- [~] Sauvegarde de la base de production : kit prêt et essayé sur une base de test (`deploy/backup/`, `docs/SAUVEGARDE.md` : dump quotidien contrôlé, rotation 7/4/6, envoi chiffré restic, battement, essai de restauration dans une base temporaire), reste à choisir la destination avec l'hébergement
+- [~] Sauvegarde de la base de production : kit prêt et essayé sur une base de test (`deploy/backup/`, `docs/SAUVEGARDE.md` : dump quotidien contrôlé, rotation 7/4/6, envoi chiffré restic, battement, essai de restauration dans une base temporaire), essai de restauration corrigé pour la configuration en cache de la production (il lisait la base en service) ; reste à choisir la destination avec l'hébergement et à poser le kit (étape 7 de `docs/MISE-EN-PRODUCTION.md`)
 
 ---
 

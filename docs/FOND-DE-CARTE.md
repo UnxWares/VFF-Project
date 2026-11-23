@@ -120,7 +120,9 @@ Mesures qui fixent ces seuils (21/11/2026) :
 
 En production, chaque tuile passe sinon par PHP. Avec `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/`, VFF applique
 les mêmes règles puis répond `X-Accel-Redirect` : nginx envoie les octets depuis une location interne, en
-respectant la plage demandée. Exemple :
+respectant la plage demandée. La configuration de référence est celle de `deploy/nginx/vff-project.org.conf`
+(locations `~ ^/basemap/[a-z0-9-]+\.pmtiles$` et `/_basemap/`, expliquées dans `docs/DEPLOIEMENT-NGINX.md`), posée
+par l'étape 14 de `docs/MISE-EN-PRODUCTION.md` ; l'archive est copiée à l'étape 15. En bref :
 
 ```nginx
 # Bloc http : limite de secours devant PHP (10 requêtes par seconde, soit les 600 par minute de VFF).
@@ -131,18 +133,17 @@ location ~ ^/basemap/[a-z0-9-]+\.pmtiles$ {
     limit_req zone=vff_basemap burst=60 nodelay;
     limit_req_status 429;
     # Passe par Laravel comme les autres routes (index.php), qui vérifie la plage et les limites.
-    try_files /index.php?$query_string =404;
+    try_files $uri /index.php?$query_string;
 }
 
 location /_basemap/ {
     internal;
     alias /srv/vff/storage/app/data/pmtiles/;
-    add_header Cache-Control "public, max-age=2592000";
-    add_header X-Content-Type-Options nosniff;
-    # Seulement si un autre site lit l'archive (inutile pour VFF lui-même) :
-    # add_header Access-Control-Allow-Origin "*";
-    # add_header Access-Control-Expose-Headers "ETag, Content-Range, Content-Length";
-    types { } default_type application/octet-stream;
+    include /etc/nginx/snippets/vff-security-headers.conf;
+    # Cache-Control, Content-Type et Accept-Ranges viennent de Laravel (un add_header Cache-Control ici le doublerait).
+    gzip off;
+    types { }
+    default_type application/octet-stream;
 }
 ```
 
