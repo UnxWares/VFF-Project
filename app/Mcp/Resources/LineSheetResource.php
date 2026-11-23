@@ -5,6 +5,7 @@ namespace App\Mcp\Resources;
 use App\Mcp\Support\Attribution;
 use App\Mcp\Support\LineDossier;
 use App\Mcp\Support\Lookup;
+use App\Services\Signalling\SignallingDating;
 use App\Support\EventText;
 use Illuminate\Support\Facades\App;
 use Laravel\Mcp\Request;
@@ -85,11 +86,18 @@ class LineSheetResource extends Resource implements HasUriTemplate
                 $out[] = '- '.$f['label'].' : '.$value.' ('.$f['note'].')';
             }
         }
-        if (! empty($l['signalling']['history'])) {
+        $undated = ($l['signalling']['dating']['status'] ?? null) === SignallingDating::UNDATED;
+        if (! empty($l['signalling']['history']) || $undated) {
             $out[] = '';
             $out[] = '## '.$t('signalling_history');
-            foreach ($l['signalling']['history'] as $f) {
+            foreach ($l['signalling']['history'] ?? [] as $f) {
                 $out[] = '- '.self::signallingFact($f);
+            }
+            if ($undated) {
+                // Ligne classique en service sans mise en service de cantonnement datée : mention calculée (SignallingDating).
+                $out[] = trans('signalling_history.dating.undated').' '.trans('signalling_history.dating.checked', [
+                    'date' => EventText::isoDate((string) $l['signalling']['dating']['checked_at'], 'day', App::getLocale()),
+                ]);
             }
         }
         if ($l['phases'] !== []) {

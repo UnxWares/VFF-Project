@@ -58,4 +58,9 @@ return [
         'reason' => 'Why (in French):',
         'documents' => 'Contradicted by:',
     ],
+    // Ligne classique en service sans mise en service de cantonnement datée (SignallingDating, calculé) ; `checked`: date du dernier passage.
+    'dating' => [
+        'undated' => 'No free document consulted dates the commissioning of this line’s signalling.',
+        'checked' => 'Last checked: :date.',
+    ],
 ];

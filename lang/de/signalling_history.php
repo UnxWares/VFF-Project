@@ -58,4 +58,9 @@ return [
         'reason' => 'Warum (auf Französisch):',
         'documents' => 'Widerlegt durch:',
     ],
+    // Ligne classique en service sans mise en service de cantonnement datée (SignallingDating, calculé) ; `checked`: date du dernier passage.
+    'dating' => [
+        'undated' => 'Kein eingesehenes freies Dokument datiert die Inbetriebnahme der Signalisierung dieser Strecke.',
+        'checked' => 'Zuletzt geprüft: :date.',
+    ],
 ];

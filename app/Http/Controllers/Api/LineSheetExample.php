@@ -69,7 +69,12 @@ final class LineSheetExample
                 'dismantled_to' => null,
             ],
             'electrification' => ['state' => 'none', 'km' => 0, 'pct' => 0, 'voltages' => []],
-            'signalling' => ['block_systems_km' => [], 'train_protection_km' => [], 'kvb_equipped' => false, 'ranges' => [], 'history' => []],
+            'signalling' => ['block_systems_km' => [], 'train_protection_km' => [], 'kvb_equipped' => false, 'ranges' => [], 'history' => [],
+                'dating' => ['status' => 'undated', 'checked_at' => '2026-11-23', 'messages' => [
+                    'fr' => 'Aucun document libre consulté ne date la mise en service de la signalisation de cette ligne.',
+                    'en' => 'No free document consulted dates the commissioning of this line’s signalling.',
+                    'de' => 'Kein eingesehenes freies Dokument datiert die Inbetriebnahme der Signalisierung dieser Strecke.',
+                ]]],
             'facts' => [
                 [
                     'key' => 'length',

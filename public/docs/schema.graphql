@@ -883,6 +883,12 @@ type Line {
   signalling_corrections: [SignallingCorrection!]!
 
   """
+  Ce que VFF sait de la date de mise en service du cantonnement de la ligne, calculé et non écrit à la main : voir
+  `SignallingDating`. Même contenu que la clé `dating` de `GET /api/v1/lines/{line}/signalling-history`.
+  """
+  signalling_dating: SignallingDating!
+
+  """
   Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
   dessus), comme `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ;
   Licence Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
@@ -5926,6 +5932,38 @@ type LineSheetSignalling {
 
   "Mises en service datées relevées dans l'article Wikipédia de la ligne ou dans d'autres documents (historique à part de l'état actuel ci-dessus), comme `Line.signalling_history`."
   history: [SignallingEvent!]!
+
+  "Date connue de la mise en service du cantonnement (même valeur que `Line.signalling_dating`)."
+  dating: SignallingDating
+}
+
+"""
+Date connue de la mise en service du cantonnement d'une ligne, calculée : `dated` quand au moins une mise en service
+de cantonnement (BAL, BAPR, BM, CT, TVM, ETCS) est datée et sûre, `undated` pour une ligne classique en service dont
+aucun document libre consulté ne date la signalisation, `not_applicable` pour une ligne à grande vitesse, fermée ou
+touristique seule.
+"""
+type SignallingDating {
+  "`dated`, `undated` ou `not_applicable`."
+  status: String!
+
+  "Date du dernier passage sur les documents libres (`AAAA-MM-JJ`)."
+  checked_at: Date!
+
+  "La mention, dans les trois langues du site, quand `status` vaut `undated` ; nul sinon."
+  messages: SignallingDatingMessages
+}
+
+"Mention « aucun document libre consulté ne date la mise en service de la signalisation de cette ligne » en français, anglais et allemand."
+type SignallingDatingMessages {
+  "En français."
+  fr: String!
+
+  "En anglais."
+  en: String!
+
+  "En allemand."
+  de: String!
 }
 
 "L'état de la ligne au 31/12 d'une décennie (frise « évolution »)."

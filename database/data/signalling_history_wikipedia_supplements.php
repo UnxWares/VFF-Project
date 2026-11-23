@@ -307,4 +307,9 @@ return [
         'line' => '115000', 'system' => 'ETCS_L1', 'date' => '2022', 'scope' => 'whole_line',
         'quote' => 'La ligne fait partie du Corridor européen C (Anvers - Bâle / Lyon) et est équipée de l\'ETCS niveau 1 depuis 2022.',
     ],
+    // Ormoy-Villers - Boves : block manuel dès l'ouverture de la section Ormoy-Villers - Estrées-Saint-Denis.
+    [
+        'line' => '232000', 'system' => 'BM', 'date' => '1882-07-31', 'scope' => 'section', 'from' => 'Ormoy-Villers', 'to' => 'Estrées-Saint-Denis',
+        'quote' => 'dès sa mise en service le 31 juillet 1882, la ligne d\'Ormoy-Villers à Estrées-Saint-Denis est à double voie et doté du block manuel.',
+    ],
 ];

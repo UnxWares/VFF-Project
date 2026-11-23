@@ -16,6 +16,7 @@ use App\Services\LineSheet;
 use App\Services\LineStats;
 use App\Services\Profiles\LineProfiles;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\Speed\LineSpeeds;
 use App\Services\Stories\EventStories;
 use App\Services\Structures\LineStructures;
@@ -169,7 +170,7 @@ class LineController extends Controller
      * (Inertia::defer, groupe DEFERRED_GROUP), que la page demande en une requête juste après s'être affichée.
      * Les réponses REST et GraphQL de la fiche ne changent pas (LineSheet::build sans `forPage`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, SignallingDating $signallingDating, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
         // Premier affichage : le haut de la fiche (LineSheet::PAGE_KEYS : en-tête, tracé, « Où et quand », « À propos »,
         // histoire, décennies, gares, chronologie). Fiche construite une fois, et seulement quand la réponse la demande :
@@ -210,9 +211,9 @@ class LineController extends Controller
             'signalling_history' => $defer(fn () => $signallingHistory->forSheet($line)),
             // Dates lues dans un article que des documents contredisent, repliées sous la frise (API : `corrections`).
             'signalling_corrections' => $defer(fn () => $signallingHistory->correctionsForSheet($line)),
+            // Ligne classique en service sans mise en service de cantonnement datée : mention et date de la dernière vérification.
+            'signalling_dating' => $defer(fn () => $signallingDating->forLine($line)),
             'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
-            // Sans profil : pourquoi (aucun tracé, tracé hors de France, pas encore calculé), dit dans la même section.
-            'profile_unavailable' => $defer(fn () => $profiles->unavailable($line)),
             // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
             'structures' => $defer(fn () => $structures->forSheet($line)),
             // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).

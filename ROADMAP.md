@@ -41,7 +41,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
    - audit des tronçons : les 21 ères repassées avec les règles actuelles et au moins 90 % des kilomètres sûrs en 2030 (83,4 % au dernier calcul) ;
    - profil en long : chaque ligne dont le tracé est ouvert a un profil, avec l'erreur de l'altitude estimée quand la voie n'est pas mesurée ;
    - fusion à 1 m : passe nationale appliquée, tracés en service à 5 m au plus de la plateforme mesurée, 0 m aux jonctions ;
-   - signalisation datée : chaque ligne classique en service a sa mise en service datée et sourcée, ou la mention qu'aucun document libre ne la date ;
+   - signalisation datée : chaque ligne classique en service a sa mise en service datée et sourcée, ou la mention qu'aucun document libre ne la date (fait le 23/11 : sur 703 lignes classiques en service, 52 ont un cantonnement daté en base, 54 après l'import des faits en attente ; les 649 autres portent la mention calculée « Aucun document libre consulté ne date la mise en service de la signalisation de cette ligne » avec la date de la dernière vérification, sur la fiche et dans REST, GraphQL et MCP ; sources libres taries, voir `aprem-2111/signalisation-seuil.md`) ;
    - médias : chaque gare ouverte aux voyageurs illustrée, et chaque fonds repéré (`aprem-2111/sources-images*.md`) intégré ou écarté avec sa raison ;
    - archives : chaque fonds du répertoire `docs/ARCHIVES.md` rattaché ou écarté avec sa raison.
 

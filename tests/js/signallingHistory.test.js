@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     articleTitles,
     correctionRows,
+    datingNotice,
     hasDocumentFacts,
     historyRows,
     periodBounds,
@@ -402,5 +403,25 @@ describe('correctionRows', () => {
         expect(r.action).toBe('signalling_history.corrections.action.replace');
         expect(r.portion).toBeNull();
         expect(r.original.label).toBe('signalling_history.corrections.original_document');
+    });
+});
+
+describe('datingNotice', () => {
+    const undated = { status: 'undated', checked_at: '2026-11-23' };
+
+    it('donne la mention et la date de la dernière vérification pour une ligne sans date', () => {
+        expect(datingNotice(undated, t, 'fr')).toEqual({
+            message: 'signalling_history.dating.undated',
+            checked: 'signalling_history.dating.checked|date=23 novembre 2026',
+        });
+    });
+
+    it('ne dit rien d une ligne datée, hors périmètre ou inconnue', () => {
+        expect(datingNotice({ status: 'dated', checked_at: '2026-11-23' }, t, 'fr')).toBeNull();
+        expect(
+            datingNotice({ status: 'not_applicable', checked_at: '2026-11-23' }, t, 'fr'),
+        ).toBeNull();
+        expect(datingNotice(null, t, 'fr')).toBeNull();
+        expect(datingNotice(undefined, t, 'fr')).toBeNull();
     });
 });

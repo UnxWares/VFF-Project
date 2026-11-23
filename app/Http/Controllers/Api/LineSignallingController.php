@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Signalling\SignallingDating;
 use App\Services\Signalling\SignallingRanges;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -34,7 +35,7 @@ class LineSignallingController extends Controller
         ],
     ];
 
-    public function __construct(private readonly SignallingRanges $ranges, private readonly LineSignallingHistory $history) {}
+    public function __construct(private readonly SignallingRanges $ranges, private readonly LineSignallingHistory $history, private readonly SignallingDating $dating) {}
 
     /**
      * Signalisation d'une ligne.
@@ -179,6 +180,13 @@ class LineSignallingController extends Controller
      * fait (`action`), pourquoi (`reason`), une citation (`quote`) et les documents qui contredisent le fait
      * (`sources` : `publisher`, `title`, `url`, `published`). Liste vide s'il n'y en a aucune.
      *
+     * `dating` : ce que VFF sait de la date de mise en service du cantonnement de la ligne, calculé et non écrit à la
+     * main. `status` : `dated` (au moins une mise en service de cantonnement datée et sûre, BAL, BAPR, BM, CT, TVM ou ETCS ;
+     * le KVB et la commande centralisée n'en datent pas), `undated` (ligne classique en service dont aucun document libre
+     * consulté ne date la mise en service de la signalisation) ou `not_applicable` (ligne à grande vitesse, fermée ou
+     * touristique seule). `checked_at` : date du dernier passage sur les documents libres (`AAAA-MM-JJ`). `messages` : la
+     * mention pour `undated`, dans les trois langues du site (`fr`, `en`, `de`) ; null sinon.
+     *
      * Relevé limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Le texte des
      * articles est sous CC BY-SA 4.0 : reproduisez la mention du champ `attribution` ; seuls des faits sont
      * repris. `provenance` donne le fournisseur et la licence, comme les autres réponses.
@@ -189,6 +197,7 @@ class LineSignallingController extends Controller
         'line' => ['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de St-Cloud à St-Nom-la-Bretèche-Forêt-de-Marly'],
         'history' => [self::EXAMPLE_FACT],
         'corrections' => [],
+        'dating' => ['status' => 'dated', 'checked_at' => '2026-11-23', 'messages' => null],
         'era_year' => 1970,
         'in_force' => [self::EXAMPLE_FACT],
         'attribution' => LineSignallingHistory::ATTRIBUTION,
@@ -205,6 +214,7 @@ class LineSignallingController extends Controller
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'history' => $facts,
             'corrections' => $this->history->corrections($line),
+            'dating' => $this->dating->forLine($line),
         ];
         if ($request->filled('era')) {
             $era = Era::where('year', $request->integer('era'))->first();

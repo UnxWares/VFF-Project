@@ -267,3 +267,23 @@ export function correctionRows(corrections, { t, lang, pkWord }) {
         })),
     }));
 }
+
+/**
+ * Mention d'une ligne classique en service dont aucun document libre consulté ne date la mise en service de la
+ * signalisation (`signalling_dating.status` = `undated`, calculé côté serveur par SignallingDating), avec la date
+ * du dernier passage sur les documents. Nulle pour tout autre état.
+ *
+ * @param {{ status?: string, checked_at?: string } | null | undefined} dating
+ * @param {(key: string, opts?: object) => string} t
+ * @param {string} lang locale de format des dates
+ * @returns {{ message: string, checked: string } | null}
+ */
+export function datingNotice(dating, t, lang) {
+    if (dating?.status !== 'undated') return null;
+    return {
+        message: t('signalling_history.dating.undated'),
+        checked: t('signalling_history.dating.checked', {
+            date: formatEventDate(dating.checked_at, 'day', lang),
+        }),
+    };
+}

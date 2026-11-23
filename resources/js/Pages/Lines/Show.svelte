@@ -28,6 +28,7 @@
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
     import LineStructures from '$components/Lines/LineStructures.svelte';
     import LineArchives from '$components/Lines/LineArchives.svelte';
+    import LineSignallingDating from '$components/Lines/LineSignallingDating.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
@@ -77,8 +78,8 @@
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>, signalling_corrections?: Array<any>,
-     *   profile?: any, profile_unavailable?: { reason: 'no_trace'|'outside_france'|'not_computed' }|null,
-     *   speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
+     *   signalling_dating?: { status: string, checked_at: string } | null,
+     *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
      *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
@@ -123,10 +124,10 @@
         signalling_history: signallingHistoryProp,
         // Dates de signalisation contredites par des documents, repliées sous la frise (LineSignallingHistory::correctionsForSheet).
         signalling_corrections: signallingCorrectionsProp,
+        // Date connue de la mise en service du cantonnement : mention des lignes classiques sans date (App\Services\Signalling\SignallingDating).
+        signalling_dating: signallingDatingProp,
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile: profileProp,
-        // Sans profil : son motif (App\Services\Profiles\LineProfiles::unavailable), dit dans la même section.
-        profile_unavailable: profileUnavailableProp,
         // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
         structures: structuresProp,
         // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
@@ -155,7 +156,6 @@
         signallingHistoryProp,
         signallingCorrectionsProp,
         profileProp,
-        profileUnavailableProp,
         structuresProp,
         speedsProp,
         electrificationProp,
@@ -176,16 +176,8 @@
     const greenways = $derived(greenwaysProp ?? { total_length_m: 0, osm_date: null, items: [] });
     const signalling_history = $derived(signallingHistoryProp ?? []);
     const signalling_corrections = $derived(signallingCorrectionsProp ?? []);
+    const signalling_dating = $derived(signallingDatingProp ?? null);
     const profile = $derived(profileProp ?? null);
-    // Texte de la section « Profil en long » d'une ligne sans profil, selon le motif.
-    const PROFILE_UNAVAILABLE = {
-        no_trace: 'profile.unavailable_no_trace',
-        outside_france: 'profile.unavailable_outside_france',
-        not_computed: 'profile.unavailable_not_computed',
-    };
-    const profileUnavailableKey = $derived(
-        profile ? null : (PROFILE_UNAVAILABLE[profileUnavailableProp?.reason] ?? null),
-    );
     const structures = $derived(
         structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
     );
@@ -1298,7 +1290,7 @@
             </SheetSection>
         {/if}
 
-        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length || signalling_corrections.length)}
+        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length || signalling_corrections.length || signalling_dating?.status === 'undated')}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1431,6 +1423,7 @@
                         momentSection={t('lines.section.route_through_time')}
                     />
                 {/if}
+                <LineSignallingDating dating={signalling_dating} />
             </SheetSection>
         {/if}
 
@@ -1441,12 +1434,6 @@
 
         {#if profile}
             <LineProfile {profile} structures={structures.items} />
-        {:else if profileUnavailableKey}
-            <SheetSection
-                id="profile"
-                title={t('profile.title')}
-                intro={t(profileUnavailableKey)}
-            />
         {/if}
 
         {#if speeds && (speeds.ranges.length || speeds.history.length)}
