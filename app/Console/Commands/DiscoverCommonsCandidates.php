@@ -43,7 +43,7 @@ class DiscoverCommonsCandidates extends Command
         {--min-images=0 : Couverture d\'abord : ne lit pas les catégories d\'une fiche dont la P18 donne déjà ce nombre d\'images acceptables}
         {--max-per-subject=10 : Fichiers max retenus par fiche}
         {--geo : Gares seulement : pour celles sans candidat, fichiers géolocalisés à moins de 250 m dont le titre parle de gare et nomme le lieu}
-        {--search : Gares seulement : recherche en texte intégral dans les fichiers Commons (nom de la gare + gare ou halte), titre et catégories qui nomment la gare et la commune, position à moins de 500 m si elle est connue}
+        {--search : Gares seulement : recherche en texte intégral dans les fichiers Commons (nom de la gare + gare ou halte), titre et catégories qui nomment la gare et la commune, position à moins de 500 m si elle est connue ; règle de lieu : jamais un autre pays ni un autre département, coordonnées à moins de 2 km ou commune et département nommés}
         {--interval-ms=250 : Pause minimale entre deux requêtes (ms)}
         {--skip-name-search : Gares sans Wikidata : ne cherche pas de catégorie par le nom}
         {--only= : Slug(s) à traiter, séparés par des virgules}';
@@ -337,8 +337,9 @@ class DiscoverCommonsCandidates extends Command
      */
     private function processSearchStation(array $r): void
     {
-        $row = DB::table('stations')->where('id', $r['id'])->first(['city']);
+        $row = DB::table('stations')->where('id', $r['id'])->first(['city', 'department_code']);
         $city = (string) ($row->city ?? '');
+        $department = $row->department_code ?? null;
         $name = trim(preg_replace('/\s*\([^)]*\)\s*$/u', '', (string) $r['name']) ?? (string) $r['name']);
         $name = str_replace('"', '', preg_replace(['/\bSt-/u', '/\bSte-/u'], ['Saint-', 'Sainte-'], $name) ?? $name);
         $files = [];
@@ -351,6 +352,9 @@ class DiscoverCommonsCandidates extends Command
                     continue;
                 }
                 if (! CommonsCoverage::mentionsCity($meta, $city, $name)) {
+                    continue;
+                }
+                if (CommonsCoverage::placeReject($meta, $name, $city, $department, $r['lat'], $r['lon']) !== null) {
                     continue;
                 }
                 $files[$pageId] = ['page' => $page, 'via' => 'search', 'category' => null];

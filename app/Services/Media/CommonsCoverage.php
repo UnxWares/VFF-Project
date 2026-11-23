@@ -8,6 +8,7 @@ use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
 use App\Services\Media\Sources\MediaRecord;
+use App\Support\FrenchDepartments;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -34,6 +35,9 @@ final class CommonsCoverage
     /** Distance maximale d'un fichier trouvé par recherche géographique seule (m) : la moins sûre des méthodes. */
     public const MAX_GEOSEARCH_DISTANCE_M = 150;
 
+    /** Distance maximale d'un fichier géolocalisé à une gare trouvée par recherche en texte (règle de lieu). */
+    public const MAX_PLACE_DISTANCE_M = 2000;
+
     /** Largeur minimale (px) : en dessous, c'est une vignette ou une icône. */
     public const MIN_WIDTH = 300;
 
@@ -53,6 +57,17 @@ final class CommonsCoverage
 
     /** Titres où « gare » ou « station » désigne autre chose qu'une gare : voirie, commerce, station d'épuration… */
     private const NOT_A_STATION = '/\b(rues?|avenues?|boulevards?|impasse|route|places?|parking|street|stra(ss|ß)e|chemin de la gare|bo[iî]tes? à livres|bookcase|[ée]puration|service|essence|m[ée]t[ée]o|ski|radio|bar|caf[ée]|h[ôo]tel|restaurant|taxi|bus|gare routi[èe]re|pr[eè]s de|proche|devant|parcours|monument|panneaux?|sant[eé])\b/iu';
+
+    /**
+     * Pays, cantons et régions étrangères qu'un fichier peut désigner (texte plié : sans accents ni majuscules).
+     * « Suisse normande » et ses semblables sont retirés avant le test (voir FRENCH_SUISSE).
+     */
+    private const FOREIGN = '/\b(germany|deutschland|allemagne|baden wurttemberg|bayern|bavaria|rheinland pfalz|landkreis|switzerland|schweiz|suisse|svizzera|kanton|cantons?|valais|wallis|canada|quebec|ontario|belgique|belgium|belgien|belgie|netherlands|nederland|pays bas|osterreich|austria|autriche|italy|spain|united kingdom|england|united states|usa)\b/u';
+
+    private const FRENCH_SUISSE = '/\b(petite suisse|suisse normande|suisse saxonne|suisse d |suisse luxembourgeoise)\b/u';
+
+    /** Noms de départements courts ou communs : comptés seulement derrière « département de », « in », « en »… */
+    private const COMMON_DEPARTMENTS = ['ain', 'nord', 'lot', 'cher', 'eure', 'orne', 'var', 'jura', 'loire', 'manche', 'marne', 'gard', 'indre', 'aude', 'landes', 'somme', 'oise', 'aisne', 'doubs', 'tarn', 'paris', 'essonne', 'vienne', 'rhone', 'savoie', 'vosges', 'drome', 'creuse', 'meuse', 'sarthe', 'yonne', 'cantal', 'gers', 'allier', 'lozere', 'ardeche', 'ariege', 'correze'];
 
     private const NOT_PICTURE = '/\b(logos?|icons?|icônes?|pictogram(me)?s?|pictos?|symbols?|wappen|blasons?|coats? of arms|signatures?|rdt icons|BSicon)\b/iu';
 
@@ -140,6 +155,74 @@ final class CommonsCoverage
         }
 
         return null;
+    }
+
+    /**
+     * Règle de lieu des fichiers trouvés par recherche en texte (nom de la gare seul) : une gare homonyme
+     * à l'étranger ou dans un autre département ne doit pas passer.
+     *
+     * - refus dès que le titre, une catégorie ou la légende désigne un autre pays (Germany, Schweiz, canton du…)
+     *   ou un autre département que celui de la gare ;
+     * - avec des coordonnées (fichier et gare), elles doivent être à moins de 2 km ;
+     * - sans coordonnées, le titre, une catégorie ou la légende doit nommer la commune ET son département
+     *   (ou sa région).
+     *
+     * @param  array<string, mixed>  $meta
+     * @return string|null motif de refus (`pays`, `departement`, `loin`, `lieu`)
+     */
+    public static function placeReject(array $meta, string $name, ?string $city, ?string $departmentCode, ?float $stationLat, ?float $stationLon): ?string
+    {
+        // « Saint-Benoît (Ain) », « Saint-Benoît, Ain » : parenthèses et virgules annoncent un département.
+        $raw = preg_replace('/[(,]/u', ' département de ', CommonsMetadata::titleFromFile((string) ($meta['file_title'] ?? '')).' | '.implode(' | ', (array) ($meta['categories'] ?? [])).' | '.(string) ($meta['caption'] ?? '')) ?? '';
+        $hay = self::fold($raw);
+        $hay = ' '.trim(preg_replace(self::FRENCH_SUISSE, ' ', $hay.' ') ?? $hay).' ';
+        if (preg_match(self::FOREIGN, $hay)) {
+            return 'pays';
+        }
+        $own = $departmentCode !== null ? FrenchDepartments::find($departmentCode) : null;
+        $ownName = $own !== null ? preg_replace('/^la /', '', self::fold($own[0])) : null;
+        $ownRegion = $own !== null ? self::fold($own[1]) : null;
+        // Un autre département nommé (hors nom de la commune ou de la gare, qui peut en contenir un : Saint-Rémy-sur-Marne).
+        $rest = ' '.trim($hay).' ';
+        foreach (array_filter([$city, $name]) as $place) {
+            $f = self::fold($place);
+            if ($f !== '') {
+                $rest = str_replace(' '.trim($f).' ', ' ', $rest);
+            }
+        }
+        foreach (FrenchDepartments::ALL as $code => [$deptName]) {
+            if ((string) $code === (string) $departmentCode) {
+                continue;
+            }
+            $f = preg_replace('/^la /', '', self::fold($deptName)) ?? '';
+            if ($f === $ownName) {
+                continue;
+            }
+            $word = preg_quote(trim($f), '/');
+            $pattern = in_array(trim($f), self::COMMON_DEPARTMENTS, true)
+                ? '/\b(departement|department|dept)( de la| de l| du| des| de| d| of)? '.$word.'\b|\b(in|en|dans le|dans l) '.$word.'\b/'
+                : '/\b'.$word.'\b/';
+            if (preg_match($pattern, $rest)) {
+                return 'departement';
+            }
+        }
+        $lat = $meta['lat'] ?? null;
+        $lon = $meta['lon'] ?? null;
+        if ($lat !== null && $lon !== null && $stationLat !== null && $stationLon !== null) {
+            return self::distanceM((float) $lat, (float) $lon, $stationLat, $stationLon) > self::MAX_PLACE_DISTANCE_M ? 'loin' : null;
+        }
+        $word = $city !== null && $city !== '' ? self::distinctiveWord($city) : null;
+        if ($word === null || ! str_contains($hay, $word)) {
+            return 'lieu';
+        }
+        $names = array_filter([$ownName, $ownRegion]);
+        foreach ($names as $n) {
+            if (str_contains($hay, ' '.trim($n).' ')) {
+                return null;
+            }
+        }
+
+        return 'lieu';
     }
 
     /** Le fichier peut-il illustrer cette ligne ou cette série ? Mêmes règles de droits, mot ferroviaire exigé hors P18. */
