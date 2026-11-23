@@ -6,6 +6,7 @@ use App\Enums\AccidentKind;
 use App\Enums\SignallingFamily;
 use App\Services\Lines\LineSlugRedirects;
 use App\Services\Lines\NeutralLineSlugs;
+use App\Services\Materials\PreservedRollingStock;
 use App\Services\Signalling\LineSignallingHistory;
 use App\Services\Signalling\SignallingHistoryState;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  * être nommé. Aucun texte rédigé n'est repris (ni extrait, ni citation, ni résumé, ni note) et aucune donnée
  * personnelle (auteur d'un article, titre d'une référence de presse, personne citée).
  *
- * Données d'un fichier versionné (matériel préservé, projets, déclivités, redirections de lignes) : injectables
+ * Données d'un fichier versionné (matériel préservé avec son complément, projets, déclivités, redirections de lignes) : injectables
  * par le constructeur, pour les tests.
  */
 final class OpenDataSuiteExporter
@@ -190,7 +191,11 @@ final class OpenDataSuiteExporter
      */
     public function preserved(string $dir, OpenDataLedger $ledger, ?array $lineIds = null): void
     {
-        $data = $this->preserved ??= $this->load('preserved_rolling_stock.php');
+        // Mêmes exemplaires que le site : le fichier de base et son complément, fusionnés par PreservedRollingStock::merge.
+        $data = $this->preserved ??= PreservedRollingStock::merge(
+            $this->shaped($this->load('preserved_rolling_stock.php')),
+            $this->shaped($this->load('preserved_rolling_stock_complement.php')),
+        );
         $venues = is_array($data['venues'] ?? null) ? $data['venues'] : [];
         $only = $lineIds !== null
             ? array_flip(DB::table('materials as m')->whereIn('m.id', DB::table('line_materials')->whereIn('line_id', $lineIds)->select('material_id'))->pluck('slug')->all())
@@ -655,6 +660,20 @@ final class OpenDataSuiteExporter
         $data = is_file($path) ? require $path : [];
 
         return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Fichier du matériel préservé avec ses trois parties (un fichier absent n'en a aucune).
+     *
+     * @param  array<array-key, mixed>  $data
+     * @return array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>}
+     */
+    private function shaped(array $data): array
+    {
+        /** @var array{venues: array<string, array<string, mixed>>, units: array<string, list<array<string, mixed>>>, others: list<array<string, mixed>>} $shaped */
+        $shaped = $data + ['venues' => [], 'units' => [], 'others' => []];
+
+        return $shaped;
     }
 
     private function licence(?string $provider): ?string
