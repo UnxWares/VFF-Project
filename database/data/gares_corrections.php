@@ -11546,5 +11546,1330 @@ return [
         'quote' => 'name=Honfleur, building=train_station, amenity=bus_station',
         'reason' => 'ancienne gare de Honfleur (bâtiment OSM, devenu gare routière) à 278 m du point de l\'article (Gare de Honfleur, oldid 235032148, 49,417362 N, 0,241028 E) et de Wikidata, alors que le point de la liste SNCF est à 1 950 m dans une autre partie de la ville ; la gare terminus en impasse était au PK 232,2xx de la ligne de Pont-l\'Évêque à Honfleur, au bord du bassin.',
     ],
+    // ── 52. Positions des gares à écart fort, deuxième passe (23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/positions-gares-2.md) : 132 gares dont deux familles de sources indépendantes concordent à
+    // moins de 70 m (BD TOPO équipement de transport, OSM, liste SNCF, coordonnées de l'article Wikipédia ou de Wikidata comptées pour
+    // une seule famille) sans que le point de VFF le soit : point posé sur le bâtiment voyageurs ou le milieu des quais, gares fermées
+    // retenues seulement si les coordonnées de leur article concordent ; l'élément fautif est dit dans « reason ». ──
+    // 001. St-Jory (id 17139)
+    [
+        'station' => ['name' => 'St-Jory', 'uic' => '87611657'],
+        'action' => 'position',
+        'lng' => 1.3714555,
+        'lat' => 43.738333,
+        'source_url' => $wp('Gare de Saint-Jory', 230132195),
+        'quote' => 'Gare de Saint-Jory : latitude = 43.738322, longitude = 1.371455',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Jory » (oldid 230132195) à 1 m, Wikidata Q2245340 à 35 m, BD TOPO EQ_RESEA0000000073015814 à 1 m, OSM n6121347106 à 0 m, liste SNCF 87611657 à 14 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 393 m ; à signaler à la source : liste SNCF UIC 87611657 (point géocodé) à 393 m',
+    ],
+    // 002. St-Pourçain-sur-Sioule (id 17488)
+    [
+        'station' => ['name' => 'St-Pourçain-sur-Sioule', 'uic' => '87696393'],
+        'action' => 'position',
+        'lng' => 3.2990703,
+        'lat' => 46.3048976,
+        'source_url' => $wp('Gare de Saint-Pourçain-sur-Sioule (PLM)', 218767200),
+        'quote' => 'Gare de Saint-Pourçain-sur-Sioule (PLM) : latitude = 46.304963, longitude = 3.298742',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Pourçain-sur-Sioule (PLM) » (oldid 218767200) à 26 m, OSM n12092151869 à 0 m, liste SNCF 87696393 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 15 m ; à signaler à la source : Wikidata Q104440477 (P625) à 412 m',
+    ],
+    // 003. Riom-ès-Montagnes (id 20045)
+    [
+        'station' => ['name' => 'Riom-ès-Montagnes', 'uic' => '87645663'],
+        'action' => 'position',
+        'lng' => 2.6581846,
+        'lat' => 45.2848871,
+        'source_url' => $wp('Gare de Riom-ès-Montagnes', 235034081),
+        'quote' => 'Gare de Riom-ès-Montagnes : latitude = 45.284925, longitude = 2.658159',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Riom-ès-Montagnes » (oldid 235034081) à 5 m, OSM n4312035239 à 0 m, liste SNCF 87645663 à 23 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 23 m ; à signaler à la source : Wikidata Q112264716 (P625) à 410 m',
+    ],
+    // 004. Route-de-Launaguet (id 19908)
+    [
+        'station' => ['name' => 'Route-de-Launaguet', 'uic' => '87611954'],
+        'action' => 'position',
+        'lng' => 1.4394567,
+        'lat' => 43.6353195,
+        'source_url' => $wp('Gare de Route-de-Launaguet', 239341230),
+        'quote' => 'Gare de Route-de-Launaguet : latitude = 43.634864, longitude = 1.439974',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Route-de-Launaguet » (oldid 239341230) à 66 m, Wikidata Q3097450 à 56 m, OSM n6132914348 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 366 m ; à signaler à la source : liste SNCF UIC 87611954 (point géocodé) à 366 m',
+    ],
+    // 005. Étang (id 17442)
+    [
+        'station' => ['name' => 'Étang', 'uic' => '87694141'],
+        'action' => 'position',
+        'lng' => 4.1837726,
+        'lat' => 46.8679115,
+        'source_url' => $wp('Gare d\'Étang-sur-Arroux', 229551659),
+        'quote' => 'Gare d\'Étang-sur-Arroux : latitude = 46.867917, longitude = 4.183797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Étang-sur-Arroux » (oldid 229551659) à 2 m, Wikidata Q3095878 à 2 m, BD TOPO EQ_RESEA0000000034924717 à 4 m, OSM n5147424230 à 0 m, liste SNCF 87694141 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 12 m',
+    ],
+    // 006. Francheville (id 17684)
+    [
+        'station' => ['name' => 'Francheville', 'uic' => '87722702'],
+        'action' => 'position',
+        'lng' => 4.7696253,
+        'lat' => 45.7337104,
+        'source_url' => $osm('n12918785199'),
+        'quote' => 'Francheville (osm) : lat = 45.7337104, lon = 4.7696253',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : Wikidata Q1852144 à 8 m, BD TOPO EQ_RESEA0000000013173307 à 42 m, OSM n12918785199 à 0 m, liste SNCF 87722702 à 21 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 231 m ; à signaler à la source : liste SNCF UIC 87722702 (point géocodé) à 231 m; coordonnées de l\'article « Gare de Francheville » à 123 m',
+    ],
+    // 007. Caen (id 16258)
+    [
+        'station' => ['name' => 'Caen', 'uic' => '87444000'],
+        'action' => 'position',
+        'lng' => -0.3475451,
+        'lat' => 49.1764236,
+        'source_url' => $wp('Gare de Caen', 239088037),
+        'quote' => 'Gare de Caen : latitude = 49.176677, longitude = -0.347890',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Caen » (oldid 239088037) à 38 m, Wikidata Q3096112 à 12 m, BD TOPO EQ_RESEA0000000013905757 à 0 m, OSM w155643737 à 6 m, OSM n5598384401 à 38 m, OSM w1284903801 à 58 m, liste SNCF 87444000 à 9 m ; à 12 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 394 m ; à signaler à la source : liste SNCF UIC 87444000 (point géocodé) à 394 m',
+    ],
+    // 008. Lacourtensourt (id 17124)
+    [
+        'station' => ['name' => 'Lacourtensourt', 'uic' => '87611434'],
+        'action' => 'position',
+        'lng' => 1.4138442,
+        'lat' => 43.6638849,
+        'source_url' => $wp('Gare de Lacourtensourt', 240466491),
+        'quote' => 'Gare de Lacourtensourt : latitude = 43.663907, longitude = 1.413887',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lacourtensourt » (oldid 240466491) à 4 m, Wikidata Q2484686 à 4 m, BD TOPO EQ_RESEA0000000073015832 à 8 m, OSM n1099956456 à 0 m, liste SNCF 87611434 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 405 m ; à signaler à la source : liste SNCF UIC 87611434 (point géocodé) à 405 m',
+    ],
+    // 009. Lalande-Église (id 19907)
+    [
+        'station' => ['name' => 'Lalande-Église', 'uic' => '87611947'],
+        'action' => 'position',
+        'lng' => 1.4285908,
+        'lat' => 43.645975,
+        'source_url' => $wp('Gare de Toulouse-Lalande-Église', 229472763),
+        'quote' => 'Gare de Toulouse-Lalande-Église : latitude = 43.645957, longitude = 1.428531',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Lalande-Église » (oldid 229472763) à 5 m, Wikidata Q3097893 à 8 m, OSM n6121301599 à 0 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 403 m ; à signaler à la source : liste SNCF UIC 87611947 (point géocodé) à 403 m',
+    ],
+    // 010. Barbentane-Rognonas (id 18138)
+    [
+        'station' => ['name' => 'Barbentane-Rognonas', 'uic' => '87765305'],
+        'action' => 'position',
+        'lng' => 4.7821619,
+        'lat' => 43.8956033,
+        'source_url' => $wp('Gare de Barbentane - Rognonas', 232234716),
+        'quote' => 'Gare de Barbentane - Rognonas : latitude = 43.895886, longitude = 4.782113',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Barbentane - Rognonas » (oldid 232234716) à 32 m, BD TOPO EQ_RESEA0000000351043170 à 32 m, liste SNCF 87765305 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : Wikidata Q97293084 (P625) à 401 m',
+    ],
+    // 011. Vitrolles-Aéroport-Marseille-Provence (id 16257)
+    [
+        'station' => ['name' => 'Vitrolles-Aéroport-Marseille-Provence', 'uic' => '87439554'],
+        'action' => 'position',
+        'lng' => 5.2371148,
+        'lat' => 43.4412293,
+        'source_url' => $wp('Gare de Vitrolles-Aéroport-Marseille-Provence', 240400749),
+        'quote' => 'Gare de Vitrolles-Aéroport-Marseille-Provence : latitude = 43.441734, longitude = 5.237266',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Vitrolles-Aéroport-Marseille-Provence » (oldid 240400749) à 57 m, BD TOPO EQ_RESEA0000000223365206 à 45 m, OSM n10782525261 à 0 m, liste SNCF 87439554 à 56 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 259 m ; à signaler à la source : liste SNCF UIC 87439554 (point géocodé) à 259 m; Wikidata Q2462992 (P625) à 142 m',
+    ],
+    // 012. Toulouse-Matabiau (id 17097)
+    [
+        'station' => ['name' => 'Toulouse-Matabiau', 'uic' => '87611004'],
+        'action' => 'position',
+        'lng' => 1.4535872,
+        'lat' => 43.611408,
+        'source_url' => $wp('Gare de Toulouse-Matabiau', 238641166),
+        'quote' => 'Gare de Toulouse-Matabiau : latitude = 43.611322, longitude = 1.454112',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Toulouse-Matabiau » (oldid 238641166) à 43 m, Wikidata Q373449 à 33 m, OSM w76327514 à 0 m, OSM n6132514816 à 50 m, liste SNCF 87611004 à 23 m ; à 9 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 365 m ; à signaler à la source : liste SNCF UIC 87611004 (point géocodé) à 365 m; BD TOPO EQ_RESEA0000000073024100 à 154 m',
+    ],
+    // 013. Villenouvelle (id 17234)
+    [
+        'station' => ['name' => 'Villenouvelle', 'uic' => '87618215'],
+        'action' => 'position',
+        'lng' => 1.6609684,
+        'lat' => 43.4330477,
+        'source_url' => $wp('Gare de Villenouvelle', 236372990),
+        'quote' => 'Gare de Villenouvelle : latitude = 43.433199, longitude = 1.660671',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villenouvelle » (oldid 236372990) à 29 m, Wikidata Q3098002 à 29 m, BD TOPO EQ_RESEA0000000073015933 à 41 m, OSM n9017592165 à 0 m, liste SNCF 87618215 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 388 m ; à signaler à la source : liste SNCF UIC 87618215 (point géocodé) à 388 m',
+    ],
+    // 014. Lézignan (Aude) (id 17195)
+    [
+        'station' => ['name' => 'Lézignan (Aude)', 'uic' => '87615112'],
+        'action' => 'position',
+        'lng' => 2.769403,
+        'lat' => 43.2000239,
+        'source_url' => $wp('Gare de Lézignan-Corbières', 237028873),
+        'quote' => 'Gare de Lézignan-Corbières : latitude = 43.199925, longitude = 2.769409',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lézignan-Corbières » (oldid 237028873) à 11 m, Wikidata Q2280048 à 11 m, BD TOPO EQ_RESEA0000000079950099 à 0 m, OSM n5551929712 à 14 m, liste SNCF 87615112 à 46 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 352 m ; à signaler à la source : liste SNCF UIC 87615112 (point géocodé) à 352 m',
+    ],
+    // 015. Purretone (id 19037)
+    [
+        'station' => ['name' => 'Purretone', 'uic' => '87328112'],
+        'action' => 'position',
+        'lng' => 9.441595,
+        'lat' => 42.5847234,
+        'source_url' => $wp('Gare de Purettone', 228313400),
+        'quote' => 'Gare de Purettone : latitude = 42.584815, longitude = 9.441575',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Purettone » (oldid 228313400) à 10 m, Wikidata Q3097355 à 10 m, OSM n1147250694 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 382 m ; à signaler à la source : liste SNCF UIC 87328112 (point géocodé) à 382 m',
+    ],
+    // 016. Bassanese (id 20739)
+    [
+        'station' => ['name' => 'Bassanese', 'uic' => '87762310'],
+        'action' => 'position',
+        'lng' => 9.4453579,
+        'lat' => 42.6810175,
+        'source_url' => $wp('Gare de Bassanese', 232153391),
+        'quote' => 'Gare de Bassanese : latitude = 42.681035, longitude = 9.445359',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bassanese » (oldid 232153391) à 2 m, Wikidata Q3095910 à 2 m, OSM n1082965060 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 386 m ; à signaler à la source : liste SNCF UIC 87762310 (point géocodé) à 386 m',
+    ],
+    // 017. Meroux (id 15245)
+    [
+        'station' => ['name' => 'Meroux', 'uic' => '87184408'],
+        'action' => 'position',
+        'lng' => 6.8980328,
+        'lat' => 47.5860474,
+        'source_url' => $wp('Gare de Belfort - Montbéliard TGV', 240819248),
+        'quote' => 'Gare de Belfort - Montbéliard TGV : latitude = 47.585800, longitude = 6.897500',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Belfort - Montbéliard TGV » (oldid 240819248) à 49 m, Wikidata Q111792777 à 26 m, OSM n6150411032 à 0 m ; à 33 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 349 m ; à signaler à la source : liste SNCF UIC 87184408 (point géocodé) à 349 m; liste SNCF UIC 87184408 (point géocodé) à 96 m',
+    ],
+    // 018. Aiserey (id 17561)
+    [
+        'station' => ['name' => 'Aiserey', 'uic' => '87713636'],
+        'action' => 'position',
+        'lng' => 5.158236,
+        'lat' => 47.1705304,
+        'source_url' => $wp('Gare d\'Aiserey', 229488762),
+        'quote' => 'Gare d\'Aiserey : latitude = 47.170564, longitude = 5.158231',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Aiserey » (oldid 229488762) à 4 m, OSM n8330424520 à 0 m, liste SNCF 87713636 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 55 m ; à signaler à la source : Wikidata Q24238527 (P625) à 359 m',
+    ],
+    // 019. Coursan (id 18199)
+    [
+        'station' => ['name' => 'Coursan', 'uic' => '87781161'],
+        'action' => 'position',
+        'lng' => 3.0510465,
+        'lat' => 43.23369,
+        'source_url' => $wp('Gare de Coursan', 237050211),
+        'quote' => 'Gare de Coursan : latitude = 43.233742, longitude = 3.050923',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Coursan » (oldid 237050211) à 12 m, Wikidata Q3096305 à 12 m, BD TOPO EQ_RESEA0000000079950042 à 17 m, OSM w149152887 à 0 m, OSM n10935382415 à 12 m, liste SNCF 87781161 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 383 m ; à signaler à la source : liste SNCF UIC 87781161 (point géocodé) à 383 m',
+    ],
+    // 020. Flavy-le-Martel (id 15722)
+    [
+        'station' => ['name' => 'Flavy-le-Martel', 'uic' => '87296871'],
+        'action' => 'position',
+        'lng' => 3.1903856,
+        'lat' => 49.718741,
+        'source_url' => $wp('Gare de Flavy-le-Martel', 229196152),
+        'quote' => 'Gare de Flavy-le-Martel : latitude = 49.718702, longitude = 3.190532',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Flavy-le-Martel » (oldid 229196152) à 11 m, BD TOPO EQ_RESEA0000000063660498 à 16 m, OSM n2013322131 à 0 m, liste SNCF 87296871 à 9 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 36 m ; à signaler à la source : Wikidata Q2390007 (P625) à 415 m',
+    ],
+    // 021. Belfort (id 15238)
+    [
+        'station' => ['name' => 'Belfort', 'uic' => '87184002'],
+        'action' => 'position',
+        'lng' => 6.8538114,
+        'lat' => 47.6335567,
+        'source_url' => $wp('Gare de Belfort', 241217828),
+        'quote' => 'Gare de Belfort : latitude = 47.633556, longitude = 6.853833',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Belfort » (oldid 241217828) à 2 m, Wikidata Q2748765 à 32 m, BD TOPO EQ_RESEA0000000039583088 à 0 m, OSM n2501252269 à 4 m, OSM w79763133 à 9 m, liste SNCF 87184002 à 32 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 365 m ; à signaler à la source : liste SNCF UIC 87184002 (point géocodé) à 365 m',
+    ],
+    // 022. Neufchâtel-Hardelot (id 15824)
+    [
+        'station' => ['name' => 'Neufchâtel-Hardelot', 'uic' => '87317099'],
+        'action' => 'position',
+        'lng' => 1.6432527,
+        'lat' => 50.6235901,
+        'source_url' => $wp('Gare de Neufchâtel-Hardelot', 238682987),
+        'quote' => 'Gare de Neufchâtel-Hardelot : latitude = 50.623689, longitude = 1.643268',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Neufchâtel-Hardelot » (oldid 238682987) à 11 m, Wikidata Q3097187 à 11 m, OSM n8330295303 à 0 m, liste SNCF 87317099 à 11 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 363 m ; à signaler à la source : liste SNCF UIC 87317099 (point géocodé) à 363 m',
+    ],
+    // 023. Hesdigneul (id 15825)
+    [
+        'station' => ['name' => 'Hesdigneul', 'uic' => '87317107'],
+        'action' => 'position',
+        'lng' => 1.6671067,
+        'lat' => 50.6610274,
+        'source_url' => $wp('Gare d\'Hesdigneul', 238682953),
+        'quote' => 'Gare d\'Hesdigneul : latitude = 50.660944, longitude = 1.666948',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Hesdigneul » (oldid 238682953) à 15 m, Wikidata Q1889111 à 15 m, OSM n2060688728 à 0 m, liste SNCF 87317107 à 12 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 368 m ; à signaler à la source : liste SNCF UIC 87317107 (point géocodé) à 368 m',
+    ],
+    // 024. Le Pecq (id 19110)
+    [
+        'station' => ['name' => 'Le Pecq', 'uic' => '87382846'],
+        'action' => 'position',
+        'lng' => 2.12221,
+        'lat' => 48.8983114,
+        'source_url' => $wp('Gare du Vésinet - Le Pecq', 239577403),
+        'quote' => 'Gare du Vésinet - Le Pecq : latitude = 48.898209, longitude = 2.122083',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Vésinet - Le Pecq » (oldid 239577403) à 15 m, Wikidata Q2334089 à 34 m, BD TOPO EQ_RESEA0000000004793060 à 0 m, OSM w26202504 à 2 m, OSM n286909340 à 21 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 361 m ; à signaler à la source : liste SNCF UIC 87382846 (point géocodé) à 361 m',
+    ],
+    // 025. Agde (id 18202)
+    [
+        'station' => ['name' => 'Agde', 'uic' => '87781278'],
+        'action' => 'position',
+        'lng' => 3.4661986,
+        'lat' => 43.3172855,
+        'source_url' => $wp('Gare d\'Agde', 239949432),
+        'quote' => 'Gare d\'Agde : latitude = 43.317424, longitude = 3.466125',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Agde » (oldid 239949432) à 17 m, BD TOPO EQ_RESEA0000000044347562 à 0 m, OSM w72614628 à 1 m, OSM n6219752308 à 20 m, liste SNCF 87781278 à 1 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 369 m ; à signaler à la source : liste SNCF UIC 87781278 (point géocodé) à 369 m; Wikidata Q2028453 (P625) à 78 m',
+    ],
+    // 026. Marseillan-Plage (id 18203)
+    [
+        'station' => ['name' => 'Marseillan-Plage', 'uic' => '87781294'],
+        'action' => 'position',
+        'lng' => 3.5355675,
+        'lat' => 43.318105,
+        'source_url' => $wp('Gare de Marseillan-Plage', 241267734),
+        'quote' => 'Gare de Marseillan-Plage : latitude = 43.318185, longitude = 3.535492',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Marseillan-Plage » (oldid 241267734) à 11 m, Wikidata Q2125963 à 11 m, OSM w275835513 à 0 m, OSM n10931276738 à 9 m, liste SNCF 87781294 à 11 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 368 m ; à signaler à la source : liste SNCF UIC 87781294 (point géocodé) à 368 m',
+    ],
+    // 027. Chasse-sur-Rhône (id 17677)
+    [
+        'station' => ['name' => 'Chasse-sur-Rhône', 'uic' => '87722561'],
+        'action' => 'position',
+        'lng' => 4.7951897,
+        'lat' => 45.582534,
+        'source_url' => $wp('Gare de Chasse-sur-Rhône', 240699392),
+        'quote' => 'Gare de Chasse-sur-Rhône : latitude = 45.582478, longitude = 4.794975',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chasse-sur-Rhône » (oldid 240699392) à 18 m, BD TOPO EQ_RESEA0000000007458963 à 28 m, OSM n4290854865 à 0 m, liste SNCF 87722561 à 33 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87722561 (point géocodé) à 130 m; Wikidata Q3096199 (P625) à 457 m',
+    ],
+    // 028. Bram (id 17193)
+    [
+        'station' => ['name' => 'Bram', 'uic' => '87615054'],
+        'action' => 'position',
+        'lng' => 2.1193388,
+        'lat' => 43.2438288,
+        'source_url' => $wp('Gare de Bram', 237055673),
+        'quote' => 'Gare de Bram : latitude = 43.244020, longitude = 2.119303',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bram » (oldid 237055673) à 21 m, Wikidata Q3096058 à 21 m, BD TOPO EQ_RESEA0000000079950062 à 0 m, OSM w235786363 à 0 m, OSM n8320872726 à 20 m, liste SNCF 87615054 à 34 m ; à 8 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 364 m ; à signaler à la source : liste SNCF UIC 87615054 (point géocodé) à 364 m',
+    ],
+    // 029. Frénouville-Cagny (id 16263)
+    [
+        'station' => ['name' => 'Frénouville-Cagny', 'uic' => '87444182'],
+        'action' => 'position',
+        'lng' => -0.2603789,
+        'lat' => 49.1412513,
+        'source_url' => $wp('Gare de Frénouville - Cagny', 222035102),
+        'quote' => 'Gare de Frénouville - Cagny : latitude = 49.141056, longitude = -0.260278',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Frénouville - Cagny » (oldid 222035102) à 23 m, Wikidata Q2739456 à 23 m, BD TOPO EQ_RESEA0000000013905788 à 14 m, OSM n3467074093 à 0 m, liste SNCF 87444182 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 361 m ; à signaler à la source : liste SNCF UIC 87444182 (point géocodé) à 361 m',
+    ],
+    // 030. Bibliothèque-François-Mitterrand (id 15863)
+    [
+        'station' => ['name' => 'Bibliothèque-François-Mitterrand', 'uic' => '87328328'],
+        'action' => 'position',
+        'lng' => 2.3770491,
+        'lat' => 48.8297207,
+        'source_url' => $wp('Gare de la Bibliothèque François-Mitterrand', 240490056),
+        'quote' => 'Gare de la Bibliothèque François-Mitterrand : latitude = 48.829810, longitude = 2.376820',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de la Bibliothèque François-Mitterrand » (oldid 240490056) à 19 m, Wikidata Q2856214 à 19 m, OSM n3325110405 à 0 m, liste SNCF 87328328 à 20 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 338 m ; à signaler à la source : liste SNCF UIC 87328328 (point géocodé) à 338 m; BD TOPO EQ_RESEA0000000000140445 à 201 m',
+    ],
+    // 031. Lupino (id 20737)
+    [
+        'station' => ['name' => 'Lupino', 'uic' => '87762294'],
+        'action' => 'position',
+        'lng' => 9.4446096,
+        'lat' => 42.687742,
+        'source_url' => $wp('Gare de Lupino', 229547279),
+        'quote' => 'Gare de Lupino : latitude = 42.687728, longitude = 9.444628',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lupino » (oldid 229547279) à 2 m, Wikidata Q3096924 à 2 m, OSM n1077534336 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 358 m ; à signaler à la source : liste SNCF UIC 87762294 (point géocodé) à 358 m',
+    ],
+    // 032. Le Quesnoy (id 15698)
+    [
+        'station' => ['name' => 'Le Quesnoy', 'uic' => '87295857'],
+        'action' => 'position',
+        'lng' => 3.6457346,
+        'lat' => 50.2503881,
+        'source_url' => $wp('Gare du Quesnoy', 230179985),
+        'quote' => 'Gare du Quesnoy : latitude = 50.250286, longitude = 3.645829',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Quesnoy » (oldid 230179985) à 13 m, Wikidata Q2014463 à 13 m, OSM n990218728 à 0 m, liste SNCF 87295857 à 25 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 352 m ; à signaler à la source : liste SNCF UIC 87295857 (point géocodé) à 352 m',
+    ],
+    // 033. Castelnaudary (id 17192)
+    [
+        'station' => ['name' => 'Castelnaudary', 'uic' => '87615039'],
+        'action' => 'position',
+        'lng' => 1.9502625,
+        'lat' => 43.3122563,
+        'source_url' => $wp('Gare de Castelnaudary', 239126331),
+        'quote' => 'Gare de Castelnaudary : latitude = 43.312108, longitude = 1.950204',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Castelnaudary » (oldid 239126331) à 17 m, Wikidata Q677714 à 17 m, BD TOPO EQ_RESEA0000000079949988 à 0 m, OSM w210612602 à 14 m, OSM n10935370465 à 20 m, liste SNCF 87615039 à 11 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 343 m ; à signaler à la source : liste SNCF UIC 87615039 (point géocodé) à 343 m',
+    ],
+    // 034. Machecoul (id 16474)
+    [
+        'station' => ['name' => 'Machecoul', 'uic' => '87481366'],
+        'action' => 'position',
+        'lng' => -1.822656,
+        'lat' => 46.9906236,
+        'source_url' => $wp('Gare de Machecoul', 235032873),
+        'quote' => 'Gare de Machecoul : latitude = 46.990514, longitude = -1.822720',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Machecoul » (oldid 235032873) à 13 m, BD TOPO EQ_RESEA0000000028743927 à 1 m, OSM w72116114 à 0 m, OSM n471556177 à 1 m, liste SNCF 87481366 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 351 m ; à signaler à la source : liste SNCF UIC 87481366 (point géocodé) à 351 m',
+    ],
+    // 035. Beuvrages (id 15913)
+    [
+        'station' => ['name' => 'Beuvrages', 'uic' => '87343160'],
+        'action' => 'position',
+        'lng' => 3.5066087,
+        'lat' => 50.3894218,
+        'source_url' => $osm('n2084195352'),
+        'quote' => 'Beuvrages (osm) : lat = 50.3894218, lon = 3.5066087',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n2084195352 à 0 m, liste SNCF 87343160 à 34 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 211 m ; à signaler à la source : liste SNCF UIC 87343160 (point géocodé) à 211 m; Wikidata Q2336942 (P625) à 174 m; coordonnées de l\'article « Gare de Beuvrages » à 174 m',
+    ],
+    // 036. Bastia (id 20919)
+    [
+        'station' => ['name' => 'Bastia', 'uic' => '87860825'],
+        'action' => 'position',
+        'lng' => 9.4474604,
+        'lat' => 42.7022222,
+        'source_url' => $wp('Gare de Bastia', 235030698),
+        'quote' => 'Gare de Bastia : latitude = 42.702029, longitude = 9.447662',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Bastia » (oldid 235030698) à 27 m, Wikidata Q967842 à 27 m, BD TOPO EQ_RESEA0000000109751046 à 0 m, OSM w122463715 à 4 m, OSM n339868252 à 24 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 347 m ; à signaler à la source : liste SNCF UIC 87860825 (point géocodé) à 347 m',
+    ],
+    // 037. Servon (id 16337)
+    [
+        'station' => ['name' => 'Servon', 'uic' => '87471532'],
+        'action' => 'position',
+        'lng' => -1.4667392,
+        'lat' => 48.1122165,
+        'source_url' => $wp('Gare de Servon', 238798219),
+        'quote' => 'Gare de Servon : latitude = 48.112236, longitude = -1.466134',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Servon » (oldid 238798219) à 45 m, Wikidata Q2913679 à 45 m, OSM n2486683556 à 0 m, liste SNCF 87471532 à 3 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 345 m ; à signaler à la source : liste SNCF UIC 87471532 (point géocodé) à 345 m; BD TOPO EQ_RESEA0000000069840632 à 129 m',
+    ],
+    // 038. Villefranche-de-Lauragais (id 17191)
+    [
+        'station' => ['name' => 'Villefranche-de-Lauragais', 'uic' => '87615013'],
+        'action' => 'position',
+        'lng' => 1.7147131,
+        'lat' => 43.3985001,
+        'source_url' => $wp('Gare de Villefranche-de-Lauragais', 231016248),
+        'quote' => 'Gare de Villefranche-de-Lauragais : latitude = 43.398427, longitude = 1.714573',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villefranche-de-Lauragais » (oldid 231016248) à 14 m, Wikidata Q3097993 à 14 m, BD TOPO EQ_RESEA0000000073015941 à 0 m, OSM w340194457 à 2 m, OSM n10935373810 à 19 m, liste SNCF 87615013 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 338 m ; à signaler à la source : liste SNCF UIC 87615013 (point géocodé) à 338 m',
+    ],
+    // 039. Dunkerque (id 15585)
+    [
+        'station' => ['name' => 'Dunkerque', 'uic' => '87281006'],
+        'action' => 'position',
+        'lng' => 2.3688667,
+        'lat' => 51.0304876,
+        'source_url' => $wp('Gare de Dunkerque', 234757520),
+        'quote' => 'Gare de Dunkerque : latitude = 51.030513, longitude = 2.368604',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dunkerque » (oldid 234757520) à 19 m, Wikidata Q2474563 à 14 m, BD TOPO EQ_RESEA0000000056479897 à 0 m, OSM w76424230 à 4 m, OSM n312805118 à 24 m, liste SNCF 87281006 à 7 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 204 m ; à signaler à la source : liste SNCF UIC 87281006 (point géocodé) à 204 m',
+    ],
+    // 040. Francardo (id 20712)
+    [
+        'station' => ['name' => 'Francardo', 'uic' => '87762021'],
+        'action' => 'position',
+        'lng' => 9.1930748,
+        'lat' => 42.4040942,
+        'source_url' => $wp('Gare de Francardo', 241221171),
+        'quote' => 'Gare de Francardo : latitude = 42.404384, longitude = 9.193228',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Francardo » (oldid 241221171) à 35 m, Wikidata Q3096469 à 35 m, BD TOPO EQ_RESEA0000000109751159 à 11 m, OSM n1675895231 à 0 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 346 m ; à signaler à la source : liste SNCF UIC 87762021 (point géocodé) à 346 m',
+    ],
+    // 041. Nissan (id 20853)
+    [
+        'station' => ['name' => 'Nissan', 'uic' => '87781179'],
+        'action' => 'position',
+        'lng' => 3.116708,
+        'lat' => 43.2955523,
+        'source_url' => $wp('Gare de Nissan', 195507629),
+        'quote' => 'Gare de Nissan : latitude = 43.295573, longitude = 3.116670',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nissan » (oldid 195507629) à 4 m, Wikidata Q3097209 à 4 m, OSM n61082768 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 345 m ; à signaler à la source : liste SNCF UIC 87781179 (point géocodé) à 345 m',
+    ],
+    // 042. Larzalier (id 20901)
+    [
+        'station' => ['name' => 'Larzalier', 'uic' => '87783662'],
+        'action' => 'position',
+        'lng' => 3.6905509,
+        'lat' => 44.5636745,
+        'source_url' => $wp('Halte de Larzalier', 170235631),
+        'quote' => 'Halte de Larzalier : latitude = 44.563740, longitude = 3.690391',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Halte de Larzalier » (oldid 170235631) à 15 m, Wikidata Q3126241 à 13 m, OSM n7837346383 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 332 m ; à signaler à la source : liste SNCF UIC 87783662 (point géocodé) à 332 m',
+    ],
+    // 043. Loison-sous-Lens (id 15936)
+    [
+        'station' => ['name' => 'Loison-sous-Lens', 'uic' => '87345231'],
+        'action' => 'position',
+        'lng' => 2.859252,
+        'lat' => 50.4403353,
+        'source_url' => $wp('Gare de Loison-sous-Lens', 238682969),
+        'quote' => 'Gare de Loison-sous-Lens : latitude = 50.440179, longitude = 2.859182',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Loison-sous-Lens » (oldid 238682969) à 18 m, Wikidata Q3096897 à 18 m, OSM n917150714 à 0 m, liste SNCF 87345231 à 16 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 342 m ; à signaler à la source : liste SNCF UIC 87345231 (point géocodé) à 342 m',
+    ],
+    // 044. Challans (id 16475)
+    [
+        'station' => ['name' => 'Challans', 'uic' => '87481390'],
+        'action' => 'position',
+        'lng' => -1.8718034,
+        'lat' => 46.8439651,
+        'source_url' => $wp('Gare de Challans', 235031219),
+        'quote' => 'Gare de Challans : latitude = 46.843881, longitude = -1.871732',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Challans » (oldid 235031219) à 11 m, BD TOPO EQ_RESEA0000000017254920 à 0 m, OSM w72365886 à 1 m, liste SNCF 87481390 à 6 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 342 m ; à signaler à la source : liste SNCF UIC 87481390 (point géocodé) à 342 m; Wikidata Q3096175 (P625) à 71 m',
+    ],
+    // 045. Baroncourt (id 15309)
+    [
+        'station' => ['name' => 'Baroncourt', 'uic' => '87192658'],
+        'action' => 'position',
+        'lng' => 5.6996564,
+        'lat' => 49.2845666,
+        'source_url' => $wp('Gare de Baroncourt', 241364260),
+        'quote' => 'Gare de Baroncourt : latitude = 49.284326, longitude = 5.699810',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Baroncourt » (oldid 241364260) à 29 m, Wikidata Q2309377 à 29 m, OSM n5275084635 à 0 m, liste SNCF 87192658 à 7 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 340 m ; à signaler à la source : liste SNCF UIC 87192658 (point géocodé) à 340 m',
+    ],
+    // 046. Pont-de-Briques (id 15826)
+    [
+        'station' => ['name' => 'Pont-de-Briques', 'uic' => '87317115'],
+        'action' => 'position',
+        'lng' => 1.6268843,
+        'lat' => 50.6827538,
+        'source_url' => $wp('Gare de Pont-de-Briques', 238682999),
+        'quote' => 'Gare de Pont-de-Briques : latitude = 50.682681, longitude = 1.627065',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pont-de-Briques » (oldid 238682999) à 15 m, Wikidata Q2372306 à 15 m, OSM n9980338118 à 0 m, liste SNCF 87317115 à 9 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 331 m ; à signaler à la source : liste SNCF UIC 87317115 (point géocodé) à 331 m',
+    ],
+    // 047. Carcassonne (id 17208)
+    [
+        'station' => ['name' => 'Carcassonne', 'uic' => '87615286'],
+        'action' => 'position',
+        'lng' => 2.3517549,
+        'lat' => 43.2181177,
+        'source_url' => $wp('Gare de Carcassonne', 237494196),
+        'quote' => 'Gare de Carcassonne : latitude = 43.218182, longitude = 2.351826',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Carcassonne » (oldid 237494196) à 9 m, Wikidata Q2130184 à 17 m, BD TOPO EQ_RESEA0000000079950078 à 0 m, OSM w26758308 à 9 m, OSM n6980560663 à 11 m, liste SNCF 87615286 à 11 m ; à 7 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 324 m ; à signaler à la source : liste SNCF UIC 87615286 (point géocodé) à 324 m',
+    ],
+    // 048. Dieppe (id 16233)
+    [
+        'station' => ['name' => 'Dieppe', 'uic' => '87415018'],
+        'action' => 'position',
+        'lng' => 1.0810838,
+        'lat' => 49.9213952,
+        'source_url' => $wp('Gare de Dieppe', 238465412),
+        'quote' => 'Gare de Dieppe : latitude = 49.921213, longitude = 1.081128',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dieppe » (oldid 238465412) à 21 m, Wikidata Q962179 à 2 m, BD TOPO EQ_RESEA0000000059008612 à 0 m, OSM n13325173629 à 5 m, liste SNCF 87415018 à 44 m ; à 33 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 294 m ; à signaler à la source : liste SNCF UIC 87415018 (point géocodé) à 294 m',
+    ],
+    // 049. Anse (id 17634)
+    [
+        'station' => ['name' => 'Anse', 'uic' => '87721324'],
+        'action' => 'position',
+        'lng' => 4.7198564,
+        'lat' => 45.9393585,
+        'source_url' => $wp('Gare d\'Anse', 238104738),
+        'quote' => 'Gare d\'Anse : latitude = 45.939359, longitude = 4.719870',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Anse » (oldid 238104738) à 1 m, Wikidata Q124054742 à 15 m, BD TOPO EQ_RESEA0000000013173188 à 1 m, OSM n2530903036 à 0 m, liste SNCF 87721324 à 8 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 111 m ; à signaler à la source : OSM n2122065171 à 445 m; liste SNCF UIC 87721324 (point géocodé) à 111 m',
+    ],
+    // 050. Avignonet (id 17229)
+    [
+        'station' => ['name' => 'Avignonet', 'uic' => '87616011'],
+        'action' => 'position',
+        'lng' => 1.7877815,
+        'lat' => 43.363906,
+        'source_url' => $wp('Gare d\'Avignonet', 235030384),
+        'quote' => 'Gare d\'Avignonet : latitude = 43.363811, longitude = 1.787722',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Avignonet » (oldid 235030384) à 12 m, Wikidata Q3095707 à 12 m, BD TOPO EQ_RESEA0000000073015956 à 0 m, OSM n8047068205 à 3 m, liste SNCF 87616011 à 42 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 333 m ; à signaler à la source : liste SNCF UIC 87616011 (point géocodé) à 333 m',
+    ],
+    // 051. Moult-Argences (id 16264)
+    [
+        'station' => ['name' => 'Moult-Argences', 'uic' => '87444190'],
+        'action' => 'position',
+        'lng' => -0.1864231,
+        'lat' => 49.1112103,
+        'source_url' => $wp('Gare de Moult - Argences', 235033345),
+        'quote' => 'Gare de Moult - Argences : latitude = 49.111111, longitude = -0.186111',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Moult - Argences » (oldid 235033345) à 25 m, Wikidata Q2662313 à 25 m, BD TOPO EQ_RESEA0000000292710014 à 19 m, OSM n3467078193 à 0 m, liste SNCF 87444190 à 3 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 332 m ; à signaler à la source : liste SNCF UIC 87444190 (point géocodé) à 332 m',
+    ],
+    // 052. Borgo (id 20706)
+    [
+        'station' => ['name' => 'Borgo', 'uic' => '87761965'],
+        'action' => 'position',
+        'lng' => 9.4466014,
+        'lat' => 42.5628157,
+        'source_url' => $wp('Gare de Borgo', 232274803),
+        'quote' => 'Gare de Borgo : latitude = 42.562704, longitude = 9.446695',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Borgo » (oldid 232274803) à 15 m, Wikidata Q3096026 à 15 m, BD TOPO EQ_RESEA0000000109751068 à 0 m, OSM n1079566904 à 13 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 339 m ; à signaler à la source : liste SNCF UIC 87761965 (point géocodé) à 339 m',
+    ],
+    // 053. Issy-Val-de-Seine (id 16095)
+    [
+        'station' => ['name' => 'Issy-Val-de-Seine', 'uic' => '87393306'],
+        'action' => 'position',
+        'lng' => 2.2635066,
+        'lat' => 48.8295978,
+        'source_url' => $wp('Gare d\'Issy-Val de Seine', 238773162),
+        'quote' => 'Gare d\'Issy-Val de Seine : latitude = 48.829706, longitude = 2.263036',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Issy-Val de Seine » (oldid 238773162) à 36 m, Wikidata Q3065321 à 56 m, BD TOPO EQ_RESEA0000000000389017 à 0 m, OSM w122669550 à 0 m, OSM n2367372622 à 15 m, OSM w1206925678 à 25 m, liste SNCF 87393306 à 8 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 54 m ; à signaler à la source : OSM w639123064 à 273 m',
+    ],
+    // 054. Baziège (id 17145)
+    [
+        'station' => ['name' => 'Baziège', 'uic' => '87611723'],
+        'action' => 'position',
+        'lng' => 1.6206625,
+        'lat' => 43.4534658,
+        'source_url' => $wp('Gare de Baziège', 236372987),
+        'quote' => 'Gare de Baziège : latitude = 43.453496, longitude = 1.620601',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Baziège » (oldid 236372987) à 6 m, Wikidata Q3095928 à 6 m, BD TOPO EQ_RESEA0000000073015928 à 9 m, OSM n6131000048 à 0 m, liste SNCF 87611723 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 323 m ; à signaler à la source : liste SNCF UIC 87611723 (point géocodé) à 323 m',
+    ],
+    // 055. Valmont (id 19232)
+    [
+        'station' => ['name' => 'Valmont', 'uic' => '87413625'],
+        'action' => 'position',
+        'lng' => 0.5120483,
+        'lat' => 49.7447254,
+        'source_url' => $wp('Gare de Valmont', 182760775),
+        'quote' => 'Gare de Valmont : latitude = 49.744665, longitude = 0.511920',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Valmont » (oldid 182760775) à 11 m, Wikidata Q16508092 à 10 m, OSM n13852152225 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 322 m ; à signaler à la source : liste SNCF UIC 87413625 (point géocodé) à 322 m',
+    ],
+    // 056. Mulhouse-Musées (Tram/Train) (id 16617)
+    [
+        'station' => ['name' => 'Mulhouse-Musées (Tram/Train)', 'uic' => '87534339'],
+        'action' => 'position',
+        'lng' => 7.2984724,
+        'lat' => 47.7501301,
+        'source_url' => $osm('n13397838495'),
+        'quote' => 'Mulhouse-Musées (Tram/Train) (osm) : lat = 47.7501301, lon = 7.2984724',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n13397838495 à 0 m, liste SNCF 87534339 à 16 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : liste SNCF UIC 87534339 (point géocodé) à 308 m',
+    ],
+    // 057. Pontarlier (id 17573)
+    [
+        'station' => ['name' => 'Pontarlier', 'uic' => '87715003'],
+        'action' => 'position',
+        'lng' => 6.3532393,
+        'lat' => 46.9009373,
+        'source_url' => $wp('Gare de Pontarlier', 241516191),
+        'quote' => 'Gare de Pontarlier : latitude = 46.900806, longitude = 6.353400',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pontarlier » (oldid 241516191) à 19 m, Wikidata Q2317658 à 22 m, BD TOPO EQ_RESEA0000000014611312 à 0 m, OSM n4236961491 à 12 m, liste SNCF 87715003 à 22 m ; à 17 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 331 m ; à signaler à la source : liste SNCF UIC 87715003 (point géocodé) à 331 m',
+    ],
+    // 058. Villefranche-Vernet-les-Bains (id 18260)
+    [
+        'station' => ['name' => 'Villefranche-Vernet-les-Bains', 'uic' => '87784686'],
+        'action' => 'position',
+        'lng' => 2.3703279,
+        'lat' => 42.5917365,
+        'source_url' => $wp('Gare de Villefranche - Vernet-les-Bains', 237051147),
+        'quote' => 'Gare de Villefranche - Vernet-les-Bains : latitude = 42.591626, longitude = 2.369803',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villefranche - Vernet-les-Bains » (oldid 237051147) à 45 m, Wikidata Q2672817 à 44 m, BD TOPO EQ_RESEA0000000038468451 à 0 m, OSM w129111949 à 1 m, liste SNCF 87784686 à 30 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 282 m ; à signaler à la source : liste SNCF UIC 87784686 (point géocodé) à 282 m',
+    ],
+    // 059. Monte-Carlo-Country-Club (id 15871)
+    [
+        'station' => ['name' => 'Monte-Carlo-Country-Club', 'uic' => '87338590'],
+        'action' => 'position',
+        'lng' => 7.4485727,
+        'lat' => 43.7545718,
+        'source_url' => $wp('Halte de Monte-Carlo-Country-Club', 230268010),
+        'quote' => 'Halte de Monte-Carlo-Country-Club : latitude = 43.754518, longitude = 7.448479',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Halte de Monte-Carlo-Country-Club » (oldid 230268010) à 10 m, OSM n1871958568 à 0 m, liste SNCF 87338590 à 36 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 280 m ; à signaler à la source : liste SNCF UIC 87338590 (point géocodé) à 280 m; Wikidata Q3126243 (P625) à 178 m',
+    ],
+    // 060. Parthenay (id 16569)
+    [
+        'station' => ['name' => 'Parthenay', 'uic' => '87487173'],
+        'action' => 'position',
+        'lng' => -0.2405459,
+        'lat' => 46.6482549,
+        'source_url' => $wp('Gare de Parthenay', 232432482),
+        'quote' => 'Gare de Parthenay : latitude = 46.648327, longitude = -0.240323',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Parthenay » (oldid 232432482) à 19 m, Wikidata Q3097255 à 14 m, BD TOPO EQ_RESEA0000002492687698 à 2 m, OSM w64333843 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 103 m ; à signaler à la source : liste SNCF UIC 87487173 (point géocodé) à 103 m; BD TOPO EQ_RESEA0000000357541012 à 79 m',
+    ],
+    // 061. Sisteron (id 17966)
+    [
+        'station' => ['name' => 'Sisteron', 'uic' => '87751206'],
+        'action' => 'position',
+        'lng' => 5.9465884,
+        'lat' => 44.1902021,
+        'source_url' => $wp('Gare de Sisteron', 241120135),
+        'quote' => 'Gare de Sisteron : latitude = 44.190278, longitude = 5.946667',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sisteron » (oldid 241120135) à 11 m, BD TOPO EQ_RESEA0000000037296824 à 0 m, OSM w90951470 à 0 m, OSM n13695345689 à 11 m, liste SNCF 87751206 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : Wikidata Q3097754 (P625) à 300 m',
+    ],
+    // 062. Sarrance (id 17310)
+    [
+        'station' => ['name' => 'Sarrance', 'uic' => '87672766'],
+        'action' => 'position',
+        'lng' => -0.599732,
+        'lat' => 43.0500759,
+        'source_url' => $wp('Gare de Sarrance', 241304002),
+        'quote' => 'Gare de Sarrance : latitude = 43.050033, longitude = -0.599509',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sarrance » (oldid 241304002) à 19 m, OSM w785708425 à 0 m, OSM n4352121707 à 45 m, liste SNCF 87672766 à 56 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 58 m ; à signaler à la source : Wikidata Q24053005 (P625) à 253 m',
+    ],
+    // 063. St-Pierre-le-Moûtier (id 17481)
+    [
+        'station' => ['name' => 'St-Pierre-le-Moûtier', 'uic' => '87696294'],
+        'action' => 'position',
+        'lng' => 3.11169,
+        'lat' => 46.7932085,
+        'source_url' => $wp('Gare de Saint-Pierre-le-Moûtier', 241379030),
+        'quote' => 'Gare de Saint-Pierre-le-Moûtier : latitude = 46.793273, longitude = 3.111521',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Pierre-le-Moûtier » (oldid 241379030) à 15 m, Wikidata Q3097600 à 15 m, OSM n13249955459 à 0 m, liste SNCF 87696294 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 304 m ; à signaler à la source : liste SNCF UIC 87696294 (point géocodé) à 304 m',
+    ],
+    // 064. Montlaur (id 17233)
+    [
+        'station' => ['name' => 'Montlaur', 'uic' => '87618207'],
+        'action' => 'position',
+        'lng' => 1.577786,
+        'lat' => 43.4751566,
+        'source_url' => $wp('Gare de Montlaur', 237086446),
+        'quote' => 'Gare de Montlaur : latitude = 43.475199, longitude = 1.577706',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montlaur » (oldid 237086446) à 8 m, Wikidata Q3097081 à 8 m, BD TOPO EQ_RESEA0000000073015920 à 14 m, OSM n6131017371 à 0 m, liste SNCF 87618207 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 303 m ; à signaler à la source : liste SNCF UIC 87618207 (point géocodé) à 303 m',
+    ],
+    // 065. Calais-Ville (id 15838)
+    [
+        'station' => ['name' => 'Calais-Ville', 'uic' => '87317263'],
+        'action' => 'position',
+        'lng' => 1.8506311,
+        'lat' => 50.953516,
+        'source_url' => $wp('Gare de Calais-Ville', 240407615),
+        'quote' => 'Gare de Calais-Ville : latitude = 50.953354, longitude = 1.850531',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Calais-Ville » (oldid 240407615) à 19 m, Wikidata Q2107509 à 21 m, BD TOPO EQ_RESEA0000000045722284 à 0 m, OSM w104564659 à 9 m, OSM n9183304884 à 24 m, liste SNCF 87317263 à 14 m ; à 15 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 287 m ; à signaler à la source : liste SNCF UIC 87317263 (point géocodé) à 287 m',
+    ],
+    // 066. Oullins (id 17664)
+    [
+        'station' => ['name' => 'Oullins', 'uic' => '87722207'],
+        'action' => 'position',
+        'lng' => 4.8135605,
+        'lat' => 45.7166326,
+        'source_url' => $osm('n12533949884'),
+        'quote' => 'Oullins (osm) : lat = 45.7166841, lon = 4.8133829',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000002200468922 à 0 m, OSM n12533949884 à 15 m, liste SNCF 87722207 à 2 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 205 m ; à signaler à la source : liste SNCF UIC 87722207 (point géocodé) à 205 m; Wikidata Q1920677 (P625) à 93 m; coordonnées de l\'article « Gare d\'Oullins » à 93 m',
+    ],
+    // 067. Bessay (id 17485)
+    [
+        'station' => ['name' => 'Bessay', 'uic' => '87696336'],
+        'action' => 'position',
+        'lng' => 3.3605136,
+        'lat' => 46.4436154,
+        'source_url' => $osm('n298540544'),
+        'quote' => 'Bessay (osm) : lat = 46.4436154, lon = 3.3605136',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : OSM n298540544 à 0 m, liste SNCF 87696336 à 11 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 228 m ; à signaler à la source : liste SNCF UIC 87696336 (point géocodé) à 228 m; Wikidata Q3095977 (P625) à 71 m; coordonnées de l\'article « Gare de Bessay-sur-Allier » à 71 m',
+    ],
+    // 068. Rang-du-Fliers-Verton (id 15821)
+    [
+        'station' => ['name' => 'Rang-du-Fliers-Verton', 'uic' => '87317057'],
+        'action' => 'position',
+        'lng' => 1.648182,
+        'lat' => 50.4157699,
+        'source_url' => $wp('Gare de Rang-du-Fliers - Verton', 240132233),
+        'quote' => 'Gare de Rang-du-Fliers - Verton : latitude = 50.415714, longitude = 1.648310',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rang-du-Fliers - Verton » (oldid 240132233) à 11 m, Wikidata Q540880 à 11 m, BD TOPO EQ_RESEA0000000045722712 à 0 m, OSM n8869974525 à 3 m, liste SNCF 87317057 à 10 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 288 m ; à signaler à la source : liste SNCF UIC 87317057 (point géocodé) à 288 m',
+    ],
+    // 069. Rueil-Malmaison (id 16020)
+    [
+        'station' => ['name' => 'Rueil-Malmaison', 'uic' => '87382119'],
+        'action' => 'position',
+        'lng' => 2.170595,
+        'lat' => 48.8872866,
+        'source_url' => $wp('Gare de Rueil-Malmaison', 237605861),
+        'quote' => 'Gare de Rueil-Malmaison : latitude = 48.887272, longitude = 2.171385',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Rueil-Malmaison » (oldid 237605861) à 58 m, Wikidata Q640806 à 58 m, BD TOPO EQ_RESEA0000000000388981 à 0 m, OSM n6275466434 à 67 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 340 m ; à signaler à la source : liste SNCF UIC 87382119 (point géocodé) à 340 m',
+    ],
+    // 070. Menton-Garavan (id 18054)
+    [
+        'station' => ['name' => 'Menton-Garavan', 'uic' => '87756494'],
+        'action' => 'position',
+        'lng' => 7.5172775,
+        'lat' => 43.7851875,
+        'source_url' => $wp('Gare de Menton-Garavan', 241180929),
+        'quote' => 'Gare de Menton-Garavan : latitude = 43.785306, longitude = 7.517335',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Menton-Garavan » (oldid 241180929) à 14 m, Wikidata Q3097023 à 34 m, BD TOPO EQ_RESEA0000000073938773 à 1 m, OSM w137795298 à 0 m, OSM n1697333877 à 11 m, liste SNCF 87756494 à 2 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 258 m ; à signaler à la source : liste SNCF UIC 87756494 (point géocodé) à 258 m',
+    ],
+    // 071. Ste-Lizaigne (id 17069)
+    [
+        'station' => ['name' => 'Ste-Lizaigne', 'uic' => '87597054'],
+        'action' => 'position',
+        'lng' => 2.0301466,
+        'lat' => 47.0028432,
+        'source_url' => $wp('Gare de Sainte-Lizaigne', 224104247),
+        'quote' => 'Gare de Sainte-Lizaigne : latitude = 47.002575, longitude = 2.029983',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sainte-Lizaigne » (oldid 224104247) à 32 m, Wikidata Q521647 à 39 m, OSM n10564877994 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 218 m ; à signaler à la source : liste SNCF UIC 87597054 (point géocodé) à 218 m; liste SNCF UIC 87597054 (point géocodé) à 71 m',
+    ],
+    // 072. Argelès-sur-Mer (id 18241)
+    [
+        'station' => ['name' => 'Argelès-sur-Mer', 'uic' => '87784231'],
+        'action' => 'position',
+        'lng' => 3.0222027,
+        'lat' => 42.5439666,
+        'source_url' => $wp('Gare d\'Argelès-sur-Mer', 239116083),
+        'quote' => 'Gare d\'Argelès-sur-Mer : latitude = 42.543906, longitude = 3.021945',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Argelès-sur-Mer » (oldid 239116083) à 22 m, BD TOPO EQ_RESEA0000000038468489 à 0 m, OSM w62896937 à 2 m, OSM n1356834411 à 22 m, liste SNCF 87784231 à 12 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 47 m ; à signaler à la source : Wikidata Q3033406 (P625) à 278 m',
+    ],
+    // 073. St-Chéron (id 16680)
+    [
+        'station' => ['name' => 'St-Chéron', 'uic' => '87545509'],
+        'action' => 'position',
+        'lng' => 2.1256612,
+        'lat' => 48.5512045,
+        'source_url' => $wp('Gare de Saint-Chéron', 237812914),
+        'quote' => 'Gare de Saint-Chéron : latitude = 48.551158, longitude = 2.125612',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Chéron » (oldid 237812914) à 6 m, BD TOPO EQ_RESEA0000000003089870 à 0 m, OSM w80481421 à 2 m, OSM n3484326012 à 12 m, liste SNCF 87545509 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 14 m ; à signaler à la source : Wikidata Q2530265 (P625) à 289 m',
+    ],
+    // 074. Lardy (id 16659)
+    [
+        'station' => ['name' => 'Lardy', 'uic' => '87545160'],
+        'action' => 'position',
+        'lng' => 2.2557543,
+        'lat' => 48.520657,
+        'source_url' => $wp('Gare de Lardy', 237786597),
+        'quote' => 'Gare de Lardy : latitude = 48.520612, longitude = 2.255712',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lardy » (oldid 237786597) à 6 m, BD TOPO EQ_RESEA0000000003089929 à 0 m, OSM w103209149 à 3 m, OSM n3484287064 à 20 m, liste SNCF 87545160 à 2 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 187 m ; à signaler à la source : liste SNCF UIC 87545160 (point géocodé) à 187 m; Wikidata Q1822085 (P625) à 464 m',
+    ],
+    // 075. Grandvilliers (id 15791)
+    [
+        'station' => ['name' => 'Grandvilliers', 'uic' => '87313734'],
+        'action' => 'position',
+        'lng' => 1.9385527,
+        'lat' => 49.659328,
+        'source_url' => $wp('Gare de Grandvilliers', 235031961),
+        'quote' => 'Gare de Grandvilliers : latitude = 49.659321, longitude = 1.938448',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Grandvilliers » (oldid 235031961) à 8 m, BD TOPO EQ_RESEA0000000039107007 à 0 m, OSM n1322229563 à 7 m, liste SNCF 87313734 à 7 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 123 m ; à signaler à la source : liste SNCF UIC 87313734 (point géocodé) à 123 m; Wikidata Q2211930 (P625) à 318 m',
+    ],
+    // 076. Reuilly (id 17068)
+    [
+        'station' => ['name' => 'Reuilly', 'uic' => '87597039'],
+        'action' => 'position',
+        'lng' => 2.047429,
+        'lat' => 47.0858319,
+        'source_url' => $wp('Gare de Reuilly (Indre)', 228675923),
+        'quote' => 'Gare de Reuilly (Indre) : latitude = 47.085889, longitude = 2.047414',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Reuilly (Indre) » (oldid 228675923) à 6 m, Wikidata Q2230843 à 17 m, OSM n9252914544 à 0 m, liste SNCF 87597039 à 52 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 226 m ; à signaler à la source : liste SNCF UIC 87597039 (point géocodé) à 226 m',
+    ],
+    // 077. Dannes-Camiers (id 15823)
+    [
+        'station' => ['name' => 'Dannes-Camiers', 'uic' => '87317081'],
+        'action' => 'position',
+        'lng' => 1.6146399,
+        'lat' => 50.5759249,
+        'source_url' => $wp('Gare de Dannes - Camiers', 238682938),
+        'quote' => 'Gare de Dannes - Camiers : latitude = 50.575968, longitude = 1.614868',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Dannes - Camiers » (oldid 238682938) à 17 m, Wikidata Q2515351 à 17 m, OSM n2060697978 à 0 m, liste SNCF 87317081 à 13 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 273 m ; à signaler à la source : liste SNCF UIC 87317081 (point géocodé) à 273 m',
+    ],
+    // 078. Besançon-Franche-Comté-TGV (id 15735)
+    [
+        'station' => ['name' => 'Besançon-Franche-Comté-TGV', 'uic' => '87300863'],
+        'action' => 'position',
+        'lng' => 5.953283,
+        'lat' => 47.3073618,
+        'source_url' => $wp('Gare de Besançon Franche-Comté TGV', 235030858),
+        'quote' => 'Gare de Besançon Franche-Comté TGV : latitude = 47.307863, longitude = 5.953202',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Besançon Franche-Comté TGV » (oldid 235030858) à 56 m, BD TOPO EQ_RESEA0000000292426513 à 0 m, OSM n2502268299 à 11 m, liste SNCF 87300863 à 7 m ; à 26 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 270 m ; à signaler à la source : liste SNCF UIC 87300863 (point géocodé) à 270 m; Wikidata Q599069 (P625) à 379 m',
+    ],
+    // 079. Ste-Pazanne (id 16469)
+    [
+        'station' => ['name' => 'Ste-Pazanne', 'uic' => '87481226'],
+        'action' => 'position',
+        'lng' => -1.8137414,
+        'lat' => 47.1054367,
+        'source_url' => $wp('Gare de Sainte-Pazanne', 237406960),
+        'quote' => 'Gare de Sainte-Pazanne : latitude = 47.105422, longitude = -1.813797',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Sainte-Pazanne » (oldid 237406960) à 5 m, BD TOPO EQ_RESEA0000000028743925 à 0 m, OSM w71978723 à 0 m, OSM n8348905143 à 17 m, liste SNCF 87481226 à 15 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 274 m ; à signaler à la source : liste SNCF UIC 87481226 (point géocodé) à 274 m; Wikidata Q3097650 (P625) à 72 m',
+    ],
+    // 080. Saincaize (id 17480)
+    [
+        'station' => ['name' => 'Saincaize', 'uic' => '87696260'],
+        'action' => 'position',
+        'lng' => 3.0717117,
+        'lat' => 46.9314208,
+        'source_url' => $wp('Gare de Saincaize', 229552494),
+        'quote' => 'Gare de Saincaize : latitude = 46.931431, longitude = 3.071739',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saincaize » (oldid 229552494) à 2 m, BD TOPO EQ_RESEA0000000230304329 à 15 m, OSM n9952793416 à 0 m, liste SNCF 87696260 à 12 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 180 m ; à signaler à la source : liste SNCF UIC 87696260 (point géocodé) à 180 m; Wikidata Q967434 (P625) à 96 m',
+    ],
+    // 081. Furiani (id 20713)
+    [
+        'station' => ['name' => 'Furiani', 'uic' => '87762039'],
+        'action' => 'position',
+        'lng' => 9.4410823,
+        'lat' => 42.651541,
+        'source_url' => $wp('Gare de Furiani', 229547373),
+        'quote' => 'Gare de Furiani : latitude = 42.651532, longitude = 9.441285',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Furiani » (oldid 229547373) à 17 m, Wikidata Q3096500 à 17 m, BD TOPO EQ_RESEA0000000109751049 à 0 m, OSM w266246685 à 1 m, OSM n1081003204 à 9 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 275 m ; à signaler à la source : liste SNCF UIC 87762039 (point géocodé) à 275 m',
+    ],
+    // 082. Pierre-Bénite (id 17665)
+    [
+        'station' => ['name' => 'Pierre-Bénite', 'uic' => '87722231'],
+        'action' => 'position',
+        'lng' => 4.8245211,
+        'lat' => 45.7066782,
+        'source_url' => $wp('Gare de Pierre-Bénite', 239239722),
+        'quote' => 'Gare de Pierre-Bénite : latitude = 45.706845, longitude = 4.824352',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pierre-Bénite » (oldid 239239722) à 23 m, Wikidata Q2076776 à 23 m, BD TOPO EQ_RESEA0000000013173324 à 32 m, OSM w237415558 à 0 m, liste SNCF 87722231 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 252 m ; à signaler à la source : liste SNCF UIC 87722231 (point géocodé) à 252 m',
+    ],
+    // 083. Irigny-Yvours (id 17666)
+    [
+        'station' => ['name' => 'Irigny-Yvours', 'uic' => '87722249'],
+        'action' => 'position',
+        'lng' => 4.8322476,
+        'lat' => 45.68951,
+        'source_url' => $wp('Gare d\'Irigny-Yvours', 241247137),
+        'quote' => 'Gare d\'Irigny-Yvours : latitude = 45.689300, longitude = 4.832070',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Irigny-Yvours » (oldid 241247137) à 27 m, BD TOPO EQ_RESEA0000002204336393 à 16 m, OSM n6576013600 à 0 m, liste SNCF 87722249 à 57 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 215 m ; à signaler à la source : liste SNCF UIC 87722249 (point géocodé) à 215 m; Wikidata Q71559362 (P625) à 413 m',
+    ],
+    // 084. Blainville-Damelevières (id 14969)
+    [
+        'station' => ['name' => 'Blainville-Damelevières', 'uic' => '87141135'],
+        'action' => 'position',
+        'lng' => 6.3869497,
+        'lat' => 48.5648056,
+        'source_url' => $osm('w247619149'),
+        'quote' => 'Blainville-Damelevières (osm) : lat = 48.5647935, lon = 6.3869351',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : BD TOPO EQ_RESEA0000000053672894 à 0 m, OSM w247619149 à 2 m, liste SNCF 87141135 à 18 m ; à 13 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 270 m ; à signaler à la source : liste SNCF UIC 87141135 (point géocodé) à 270 m; Wikidata Q2110347 (P625) à 77 m; coordonnées de l\'article « Gare de Blainville - Damelevières » à 77 m',
+    ],
+    // 085. Lorraine-Louvigny-TGV (id 15007)
+    [
+        'station' => ['name' => 'Lorraine-Louvigny-TGV', 'uic' => '87142109'],
+        'action' => 'position',
+        'lng' => 6.1698053,
+        'lat' => 48.9477589,
+        'source_url' => $wp('Gare de Lorraine TGV', 241441393),
+        'quote' => 'Gare de Lorraine TGV : latitude = 48.947500, longitude = 6.169722',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lorraine TGV » (oldid 241441393) à 29 m, Wikidata Q801121 à 29 m, BD TOPO EQ_RESEA0000000222558940 à 0 m, OSM n4043327190 à 2 m, liste SNCF 87142109 à 3 m ; à 16 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 256 m ; à signaler à la source : liste SNCF UIC 87142109 (point géocodé) à 256 m',
+    ],
+    // 086. Berre (id 17994)
+    [
+        'station' => ['name' => 'Berre', 'uic' => '87753228'],
+        'action' => 'position',
+        'lng' => 5.1789222,
+        'lat' => 43.5010572,
+        'source_url' => $wp('Gare de Berre', 200542195),
+        'quote' => 'Gare de Berre : latitude = 43.500821, longitude = 5.178860',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Berre » (oldid 200542195) à 27 m, Wikidata Q2310408 à 27 m, BD TOPO EQ_RESEA0000000359067837 à 22 m, OSM n9861996669 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 264 m ; à signaler à la source : liste SNCF UIC 87753228 (point géocodé) à 264 m',
+    ],
+    // 087. Chamousset (id 17841)
+    [
+        'station' => ['name' => 'Chamousset', 'uic' => '87741231'],
+        'action' => 'position',
+        'lng' => 6.2069967,
+        'lat' => 45.5575711,
+        'source_url' => $wp('Gare de Chamousset', 238611288),
+        'quote' => 'Gare de Chamousset : latitude = 45.557568, longitude = 6.206405',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chamousset » (oldid 238611288) à 46 m, Wikidata Q2033374 à 46 m, OSM n2426817185 à 0 m, liste SNCF 87741231 à 20 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 263 m ; à signaler à la source : liste SNCF UIC 87741231 (point géocodé) à 263 m',
+    ],
+    // 088. Banyuls-sur-Mer (id 18244)
+    [
+        'station' => ['name' => 'Banyuls-sur-Mer', 'uic' => '87784298'],
+        'action' => 'position',
+        'lng' => 3.1250406,
+        'lat' => 42.4829522,
+        'source_url' => $wp('Gare de Banyuls-sur-Mer', 238522929),
+        'quote' => 'Gare de Banyuls-sur-Mer : latitude = 42.483000, longitude = 3.124870',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Banyuls-sur-Mer » (oldid 238522929) à 15 m, BD TOPO EQ_RESEA0000000038468566 à 0 m, OSM w64527087 à 1 m, OSM n11611812802 à 15 m, liste SNCF 87784298 à 1 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 16 m ; à signaler à la source : Wikidata Q2243839 (P625) à 248 m',
+    ],
+    // 089. St-Étienne-Châteaucreux (id 17737)
+    [
+        'station' => ['name' => 'St-Étienne-Châteaucreux', 'uic' => '87726000'],
+        'action' => 'position',
+        'lng' => 4.3994379,
+        'lat' => 45.4433504,
+        'source_url' => $wp('Gare de Saint-Étienne-Châteaucreux', 239671917),
+        'quote' => 'Gare de Saint-Étienne-Châteaucreux : latitude = 45.443561, longitude = 4.399495',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Étienne-Châteaucreux » (oldid 239671917) à 24 m, Wikidata Q2486002 à 2 m, OSM w63322681 à 0 m, OSM n2010251922 à 32 m, liste SNCF 87726000 à 22 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 242 m ; à signaler à la source : liste SNCF UIC 87726000 (point géocodé) à 242 m',
+    ],
+    // 090. Jarville-la-Malgrange (id 14958)
+    [
+        'station' => ['name' => 'Jarville-la-Malgrange', 'uic' => '87141010'],
+        'action' => 'position',
+        'lng' => 6.2025503,
+        'lat' => 48.6700029,
+        'source_url' => $wp('Gare de Jarville-la-Malgrange', 241364347),
+        'quote' => 'Gare de Jarville-la-Malgrange : latitude = 48.670088, longitude = 6.202555',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Jarville-la-Malgrange » (oldid 241364347) à 9 m, Wikidata Q3096650 à 9 m, BD TOPO EQ_RESEA0000000323767085 à 8 m, OSM n5275245001 à 0 m, liste SNCF 87141010 à 19 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 251 m ; à signaler à la source : liste SNCF UIC 87141010 (point géocodé) à 251 m',
+    ],
+    // 091. Igny (id 16115)
+    [
+        'station' => ['name' => 'Igny', 'uic' => '87393561'],
+        'action' => 'position',
+        'lng' => 2.2311538,
+        'lat' => 48.7399635,
+        'source_url' => $wp('Gare d\'Igny', 241614204),
+        'quote' => 'Gare d\'Igny : latitude = 48.739959, longitude = 2.231169',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Igny » (oldid 241614204) à 1 m, Wikidata Q3095782 à 24 m, BD TOPO EQ_RESEA0000000003089586 à 0 m, OSM w94720323 à 1 m, OSM n3491814693 à 15 m, liste SNCF 87393561 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 248 m ; à signaler à la source : liste SNCF UIC 87393561 (point géocodé) à 248 m',
+    ],
+    // 092. Chambéry-Challes-les-Eaux (id 17833)
+    [
+        'station' => ['name' => 'Chambéry-Challes-les-Eaux', 'uic' => '87741009'],
+        'action' => 'position',
+        'lng' => 5.9194845,
+        'lat' => 45.5713779,
+        'source_url' => $wp('Gare de Chambéry - Challes-les-Eaux', 239802480),
+        'quote' => 'Gare de Chambéry - Challes-les-Eaux : latitude = 45.571496, longitude = 5.919372',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chambéry - Challes-les-Eaux » (oldid 239802480) à 16 m, Wikidata Q3096183 à 16 m, BD TOPO EQ_RESEA0000000012530364 à 0 m, OSM n5066478129 à 32 m, OSM w628078376 à 42 m, liste SNCF 87741009 à 10 m ; à 18 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 219 m ; à signaler à la source : liste SNCF UIC 87741009 (point géocodé) à 219 m',
+    ],
+    // 093. Trois-Chênes (id 15240)
+    [
+        'station' => ['name' => 'Trois-Chênes', 'uic' => '87184242'],
+        'action' => 'position',
+        'lng' => 6.8461892,
+        'lat' => 47.6481304,
+        'source_url' => $wp('Gare des Trois-Chênes', 241217838),
+        'quote' => 'Gare des Trois-Chênes : latitude = 47.648089, longitude = 6.846206',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare des Trois-Chênes » (oldid 241217838) à 5 m, Wikidata Q2302057 à 55 m, BD TOPO EQ_RESEA0000000039583082 à 27 m, OSM n4264432717 à 0 m, liste SNCF 87184242 à 6 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 202 m ; à signaler à la source : liste SNCF UIC 87184242 (point géocodé) à 202 m',
+    ],
+    // 094. Martigues (id 18005)
+    [
+        'station' => ['name' => 'Martigues', 'uic' => '87753509'],
+        'action' => 'position',
+        'lng' => 5.0257618,
+        'lat' => 43.3928736,
+        'source_url' => $wp('Gare de Martigues', 228570467),
+        'quote' => 'Gare de Martigues : latitude = 43.392889, longitude = 5.025607',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Martigues » (oldid 228570467) à 13 m, Wikidata Q2203403 à 13 m, BD TOPO EQ_RESEA0000000040208387 à 0 m, OSM n11225690169 à 13 m, liste SNCF 87753509 à 5 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 250 m ; à signaler à la source : liste SNCF UIC 87753509 (point géocodé) à 250 m',
+    ],
+    // 095. Penne (id 16934)
+    [
+        'station' => ['name' => 'Penne', 'uic' => '87586438'],
+        'action' => 'position',
+        'lng' => 0.8031899,
+        'lat' => 44.3799401,
+        'source_url' => $wp('Gare de Penne', 241545918),
+        'quote' => 'Gare de Penne : latitude = 44.380000, longitude = 0.803018',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Penne » (oldid 241545918) à 15 m, Wikidata Q1844121 à 15 m, BD TOPO EQ_RESEA0000000092614579 à 0 m, OSM w344539959 à 1 m, OSM n1091270222 à 17 m, liste SNCF 87586438 à 18 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 254 m ; à signaler à la source : liste SNCF UIC 87586438 (point géocodé) à 254 m',
+    ],
+    // 096. Pontgouin (id 16142)
+    [
+        'station' => ['name' => 'Pontgouin', 'uic' => '87394247'],
+        'action' => 'position',
+        'lng' => 1.1414367,
+        'lat' => 48.4778778,
+        'source_url' => $wp('Gare de Pontgouin', 240353022),
+        'quote' => 'Gare de Pontgouin : latitude = 48.477930, longitude = 1.141478',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pontgouin » (oldid 240353022) à 7 m, BD TOPO EQ_RESEA0000000015531725 à 8 m, OSM w374775449 à 0 m, OSM n11008724629 à 11 m, liste SNCF 87394247 à 1 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 111 m ; à signaler à la source : liste SNCF UIC 87394247 (point géocodé) à 111 m; Wikidata Q1828187 (P625) à 146 m',
+    ],
+    // 097. Lucciana (id 20667)
+    [
+        'station' => ['name' => 'Lucciana', 'uic' => '87761171'],
+        'action' => 'position',
+        'lng' => 9.4486466,
+        'lat' => 42.544884,
+        'source_url' => $wp('Gare de Lucciana', 231813126),
+        'quote' => 'Gare de Lucciana : latitude = 42.544916, longitude = 9.448642',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lucciana » (oldid 231813126) à 4 m, Wikidata Q3096913 à 4 m, OSM n1079566886 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 247 m ; à signaler à la source : liste SNCF UIC 87761171 (point géocodé) à 247 m',
+    ],
+    // 098. Javel (id 16077)
+    [
+        'station' => ['name' => 'Javel', 'uic' => '87393066'],
+        'action' => 'position',
+        'lng' => 2.2768987,
+        'lat' => 48.8462953,
+        'source_url' => $wp('Gare de Javel', 240490054),
+        'quote' => 'Gare de Javel : latitude = 48.846352, longitude = 2.276959',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Javel » (oldid 240490054) à 8 m, Wikidata Q800968 à 30 m, BD TOPO EQ_RESEA0000000000140338 à 0 m, OSM w230096533 à 1 m, OSM n2489972624 à 31 m, liste SNCF 87393066 à 8 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 8 m ; à signaler à la source : OSM w1190204104 à 250 m',
+    ],
+    // 099. St-Chamas (id 17993)
+    [
+        'station' => ['name' => 'St-Chamas', 'uic' => '87753202'],
+        'action' => 'position',
+        'lng' => 5.0401037,
+        'lat' => 43.5511053,
+        'source_url' => $wp('Gare de Saint-Chamas', 240149665),
+        'quote' => 'Gare de Saint-Chamas : latitude = 43.551189, longitude = 5.040322',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Chamas » (oldid 240149665) à 20 m, Wikidata Q2476213 à 20 m, OSM n9788837500 à 0 m, liste SNCF 87753202 à 17 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 250 m ; à signaler à la source : liste SNCF UIC 87753202 (point géocodé) à 250 m',
+    ],
+    // 100. Cevins (id 20505)
+    [
+        'station' => ['name' => 'Cevins', 'uic' => '87741686'],
+        'action' => 'position',
+        'lng' => 6.4479851,
+        'lat' => 45.5957788,
+        'source_url' => $wp('Gare de Cevins', 240649233),
+        'quote' => 'Gare de Cevins : latitude = 45.595793, longitude = 6.448112',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cevins » (oldid 240649233) à 10 m, Wikidata Q19851228 à 10 m, OSM w223051250 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 236 m ; à signaler à la source : liste SNCF UIC 87741686 (point géocodé) à 236 m',
+    ],
+    // 101. Chauvigny (id 19689)
+    [
+        'station' => ['name' => 'Chauvigny', 'uic' => '87575738'],
+        'action' => 'position',
+        'lng' => 0.6334707,
+        'lat' => 46.5716506,
+        'source_url' => $wp('Gare de Chauvigny', 150577964),
+        'quote' => 'Gare de Chauvigny : latitude = 46.571306, longitude = 0.634065',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Chauvigny » (oldid 150577964) à 59 m, Wikidata Q28040128 à 59 m, liste SNCF 87575738 à 0 m ; à 20 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n4161623563 à 203 m; OSM w415086355 à 232 m',
+    ],
+    // 102. Champdeniers-St-Christophe (id 19505)
+    [
+        'station' => ['name' => 'Champdeniers-St-Christophe', 'uic' => '87485706'],
+        'action' => 'position',
+        'lng' => -0.3693106,
+        'lat' => 46.4653749,
+        'source_url' => $wp('Gare de Champdeniers - Saint-Christophe', 170614997),
+        'quote' => 'Gare de Champdeniers - Saint-Christophe : latitude = 46.465377, longitude = -0.369127',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Champdeniers - Saint-Christophe » (oldid 170614997) à 14 m, Wikidata Q86724865 à 14 m, OSM w74562567 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 216 m ; à signaler à la source : liste SNCF UIC 87485706 (point géocodé) à 216 m',
+    ],
+    // 103. St-Loup-Lamairé (id 19529)
+    [
+        'station' => ['name' => 'St-Loup-Lamairé', 'uic' => '87487157'],
+        'action' => 'position',
+        'lng' => -0.1688602,
+        'lat' => 46.7805226,
+        'source_url' => $wp('Gare de Saint-Loup-Lamairé', 166560863),
+        'quote' => 'Gare de Saint-Loup-Lamairé : latitude = 46.780511, longitude = -0.168841',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Loup-Lamairé » (oldid 166560863) à 2 m, Wikidata Q83111519 à 2 m, OSM n237274777 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 215 m ; à signaler à la source : liste SNCF UIC 87487157 (point géocodé) à 215 m',
+    ],
+    // 104. Boulevard-Masséna (id 19635)
+    [
+        'station' => ['name' => 'Boulevard-Masséna', 'uic' => '87547323'],
+        'action' => 'position',
+        'lng' => 2.3798739,
+        'lat' => 48.8254916,
+        'source_url' => $wp('Gare du boulevard Masséna', 235252232),
+        'quote' => 'Gare du boulevard Masséna : latitude = 48.825532, longitude = 2.379978',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du boulevard Masséna » (oldid 235252232) à 9 m, Wikidata Q3098250 à 9 m, OSM w79084348 à 0 m ; à 14 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 208 m ; à signaler à la source : liste SNCF UIC 87547323 (point géocodé) à 208 m',
+    ],
+    // 105. Draguignan (id 20655)
+    [
+        'station' => ['name' => 'Draguignan', 'uic' => '87755850'],
+        'action' => 'position',
+        'lng' => 6.4641864,
+        'lat' => 43.53448,
+        'source_url' => $wp('Anciennes gares ferroviaires de Draguignan', 206881532),
+        'quote' => 'Anciennes gares ferroviaires de Draguignan : latitude = 43.534338, longitude = 6.463990',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Anciennes gares ferroviaires de Draguignan » (oldid 206881532) à 22 m, Wikidata Q30739585 à 22 m, OSM w1465083287 à 0 m ; à 10 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 201 m ; à signaler à la source : liste SNCF UIC 87755850 (point géocodé) à 201 m',
+    ],
+    // 106. Balme-Araches (id 20586)
+    [
+        'station' => ['name' => 'Balme-Araches', 'uic' => '87746396'],
+        'action' => 'position',
+        'lng' => 6.6084877,
+        'lat' => 46.0391386,
+        'source_url' => $wp('Gare de Balme-Arâches', 197253080),
+        'quote' => 'Gare de Balme-Arâches : latitude = 46.039140, longitude = 6.608470',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Balme-Arâches » (oldid 197253080) à 1 m, Wikidata Q3126229 à 13 m, OSM n10154240707 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 195 m ; à signaler à la source : liste SNCF UIC 87746396 (point géocodé) à 195 m',
+    ],
+    // 107. Faugères (id 20871)
+    [
+        'station' => ['name' => 'Faugères', 'uic' => '87781641'],
+        'action' => 'position',
+        'lng' => 3.1797156,
+        'lat' => 43.5580178,
+        'source_url' => $wp('Gare de Faugères', 233460022),
+        'quote' => 'Gare de Faugères : latitude = 43.558032, longitude = 3.179698',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Faugères » (oldid 233460022) à 2 m, Wikidata Q16746564 à 2 m, OSM n444314708 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 199 m ; à signaler à la source : liste SNCF UIC 87781641 (point géocodé) à 199 m',
+    ],
+    // 108. Lestelle (id 17107)
+    [
+        'station' => ['name' => 'Lestelle', 'uic' => '87611111'],
+        'action' => 'position',
+        'lng' => 0.9134886,
+        'lat' => 43.1190417,
+        'source_url' => $wp('Gare de Lestelle', 241087122),
+        'quote' => 'Gare de Lestelle : latitude = 43.118866, longitude = 0.913163',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lestelle » (oldid 241087122) à 33 m, Wikidata Q2045945 à 21 m, BD TOPO EQ_RESEA0000000073015986 à 34 m, OSM n8519453919 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 198 m ; à signaler à la source : liste SNCF UIC 87611111 (point géocodé) à 198 m',
+    ],
+    // 109. St-Hilaire-la-Gravelle (id 19658)
+    [
+        'station' => ['name' => 'St-Hilaire-la-Gravelle', 'uic' => '87574525'],
+        'action' => 'position',
+        'lng' => 1.2056829,
+        'lat' => 47.9247607,
+        'source_url' => $wp('Gare de Saint-Hilaire-la-Gravelle', 182447334),
+        'quote' => 'Gare de Saint-Hilaire-la-Gravelle : latitude = 47.924777, longitude = 1.205679',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Hilaire-la-Gravelle » (oldid 182447334) à 2 m, Wikidata Q84321640 à 2 m, OSM n321236630 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 194 m ; à signaler à la source : liste SNCF UIC 87574525 (point géocodé) à 194 m',
+    ],
+    // 110. Cherveux (id 19504)
+    [
+        'station' => ['name' => 'Cherveux', 'uic' => '87485698'],
+        'action' => 'position',
+        'lng' => -0.3787057,
+        'lat' => 46.4293856,
+        'source_url' => $wp('Gare de Cherveux', 170615044),
+        'quote' => 'Gare de Cherveux : latitude = 46.429399, longitude = -0.378833',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Cherveux » (oldid 170615044) à 10 m, Wikidata Q86724874 à 10 m, OSM w73506403 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 194 m ; à signaler à la source : liste SNCF UIC 87485698 (point géocodé) à 194 m',
+    ],
+    // 111. Brunstatt (id 18601)
+    [
+        'station' => ['name' => 'Brunstatt', 'uic' => '87181032'],
+        'action' => 'position',
+        'lng' => 7.3141345,
+        'lat' => 47.7191238,
+        'source_url' => $wp('Gare de Brunstatt', 235031062),
+        'quote' => 'Gare de Brunstatt : latitude = 47.719111, longitude = 7.314194',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Brunstatt » (oldid 235031062) à 5 m, Wikidata Q2004140 à 5 m, OSM n1808407121 à 0 m, OSM n271404770 à 4 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 189 m ; à signaler à la source : liste SNCF UIC 87181032 (point géocodé) à 189 m',
+    ],
+    // 112. Golfech (id 17231)
+    [
+        'station' => ['name' => 'Golfech', 'uic' => '87618082'],
+        'action' => 'position',
+        'lng' => 0.8537273,
+        'lat' => 44.1161978,
+        'source_url' => $wp('Gare de Golfech', 236418456),
+        'quote' => 'Gare de Golfech : latitude = 44.116239, longitude = 0.853462',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Golfech » (oldid 236418456) à 22 m, OSM n9353112090 à 0 m, liste SNCF 87618082 à 7 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 7 m ; à signaler à la source : Wikidata Q3096560 (P625) à 194 m',
+    ],
+    // 113. Labarthe-Inard (id 17108)
+    [
+        'station' => ['name' => 'Labarthe-Inard', 'uic' => '87611129'],
+        'action' => 'position',
+        'lng' => 0.852773,
+        'lat' => 43.1051866,
+        'source_url' => $wp('Gare de Labarthe-Inard', 235032512),
+        'quote' => 'Gare de Labarthe-Inard : latitude = 43.105049, longitude = 0.852759',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Labarthe-Inard » (oldid 235032512) à 15 m, Wikidata Q2482854 à 57 m, BD TOPO EQ_RESEA0000000073015988 à 41 m, OSM w522970439 à 0 m, OSM n8519453918 à 30 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 153 m ; à signaler à la source : liste SNCF UIC 87611129 (point géocodé) à 153 m',
+    ],
+    // 114. Montierchaume (id 17072)
+    [
+        'station' => ['name' => 'Montierchaume', 'uic' => '87597088'],
+        'action' => 'position',
+        'lng' => 1.7939094,
+        'lat' => 46.8500886,
+        'source_url' => $wp('Gare de Montierchaume', 229536453),
+        'quote' => 'Gare de Montierchaume : latitude = 46.850290, longitude = 1.793837',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Montierchaume » (oldid 229536453) à 23 m, Wikidata Q1821267 à 23 m, OSM n1998963440 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 170 m ; à signaler à la source : liste SNCF UIC 87597088 (point géocodé) à 170 m; BD TOPO EQ_RESEA0000000104608975 à 154 m',
+    ],
+    // 115. Guitres (id 19589)
+    [
+        'station' => ['name' => 'Guitres', 'uic' => '87491795'],
+        'action' => 'position',
+        'lng' => -0.1973202,
+        'lat' => 45.0379431,
+        'source_url' => $wp('Gare de Guîtres', 239288271),
+        'quote' => 'Gare de Guîtres : latitude = 45.038017, longitude = -0.197424',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Guîtres » (oldid 239288271) à 12 m, Wikidata Q18285038 à 10 m, liste SNCF 87491795 à 0 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n1811724301 à 168 m',
+    ],
+    // 116. Brion-près-Thouet (id 19545)
+    [
+        'station' => ['name' => 'Brion-près-Thouet', 'uic' => '87487611'],
+        'action' => 'position',
+        'lng' => -0.1850595,
+        'lat' => 47.0485363,
+        'source_url' => $wp('Gare de Brion-près-Thouet', 184079464),
+        'quote' => 'Gare de Brion-près-Thouet : latitude = 47.048611, longitude = -0.185018',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Brion-près-Thouet » (oldid 184079464) à 9 m, Wikidata Q3096069 à 23 m, OSM n1057034487 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 159 m ; à signaler à la source : liste SNCF UIC 87487611 (point géocodé) à 159 m',
+    ],
+    // 117. Pas-de-Jeu (id 19667)
+    [
+        'station' => ['name' => 'Pas-de-Jeu', 'uic' => '87575209'],
+        'action' => 'position',
+        'lng' => -0.0518514,
+        'lat' => 46.9739602,
+        'source_url' => $wp('Gare de Pas-de-Jeu', 200618470),
+        'quote' => 'Gare de Pas-de-Jeu : latitude = 46.974080, longitude = -0.051787',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Pas-de-Jeu » (oldid 200618470) à 14 m, Wikidata Q65137493 à 14 m, OSM n237220268 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 159 m ; à signaler à la source : liste SNCF UIC 87575209 (point géocodé) à 159 m',
+    ],
+    // 118. Nonant-le-Pin (id 16282)
+    [
+        'station' => ['name' => 'Nonant-le-Pin', 'uic' => '87444570'],
+        'action' => 'position',
+        'lng' => 0.2194656,
+        'lat' => 48.7037802,
+        'source_url' => $wp('Gare de Nonant-le-Pin', 233579109),
+        'quote' => 'Gare de Nonant-le-Pin : latitude = 48.703900, longitude = 0.219734',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nonant-le-Pin » (oldid 233579109) à 24 m, Wikidata Q3097216 à 24 m, OSM n2351574809 à 0 m ; à 6 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 156 m ; à signaler à la source : liste SNCF UIC 87444570 (point géocodé) à 156 m',
+    ],
+    // 119. Crissé (id 16166)
+    [
+        'station' => ['name' => 'Crissé', 'uic' => '87396226'],
+        'action' => 'position',
+        'lng' => -0.0661279,
+        'lat' => 48.16831,
+        'source_url' => $wp('Gare de Crissé', 235031531),
+        'quote' => 'Gare de Crissé : latitude = 48.168425, longitude = -0.066175',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Crissé » (oldid 235031531) à 13 m, Wikidata Q2332424 à 13 m, OSM n4225160996 à 0 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 141 m ; à signaler à la source : liste SNCF UIC 87396226 (point géocodé) à 141 m',
+    ],
+    // 120. Axat (Aude) (id 20912)
+    [
+        'station' => ['name' => 'Axat (Aude)', 'uic' => '87784421'],
+        'action' => 'position',
+        'lng' => 2.2288788,
+        'lat' => 42.8034639,
+        'source_url' => $wp('Gare d\'Axat', 238872420),
+        'quote' => 'Gare d\'Axat : latitude = 42.803441, longitude = 2.228458',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare d\'Axat » (oldid 238872420) à 34 m, Wikidata Q81074887 à 47 m, OSM w502083789 à 0 m, OSM n791751572 à 34 m ; à 4 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 145 m ; à signaler à la source : liste SNCF UIC 87784421 (point géocodé) à 145 m',
+    ],
+    // 121. Villeneuve-d'Aveyron (id 19947)
+    [
+        'station' => ['name' => 'Villeneuve-d\'Aveyron', 'uic' => '87613885'],
+        'action' => 'position',
+        'lng' => 2.0662801,
+        'lat' => 44.4292081,
+        'source_url' => $wp('Gare de Villeneuve-d\'Aveyron', 184298943),
+        'quote' => 'Gare de Villeneuve-d\'Aveyron : latitude = 44.428803, longitude = 2.065802',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Villeneuve-d\'Aveyron » (oldid 184298943) à 59 m, Wikidata Q18380053 à 59 m, liste SNCF 87613885 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n942950524 à 143 m',
+    ],
+    // 122. Saumur-Rive-Gauche (id 19549)
+    [
+        'station' => ['name' => 'Saumur-Rive-Gauche', 'uic' => '87487694'],
+        'action' => 'position',
+        'lng' => -0.0813289,
+        'lat' => 47.2521519,
+        'source_url' => $wp('Gare de Saumur-Rive-Gauche', 240869936),
+        'quote' => 'Gare de Saumur-Rive-Gauche : latitude = 47.252106, longitude = -0.081272',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saumur-Rive-Gauche » (oldid 240869936) à 7 m, Wikidata Q33239401 à 7 m, OSM n4795434803 à 0 m ; à 26 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 142 m ; à signaler à la source : liste SNCF UIC 87487694 (point géocodé) à 142 m',
+    ],
+    // 123. Taillebourg (id 16585)
+    [
+        'station' => ['name' => 'Taillebourg', 'uic' => '87491043'],
+        'action' => 'position',
+        'lng' => -0.6449191,
+        'lat' => 45.8306912,
+        'source_url' => $wp('Gare de Taillebourg', 235034646),
+        'quote' => 'Gare de Taillebourg : latitude = 45.830694, longitude = -0.644972',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Taillebourg » (oldid 235034646) à 4 m, Wikidata Q2741695 à 45 m, OSM n2941437688 à 0 m, OSM n2941437687 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 138 m ; à signaler à la source : liste SNCF UIC 87491043 (point géocodé) à 138 m',
+    ],
+    // 124. Medan (id 19112)
+    [
+        'station' => ['name' => 'Medan', 'uic' => '87386631'],
+        'action' => 'position',
+        'lng' => 1.9962853,
+        'lat' => 48.9559277,
+        'source_url' => $wp('Gare de Médan', 235062839),
+        'quote' => 'Gare de Médan : latitude = 48.955828, longitude = 1.996338',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Médan » (oldid 235062839) à 12 m, Wikidata Q1859160 à 12 m, OSM n4813183870 à 0 m, OSM n7151049227 à 3 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 126 m ; à signaler à la source : liste SNCF UIC 87386631 (point géocodé) à 126 m',
+    ],
+    // 125. Le Merlerault (id 16283)
+    [
+        'station' => ['name' => 'Le Merlerault', 'uic' => '87444588'],
+        'action' => 'position',
+        'lng' => 0.2832062,
+        'lat' => 48.7024952,
+        'source_url' => $wp('Gare du Merlerault', 235035350),
+        'quote' => 'Gare du Merlerault : latitude = 48.702353, longitude = 0.283262',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare du Merlerault » (oldid 235035350) à 16 m, Wikidata Q679334 à 16 m, OSM n715499838 à 0 m ; à 2 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87444588 (point géocodé) à 130 m',
+    ],
+    // 126. Coulonges-Thouarsais (id 19531)
+    [
+        'station' => ['name' => 'Coulonges-Thouarsais', 'uic' => '87487215'],
+        'action' => 'position',
+        'lng' => -0.2868611,
+        'lat' => 46.9199705,
+        'source_url' => $wp('Gare de Coulonges-Thouarsais', 200618444),
+        'quote' => 'Gare de Coulonges-Thouarsais : latitude = 46.920176, longitude = -0.286947',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Coulonges-Thouarsais » (oldid 200618444) à 24 m, Wikidata Q65137638 à 18 m, OSM n6961521914 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 123 m ; à signaler à la source : liste SNCF UIC 87487215 (point géocodé) à 123 m',
+    ],
+    // 127. St-Martin-Bellevue (id 20582)
+    [
+        'station' => ['name' => 'St-Martin-Bellevue', 'uic' => '87746222'],
+        'action' => 'position',
+        'lng' => 6.1576294,
+        'lat' => 45.9680931,
+        'source_url' => $wp('Gare de Saint-Martin-Bellevue', 240467072),
+        'quote' => 'Gare de Saint-Martin-Bellevue : latitude = 45.968050, longitude = 6.157520',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Saint-Martin-Bellevue » (oldid 240467072) à 10 m, Wikidata Q48755661 à 3 m, liste SNCF 87746222 à 0 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 0 m ; à signaler à la source : OSM n9388719206 à 131 m',
+    ],
+    // 128. Caligny (id 19365)
+    [
+        'station' => ['name' => 'Caligny', 'uic' => '87448308'],
+        'action' => 'position',
+        'lng' => -0.592214,
+        'lat' => 48.8093955,
+        'source_url' => $wp('Gare de Caligny', 193682961),
+        'quote' => 'Gare de Caligny : latitude = 48.809379, longitude = -0.592253',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Caligny » (oldid 193682961) à 3 m, Wikidata Q2338110 à 3 m, OSM w269265431 à 0 m ; à 11 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 127 m ; à signaler à la source : liste SNCF UIC 87448308 (point géocodé) à 127 m',
+    ],
+    // 129. Noirterre (id 19532)
+    [
+        'station' => ['name' => 'Noirterre', 'uic' => '87487231'],
+        'action' => 'position',
+        'lng' => -0.3937466,
+        'lat' => 46.8698456,
+        'source_url' => $wp('Gare de Noirterre', 188444554),
+        'quote' => 'Gare de Noirterre : latitude = 46.869669, longitude = -0.393641',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Noirterre » (oldid 188444554) à 21 m, Wikidata Q62003870 à 17 m, OSM n1057034219 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 130 m ; à signaler à la source : liste SNCF UIC 87487231 (point géocodé) à 130 m',
+    ],
+    // 130. Lambel-Camors (id 19404)
+    [
+        'station' => ['name' => 'Lambel-Camors', 'uic' => '87476515'],
+        'action' => 'position',
+        'lng' => -3.033573,
+        'lat' => 47.8328203,
+        'source_url' => $wp('Gare de Lambel - Camors', 235362694),
+        'quote' => 'Gare de Lambel - Camors : latitude = 47.832935, longitude = -3.033901',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Lambel - Camors » (oldid 235362694) à 28 m, Wikidata Q2690083 à 28 m, OSM n9947518377 à 0 m ; à 0 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 101 m ; à signaler à la source : liste SNCF UIC 87476515 (point géocodé) à 101 m',
+    ],
+    // 131. Barisey-la-Côte (id 18393)
+    [
+        'station' => ['name' => 'Barisey-la-Côte', 'uic' => '87141754'],
+        'action' => 'position',
+        'lng' => 5.8407267,
+        'lat' => 48.5346387,
+        'source_url' => $wp('Gare de Barisey-la-Côte', 221966902),
+        'quote' => 'Gare de Barisey-la-Côte : latitude = 48.534652, longitude = 5.840724',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Barisey-la-Côte » (oldid 221966902) à 1 m, Wikidata Q86682860 à 1 m, OSM n2458397366 à 0 m, OSM n2458397367 à 4 m ; à 1 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 124 m ; à signaler à la source : liste SNCF UIC 87141754 (point géocodé) à 124 m',
+    ],
+    // 132. Petit-Coeur-La Léchère-les-Bains (id 20506)
+    [
+        'station' => ['name' => 'Petit-Coeur-La Léchère-les-Bains', 'uic' => '87741702'],
+        'action' => 'position',
+        'lng' => 6.484428,
+        'lat' => 45.520817,
+        'source_url' => $wp('Gare de Petit-Cœur-La Léchère-les-Bains', 238060740),
+        'quote' => 'Gare de Petit-Cœur-La Léchère-les-Bains : latitude = 45.520730, longitude = 6.484690',
+        'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; deuxième passe ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Petit-Cœur-La Léchère-les-Bains » (oldid 238060740) à 23 m, Wikidata Q111598627 à 23 m, OSM w190312564 à 0 m ; à 5 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 105 m ; à signaler à la source : liste SNCF UIC 87741702 (point géocodé) à 105 m',
+    ],
 
 ];

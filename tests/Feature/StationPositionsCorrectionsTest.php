@@ -17,7 +17,8 @@ class StationPositionsCorrectionsTest extends TestCase
         $all = require database_path('data/gares_corrections.php');
 
         return array_values(array_filter($all, fn ($c) => ($c['action'] ?? null) === 'position'
-            && str_contains((string) ($c['reason'] ?? ''), 'règle de placement VFF')));
+            && str_contains((string) ($c['reason'] ?? ''), 'règle de placement VFF')
+            && ! str_contains((string) ($c['reason'] ?? ''), 'deuxième passe')));
     }
 
     public function test_the_section_holds_150_valid_corrections(): void
