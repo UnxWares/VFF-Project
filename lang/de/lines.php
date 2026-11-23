@@ -578,6 +578,7 @@ return [
         'electrification' => 'Elektrifizierung',
         'level-crossings' => 'Bahnübergänge',
         'greenways' => 'Bahntrassenradweg',
+        'structures' => 'Kunstbauten',
         'chronicle' => 'Chronik',
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',

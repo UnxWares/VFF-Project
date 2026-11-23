@@ -578,6 +578,7 @@ return [
         'electrification' => 'Electrification',
         'level-crossings' => 'Level crossings',
         'greenways' => 'Greenway',
+        'structures' => 'Structures',
         'chronicle' => 'Chronology',
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',

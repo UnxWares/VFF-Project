@@ -144,6 +144,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `station_audits` | Audit des gares de tout le réseau : note de placement, écarts, notes des dates, contrôles en échec, filtrés par note, contrôle, département, région, ligne ; paginés par `limit` et `offset`. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_infrastructure` | Nombre de voies et liaison radio sol-train (GSM-R…) d'une ligne par portion de PK, aujourd'hui : SNCF Réseau, ODbL. |
+| `line_structures` | Tunnels, viaducs et grands ponts d'une ligne par PK, lignes déposées comprises : longueur, dates, protection, image (IGN BD TOPO, Wikidata). |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
@@ -885,6 +886,25 @@ Renvoie `total` (après les filtres), `limit`, `offset` et `items` : par gare `s
 ```json
 {"grade": "disagree", "region": "28", "limit": 20}
 ```
+
+### `line_structures` : ouvrages d'art d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/structures` (service `LineStructures`), importé par `vff:import-structures` :
+tunnels de 50 m ou plus et ponts de 100 m ou plus de la BD TOPO de l'IGN (tronçons de voie en tunnel ou sur pont), ouvrages
+nommés de la BD TOPO et ouvrages ferroviaires de Wikidata, y compris ceux d'une ligne fermée ou déposée.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `kind` | `tunnel`, `viaduct`, `bridge` | non | Ne garde que ce type d'ouvrage (le résumé reste celui de la ligne). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `summary` (`count`, `by_kind`, `tunnel_length_m`, `longest`), `items[]` (`kind`, `name`, `length_m` et
+`length_source`, `pk_start_label`, `pk_end_label`, `built`, `opened`, `closed` en `{date, precision}`, `heritage`, `merimee_ref`,
+`image`, `era_years`, `current`, `sources[]`), `provenance` (avec `mention`) et `vff_url`. Un ouvrage sans nom connu a `name`
+nul : ne pas lui en inventer. Les PK sont estimés sur le profil en long, calé sur les gares : dire « vers le PK ». `current`
+faux : la ligne n'est plus en service à l'ouvrage aujourd'hui (fermée ou déposée). Une liste vide ne prouve pas l'absence d'ouvrage (petits ponts non
+listés).
 
 ### `line_infrastructure` : voies et radio sol-train d'une ligne
 

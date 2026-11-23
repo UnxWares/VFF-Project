@@ -19,6 +19,8 @@ return [
     'at_km' => 'km :km',
     'local_grade' => 'Gradient: :grade ‰',
     'in_tunnel' => 'in a tunnel',
+    'structure_at' => 'structure: :name',
+    'span_legend' => 'Viaduct or large bridge',
     'tunnel_legend' => 'Tunnel: height estimated between the two portals',
     'break_note' => 'The line on the chart stops where the height is not known (gap in the route, section outside France).',
     'gap_legend' => 'Gap in the route: height unknown',

@@ -19,6 +19,8 @@ return [
     'at_km' => 'km :km',
     'local_grade' => 'Neigung: :grade ‰',
     'in_tunnel' => 'im Tunnel',
+    'structure_at' => 'Bauwerk: :name',
+    'span_legend' => 'Viadukt oder große Brücke',
     'tunnel_legend' => 'Tunnel: Höhe zwischen den beiden Portalen geschätzt',
     'break_note' => 'Die Kurve bricht ab, wo die Höhe nicht bekannt ist (Lücke in der Trasse, Abschnitt außerhalb Frankreichs).',
     'gap_legend' => 'Lücke in der Trasse: Höhe unbekannt',

@@ -65,6 +65,8 @@ class SourceRightsReport extends Command
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
         'line_profile_points' => 'SELECT DISTINCT source AS v FROM line_profile_points WHERE source IS NOT NULL',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
+        // Ouvrages d'art : la source de chaque champ est dans le tableau JSON `sources` (vff:import-structures).
+        'structures' => "SELECT DISTINCT src->>'source' AS v FROM structures, jsonb_array_elements(sources) AS src",
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
         'station_platforms' => 'SELECT DISTINCT source AS v FROM station_platforms',

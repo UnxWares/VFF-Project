@@ -21,6 +21,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Ouvrages d'art d'une ligne (tunnels, viaducs, grands ponts), lignes déposées comprises, dans l'ordre des PK : longueur, PK de début
+  et de fin estimés sur le profil en long, dates de construction, de mise en service et de fermeture avec leur précision, protection
+  monument historique et référence Mérimée, image libre de Commons, ères où la ligne y passe, source de chaque champ (IGN BD TOPO,
+  Licence Ouverte 2.0 ; Wikidata, CC0) : REST `GET /api/v1/lines/{line}/structures`, GraphQL `Line.structures` (types `LineStructures`,
+  `LineStructureSummary`, `LineStructureKindCount`, `LineStructureLongest`, `LineStructure`, `StructureDate`, `StructureImage`,
+  `StructureSource`), MCP outil `line_structures`. Ajout seul.
 - Ce jour-là : REST `GET /api/v1/on-this-day/{MM-JJ}` (aujourd'hui sans date ; filtres `types` et `lang`, `meta.coverage`), page `/on-this-day` et
   outil MCP `on_this_day` : ce qui s'est passé ce jour du calendrier les années précédentes, faits datés au jour avec au moins une source
   publiable, accidents relus seulement. Ajout seul.

@@ -83,7 +83,9 @@ class PageQueryBudgetTest extends TestCase
         // en cache ensuite, tranches de PK, changements datés). Le diagramme « Où et quand » n'ajoute aucune lecture.
         // 67 : l'histoire de l'électrification le 23/11 (LineElectrificationHistory : constat de la table des tranches SNCF,
         // tranches de la ligne par son code, événements d'électrification datés ; trois lectures indexées, aucune par élément).
-        $this->assertLessThanOrEqual(67, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 68 : les ouvrages d'art le 23/11 (LineStructures::forSheet : une lecture indexée des ouvrages de la ligne, et l'ère
+        // courante seulement quand la ligne a des ouvrages).
+        $this->assertLessThanOrEqual(68, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));

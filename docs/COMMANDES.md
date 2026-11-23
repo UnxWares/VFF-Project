@@ -533,6 +533,22 @@ source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
 
+### `vff:import-structures`
+
+Ouvrages d'art des lignes (tunnels, viaducs, grands ponts) : tables `structures` et `line_structures`. Assemble les tronçons
+de voie de la BD TOPO en tunnel ou sur pont (cache de tuiles du profil en long, `storage/app/data/altimetrie/bdtopo-tuiles/`),
+les nomme par les constructions de la BD TOPO et par Wikidata (nom, dates, protection, Mérimée, image), garde les tunnels et
+ponts nommés d'une ligne déposée, puis rattache chaque ouvrage aux lignes dont le tracé le suit (toutes ères), avec ses PK
+estimés sur le profil en long. Caches régénérables dans `storage/app/data/ouvrages/` (`.nobackup`). Lit `line_segments`,
+`eras` et `line_profile_points`, n'écrit que les deux tables des ouvrages, qu'il remplace à chaque passage. Méthode et
+seuils : `App\Services\Structures\StructureImporter`. Environ 2 minutes avec les caches.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Calcule tout sans écrire. |
+| `--offline` | N'utilise que les caches (tuiles absentes ignorées, Wikidata et Commons non relus). |
+| `--refresh-wikidata` | Relit Wikidata au lieu du cache `wikidata.json`. |
+
 ### `vff:import-materials`
 
 Séries de matériel roulant et liens ligne x série. Option ajoutée le 22/11 : `--no-planned` ne lit pas les liens directs

@@ -947,6 +947,10 @@ return [
         // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO), du terrain (RGE ALTI) ou de la voie
         // estimée d'après le terrain (RGE ALTI, option --estimate-track).
         'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign', 'rge_track' => 'ign'],
+        // Ouvrages d'art (vff:import-structures) : tracé et longueur de la BD TOPO (voies en tunnel ou sur pont, constructions),
+        // nom, dates, protection et image de Wikidata (CC0, image Commons sous sa propre licence) ; structures.sources[].source.
+        // `merimee` : la référence Mérimée vient de Wikidata (P380), la notice de la POP n'est qu'un lien.
+        'structures' => ['bdtopo' => 'ign', 'bdtopo-construction' => 'ign', 'wikidata' => 'wikidata', 'wikipedia' => 'wikipedia', 'merimee' => 'wikidata'],
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],

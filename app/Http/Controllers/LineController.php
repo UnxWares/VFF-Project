@@ -17,6 +17,7 @@ use App\Services\Profiles\LineProfiles;
 use App\Services\Signalling\LineSignallingHistory;
 use App\Services\Speed\LineSpeeds;
 use App\Services\Stories\EventStories;
+use App\Services\Structures\LineStructures;
 use App\Services\TraceExport\LineTraceExport;
 use App\Services\Traction\LineElectrificationHistory;
 use Illuminate\Database\Eloquent\Builder;
@@ -151,6 +152,7 @@ class LineController extends Controller
      * `/api/v1/lines/{slug}/signalling-history`), les vitesses maximales par PK et leurs changements datés (section
      * « Vitesses » ; API : `/api/v1/lines/{slug}/speeds`), l'histoire de l'électrification (section « Électrification » ; API :
      * `/api/v1/lines/{slug}/electrification-history`)
+     * et ses ouvrages d'art par PK (section « Ouvrages d'art » ; API : `/api/v1/lines/{slug}/structures`)
      * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
@@ -159,7 +161,7 @@ class LineController extends Controller
      * (`/api/v1/lines/{slug}/archive-records`), et les événements qui ont une histoire (lien
      * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineSpeeds $speeds, LineElectrificationHistory $electrification, LineStructures $structures, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories, JournalRepository $journal): Response
     {
         $page = $sheet->build($line, forPage: true);
 
@@ -173,6 +175,8 @@ class LineController extends Controller
             'greenways' => $greenways->forSheet($line),
             'signalling_history' => $signallingHistory->forSheet($line),
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
+            // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
+            'structures' => $structures->forSheet($line),
             // Vitesses maximales de l'ère courante par PK (SNCF Réseau) et changements datés (Wikipédia).
             'speeds' => ($era = Era::where('is_current', true)->first()) === null ? null
                 : $speeds->forLine($line->id, $era->id, (int) $era->year),

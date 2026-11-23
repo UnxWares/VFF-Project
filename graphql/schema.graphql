@@ -202,6 +202,14 @@ type Line {
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
 
     """
+    Ouvrages d'art de la ligne (tunnels, viaducs, grands ponts), dans l'ordre des points kilométriques,
+    ceux d'une ligne fermée ou déposée compris : même contenu que l'API REST
+    `GET /api/v1/lines/{line}/structures`. Tracés et longueurs de la BD TOPO de l'IGN (Licence Ouverte 2.0),
+    noms, dates et protection de Wikidata (CC0). Reprenez la mention de `LineStructures.attribution`.
+    """
+    structures: LineStructures! @field(resolver: "App\\GraphQL\\Resolvers\\LineStructureField@forLine")
+
+    """
     Voies (régime d'exploitation) et liaison radio sol-train (GSM-R…) de la ligne aujourd'hui, par portion de
     points kilométriques, d'après SNCF Réseau (ODbL 1.0) : même contenu que l'API REST
     `GET /api/v1/lines/{line}/infrastructure`. Listes vides et résumé nul si les jeux ne couvrent pas la ligne.
@@ -7366,4 +7374,143 @@ type ContributionEventTarget {
 
     "Adresse de la fiche dans l'API REST."
     url: String!
+}
+
+"Ouvrages d'art d'une ligne (`Line.structures`)."
+type LineStructures {
+    "Nombre d'ouvrages par type, longueur des tunnels, ouvrage le plus long."
+    summary: LineStructureSummary!
+
+    "Ouvrages, du plus petit PK au plus grand (sans PK connu : à la fin)."
+    items: [LineStructure!]!
+
+    "Mention à reproduire : IGN BD TOPO (Licence Ouverte 2.0), Wikidata (CC0), images Commons sous leur licence."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineStructureField@attribution")
+
+    "Fournisseur et licence des tracés (IGN)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineStructureField@provenance")
+}
+
+"Résumé des ouvrages d'art d'une ligne."
+type LineStructureSummary {
+    "Nombre d'ouvrages rattachés à la ligne."
+    count: Int!
+    "Nombre d'ouvrages par type."
+    by_kind: LineStructureKindCount!
+    "Longueur cumulée des tunnels, en mètres."
+    tunnel_length_m: Int!
+    "Ouvrage le plus long dont la longueur est connue (nul sans longueur)."
+    longest: LineStructureLongest
+}
+
+"Nombre d'ouvrages d'une ligne par type."
+type LineStructureKindCount {
+    "Tunnels."
+    tunnel: Int!
+    "Viaducs (nom en « Viaduc » ou classe Wikidata de viaduc)."
+    viaduct: Int!
+    "Autres ponts de 100 m ou plus, ou nommés."
+    bridge: Int!
+}
+
+"Ouvrage le plus long d'une ligne."
+type LineStructureLongest {
+    "Nom de l'ouvrage ; nul s'il n'en a pas de connu."
+    name: String
+    "`tunnel`, `viaduct` ou `bridge`."
+    kind: String!
+    "Longueur en mètres."
+    length_m: Int!
+}
+
+"Un ouvrage d'art sur une ligne."
+type LineStructure {
+    "Identifiant de l'ouvrage dans VFF (le même sur chaque ligne qu'il porte)."
+    id: Int!
+    "`tunnel`, `viaduct` ou `bridge`."
+    kind: String!
+    "Nom (Wikidata, sinon BD TOPO) ; nul pour un ouvrage sans nom connu."
+    name: String
+    "Longueur en mètres : mesurée sur le tracé de la BD TOPO ou, pour un ouvrage sans tracé ou coupé par la frontière, donnée par Wikidata."
+    length_m: Int
+    "Origine de la longueur : `bdtopo` ou `wikidata`."
+    length_source: String
+    "PK de début en mètres, estimé sur le profil en long calé sur les gares ; nul sans calage."
+    pk_start_m: Int
+    "PK de fin en mètres (égal au début pour un ouvrage connu par un seul point)."
+    pk_end_m: Int
+    "PK de début en notation `km+mmm`."
+    pk_start_label: String
+    "PK de fin en notation `km+mmm`."
+    pk_end_label: String
+    "Distance du début le long du profil en long (`Line.profile`), en mètres."
+    distance_from_m: Int
+    "Distance de la fin le long du profil en long, en mètres."
+    distance_to_m: Int
+    "Construction ou achèvement (Wikidata P571, à défaut l'infobox de Wikipédia)."
+    built: StructureDate
+    "Mise en service (Wikidata P729, à défaut inauguration P1619, à défaut l'infobox de Wikipédia)."
+    opened: StructureDate
+    "Fermeture ou démolition (Wikidata P730, à défaut P576, à défaut l'infobox de Wikipédia)."
+    closed: StructureDate
+    "`classified` (classé monument historique), `registered` (inscrit), `protected` (protégé, notice Mérimée PA, statut non précisé) ou nul."
+    heritage: String
+    "Référence de la base Mérimée."
+    merimee_ref: String
+    "Élément Wikidata de l'ouvrage."
+    wikidata_id: String
+    "Article de Wikipédia en français."
+    wikipedia_url: String
+    "Photo libre de Wikimedia Commons : reprenez auteur et licence."
+    image: StructureImage
+    "Ères de VFF (années) où la ligne est en service à l'ouvrage."
+    era_years: [Int!]!
+    "Vrai si la ligne est en service à l'ouvrage à l'ère actuelle (faux : ligne fermée ou déposée, l'ouvrage peut rester)."
+    current: Boolean!
+    "Latitude du milieu de l'ouvrage (WGS 84)."
+    lat: Float!
+    "Longitude du milieu de l'ouvrage (WGS 84)."
+    lon: Float!
+    "Écart entre l'ouvrage et le tracé de la ligne, en mètres."
+    offset_m: Int!
+    "Source de chaque champ."
+    sources: [StructureSource!]!
+}
+
+"Date d'un ouvrage et sa précision."
+type StructureDate {
+    "Date AAAA-MM-JJ (au 1er janvier pour une année seule, au 1er du mois pour un mois)."
+    date: String!
+    "`year`, `month` ou `day`."
+    precision: String!
+}
+
+"Photo libre d'un ouvrage (Wikimedia Commons)."
+type StructureImage {
+    "Vignette (500 px de large au plus)."
+    thumb_url: String!
+    "Largeur de l'original, en pixels."
+    width: Int
+    "Hauteur de l'original, en pixels."
+    height: Int
+    "Nom du fichier sur Commons."
+    file: String
+    "Auteur, tel que Commons le donne."
+    author: String
+    "Licence du fichier, telle que Commons la déclare."
+    license: String
+    "Texte de la licence."
+    license_url: String
+    "Page du fichier sur Commons."
+    source_url: String
+}
+
+"Source d'une partie des informations d'un ouvrage."
+type StructureSource {
+    "`bdtopo`, `bdtopo-construction`, `wikidata`, `wikipedia` ou `merimee`."
+    source: String!
+    "Page de la source (permalien de la révision lue pour Wikipédia)."
+    url: String!
+    "Champs tirés de cette source (`geometry`, `length_m`, `name`, `built_on`, `opened_on`, `closed_on`, `heritage`, `merimee_ref`, `image`)."
+    fields: [String!]!
 }

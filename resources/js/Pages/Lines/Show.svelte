@@ -26,6 +26,7 @@
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
+    import LineStructures from '$components/Lines/LineStructures.svelte';
     import LineArchives from '$components/Lines/LineArchives.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
@@ -68,6 +69,7 @@
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>,
      *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
+     *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
@@ -101,6 +103,8 @@
         signalling_history = [],
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
+        // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
+        structures = { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
         // Vitesses maximales par PK (SNCF Réseau) et changements datés (App\Services\Speed\LineSpeeds).
         speeds = null,
         // Électrification par PK (SNCF Réseau) et mises sous tension datées (App\Services\Traction\LineElectrificationHistory).
@@ -135,6 +139,7 @@
         'profile',
         'speeds',
         'electrification',
+        'structures',
         'level-crossings',
         'greenways',
         'chronicle',
@@ -1263,7 +1268,7 @@
         {/if}
 
         {#if profile}
-            <LineProfile {profile} />
+            <LineProfile {profile} structures={structures.items} />
         {/if}
 
         {#if speeds && (speeds.ranges.length || speeds.history.length)}
@@ -1272,6 +1277,10 @@
 
         {#if electrification_history && (electrification_history.ranges.length || electrification_history.history.length)}
             <LineElectrification electrification={electrification_history} />
+        {/if}
+
+        {#if structures.items.length}
+            <LineStructures {structures} />
         {/if}
 
         {#if level_crossings.total}

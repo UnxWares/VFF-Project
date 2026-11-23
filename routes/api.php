@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineSpeedController;
 use App\Http\Controllers\Api\LineStopsController;
 use App\Http\Controllers\Api\LineStoryController;
+use App\Http\Controllers\Api\LineStructureController;
 use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
@@ -135,6 +136,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/electrification-history', [LineElectrificationHistoryController::class, 'index'])->name('api.lines.electrification-history');
     Route::get('/v1/lines/{line:slug}/speeds', [LineSpeedController::class, 'index'])->name('api.lines.speeds');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
+    // Ouvrages d'art (tunnels, viaducs, grands ponts ; BD TOPO et Wikidata) : App\Services\Structures\LineStructures.
+    Route::get('/v1/lines/{line:slug}/structures', [LineStructureController::class, 'index'])->name('api.lines.structures');
     // Voies (régime d'exploitation) et radio sol-train (GSM-R) de SNCF Réseau, ODbL : App\Services\Sncf\LineInfrastructure.
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');

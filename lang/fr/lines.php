@@ -579,6 +579,7 @@ return [
         'electrification' => 'Électrification',
         'level-crossings' => 'Passages à niveau',
         'greenways' => 'Voie verte',
+        'structures' => 'Ouvrages d’art',
         'chronicle' => 'Chronologie',
         'materials' => 'Matériel',
         'accidents' => 'Accidents',

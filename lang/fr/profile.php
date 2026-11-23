@@ -19,6 +19,8 @@ return [
     'at_km' => 'km :km',
     'local_grade' => 'Déclivité : :grade ‰',
     'in_tunnel' => 'en tunnel',
+    'structure_at' => 'ouvrage : :name',
+    'span_legend' => 'Viaduc ou grand pont',
     'tunnel_legend' => 'Tunnel : altitude estimée entre les deux têtes',
     'break_note' => 'La courbe s’interrompt là où l’altitude n’est pas connue (trou dans le tracé, partie hors de France).',
     'gap_legend' => 'Trou dans le tracé : altitude inconnue',

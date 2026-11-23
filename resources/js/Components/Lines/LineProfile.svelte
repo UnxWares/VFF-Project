@@ -25,7 +25,8 @@
      * gares de la ligne, fermées comprises, les tunnels et les trous du tracé (bandes, la courbe s'y
      * interrompt), lecture au survol (distance, PK estimé, altitude, déclivité locale, gare proche),
      * gares atteignables au clavier, puis le tableau des altitudes des gares (alternative au
-     * graphique) et la source.
+     * graphique) et la source. Les ouvrages d'art de la fiche (`structures`, LineStructures::forSheet) ajoutent
+     * une bande pleine sous la courbe pour les viaducs et grands ponts, et le nom de l'ouvrage à la lecture.
      *
      * @type {{ profile: {
      *   era_year: number|null, step_m: number, length_m: number,
@@ -46,9 +47,10 @@
      *   stations: Array<{ slug: string, name: string, distance_m: number, altitude_m: number|null, pk_m: number|null,
      *     status?: string }>,
      *   computed_at: string,
-     * } }}
+     * }, structures?: Array<{ id: number, kind: 'tunnel'|'viaduct'|'bridge', name: string|null,
+     *   distance_from_m: number|null, distance_to_m: number|null }> }}
      */
-    let { profile } = $props();
+    let { profile, structures = [] } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -131,6 +133,11 @@
     // Parties à l'altitude de la voie estimée d'après le terrain (source rge_track, servie par l'API).
     const estimated = $derived(profile.track_estimate_ranges ?? []);
     const tunnels = $derived(profile.structures.filter((x) => x.kind === 'tunnel'));
+    // Ouvrages d'art placés sur le profil : viaducs et grands ponts dessinés, nom de tout ouvrage lu au survol.
+    const placed = $derived(
+        structures.filter((s) => s.distance_from_m !== null && s.distance_to_m !== null),
+    );
+    const spans = $derived(placed.filter((s) => s.kind !== 'tunnel'));
     const hasBreaks = $derived(profile.altitude_sources.missing > 0 || profile.gaps.length > 0);
     const hasClosed = $derived(profile.stations.some(closed));
     const computedOn = $derived(
@@ -223,6 +230,10 @@
             pk: pk ?? null,
             grade: z === null ? null : gradeAt(profile.points, d, profile.gaps, gradeWindow),
             tunnel: tunnels.some((tu) => d >= tu.from_m && d <= tu.to_m),
+            structure:
+                placed.find(
+                    (s) => s.name && d >= s.distance_from_m - 50 && d <= s.distance_to_m + 50,
+                )?.name ?? null,
             station,
             left: x(d) > pad.left + plotW / 2,
         };
@@ -330,6 +341,17 @@
                                 y={pad.top}
                                 width={Math.max(3, x(g.to_m) - x(g.from_m))}
                                 height={plotH}
+                            />
+                        {/each}
+
+                        {#each spans as sp (sp.id)}
+                            <rect
+                                class="span"
+                                x={x(sp.distance_from_m)}
+                                y={baseY + 3}
+                                width={Math.max(4, x(sp.distance_to_m) - x(sp.distance_from_m))}
+                                height="6"
+                                rx="1"
                             />
                         {/each}
 
@@ -470,16 +492,26 @@
                                 >{/if}
                             {#if reading.tunnel}<span class="muted">{t('profile.in_tunnel')}</span
                                 >{/if}
+                            {#if reading.structure}<span class="muted"
+                                    >{t('profile.structure_at', { name: reading.structure })}</span
+                                >{/if}
                         </div>
                     {/if}
                 {/if}
             </div>
-            {#if tunnels.length || profile.gaps.length || hasClosed || branches.length || terrain.length || estimated.length}
+            {#if tunnels.length || spans.length || profile.gaps.length || hasClosed || branches.length || terrain.length || estimated.length}
                 <figcaption>
                     {#if tunnels.length}
                         <span class="legend-item"
                             ><span class="legend-swatch" aria-hidden="true"></span>{t(
                                 'profile.tunnel_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if spans.length}
+                        <span class="legend-item"
+                            ><span class="legend-swatch span-swatch" aria-hidden="true"></span>{t(
+                                'profile.span_legend',
                             )}</span
                         >
                     {/if}
@@ -630,6 +662,13 @@
         stroke-width: 2;
         stroke-linejoin: round;
         stroke-linecap: round;
+    }
+    /* Viaduc ou grand pont : bande pleine, à la place des hachures du tunnel. */
+    .span {
+        fill: var(--vff-text-muted);
+    }
+    .legend-swatch.span-swatch {
+        background: var(--vff-text-muted);
     }
     .tunnel {
         fill: url(#profile-tunnel);
