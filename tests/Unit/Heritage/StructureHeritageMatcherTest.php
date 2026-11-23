@@ -66,7 +66,7 @@ class StructureHeritageMatcherTest extends TestCase
         $tunnel = $matcher->match(self::record('PA1', 'tunnel', 'Tunnel du Mont-Fréjus', 45.19, 6.66));
 
         $this->assertSame(4, $tunnel['structure']->id);
-        $this->assertNotNull($tunnel['score']);
+        $this->assertGreaterThan(0, $tunnel['score']);
         $this->assertNull($matcher->match(self::record('PA2', 'tunnel', 'Tunnel de Garabit', 44.9746, 3.1775)), 'un tunnel loin de tout tunnel, notice sans chemin de fer : rien');
     }
 

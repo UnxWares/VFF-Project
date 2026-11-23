@@ -135,7 +135,7 @@ class SectionsDatesCorrectionsTest extends TestCase
     public function test_compiegne_noyon_is_settled_on_the_official_opening_of_26_february_1849(): void
     {
         $days = array_column(array_filter($this->additions(), fn (array $c): bool => $c['line'] === '242000' && ($c['from'] ?? '') === 'Compiègne'), 'date');
-        $this->assertSame(['1849-02-26'], array_values($days));
+        $this->assertSame(['1849-02-26'], $days);
     }
 
     public function test_the_third_pass_dates_the_leftover_lines_from_their_station_articles(): void
