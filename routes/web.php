@@ -24,6 +24,7 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialContributionController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MaterialTimelineController;
 use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NetworkFiguresController;
 use App\Http\Controllers\NetworkGraphAdminController;
@@ -86,6 +87,8 @@ Route::get('/chronology', [ChronologyController::class, 'index'])->name('network
 // Ce jour-là : ce qui s'est passé un jour du calendrier les années précédentes (aujourd'hui par défaut).
 Route::get('/on-this-day/{monthDay?}', [OnThisDayController::class, 'index'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('network.on-this-day');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
+// Frise du matériel roulant : avant la fiche, dont l'adresse accepterait « timeline » comme identifiant.
+Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');

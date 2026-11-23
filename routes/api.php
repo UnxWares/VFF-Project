@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Controllers\Api\LineStructureController;
 use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\MaterialTimelineController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NetworkAuditController;
 use App\Http\Controllers\Api\NetworkFiguresController;
@@ -176,6 +177,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
 
     // Matériel roulant (fiches Wikidata, liens avec les lignes attestés par une source).
     Route::get('/v1/materials', [MaterialController::class, 'index'])->name('api.materials.index');
+    Route::get('/v1/materials/timeline', [MaterialTimelineController::class, 'index'])->name('api.materials.timeline');
     Route::get('/v1/materials/{material:slug}', [MaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.show');
     Route::get('/v1/materials/{material:slug}/map', [MaterialController::class, 'map'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.map');
     Route::get('/v1/materials/{material:slug}/media', [MaterialController::class, 'media'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.media');

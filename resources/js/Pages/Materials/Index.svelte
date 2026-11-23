@@ -131,6 +131,11 @@
                         >{t('quiz.links.materials')}</Link
                     >
                 </p>
+                <p class="quiz-link">
+                    <Link href="/materials/timeline" class="vff-link"
+                        >{t('materials_timeline.see_all_in_timeline')}</Link
+                    >
+                </p>
             {/if}
         </PageHero>
 

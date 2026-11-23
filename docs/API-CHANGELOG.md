@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Matériel roulant : `GET /api/v1/materials/timeline` (frise des séries : traction, mise en service et retrait à leur précision,
+  exemplaires construits ; filtres `group`, `builder`, `in_service_at` ; séries sans date comptées dans `meta.undated`, jamais
+  estimées). Page : `/materials/timeline`. Ajout seul.
 - Carte : paramètre `color` (`speed`, `electrification`, `gauge`, `signalling`) de `GET /api/v1/eras/{year}/in-view` : chaque ligne
   porte alors `classes` (`key`, `km`), ses classes dans l'emprise ; `color` inconnu : 422. Tuiles allégées (`fields=map`) : propriété
   `speed_class` (1 à 4, absente sans vitesse connue). Ajout seul.

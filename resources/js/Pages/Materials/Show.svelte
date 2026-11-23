@@ -415,6 +415,12 @@
                             {/if}
                         </ul>
                     {/if}
+
+                    <p style="margin: var(--vff-space-4) 0 0">
+                        <Link href="/materials/timeline?serie={material.slug}" class="vff-link"
+                            >{t('materials_timeline.see_in_timeline')}</Link
+                        >
+                    </p>
                 </div>
 
                 <section class="infobox" aria-labelledby="fiche-title">
