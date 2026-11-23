@@ -24,6 +24,7 @@ use Throwable;
  *   php artisan vff:compute-line-profiles --all --prefill-tiles # remplit le cache de la BD TOPO, sans calcul
  *   php artisan vff:compute-line-profiles --all --stats-only    # chiffres recalculés depuis line_profile_points
  *   php artisan vff:compute-line-profiles --all --force --estimate-track   # voie estimée d'après le terrain hors BD TOPO
+ *   php artisan vff:compute-line-profiles --terrain-only --limit=100 --estimate-track   # par lots : seules les lignes qui ont encore des points à l'altitude du terrain
  *
  * Une ligne déjà calculée (avec --force ou --line) dont le profil ne peut plus l'être (tracé
  * retiré, aucune altitude) perd son ancien profil, et la sortie le signale. Le calcul s'arrête
@@ -41,6 +42,7 @@ class ComputeLineProfiles extends Command
         {--prefill-tiles : Remplir le cache des tuiles de la BD TOPO des lignes choisies, sans calculer}
         {--stats-only : Recalculer seulement les chiffres (déclivité, dénivelés) à partir des points déjà en base, sans appeler l\'IGN}
         {--estimate-track : Hors BD TOPO, altitude de la voie estimée d\'après le terrain (coupe en travers du RGE ALTI, source rge_track) au lieu de l\'altitude du terrain ; environ 31 fois plus de points demandés à l\'IGN}
+        {--terrain-only : Seulement les lignes dont le profil a encore des points à l\'altitude du terrain (rge_alti), recalculées même si elles ont un profil, --limit par lot ; avec --estimate-track ces points deviennent rge_track, la commande peut donc être relancée jusqu\'à épuisement}
         {--max-cache-mb=4096 : Taille du cache au-delà de laquelle la commande s\'arrête}';
 
     protected $description = 'Calcule le profil en long des lignes sur leur tracé de référence (BD TOPO et RGE ALTI de l\'IGN).';
@@ -216,7 +218,9 @@ class ComputeLineProfiles extends Command
         if (! $this->option('all')) {
             $query->limit(max(1, (int) $this->option('limit')));
         }
-        if ($this->option('stats-only')) {
+        if ($this->option('terrain-only')) {
+            $query->whereIn('lines.id', DB::table('line_profile_points')->select('line_id')->where('source', 'rge_alti'));
+        } elseif ($this->option('stats-only')) {
             $query->whereIn('lines.id', LineProfile::query()->select('line_id'));
         } elseif (! $this->option('force') && ! $this->option('prefill-tiles') && ! $this->option('dry-run')) {
             $query->whereNotIn('lines.id', LineProfile::query()->select('line_id'));

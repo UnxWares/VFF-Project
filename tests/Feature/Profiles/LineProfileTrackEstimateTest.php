@@ -3,6 +3,7 @@
 namespace Tests\Feature\Profiles;
 
 use App\Models\Line;
+use App\Models\LineProfile;
 use App\Services\Profiles\GeoplateformeClient;
 use App\Services\Profiles\LineProfileBuilder;
 use App\Services\Profiles\LineProfiles;
@@ -146,5 +147,31 @@ class LineProfileTrackEstimateTest extends TestCase
         $this->assertNull($served['track_estimate']);
         $this->assertSame([], $served['track_estimate_ranges']);
         $this->assertSame(0, $served['altitude_sources']['rge_track']);
+    }
+
+    public function test_the_terrain_only_option_picks_the_lines_that_still_have_terrain_points_and_runs_out(): void
+    {
+        $line = $this->line();
+        app(LineProfileBuilder::class)->compute($line);
+        // Une seconde ligne dont le profil n'a aucun point à l'altitude du terrain n'est jamais choisie.
+        $other = Line::factory()->create(['slug' => 'ligne-sans-terrain', 'name' => 'Ligne de Nord à Sud']);
+        $profile = LineProfile::query()->create([
+            'line_id' => $other->id, 'source' => LineProfileBuilder::SOURCE, 'resource' => GeoplateformeClient::RESOURCE, 'step_m' => 100,
+            'length_m' => 100, 'trace_length_m' => 100, 'covered_m' => 100, 'off_path_m' => 0, 'pk_anchors' => 0, 'structures' => [],
+            'altitude_sources' => [], 'gaps' => [], 'branches' => [], 'stations' => [], 'min_altitude_m' => 10, 'max_altitude_m' => 10, 'ascent_m' => 0, 'descent_m' => 0, 'computed_at' => now(),
+        ]);
+        DB::table('line_profile_points')->insert(['line_profile_id' => $profile->id, 'line_id' => $other->id, 'seq' => 0, 'distance_m' => 0, 'altitude_m' => 10, 'source' => 'bdtopo', 'interpolated' => false, 'piece' => 0]);
+
+        $this->artisan('vff:compute-line-profiles', ['--terrain-only' => true, '--estimate-track' => true, '--limit' => 5])
+            ->expectsOutputToContain('ligne-remblai')
+            ->doesntExpectOutputToContain('ligne-sans-terrain')
+            ->assertSuccessful();
+        $this->assertSame(['rge_track'], DB::table('line_profile_points')->where('line_id', $line->id)->distinct()->pluck('source')->all());
+        $this->assertSame(['bdtopo'], DB::table('line_profile_points')->where('line_id', $other->id)->pluck('source')->all());
+
+        // Plus aucun point du terrain : la commande n'a plus rien à faire.
+        $this->artisan('vff:compute-line-profiles', ['--terrain-only' => true, '--estimate-track' => true])
+            ->expectsOutputToContain('Aucune ligne à traiter.')
+            ->assertSuccessful();
     }
 }
