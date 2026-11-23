@@ -1,0 +1,12 @@
+query StationEras {
+  station(slug: "brest") {
+    name
+    city
+    opened_at
+    sheet {
+      eras { year status is_current note }
+      lines { line { slug name } }
+      neighbors { station { slug name } }
+    }
+  }
+}

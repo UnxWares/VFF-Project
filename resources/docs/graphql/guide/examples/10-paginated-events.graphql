@@ -1,0 +1,19 @@
+query ClosuresInFinistere($after: String) {
+  lineEvents(
+    first: 20
+    after: $after
+    filter: { department: "29", type: "closure_passenger", from: "1930", to: "1969" }
+  ) {
+    pageInfo { hasNextPage endCursor }
+    edges {
+      node {
+        type
+        event_date
+        date_precision
+        description
+        source_url
+        line { slug name }
+      }
+    }
+  }
+}

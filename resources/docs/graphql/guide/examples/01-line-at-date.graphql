@@ -1,0 +1,18 @@
+query LineAtDate($slug: String!, $era: Int!) {
+  line(slug: $slug) {
+    name
+    code
+    network
+    segments(era: $era) {
+      status
+      traffic_type
+      electrified
+      voltage_v
+      max_speed_kmh
+      pk_start_m
+      pk_end_m
+      length_m
+      provenance { name license }
+    }
+  }
+}

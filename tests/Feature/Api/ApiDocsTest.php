@@ -284,7 +284,7 @@ class ApiDocsTest extends TestCase
         // Les scripts sont des fichiers externes (pas de script en ligne, voir la CSP) : on lit leur contenu.
         preg_match_all('#<script src="(/docs/graphql/_app/vff/[^"]+)"#', $html, $scripts);
         $code = implode("\n", array_map(fn (string $src): string => (string) file_get_contents(public_path(ltrim($src, '/'))), $scripts[1]));
-        $this->assertStringContainsString("main.lang = 'fr'", $code);
+        $this->assertStringContainsString("main.lang = guide[1] ? guide[1].slice(1) : 'fr'", $code);
         $this->assertStringContainsString('theme=(dark|light)', $code, 'le thème du cookie du site doit être lu');
         $this->assertStringContainsString('<title>Guide - Introduction - VFF API GraphQL</title>', $html);
 
