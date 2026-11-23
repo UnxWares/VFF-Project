@@ -208,6 +208,8 @@ class LineController extends Controller
             'level_crossings' => $defer(fn () => $crossings->forSheet($line)),
             'greenways' => $defer(fn () => $greenways->forSheet($line)),
             'signalling_history' => $defer(fn () => $signallingHistory->forSheet($line)),
+            // Dates lues dans un article que des documents contredisent, repliées sous la frise (API : `corrections`).
+            'signalling_corrections' => $defer(fn () => $signallingHistory->correctionsForSheet($line)),
             'profile' => $defer(fn () => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS)),
             // Ouvrages d'art par PK (BD TOPO, Wikidata ; API : /api/v1/lines/{slug}/structures).
             'structures' => $defer(fn () => $structures->forSheet($line)),

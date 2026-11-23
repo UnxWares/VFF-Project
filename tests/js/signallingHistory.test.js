@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     articleTitles,
+    correctionRows,
     hasDocumentFacts,
     historyRows,
     periodBounds,
@@ -323,5 +324,83 @@ describe('statusesAt : situation à la date choisie sur la fiche', () => {
         expect(statusText({ status: 'uncertain' }, kvb, t, 'fr')).toBe(
             'signalling_history.status.uncertain_year',
         );
+    });
+});
+
+describe('correctionRows', () => {
+    const correction = (over = {}) => ({
+        system: 'ETCS',
+        date: '2021-08-01',
+        date_precision: 'month',
+        section: { from: 'Uckange', to: 'Zoufftgen' },
+        original: {
+            provider: 'wikipedia',
+            title: 'Ligne de Metz-Ville à Zoufftgen',
+            url: 'https://fr.wikipedia.org/w/index.php?oldid=1',
+        },
+        action: 'neutralize',
+        reason: 'la décision de l’EPSF date de 2016',
+        sources: [
+            {
+                publisher: 'EPSF',
+                title: 'Décision 681',
+                url: 'https://epsf.test/681',
+                published: '2016-08-01',
+            },
+            {
+                publisher: 'EPSF',
+                title: 'Rapport 2017',
+                url: 'https://epsf.test/2017',
+                published: '2018',
+            },
+            {
+                publisher: 'Presse',
+                title: 'Article',
+                url: 'https://presse.test/a',
+                published: null,
+            },
+        ],
+        ...over,
+    });
+    const ctx = { t, lang: 'fr', pkWord: 'PK' };
+
+    it('dit la date écartée, sa portion, où elle a été lue et ce que VFF en fait', () => {
+        const [r] = correctionRows([correction()], ctx);
+        expect(r.when).toBe('août 2021');
+        expect(r.iso).toBe('2021-08-01');
+        expect(r.system).toBe('ETCS');
+        expect(r.portion).toBe('signalling_history.section.between|from=Uckange|to=Zoufftgen');
+        expect(r.action).toBe('signalling_history.corrections.action.neutralize');
+        expect(r.reason).toBe('la décision de l’EPSF date de 2016');
+        expect(r.original).toEqual({
+            url: 'https://fr.wikipedia.org/w/index.php?oldid=1',
+            title: 'Ligne de Metz-Ville à Zoufftgen',
+            label: 'signalling_history.source.link',
+        });
+    });
+
+    it('nomme chaque document par son éditeur, avec sa date de publication à sa précision', () => {
+        const [r] = correctionRows([correction()], ctx);
+        expect(r.documents.map((d) => [d.label, d.published])).toEqual([
+            ['EPSF', '1 août 2016'],
+            ['EPSF', '2018'],
+            ['Presse', null],
+        ]);
+    });
+
+    it('un remplacement, un fait de document et une portion inconnue', () => {
+        const [r] = correctionRows(
+            [
+                correction({
+                    action: 'replace',
+                    section: null,
+                    original: { provider: 'manual', title: 'Communiqué', url: 'https://x.test' },
+                }),
+            ],
+            ctx,
+        );
+        expect(r.action).toBe('signalling_history.corrections.action.replace');
+        expect(r.portion).toBeNull();
+        expect(r.original.label).toBe('signalling_history.corrections.original_document');
     });
 });

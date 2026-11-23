@@ -174,7 +174,9 @@ class PageQueryBudgetTest extends TestCase
         // 32 depuis le 23/11 au soir (storage/app/reports/agents/aprem-2111/budgets-suite.md) : les détails de la liste des
         // gares (LineSheet::pageStationDetails) relisent les gares de la ligne, en cinq lectures indexées (70 ms sur
         // Paris - Marseille), pour 75 Ko de moins au premier affichage ; une de plus pour le matériel (LineMaterialFacts).
-        $this->assertLessThanOrEqual(32, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 33 avec les corrections sourcées de la signalisation, repliées sous la frise (LineSignallingHistory::correctionsForSheet :
+        // une lecture indexée par ligne).
+        $this->assertLessThanOrEqual(33, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_line_sheet_sends_first_only_what_the_map_reads_of_each_station(): void

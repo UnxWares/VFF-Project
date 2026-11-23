@@ -76,7 +76,7 @@
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
-     *   signalling_history?: Array<any>,
+     *   signalling_history?: Array<any>, signalling_corrections?: Array<any>,
      *   profile?: any, speeds?: any, electrification_history?: any, trace_export_eras?: Array<number>,
      *   structures?: { summary: any, items: Array<any> },
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
@@ -120,6 +120,8 @@
         greenways: greenwaysProp,
         // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
         signalling_history: signallingHistoryProp,
+        // Dates de signalisation contredites par des documents, repliées sous la frise (LineSignallingHistory::correctionsForSheet).
+        signalling_corrections: signallingCorrectionsProp,
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile: profileProp,
         // Ouvrages d'art par PK (App\Services\Structures\LineStructures::forSheet).
@@ -148,6 +150,7 @@
         levelCrossingsProp,
         greenwaysProp,
         signallingHistoryProp,
+        signallingCorrectionsProp,
         profileProp,
         structuresProp,
         speedsProp,
@@ -168,6 +171,7 @@
     const level_crossings = $derived(levelCrossingsProp ?? { total: 0, summary: [], items: [] });
     const greenways = $derived(greenwaysProp ?? { total_length_m: 0, osm_date: null, items: [] });
     const signalling_history = $derived(signallingHistoryProp ?? []);
+    const signalling_corrections = $derived(signallingCorrectionsProp ?? []);
     const profile = $derived(profileProp ?? null);
     const structures = $derived(
         structuresProp ?? { summary: { count: 0, by_kind: {}, tunnel_length_m: 0 }, items: [] },
@@ -1281,7 +1285,7 @@
             </SheetSection>
         {/if}
 
-        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length)}
+        {#if !pending && (stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length || signalling_corrections.length)}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1405,9 +1409,10 @@
                     </ol>
                 {/if}
 
-                {#if signalling_history.length}
+                {#if signalling_history.length || signalling_corrections.length}
                     <LineSignallingHistory
                         history={signalling_history}
+                        corrections={signalling_corrections}
                         moment={phaseMoment(phase)}
                         momentLabel={phase ? phaseDate(phase) : null}
                         momentSection={t('lines.section.route_through_time')}

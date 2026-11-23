@@ -217,3 +217,53 @@ export function statusText(s, fact, t, lang) {
     }
     return t(`signalling_history.status.${s.status}`);
 }
+
+/** Date de publication d'un document (AAAA, AAAA-MM ou AAAA-MM-JJ) à sa précision, ou null. */
+function publishedLabel(published, lang) {
+    const p = String(published ?? '');
+    if (/^\d{4}$/.test(p)) return p;
+    if (/^\d{4}-\d{2}$/.test(p)) return formatEventDate(`${p}-01`, 'month', lang);
+    if (/^\d{4}-\d{2}-\d{2}/.test(p)) return formatEventDate(p, 'day', lang);
+    return null;
+}
+
+/**
+ * Corrections repliées sous la frise : dates lues dans un article (ou un document) que des documents
+ * contredisent (App\Services\Signalling\LineSignallingHistory::correctionsForSheet). Elles ne sont ni dans
+ * la frise ni sur la carte ; chaque ligne dit la date écartée, où elle a été lue, ce que VFF en fait,
+ * pourquoi (texte en français) et les documents qui la contredisent, nommés par leur éditeur.
+ *
+ * @param {Array<any>} corrections
+ * @param {{ t: (key: string, opts?: object) => string, lang: string, pkWord: string }} ctx
+ */
+export function correctionRows(corrections, { t, lang, pkWord }) {
+    return corrections.map((c) => ({
+        key: [c.system, c.date, c.section?.from, c.section?.to, c.original?.url].join('|'),
+        when: formatEventDate(c.date, c.date_precision, lang),
+        iso: c.date,
+        system: systemLabel(c.system, t),
+        portion: c.section
+            ? portionText({ scope: 'section', section: c.section }, t, pkWord)
+            : null,
+        action: t(
+            c.action === 'replace'
+                ? 'signalling_history.corrections.action.replace'
+                : 'signalling_history.corrections.action.neutralize',
+        ),
+        reason: c.reason || null,
+        original: {
+            url: c.original?.url,
+            title: c.original?.title,
+            label:
+                c.original?.provider === 'manual'
+                    ? t('signalling_history.corrections.original_document')
+                    : t('signalling_history.source.link'),
+        },
+        documents: (c.sources ?? []).map((d) => ({
+            url: d.url,
+            label: d.publisher,
+            title: d.title,
+            published: publishedLabel(d.published, lang),
+        })),
+    }));
+}

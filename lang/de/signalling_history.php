@@ -45,4 +45,17 @@ return [
         'uncertain_year' => 'Datum nur auf das Jahr genau bekannt: vor oder nach diesem Datum in Betrieb',
         'uncertain_month' => 'Datum nur auf den Monat genau bekannt: vor oder nach diesem Datum in Betrieb',
     ],
+    // Durch Dokumente widerlegte Daten (belegte Korrekturen), unter der Zeitleiste eingeklappt.
+    'corrections' => [
+        'summary' => 'Durch Dokumente widerlegte Daten (:count)',
+        'intro' => 'Diese Daten, gelesen in einem Artikel oder einem Dokument, werden durch zuverlässigere Dokumente widerlegt. Sie stehen weder in der Zeitleiste noch auf der Karte.',
+        'read_in' => 'Datum gelesen in',
+        'original_document' => 'einem Dokument',
+        'action' => [
+            'neutralize' => 'Verworfen',
+            'replace' => 'In der Zeitleiste durch das Datum der Dokumente ersetzt',
+        ],
+        'reason' => 'Warum (auf Französisch):',
+        'documents' => 'Widerlegt durch:',
+    ],
 ];

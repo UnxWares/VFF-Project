@@ -45,4 +45,17 @@ return [
         'uncertain_year' => 'Date known to the year only: in service before or after that date',
         'uncertain_month' => 'Date known to the month only: in service before or after that date',
     ],
+    // Dates contradicted by documents (sourced corrections), folded under the timeline.
+    'corrections' => [
+        'summary' => 'Dates contradicted by documents (:count)',
+        'intro' => 'These dates, read in an article or a document, are contradicted by more reliable documents. They appear neither in the timeline nor on the map.',
+        'read_in' => 'Date read in',
+        'original_document' => 'a document',
+        'action' => [
+            'neutralize' => 'Set aside',
+            'replace' => 'Replaced in the timeline by the date of the documents',
+        ],
+        'reason' => 'Why (in French):',
+        'documents' => 'Contradicted by:',
+    ],
 ];

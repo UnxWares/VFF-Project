@@ -45,4 +45,17 @@ return [
         'uncertain_year' => 'Date connue à l’année près : en service avant ou après cette date',
         'uncertain_month' => 'Date connue au mois près : en service avant ou après cette date',
     ],
+    // Dates contredites par des documents (corrections sourcées), repliées sous la frise.
+    'corrections' => [
+        'summary' => 'Dates contredites par des documents (:count)',
+        'intro' => 'Ces dates, lues dans un article ou un document, sont contredites par des documents plus sûrs. Elles ne sont ni dans la frise ni sur la carte.',
+        'read_in' => 'Date lue dans',
+        'original_document' => 'un document',
+        'action' => [
+            'neutralize' => 'Écartée',
+            'replace' => 'Remplacée dans la frise par la date des documents',
+        ],
+        'reason' => 'Pourquoi :',
+        'documents' => 'Contredite par :',
+    ],
 ];
