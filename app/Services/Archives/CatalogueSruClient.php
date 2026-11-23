@@ -52,11 +52,12 @@ class CatalogueSruClient
         private readonly CatalogueSruParser $parser = new CatalogueSruParser,
         private readonly bool $offline = false,
         private readonly bool $refresh = false,
+        private readonly int $intervalMs = self::MIN_INTERVAL_MS,
     ) {}
 
-    public static function default(bool $offline = false, bool $refresh = false): self
+    public static function default(bool $offline = false, bool $refresh = false, ?string $cacheDir = null, int $intervalMs = self::MIN_INTERVAL_MS): self
     {
-        return new self(storage_path('app/data/gallica'), new CatalogueSruParser, $offline, $refresh);
+        return new self($cacheDir ?? storage_path('app/data/gallica'), new CatalogueSruParser, $offline, $refresh, $intervalMs);
     }
 
     /**
@@ -72,13 +73,30 @@ class CatalogueSruClient
      */
     public function search(string $cql): array
     {
+        /** @var array{total: int, records: list<ArchiveRecord>, truncated: bool, fetched_at: ?int} $result */
+        $result = $this->searchWith($cql, $this->parser->parse(...));
+
+        return $result;
+    }
+
+    /**
+     * Comme search(), avec un autre lecteur des pages de réponse (la bibliographie lit des livres, pas des documents
+     * de Gallica) ; même cache, mêmes essais, même cadence. La page est gardée en cache seulement si `$parse` l'accepte.
+     *
+     * @param  callable(string): array{total: int, records: list<mixed>}  $parse
+     * @return array{total: int, records: list<mixed>, truncated: bool, fetched_at: ?int}
+     *
+     * @throws RuntimeException voir search()
+     */
+    public function searchWith(string $cql, callable $parse): array
+    {
         $records = [];
         $total = 0;
         $fetchedAt = null;
         for ($page = 0; $page < self::MAX_PAGES; $page++) {
-            [$xml, $time] = $this->page($cql, $page * self::PAGE_SIZE + 1);
+            [$xml, $time] = $this->page($cql, $page * self::PAGE_SIZE + 1, $parse);
             $fetchedAt = $fetchedAt === null ? $time : min($fetchedAt, $time);
-            $parsed = $this->parser->parse($xml);
+            $parsed = $parse($xml);
             $total = $parsed['total'];
             $records = [...$records, ...$parsed['records']];
             if ($total <= ($page + 1) * self::PAGE_SIZE) {
@@ -92,11 +110,12 @@ class CatalogueSruClient
     /**
      * Une page de réponse (XML) et sa date de lecture (horodatage Unix), du cache ou du serveur.
      *
+     * @param  callable(string): mixed  $parse
      * @return array{0: string, 1: int}
      *
      * @throws RuntimeException hors ligne, page absente du cache
      */
-    private function page(string $cql, int $start): array
+    private function page(string $cql, int $start, callable $parse): array
     {
         $path = $this->cacheDir.'/sru/'.sha1($cql.'#'.$start).'.xml';
         if (! $this->refresh && is_file($path)) {
@@ -112,7 +131,7 @@ class CatalogueSruClient
         }
         $xml = $this->fetch($cql, $start);
         // Une réponse refusée (diagnostic SRU) lève une exception ici et n'est jamais mise en cache.
-        $this->parser->parse($xml);
+        $parse($xml);
         File::ensureDirectoryExists(dirname($path));
         if (! is_file($this->cacheDir.'/.nobackup')) {
             File::put($this->cacheDir.'/.nobackup', '');
@@ -162,7 +181,7 @@ class CatalogueSruClient
     {
         $now = microtime(true);
         if ($this->lastRequestAt !== null) {
-            $wait = (int) round(self::MIN_INTERVAL_MS * 1000 - ($now - $this->lastRequestAt) * 1_000_000);
+            $wait = (int) round($this->intervalMs * 1000 - ($now - $this->lastRequestAt) * 1_000_000);
             if ($wait > 0) {
                 Sleep::usleep($wait);
             }

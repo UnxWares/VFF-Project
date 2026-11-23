@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AccidentController;
 use App\Http\Controllers\Api\AccidentStatisticsController;
+use App\Http\Controllers\Api\BibliographyController;
 use App\Http\Controllers\Api\ChronologyController;
 use App\Http\Controllers\Api\CommuneController;
 use App\Http\Controllers\Api\CompanyController;
@@ -183,6 +184,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
     // Notices des fonds d'archives (Archives SNCF, ODbL) : App\Services\Archives\LineArchives::records.
     Route::get('/v1/lines/{line:slug}/archive-records', [LineArchiveRecordController::class, 'index'])->name('api.lines.archive-records');
+    // Ouvrages et articles qui traitent de la ligne ou de la gare (notices de la BnF, références de Wikipédia, Wikidata) : App\Services\Bibliography\SheetBibliography.
+    Route::get('/v1/lines/{line:slug}/bibliography', [BibliographyController::class, 'line'])->name('api.lines.bibliography');
+    Route::get('/v1/stations/{station:slug}/bibliography', [BibliographyController::class, 'station'])->name('api.stations.bibliography');
     // Histoires d'événements : images de l'époque et documents de Gallica (App\Services\Stories\EventStories).
     Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
     Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');

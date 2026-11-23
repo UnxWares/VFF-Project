@@ -546,6 +546,7 @@ return [
         'accessibility' => 'Barrierefreiheit',
         'attendance' => 'Fahrgastzahlen',
         'heritage' => 'Denkmalschutz',
+        'further-reading' => 'Zum Weiterlesen',
     ],
 
     // Données structurées (JSON-LD) de la fiche gare.

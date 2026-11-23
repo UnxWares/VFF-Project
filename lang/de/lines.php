@@ -584,6 +584,7 @@ return [
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',
         'gallery' => 'Fotos',
+        'further-reading' => 'Zum Weiterlesen',
         'archives' => 'Archive',
         'notes' => 'Quellen',
     ],

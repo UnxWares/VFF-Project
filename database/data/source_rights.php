@@ -460,6 +460,7 @@ return [
                 .'Documents : « Ces utilisations commerciales sont soumises à autorisation et au paiement d\'une redevance [...] L\'utilisation non commerciale des documents ou dans une publication académique ou scientifique est libre et gratuite sous réserve de la mention de source : BnF ou Bibliothèque nationale de France. »',
             'obligations' => 'Mention « Source : gallica.bnf.fr / BnF » (Bibliothèque nationale de France) et date de récupération des notices. '
                 .'Seules les métadonnées des notices produites par la BnF sont reprises (titre, date, type, auteurs, cote, identifiants ark) avec un lien vers le document dans Gallica (vff:import-gallica, table line_archive_documents). '
+                .'Bibliographie des lignes et des gares (vff:import-bibliography, table bibliography_entries) : seules les notices de livres du catalogue général (auteurs, titre, éditeur, lieu, année, ISBN) avec le lien vers la notice sur catalogue.bnf.fr, la source et la date de récupération ; une requête toutes les 5 secondes au plus, User-Agent du projet (API SRU documentée sur api.bnf.fr). '
                 .'Aucune image, vignette ni texte numérisé n\'est stocké ni affiché : sur un site édité par une société, leur affichage pourrait relever de la réutilisation commerciale (tarif « Web et applications mobiles » : 75 € HT par image).',
             'remarques' => 'Lu le 2026-11-20. gallica.bnf.fr (SRU, OAI-PMH, IIIF et page des conditions d\'utilisation) refuse les requêtes de la machine de développement (blocage Cloudflare « Sorry, you have been blocked »), et aussi celles de l\'outil de lecture de pages : '
                 .'les notices sont donc lues dans l\'API SRU du catalogue général (catalogue.bnf.fr/api/SRU, critère bib.digitized = freeAccess : document numérisé en accès libre dans Gallica), qui décrit les mêmes documents. '
@@ -993,6 +994,11 @@ return [
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],
+        // Bibliographie des lignes et des gares (vff:import-bibliography) : notices du catalogue général de la BnF (provider `gallica` :
+        // métadonnées sous Licence Ouverte, lien vers la notice), références des articles de Wikipédia (CC BY-SA 4.0, lien vers la
+        // révision lue) et éléments de Wikidata (CC0). Jamais le contenu ni une page d'un ouvrage.
+        'bibliography_entries' => ['bnf' => 'gallica', 'wikipedia' => 'wikipedia', 'wikidata' => 'wikidata'],
+        'bibliography_links' => ['bnf' => 'gallica', 'wikipedia' => 'wikipedia', 'wikidata' => 'wikidata'],
         // Notices des Archives SNCF rattachées aux lignes (vff:import-sncf-archives) : métadonnées du jeu « archives-sncf-sardo » (ODbL) et lien.
         'line_archive_records' => ['sncf-archives' => 'sncf-archives'],
         // Contexte sourcé des accidents (vff:enrich-accidents, database/data/accident_contexts/*.php) :

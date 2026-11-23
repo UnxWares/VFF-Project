@@ -590,6 +590,35 @@ Rattache aux lignes les documents numérisés de Gallica qui en parlent (métado
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de tous les documents jugés, retenus ou non, avec leur score et ses raisons. |
 
+### `vff:import-bibliography`
+
+Rattache aux lignes et aux gares les ouvrages et articles qui en traitent (tables `bibliography_entries` et
+`bibliography_links`, section « Pour aller plus loin » des fiches, `GET /api/v1/lines/{line}/bibliography` et
+`GET /api/v1/stations/{station}/bibliography`). Trois sources : livres du catalogue général de la BnF (API SRU
+documentée, notices sous Licence Ouverte), références `{{Ouvrage}}` / `{{Article}}` et section « Bibliographie » des
+articles de Wikipédia des lignes et des gares, « décrit par » (P1343) et « sujet principal » (P921) de Wikidata.
+Seules les notices sont reprises (auteurs, titre, éditeur, année, ISBN, lien) ; aucune page de livre n'est lue. Une
+requête toutes les 5 secondes au plus, User-Agent du projet, cache disque (`storage/app/data/bibliographie`,
+`storage/app/data/gallica`, dossiers `.nobackup`). Les liens de chaque source traitée sont remplacés pour les lignes
+et gares traitées ; une ligne dont une requête échoue garde ses liens. Table absente (migration non appliquée) :
+`--dry-run` fonctionne, l'écriture est refusée. Méthode, rattachement prudent et couverture :
+`storage/app/reports/agents/aprem-2111/bibliographie.md`.
+
+| Option | Effet |
+|:-|:-|
+| `--source=` | `bnf`, `wikipedia` ou `wikidata`, répétable ; les trois par défaut. |
+| `--line=` / `--station=` | Slug traité, répétable ; toutes les lignes (articles en premier) et les gares ayant un article ou un élément Wikidata par défaut. |
+| `--no-stations` | Ne traite aucune gare. |
+| `--no-isbn-lookup` | Ne cherche pas dans la BnF les ISBN des références de Wikipédia et de Wikidata (sinon une requête pour quinze ISBN, pour lier la notice). |
+| `--bnf-stations` | Interroge aussi la BnF pour chaque gare (une requête par gare, long). |
+| `--limit=` | Nombre de lignes (et de gares avec `--bnf-stations`) interrogées à la BnF au plus. |
+| `--threshold=` | Score minimal d'une notice de la BnF rattachée à une ligne (9 par défaut, sur 11). |
+| `--interval=` | Millisecondes entre deux requêtes (5000 au moins, 5000 par défaut). |
+| `--offline` / `--from-cache` | Caches seulement (BnF, Wikidata, Wikipédia) / articles de Wikipédia en cache seulement. |
+| `--refresh` | Ignore les caches et relit les sources. |
+| `--dry-run` | Calcule tout sans écrire. |
+| `--report=` | Fichier CSV de tous les rattachements retenus. |
+
 ### `vff:import-sncf-archives`
 
 Rattache aux lignes les notices du jeu de données « Archives SNCF » (dossiers, photographies et films du Service

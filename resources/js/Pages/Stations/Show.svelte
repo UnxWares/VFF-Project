@@ -17,6 +17,7 @@
     import StationTimetable from '$components/Stations/StationTimetable.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
     import StationHeritage from '$components/Stations/StationHeritage.svelte';
+    import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -70,6 +71,7 @@
         'location',
         'gallery',
         'aerial',
+        'further-reading',
         'sources',
     ];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
@@ -468,6 +470,9 @@
         {/if}
 
         <StationAerialViews views={aerial_views} name={station.name} />
+
+        <!-- Pour aller plus loin : chargée à la demande (API de la bibliographie), aucune requête de plus pour la page. -->
+        <FurtherReading slug={station.slug} subject="station" />
 
         <SheetSection
             title={$i18n.t('stations.sections.sources')}

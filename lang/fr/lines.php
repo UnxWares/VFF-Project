@@ -585,6 +585,7 @@ return [
         'materials' => 'Matériel',
         'accidents' => 'Accidents',
         'gallery' => 'Photos',
+        'further-reading' => 'Pour aller plus loin',
         'archives' => 'Archives',
         'notes' => 'Sources',
     ],

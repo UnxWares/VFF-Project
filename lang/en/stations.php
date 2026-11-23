@@ -546,6 +546,7 @@ return [
         'accessibility' => 'Accessibility',
         'attendance' => 'Passenger numbers',
         'heritage' => 'Heritage',
+        'further-reading' => 'Further reading',
     ],
 
     // Données structurées (JSON-LD) de la fiche gare.

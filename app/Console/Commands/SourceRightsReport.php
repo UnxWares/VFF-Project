@@ -80,6 +80,8 @@ class SourceRightsReport extends Command
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
         'line_archive_records' => 'SELECT DISTINCT source AS v FROM line_archive_records',
+        'bibliography_entries' => 'SELECT DISTINCT provider AS v FROM bibliography_entries',
+        'bibliography_links' => 'SELECT DISTINCT provider AS v FROM bibliography_links',
         'station_audits' => "SELECT DISTINCT p->>'source' AS v FROM station_audits, jsonb_array_elements(positions) AS p",
         'station_date_candidates' => 'SELECT DISTINCT source AS v FROM station_date_candidates',
         'stations.fields' => "SELECT DISTINCT p.value AS v FROM stations, jsonb_each_text(COALESCE(provenance, '{}'::jsonb)) AS p

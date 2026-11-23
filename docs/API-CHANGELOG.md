@@ -25,6 +25,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Bibliographie des lignes et des gares : ouvrages et articles qui en traitent (auteurs, titre, éditeur, lieu, année, ISBN, lien vers la
+  notice du catalogue général de la BnF ou vers la référence d'origine, raison du rattachement) : REST `GET /api/v1/lines/{line}/bibliography`
+  et `GET /api/v1/stations/{station}/bibliography`. Ajout seul.
 - REST : `GET /heritage` (patrimoine ferroviaire protégé : bâtiments voyageurs, ouvrages de gare et ouvrages d'art classés ou inscrits monuments historiques ou labellisés Architecture contemporaine remarquable ; pour chaque objet `protection`, `protection_date`, `architects`, `built` et `era`, `style`, `commune`, `region`, `reference` (Mérimée ou Wikidata), `image` libre avec sa licence, `station` ou `line` ; filtres `protection`, `object`, `style`, `architect`, `region`, `era` et tri `sort` ; `facets` donne les valeurs de chaque filtre avec leur nombre). Même contenu que la page `/heritage`. Ajout seulement.
 - REST : `GET /stats/coverage` (ce que sait l'encyclopédie : pour les lignes, les gares, les accidents et le matériel, chaque information renseignée en nombre et en part `share`, dont `open` issu de sources ouvertes, précision des dates dans `levels`, ventilation par décennie et par ère, date du calcul `computed_at`). Page : `/network/coverage`.
 - REST : `GET /materials/preserved` (matériel préservé : lieux, musées, associations et lignes touristiques avec leurs pièces, numéro, état, protection au titre des monuments historiques d'après la base Palissy, sources ; `meta` donne la couverture) et `GET /materials/{material}/preserved` (exemplaires préservés d'une série). Page : `/materials/preserved` ; section « Exemplaires préservés » de la fiche de série. Ajout seul.

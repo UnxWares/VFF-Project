@@ -32,6 +32,7 @@
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import LineElectrification from '$components/Lines/LineElectrification.svelte';
+    import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
     import LineSchematic from '$components/Lines/LineSchematic.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
@@ -199,6 +200,7 @@
         'accidents',
         'archives',
         'gallery',
+        'further-reading',
         'notes',
     ];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`lines.toc.${id}`) })));
@@ -1438,6 +1440,9 @@
             intro={t('media.subtitle')}
             onitems={(list) => (seoImages = list.slice(0, 4))}
         />
+
+        <!-- Pour aller plus loin : chargée à la demande (API de la bibliographie), aucune requête de plus pour la page. -->
+        <FurtherReading slug={line.slug} />
 
         {#if chronicle?.notes?.length || sources.length}
             <SheetSection title={t('lines.section.notes')} id="notes">
