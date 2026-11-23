@@ -89,6 +89,42 @@ class LineStationsTerminalsTest extends TestCase
         $this->assertSame(['Paris-Austerlitz-Souterrain' => false, 'Paris-Austerlitz' => true, 'Omega' => true], $this->terminals());
     }
 
+    public function test_the_ends_are_found_without_merging_the_track(): void
+    {
+        // Un tracé en double (deux ères) et un embranchement au nœud 2,10° E : les bouts restent 2,00 et 2,20° E.
+        $era = Era::factory()->create(['year' => 1990]);
+        foreach ([[[47.50, 2.00], [47.50, 2.10]], [[47.50, 2.10], [47.52, 2.12]]] as [$a, $b]) {
+            LineSegment::factory()->create(['line_id' => $this->line->id, 'era_id' => $era->id,
+                'geom' => LineString::make([Point::makeGeodetic(...$a), Point::makeGeodetic(...$b)])]);
+        }
+        $this->station('Paris-Austerlitz', 2.001, 0);
+        $this->station('Milieu', 2.10, 7_500);
+        $this->station('Omega', 2.199, 15_000);
+        $queries = [];
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        $this->assertSame(['Paris-Austerlitz' => true, 'Milieu' => false, 'Omega' => true], $this->terminals());
+        // Recoller la ligne (ST_LineMerge de tous les tracés) prenait 165 ms sur Paris - Marseille : seuls les bouts
+        // des tracés sont lus.
+        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'ST_LineMerge'))));
+    }
+
+    public function test_a_line_made_only_of_a_loop_keeps_a_terminus_at_its_start(): void
+    {
+        // Boucle de trois tracés (aucun bout libre) : le point de départ du recollement, comme avant.
+        LineSegment::query()->where('line_id', $this->line->id)->delete();
+        $era = Era::query()->firstOrFail();
+        foreach ([[[47.50, 2.00], [47.50, 2.01]], [[47.50, 2.01], [47.51, 2.005]], [[47.51, 2.005], [47.50, 2.00]]] as [$a, $b]) {
+            LineSegment::factory()->create(['line_id' => $this->line->id, 'era_id' => $era->id,
+                'geom' => LineString::make([Point::makeGeodetic(...$a), Point::makeGeodetic(...$b)])]);
+        }
+        $this->station('Paris-Austerlitz', 2.001, 0);
+
+        $this->assertSame(['Paris-Austerlitz' => true], $this->terminals());
+    }
+
     public function test_named_in_matches_whole_words_without_accents_or_case(): void
     {
         $this->assertTrue(LineStations::namedIn('Paris-Austerlitz', 'Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean'));

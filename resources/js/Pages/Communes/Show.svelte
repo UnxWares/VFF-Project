@@ -27,6 +27,7 @@
         lines = [],
         chronology = [],
         neighbors = [],
+        // Carte : prop différée (CommuneController::show), absente au premier affichage.
         map,
     } = $props();
 
@@ -246,8 +247,10 @@
                     {/if}
                 </div>
                 <div class="map-col">
-                    <div class="map-frame">
-                        <CommuneMap {map} name={commune.name} />
+                    <div class="map-frame" aria-busy={!map}>
+                        {#if map}
+                            <CommuneMap {map} name={commune.name} />
+                        {/if}
                     </div>
                     <p class="map-note">
                         {t('communes.map.summary', {

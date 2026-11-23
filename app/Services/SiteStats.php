@@ -49,18 +49,21 @@ final class SiteStats
      * Profil du réseau : longueur des lignes ouvertes (segments en service ou à voie unique) et nombre de lignes
      * à chaque décennie. Somme de length_meters (environ 0,3 s sans cache ; ST_Length sur toute la géographie
      * prenait 18 s pour les mêmes valeurs à 1 km près), ST_Length seulement pour les rares segments sans longueur.
+     * La longueur de chaque tronçon est lue avant le regroupement par ère (sous-requête fermée par OFFSET 0) : sans
+     * cela, le planificateur gardait le tracé de chaque tronçon, nécessaire au seul repli ST_Length, dans les lignes
+     * triées pour le COUNT(DISTINCT) (2,3 s et 280 Mo écrits sur disque ; 0,3 à 0,8 s ainsi, lecture de la table).
      *
      * @return list<array{year: int, km: int, lines: int, current: bool}>
      */
     public function profile(): array
     {
         return Cache::remember('home_profile:'.$this->fingerprint(), 86400, fn (): array => collect(DB::select(
-            'SELECT e.year, e.is_current,
-                    COALESCE(ROUND(SUM(COALESCE(s.length_meters, ST_Length(s.geom::geography))) / 1000), 0)::int AS km,
-                    COUNT(DISTINCT s.line_id)::int AS lines
+            'SELECT e.year, e.is_current, COALESCE(ROUND(s.m / 1000), 0)::int AS km, COALESCE(s.n, 0)::int AS lines
              FROM eras e
-             LEFT JOIN line_segments s ON s.era_id = e.id AND s.status IN (?, ?)
-             GROUP BY e.id, e.year, e.is_current
+             LEFT JOIN (SELECT era_id, SUM(m) AS m, COUNT(DISTINCT line_id) AS n
+                        FROM (SELECT era_id, line_id, COALESCE(length_meters, ST_Length(geom::geography)) AS m
+                              FROM line_segments WHERE status IN (?, ?) OFFSET 0) seg
+                        GROUP BY era_id) s ON s.era_id = e.id
              ORDER BY e.year',
             NetworkStats::ACTIVE_STATUSES,
         ))->map(fn ($r): array => [

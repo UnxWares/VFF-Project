@@ -201,6 +201,9 @@ class LineController extends Controller
             'portions_url' => fn () => LinePortionsController::url($line->slug, $core()['portions_version']),
             // Compagnies rattachées par un événement de concession daté (cache de vff:compute-company-figures) : en-tête.
             'companies' => fn () => CompanyFigures::forLine($line->id),
+            // Liste des gares : PK, commune et dates de chaque gare (LineSheet::pageStationDetails) ; leur position et
+            // leur état, lus par la carte du haut de la page, sont dans `stations` (LineSheet::PAGE_STATION_FIRST).
+            'station_details' => $defer(fn () => $sheet->pageStationDetails($line)),
             'accidents' => $defer(fn () => $accidents->forLine($line, app()->getLocale())),
             'level_crossings' => $defer(fn () => $crossings->forSheet($line)),
             'greenways' => $defer(fn () => $greenways->forSheet($line)),

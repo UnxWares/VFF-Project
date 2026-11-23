@@ -121,7 +121,8 @@ class LinePagesTest extends TestCase
                 ->has('stations', 2)
                 ->where('stations.0.slug', 'paris-saint-lazare')
                 ->where('stations.1.slug', 'versailles-rive-droite')
-                ->where('stations.1.pk_label', '17+250')
+                // PK : détails de la liste des gares, reçus après le premier affichage (LineSheet::pageStationDetails).
+                ->where('station_details.1.pk_label', '17+250')
                 ->where('stations.1.is_terminal', true)
                 ->has('stats')
                 ->has('signalling', 1)

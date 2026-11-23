@@ -59,15 +59,18 @@ final class DailyFactPool
      */
     private function stationOpenings(): array
     {
+        // Les homonymes (gare dont le nom, sans casse ni espaces au bord, en désigne une autre) sont comptés une fois
+        // pour toutes les gares : compter par gare candidate relisait les 9 400 noms deux cents fois (1,1 s à froid).
         $rows = DB::select(<<<'SQL'
             SELECT s.slug, s.name, s.city, e.event_date, e.source_url
             FROM station_events e
             JOIN stations s ON s.id = e.station_id
             JOIN station_attendances a ON a.station_id = s.id AND a.year = ? AND a.series = '2015-2024' AND a.match_method = 'uic' AND a.passengers >= ?
+            JOIN (SELECT id, COUNT(*) OVER (PARTITION BY lower(btrim(name))) AS homonyms FROM stations) h ON h.id = s.id
             WHERE e.type = 'opening' AND e.source = 'correction' AND e.date_precision = 'day' AND e.source_url LIKE 'https://%.wikipedia.org/%' AND e.source_url ~ '(title=|/wiki/)Gare_'
               AND (SELECT COUNT(*) FROM station_events x WHERE x.station_id = s.id AND x.type = 'opening' AND x.source = 'correction') = 1
               AND NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id AND x.type = 'opening' AND EXTRACT(YEAR FROM x.event_date) <> EXTRACT(YEAR FROM e.event_date))
-              AND (SELECT COUNT(*) FROM stations t WHERE lower(btrim(t.name)) = lower(btrim(s.name))) = 1
+              AND h.homonyms = 1
             ORDER BY s.id
         SQL, [FactPool::ATTENDANCE_YEAR, self::BIG_STATION_PASSENGERS]);
 

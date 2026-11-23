@@ -140,8 +140,13 @@ class DepartmentFiguresTest extends TestCase
             ->where('department.name', 'Paris')
             ->where('department.region', 'Île-de-France')
             ->has('decades', 2)
-            ->has('map.contour')
-            ->where('lines.0.state', 'open'));
+            ->where('lines.0.state', 'open')
+            // La carte (57 Ko sur le Rhône, plus bas dans la page) arrive après le premier affichage ; le nombre de ses gares,
+            // dit sous la carte, vient d'emblée.
+            ->missing('map')
+            ->where('map_station_count', fn (int $count): bool => $count >= 1)
+            ->loadDeferredProps(fn (Assert $reload) => $reload->has('map.contour')
+                ->where('map.stations', fn ($stations): bool => count($stations) === $page->toArray()['props']['map_station_count'])));
         $this->get('/departments/75')->assertRedirect('/departments/75-paris')->assertStatus(301);
         $this->get('/departments/75-ancien-nom')->assertRedirect('/departments/75-paris');
         // Département sans rail calculé, code inexistant : 404.

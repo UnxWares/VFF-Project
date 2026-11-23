@@ -26,6 +26,10 @@ class CommuneController extends Controller
             return redirect()->route('communes.show', $page['commune']['slug'], 301);
         }
 
-        return Inertia::render('Communes/Show', $page);
+        // Carte (contour, tracés et gares : 24 Ko sur Lyon) : prop différée, demandée par la page juste après son premier
+        // affichage ; la liste des gares à côté et la légende n'en dépendent pas.
+        $map = $page['map'];
+
+        return Inertia::render('Communes/Show', [...array_diff_key($page, ['map' => true]), 'map' => Inertia::defer(fn (): array => $map)]);
     }
 }

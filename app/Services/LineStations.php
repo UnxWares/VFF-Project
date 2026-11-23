@@ -182,7 +182,24 @@ final class LineStations
             "line-stations:ends:{$lineId}:".LineDataSignature::segments($lineId),
             self::ENDS_CACHE_TTL,
             function () use ($lineId): array {
+                // Les bouts des morceaux que ST_LineMerge recollerait, sans recoller : un nœud où se touchent
+                // exactement deux tracés est l'intérieur d'un morceau, tout autre nœud (bout libre, bifurcation)
+                // en est un bout, comme le départ d'un tracé fermé sur lui-même. Seuls les bouts de chaque tracé
+                // distinct sont lus, et le dédoublonnage par empreinte évite de trier les géométries entières
+                // (Paris - Marseille : 47 ms au lieu de 165, mêmes bouts sur les 2 175 lignes de la base).
                 $row = DB::selectOne(<<<'SQL'
+                    WITH seg AS (SELECT DISTINCT ST_StartPoint(geom) AS s, ST_EndPoint(geom) AS e, md5(ST_AsBinary(geom))
+                                 FROM line_segments WHERE line_id = ?),
+                         nodes AS (SELECT s AS p FROM seg UNION ALL SELECT e FROM seg),
+                         ends AS (SELECT p FROM nodes GROUP BY p HAVING count(*) <> 2
+                                  UNION ALL SELECT s FROM seg WHERE s = e)
+                    SELECT ST_X(a.p) AS x1, ST_Y(a.p) AS y1, ST_X(b.p) AS x2, ST_Y(b.p) AS y2
+                    FROM ends a CROSS JOIN ends b
+                    ORDER BY ST_DistanceSphere(a.p, b.p) DESC LIMIT 1
+                SQL, [$lineId]);
+                // Aucun bout : la ligne n'est faite que de boucles de plusieurs tracés (une sur 2 175), dont seul le
+                // recollement donne le point de départ.
+                $row ??= DB::selectOne(<<<'SQL'
                     WITH parts AS (SELECT (ST_Dump(ST_LineMerge(ST_Collect(geom)))).geom AS g
                                    FROM (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?) x),
                          ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts)

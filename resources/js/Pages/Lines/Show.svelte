@@ -61,6 +61,7 @@
         phaseStrip,
         stageNotes,
     } from '$lib/linePhases.js';
+    import { withStationDetails } from '$lib/lineStationDetails.js';
 
     /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API). Les props
      * du bas de la page (LineSheet::PAGE_DEFERRED et sections de LineController::show) arrivent juste après
@@ -81,6 +82,7 @@
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      *   archive_records?: { total: number, fetched_on: string|null, items: Array<any> },
      *   story_events?: Array<Array<number>>,
+     *   station_details?: Array<Record<string, any>>,
      *   journal?: Array<{ slug: string, title: string, lang: string }>,
      *   companies?: Array<{ slug: string, name: string, from_year: number, to_year: number|null, to_basis: string }>,
      * }} */
@@ -132,6 +134,8 @@
         archive_records: archiveRecordsProp,
         // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
         story_events: storyEventsProp,
+        // Liste des gares : PK, commune et dates de chaque gare (LineSheet::pageStationDetails).
+        station_details: stationDetailsProp,
     } = $props();
 
     const deferredProps = $derived([
@@ -151,6 +155,7 @@
         archivesProp,
         archiveRecordsProp,
         storyEventsProp,
+        stationDetailsProp,
     ]);
     // Sections du bas de la page pas encore reçues (une valeur nulle est une réponse : section absente).
     const pending = $derived(deferredProps.some((v) => v === undefined));
@@ -174,6 +179,8 @@
         archiveRecordsProp ?? { total: 0, fetched_on: null, items: [] },
     );
     const story_events = $derived(storyEventsProp ?? []);
+    // Gares de la liste, avec leurs détails une fois reçus (null jusque-là).
+    const stationRows = $derived(withStationDetails(stations, stationDetailsProp));
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -1105,8 +1112,10 @@
             count={stations.length}
             intro={stations.length ? t('lines.stations.intro') : t('lines.stations.empty')}
         >
-            {#if stations.length}
-                <LineStations {stations} {eraYears} />
+            {#if stations.length && stationRows}
+                <LineStations stations={stationRows} {eraYears} />
+            {:else if stations.length}
+                <p class="stations-pending" aria-busy="true">{t('common.sheet_loading')}</p>
             {/if}
         </SheetSection>
 
@@ -1551,7 +1560,8 @@
     .tnum {
         font-variant-numeric: tabular-nums;
     }
-    .empty {
+    .empty,
+    .stations-pending {
         margin: 0;
         font-size: var(--vff-fs-md);
         color: var(--vff-text-muted);

@@ -193,6 +193,22 @@ class DailyFactQuizTest extends TestCase
         $this->assertNotContains('1856', array_column($wrong, 'label'));
     }
 
+    public function test_a_station_with_a_namesake_is_left_out_and_namesakes_are_counted_once(): void
+    {
+        // Une autre gare du même nom (casse et espaces au bord mis à part) : la question ne saurait pas laquelle.
+        Station::factory()->create(['name' => ' GARE GAMMA']);
+        DB::enableQueryLog();
+
+        $labels = array_column($this->topic('station_opening_year'), 'label', 'title');
+
+        $this->assertSame(['Gare Alpha' => '1856'], $labels);
+        // Homonymes comptés en une passe sur toutes les gares, et non par gare candidate (1,1 s sur la base complète).
+        $read = array_values(array_filter(array_column(DB::getQueryLog(), 'query'), fn (string $sql): bool => str_contains($sql, 'station_attendances a ON')));
+        $this->assertCount(1, $read);
+        $this->assertStringContainsString('COUNT(*) OVER (PARTITION BY lower(btrim(name)))', $read[0]);
+        $this->assertStringNotContainsString('FROM stations t WHERE', $read[0]);
+    }
+
     public function test_cab_signalling_keeps_one_precise_system_documented_at_the_day(): void
     {
         $subjects = $this->topic('cab_signalling');

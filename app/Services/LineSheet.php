@@ -41,6 +41,15 @@ final class LineSheet
     public const PAGE_STATION_OMITTED = ['effective_status', 'link_method'];
 
     /**
+     * Champs de chaque gare que la page web reçoit au premier affichage : ceux de la carte du tracé, du diagramme
+     * « Où et quand » et des données structurées (position, nom, terminus, état aujourd'hui et à chaque ère). Le
+     * reste, lu par la seule liste des gares plus bas (PK, commune, dates et leur provenance), arrive après coup
+     * (pageStationDetails, prop différée `station_details` de LineController::show) : 145 Ko de gares au premier
+     * affichage de Paris - Marseille, 70 Ko ainsi.
+     */
+    public const PAGE_STATION_FIRST = ['slug', 'name', 'lng', 'lat', 'is_terminal', 'status_today', 'eras'];
+
+    /**
      * Clés que seule la page web reçoit, à la place de `portions` : leur nombre (`portions_count`) et
      * l'empreinte de leur version (`portions_version`, LinePhases::forLine), qui entre dans l'adresse du
      * tracé (LinePortionsController::url).
@@ -300,7 +309,7 @@ final class LineSheet
             'phases_unexplained' => $phases['unexplained'],
             'decades' => $decades,
             'chronicle' => $chronicle,
-            'stations' => $forPage ? $stations->map(fn (array $s): array => array_diff_key($s, array_flip(self::PAGE_STATION_OMITTED)))->values() : $stations,
+            'stations' => $forPage ? $stations->map(fn (array $s): array => array_intersect_key($s, array_flip(self::PAGE_STATION_FIRST)))->values() : $stations,
         ];
 
         if (! $forPage) {
@@ -344,6 +353,21 @@ final class LineSheet
         )?->id;
 
         return $this->deferredParts($line, $eraId === null ? null : (int) $eraId, null);
+    }
+
+    /**
+     * Ce que la liste des gares de la page web lit en plus du premier affichage (PAGE_STATION_FIRST) : pour chaque
+     * gare, son `slug` et ses autres champs, sans ceux que la page ne lit pas (PAGE_STATION_OMITTED). Mêmes gares,
+     * dans le même ordre, que la fiche (LineStations::forLine ; les extrémités du tracé sont lues dans le cache).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function pageStationDetails(Line $line): array
+    {
+        $shown = array_flip([...array_diff(self::PAGE_STATION_FIRST, ['slug']), ...self::PAGE_STATION_OMITTED]);
+
+        return $this->lineStations(app(LineStations::class)->forLine($line->id, $line->name))
+            ->map(fn (array $s): array => array_diff_key($s, $shown))->values()->all();
     }
 
     /**

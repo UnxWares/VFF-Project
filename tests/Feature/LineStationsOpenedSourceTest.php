@@ -36,11 +36,12 @@ class LineStationsOpenedSourceTest extends TestCase
         $this->assertSame('wikidata', $bySlug[$sourced->slug]['opened_source']);
         $this->assertNull($bySlug[$unknown->slug]['opened_source']);
 
-        // La fiche ligne transmet la provenance à la liste des gares (LineSheet::stationProps).
-        $this->get("/lines/{$line->slug}")->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('stations.0.slug', $inferred->slug)
-            ->where('stations.0.opened_source', 'inferred:line_event')
-            ->where('stations.1.opened_source', 'wikidata'));
+        // La fiche ligne transmet la provenance à la liste des gares (LineSheet::stationProps), dans les détails reçus
+        // après le premier affichage (LineSheet::pageStationDetails).
+        $this->getWithDeferredProps("/lines/{$line->slug}")->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('station_details.0.slug', $inferred->slug)
+            ->where('station_details.0.opened_source', 'inferred:line_event')
+            ->where('station_details.1.opened_source', 'wikidata'));
     }
 
     /** @param  array<string, string>  $provenance */
