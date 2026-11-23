@@ -69,6 +69,8 @@ class OnThisDayController extends Controller
             // Langue des textes rédigés (dates, portions, titres) : fr par défaut.
             'lang' => ['nullable', 'string', Rule::in(['fr', 'en', 'de'])],
         ]);
+        // Sans jour demandé, la réponse est celle d'aujourd'hui : un cache partagé ne doit pas la garder après minuit.
+        $maxAge = $monthDay === null ? min(3600, now()->endOfDay()->getTimestamp() - now()->getTimestamp() + 1) : 3600;
         $monthDay ??= now()->format('m-d');
         $parsed = OnThisDay::parse($monthDay);
         if ($parsed === null) {
@@ -92,6 +94,6 @@ class OnThisDayController extends Controller
                 'previous' => route('api.on-this-day', ['monthDay' => $days[($i + count($days) - 1) % count($days)]]),
                 'next' => route('api.on-this-day', ['monthDay' => $days[($i + 1) % count($days)]]),
             ],
-        ])->header('Cache-Control', 'public, max-age=3600');
+        ])->header('Cache-Control', 'public, max-age='.$maxAge);
     }
 }

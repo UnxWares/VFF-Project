@@ -212,6 +212,14 @@ class OnThisDayTest extends TestCase
         $this->getJson('/api/v1/on-this-day/06-10?lang=es')->assertUnprocessable();
     }
 
+    public function test_today_is_never_cached_past_midnight(): void
+    {
+        $this->travelTo('2026-11-23 23:50:00');
+
+        $this->assertStringContainsString('max-age=600', (string) $this->getJson('/api/v1/on-this-day')->assertOk()->headers->get('Cache-Control'));
+        $this->assertStringContainsString('max-age=3600', (string) $this->getJson('/api/v1/on-this-day/11-23')->assertOk()->headers->get('Cache-Control'));
+    }
+
     public function test_the_mcp_tool_answers_with_the_same_facts_and_validates_the_day(): void
     {
         $this->event(['type' => 'opening', 'event_date' => '1883-06-10', 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/wiki/X']);
