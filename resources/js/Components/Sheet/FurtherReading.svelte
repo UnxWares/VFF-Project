@@ -33,9 +33,13 @@
 
     onMount(async () => {
         if (bibliography) return;
-        const base = subject === 'station' ? 'stations' : 'lines';
+        // Adresses écrites en entier : le contrôle des routes (RoutesUsageTest) les retrouve.
+        const url =
+            subject === 'station'
+                ? `/api/v1/stations/${encodeURIComponent(slug)}/bibliography`
+                : `/api/v1/lines/${encodeURIComponent(slug)}/bibliography`;
         try {
-            const res = await fetch(`/api/v1/${base}/${encodeURIComponent(slug)}/bibliography`, {
+            const res = await fetch(url, {
                 headers: { Accept: 'application/json' },
             });
             if (res.ok) bibliography = await res.json();
