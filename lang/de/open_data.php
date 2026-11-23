@@ -20,7 +20,7 @@ return [
 
     'thematic' => [
         'title' => 'Thematische Datensätze',
-        'intro' => 'Alle Jahrzehnte zusammen, eine CSV-Datei je Datensatz.',
+        'intro' => 'Alle Jahrzehnte zusammen, eine CSV-Datei je Datensatz. Jeder Datensatz enthält dictionnaire.csv: Beschreibung jedes Feldes (Französisch, Englisch, Deutsch), seine Quelle und seine Lizenz.',
     ],
     'network' => [
         'title' => 'Netz nach Jahrzehnten',
@@ -32,6 +32,12 @@ return [
         'events' => ['title' => 'Datierte Ereignisse', 'text' => 'Eröffnungen, Stilllegungen, Elektrifizierungen und weitere Daten der Strecken, mit Abschnitt und Quelle.'],
         'accidents' => ['title' => 'Unfälle', 'text' => 'Auf VFF veröffentlichte Unfälle: Datum, Ort, Art, Opferzahlen und Quellen.'],
         'materials' => ['title' => 'Fahrzeuge', 'text' => 'Fahrzeugbaureihen: Hersteller, Betreiber, Einsatzjahre und technische Daten.'],
+        'signalling' => ['title' => 'Signalisierung und Zugsicherung', 'text' => 'Datierte Inbetriebnahmen von Blockbetrieb, Führerraumsignalisierung, KVB und zentraler Steuerung sowie der in jedem Jahrzehnt geltende Stand.'],
+        'preserved' => ['title' => 'Erhaltene Fahrzeuge', 'text' => 'Erhaltene Fahrzeuge: Nummer, Ort, Zustand und Denkmalschutz, mit den Aufbewahrungsorten.'],
+        'projects' => ['title' => 'Streckenprojekte', 'text' => 'Künftige Reaktivierungen, Neubaustrecken und Elektrifizierungen, mit den datierten Etappen, deren Quelle frei ist.'],
+        'infrastructure' => ['title' => 'SNCF-Infrastruktur', 'text' => 'Gleise, Zugfunk, Bahnsteige und aktueller Blockbetrieb von SNCF Réseau, Strecken und Bahnhöfen zugeordnet.'],
+        'profiles' => ['title' => 'Längsprofile', 'text' => 'Entlang der Strecken gemessene Höhen, maximale Neigung und von SNCF Réseau und Wikipedia veröffentlichte Neigungen.'],
+        'redirects' => ['title' => 'Adressweiterleitungen', 'text' => 'Frühere Adressen zusammengelegter Bahnhöfe und umbenannter Strecken, mit der aktuellen Adresse.'],
     ],
 
     'cols' => [
@@ -83,6 +89,19 @@ return [
             'accidents_name' => 'Unfallnamen',
             'accidents_sources' => 'Zitierte Unfallquellen',
             'materials' => 'Fahrzeugbaureihen',
+            'signalling_events' => 'Datierte Signalisierungsangaben',
+            'preserved_units' => 'Erhaltene Fahrzeuge',
+            'projects_stages' => 'Projektetappen',
+            'infrastructure_voies_csv' => 'SNCF-Gleisabschnitte',
+            'infrastructure_radio_csv' => 'SNCF-Funkabschnitte',
+            'infrastructure_platforms' => 'Bahnsteige',
+            'infrastructure_block' => 'Blockabschnitte',
+            'accidents_references' => 'Unfallquellen',
+            'redirects_stations' => 'Bahnhofsweiterleitungen',
+            'redirects_lines' => 'Streckenweiterleitungen',
+            'profiles_measures' => 'Gemessene Längsprofile',
+            'profiles_points' => 'Punkte von Längsprofilen',
+            'profiles_grades' => 'Belegte Neigungen',
             'other' => 'Feld :field',
         ],
     ],

@@ -23,53 +23,83 @@ final class OpenDataPackage
 
     /** Description des fichiers : nom => [français, anglais]. */
     public const FILES = [
-        'lignes.csv' => ['Une ligne par ligne de chemin de fer présente à l\'ère, avec ses totaux.', 'One row per railway line present in the era, with totals.'],
-        'lignes.geojson' => ['Mêmes lignes, géométrie MultiLineString réunissant les sections exportées.', 'Same lines, MultiLineString geometry built from the exported sections.'],
-        'sections.csv' => ['Une ligne par section (portion de ligne dans un état homogène) à l\'ère.', 'One row per section (line portion in a uniform state) in the era.'],
-        'sections.geojson' => ['Mêmes sections, géométrie LineString ou MultiLineString.', 'Same sections, LineString or MultiLineString geometry.'],
-        'gares.csv' => ['Une ligne par gare ou halte présente à l\'ère, avec sa position (lat, lon, WGS 84).', 'One row per station or halt present in the era, with its position (lat, lon, WGS 84).'],
-        'gares.geojson' => ['Mêmes gares, géométrie Point.', 'Same stations, Point geometry.'],
-        'evenements.csv' => ['Événements datés des lignes (ouvertures, fermetures, électrifications…), sans texte.', 'Dated line events (openings, closures, electrifications…), without text.'],
-        'accidents.csv' => ['Accidents publiés par VFF : date, lieu, nature, bilan, sources. Aucun résumé.', 'Accidents published by VFF: date, place, kind, toll, sources. No summary.'],
-        'materiel.csv' => ['Séries de matériel roulant : constructeur, exploitants, années, caractéristiques.', 'Rolling stock series: builder, operators, years, characteristics.'],
+        'lignes.csv' => ['Une ligne par ligne de chemin de fer présente à l\'ère, avec ses totaux.', 'One row per railway line present in the era, with totals.', 'Eine Zeile je Bahnstrecke, die im Jahrzehnt besteht, mit Summen.'],
+        'lignes.geojson' => ['Mêmes lignes, géométrie MultiLineString réunissant les sections exportées.', 'Same lines, MultiLineString geometry built from the exported sections.', 'Dieselben Strecken, Geometrie MultiLineString aus den exportierten Abschnitten.'],
+        'sections.csv' => ['Une ligne par section (portion de ligne dans un état homogène) à l\'ère.', 'One row per section (line portion in a uniform state) in the era.', 'Eine Zeile je Abschnitt (Streckenteil in einheitlichem Zustand) im Jahrzehnt.'],
+        'sections.geojson' => ['Mêmes sections, géométrie LineString ou MultiLineString.', 'Same sections, LineString or MultiLineString geometry.', 'Dieselben Abschnitte, Geometrie LineString oder MultiLineString.'],
+        'gares.csv' => ['Une ligne par gare ou halte présente à l\'ère, avec sa position (lat, lon, WGS 84).', 'One row per station or halt present in the era, with its position (lat, lon, WGS 84).', 'Eine Zeile je Bahnhof oder Haltepunkt im Jahrzehnt, mit Position (lat, lon, WGS 84).'],
+        'gares.geojson' => ['Mêmes gares, géométrie Point.', 'Same stations, Point geometry.', 'Dieselben Bahnhöfe, Geometrie Point.'],
+        'evenements.csv' => ['Événements datés des lignes (ouvertures, fermetures, électrifications…), sans texte.', 'Dated line events (openings, closures, electrifications…), without text.', 'Datierte Ereignisse der Strecken (Eröffnungen, Stilllegungen, Elektrifizierungen …), ohne Text.'],
+        'accidents.csv' => ['Accidents publiés par VFF : date, lieu, nature, bilan, sources. Aucun résumé.', 'Accidents published by VFF: date, place, kind, toll, sources. No summary.', 'Von VFF veröffentlichte Unfälle: Datum, Ort, Art, Bilanz, Quellen. Keine Zusammenfassung.'],
+        'materiel.csv' => ['Séries de matériel roulant : constructeur, exploitants, années, caractéristiques.', 'Rolling stock series: builder, operators, years, characteristics.', 'Fahrzeugreihen: Hersteller, Betreiber, Jahre, Merkmale.'],
+        'signalisation-evenements.csv' => ['Mises en service de signalisation et de protection datées (cantonnement, cabine, KVB, commande centralisée), sans extrait ni document.', 'Dated signalling and train protection commissionings (block, cab signalling, KVB, centralised control), without excerpts or documents.', 'Datierte Inbetriebnahmen von Signalisierung und Zugsicherung (Blockbetrieb, Führerraum, KVB, zentrale Steuerung), ohne Auszüge oder Dokumente.'],
+        'signalisation-par-epoque.csv' => ['État de la signalisation en vigueur à la fin de chaque décennie, déduit des faits libres.', 'Signalling state in force at the end of each decade, deduced from the open facts.', 'Am Ende jedes Jahrzehnts geltender Signalisierungsstand, abgeleitet aus den freien Angaben.'],
+        'materiel-preserve-exemplaires.csv' => ['Exemplaires de matériel roulant conservés : numéro, lieu, état, protection au titre des monuments historiques.', 'Preserved rolling stock units: number, place, state, listed-heritage protection.', 'Erhaltene Fahrzeuge: Nummer, Ort, Zustand, Denkmalschutz.'],
+        'materiel-preserve-lieux.csv' => ['Lieux de conservation du matériel (musées, associations, lignes touristiques, sites).', 'Places where stock is preserved (museums, associations, tourist railways, sites).', 'Aufbewahrungsorte der Fahrzeuge (Museen, Vereine, Museumsbahnen, Standorte).'],
+        'projets.csv' => ['Projets ferroviaires pas encore en service : réouvertures, lignes nouvelles, LGV, RER, électrifications.', 'Railway projects not yet in service: reopenings, new lines, high-speed lines, RER, electrifications.', 'Noch nicht in Betrieb genommene Bahnprojekte: Reaktivierungen, Neubaustrecken, Hochgeschwindigkeitsstrecken, RER, Elektrifizierungen.'],
+        'projets-etapes.csv' => ['Étapes datées des projets (étude, débat, utilité publique, financement, travaux, service), avec la source de chaque date.', 'Dated project stages (study, debate, public utility, funding, works, service), with the source of each date.', 'Datierte Projektetappen (Studie, Debatte, öffentliche Nützlichkeit, Finanzierung, Bau, Betrieb), mit der Quelle jedes Datums.'],
+        'voies.csv' => ['Régime d\'exploitation et nombre de voies par portion de ligne (SNCF Réseau).', 'Operating regime and number of tracks per line portion (SNCF Réseau).', 'Betriebsart und Gleiszahl je Streckenabschnitt (SNCF Réseau).'],
+        'radio.csv' => ['Systèmes radio sol-train par portion de ligne (SNCF Réseau).', 'Ground-train radio systems per line portion (SNCF Réseau).', 'Zugfunksysteme je Streckenabschnitt (SNCF Réseau).'],
+        'quais.csv' => ['Quais des gares : longueur, voie, position (SNCF Réseau).', 'Station platforms: length, track, position (SNCF Réseau).', 'Bahnsteige der Bahnhöfe: Länge, Gleis, Position (SNCF Réseau).'],
+        'cantonnement.csv' => ['Cantonnement et contrôle de vitesse actuels par portion de ligne (SNCF Réseau).', 'Current block and train protection per line portion (SNCF Réseau).', 'Aktueller Blockbetrieb und aktuelle Zugsicherung je Streckenabschnitt (SNCF Réseau).'],
+        'accidents-sources.csv' => ['Familles de sources des accidents relus : nature, fiabilité, accès, date et lien. Ni titre, ni auteur.', 'Source families of the proofread accidents: kind, reliability, access, date and link. No title or author.', 'Quellenfamilien der nachgelesenen Unfälle: Art, Verlässlichkeit, Zugang, Datum und Link. Weder Titel noch Autor.'],
+        'redirections-gares.csv' => ['Anciennes adresses de fiches de gares fondues dans une autre, avec l\'adresse actuelle.', 'Former station page addresses merged into another, with the current address.', 'Frühere Adressen von Bahnhofsseiten, die in eine andere übergingen, mit der aktuellen Adresse.'],
+        'redirections-lignes.csv' => ['Anciennes adresses de fiches de lignes renommées ou fusionnées, avec l\'adresse actuelle.', 'Former line page addresses renamed or merged, with the current address.', 'Frühere Adressen umbenannter oder zusammengelegter Streckenseiten, mit der aktuellen Adresse.'],
+        'profils-lignes.csv' => ['Profil en long mesuré par ligne : altitudes, cumuls, déclivité maximale (IGN).', 'Measured long profile per line: altitudes, totals, maximum gradient (IGN).', 'Gemessenes Längsprofil je Strecke: Höhen, Summen, maximale Neigung (IGN).'],
+        'profils-points.csv' => ['Points des profils en long : distance, point kilométrique, altitude.', 'Long profile points: distance, kilometre post, altitude.', 'Punkte der Längsprofile: Entfernung, Kilometrierung, Höhe.'],
+        'declivites-sourcees.csv' => ['Déclivités maximales publiées par SNCF Réseau et par Wikipédia, avec leur source.', 'Maximum gradients published by SNCF Réseau and Wikipedia, with their source.', 'Von SNCF Réseau und Wikipedia veröffentlichte maximale Neigungen, mit ihrer Quelle.'],
+        'dictionnaire.csv' => ['Dictionnaire des champs en français, anglais et allemand, avec la provenance et la licence de chaque champ.', 'Field dictionary in French, English and German, with the provenance and licence of each field.', 'Feldverzeichnis auf Französisch, Englisch und Deutsch, mit Herkunft und Lizenz jedes Feldes.'],
     ];
 
     /** Champs communs expliqués dans le LISEZMOI : champ => [français, anglais]. */
     public const FIELDS = [
-        'era' => ['décennie de la carte (1830 à 2020) ; 2030 désigne l\'état du réseau au jour de l\'export', 'map decade (1830 to 2020); 2030 is the state of the network on the export day'],
-        'status' => ['état à l\'ère (in_service, abandoned, dismantled, razed… ; pour les gares : active, tourist, no_commercial, declassified)', 'state in the era (in_service, abandoned, dismantled, razed…; stations: active, tourist, no_commercial, declassified)'],
-        'pk_start_m, pk_end_m' => ['points kilométriques en mètres', 'kilometre posts in metres'],
-        '*_on' => ['dates au format AAAA-MM-JJ ; *_precision indique si seul le mois ou l\'année est sûr', 'dates as YYYY-MM-DD; *_precision tells whether only the month or the year is known'],
-        '*_source, sources' => ['fournisseur de la donnée (clé du registre des droits : osm, sncf, ign, wikidata, wikipedia, vff…)', 'provider of the value (key of the rights register: osm, sncf, ign, wikidata, wikipedia, vff…)'],
-        'geometry_status' => ['original (tracé de la source de la section), replaced (tracé d\'une source libre à moins de 15 m), withheld (aucun tracé libre : géométrie absente)', 'original (trace of the section source), replaced (trace of an open source within 15 m), withheld (no open trace: no geometry)'],
+        'era' => ['décennie de la carte (1830 à 2020) ; 2030 désigne l\'état du réseau au jour de l\'export', 'map decade (1830 to 2020); 2030 is the state of the network on the export day', 'Jahrzehnt der Karte (1830 bis 2020); 2030 steht für den Stand des Netzes am Exporttag'],
+        'status' => ['état à l\'ère (in_service, abandoned, dismantled, razed… ; pour les gares : active, tourist, no_commercial, declassified)', 'state in the era (in_service, abandoned, dismantled, razed…; stations: active, tourist, no_commercial, declassified)', 'Zustand im Jahrzehnt (in_service, abandoned, dismantled, razed …; Bahnhöfe: active, tourist, no_commercial, declassified)'],
+        'pk_start_m, pk_end_m' => ['points kilométriques en mètres', 'kilometre posts in metres', 'Kilometrierung in Metern'],
+        '*_on' => ['dates au format AAAA-MM-JJ ; *_precision indique si seul le mois ou l\'année est sûr', 'dates as YYYY-MM-DD; *_precision tells whether only the month or the year is known', 'Daten im Format JJJJ-MM-TT; *_precision zeigt, ob nur der Monat oder das Jahr sicher ist'],
+        '*_source, sources' => ['fournisseur de la donnée (clé du registre des droits : osm, sncf, ign, wikidata, wikipedia, vff…)', 'provider of the value (key of the rights register: osm, sncf, ign, wikidata, wikipedia, vff…)', 'Lieferant der Angabe (Schlüssel des Rechteregisters: osm, sncf, ign, wikidata, wikipedia, vff …)'],
+        'geometry_status' => ['original (tracé de la source de la section), replaced (tracé d\'une source libre à moins de 15 m), withheld (aucun tracé libre : géométrie absente)', 'original (trace of the section source), replaced (trace of an open source within 15 m), withheld (no open trace: no geometry)', 'original (Trasse der Quelle des Abschnitts), replaced (Trasse einer freien Quelle im Abstand von höchstens 15 m), withheld (keine freie Trasse: Geometrie fehlt)'],
     ];
 
     /** Éléments écartés ou remplacés : clé du registre de fabrication => [français, anglais]. */
     public const ITEMS = [
-        'sections.geometry' => ['géométries de sections', 'section geometries'],
-        'sections.gauge' => ['écartements de sections', 'section gauges'],
-        'lines' => ['lignes créées d\'après un tracé non libre', 'lines created from a non-open trace'],
-        'lines.name' => ['noms de lignes', 'line names'],
-        'stations.name' => ['noms de gares', 'station names'],
-        'stations.geometry' => ['positions de gares', 'station positions'],
-        'stations.opened_on' => ['dates d\'ouverture de gares', 'station opening dates'],
-        'stations.closed_on' => ['dates de fermeture de gares', 'station closing dates'],
-        'events' => ['événements datés', 'dated events'],
-        'accidents' => ['accidents', 'accidents'],
-        'accidents.location' => ['positions d\'accidents', 'accident positions'],
-        'accidents.deaths' => ['nombres de morts', 'death tolls'],
-        'accidents.injuries' => ['nombres de blessés', 'injury counts'],
-        'accidents.kind' => ['natures d\'accidents', 'accident kinds'],
-        'accidents.name' => ['noms d\'accidents', 'accident names'],
-        'accidents.sources' => ['sources citées d\'accidents', 'cited accident sources'],
-        'materials' => ['séries de matériel', 'rolling stock series'],
+        'sections.geometry' => ['géométries de sections', 'section geometries', 'Geometrien von Abschnitten'],
+        'sections.gauge' => ['écartements de sections', 'section gauges', 'Spurweiten von Abschnitten'],
+        'lines' => ['lignes créées d\'après un tracé non libre', 'lines created from a non-open trace', 'Strecken, die aus einer nicht freien Trasse entstanden'],
+        'lines.name' => ['noms de lignes', 'line names', 'Streckennamen'],
+        'stations.name' => ['noms de gares', 'station names', 'Bahnhofsnamen'],
+        'stations.geometry' => ['positions de gares', 'station positions', 'Bahnhofspositionen'],
+        'stations.opened_on' => ['dates d\'ouverture de gares', 'station opening dates', 'Eröffnungsdaten von Bahnhöfen'],
+        'stations.closed_on' => ['dates de fermeture de gares', 'station closing dates', 'Schließungsdaten von Bahnhöfen'],
+        'events' => ['événements datés', 'dated events', 'datierte Ereignisse'],
+        'accidents' => ['accidents', 'accidents', 'Unfälle'],
+        'accidents.location' => ['positions d\'accidents', 'accident positions', 'Unfallpositionen'],
+        'accidents.deaths' => ['nombres de morts', 'death tolls', 'Todesopfer'],
+        'accidents.injuries' => ['nombres de blessés', 'injury counts', 'Verletztenzahlen'],
+        'accidents.kind' => ['natures d\'accidents', 'accident kinds', 'Unfallarten'],
+        'accidents.name' => ['noms d\'accidents', 'accident names', 'Unfallnamen'],
+        'accidents.sources' => ['sources citées d\'accidents', 'cited accident sources', 'angegebene Unfallquellen'],
+        'materials' => ['séries de matériel', 'rolling stock series', 'Fahrzeugreihen'],
+        'signalling.events' => ['faits de signalisation datés', 'dated signalling facts', 'datierte Signalisierungsangaben'],
+        'preserved.units' => ['exemplaires de matériel préservé', 'preserved rolling stock units', 'erhaltene Fahrzeuge'],
+        'projects.stages' => ['étapes de projets', 'project stages', 'Projektetappen'],
+        'infrastructure.voies.csv' => ['portions de voies SNCF', 'SNCF track portions', 'SNCF-Gleisabschnitte'],
+        'infrastructure.radio.csv' => ['portions radio SNCF', 'SNCF radio portions', 'SNCF-Funkabschnitte'],
+        'infrastructure.platforms' => ['quais', 'platforms', 'Bahnsteige'],
+        'infrastructure.block' => ['portions de cantonnement', 'block portions', 'Blockabschnitte'],
+        'accidents.references' => ['références d\'accidents', 'accident references', 'Unfallquellen'],
+        'redirects.stations' => ['redirections de gares', 'station redirects', 'Bahnhofsweiterleitungen'],
+        'redirects.lines' => ['redirections de lignes', 'line redirects', 'Streckenweiterleitungen'],
+        'profiles.measures' => ['profils en long mesurés', 'measured long profiles', 'gemessene Längsprofile'],
+        'profiles.points' => ['points de profils en long', 'long profile points', 'Punkte von Längsprofilen'],
+        'profiles.grades' => ['déclivités sourcées', 'sourced gradients', 'belegte Neigungen'],
     ];
 
     public const REASONS = [
-        OpenDataRights::NOT_OPEN => ['source sans licence ouverte écrite', 'source without a written open licence'],
-        OpenDataRights::NON_COMMERCIAL => ['source réservée à un usage non commercial', 'source restricted to non-commercial use'],
-        OpenDataRights::UNKNOWN_SOURCE => ['source absente du registre des droits', 'source missing from the rights register'],
-        'snapped_to_track' => ['position recalée sur un tracé non libre, remplacée par la position de sa source', 'position snapped onto a non-open trace, replaced by its source position'],
+        OpenDataRights::NOT_OPEN => ['source sans licence ouverte écrite', 'source without a written open licence', 'Quelle ohne schriftliche freie Lizenz'],
+        OpenDataRights::NON_COMMERCIAL => ['source réservée à un usage non commercial', 'source restricted to non-commercial use', 'Quelle nur für nichtkommerzielle Nutzung'],
+        OpenDataRights::UNKNOWN_SOURCE => ['source absente du registre des droits', 'source missing from the rights register', 'Quelle fehlt im Rechteregister'],
+        'snapped_to_track' => ['position recalée sur un tracé non libre, remplacée par la position de sa source', 'position snapped onto a non-open trace, replaced by its source position', 'auf eine nicht freie Trasse verschobene Position, ersetzt durch die Position ihrer Quelle'],
     ];
 
     public function __construct(private readonly OpenDataRights $rights) {}
@@ -91,6 +121,7 @@ final class OpenDataPackage
         $this->rights->assertAllowed($id, $providers);
         $credits = $this->rights->attribution($providers);
 
+        $this->dictionary($dir, $ledger);
         $this->write("{$dir}/".self::README, $this->readme($meta, $ledger, $credits, $date));
         $this->write("{$dir}/".self::LICENCE_FILE, $this->licence($meta, $credits, $date));
 
@@ -120,6 +151,20 @@ final class OpenDataPackage
             'removed' => $ledger->total(OpenDataLedger::REMOVED),
             'replaced' => $ledger->total(OpenDataLedger::REPLACED),
         ];
+    }
+
+    /** Dictionnaire des champs (fr, en, de, provenance, licence) des fichiers du jeu qui en ont un. */
+    private function dictionary(string $dir, OpenDataLedger $ledger): void
+    {
+        $rows = OpenDataDictionary::rows(array_keys($ledger->rows()), $this->rights);
+        if ($rows === []) {
+            return;
+        }
+        $csv = OpenDataFiles::csv("{$dir}/dictionnaire.csv", ['file', 'field', 'description_fr', 'description_en', 'description_de', 'provenance', 'licence']);
+        foreach ($rows as $row) {
+            $csv->row($row);
+        }
+        $ledger->count('dictionnaire.csv', $csv->close());
     }
 
     /**
@@ -181,6 +226,28 @@ final class OpenDataPackage
         $t[] = 'Only sources with a written, checked open licence that allows commercial use are included. Texts are not included.';
         $t[] = 'Anything from another source was removed or replaced by the best open value available:';
         $t = [...$t, ...$this->withheldLines($ledger, 1)];
+        $t[] = '';
+        $t[] = '';
+        $t[] = "VFF - Französische Bahnstrecken: {$meta['title_en']}";
+        $t[] = str_repeat('=', mb_strlen(end($t)));
+        $t[] = '';
+        $t[] = "Datensatz {$meta['id']}, am {$date} aus der Enzyklopädie VFF ({$this->site()}) entnommen.";
+        $t[] = 'Lizenz: '.OpenDataRights::LICENCE_NAME.' ('.OpenDataRights::LICENCE_URL.'), kommerzielle Nutzung erlaubt.';
+        $t[] = 'Namensnennung: "VFF - Voies Ferrées de France, '.$this->site().'" und die Quellen in LICENCE.txt.';
+        $t[] = 'Weitergabe unter gleichen Bedingungen: eine veröffentlichte abgeleitete Datenbank muss unter ODbL 1.0 stehen.';
+        $t[] = '';
+        foreach ($ledger->rows() as $file => $rows) {
+            $t[] = "- {$file} ({$rows}): ".(self::FILES[$file][2] ?? '');
+        }
+        $t[] = 'CSV: UTF-8, Komma, doppelte Anführungszeichen, Kopfzeile. GeoJSON: RFC 7946, WGS 84 (EPSG:4326). Jede neue Datei hat ihr Feldverzeichnis in dictionnaire.csv (Herkunft und Lizenz je Feld).';
+        $t[] = '';
+        foreach (self::FIELDS as $field => [, , $de]) {
+            $t[] = "- {$field}: {$de}";
+        }
+        $t[] = '';
+        $t[] = 'Nur Quellen mit schriftlicher, geprüfter freier Lizenz, die kommerzielle Nutzung erlaubt, sind enthalten. Texte werden nicht übernommen.';
+        $t[] = 'Alles aus anderen Quellen wurde entfernt oder durch den besten freien Wert ersetzt:';
+        $t = [...$t, ...$this->withheldLines($ledger, 2)];
         $t[] = '';
 
         return implode("\n", $t)."\n";
@@ -254,16 +321,16 @@ final class OpenDataPackage
             foreach ($actions as $action => $reasons) {
                 foreach ($reasons as $reason => $n) {
                     $label = self::ITEMS[$item][$lang] ?? (str_starts_with($item, 'materials.')
-                        ? ($lang === 0 ? 'champ ' : 'field ').substr($item, 10).($lang === 0 ? ' du matériel' : ' of rolling stock')
+                        ? ['champ ', 'field ', 'Feld '][$lang].substr($item, 10).[' du matériel', ' of rolling stock', ' der Fahrzeuge'][$lang]
                         : $item);
-                    $verb = $action === OpenDataLedger::REPLACED ? ['remplacé(s)', 'replaced'][$lang] : ['retiré(s)', 'removed'][$lang];
+                    $verb = $action === OpenDataLedger::REPLACED ? ['remplacé(s)', 'replaced', 'ersetzt'][$lang] : ['retiré(s)', 'removed', 'entfernt'][$lang];
                     $why = self::REASONS[$reason][$lang] ?? $reason;
                     $out[] = "  - {$label} : {$n} {$verb} ({$why})";
                 }
             }
         }
 
-        return $out === [] ? [$lang === 0 ? '  - rien n\'a été retiré ni remplacé.' : '  - nothing was removed or replaced.'] : $out;
+        return $out === [] ? [['  - rien n\'a été retiré ni remplacé.', '  - nothing was removed or replaced.', '  - es wurde nichts entfernt oder ersetzt.'][$lang]] : $out;
     }
 
     /**

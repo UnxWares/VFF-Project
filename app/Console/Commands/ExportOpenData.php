@@ -10,13 +10,14 @@ use App\Services\OpenData\OpenDataLedger;
 use App\Services\OpenData\OpenDataLicenceViolation;
 use App\Services\OpenData\OpenDataPackage;
 use App\Services\OpenData\OpenDataRights;
+use App\Services\OpenData\OpenDataSuiteExporter;
 use App\Support\SourceRights;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Jeux de données ouverts de VFF, sous ODbL 1.0 : réseau d'une ère (lignes, sections, gares en CSV et
- * GeoJSON), événements datés, accidents publiés et matériel roulant, chacun avec LISEZMOI.txt,
+ * GeoJSON), événements datés, accidents publiés (et leurs familles de sources), matériel roulant, signalisation par époque, matériel préservé, projets, infrastructure SNCF, redirections et profils en long, chacun avec LISEZMOI.txt,
  * LICENCE.txt et une archive ZIP, et le catalogue lu par la page « Données ouvertes » (/open-data), fichiers servis en statique sous /downloads/open-data/.
  *
  * Lecture seule de la base. Lancée à la main (pas de tâche planifiée). Seules les sources autorisées
@@ -34,14 +35,14 @@ class ExportOpenData extends Command
     protected $signature = 'vff:export-open-data
         {--era=* : Ère(s) du réseau (années de décennie) ; défaut : l\'ère courante}
         {--all-eras : Réseau de toutes les ères}
-        {--only=* : Jeux à produire parmi network, events, accidents, materials (défaut : tous)}
+        {--only=* : Jeux à produire parmi network, events, accidents, materials, signalling, preserved, projects, infrastructure, profiles, redirects (défaut : tous)}
         {--lines= : Échantillon : slugs de lignes séparés par des virgules (écrit hors du dossier public)}
         {--output= : Dossier de sortie (défaut : public/downloads/open-data, ou storage/app/open-data-sample pour un échantillon)}
         {--date= : Date du jeu (AAAA-MM-JJ, défaut : aujourd\'hui)}';
 
     protected $description = 'Produit les jeux de données ouverts (ODbL) : réseau par ère, événements, accidents, matériel (lecture seule).';
 
-    public const KINDS = ['network', 'events', 'accidents', 'materials'];
+    public const KINDS = OpenDataCatalogue::KINDS;
 
     public function handle(): int
     {
@@ -98,6 +99,7 @@ class ExportOpenData extends Command
 
         $rights = new OpenDataRights(new SourceRights);
         $exporter = new OpenDataExporter($rights);
+        $suite = app()->makeWith(OpenDataSuiteExporter::class, ['rights' => $rights, 'today' => $date]);
         $package = new OpenDataPackage($rights);
         $this->ensureDir($root);
         // Fichiers régénérables : hors des sauvegardes (convention .nobackup).
@@ -115,8 +117,17 @@ class ExportOpenData extends Command
         }
         foreach ([
             'events' => ['evenements', 'événements datés des lignes', 'dated line events', $exporter->events(...)],
-            'accidents' => ['accidents', 'accidents publiés', 'published accidents', $exporter->accidents(...)],
+            'accidents' => ['accidents', 'accidents publiés', 'published accidents', function (string $dir, OpenDataLedger $l, ?array $ids) use ($exporter, $suite): void {
+                $exporter->accidents($dir, $l, $ids);
+                $suite->accidentSources($dir, $l, $ids);
+            }],
             'materials' => ['materiel', 'matériel roulant', 'rolling stock', $exporter->materials(...)],
+            'signalling' => ['signalisation', 'historique de la signalisation et de la protection', 'signalling and train protection history', $suite->signalling(...)],
+            'preserved' => ['materiel-preserve', 'matériel roulant préservé', 'preserved rolling stock', $suite->preserved(...)],
+            'projects' => ['projets', 'projets de lignes et étapes', 'line projects and stages', $suite->projects(...)],
+            'infrastructure' => ['infrastructure-sncf', 'infrastructure de SNCF Réseau (voies, radio, quais, cantonnement)', 'SNCF Réseau infrastructure (tracks, radio, platforms, block)', $suite->infrastructure(...)],
+            'profiles' => ['profils', 'profils en long et déclivités', 'long profiles and gradients', $suite->profiles(...)],
+            'redirects' => ['redirections', 'redirections d\'adresses (gares fusionnées, lignes renommées)', 'address redirects (merged stations, renamed lines)', $suite->redirects(...)],
         ] as $kind => [$id, $fr, $en, $run]) {
             if (in_array($kind, $only, true)) {
                 $jobs[] = [['id' => $id, 'kind' => $kind, 'era' => null, 'title_fr' => $fr, 'title_en' => $en],

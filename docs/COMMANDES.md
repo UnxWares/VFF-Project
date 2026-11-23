@@ -770,17 +770,25 @@ entrent seuls ; `--accept-removals` accepte aussi un retrait ou un changement de
 ### `vff:export-open-data`
 
 Jeux de données ouverts sous ODbL 1.0, lancés à la main (aucune tâche planifiée) : réseau d'une ère (`lignes`,
-`sections`, `gares` en CSV et GeoJSON), `evenements`, `accidents`, `materiel`, chacun avec `LISEZMOI.txt`,
-`LICENCE.txt` et une archive ZIP, plus `catalogue.json` lu par la page `/open-data`. Écrit dans
+`sections`, `gares` en CSV et GeoJSON), `evenements`, `accidents` (avec `accidents-sources.csv` : familles de
+sources des accidents relus, sans titre ni auteur), `materiel`, puis `signalisation` (faits datés et état en vigueur
+à chaque décennie), `materiel-preserve`, `projets` (projets et étapes), `infrastructure-sncf` (voies, radio, quais,
+cantonnement, SNCF Réseau ODbL), `profils` (profils en long mesurés, points, déclivités sourcées) et `redirections`
+(gares fusionnées, lignes renommées), chacun avec `LISEZMOI.txt` (fr, en, de), `LICENCE.txt`, `dictionnaire.csv`
+(champ par champ : description en trois langues, provenance, licence) et une archive ZIP, plus `catalogue.json` lu par la page `/open-data`. Écrit dans
 `public/downloads/open-data/` (servi en statique, ignoré par git). Lecture seule de la base, idempotente (même base
 et même `--date`, mêmes octets). Seules les sources autorisées par `database/data/source_rights.php` entrent
-(`App\Services\OpenData\OpenDataRights`) ; le reste est retiré ou remplacé par une donnée libre et compté.
+(`App\Services\OpenData\OpenDataRights`) ; le reste est retiré ou remplacé par une donnée libre et compté (code des nouveaux jeux :
+`App\Services\OpenData\OpenDataSuiteExporter`, champs : `OpenDataDictionary`). Règles propres aux jeux récents : aucun
+texte rédigé ni donnée personnelle ; une étape de projet n'entre que si le domaine de son lien est un fournisseur libre
+du registre ; un ancien slug qui porte un préfixe de source non libre (`archeo-`) est retiré ; un profil en long
+mesuré sur un tracé non libre n'est publié ni en mesures ni en points.
 
 | Option | Effet |
 |:-|:-|
 | `--era=` | Ère(s) du réseau, répétable ; défaut : l'ère courante. |
 | `--all-eras` | Réseau de toutes les ères. |
-| `--only=` | `network`, `events`, `accidents`, `materials`, répétable (défaut : tous). |
+| `--only=` | `network`, `events`, `accidents`, `materials`, `signalling`, `preserved`, `projects`, `infrastructure`, `profiles`, `redirects`, répétable (défaut : tous). |
 | `--lines=` | Échantillon : slugs séparés par des virgules ; écrit dans `storage/app/open-data-sample`, jamais dans le dossier public. |
 | `--output=` | Autre dossier de sortie. |
 | `--date=` | Date du jeu (AAAA-MM-JJ). |
