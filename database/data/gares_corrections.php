@@ -3542,4 +3542,34 @@ return [
         'quote' => 'd\'Eymoutiers à Meymac : le 8 octobre 1883',
         'reason' => 'ouverture de la section Eymoutiers - Meymac, où se trouve la gare (PK 473150, entre Viam et Meymac)',
     ],
+
+    // ── 33. Dates d'ouverture douteuses relevées avant l'application des ères de gares (verif-gares, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/verif-gares.md). Une gare prenait la date d'une section ou d'une mise en
+    // exploitation qui n'est pas celle de son ouverture au service public.
+
+    // Auger-Saint-Vincent : le 01/09/1870, la ligne est mise en exploitation par les troupes d'occupation pour des convois
+    // militaires exclusivement ; l'exploitation régulière pour le public commence le 01/07/1871, avec Senlis et Barbery
+    // seulement, les autres arrêts étant ouverts « bientôt après ». Le jour exact de l'arrêt n'est pas trouvé : année 1871.
+    [
+        'station' => ['name' => 'Auger-St-Vincent', 'uic' => '87272187'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1871-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Chantilly - Gouvieux à Crépy-en-Valois', 237300162),
+        'quote' => 'L\'exploitation régulière à destination du public commence le 1er juillet 1871',
+        'reason' => 'le 01/09/1870 est la mise en exploitation par les troupes d\'occupation pour des convois militaires seulement ; le service public commence le 01/07/1871 (Senlis et Barbery d\'abord, les autres arrêts bientôt après), jour de l\'arrêt non trouvé',
+    ],
+    // Saignon : gare du prolongement d'Apt à Saint-Maime - Dauphin (PK 37, Apt au PK 32), mis en service le 25/10/1890. L'ouverture
+    // de 1877 est celle de la section Cavaillon - Apt, qui ne va pas jusqu'à Saignon.
+    [
+        'station' => ['name' => 'Saignon', 'near' => [5.44702, 43.87668, 0.5]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1890-10-25',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Cavaillon à Saint-Maime - Dauphin', 241491046),
+        'quote' => 'La ligne et l\'embranchement, tous deux à voie unique, sont mis en service le 25 octobre 1890.',
+        'reason' => 'gare de la section Apt - Saint-Maime - Dauphin (déclassement d\'Apt à Saignon : PK 32,400 à 37,353), mise en service le 25/10/1890 ; la date de 1877 est celle de Cavaillon - Apt',
+    ],
 ];
