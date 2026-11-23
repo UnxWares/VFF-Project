@@ -111,6 +111,15 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Matériel roulant : chaque période de circulation (`periods[]` de `GET /api/v1/lines/{line}/materials` et de
+  `GET /api/v1/materials/{material}`, outils MCP `line_materials` et `get_material`, fiches web) porte `portion` : la portion de
+  la ligne parcourue, placée sur le tracé quand la source la nomme (titre de section, relation citée par l'article de la série,
+  portion écrite dans la phrase datée), avec `location` (`stations`, `landmarks`, ou `line` pour la ligne entière), `from` et `to`
+  (`id` et `name` de la gare, `id` nul pour un point remarquable), `pk_start_m` et `pk_end_m` (PK calés, en mètres). `null` quand
+  aucune portion n'est nommée ou qu'elle n'a pas pu être placée sûrement. GraphQL : `LineMaterialPeriod.portion`
+  (`LineMaterialPeriodPortion`, `LineMaterialPortionEnd`). `section` reste la portion telle que l'écrit le titre de section. Ajout seul.
+  `curl -s https://vff-project.org/api/v1/lines/<slug>/materials | jq '.data[].periods[] | select(.portion) | .portion'`.
+
 - Recherche : termes du glossaire. REST `GET /api/v1/search` renvoie `glossary` (5 termes au plus : `type`, `slug`, `name`,
   `names` en `fr`, `en` et `de`, `abbr`), le serveur MCP accepte `glossary` dans `kinds` de `search` (cherché par défaut, avec
   `vff_url` vers `/glossary#{slug}`). Trouvés par le nom, le sigle ou le développé dans l'une des trois langues (`TVM 430`,

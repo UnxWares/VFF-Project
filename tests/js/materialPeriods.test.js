@@ -4,6 +4,8 @@ import {
     periodText,
     periodYears,
     periodsSummary,
+    portionText,
+    portionsList,
     endText,
     relationNotes,
     relationsList,
@@ -19,6 +21,7 @@ const fr = {
     'materials.periods.start': 'début : :date',
     'materials.periods.end': 'fin : :date',
     'materials.periods.section': 'entre :from et :to',
+    'materials.periods.portion': 'de :from à :to',
     'materials.end.line': 'Sur la ligne jusqu’en :year',
     'materials.end.series_in_service': 'Série encore en service',
     'materials.end.series_withdrawn': 'Série retirée',
@@ -125,6 +128,88 @@ describe('periodText', () => {
                 'fr',
             ),
         ).toBe('1935 - 1940, entre Saint-Just-en-Chaussée et Cambrai');
+    });
+
+    it('préfère la portion placée sur le tracé au titre de section', () => {
+        expect(
+            periodText(
+                {
+                    ...range('2020-02-17', null, 'day', null),
+                    section_from: 'Mantes',
+                    section_to: 'Lisieux',
+                    portion: {
+                        location: 'stations',
+                        from: { id: 1, name: 'Mantes-la-Jolie' },
+                        to: { id: 2, name: 'Lisieux' },
+                    },
+                },
+                t,
+                'fr',
+            ),
+        ).toBe('début : 17 février 2020, de Mantes-la-Jolie à Lisieux');
+    });
+});
+
+describe('portionText', () => {
+    const portion = (from, to, location = 'stations') => ({
+        location,
+        from: { id: null, name: from },
+        to: { id: null, name: to },
+    });
+
+    it('contracte l’article en français', () => {
+        expect(portionText(portion('Le Havre-Graville', 'Rolleville'), t, 'fr')).toBe(
+            'du Havre-Graville à Rolleville',
+        );
+        expect(portionText(portion('Évreux-Embranchement', 'Le Mans'), t, 'fr')).toBe(
+            'd’Évreux-Embranchement au Mans',
+        );
+        expect(portionText(portion('Orléans', 'Les Aubrais'), t, 'fr')).toBe(
+            'd’Orléans aux Aubrais',
+        );
+        expect(portionText(portion('Les Aubrais', 'Paris'), t, 'fr')).toBe('des Aubrais à Paris');
+        const en = (key, o) => `from ${o.from} to ${o.to}`;
+        expect(portionText(portion('Le Havre', 'Rolleville'), en, 'en-GB')).toBe(
+            'from Le Havre to Rolleville',
+        );
+    });
+
+    it('ne dit rien pour la ligne entière, une portion introuvable ou absente', () => {
+        expect(portionText(portion('Mantes-la-Jolie', 'Cherbourg', 'line'), t, 'fr')).toBeNull();
+        expect(portionText({ location: 'unlocated', from: null, to: null }, t, 'fr')).toBeNull();
+        expect(portionText(null, t, 'fr')).toBeNull();
+    });
+});
+
+describe('portionsList', () => {
+    it('une entrée par portion, avec ses années, sans la ligne entière', () => {
+        const on = (from, to, location = 'stations') => ({
+            location,
+            from: { id: null, name: from },
+            to: { id: null, name: to },
+        });
+        expect(
+            portionsList(
+                [
+                    {
+                        ...range('2020-02-17', null, 'day', null),
+                        portion: on('Paris-Saint-Lazare', 'Mantes-la-Jolie'),
+                    },
+                    {
+                        ...range('1992-01-01', '2013-01-01'),
+                        portion: on('Paris-Saint-Lazare', 'Mantes-la-Jolie'),
+                    },
+                    {
+                        ...range('2020-02-17', null, 'day', null),
+                        portion: on('Mantes-la-Jolie', 'Cherbourg', 'line'),
+                    },
+                    { ...range('2001-01-01', null), portion: null },
+                ],
+                t,
+                'fr',
+            ),
+        ).toEqual(['de Paris-Saint-Lazare à Mantes-la-Jolie (1992-2013, à partir de 2020)']);
+        expect(portionsList(undefined, t, 'fr')).toEqual([]);
     });
 });
 

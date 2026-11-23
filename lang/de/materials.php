@@ -124,6 +124,8 @@ return [
         'start' => 'Beginn: :date',
         'end' => 'Ende: :date',
         'section' => 'zwischen :from und :to',
+        'portion' => 'von :from bis :to',
+        'on_portions' => 'Auf einem Abschnitt der Strecke: :portions',
         'label' => 'Einsatz auf der Strecke',
         'source' => 'Quelle',
         'note' => 'Die Jahre stammen aus den Wikipedia-Artikeln über die Strecke und die Baureihen oder aus Wikidata. Fehlt das Ende, heißt das nicht, dass die Baureihe hier noch fährt. Die Quelle jedes Zeitraums steht auf der Seite der Baureihe.',

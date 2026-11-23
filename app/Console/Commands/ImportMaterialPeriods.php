@@ -21,8 +21,9 @@ use Illuminate\Support\Facades\DB;
  * mêmes révisions que les preuves des liens), sans requête vers Wikipédia. Wikidata : une seule requête,
  * gardée en cache ; `--offline` ne lit que le cache.
  *
- * Rejouable : chaque période a une empreinte stable (lien, début, fin, portion) ; celles que les sources ne
- * portent plus sont retirées (cette table seulement).
+ * Rejouable : chaque période a une empreinte stable (lien, début, fin, portion du titre de section) ; celles que
+ * les sources ne portent plus sont retirées (cette table seulement). Chaque période est placée sur la portion du
+ * tracé que la source nomme (MaterialPeriodPortion : gares d'extrémité et PK calés), sans changer son empreinte.
  *
  *   php artisan vff:import-material-periods
  *   php artisan vff:import-material-periods --dry-run -v
@@ -57,6 +58,10 @@ class ImportMaterialPeriods extends Command
         $linkIds = array_unique(array_column($shown, 'line_material_id'));
         $pairs = DB::table('line_materials')->whereIn('id', $linkIds)->get(['line_id', 'material_id']);
         $this->info(count($shown).' période(s) sûre(s) sur '.$pairs->pluck('line_id')->unique()->count().' ligne(s) et '.$pairs->pluck('material_id')->unique()->count().' série(s).');
+        // Portion du tracé (MaterialPeriodPortion) : périodes sûres placées sur une portion, sur la ligne entière, ou non placées.
+        $located = array_count_values(array_map(fn (array $p): string => $p['section_location'] ?? 'none', $shown));
+        $this->line(sprintf('  Portions des périodes sûres : %d entre deux gares, %d par un point remarquable, %d sur la ligne entière, %d nommées mais introuvables, %d sans portion nommée.',
+            $located['stations'] ?? 0, $located['landmarks'] ?? 0, $located['line'] ?? 0, $located['unlocated'] ?? 0, $located['none'] ?? 0));
 
         if ($this->output->isVerbose()) {
             $names = DB::table('line_materials')->join('lines', 'lines.id', '=', 'line_materials.line_id')->join('materials', 'materials.id', '=', 'line_materials.material_id')
@@ -64,7 +69,8 @@ class ImportMaterialPeriods extends Command
                 ->get(['line_materials.id', 'lines.code', 'lines.name as line', 'materials.name as material'])->keyBy('id');
             foreach ($periods as $p) {
                 $n = $names[$p['line_material_id']] ?? null;
-                $this->line(sprintf('  [%s] %s %s | %s → %s | %s | %s', $p['confidence'], $n->code ?? '', $n->material ?? '', $p['start_date'] ?? '…', $p['end_date'] ?? '…', $p['origin'], $p['source_excerpt'] ?? $p['source_url']));
+                $portion = $p['section_location'] === null ? '' : sprintf(' | %s PK %s-%s', $p['section_location'], $p['located_pk_start_m'] ?? '?', $p['located_pk_end_m'] ?? '?');
+                $this->line(sprintf('  [%s] %s %s | %s → %s%s | %s | %s', $p['confidence'], $n->code ?? '', $n->material ?? '', $p['start_date'] ?? '…', $p['end_date'] ?? '…', $portion, $p['origin'], $p['source_excerpt'] ?? $p['source_url']));
             }
         }
 

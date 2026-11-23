@@ -124,6 +124,8 @@ return [
         'start' => 'start: :date',
         'end' => 'end: :date',
         'section' => 'between :from and :to',
+        'portion' => 'from :from to :to',
+        'on_portions' => 'On part of the line: :portions',
         'label' => 'Running on the line',
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',

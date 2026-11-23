@@ -189,7 +189,7 @@ class MaterialPeriodsTest extends TestCase
             ->where('materials.0.end.since', 2009)
             ->where('materials.0.periods', [[
                 'start_date' => '2009-09-06', 'start_precision' => 'day', 'end_date' => null, 'end_precision' => null,
-                'section_from' => null, 'section_to' => null, 'relation' => null, 'source' => 'wikipedia',
+                'section_from' => null, 'section_to' => null, 'relation' => null, 'portion' => null, 'source' => 'wikipedia',
                 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000',
             ]])
             ->where('materials.2.slug', 'cc-72000')
@@ -219,7 +219,7 @@ class MaterialPeriodsTest extends TestCase
         $x = collect($restLinks)->firstWhere('material.slug', 'x-72500');
         $this->assertSame([[
             'start_date' => null, 'start_precision' => null, 'end_date' => '2009-09-06', 'end_precision' => 'day', 'section' => null,
-            'relation' => null, 'confidence' => 'high', 'origin' => 'line_article',
+            'relation' => null, 'portion' => null, 'confidence' => 'high', 'origin' => 'line_article',
             'source' => ['title' => self::LINE_TITLE, 'revision' => 230000000, 'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000'],
             'provenance' => ['provider' => 'wikipedia', 'name' => 'Wikipédia (FR)', 'license' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés', 'license_status' => 'verified'],
         ]], $x['periods']);

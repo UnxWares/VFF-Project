@@ -162,7 +162,7 @@ class StationMergeTest extends TestCase
         $this->assertSame(1, $moved['media.mediable_id']);
         $this->assertSame(0, $moved['media doublons']);
         $this->assertSame(0, $moved['accidents.nearest_station_id']);
-        $this->assertCount(22, $moved);
+        $this->assertCount(24, $moved);
         $this->assertSame([], app(StationMerger::class)->merge($kept->id, $kept->id));
     }
 

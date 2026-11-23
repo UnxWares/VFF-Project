@@ -114,11 +114,58 @@ export function periodsSummary(periods, t) {
         .join(', ');
 }
 
+/** Portions placées sur la ligne et montrées (LineMaterialPeriod::SHOWN_LOCATIONS) ; `line` vaut la ligne entière. */
+const SHOWN_PORTIONS = ['stations', 'landmarks'];
+
+/**
+ * Portion de la ligne parcourue, placée sur le tracé (`portion` de LineMaterialPeriod::toSheet()) : « de
+ * Mantes-la-Jolie à Lisieux ». En français, « de Le Havre » s'écrit « du Havre », « à Les Aubrais » « aux
+ * Aubrais », « de Évreux » « d’Évreux ». Null pour une portion absente, introuvable ou qui couvre la ligne.
+ *
+ * @param {?{location: string, from: ?{name: string}, to: ?{name: string}}} portion
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface (fr, en, de)
+ * @returns {?string}
+ */
+export function portionText(portion, t, lang = 'fr') {
+    if (!SHOWN_PORTIONS.includes(portion?.location) || !portion.from || !portion.to) return null;
+    const text = String(
+        t('materials.periods.portion', { from: portion.from.name, to: portion.to.name }),
+    );
+    if (!lang.startsWith('fr')) return text;
+    return text
+        .replace(/^de Les /u, 'des ')
+        .replace(/^de Le /u, 'du ')
+        .replace(/^de (?=[AEIOUYÀÂÉÈÊÎÔH])/u, 'd’')
+        .replace(/ à Les /u, ' aux ')
+        .replace(/ à Le /u, ' au ');
+}
+
+/**
+ * Portions de la ligne parcourues par une série, une par paire de gares, avec leurs années : « de
+ * Mantes-la-Jolie à Lisieux (à partir de 2020) ». Liste vide si aucune période n'a de portion montrée.
+ *
+ * @param {Array<{start_date: ?string, end_date: ?string, portion?: ?object}>|undefined} periods
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface (fr, en, de)
+ * @returns {string[]}
+ */
+export function portionsList(periods, t, lang = 'fr') {
+    const byPortion = new Map();
+    for (const p of periods ?? []) {
+        const text = portionText(p.portion, t, lang);
+        if (!text) continue;
+        byPortion.set(text, [...(byPortion.get(text) ?? []), p]);
+    }
+    return [...byPortion].map(([text, list]) => `${text} (${periodsSummary(list, t)})`);
+}
+
 /**
  * Période à la précision de la source : « 20 août 1982 - 30 mai 1986 », « début : juin 2009 »,
- * « fin : 1972 », suivie de la portion quand l'article la nomme.
+ * « fin : 1972 », suivie de la portion : placée sur le tracé (« de Mantes-la-Jolie à Lisieux », portionText),
+ * sinon telle que le titre de section de l'article la nomme (« entre X et Y »).
  *
- * @param {{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string, section_from?: ?string, section_to?: ?string}} p
+ * @param {{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string, section_from?: ?string, section_to?: ?string, portion?: ?object}} p
  * @param {(key: string, opts?: object) => string} t traduction
  * @param {string} lang langue de l'interface (fr, en, de)
  */
@@ -134,7 +181,10 @@ export function periodText(p, t, lang = 'fr') {
     } else {
         text = String(t('materials.periods.end', { date: date(p.end_date, p.end_precision) }));
     }
-    if (p.section_from && p.section_to) {
+    const portion = portionText(p.portion, t, lang);
+    if (portion) {
+        text += `, ${portion}`;
+    } else if (p.section_from && p.section_to) {
         text += `, ${t('materials.periods.section', { from: p.section_from, to: p.section_to })}`;
     }
     return text;

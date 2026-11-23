@@ -3367,6 +3367,33 @@ type LineMaterialLink {
   folded_into_versions: Boolean!
 }
 
+"Portion de la ligne parcourue pendant une période de circulation, placée sur le tracé."
+type LineMaterialPeriodPortion {
+  "`stations` (deux gares de la ligne), `landmarks` (un point remarquable au moins, comme une bifurcation) ou `line` (la portion couvre la ligne entière)."
+  location: String!
+
+  "Première extrémité : gare (`id`, `name`) ou point remarquable (`id` nul, nom tel qu'écrit)."
+  from: LineMaterialPortionEnd
+
+  "Seconde extrémité (voir `from`)."
+  to: LineMaterialPortionEnd
+
+  "PK de début de la portion, en mètres (PK calé de la gare ou du point, jamais l'abscisse brute d'un tracé)."
+  pk_start_m: Int
+
+  "PK de fin de la portion, en mètres (au moins `pk_start_m`)."
+  pk_end_m: Int
+}
+
+"Extrémité d'une portion parcourue : gare de la ligne, ou point remarquable sans gare."
+type LineMaterialPortionEnd {
+  "Gare (`stations.id`), nulle pour un point remarquable."
+  id: Int
+
+  "Nom lisible de la gare, ou nom du point tel que la source l'écrit."
+  name: String!
+}
+
 """
 Période de circulation d'une série sur une ligne, lue dans une source datée : phrase d'un article
 Wikipédia qui relie la série et la ligne (faits seulement, CC BY-SA 4.0, la phrase n'est jamais
@@ -3394,6 +3421,14 @@ type LineMaterialPeriod {
 
   "Relation assurée pendant cette période, quand la phrase datée cite une relation ou un itinéraire (sans `kind`, `title` ni `periods`). Nulle sinon."
   relation: LineMaterialRelation
+
+  """
+  Portion de la ligne parcourue, placée sur le tracé par ses gares d'extrémité et leurs PK calés quand la
+  source la nomme (titre de section, relation citée, portion écrite dans la phrase datée), comme `portion` de
+  `GET /api/v1/lines/{line}/materials`. Nulle quand aucune portion n'est nommée ou qu'elle n'a pas pu être
+  placée sûrement : la période vaut alors pour la ligne, sans précision.
+  """
+  portion: LineMaterialPeriodPortion
 
   "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
   confidence: String!

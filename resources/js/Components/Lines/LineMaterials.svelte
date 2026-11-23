@@ -9,6 +9,7 @@
         earliestText,
         endText,
         periodsSummary,
+        portionsList,
         relationNotes,
         relationsList,
         splitDoubtful,
@@ -78,6 +79,7 @@
                 {@const builders = buildersText(m.builders, m.builder, t)}
                 {@const onLine = m.periods?.length ? periodsSummary(m.periods, t) : null}
                 {@const relations = relationsList(m.relations, m.periods, t)}
+                {@const portions = portionsList(m.periods, t, lang)}
                 {@const notes = relationNotes(m.relations, t, lang)}
                 {@const earliest = earliestText(m.earliest_on_line, t, lang)}
                 <li class="vff-tile material-card">
@@ -137,6 +139,11 @@
                         >{/if}
                     {#if onLine}<span class="on-line"
                             >{t('materials.periods.on_line', { periods: onLine })}</span
+                        >{/if}
+                    {#if portions.length}<span class="on-line"
+                            >{t('materials.periods.on_portions', {
+                                portions: portions.join(' ; '),
+                            })}</span
                         >{/if}
                     {#if earliest}<span class="on-line">{earliest}</span>{/if}
                     {#if relations.length}<span class="on-line"

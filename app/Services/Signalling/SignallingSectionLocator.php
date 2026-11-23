@@ -102,7 +102,7 @@ final class SignallingSectionLocator
         if ($key === '') {
             return null;
         }
-        $stations = $this->stations[$lineId] ??= $this->load($lineId);
+        $stations = $this->stations($lineId);
         foreach ([fn (array $s): bool => $s['key'] === $key, fn (array $s): bool => str_starts_with($s['key'], $key.' ')] as $test) {
             $found = array_values(array_filter($stations, $test));
             if ($found === []) {
@@ -120,6 +120,16 @@ final class SignallingSectionLocator
         }
 
         return null;
+    }
+
+    /**
+     * Gares de la ligne dont le PK est calé (voir CALIBRATED), dans l'ordre des PK.
+     *
+     * @return list<array{id: int, name: string, key: string, pk_m: int}>
+     */
+    public function stations(int $lineId): array
+    {
+        return $this->stations[$lineId] ??= $this->load($lineId);
     }
 
     /**

@@ -70,7 +70,8 @@ class LineMaterial extends Model
      */
     public function shownPeriods(): HasMany
     {
-        return $this->periods()->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES);
+        // Gares d'extrémité de la portion parcourue, lues avec la période (LineMaterialPeriod::portion()).
+        return $this->periods()->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES)->with(['fromStation:id,name', 'toStation:id,name']);
     }
 
     /**

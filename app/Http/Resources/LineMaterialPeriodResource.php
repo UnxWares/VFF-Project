@@ -63,6 +63,18 @@ class LineMaterialPeriodResource extends JsonResource
              */
             'relation' => $this->relation,
             /**
+             * Portion de la ligne parcourue, placée sur le tracé quand la source la nomme (titre de section,
+             * relation citée, portion écrite dans la phrase) : `location` (`stations` : deux gares de la ligne ;
+             * `landmarks` : un point remarquable au moins, comme une bifurcation ; `line` : la portion couvre la
+             * ligne entière), `from` / `to` (gares d'extrémité : `id` et `name`, `id` nul pour un point
+             * remarquable), `pk_start_m` et `pk_end_m` (PK calés des gares ou des points, en mètres, début <= fin).
+             * Nulle quand la source ne nomme aucune portion ou qu'elle n'a pas pu être placée sûrement : la période
+             * vaut alors pour la ligne, sans précision.
+             *
+             * @var array{location: string, from: array{id: int|null, name: string}|null, to: array{id: int|null, name: string}|null, pk_start_m: int|null, pk_end_m: int|null}|null
+             */
+            'portion' => $this->portion(),
+            /**
              * Fiabilité : `high` (chaque date au jour ou au mois), `medium` (une date à l'année). Les périodes
              * `low` (date approximative ou phrase ambiguë) ne sont jamais servies.
              *
