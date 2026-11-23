@@ -43,6 +43,9 @@ class PanoramaxVision
      */
     public const MIN_SCORE_SCENE = 0.7;
 
+    /** Seuil imposé par `--min-score` (null : MIN_SCORE). Jamais sous MIN_SCORE. */
+    public ?float $minScore = null;
+
     /** @var ?array<string, float> */
     private ?array $scores = null;
 

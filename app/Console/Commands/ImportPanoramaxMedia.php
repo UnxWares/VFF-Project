@@ -40,6 +40,7 @@ class ImportPanoramaxMedia extends Command
         {--csv= : Fichier CSV où écrire les photos retenues}
         {--rule=scene : Règle de tri : scene (abords de la gare, par défaut) ou legacy (60 m, 15°)}
         {--instance=* : Instances gardées (ign, osm-fr ; les deux par défaut)}
+        {--min-score= : Avec --vision, note minimale (0,7 à 1, relève le seuil par défaut)}
         {--vision : Tri par vision (note « la gare est visible » de scripts/panoramax-vision, en cache), instance IGN seule}';
 
     protected $description = 'Photos Panoramax (IGN, OpenStreetMap France) des gares : au plus 3 par gare, qui voient un bâtiment ou un quai de la gare';
@@ -74,6 +75,15 @@ class ImportPanoramaxMedia extends Command
         if ($vision !== null) {
             // Seules les vignettes de l'IGN se lisent (robots.txt d'OpenStreetMap France) : les autres instances sont ignorées.
             $instances = PanoramaxVision::INSTANCES;
+            if ($this->option('min-score') !== null) {
+                $min = (float) $this->option('min-score');
+                if ($min < PanoramaxVision::MIN_SCORE || $min > 1) {
+                    $this->error('--min-score : entre '.PanoramaxVision::MIN_SCORE.' et 1.');
+
+                    return self::FAILURE;
+                }
+                $vision->minScore = $min;
+            }
         }
         $source = new PanoramaxStationSource(
             app(PanoramaxClient::class), $ids, (bool) $this->option('cache-only'),
@@ -103,9 +113,9 @@ class ImportPanoramaxMedia extends Command
         if ($this->option('csv') !== null) {
             $h = fopen((string) $this->option('csv'), 'wb');
             if ($h !== false) {
-                fputcsv($h, ['slug', 'station', 'id', 'distance_m', 'angle', 'license', 'date', 'thumb', 'page', 'instance', 'station_seen_deg', 'platform_seen_deg', 'station_building_m', 'vision_score'], escape: '\\');
+                fputcsv($h, ['slug', 'station', 'id', 'distance_m', 'angle', 'license', 'author', 'date', 'thumb', 'page', 'instance', 'station_seen_deg', 'platform_seen_deg', 'station_building_m', 'vision_score'], escape: '\\');
                 foreach ($source->accepted as $a) {
-                    fputcsv($h, [$a['slug'], $a['station'], $a['id'], $a['distance_m'], $a['angle'], $a['license'], $a['date'], $a['thumb'], $a['page'],
+                    fputcsv($h, [$a['slug'], $a['station'], $a['id'], $a['distance_m'], $a['angle'], $a['license'], $a['author'], $a['date'], $a['thumb'], $a['page'],
                         $a['instance'], $a['station_seen_deg'], $a['platform_seen_deg'], $a['station_building_m'], $a['vision_score']], escape: '\\');
                 }
                 fclose($h);

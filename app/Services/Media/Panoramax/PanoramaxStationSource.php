@@ -168,7 +168,7 @@ final class PanoramaxStationSource implements MediaSource
             }
         }
 
-        return PanoramaxSelection::pickVision($candidates, $lat, $lng, $vision->score(...), $this->rejected, $scene);
+        return PanoramaxSelection::pickVision($candidates, $lat, $lng, $vision->score(...), $this->rejected, $scene, $vision->minScore);
     }
 
     /** @param  array<string, mixed>  $f */
@@ -177,7 +177,7 @@ final class PanoramaxStationSource implements MediaSource
         $record = $this->record($f, (int) $s->id, $lat, $lng);
         $this->accepted[] = ['station' => $s->name, 'slug' => $s->slug, 'id' => $record->externalId,
             'distance_m' => $record->meta['distance_m'], 'angle' => $record->meta['angle_to_station'],
-            'license' => $record->license, 'date' => $record->capturedAt, 'thumb' => $record->thumbUrl, 'page' => $record->sourceUrl,
+            'license' => $record->license, 'author' => $record->author, 'date' => $record->capturedAt, 'thumb' => $record->thumbUrl, 'page' => $record->sourceUrl,
             'instance' => $record->meta['instance'], 'station_seen_deg' => $record->meta['station_seen_deg'] ?? null,
             'platform_seen_deg' => $record->meta['platform_seen_deg'] ?? null, 'station_building_m' => $record->meta['station_building_m'] ?? null,
             'vision_score' => $record->meta['vision_score'] ?? null];

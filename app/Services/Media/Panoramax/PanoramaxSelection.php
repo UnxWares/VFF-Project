@@ -302,9 +302,10 @@ final class PanoramaxSelection
      * @param  list<array<string, mixed>>  $candidates
      * @param  callable(string): ?float  $score  note de vision d'une photo (null si absente)
      * @param  array<string, int>  $rejected
+     * @param  ?float  $minScore  seuil imposé (relève le seuil par défaut, jamais en dessous de lui)
      * @return list<array<string, mixed>>
      */
-    public static function pickVision(array $candidates, float $stationLat, float $stationLng, callable $score, array &$rejected = [], ?StationScene $scene = null): array
+    public static function pickVision(array $candidates, float $stationLat, float $stationLng, callable $score, array &$rejected = [], ?StationScene $scene = null, ?float $minScore = null): array
     {
         $ok = [];
         foreach ($candidates as $f) {
@@ -315,7 +316,7 @@ final class PanoramaxSelection
                 continue;
             }
             [$sceneReason, $view] = $scene !== null && ! $scene->isEmpty() ? self::assess($f, $stationLat, $stationLng, $scene) : ['no_scene', null];
-            $min = $sceneReason === null ? PanoramaxVision::MIN_SCORE_SCENE : PanoramaxVision::MIN_SCORE;
+            $min = $minScore ?? ($sceneReason === null ? PanoramaxVision::MIN_SCORE_SCENE : PanoramaxVision::MIN_SCORE);
             if ($s < $min) {
                 $rejected['vision_low'] = ($rejected['vision_low'] ?? 0) + 1;
 

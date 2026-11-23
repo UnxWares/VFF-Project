@@ -129,6 +129,29 @@ class PanoramaxVisionImportTest extends TestCase
         $this->assertSame(['gare-vue', 'pas-notee', 'route'], collect(explode("\n", trim(File::get($this->dir.'/vision/a-noter.txt'))))->sort()->values()->all());
     }
 
+    public function test_min_score_raises_the_threshold_and_the_csv_names_the_author(): void
+    {
+        Station::factory()->create(['slug' => 'gare-vision', 'geom' => Point::makeGeodetic(self::LAT, self::LNG)]);
+        $this->fakeNetwork();
+        $this->writeScores();
+        $csv = $this->dir.'/photos.csv';
+
+        $this->artisan('vff:import-panoramax-media', ['--dry-run' => true, '--vision' => true, '--cache-only' => true, '--csv' => $csv])->assertSuccessful();
+        $this->assertCount(1, file($csv, FILE_SKIP_EMPTY_LINES) ?: [], 'sans cache : en-tête seul');
+
+        $this->artisan('vff:import-panoramax-media', ['--dry-run' => true, '--vision' => true, '--csv' => $csv, '--min-score' => '0.9'])->assertSuccessful();
+        $rows = array_map(fn (string $l): array => str_getcsv($l, escape: '\\'), file($csv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: []);
+        $header = array_shift($rows);
+        $this->assertSame('author', $header[array_search('author', $header, true)]);
+        $this->assertCount(1, $rows);
+        $this->assertSame('contributeur gare-vue', $rows[0][array_search('author', $header, true)]);
+
+        $this->artisan('vff:import-panoramax-media', ['--dry-run' => true, '--vision' => true, '--csv' => $csv, '--min-score' => '0.99'])->assertSuccessful();
+        $this->assertCount(1, file($csv, FILE_SKIP_EMPTY_LINES) ?: [], 'note 0,97 sous le seuil 0,99');
+
+        $this->artisan('vff:import-panoramax-media', ['--dry-run' => true, '--vision' => true, '--min-score' => '0.3'])->assertFailed();
+    }
+
     public function test_razed_station_gets_no_candidate(): void
     {
         Station::factory()->create(['lifecycle' => 'razed', 'geom' => Point::makeGeodetic(self::LAT, self::LNG)]);
