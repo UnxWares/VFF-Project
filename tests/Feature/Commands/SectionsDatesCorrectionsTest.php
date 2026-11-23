@@ -27,6 +27,16 @@ class SectionsDatesCorrectionsTest extends TestCase
         return require database_path('data/'.self::FILE);
     }
 
+    /**
+     * Les ajouts seuls (le fichier compte aussi une neutralisation : l'inauguration de Creil - Beauvais).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function additions(): array
+    {
+        return array_values(array_filter($this->corrections(), fn (array $c): bool => $c['action'] === 'add'));
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -34,10 +44,10 @@ class SectionsDatesCorrectionsTest extends TestCase
         $this->era(2030, current: true);
     }
 
-    public function test_at_least_sixty_openings_are_dated_to_the_day_and_only_openings(): void
+    public function test_at_least_one_hundred_and_thirty_openings_are_dated_to_the_day_and_only_openings(): void
     {
-        $corrections = $this->corrections();
-        $this->assertGreaterThanOrEqual(60, count($corrections));
+        $corrections = $this->additions();
+        $this->assertGreaterThanOrEqual(130, count($corrections));
         $seen = [];
         foreach ($corrections as $c) {
             $this->assertSame('add', $c['action']);
@@ -53,7 +63,7 @@ class SectionsDatesCorrectionsTest extends TestCase
 
     public function test_every_correction_cites_a_revision_and_a_quote_that_states_its_day(): void
     {
-        foreach ($this->corrections() as $c) {
+        foreach ($this->additions() as $c) {
             $label = $c['line'].' '.$c['date'];
             $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', $c['source_url'], $label);
             [$y, $m, $d] = explode('-', $c['date']);
@@ -73,7 +83,7 @@ class SectionsDatesCorrectionsTest extends TestCase
     public function test_a_year_opening_gets_its_sections_dated_to_the_day(): void
     {
         $by = [];
-        foreach ($this->corrections() as $c) {
+        foreach ($this->additions() as $c) {
             $by[$c['line']][] = $c;
         }
         $line = $this->rfnLine('070000', 'Ligne de Paris-Est à Strasbourg-Ville');
@@ -91,5 +101,34 @@ class SectionsDatesCorrectionsTest extends TestCase
         $this->assertSame(['Paris-Est', 'Meaux'], [$days->first()->section_from, $days->first()->section_to]);
         $this->assertSame('1852-08-12', $days->last()->event_date);
         $this->assertSame(1, DB::table('line_events')->where('line_id', $line->id)->where('source', 'wikipedia')->count(), 'l\'événement d\'année importé reste');
+    }
+
+    public function test_the_second_pass_covers_the_lines_left_without_a_day_and_neutralises_a_festive_inauguration(): void
+    {
+        $lines = array_unique(array_column($this->additions(), 'line'));
+        foreach (['146000', '172000', '261000', '372000', '441000', '584000', '650000', '707000', '843000', '486000', '316000'] as $code) {
+            $this->assertContains($code, $lines, $code);
+        }
+        $neutralised = array_values(array_filter($this->corrections(), fn (array $c): bool => $c['action'] === 'neutralize'));
+        $this->assertCount(1, $neutralised);
+        $this->assertSame('316000', $neutralised[0]['line']);
+        $this->assertSame(['source' => 'wikipedia', 'type' => 'opening', 'date' => '1857-06-28'], $neutralised[0]['match']);
+        $this->assertMatchesRegularExpression('/28 juin 1857/u', (string) $neutralised[0]['quote']);
+    }
+
+    public function test_creil_beauvais_keeps_its_service_date_and_loses_its_inauguration_as_an_opening(): void
+    {
+        $line = $this->rfnLine('316000', 'Ligne de Creil à Beauvais');
+        DB::table('line_events')->insert([
+            'line_id' => $line->id, 'type' => 'opening', 'event_date' => '1857-06-28', 'date_precision' => 'day',
+            'description' => 'Import', 'source' => 'wikipedia', 'confidence' => 'medium', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->useDataFile(self::FILE, array_values(array_filter($this->corrections(), fn (array $c): bool => $c['line'] === '316000')));
+
+        $this->artisan('vff:apply-event-corrections', ['--line' => '316000'])->assertSuccessful();
+
+        $this->assertSame(1, DB::table('line_events')->where('line_id', $line->id)->where('type', 'other')->where('event_date', '1857-06-28')->count());
+        $this->assertSame(1, DB::table('line_events')->where('line_id', $line->id)->where('type', 'opening')->where('event_date', '1857-09-01')->where('source', 'manual')->count());
+        $this->assertSame(0, DB::table('line_events')->where('line_id', $line->id)->where('type', 'opening')->where('event_date', '1857-06-28')->count());
     }
 }
