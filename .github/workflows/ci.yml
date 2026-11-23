@@ -31,7 +31,9 @@ jobs:
   php:
     name: PHP 8.5 - Pint, i18n, PHPStan, PHPUnit
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Mesuré le 23/11/2026 : 4 min avant PHPUnit, puis 12 à 19 min de PHPUnit (10 300 tests) selon le runner,
+    # soit jusqu'à 23 min ; 30 laisse une marge sans laisser tourner longtemps une suite bloquée.
+    timeout-minutes: 30
     permissions:
       contents: read
 
