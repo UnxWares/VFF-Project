@@ -4,7 +4,6 @@ namespace App\Mcp\Tools;
 
 use App\Http\Resources\LineEventResource;
 use App\Mcp\Support\CursorPage;
-use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Support\VffTool;
 use App\Models\LineEvent;
 use App\Rules\PaginationCursor;
@@ -67,8 +66,7 @@ class NetworkEventsTool extends VffTool
     {
         $filters = LineEventQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'lang'])));
         $page = app(LineEventQuery::class)->apply(LineEvent::query()->with('line:id,slug,code,name'), $filters)
-            // Jamais les faits d'une source non commerciale (archeoferroviaire) : NonCommercialSources.
-            ->whereRaw(app(NonCommercialSources::class)->sqlKept('line_events', 'line_events.source', 'line_events.source_url'))
+            // Jamais un fait sans source redistribuable (LineEventQuery, RedistributableDates).
             ->cursorPaginate((int) ($input['limit'] ?? 50), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
         $events = array_map(fn (array $e): array => ['when' => EventText::isoDate($e['date'], $e['date_precision'], $lang)] + $e,
             LineEventResource::collection($page->items())->resolve());

@@ -2,13 +2,11 @@
 
 namespace App\Mcp\Tools;
 
-use App\Mcp\Support\NonCommercialSources;
-use App\Mcp\Support\ServedStationDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Communes\CommuneRail;
 use App\Services\Communes\CommuneSheet;
+use App\Support\RedistributableDates;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -34,9 +32,6 @@ TXT)]
 class GetCommuneTool extends VffTool
 {
     private const MAX_LIMIT = CommuneSheet::CHRONOLOGY_LIMIT;
-
-    /** Événements de gare de la chronologie lus dans station_events (les autres viennent de la fiche de la gare). */
-    private const STATION_EVENT_KINDS = ['station_reopening', 'station_closure_passenger', 'station_closure_freight', 'station_demolition'];
 
     protected function rules(): array
     {
@@ -89,10 +84,9 @@ class GetCommuneTool extends VffTool
             return $this->fail('commune_not_found', ['query' => $input['commune']]);
         }
         unset($page['map']);
-        $dates = app(ServedStationDates::class)->load(array_merge(array_column($page['stations'], 'slug'),
-            array_map(fn (array $e): ?string => $e['station']['slug'] ?? null, $page['chronology'])));
-        $page['stations'] = array_map(fn (array $s): array => $dates->station($s), $page['stations']);
-        $chronology = $this->servedChronology($page['chronology'], $dates);
+        // Dates de gare sans source redistribuable : remplacées ou retirées (RedistributableDates::communeSheet).
+        $page = app(RedistributableDates::class)->communeSheet($page);
+        $chronology = $page['chronology'];
         $offset = (int) ($input['offset'] ?? 0);
         $limit = (int) ($input['limit'] ?? 100);
         $page['chronology'] = array_slice($chronology, $offset, $limit);
@@ -106,57 +100,5 @@ class GetCommuneTool extends VffTool
         }
 
         return $this->respond($page, $providers, $lang, self::url('/communes/'.$page['commune']['slug']), ['chronology', 'lines', 'stations', 'neighbors']);
-    }
-
-    /**
-     * Chronologie servie au MCP : un événement de gare (réouverture, fin d'un trafic, démolition) n'est gardé que si un
-     * événement d'une source servie le donne (même gare, même type, même année) ; l'ouverture et la fermeture d'une
-     * gare (dates de sa fiche) seulement si elles sont servies (ServedStationDates) ; les événements de ligne sont déjà
-     * lus sans les sources non commerciales (CommuneSheet).
-     *
-     * @param  list<array<string, mixed>>  $chronology
-     * @return list<array<string, mixed>>
-     */
-    private function servedChronology(array $chronology, ServedStationDates $dates): array
-    {
-        $chronology = array_values(array_filter($chronology, fn (array $e): bool => match ($e['kind']) {
-            'station_opening' => $dates->served($e['station']['slug'] ?? null, 'opened', $e['date']),
-            'station_closure' => $dates->served($e['station']['slug'] ?? null, 'closed', $e['date']),
-            default => true,
-        }));
-        $slugs = [];
-        foreach ($chronology as $e) {
-            if (in_array($e['kind'], self::STATION_EVENT_KINDS, true)) {
-                $slugs[] = $e['station']['slug'];
-            }
-        }
-        if ($slugs === []) {
-            return $chronology;
-        }
-        $served = [];
-        $rows = DB::table('station_events')->join('stations', 'stations.id', '=', 'station_events.station_id')
-            ->whereIn('stations.slug', array_values(array_unique($slugs)))->whereNotNull('station_events.event_date')
-            ->whereRaw(app(NonCommercialSources::class)->sqlKeptStationEvent('station_events'))
-            ->orderBy('station_events.event_date')->orderBy('station_events.id')
-            ->get(['stations.slug', 'station_events.type', 'station_events.event_date', 'station_events.date_precision']);
-        foreach ($rows as $r) {
-            $served[$r->slug.'|station_'.$r->type.'|'.substr((string) $r->event_date, 0, 4)][] = ['date' => substr((string) $r->event_date, 0, 10), 'precision' => (string) ($r->date_precision ?? 'day')];
-        }
-
-        $out = [];
-        foreach ($chronology as $e) {
-            if (in_array($e['kind'], self::STATION_EVENT_KINDS, true)) {
-                $same = $served[$e['station']['slug'].'|'.$e['kind'].'|'.substr((string) $e['date'], 0, 4)] ?? [];
-                if ($same === []) {
-                    continue;
-                }
-                if (! in_array(substr((string) $e['date'], 0, 10), array_column($same, 'date'), true)) {
-                    $e = array_replace($e, $same[0]);
-                }
-            }
-            $out[] = $e;
-        }
-
-        return $out;
     }
 }

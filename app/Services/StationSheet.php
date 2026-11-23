@@ -6,6 +6,7 @@ use App\Enums\ServiceEnd;
 use App\Models\Station;
 use App\Services\Communes\CommuneRail;
 use App\Support\GeneratedText;
+use App\Support\RedistributableDates;
 use App\Support\SourceRights;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,18 +29,20 @@ final class StationSheet
      * notes générées sont dans la langue courante de l'application. `$withRaw` ajoute à chaque source
      * sa date de lecture et ses attributs bruts (API publique : provenance en lecture seule) ; la page
      * web n'en a pas besoin. `$withNeighbors` faux : sans les gares voisines, que la page web lit après son
-     * premier affichage (neighbors(), props différées de StationController::show).
+     * premier affichage (neighbors(), props différées de StationController::show). `$offSite` (API REST, GraphQL) :
+     * dates servies hors du site (App\Support\RedistributableDates) : sans les événements sans source
+     * redistribuable, dates de la gare et bornes de desserte remplacées par celles d'une source servie, ou nulles.
      *
      * @return array<string, mixed>
      */
-    public function page(Station $station, bool $withRaw = false, bool $withNeighbors = true): array
+    public function page(Station $station, bool $withRaw = false, bool $withNeighbors = true, bool $offSite = false): array
     {
         $sid = $station->id;
         // Position lue dans la géométrie déjà chargée avec la gare (plus de requête à part).
         $point = $station->geom;
 
         $eras = $this->eras($sid);
-        $events = $this->events($sid);
+        $events = $this->events($sid, $offSite ? app(RedistributableDates::class)->stationEventKept('station_events') : null);
         $lines = $this->lines($sid);
         $sources = $this->sources($sid);
         $rawBySource = $withRaw ? $this->rawBySource($sid) : [];
@@ -124,6 +127,9 @@ final class StationSheet
                 'url' => self::sourceUrl($s),
             ] + ($withRaw ? self::rawFor($rawBySource, $s) : []), $sources),
         ];
+        if ($offSite) {
+            $page = $this->offSite($page, $station);
+        }
         // Vie de la gare en une liste datée : événements regroupés, dessertes des lignes, noms, accidents proches.
         $page['chronology'] = StationChronology::build($page['station'], $page['events'], $page['lines'],
             $this->chronology->accidents($sid, $locale));
@@ -213,6 +219,32 @@ final class StationSheet
             ->when($keptSql !== null, fn ($q) => $q->whereRaw((string) $keptSql))
             ->orderBy('event_date')->orderBy('is_inferred')
             ->get(['type', 'event_date', 'date_precision', 'source', 'source_url', 'is_inferred', 'note']);
+    }
+
+    /**
+     * Dates de la fiche servies hors du site (RedistributableDates) : ouverture et fermeture de la gare, bornes de
+     * desserte de chaque ligne. Les événements le sont déjà (events() avec la condition de la règle).
+     *
+     * @param  array<string, mixed>  $page
+     * @return array<string, mixed>
+     */
+    private function offSite(array $page, Station $station): array
+    {
+        $rule = app(RedistributableDates::class);
+        $page['station'] = $rule->station($page['station']);
+
+        $requests = [];
+        foreach ($page['lines'] as $i => $l) {
+            $requests["{$i}:start"] = ['bound' => $l['service_start'], 'role' => 'start', 'station_id' => (int) $station->id];
+            $requests["{$i}:end"] = ['bound' => $l['service_end'], 'role' => 'end', 'station_id' => (int) $station->id];
+        }
+        $bounds = $requests === [] ? [] : $rule->serviceBounds($requests);
+        foreach ($page['lines'] as $i => $l) {
+            $page['lines'][$i]['service_start'] = $bounds["{$i}:start"] ?? null;
+            $page['lines'][$i]['service_end'] = $bounds["{$i}:end"] ?? null;
+        }
+
+        return $page;
     }
 
     /**

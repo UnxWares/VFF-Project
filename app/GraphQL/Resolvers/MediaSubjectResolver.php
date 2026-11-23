@@ -8,6 +8,7 @@ use App\Models\LineEvent;
 use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
+use App\Support\RedistributableDates;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Model;
@@ -44,7 +45,10 @@ final class MediaSubjectResolver
         $loader = BatchLoaderRegistry::instance($path, fn (): MediaSubjectLoader => new MediaSubjectLoader);
 
         return $loader->load($media)->then(
-            fn (?Model $subject): ?Model => $subject !== null && $subject::class === $expected ? $subject : null,
+            fn (?Model $subject): ?Model => $subject !== null && $subject::class === $expected
+                // Événement sans source redistribuable : jamais servi hors du site.
+                && (! $subject instanceof LineEvent || app(RedistributableDates::class)->servesLineEvent($subject->source, $subject->source_url))
+                ? $subject : null,
         );
     }
 }

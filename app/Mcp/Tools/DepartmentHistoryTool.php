@@ -2,10 +2,10 @@
 
 namespace App\Mcp\Tools;
 
-use App\Mcp\Support\ServedLineDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Departments\DepartmentFigures;
 use App\Support\FrenchDepartments;
+use App\Support\RedistributableDates;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
@@ -80,7 +80,8 @@ class DepartmentHistoryTool extends VffTool
             return $this->fail('department_not_found', ['query' => $input['department']]);
         }
         unset($sheet['map'], $sheet['summary']);
-        $sheet = $this->servedDates($sheet);
+        // Dates sans source servie : remplacées ou nulles (RedistributableDates::departmentSheet).
+        $sheet = app(RedistributableDates::class)->departmentSheet($sheet);
 
         $offset = (int) ($input['offset'] ?? 0);
         $limit = (int) ($input['limit'] ?? 50);
@@ -112,44 +113,5 @@ class DepartmentHistoryTool extends VffTool
         }
 
         return null;
-    }
-
-    /**
-     * Dates de la fiche servies au MCP (ServedLineDates) : celles des lignes, la première ouverture et les réouvertures.
-     *
-     * @param  array<string, mixed>  $sheet
-     * @return array<string, mixed>
-     */
-    private function servedDates(array $sheet): array
-    {
-        $slugs = array_column($sheet['lines'], 'slug');
-        foreach (['first_opening', 'reopenings'] as $key) {
-            $entries = $key === 'first_opening' ? array_filter([$sheet['milestones'][$key] ?? null]) : ($sheet['milestones'][$key] ?? []);
-            foreach ($entries as $e) {
-                $slugs[] = $e['line']['slug'] ?? null;
-            }
-        }
-        $served = app(ServedLineDates::class)->load($slugs);
-        foreach ($sheet['lines'] as &$line) {
-            foreach (['opened', 'closed', 'electrified'] as $kind) {
-                $line[$kind] = $served->date($line['slug'], $kind, $line[$kind] ?? null);
-            }
-        }
-        unset($line);
-        $first = $sheet['milestones']['first_opening'] ?? null;
-        if ($first !== null) {
-            $dated = $served->date($first['line']['slug'] ?? null, 'opened', ['date' => $first['date'], 'precision' => $first['precision']]);
-            $sheet['milestones']['first_opening'] = $dated === null ? null : array_replace($first, $dated);
-        }
-        $reopenings = [];
-        foreach ($sheet['milestones']['reopenings'] ?? [] as $r) {
-            $dated = $served->date($r['line']['slug'] ?? null, 'reopened', ['date' => $r['date'], 'precision' => $r['precision']]);
-            if ($dated !== null) {
-                $reopenings[] = array_replace($r, $dated);
-            }
-        }
-        $sheet['milestones']['reopenings'] = $reopenings;
-
-        return $sheet;
     }
 }

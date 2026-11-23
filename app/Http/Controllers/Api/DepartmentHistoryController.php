@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\Departments\DepartmentFigures;
 use App\Support\FrenchDepartments;
+use App\Support\RedistributableDates;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -61,6 +62,8 @@ class DepartmentHistoryController extends Controller
         $sheet = $figures->sheet($code, app()->getLocale());
         abort_if($sheet === null, 404, 'Unknown department.');
         unset($sheet['map'], $sheet['summary']);
+        // Dates sans source redistribuable : remplacées par celles d'une source servie, ou nulles.
+        $sheet = app(RedistributableDates::class)->departmentSheet($sheet);
         $sheet['links'] = ['page' => route('departments.show', $sheet['department']['slug'])];
 
         return response()->json(['data' => $sheet])->header('Cache-Control', 'public, max-age=600');

@@ -23,7 +23,7 @@ final class ServedLineDates
         'reopened' => ['reopening', 'reopening_passenger', 'reopening_freight'],
     ];
 
-    /** @var array<string, list<array{date: string, precision: string}>> dates servies par « slug|nature » */
+    /** @var array<string, list<array{date: string, precision: string, type: string}>> dates servies par « slug|nature » */
     private array $served = [];
 
     public function __construct(private readonly NonCommercialSources $nonCommercial) {}
@@ -52,7 +52,8 @@ final class ServedLineDates
             ->orderBy('line_events.event_date')->orderBy('line_events.id')
             ->get(['lines.slug', 'line_events.type', 'line_events.event_date', 'line_events.date_precision']);
         foreach ($rows as $r) {
-            $this->served[$r->slug.'|'.$kindOf[$r->type]][] = ['date' => substr((string) $r->event_date, 0, 10), 'precision' => (string) ($r->date_precision ?? 'day')];
+            $this->served[$r->slug.'|'.$kindOf[$r->type]][] = ['date' => substr((string) $r->event_date, 0, 10), 'precision' => (string) ($r->date_precision ?? 'day'),
+                'type' => (string) $r->type];
         }
 
         return $this;
@@ -60,7 +61,9 @@ final class ServedLineDates
 
     /**
      * La date servie à la place de celle-ci (nature de KINDS) : la même, celle d'un événement servi de la même année, ou
-     * null. Les autres clés de la date (`scope`…) sont gardées.
+     * null. Une fermeture qui porte sa portée (`scope` : all, passenger, freight, DepartmentFigures::lineDates) ne
+     * prend qu'un événement du même type (closure, closure_passenger, closure_freight). Les autres clés de la date sont
+     * gardées.
      *
      * @param  array<string, mixed>|null  $dated  {date, precision, …}
      * @return array<string, mixed>|null
@@ -72,6 +75,10 @@ final class ServedLineDates
         }
         $date = substr((string) $dated['date'], 0, 10);
         $candidates = $this->served[$slug.'|'.$kind] ?? [];
+        if ($kind === 'closed' && is_string($dated['scope'] ?? null)) {
+            $type = $dated['scope'] === 'all' ? 'closure' : 'closure_'.$dated['scope'];
+            $candidates = array_values(array_filter($candidates, fn (array $c): bool => $c['type'] === $type));
+        }
         foreach ($candidates as $c) {
             if ($c['date'] === $date) {
                 return $dated;
@@ -85,6 +92,6 @@ final class ServedLineDates
             }
         }
 
-        return $best === null ? null : array_replace($dated, $best);
+        return $best === null ? null : array_replace($dated, ['date' => $best['date'], 'precision' => $best['precision']]);
     }
 }

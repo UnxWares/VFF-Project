@@ -1969,9 +1969,11 @@ nommée dans `source` ou seulement par le lien cité (`App\Mcp\Support\NonCommer
 `line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`, `station_events`, `get_commune`,
 `department_history`). Une date de gare déduite d'un événement de ligne d'une telle source (`inferred:line_event`)
 ne l'est pas non plus : ni dans `station_events` et la chronologie de `get_station`, ni comme ouverture ou fermeture
-de la gare dans `get_station`, `list_stations` et `get_commune` (`App\Mcp\Support\ServedStationDates`). Restent servis les faits que VFF
+de la gare dans `get_station`, `list_stations` et `get_commune` (`App\Mcp\Support\ServedStationDates` : la date prend
+celle d'un événement servi de même nature et de même année, sinon elle est nulle). Restent servis les faits que VFF
 calcule à partir de ses tracés (état d'un tronçon à une ère, longueur, PK arrondi), sans coordonnée ; le fournisseur
-reste cité dans `attribution`. L'API REST, elle, sert ces événements avec la valeur `source` du fournisseur concerné (voir `/sources`).
+reste cité dans `attribution`. L'API REST, GraphQL et les données ouvertes appliquent la même règle des dates
+(`App\Support\RedistributableDates`) ; seul le site garde ces dates, avec leur source.
 
 **Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
 points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line` quand sa

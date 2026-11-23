@@ -7,6 +7,7 @@ use App\Services\StationDirectory;
 use App\Services\Territories;
 use App\Support\FrenchDepartments;
 use App\Support\QueryBoolean;
+use App\Support\RedistributableDates;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -28,8 +29,9 @@ final class StationDirectoryQuery
     private const SORT_KEYS = [
         'name' => ['s.name COLLATE "fr-x-icu"', '0'],
         'city' => ['COALESCE(s.city, \'\') COLLATE "fr-x-icu"', '(s.city IS NULL)::int'],
-        'opened' => ['COALESCE(s.opened_at, DATE \'0001-01-01\')', '(s.opened_at IS NULL)::int'],
-        'closed' => ['COALESCE(s.closed_at, DATE \'0001-01-01\')', '(s.closed_at IS NULL)::int'],
+        // Date servie hors du site : clé calculée par query() (RedistributableDates::stationDateSql).
+        'opened' => ['s.opened_at', '(s.opened_at IS NULL)::int'],
+        'closed' => ['s.closed_at', '(s.closed_at IS NULL)::int'],
     ];
 
     /** Lignes données par gare dans la liste (le reste est compté dans `lines_more`). */
@@ -93,6 +95,11 @@ final class StationDirectoryQuery
     {
         $era = $this->era($filters);
         [$key, $null] = self::SORT_KEYS[$filters['sort'] ?? 'name'] ?? self::SORT_KEYS['name'];
+        if (in_array($filters['sort'] ?? null, ['opened', 'closed'], true)) {
+            // Tri sur la date servie (RedistributableDates), pas sur une date retenue faute de source redistribuable.
+            $served = app(RedistributableDates::class)->stationDateSql('s', (string) $filters['sort']);
+            [$key, $null] = ["COALESCE({$served}, DATE '0001-01-01')", "({$served} IS NULL)::int"];
+        }
         $status = $this->directory->statusExpression($era);
         $inner = $this->directory->whereStatus($this->directory->base($filters, $era), $filters['status'] ?? null, $era)
             ->selectRaw(<<<SQL
@@ -116,6 +123,15 @@ final class StationDirectoryQuery
         $rows = is_array($rows) ? array_values($rows) : iterator_to_array($rows, false);
         $ids = array_map(fn (object $r): int => (int) $r->id, $rows);
         $lines = $this->directory->lines($ids, self::LINES_PER_STATION);
+        // Dates sans source redistribuable : celles d'une source servie de même année, ou nulles (RedistributableDates).
+        $dates = app(RedistributableDates::class)->stations(array_map(fn (object $s): array => [
+            'slug' => $s->slug,
+            'opened_at' => $s->opened_at !== null ? substr((string) $s->opened_at, 0, 10) : null, 'opened_precision' => $s->opened_precision,
+            'opened_after' => $s->opened_after,
+            'closed_at' => $s->closed_at !== null ? substr((string) $s->closed_at, 0, 10) : null, 'closed_precision' => $s->closed_precision,
+            'closed_after' => $s->closed_after,
+        ], $rows));
+        $rows = array_map(fn (object $s, array $d): object => (object) array_replace((array) $s, $d), $rows, $dates);
 
         return array_map(fn (object $s): array => [
             'slug' => $s->slug,

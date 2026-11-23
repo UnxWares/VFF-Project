@@ -8,6 +8,7 @@ use App\Models\Line;
 use App\Models\LineEvent;
 use App\Services\Archives\LineArchives;
 use App\Services\Stories\EventStories;
+use App\Support\RedistributableDates;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -72,20 +73,16 @@ class LineStoryController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function index(Line $line): JsonResponse
     {
-        $available = $this->stories->available($line, true);
-        $events = LineEvent::query()->whereIn('id', array_keys($available))->get()->keyBy('id');
         $items = [];
-        foreach ($available as $id => $counts) {
-            $event = $events->get($id);
-            if ($event instanceof LineEvent) {
-                $items[] = [
-                    'event' => $this->eventSummary($event),
-                    'source_event_ids' => $counts['event_ids'],
-                    'images' => $counts['images'],
-                    'documents' => $counts['documents'],
-                    'url' => route('lines.stories.show', ['line' => $line->slug, 'event' => $id]),
-                ];
-            }
+        // Jamais un événement sans source redistribuable, ni comme événement d'une histoire, ni parmi ses sources.
+        foreach (app(RedistributableDates::class)->stories($this->stories->available($line, true)) as $id => $served) {
+            $items[] = [
+                'event' => $this->eventSummary($served['event']),
+                'source_event_ids' => $served['event_ids'],
+                'images' => $served['images'],
+                'documents' => $served['documents'],
+                'url' => route('lines.stories.show', ['line' => $line->slug, 'event' => $id]),
+            ];
         }
 
         return response()->json([

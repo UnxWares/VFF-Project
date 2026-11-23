@@ -9,6 +9,25 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Dates sans source redistribuable (REST, GraphQL, MCP, données ouvertes) : une date de ligne ou de gare qui ne repose que
+  sur une source dont la réutilisation hors de VFF n'est pas permise n'est plus servie. Un tel événement de ligne ne figure plus
+  dans `GET /api/v1/events`, `GET /api/v1/lines/{line}/stories`, les GraphQL `lineEvents`, `Line.events`, `lineEvent(id:)`
+  (`null`), `Media.event` et `LineEvent.story`, ni dans la chronique, les phases et le compte d'événements de la fiche d'une
+  ligne (`GET /api/v1/lines/{line}`, GraphQL `sheet`) ; `GET /api/v1/events/{id}` répond 404. Un événement de gare déduit
+  d'un tel événement de ligne (`inferred:line_event`) ne figure plus dans `GET /api/v1/stations/{station}/events`, GraphQL
+  `Station.events` ni la chronologie de la fiche. L'ouverture et la fermeture d'une gare que seuls de tels événements donnent
+  (`opened_at`, `closed_at` de l'annuaire, de la fiche de la gare et des gares de la fiche d'une ligne, GraphQL `Station`,
+  `StationSheet`, `StationDirectoryItem`, `LineSheetStation`, MCP `list_stations`, `get_station`, `get_commune`) prennent la
+  date et la précision d'un événement servi de même nature et de même année, ou deviennent nulles avec leur précision et leur
+  borne (`opened_after`, `closed_after`) ; les tris `opened` et `closed` de l'annuaire suivent la date servie. Une borne de
+  desserte (`service_start`, `service_end`) dont l'événement n'est pas servi prend un événement servi équivalent ou devient
+  nulle ; les années de desserte, calculées par VFF, restent. Fiche d'un département (REST `GET /api/v1/departments/{code}/history`,
+  comme le MCP `department_history`) : mêmes dates de lignes que le MCP, et une fermeture ne prend plus qu'une fermeture servie
+  de même portée (totale, voyageurs ou fret). Fiche d'une commune (REST `GET /api/v1/communes/{insee}`) : mêmes dates de gares
+  que le MCP `get_commune`. Données ouvertes : une date de gare déduite d'un tel événement est retirée (comptée dans le
+  LISEZMOI). Aucun champ retiré : seules des valeurs deviennent nulles ou des éléments de liste disparaissent. Le site garde
+  toutes ses dates, avec leur source.
+
 - Gares, ouverture encadrée par une correction sourcée : une halte créée après sa ligne sans date connue (Compans, Renescure,
   Saint-Étienne-du-Rouvray, Sainte-Colombe-Septveilles) n'a plus la date de sa ligne mais un intervalle, comme les ouvertures
   de la règle G3 : `opened_precision` = `range`, `opened_at` = la borne haute (aujourd'hui sans borne haute connue) et

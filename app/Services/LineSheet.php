@@ -11,6 +11,7 @@ use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
 use App\Support\Lgv;
+use App\Support\RedistributableDates;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -146,12 +147,18 @@ final class LineSheet
         // Calculées une fois (requête des terminus comprise : environ 130 à 210 ms sur la LGV Sud-Est),
         // puis reprises par la vue « décennie par décennie » (LineStations::byEraOf).
         $lineStationData = app(LineStations::class)->forLine($line->id, $line->name);
+        // API et GraphQL : dates servies hors du site (RedistributableDates) ; la page garde toutes ses dates.
+        $rule = $forPage ? null : app(RedistributableDates::class);
+        if ($rule !== null) {
+            $lineStationData['stations'] = self::offSiteStations($rule, $lineStationData['stations']);
+        }
         $stations = $this->lineStations($lineStationData);
 
         // Événements : lecture brute (pas de cast enum → un type ajouté en base
         // par un import ne fait pas planter la fiche).
         $events = DB::table('line_events')
             ->where('line_id', $line->id)
+            ->when($rule !== null, fn ($q) => $q->whereRaw((string) $rule?->lineEventKept('line_events')))
             ->orderBy('event_date')->orderBy('id')
             ->get(['id', 'type', 'event_date', 'date_precision', 'description',
                 'section_from', 'section_to', 'source', 'source_url', 'confidence'])
@@ -178,6 +185,10 @@ final class LineSheet
         // Phases de la ligne (vraies dates de line_events, état de toute la ligne à chaque
         // phase) et chronique (événements par portion, notes de source, désaccords).
         $phases = LinePhases::forLine($line);
+        if ($rule !== null) {
+            // Date dont l'événement n'a pas de source redistribuable : celle d'un événement servi équivalent, ou non datée.
+            $phases['phases'] = $rule->phases($phases['phases'], $phases['portions']);
+        }
         $decades = $this->decadesWithStations($phases['decades'], LineStations::byEraOf($lineStationData));
 
         // UNE longueur par fiche (chantier « UI unifiée », constats « six longueurs pour la même
@@ -198,7 +209,8 @@ final class LineSheet
         }
         $stats['length_greatest_km'] = null;
         $stats['length_definition'] = $lineLengthM > 0 ? 'trace' : ($stats['length_sncf_km'] !== null ? 'sncf' : 'segments');
-        $chronicle = LineChronicle::forLine($line, $phases['used_events'], $stations->all(), $lineLengthM > 0 ? $lineLengthM : null);
+        $chronicle = LineChronicle::forLine($line, $phases['used_events'], $stations->all(), $lineLengthM > 0 ? $lineLengthM : null,
+            $rule?->lineEventKept('line_events'));
 
         $segmentsGeoJson = [];
         if ($latestEraId && ! $forPage) {
@@ -643,6 +655,31 @@ final class LineSheet
     private function lineStations(array $data): Collection
     {
         return collect($data['stations'])->map(fn ($s) => $this->stationProps($s))->values();
+    }
+
+    /**
+     * Gares de LineStations::forLine servies hors du site : dates d'ouverture et de fermeture et bornes de desserte
+     * sans source redistribuable remplacées par celles d'une source servie, ou nulles (RedistributableDates).
+     *
+     * @param  list<array<string, mixed>>  $stations
+     * @return list<array<string, mixed>>
+     */
+    private static function offSiteStations(RedistributableDates $rule, array $stations): array
+    {
+        $stations = $rule->stations($stations);
+        $requests = [];
+        foreach ($stations as $i => $st) {
+            $requests["{$i}:start"] = ['bound' => $st['service_start'], 'role' => 'start', 'station_id' => (int) $st['id']];
+            $requests["{$i}:end"] = ['bound' => $st['service_end'], 'role' => 'end', 'station_id' => (int) $st['id']];
+        }
+        $bounds = $requests === [] ? [] : $rule->serviceBounds($requests);
+        foreach ($stations as $i => $st) {
+            $stations[$i]['service_start'] = $bounds["{$i}:start"] ?? null;
+            $stations[$i]['service_end'] = $bounds["{$i}:end"] ?? null;
+            $stations[$i]['closed_year'] = $st['closed_at'] !== null ? (int) substr((string) $st['closed_at'], 0, 4) : null;
+        }
+
+        return $stations;
     }
 
     /** Gare de LineStations::forLine au format de la fiche (états par ère réduits au statut affiché). */

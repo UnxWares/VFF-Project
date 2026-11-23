@@ -116,8 +116,8 @@ type Line {
         era: Int @builder(method: "App\\GraphQL\\Builders\\LineSegmentBuilder@era")
     ): [LineSegment!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
-    "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
-    events: [LineEvent!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+    "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`), sans les événements dont aucune source n'est redistribuable."
+    events: [LineEvent!]! @hasMany(scopes: ["redistributable"]) @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la ligne, page par page (20 par défaut,
@@ -1428,17 +1428,17 @@ type Station {
     "Code du département (INSEE, ex. `35`, `2A`)."
     department_code: String
 
-    "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01."
-    opened_at: Date
+    "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01. Nulle quand aucune source redistribuable ne la donne."
+    opened_at: Date @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedAt")
 
-    "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr)."
-    opened_precision: String
+    "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr) ; nulle avec `opened_at`."
+    opened_precision: String @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedPrecision")
 
     "Gare ouverte après cette année (précision `range` : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
     opened_after: Int @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedAfter")
 
-    "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
-    closed_at: Date
+    "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte, si la date est inconnue ou si aucune source redistribuable ne la donne ; quand seule l'année est connue, jour et mois valent 01."
+    closed_at: Date @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@closedAt")
 
     "Présentation de la gare, en français."
     description: String
@@ -1449,8 +1449,8 @@ type Station {
     "Longitude WGS 84, en degrés décimaux."
     lng: Float @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@lng")
 
-    "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
-    events: [StationEvent!]! @hasMany @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+    "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement ; sans les événements dont aucune source n'est redistribuable, ni les dates déduites de tels événements."
+    events: [StationEvent!]! @hasMany(scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la gare, page par page (20 par défaut,
@@ -5212,18 +5212,19 @@ type Query {
     page par page (25 par défaut, 100 au plus), du plus ancien au plus récent, filtrables par
     ligne, type, source, département et période. Pagination par curseur : lisez
     `pageInfo { hasNextPage endCursor }` et repassez `endCursor` dans `after`. Chaque événement
-    garde sa source, sa citation et la licence de sa source (`provenance`).
+    garde sa source, sa citation et la licence de sa source (`provenance`). Un événement sans source
+    redistribuable n'y figure pas.
     """
     lineEvents(
         "Filtres facultatifs, combinés (ET)."
         filter: LineEventFilter = {} @builder(method: "App\\GraphQL\\Builders\\LineEventBuilder@filter")
     ): [LineEvent!]! @paginate(type: CONNECTION, defaultCount: 25, maxCount: 100, model: "App\\Models\\LineEvent")
 
-    "Un événement de ligne, par son identifiant."
+    "Un événement de ligne, par son identifiant ; nul pour un événement sans source redistribuable."
     lineEvent(
         "Identifiant de l'événement."
         id: ID! @eq
-    ): LineEvent @find
+    ): LineEvent @find(scopes: ["redistributable"])
 
     """
     Médias (photos, cartes postales, plans, cartes, documents) de toutes les lignes et gares,

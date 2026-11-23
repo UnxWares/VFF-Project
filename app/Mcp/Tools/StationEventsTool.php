@@ -4,7 +4,6 @@ namespace App\Mcp\Tools;
 
 use App\Http\Resources\StationEventResource;
 use App\Mcp\Support\CursorPage;
-use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Support\VffTool;
 use App\Models\StationEvent;
 use App\Rules\PaginationCursor;
@@ -73,8 +72,7 @@ class StationEventsTool extends VffTool
         }
         $filters = StationEventQuery::normalize(array_diff_key($input, array_flip(['station', 'limit', 'cursor', 'lang'])));
         $page = app(StationEventQuery::class)->apply(StationEvent::query(), $station, $filters)
-            // Jamais les faits d'une source non commerciale, ni les dates déduites de ses événements de ligne : NonCommercialSources.
-            ->whereRaw(app(NonCommercialSources::class)->sqlKeptStationEvent('station_events'))
+            // Jamais un fait sans source redistribuable, ni une date déduite d'un tel fait (StationEventQuery, RedistributableDates).
             ->cursorPaginate((int) ($input['limit'] ?? 25), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
         $events = array_map(function (array $e) use ($lang): array {
             $label = 'stations.events.'.$e['type'];

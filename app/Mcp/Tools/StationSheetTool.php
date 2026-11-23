@@ -3,9 +3,6 @@
 namespace App\Mcp\Tools;
 
 use App\Enums\ServiceEnd;
-use App\Mcp\Support\NonCommercialSources;
-use App\Mcp\Support\ServedEventDates;
-use App\Mcp\Support\ServedStationDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Api\MediaGallery;
 use App\Services\Sncf\StationPlatforms;
@@ -15,6 +12,7 @@ use App\Services\StationSheet;
 use App\Services\StationTimeline;
 use App\Support\EventText;
 use App\Support\GeneratedText;
+use App\Support\RedistributableDates;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Response;
@@ -67,30 +65,35 @@ class StationSheetTool extends VffTool
         // Fermeture encadrée (range) : jamais écrite comme un jour. Bornes en années ; borne haute nulle
         // quand elle n'est que l'année du calcul (fermeture non datée, comme ServiceEnd::Undated).
         $currentYear = (int) now()->year;
-        // Ouverture ou fermeture que seule une source non commerciale donne : non servie (ServedStationDates).
-        $served = app(ServedStationDates::class)->load([$station->slug]);
-        $closedAt = $station->closed_at?->format('Y-m-d');
-        $closedAt = $served->served($station->slug, 'closed', $closedAt) ? $closedAt : null;
-        // Borne basse de l'intervalle, lue comme la fiche (StationSheet) : fermée après cette année.
-        $closedAfter = is_numeric($station->provenance['closed_after'] ?? null) ? (int) $station->provenance['closed_after'] : null;
-        $closed = $closedAt !== null && $station->closed_precision === StationTimeline::RANGE
+        // Ouverture ou fermeture que seuls des faits sans source redistribuable donnent : celle d'une source servie de
+        // même année, ou nulle (RedistributableDates, ServedStationDates).
+        $dates = app(RedistributableDates::class)->station([
+            'slug' => $station->slug,
+            'opened_at' => $station->opened_at?->format('Y-m-d'), 'opened_precision' => $station->opened_precision,
+            'opened_after' => is_numeric($station->provenance['opened_after'] ?? null) ? (int) $station->provenance['opened_after'] : null,
+            'closed_at' => $station->closed_at?->format('Y-m-d'), 'closed_precision' => $station->closed_precision,
+            // Borne basse de l'intervalle, lue comme la fiche (StationSheet) : fermée après cette année.
+            'closed_after' => is_numeric($station->provenance['closed_after'] ?? null) ? (int) $station->provenance['closed_after'] : null,
+        ]);
+        $closedAt = $dates['closed_at'];
+        $closedAfter = $dates['closed_after'];
+        $closed = $closedAt !== null && $dates['closed_precision'] === StationTimeline::RANGE
             ? ['date' => null, 'precision' => StationTimeline::RANGE,
                 'from_year' => $closedAfter !== null ? $closedAfter + 1 : null,
                 'to_year' => (int) substr($closedAt, 0, 4) < $currentYear ? (int) substr($closedAt, 0, 4) : null,
                 'when' => EventText::isoDate($closedAt, StationTimeline::RANGE, $lang, $closedAfter, $currentYear)]
-            : $date($closedAt, $station->closed_precision);
+            : $date($closedAt, $dates['closed_precision']);
 
         // Ouverture déduite et bornée par la carte (règle G3, range) : jamais un jour sûr. Bornes en années ;
         // la borne haute reste l'année de opened_at, même l'année en cours (la gare est desservie à l'ère courante).
-        $openedAt = $station->opened_at?->format('Y-m-d');
-        $openedAt = $served->served($station->slug, 'opened', $openedAt) ? $openedAt : null;
-        $openedAfter = is_numeric($station->provenance['opened_after'] ?? null) ? (int) $station->provenance['opened_after'] : null;
-        $opened = $openedAt !== null && $station->opened_precision === StationTimeline::RANGE
+        $openedAt = $dates['opened_at'];
+        $openedAfter = $dates['opened_after'];
+        $opened = $openedAt !== null && $dates['opened_precision'] === StationTimeline::RANGE
             ? ['date' => null, 'precision' => StationTimeline::RANGE,
                 'from_year' => $openedAfter !== null ? $openedAfter + 1 : null,
                 'to_year' => (int) substr($openedAt, 0, 4),
                 'when' => EventText::isoDate($openedAt, StationTimeline::RANGE, $lang, $openedAfter)]
-            : $date($openedAt, $station->opened_precision);
+            : $date($openedAt, $dates['opened_precision']);
 
         $lineRows = $sheet->lines($sid);
         $requests = [];
@@ -99,11 +102,11 @@ class StationSheetTool extends VffTool
             $requests["{$i}:start"] = ['bound' => $bounds['start'], 'role' => 'start', 'station_id' => $sid];
             $requests["{$i}:end"] = ['bound' => $bounds['end'], 'role' => 'end', 'station_id' => $sid];
         }
-        $servedBounds = app(ServedEventDates::class)->bounds($requests);
+        $servedBounds = app(RedistributableDates::class)->serviceBounds($requests);
 
         $providers = [];
-        // Chronologie sans les faits d'une source non commerciale, ni les dates déduites de ses événements de ligne.
-        $events = $sheet->events($sid, app(NonCommercialSources::class)->sqlKeptStationEvent('station_events'))->map(function ($e) use ($lang, $date, &$providers) {
+        // Chronologie sans les faits sans source redistribuable, ni les dates déduites de tels faits.
+        $events = $sheet->events($sid, app(RedistributableDates::class)->stationEventKept('station_events'))->map(function ($e) use ($lang, $date, &$providers) {
             $providers[] = $this->attribution->providerFor('station_events', $e->source, $e->source_url);
             $note = GeneratedText::stationNote($e->note, $lang);
             $label = 'stations.events.'.$e->type;

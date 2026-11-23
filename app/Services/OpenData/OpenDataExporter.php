@@ -5,6 +5,7 @@ namespace App\Services\OpenData;
 use App\Enums\AccidentKind;
 use App\Models\Era;
 use App\Services\StationTimeline;
+use App\Support\RedistributableDates;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -474,10 +475,16 @@ final class OpenDataExporter
         }
 
         $alternatives = $this->stationAlternatives($needs);
+        // Date d'une source libre en apparence (VFF) mais déduite d'un fait sans source redistribuable (RedistributableDates).
+        $offSite = app(RedistributableDates::class)->stations(array_map(fn (array $item): array => [
+            'slug' => $item['row']->slug,
+            'opened_at' => $item['row']->opened_at, 'opened_precision' => $item['row']->opened_precision,
+            'closed_at' => $item['row']->closed_at, 'closed_precision' => $item['row']->closed_precision,
+        ], $prepared));
 
         $csv = OpenDataFiles::csv("{$dir}/gares.csv", self::STATION_FIELDS);
         $geo = OpenDataFiles::geojson("{$dir}/gares.geojson", "vff-gares-{$year}");
-        foreach ($prepared as $item) {
+        foreach ($prepared as $i => $item) {
             $r = $item['row'];
             $alt = $alternatives[(int) $r->id] ?? [];
             if ($item['name_refusal'] !== null) {
@@ -494,8 +501,10 @@ final class OpenDataExporter
                 $item['geometry_status'] = $found !== null ? 'replaced' : 'withheld';
                 $ledger->withhold('stations.geometry', $item['geom_refusal'], $found !== null ? OpenDataLedger::REPLACED : OpenDataLedger::REMOVED);
             }
-            [$opened, $openedSource] = $this->stationDate($r->opened_at, $item['prov']['opened_at'] ?? null, 'stations.opened_on', $ledger);
-            [$closed, $closedSource] = $this->stationDate($r->closed_at, $item['prov']['closed_at'] ?? null, 'stations.closed_on', $ledger);
+            [$opened, $openedSource] = $this->stationDate($r->opened_at, $item['prov']['opened_at'] ?? null, 'stations.opened_on', $ledger,
+                $offSite[$i]['opened_at'] !== $r->opened_at);
+            [$closed, $closedSource] = $this->stationDate($r->closed_at, $item['prov']['closed_at'] ?? null, 'stations.closed_on', $ledger,
+                $offSite[$i]['closed_at'] !== $r->closed_at);
             $ledger->cite($item['name_source']);
             $ledger->cite($item['geometry_source']);
 
@@ -592,9 +601,14 @@ final class OpenDataExporter
     }
 
     /** @return array{0: ?string, 1: ?string} date et fournisseur, ou rien si la source de la date n'est pas libre */
-    private function stationDate(?string $date, mixed $source, string $item, OpenDataLedger $ledger): array
+    private function stationDate(?string $date, mixed $source, string $item, OpenDataLedger $ledger, bool $nonRedistributable = false): array
     {
         if ($date === null) {
+            return [null, null];
+        }
+        if ($nonRedistributable) {
+            $ledger->withhold($item, OpenDataRights::NON_COMMERCIAL);
+
             return [null, null];
         }
         $provider = $this->rights->provider('stations.fields', is_string($source) ? $source : null);

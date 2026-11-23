@@ -167,6 +167,24 @@ class ExportOpenDataTest extends TestCase
         $this->assertArrayNotHasKey('Nom non libre', $stations);
     }
 
+    public function test_a_station_date_inferred_from_a_withheld_event_never_enters(): void
+    {
+        // Date « déduite par VFF » (fournisseur libre en apparence) d'un seul événement de ligne non libre.
+        // (Le 01/03/1875 est confirmé par Wikipédia : une autre date.)
+        $station = $this->station('Charlie', ['name' => 'sncf', 'geom' => 'sncf', 'opened_at' => 'inferred:line_event'], 48.5, 2.01);
+        $station->update(['opened_at' => '1876-05-01']);
+        $this->event($this->rfn, 'opening', '1876-05-01', self::NOT_OPEN, null);
+        $eventId = (int) DB::table('line_events')->where('source', self::NOT_OPEN)->where('event_date', '1876-05-01')->value('id');
+        DB::table('station_events')->insert(['station_id' => $station->id, 'type' => 'opening', 'event_date' => '1876-05-01',
+            'date_precision' => 'day', 'source' => 'inferred:line_event', 'source_ref' => 'line_event:'.$eventId, 'is_inferred' => true,
+            'created_at' => now(), 'updated_at' => now()]);
+
+        $this->export();
+        $stations = array_column($this->csv('reseau-1930/gares.csv'), null, 'name');
+        $this->assertSame(['', '', ''], [$stations['Charlie']['opened_on'], $stations['Charlie']['opened_precision'], $stations['Charlie']['opened_source']]);
+        $this->assertSame('1875-03-01', $stations['Gare Alpha']['opened_on']);
+    }
+
     public function test_events_accidents_and_materials_keep_only_open_sources_and_no_text(): void
     {
         $this->export();
