@@ -81,6 +81,14 @@ use Illuminate\Support\Facades\Storage;
  *    le long de la trace source qui l'atteint (au plus 2 km ; voies précises,
  *    sinon trace archeo ou OHM, jamais une forme SNCF Réseau), arrêté au
  *    contact d'une autre ligne déjà dessinée, jamais en travers d'une voie.
+ *    Règle 11 (allumée par défaut, --no-join-lateral l'éteint) : un bout
+ *    arrêté à côté de la voie traversante d'une autre ligne (0,5 à 30 m,
+ *    presque parallèle), dans une gare desservie par les deux, est raccordé
+ *    à son dessin par les voies précises réelles (au plus 400 m, en
+ *    convergeant), sinon par une courbe estimée « raccord-lisse » qui ne
+ *    croise aucune voie ; jamais entre écartements différents, entre lignes
+ *    jamais en service à la même ère, ni entre une voie en tunnel et une
+ *    voie au sol.
  *
  * 4. Croisement des sources (App\Services\SourceAgreement) : chaque morceau
  *    est redécoupé par indice de confiance (high / medium / low) avec le
@@ -127,6 +135,7 @@ class BuildLineReferences extends Command
         {--no-junction-repair : sans l\'étape de continuité sur les voies réelles (sauts, trous, jonctions)}
         {--no-rounding : sans l\'arrondi des sommets (tracés gardés en segments droits)}
         {--no-extend-to-stations : ne pas prolonger jusqu\'à leur gare terminus les bouts arrêtés avant elle (règle 10, allumée par défaut)}
+        {--no-join-lateral : ne pas raccorder les bouts arrêtés à côté de la voie traversante d\'une autre ligne (règle 11, allumée par défaut)}
         {--report-only : mesurer la précision du tracé actuel et réécrire les rapports, sans rien reconstruire}
         {--shard= : i/n - ne traiter qu\'une ligne sur n (processus parallèles ; rapports avec --report-only ensuite)}';
 
@@ -215,6 +224,7 @@ class BuildLineReferences extends Command
         }
 
         $this->junctionRepair->extendToStations = ! $this->option('no-extend-to-stations');
+        $this->junctionRepair->joinLateral = ! $this->option('no-join-lateral');
         $t = microtime(true);
         $n = $this->conflation->preparePool($partial ? $this->envelope($lineIds) : null);
         $this->line(sprintf('  pool de géométries : %d traces (%.1f s)', $n, microtime(true) - $t));
@@ -282,6 +292,10 @@ class BuildLineReferences extends Command
                 $j['tee_smoothed'] ?? 0, $this->km($j['tee_smoothed_m'] ?? 0), $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
             $this->line(sprintf('  bouts posés sur la voie d\'une autre ligne dessinée à côté : %d raccordés à son dessin par une courbe estimée (%s km)',
                 $j['drawing_joined'] ?? 0, $this->km($j['drawing_joined_m'] ?? 0)));
+            if (! $this->option('no-join-lateral')) {
+                $this->line(sprintf('  bouts arrêtés à côté de la voie traversante d\'une autre ligne : %d raccordés par les voies précises (%s km), %d par une courbe estimée (%s km)',
+                    $j['lateral_routed'] ?? 0, $this->km($j['lateral_routed_m'] ?? 0), $j['lateral_smoothed'] ?? 0, $this->km($j['lateral_smoothed_m'] ?? 0)));
+            }
             $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d raccords coudés qui fermaient une boucle retirés (%s km), %d éperons en aller-retour retirés (%s km), %d raccords pendants retirés (%s km)',
                 $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['loop_jog_removed'] ?? 0, $this->km($j['loop_jog_removed_m'] ?? 0),
                 $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0), $j['dangling_connector_removed'] ?? 0, $this->km($j['dangling_connector_removed_m'] ?? 0)));

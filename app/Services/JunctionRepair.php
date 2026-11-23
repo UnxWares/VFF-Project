@@ -140,6 +140,32 @@ use Illuminate\Support\Facades\DB;
  *      autre ligne, posé sur ce dessin (jonction à 0 m), s'il y arrive presque
  *      parallèle ; refusé s'il croise cette ligne ou une voie précise, double
  *      la ligne, ou dépasse TERMINUS_MAX_M.
+ *  11. Jonction latérale (allumée par défaut, $joinLateral ; option
+ *      --no-join-lateral de vff:build-line-references pour l'éteindre) : un bout
+ *      libre qui s'arrête À CÔTÉ de la voie traversante d'une autre ligne L
+ *      (dessin de L de SOURCE_JOIN_SNAP_M à LATERAL_MAX_M, presque parallèle,
+ *      sans cap vers lui : les règles 5 et 7 c ne le voient pas), quand la
+ *      jonction est réelle : gare desservie par les deux lignes à au plus
+ *      LATERAL_STATION_M, écartements compatibles, les deux lignes en service
+ *      à une même ère près du bout (tronçons calculés), même niveau (jamais une
+ *      voie en tunnel contre une voie au sol : RER sous une gare de surface).
+ *      Les autres lignes à portée sont essayées de la plus proche à la plus
+ *      éloignée (au plus LATERAL_CANDIDATES).
+ *      Raccordé au dessin de L :
+ *        a. par les voies précises réelles quand elles mènent du bout au dessin
+ *           de L (aiguillages, déviation <= TURN_DEG à chaque nœud, au plus
+ *           LATERAL_ROUTE_MAX_M, sans s'écarter de L de plus de LATERAL_MAX_M,
+ *           sans la longer à l'écart du bout sur plus de LATERAL_PARALLEL_M,
+ *           sans la traverser, sans doubler la ligne) ;
+ *        b. sinon par une courbe estimée (« raccord-lisse ») tangente à la
+ *           portion du bout et au dessin de L, devant le bout, de rayon au moins
+ *           minRadius, qui reste entre les deux voies en se rapprochant toujours
+ *           de L et ne croise ni une voie
+ *           précise ni le dessin d'une ligne ; refusée devant une voie précise en
+ *           impasse (quai en cul-de-sac : la jonction n'est pas devant).
+ *      Rien ne change si le dessin de la ligne touche déjà L près du bout (bout
+ *      qui dépasse), si l'ajout double la ligne, ou si une autre ligne finit sur
+ *      la partie coupée.
  *
  * Graphe des voies : morceaux du pool (TraceConflation::preparePool, table
  * temporaire cf_pool) dans une fenêtre, nœuds aux intersections (ST_Node, une
@@ -319,6 +345,48 @@ class JunctionRepair
 
     public const TERMINUS_CONTACT_M = 2.0;
 
+    /**
+     * Règle 11 : écart max (m) entre le bout et le dessin de la voie traversante ; écart max de cap (°) entre le bout et
+     * cette voie (presque parallèle) ; voie traversante : au moins LATERAL_THROUGH_M de son dessin à moins de
+     * LATERAL_WINDOW_M du bout ; gare commune aux deux lignes à au plus LATERAL_STATION_M ; tronçons des deux lignes en
+     * service à une même ère à moins de LATERAL_ERA_M ; chemin sur les voies précises d'au plus LATERAL_ROUTE_MAX_M.
+     * Mêmes seuils que DataInvariants (lines.junction_gap_lateral), qui compte les bouts que la règle doit fermer.
+     */
+    public const LATERAL_MAX_M = 30.0;
+
+    public const LATERAL_DEG = 30.0;
+
+    public const LATERAL_THROUGH_M = 60.0;
+
+    public const LATERAL_WINDOW_M = 40.0;
+
+    public const LATERAL_STATION_M = 1000.0;
+
+    public const LATERAL_ERA_M = 100.0;
+
+    public const LATERAL_ROUTE_MAX_M = 400.0;
+
+    /** Règle 11 a : longueur max (m) du chemin qui longe L sans s'en rapprocher (à plus de 70 % de l'écart du bout). */
+    public const LATERAL_PARALLEL_M = 150.0;
+
+    /** Règle 11 a : voie précise confondue avec le dessin de l'autre ligne à LATERAL_MERGE_M près (m). */
+    public const LATERAL_MERGE_M = 3.5;
+
+    /** Règle 11 a : longueur (m) confondue avec le dessin de L qui suffit pour s'arrêter sur un morceau plus long. */
+    public const LATERAL_OVERLAP_M = 30.0;
+
+    /** Règle 11 b : distance (m) de D ou de J où la courbe peut recouper la voie qu'elle quitte ou rejoint. */
+    public const LATERAL_TANGENT_M = 20.0;
+
+    /** Règle 11 : rayon (m) où l'on mesure la part en souterrain des voies rattachées à chaque ligne (niveaux). */
+    public const LATERAL_LEVEL_M = 500.0;
+
+    /** Règle 11 : autres lignes à portée essayées au plus, de la plus proche à la plus éloignée. */
+    public const LATERAL_CANDIDATES = 4;
+
+    /** Statuts « en service » des tronçons (comme DataInvariants::ACTIVE). */
+    public const LATERAL_ACTIVE = ['in_service', 'single_track'];
+
     /** Long trou (règle 9) : écart max entre les deux bouts (m) ; c'est aussi la longueur max du chemin. */
     public const LONG_GAP_MAX_M = 20000.0;
 
@@ -395,6 +463,11 @@ class JunctionRepair
 
     private const SOURCE_JOIN_J_STEPS = [0, 10, 20, 30, 45, 60, 80, 100, 130, 160, 200];
 
+    /** Règle 11 : recul D sur la portion du bout et avancée J sur le dessin de la voie traversante essayés (m). */
+    private const LATERAL_D_STEPS = [0, 10, 20, 30, 45, 60, 80, 100];
+
+    private const LATERAL_J_STEPS = [0, 10, 20, 30, 45, 60, 80, 100, 130, 160, 200, 250, 300];
+
     private const MAX_EXPANSIONS = 20000;
 
     /** Chemin d'un long trou : états explorés au plus (fenêtre de 20 km de voies abandonnées). */
@@ -408,6 +481,9 @@ class JunctionRepair
      * prolongements ; --no-extend-to-stations l'éteint.
      */
     public bool $extendToStations = true;
+
+    /** Règle 11 (jonction latérale) : allumée par défaut ; --no-join-lateral l'éteint. */
+    public bool $joinLateral = true;
 
     /** Diagnostic : décisions (rempli si $debug). */
     public bool $debug = false;
@@ -453,7 +529,8 @@ class JunctionRepair
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
      *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
      *                                  dangling_connector_removed (+ _m), long_gap_filled (+ _m),
-     *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough
+     *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough,
+     *                                  lateral_routed (+ _m), lateral_smoothed (+ _m)
      */
     public function repair(int $lineId): array
     {
@@ -469,7 +546,8 @@ class JunctionRepair
             'loop_jog_removed' => 0, 'loop_jog_removed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
             'dangling_connector_removed' => 0, 'dangling_connector_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0,
-            'terminus_extended' => 0, 'terminus_extended_m' => 0.0, 'terminus_rough' => 0];
+            'terminus_extended' => 0, 'terminus_extended_m' => 0.0, 'terminus_rough' => 0,
+            'lateral_routed' => 0, 'lateral_routed_m' => 0.0, 'lateral_smoothed' => 0, 'lateral_smoothed_m' => 0.0];
 
         // Raccords qui ferment déjà une boucle (8 bis) : retirés avant les sauts, pour que le saut qui reste d'une boîte
         // soit traité comme un saut seul (bout sans issue coupé, S lissé).
@@ -498,6 +576,10 @@ class JunctionRepair
         $this->smoothEnds($stats);
         // Après les règles 5 et 7 c, qui posent aussi des bouts sur la voie d'une autre ligne.
         $this->joinOtherLineDrawings($stats);
+        // Règle 11, après 5 bis (bout presque posé sur l'autre ligne) : bouts arrêtés à côté de la voie traversante.
+        if ($this->joinLateral) {
+            $this->joinLateral($stats);
+        }
         // De nouveau après les courbes lissées (1 bis, 5 bis, 7), qui peuvent fermer une boucle avec un raccord resté ; avant
         // les allers-retours, qui coupent le bout que le raccord retiré laisse en l'air.
         $this->removeLoopJogs($stats);
@@ -2506,6 +2588,406 @@ class JunctionRepair
         }
     }
 
+    // ─── 11. Jonction latérale ─────────────────────────────────────────
+
+    /**
+     * Règle 11 (cf. docblock), si $joinLateral (allumée par défaut). Bout libre arrêté à côté du dessin d'une autre ligne
+     * L, presque parallèle (une bifurcation en gare : Vierzon-Forges, 690000 à 8,4 m de 590000), que ni la règle 5 (voie
+     * de L devant le bout) ni 5 bis (bout posé sur la voie de L) ni 7 c (cap vers L) ne raccordent. Contrôles de la
+     * jonction réelle (lateralTarget), puis le chemin sur les voies précises (a), sinon la courbe estimée (b), dont le
+     * nouveau bout est sur le dessin de L (0 m).
+     */
+    private function joinLateral(array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $rmin = self::minRadius($net, $this->gauge);
+        $narrow = in_array($net, TraceConflation::JUNCTION_NARROW_NETWORKS, true);
+        foreach ($this->freeEnds() as $e) {
+            if ($e['conn'] || ! $this->isFreeEnd($e['sid'], $e['k'])) {
+                continue;
+            }
+            $t = $this->lateralTarget($e, $narrow);
+            if (! is_array($t)) {
+                $t !== null && $this->debug && $this->log[] = ['lateral' => $e['sid'], 'at' => [round($e['x'], 1), round($e['y'], 1)], 'skip' => $t];
+
+                continue;
+            }
+            ['line' => $other, 'd' => $y, 'tc' => $tc, 's' => $s] = $t;
+            $log = ['lateral' => $e['sid'], 'at' => [round($e['x'], 1), round($e['y'], 1)], 'line' => $other, 'd' => round($y, 1)];
+
+            // a. Voies précises réelles jusqu'au dessin de L, sans quitter le faisceau, en convergeant vers L : le chemin ne
+            // longe pas L à l'écart du bout sur plus de LATERAL_PARALLEL_M (sur une autre voie d'un faisceau de L, il
+            // dessinerait la ligne à côté de L sur des centaines de mètres : Blainville-Damelevières, 042000 le long de
+            // 070000 sur 600 m).
+            $path = $this->route($e, ['type' => 'drawing', 'line' => $other], self::LATERAL_ROUTE_MAX_M);
+            $far = $path !== null ? max(array_map(fn ($p) => $this->distToLine($tc, $p), $path['coords'])) : null;
+            $double = $path !== null && $this->doubles($path, [$e['sid']]);
+            $alongside = $path !== null ? $this->alongsideLength($path['coords'], $tc, 0.7 * $y) : 0.0;
+            // Arrivée du même côté : le chemin ne passe pas de l'autre côté de L (traversée) avant ses 25 derniers m.
+            $crosses = $path !== null && $path['len'] > 30 && $this->crossesDrawing($this->subLine($path['coords'], 0.0, $path['len'] - 25), $other);
+            $log['route'] = $path === null ? null : [round($path['len']), round($far, 1), $double, round($alongside), $crosses];
+            if ($path !== null && $far <= self::LATERAL_MAX_M + 5 && ! $double && $alongside <= self::LATERAL_PARALLEL_M && ! $crosses) {
+                $this->addPath($path, $e['sid']);
+                $stats['lateral_routed']++;
+                $stats['lateral_routed_m'] += $path['len'];
+                $this->debug && $this->log[] = $log + ['routed' => round($path['len'], 1)];
+
+                continue;
+            }
+
+            // b. Courbe estimée devant le bout, sauf devant une voie précise en impasse.
+            if ($this->deadEndTrack($e)) {
+                $this->debug && $this->log[] = $log + ['skip' => 'voie en impasse'];
+
+                continue;
+            }
+            $fit = $this->lateralCurve($e, $s, $tc, $y, $rmin);
+            if (is_string($fit)) {
+                $this->debug && $this->log[] = $log + ['skip' => $fit];
+
+                continue;
+            }
+            [$curve, $ld, $slen] = $fit;
+            if ($ld > 0) {
+                $f = $ld / $slen;
+                $e['k'] === 1 ? $this->cutSub($e['sid'], 0.0, 1 - $f) : $this->cutSub($e['sid'], $f, 1.0);
+            }
+            $this->insertSmoothed($curve['coords'], $e['sid']);
+            $stats['lateral_smoothed']++;
+            $stats['lateral_smoothed_m'] += $curve['len'];
+            $this->debug && $this->log[] = $log + ['smoothed' => round($curve['len'], 1), 'back' => $ld];
+        }
+    }
+
+    /**
+     * Voie traversante L à côté du bout $e et contrôles de la jonction réelle (cf. docblock, règle 11). Les autres lignes
+     * dessinées à au plus LATERAL_MAX_M sont essayées de la plus proche à la plus éloignée (au plus LATERAL_CANDIDATES) :
+     * la plus proche peut être une ligne fermée de longue date, ou sans gare commune. Rend la première qui passe les
+     * contrôles (ligne L, écart, son dessin le plus proche en polyligne fusionnée Lambert-93, portion du bout orientée
+     * vers lui) ; sinon la raison du refus de la plus proche (journal) ; null quand aucune autre ligne n'est à portée.
+     *
+     * @param  array{sid: int, k: int, x: float, y: float, az: float, rank: int, conn: bool}  $e
+     * @return array{line: int, d: float, tc: list<array{0: float, 1: float}>, s: list<array{0: float, 1: float}>}|string|null
+     */
+    private function lateralTarget(array $e, bool $narrow): array|string|null
+    {
+        $rows = DB::select(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p),
+            drawn AS (
+                SELECT o.line_id, o.id, d.path[1] AS sub, ST_Transform(d.geom, 2154) AS g
+                FROM line_reference_parts o, LATERAL ST_Dump(o.geom) d, e
+                WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(e.p, :win), 4326)
+            ),
+            near AS (
+                SELECT dr.line_id, MIN(ST_Distance(dr.g, e.p)) AS d FROM drawn dr, e
+                WHERE ST_DWithin(dr.g, e.p, :max) GROUP BY dr.line_id ORDER BY 2, 1 LIMIT :n
+            )
+            SELECT near.line_id, near.d, l.gauge_mm_default AS gauge, l.network,
+                   (SELECT COALESCE(SUM(ST_Length(ST_Intersection(x.g, ST_Buffer(e.p, :win2)))), 0) FROM drawn x WHERE x.line_id = near.line_id) AS through,
+                   (SELECT ST_AsText(m.geom) FROM ST_Dump(ST_LineMerge(ST_Union(ARRAY(
+                        SELECT ST_Transform(d.geom, 2154) FROM line_reference_parts o, LATERAL ST_Dump(o.geom) d
+                        WHERE o.line_id = near.line_id AND o.geom && ST_Transform(ST_Expand(e.p, 600), 4326))))) m
+                    ORDER BY ST_Distance(m.geom, e.p) LIMIT 1) AS wkt
+            FROM near JOIN lines l ON l.id = near.line_id, e
+            ORDER BY near.d, near.line_id
+            SQL, ['x' => $e['x'], 'y' => $e['y'], 'line' => $this->lineId, 'win' => self::LATERAL_MAX_M + self::LATERAL_WINDOW_M,
+            'win2' => self::LATERAL_WINDOW_M, 'max' => self::LATERAL_MAX_M, 'n' => self::LATERAL_CANDIDATES]);
+        if (! $rows) {
+            return null;
+        }
+        if ((float) $rows[0]->d <= self::SOURCE_JOIN_SNAP_M) {
+            return 'bout déjà sur une autre ligne';
+        }
+        $first = null;
+        foreach ($rows as $t) {
+            $r = $this->lateralCheck($e, $narrow, $t);
+            if (is_array($r)) {
+                return $r;
+            }
+            $first ??= $r;
+        }
+
+        return $first;
+    }
+
+    /**
+     * Contrôles de la règle 11 pour la ligne candidate $t (ligne, écart, écartement, réseau, dessin traversant, dessin
+     * fusionné) : rend la cible ou la raison du refus.
+     *
+     * @param  array{sid: int, k: int, x: float, y: float, az: float, rank: int, conn: bool}  $e
+     * @return array{line: int, d: float, tc: list<array{0: float, 1: float}>, s: list<array{0: float, 1: float}>}|string
+     */
+    private function lateralCheck(array $e, bool $narrow, object $t): array|string
+    {
+        $other = (int) $t->line_id;
+        $y = (float) $t->d;
+        // Partage de voie physiquement impossible (garde-fou de TraceConflation::junctionTrunk, comme 5 bis et 7 c).
+        if (($this->gauge !== null && $t->gauge !== null && (int) $t->gauge !== $this->gauge)
+            || (($this->gauge === null || $t->gauge === null) && $narrow && $t->network === 'principal')) {
+            return 'écartements incompatibles';
+        }
+        if ((float) $t->through < self::LATERAL_THROUGH_M || $t->wkt === null) {
+            return 'voie non traversante';
+        }
+        $tc = $this->parseWkt($t->wkt);
+        // Presque parallèle : le dessin de L, orienté dans le sens du bout depuis sa projection, suit son cap.
+        [$pos, $dir] = $this->projectOn($tc, [$e['x'], $e['y']], [sin($e['az']), cos($e['az'])]);
+        $qp = $dir > 0 ? $this->subLine($tc, $pos, $this->plen($tc)) : array_reverse($this->subLine($tc, 0, $pos));
+        if ($this->plen($qp) < 10) {
+            return 'voie non traversante';
+        }
+        $u = $this->unit($qp[0], $this->pointAlong($qp, min($this->plen($qp), 15)));
+        if ($this->angDiff($e['az'], atan2($u[0], $u[1])) > deg2rad(self::LATERAL_DEG)) {
+            return 'pas parallèle';
+        }
+        $s = $this->subCoords($e['sid']);
+        if ($s === null) {
+            return 'portion absente';
+        }
+        if ($e['k'] === 0) {
+            $s = array_reverse($s);
+        }
+        $slen = $this->plen($s);
+        // Bout qui touche déjà L dans ses 30 derniers m : il la dépasse (build-shared-track), rien à raccorder.
+        for ($b = 0.0; $b <= min(30.0, $slen); $b += 2.0) {
+            if ($this->distToLine($tc, $this->pointAlong($s, $slen - $b)) <= self::SOURCE_JOIN_SNAP_M) {
+                return 'bout qui dépasse';
+            }
+        }
+        $p = ['x' => $e['x'], 'y' => $e['y']];
+        if (! DB::selectOne(<<<'SQL'
+            SELECT 1 AS x FROM station_lines a JOIN station_lines b ON b.station_id = a.station_id AND b.line_id = :other
+            JOIN stations s ON s.id = a.station_id, (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p) e
+            WHERE a.line_id = :line AND s.geom && ST_Transform(ST_Expand(e.p, :r), 4326) AND ST_DWithin(ST_Transform(s.geom, 2154), e.p, :r2)
+            LIMIT 1
+            SQL, $p + ['other' => $other, 'line' => $this->lineId, 'r' => self::LATERAL_STATION_M, 'r2' => self::LATERAL_STATION_M])) {
+            return 'pas de gare commune';
+        }
+        if (! DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p)
+            SELECT 1 AS x FROM e, line_segments a JOIN line_segments b ON b.era_id = a.era_id
+            WHERE a.line_id = :line AND b.line_id = :other AND a.status = ANY(CAST(:act AS text[])) AND b.status = ANY(CAST(:act2 AS text[]))
+              AND a.geom && ST_Transform(ST_Expand(e.p, :r), 4326) AND ST_DWithin(ST_Transform(a.geom, 2154), e.p, :r2)
+              AND b.geom && ST_Transform(ST_Expand(e.p, :r3), 4326) AND ST_DWithin(ST_Transform(b.geom, 2154), e.p, :r4)
+            LIMIT 1
+            SQL, $p + ['line' => $this->lineId, 'other' => $other, 'act' => '{'.implode(',', self::LATERAL_ACTIVE).'}', 'act2' => '{'.implode(',', self::LATERAL_ACTIVE).'}',
+            'r' => self::LATERAL_ERA_M, 'r2' => self::LATERAL_ERA_M, 'r3' => self::LATERAL_ERA_M + self::LATERAL_MAX_M, 'r4' => self::LATERAL_ERA_M + self::LATERAL_MAX_M])) {
+            return 'pas en service à une même ère';
+        }
+        // Même niveau : voies sous le bout et sous L, puis voies rattachées à chaque ligne autour du bout (le RER A est
+        // dessiné à Paris-Gare-de-Lyon sur une voie de surface rattachée par erreur, mais ses voies sont en tunnel).
+        $j0 = $this->pointAlong($qp, 0.0);
+        $here = $this->underground($e['x'], $e['y']);
+        $there = $this->underground($j0[0], $j0[1]);
+        $mine = $this->undergroundShare($this->lineId, $e['x'], $e['y']);
+        $theirs = $this->undergroundShare($other, $e['x'], $e['y']);
+        if (($here !== null && $there !== null && $here !== $there) || ($mine !== null && $theirs !== null && ($mine >= 0.5) !== ($theirs >= 0.5))) {
+            return 'niveaux différents (tunnel et surface)';
+        }
+
+        return ['line' => $other, 'd' => $y, 'tc' => $tc, 's' => $s];
+    }
+
+    /**
+     * Voies précises du pool à moins de 2 m du point : toutes en souterrain (BD TOPO position_par_rapport_au_sol
+     * négative ; OSM tunnel, layer négatif ou location=underground) → true, toutes au sol ou au-dessus → false, sinon
+     * (aucune voie, ou les deux : tête de tunnel) null.
+     */
+    private function underground(float $x, float $y): ?bool
+    {
+        $r = DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) FILTER (WHERE u) AS under, COUNT(*) FILTER (WHERE NOT u) AS over FROM (
+                SELECT (st.source = 'bdtopo' AND COALESCE(st.properties->>'position_par_rapport_au_sol', '') ~ '^-[0-9]')
+                    OR (st.source = 'osm' AND (COALESCE(st.properties->>'tunnel', 'no') NOT IN ('no', '') OR COALESCE(st.properties->>'layer', '') ~ '^-[0-9]'
+                                                OR st.properties->>'location' = 'underground')) AS u
+                FROM cf_pool p JOIN source_traces st ON st.id = p.id
+                WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(p.g, ST_SetSRID(ST_MakePoint(:x, :y), 2154), 2)
+            ) z
+            SQL, ['x' => $x, 'y' => $y]);
+        $under = (int) $r->under;
+        $over = (int) $r->over;
+
+        return match (true) {
+            $under > 0 && $over === 0 => true,
+            $over > 0 && $under === 0 => false,
+            default => null,
+        };
+    }
+
+    /**
+     * Part (0 à 1) en souterrain (même définition qu'underground) des voies précises du pool rattachées à la ligne
+     * $lineId dans un rayon de LATERAL_LEVEL_M du point, en longueur ; null sous 50 m de voies.
+     */
+    private function undergroundShare(int $lineId, float $x, float $y): ?float
+    {
+        $r = DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_Buffer(ST_SetSRID(ST_MakePoint(:x, :y), 2154), :r, 8) AS w)
+            SELECT SUM(z.len) AS len, SUM(z.len) FILTER (WHERE z.u) AS under FROM (
+                SELECT ST_Length(ST_Intersection(p.g, e.w)) AS len,
+                       (st.source = 'bdtopo' AND COALESCE(st.properties->>'position_par_rapport_au_sol', '') ~ '^-[0-9]')
+                    OR (st.source = 'osm' AND (COALESCE(st.properties->>'tunnel', 'no') NOT IN ('no', '') OR COALESCE(st.properties->>'layer', '') ~ '^-[0-9]'
+                                                OR st.properties->>'location' = 'underground')) AS u
+                FROM cf_pool p JOIN source_traces st ON st.id = p.id, e
+                WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND p.line_id = :line AND p.g && e.w AND ST_Intersects(p.g, e.w)
+            ) z
+            SQL, ['x' => $x, 'y' => $y, 'r' => self::LATERAL_LEVEL_M, 'line' => $lineId]);
+        $len = (float) ($r->len ?? 0);
+
+        return $len < 50 ? null : (float) ($r->under ?? 0) / $len;
+    }
+
+    /** La polyligne $c coupe-t-elle le dessin de la ligne $lineId ? */
+    private function crossesDrawing(array $c, int $lineId): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:c, 2154) AS g)
+            SELECT 1 AS x FROM c, line_reference_parts o
+            WHERE o.line_id = :line AND o.geom && ST_Transform(ST_Envelope(c.g), 4326) AND ST_Intersects(ST_Transform(o.geom, 2154), c.g)
+            LIMIT 1
+            SQL, ['c' => $this->wkt($c), 'line' => $lineId]);
+    }
+
+    /** Longueur (m, pas de 5 m) de la polyligne $c qui reste à au moins $min m du dessin $tc (part parallèle à l'écart). */
+    private function alongsideLength(array $c, array $tc, float $min): float
+    {
+        $len = $this->plen($c);
+        $m = 0.0;
+        for ($s = 2.5; $s < $len; $s += 5.0) {
+            if ($this->distToLine($tc, $this->pointAlong($c, $s)) >= $min) {
+                $m += 5.0;
+            }
+        }
+
+        return $m;
+    }
+
+    /**
+     * Le bout est-il posé sur une voie précise qui s'arrête juste après lui (quai en impasse : aucune voie précise à 3 m
+     * du point situé 20 m devant le bout) ? Alors la jonction n'est pas devant lui.
+     */
+    private function deadEndTrack(array $e): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p, ST_SetSRID(ST_MakePoint(:qx, :qy), 2154) AS q)
+            SELECT 1 AS x FROM e
+            WHERE EXISTS (SELECT 1 FROM cf_pool p WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(p.g, e.p, 1.5))
+              AND NOT EXISTS (SELECT 1 FROM cf_pool p WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(p.g, e.q, 3))
+            SQL, ['x' => $e['x'], 'y' => $e['y'], 'qx' => $e['x'] + 20 * sin($e['az']), 'qy' => $e['y'] + 20 * cos($e['az'])]);
+    }
+
+    /**
+     * Courbe estimée de la règle 11 b : tangente à la portion du bout $s (orientée vers lui) en D (recul d'au plus 100 m,
+     * sans passer une autre jonction de la portion) et au dessin $tc de L en J, devant la projection du bout ; la plus
+     * courte qui atteint le rayon $rmin, reste entre les deux voies (à moins de l'écart + 1 m de l'une d'elles) en se
+     * rapprochant toujours de L, ne
+     * double pas la ligne, ne croise ni le dessin d'une ligne ni une voie précise (hors la voie du bout en D et celle de L
+     * en J), ne coupe pas sous le bout d'une autre ligne et ne lui fait pas perdre un contact. Rend [courbe, recul, longueur
+     * de la portion] ou la raison du refus.
+     *
+     * @return array{0: array{coords: list<array{0: float, 1: float}>, len: float}, 1: int, 2: float}|string
+     */
+    private function lateralCurve(array $e, array $s, array $tc, float $y, float $rmin): array|string
+    {
+        [$pos, $dir] = $this->projectOn($tc, [$e['x'], $e['y']], [sin($e['az']), cos($e['az'])]);
+        $qp = $dir > 0 ? $this->subLine($tc, $pos, $this->plen($tc)) : array_reverse($this->subLine($tc, 0, $pos));
+        $qlen = $this->plen($qp);
+        $slen = $this->plen($s);
+        $back = min(self::LATERAL_D_STEPS[count(self::LATERAL_D_STEPS) - 1], $slen - 5, $this->nextJunction($e['sid'], $s, []) - 5);
+        $cands = [];
+        foreach (self::LATERAL_D_STEPS as $ld) {
+            foreach (self::LATERAL_J_STEPS as $lj) {
+                if ($ld + $lj > 0 && ($ld === 0 || $ld <= $back) && $lj <= $qlen - 5) {
+                    $cands[] = [$ld + $lj, $ld, $lj];
+                }
+            }
+        }
+        sort($cands);
+        $why = 'aucune courbe de rayon suffisant';
+        foreach ($cands as [, $ld, $lj]) {
+            $d = $this->pointAlong($s, $slen - $ld);
+            $u0 = $this->unit($this->pointAlong($s, max(0.0, $slen - $ld - 15)), $d);
+            $j = $this->pointAlong($qp, $lj);
+            $u1 = $this->unit($j, $this->pointAlong($qp, min($qlen, $lj + 15)));
+            if (hypot($j[0] - $d[0], $j[1] - $d[1]) < 2) {
+                continue;
+            }
+            $pts = $this->hermite($d, $u0, $j, $u1);
+            if ($this->minCurveRadius($pts) < $rmin) {
+                continue;
+            }
+            // Entre les deux voies, et toujours en approche du dessin de L (jamais en s'en écartant pour rejoindre une autre
+            // branche de L : Sélestat, 111000).
+            $prev = INF;
+            foreach ($pts as $pt) {
+                $dl = $this->distToLine($tc, $pt);
+                if (min($this->distToLine($s, $pt), $dl) > $y + 1 || $dl > $prev + 0.3) {
+                    $why = 'courbe hors des deux voies';
+
+                    continue 2;
+                }
+                $prev = min($prev, $dl);
+            }
+            $replaced = $ld > 0 ? $this->subLine($s, $slen - $ld, $slen) : [$d, $d];
+            if ($ld > 0 && $this->holdsOtherLine($replaced)) {
+                $why = 'autre ligne sur la partie coupée';
+
+                continue;
+            }
+            $curve = ['coords' => $pts, 'len' => $this->plen($pts)];
+            if ($this->doubles($curve, [$e['sid']])) {
+                $why = 'double la ligne';
+
+                continue;
+            }
+            $kept = $this->subLine($s, 0.0, max(0.0, $slen - $ld - 2));
+            // Sans ses LATERAL_TANGENT_M derniers m, qui se posent en biais sur L (que l'approche continue empêche déjà de
+            // traverser) : un contact numérique avec L n'est pas un croisement.
+            if ($this->crossesTrack($this->subLine($pts, 0.0, max(0.0, $curve['len'] - self::LATERAL_TANGENT_M)), [$replaced], $kept, [$e['sid']])) {
+                $why = 'croise une ligne';
+
+                continue;
+            }
+            if ($this->crossesPreciseBetween($pts, $d, $j)) {
+                $why = 'croise une voie précise';
+
+                continue;
+            }
+            if ($ld > 0 && $this->dropsContact($replaced, [$pts, $kept])) {
+                $why = 'contact perdu';
+
+                continue;
+            }
+
+            return [$curve, $ld, $slen];
+        }
+
+        return $why;
+    }
+
+    /**
+     * La courbe (hors de ses 2 premiers et 3 derniers m) croise-t-elle une voie précise du pool ? Entre deux voies d'un
+     * faisceau, elle passerait au travers d'une troisième sans aiguillage. Ne comptent pas les croisements, à moins de
+     * LATERAL_TANGENT_M de D ou de J, de la voie qui passe à D (voie du bout) ou à J (voie de L) : la courbe s'en détache
+     * ou s'y pose en biais de quelques degrés.
+     */
+    private function crossesPreciseBetween(array $curve, array $d, array $j): bool
+    {
+        $len = $this->plen($curve);
+        if ($len < 10) {
+            return false;
+        }
+
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_GeomFromText(:c, 2154) AS g, ST_SetSRID(ST_MakePoint(:dx, :dy), 2154) AS d, ST_SetSRID(ST_MakePoint(:jx, :jy), 2154) AS j)
+            SELECT 1 AS x FROM c, cf_pool p, LATERAL ST_Dump(ST_Intersection(p.g, c.g)) x
+            WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND p.g && c.g AND ST_Intersects(p.g, c.g)
+              AND NOT (ST_DWithin(p.g, c.d, 1.5) AND ST_DWithin(x.geom, c.d, :near))
+              AND NOT (ST_DWithin(p.g, c.j, :merge) AND ST_DWithin(x.geom, c.j, :near2))
+            LIMIT 1
+            SQL, ['c' => $this->wkt($this->subLine($curve, 2.0, $len - 3.0)), 'dx' => $d[0], 'dy' => $d[1], 'jx' => $j[0], 'jy' => $j[1], 'merge' => self::MERGE_M,
+            'near' => self::LATERAL_TANGENT_M, 'near2' => self::LATERAL_TANGENT_M]);
+    }
+
     // ─── 6. Dépassements des tracés grossiers ──────────────────────────
 
     private function trimOvershoots(array &$stats): void
@@ -3389,7 +3871,8 @@ class JunctionRepair
      * Chemin sur les voies précises depuis l'extrémité $start (cap sortant az) jusqu'à :
      *   point : un point (cap d'arrivée az) à moins de snap m d'une voie ;
      *   subs  : une portion de la ligne (sids), voie confondue avec elle (MERGE_M) ;
-     *   other : la voie d'une autre ligne (écartement compatible).
+     *   other : la voie d'une autre ligne (écartement compatible) ;
+     *   drawing : le dessin de la ligne $target['line'] (voie confondue avec lui, MERGE_M), arrivée posée dessus (0 m).
      *
      * @return array{coords: list<array{0: float, 1: float}>, len: float, family: string, ids: list<int>, lines: list<int>, tsid: ?int}|null
      */
@@ -3405,7 +3888,7 @@ class JunctionRepair
             $cy = $start['y'];
             $radius = $maxLen + $snapS;
         }
-        $edges = $this->graph($cx, $cy, $radius, $target['type'] === 'subs' ? $target['sids'] : []);
+        $edges = $this->graph($cx, $cy, $radius, $target['type'] === 'subs' ? $target['sids'] : [], $target['type'] === 'drawing' ? $target['line'] : null);
         if (! $edges) {
             return null;
         }
@@ -3440,6 +3923,24 @@ class JunctionRepair
             if (hypot($last[0] - $q->x, $last[1] - $q->y) > 1e-6) {
                 $coords[] = [(float) $q->x, (float) $q->y];
             }
+        } elseif ($target['type'] === 'drawing') {
+            // Arrivée sur le dessin un peu plus loin dans le sens de marche (LATERAL_MERGE_M d'écart au plus sur 20 m : un
+            // biais de quelques degrés, jamais un raccord en équerre).
+            $last = end($coords);
+            $prev = $coords[count($coords) - 2] ?? $coords[0];
+            $u = $this->unit($prev, $last);
+            $last = [$last[0] + 20 * $u[0], $last[1] + 20 * $u[1]];
+            $q = DB::selectOne(<<<'SQL'
+                SELECT ST_X(q) AS x, ST_Y(q) AS y FROM (
+                    SELECT ST_ClosestPoint(ST_Collect(ST_Transform(o.geom, 2154)), ST_SetSRID(ST_MakePoint(:x, :y), 2154)) AS q
+                    FROM line_reference_parts o
+                    WHERE o.line_id = :line AND o.geom && ST_Transform(ST_Expand(ST_SetSRID(ST_MakePoint(:x2, :y2), 2154), :m), 4326)
+                ) z
+                SQL, ['x' => $last[0], 'y' => $last[1], 'x2' => $last[0], 'y2' => $last[1], 'line' => $target['line'], 'm' => 2 * self::LATERAL_MERGE_M]);
+            if ($q?->x === null) {
+                return null;
+            }
+            $coords[] = [(float) $q->x, (float) $q->y];
         }
         $len = 0.0;
         for ($i = 1; $i < count($coords); $i++) {
@@ -3460,11 +3961,22 @@ class JunctionRepair
      * Morceaux de voie précise dans la fenêtre, coupés à leurs intersections (une famille à la fois).
      *
      * @param  list<int>  $targetSids  portions visées : fractions du morceau confondues avec elles
+     * @param  ?int  $drawingLine  ligne dont le dessin est visé (règle 11) : fractions du morceau confondues avec lui
      * @return list<array<string, mixed>>
      */
-    private function graph(float $cx, float $cy, float $radius, array $targetSids): array
+    private function graph(float $cx, float $cy, float $radius, array $targetSids, ?int $drawingLine = null): array
     {
-        $rows = DB::select(<<<'SQL'
+        // Dessin d'une autre ligne visé : confondu avec le morceau à LATERAL_MERGE_M près (axe BD TOPO d'une double voie
+        // dessiné entre les deux voies OSM) sur la moitié du morceau ou au moins LATERAL_OVERLAP_M (voie qui se pose sur L
+        // sans y être coupée à l'aiguillage).
+        $drawing = $drawingLine === null ? 'SELECT NULL::float8 AS fa, NULL::float8 AS fb' : <<<'SQL'
+            SELECT MIN(LEAST(ST_LineLocatePoint(n2.g, ST_StartPoint(x.geom)), ST_LineLocatePoint(n2.g, ST_EndPoint(x.geom)))) AS fa,
+                   MAX(GREATEST(ST_LineLocatePoint(n2.g, ST_StartPoint(x.geom)), ST_LineLocatePoint(n2.g, ST_EndPoint(x.geom)))) AS fb
+            FROM line_reference_parts o, LATERAL ST_Dump(ST_CollectionExtract(ST_Intersection(n2.g, ST_Buffer(ST_Transform(o.geom, 2154), :merge3)), 2)) x
+            WHERE o.line_id = :dline AND o.geom && ST_Transform(ST_Expand(n2.g, :merge4), 4326)
+            HAVING SUM(ST_Length(x.geom)) >= LEAST(0.5 * ST_Length(n2.g), :overlap)
+            SQL;
+        $rows = DB::select(<<<SQL
             WITH w AS (SELECT ST_Buffer(ST_SetSRID(ST_MakePoint(:cx, :cy), 2154), :r, 16) AS w),
             e AS (
                 SELECT p.id, p.family, p.line_id, d.geom AS g
@@ -3480,7 +3992,7 @@ class JunctionRepair
             SELECT n2.i, n2.family, ST_AsText(n2.g) AS wkt,
                    (SELECT jsonb_agg(DISTINCT jsonb_build_array(e.id, e.line_id)) FROM e
                     WHERE e.family = n2.family AND ST_DWithin(e.g, ST_LineInterpolatePoint(n2.g, 0.5), 0.01)) AS orig,
-                   t.sid AS tsid, t.fa, t.fb
+                   t.sid AS tsid, t.fa, t.fb, dw.fa AS dfa, dw.fb AS dfb
             FROM n2
             LEFT JOIN LATERAL (
                 SELECT o.sid, MIN(LEAST(ST_LineLocatePoint(n2.g, ST_StartPoint(x.geom)), ST_LineLocatePoint(n2.g, ST_EndPoint(x.geom)))) AS fa,
@@ -3492,9 +4004,11 @@ class JunctionRepair
                 HAVING SUM(ST_Length(x.geom)) >= 0.5 * ST_Length(n2.g)
                 ORDER BY o.sid LIMIT 1
             ) t ON TRUE
+            LEFT JOIN LATERAL ({$drawing}) dw ON TRUE
             ORDER BY n2.i
             SQL, ['cx' => $cx, 'cy' => $cy, 'r' => $radius, 'line' => $this->lineId, 'gauge' => $this->gauge, 'gauge2' => $this->gauge,
-            'merge' => self::MERGE_M, 'merge2' => self::MERGE_M, 'tsids' => $this->ints($targetSids)]);
+            'merge' => self::MERGE_M, 'merge2' => self::MERGE_M, 'tsids' => $this->ints($targetSids)]
+            + ($drawingLine === null ? [] : ['dline' => $drawingLine, 'merge3' => self::LATERAL_MERGE_M, 'merge4' => self::LATERAL_MERGE_M, 'overlap' => self::LATERAL_OVERLAP_M]));
 
         $edges = [];
         foreach ($rows as $r) {
@@ -3516,6 +4030,7 @@ class JunctionRepair
                 'own' => in_array($this->lineId, $lineIds, true),
                 'other' => $lineIds && ! in_array($this->lineId, $lineIds, true),
                 'tsid' => $r->tsid !== null ? (int) $r->tsid : null, 'fa' => (float) ($r->fa ?? 0) * $len, 'fb' => (float) ($r->fb ?? 0) * $len,
+                'dl' => $r->dfa !== null, 'dfa' => (float) ($r->dfa ?? 0) * $len, 'dfb' => (float) ($r->dfb ?? 0) * $len,
             ];
         }
 
@@ -3555,6 +4070,14 @@ class JunctionRepair
                 $s = $dir > 0 ? $e['fa'] : $e['fb'];
 
                 return ($dir > 0 ? $s >= $from - 1e-9 : $s <= $from + 1e-9) ? $s : null;
+            }
+            if ($target['type'] === 'drawing') {
+                // Arrivée sur la partie du morceau confondue avec le dessin visé ; départ déjà dessus : chemin nul (refusé).
+                if (! $e['dl']) {
+                    return null;
+                }
+
+                return $dir > 0 ? ($e['dfb'] >= $from - 1e-9 ? max($e['dfa'], $from) : null) : ($e['dfa'] <= $from + 1e-9 ? min($e['dfb'], $from) : null);
             }
 
             return $e['other'] ? $from : null;

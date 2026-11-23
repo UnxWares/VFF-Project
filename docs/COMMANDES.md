@@ -313,6 +313,7 @@ les sources. Écrit dans les tables du moteur.
 | `--no-junction-repair` | Sans l'étape de continuité sur les voies réelles (sauts, trous, jonctions). |
 | `--no-rounding` | Sans l'arrondi des sommets (segments droits). |
 | `--no-extend-to-stations` | Éteint la règle 10 (allumée par défaut), qui prolonge jusqu'à sa gare terminus, le long de la trace source, un bout arrêté avant elle. |
+| `--no-join-lateral` | Éteint la règle 11 (allumée par défaut), qui raccorde au dessin de la voie traversante d'une autre ligne un bout arrêté à côté d'elle dans une gare commune. |
 | `--report-only` | Mesure la précision du tracé actuel et réécrit les rapports, sans rien reconstruire. |
 | `--shard=i/n` | Une ligne sur `n`, pour des processus parallèles. |
 
@@ -409,6 +410,15 @@ et nettoyage `--no-single-axis`) sont arrivées les 21 et 22/11 ; leur docblock 
   la trace archeo ou OHM elle-même, gardée comme tracé grossier ; jamais sur une forme SNCF Réseau, généralisée, dont
   les 5 m ne sont pas garantis). Le prolongement s'arrête au premier contact avec le dessin d'une autre ligne (jonction
   à 0 m) et il est refusé s'il double une autre ligne dès le bout, s'il croise une voie ou s'il dépasse 2 km.
+- Règle 11 (allumée par défaut, `--no-join-lateral` l'éteint) : un bout libre arrêté à côté du dessin d'une autre ligne
+  (de 0,5 à 30 m, presque parallèle, voie traversante sur au moins 60 m autour du bout), quand une gare est desservie par
+  les deux lignes à moins d'1 km, que les écartements sont compatibles, que les deux lignes sont en service à une même ère
+  près du bout et qu'elles sont au même niveau (jamais une voie en tunnel contre une voie au sol), est raccordé au dessin
+  de l'autre ligne : par les voies précises réelles (au plus 400 m, sans s'écarter de plus de 35 m, sans longer l'autre
+  ligne à l'écart sur plus de 150 m, sans la traverser, sans doubler la ligne), sinon par une courbe estimée
+  « raccord-lisse » tangente aux deux voies, devant le bout, de rayon plausible, qui se rapproche toujours de l'autre
+  ligne et ne croise ni une voie précise ni le dessin d'une ligne (refusée devant une voie précise en impasse). La
+  jonction tombe à 0 m ; ce sont les bouts que compte l'invariant `lines.junction_gap_lateral`.
 
 Ces règles ne s'appliquent au réseau qu'au prochain recalcul des lignes (scripts d'application des rapports d'agents, voir
 `REPRISE.md`).
