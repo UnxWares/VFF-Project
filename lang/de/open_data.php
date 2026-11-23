@@ -68,6 +68,7 @@ return [
         'items' => [
             'sections_geometry' => 'Verläufe von Abschnitten',
             'sections_gauge' => 'Spurweiten von Abschnitten',
+            'lines' => 'Nach einer nicht freien Trasse angelegte Strecken',
             'lines_name' => 'Streckennamen',
             'stations_name' => 'Bahnhofsnamen',
             'stations_geometry' => 'Lage von Bahnhöfen',

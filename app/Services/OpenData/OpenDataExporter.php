@@ -234,6 +234,15 @@ final class OpenDataExporter
         $out = [];
         foreach ($rows as $r) {
             $alt = is_string($r->alt_names) ? (json_decode($r->alt_names, true) ?: []) : [];
+            // Ligne créée d'après le tracé d'une source non autorisée, sans code SNCF Réseau : son existence, ses
+            // sections, longueurs et états viennent de cette source. Ni la ligne ni ses sections n'entrent.
+            $created = is_string($alt['source'] ?? null) && ! str_starts_with($alt['source'], 'vff:') ? $alt['source'] : null;
+            if ($created !== null && $r->code === null
+                && ($refusal = $this->rights->refusal($this->rights->provider('line_segments', $created))) !== null) {
+                $ledger->withhold('lines', $refusal);
+
+                continue;
+            }
             [$name, $provider] = $this->lineName((string) $r->slug, (string) $r->name, is_string($r->wikipedia_title) ? $r->wikipedia_title : null, $alt, $ledger);
             $ledger->cite($provider);
             $out[(int) $r->id] = [

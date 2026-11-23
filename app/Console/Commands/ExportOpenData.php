@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Era;
+use App\Services\Lines\NeutralLineSlugs;
 use App\Services\OpenData\OpenDataCatalogue;
 use App\Services\OpenData\OpenDataExporter;
 use App\Services\OpenData\OpenDataLedger;
@@ -86,6 +87,13 @@ class ExportOpenData extends Command
 
                 return self::INVALID;
             }
+        }
+
+        // Un slug à préfixe de source (« archeo-… ») nommerait dans les fichiers une source qui n'y entre pas.
+        if (DB::table('lines')->where('slug', 'like', NeutralLineSlugs::PREFIX.'%')->exists()) {
+            $this->error('Slugs de ligne à préfixe de source : lancer d\'abord php artisan vff:neutralize-line-slugs.');
+
+            return self::FAILURE;
         }
 
         $rights = new OpenDataRights(new SourceRights);

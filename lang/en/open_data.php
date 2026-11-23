@@ -68,6 +68,7 @@ return [
         'items' => [
             'sections_geometry' => 'Section traces',
             'sections_gauge' => 'Section gauges',
+            'lines' => 'Lines created from a non-open trace',
             'lines_name' => 'Line names',
             'stations_name' => 'Station names',
             'stations_geometry' => 'Station positions',

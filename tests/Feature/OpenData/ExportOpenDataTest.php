@@ -216,6 +216,30 @@ class ExportOpenDataTest extends TestCase
         $this->assertStringNotContainsString(self::NOT_OPEN, (string) file_get_contents($this->out.'/'.OpenDataCatalogue::FILE));
     }
 
+    /** Ligne créée d'après un tracé non autorisé (sans code) : ni la ligne, ni ses sections, ni leurs états n'entrent. */
+    public function test_a_line_created_from_an_unauthorised_trace_never_enters(): void
+    {
+        $created = Line::factory()->create(['slug' => 'ligne-d-echo-a-foxtrot', 'code' => null, 'name' => 'Ligne d\'Echo à Foxtrot',
+            'network' => 'secondaire', 'alt_names' => ['source' => self::NOT_OPEN], 'wikipedia_title' => null]);
+        $this->segment($created, self::NOT_OPEN, 'LINESTRING(4.0 46.0, 4.01 46.0)', 0, 'dismantled');
+
+        $this->export();
+
+        $this->assertNotContains('ligne-d-echo-a-foxtrot', array_column($this->csv('reseau-1930/lignes.csv'), 'slug'));
+        $this->assertNotContains('ligne-d-echo-a-foxtrot', array_column($this->csv('reseau-1930/sections.csv'), 'line_slug'));
+        $this->assertContains('rfn-999000', array_column($this->csv('reseau-1930/lignes.csv'), 'slug'));
+    }
+
+    /** Un slug à préfixe de source nommerait la source dans les fichiers : l'export attend la neutralisation. */
+    public function test_the_export_waits_for_neutral_line_slugs(): void
+    {
+        Line::factory()->create(['slug' => 'archeo-ligne-de-golf-a-hotel', 'code' => null, 'alt_names' => null]);
+
+        $this->artisan('vff:export-open-data', ['--era' => ['1930'], '--output' => $this->out, '--date' => '2026-11-23'])
+            ->expectsOutputToContain('vff:neutralize-line-slugs')
+            ->assertExitCode(1);
+    }
+
     public function test_readme_licence_and_catalogue_count_what_was_withheld(): void
     {
         $this->export();

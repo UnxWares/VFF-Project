@@ -48,6 +48,7 @@ final class OpenDataPackage
     public const ITEMS = [
         'sections.geometry' => ['géométries de sections', 'section geometries'],
         'sections.gauge' => ['écartements de sections', 'section gauges'],
+        'lines' => ['lignes créées d\'après un tracé non libre', 'lines created from a non-open trace'],
         'lines.name' => ['noms de lignes', 'line names'],
         'stations.name' => ['noms de gares', 'station names'],
         'stations.geometry' => ['positions de gares', 'station positions'],

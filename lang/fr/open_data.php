@@ -69,6 +69,7 @@ return [
         'items' => [
             'sections_geometry' => 'Tracés de sections',
             'sections_gauge' => 'Écartements de sections',
+            'lines' => 'Lignes créées d’après un tracé non libre',
             'lines_name' => 'Noms de lignes',
             'stations_name' => 'Noms de gares',
             'stations_geometry' => 'Positions de gares',
