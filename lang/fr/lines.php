@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalisation par PK',
         'heritage' => 'Exploitation associative',
         'route_through_time' => 'Le tracé dans le temps',
+        'spacetime' => 'Où et quand',
         'history' => 'Histoire de la ligne',
         'chronicle' => 'Chronologie détaillée, portion par portion',
         'notes' => 'Notes et sources',
@@ -235,6 +236,22 @@ return [
     ],
 
     // Phases de la ligne (App\Services\LinePhases) : sélecteur à côté de la carte.
+    // Diagramme « où et quand » de la fiche (LineSpaceTime.svelte) : la ligne déroulée, une bande par phase.
+    'spacetime' => [
+        'intro' => 'Chaque bande montre la ligne entière, d’un bout à l’autre, à une date où elle change : on voit où elle a ouvert, perdu ses voyageurs, fermé, été déposée ou rouverte. Un trait sous la bande marque ce qui change à cette date. Choisissez une date pour lire ses événements et leurs sources.',
+        'label' => 'La ligne date par date',
+        'label_ends' => 'La ligne date par date, de :from à :to',
+        'legend' => 'Légende du diagramme',
+        'changed' => 'Change à cette date',
+        'state' => 'État : :list.',
+        'state_part' => ':state du km :from au km :to',
+        'range' => 'Du km :from au km :to',
+        'since' => 'Depuis : :date',
+        'loading' => 'Lecture du tracé…',
+        'failed' => 'Le tracé de la ligne n’a pas pu être lu : le diagramme n’est pas disponible.',
+        'order_note' => 'Kilomètres comptés le long du tracé connu, dans l’ordre des points kilométriques ; un embranchement est placé à la suite de la ligne principale.',
+    ],
+
     'phases' => [
         'title' => 'Phases de la ligne',
         'intro' => 'La ligne entière à chaque date où la voie ou le trafic change, d’après les dates des sources. La carte s’ouvre sur la ligne à sa longueur maximale ; choisissez une phase pour voir son état complet à cette date.',
@@ -549,6 +566,7 @@ return [
     'toc' => [
         'label' => 'Sommaire de la fiche',
         'trace' => 'Tracé',
+        'spacetime' => 'Où et quand',
         'about' => 'À propos',
         'history' => 'Histoire',
         'decades' => 'Décennies',

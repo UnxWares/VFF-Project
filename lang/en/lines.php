@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalling by kilometre point (PK)',
         'heritage' => 'Run by an association',
         'route_through_time' => 'The route through time',
+        'spacetime' => 'Where and when',
         'history' => 'History of the line',
         'chronicle' => 'Detailed chronology, section by section',
         'notes' => 'Notes and sources',
@@ -234,6 +235,22 @@ return [
     ],
 
     // Phases of the line (App\Services\LinePhases): selector next to the map.
+    // "Where and when" diagram of the sheet (LineSpaceTime.svelte): the line laid out, one band per phase.
+    'spacetime' => [
+        'intro' => 'Each band shows the whole line, end to end, on a date when it changes: you can see where it opened, lost its passenger trains, closed, was lifted or reopened. A mark under a band shows what changes on that date. Choose a date to read its events and their sources.',
+        'label' => 'The line date by date',
+        'label_ends' => 'The line date by date, from :from to :to',
+        'legend' => 'Diagram legend',
+        'changed' => 'Changes on this date',
+        'state' => 'State: :list.',
+        'state_part' => ':state from km :from to km :to',
+        'range' => 'From km :from to km :to',
+        'since' => 'Since: :date',
+        'loading' => 'Reading the route…',
+        'failed' => 'The route of the line could not be read, so the diagram is not available.',
+        'order_note' => 'Kilometres are counted along the known route, in kilometre post order; a branch is placed after the main line.',
+    ],
+
     'phases' => [
         'title' => 'Phases of the line',
         'intro' => 'The whole line at each date when its track or traffic changed, according to the dates given by the sources. The map opens on the line at its greatest length; pick a phase to see its full state at that date.',
@@ -548,6 +565,7 @@ return [
     'toc' => [
         'label' => 'Contents of this page',
         'trace' => 'Route',
+        'spacetime' => 'Where and when',
         'about' => 'About',
         'history' => 'History',
         'decades' => 'Decades',

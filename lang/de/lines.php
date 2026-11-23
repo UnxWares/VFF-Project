@@ -83,6 +83,7 @@ return [
         'signalling' => 'Signalisierung nach Streckenkilometer (PK)',
         'heritage' => 'Vereinsbetrieb',
         'route_through_time' => 'Der Streckenverlauf im Wandel der Zeit',
+        'spacetime' => 'Wo und wann',
         'history' => 'Geschichte der Strecke',
         'chronicle' => 'Ausführliche Chronik nach Abschnitten',
         'notes' => 'Anmerkungen und Quellen',
@@ -234,6 +235,22 @@ return [
     ],
 
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
+    // Diagramm „Wo und wann“ der Streckenseite (LineSpaceTime.svelte): die abgerollte Strecke, ein Band je Phase.
+    'spacetime' => [
+        'intro' => 'Jedes Band zeigt die ganze Strecke von einem Ende zum anderen an einem Datum, an dem sie sich ändert: So sehen Sie, wo sie eröffnet wurde, den Personenverkehr verlor, stillgelegt, abgebaut oder wiedereröffnet wurde. Ein Strich unter dem Band markiert, was sich an diesem Datum ändert. Wählen Sie ein Datum, um seine Ereignisse und Quellen zu lesen.',
+        'label' => 'Die Strecke Datum für Datum',
+        'label_ends' => 'Die Strecke Datum für Datum, von :from bis :to',
+        'legend' => 'Legende des Diagramms',
+        'changed' => 'Ändert sich an diesem Datum',
+        'state' => 'Zustand: :list.',
+        'state_part' => ':state von km :from bis km :to',
+        'range' => 'Von km :from bis km :to',
+        'since' => 'Seit: :date',
+        'loading' => 'Streckenverlauf wird gelesen…',
+        'failed' => 'Der Streckenverlauf konnte nicht gelesen werden, das Diagramm ist nicht verfügbar.',
+        'order_note' => 'Kilometer entlang des bekannten Verlaufs, in der Reihenfolge der Streckenkilometer gezählt; eine Abzweigung steht hinter der Hauptstrecke.',
+    ],
+
     'phases' => [
         'title' => 'Phasen der Strecke',
         'intro' => 'Die ganze Strecke zu jedem Datum, an dem sich Gleis oder Verkehr ändern, nach den Daten der Quellen. Die Karte zeigt zuerst die Strecke in ihrer größten Länge; wählen Sie eine Phase, um ihren vollständigen Zustand an diesem Datum zu sehen.',
@@ -548,6 +565,7 @@ return [
     'toc' => [
         'label' => 'Inhaltsverzeichnis der Seite',
         'trace' => 'Verlauf',
+        'spacetime' => 'Wo und wann',
         'about' => 'Überblick',
         'history' => 'Geschichte',
         'decades' => 'Jahrzehnte',

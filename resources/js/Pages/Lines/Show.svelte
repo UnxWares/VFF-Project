@@ -17,6 +17,7 @@
     import LinePhaseMap from '$components/Lines/LinePhaseMap.svelte';
     import LinePhaseSelector from '$components/Lines/LinePhaseSelector.svelte';
     import LinePhaseText from '$components/Lines/LinePhaseText.svelte';
+    import LineSpaceTime from '$components/Lines/LineSpaceTime.svelte';
     import LineChronicle from '$components/Lines/LineChronicle.svelte';
     import LineDecades from '$components/Lines/LineDecades.svelte';
     import LineStations from '$components/Lines/LineStations.svelte';
@@ -117,6 +118,7 @@
     // que celles qui sont présentes.
     const TOC = [
         'trace',
+        'spacetime',
         'about',
         'history',
         'decades',
@@ -634,6 +636,24 @@
                 known={portions_count > 0}
             />
         </SheetSection>
+
+        <!-- Où et quand : la ligne déroulée de bout en bout, une bande par phase, liée à la carte. -->
+        {#if phases.length > 1 && portions_count && portions_url}
+            <SheetSection
+                id="spacetime"
+                title={t('lines.section.spacetime')}
+                intro={t('lines.spacetime.intro')}
+            >
+                <LineSpaceTime
+                    portionsUrl={portions_url}
+                    {phases}
+                    {stations}
+                    {eventsById}
+                    bind:selected
+                    onshow={showPhase}
+                />
+            </SheetSection>
+        {/if}
 
         <SheetSection id="about" label={t('lines.section.about')}>
             <div class="about-grid">
