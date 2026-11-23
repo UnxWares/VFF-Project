@@ -100,6 +100,11 @@ Source `manual` : gares absentes de toutes les autres sources, saisies à la mai
 une autre par son nom ou sa proximité. Contrôler avant d'ajouter une entrée qu'aucune fiche ne porte déjà la gare (nom et
 position).
 
+Source `wikidata` : les éléments rattachés à une gare par une correction `link` de `database/data/gares_corrections.php` sont lus
+en plus de la recherche, même si leur classe est exclue (gare de marchandises) : leurs déclarations (UIC, dates de mise en service,
+coordonnées comme source secondaire) entrent dans `station_sources`, et `vff:consolidate-stations` les joint à la gare qui porte
+leur Q-id. La position et l'état du jour restent ceux de la liste SNCF.
+
 | Option | Effet |
 |:-|:-|
 | `--source=` | `communes`, `sncf`, `osm`, `ohm`, `wikidata`, `manual` ou `pk`, répétable ; toutes par défaut, dans cet ordre. |

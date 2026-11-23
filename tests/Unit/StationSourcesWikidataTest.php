@@ -20,7 +20,8 @@ class StationSourcesWikidataTest extends TestCase
 
     private function command(): ImportStationSources
     {
-        return new ImportStationSources;
+        // Sans lire le fichier des corrections (pas d'application Laravel dans ce test).
+        return (new ImportStationSources)->withLinkedWikidata([]);
     }
 
     /** @param  array<string, mixed>  $entity */
@@ -240,5 +241,29 @@ class StationSourcesWikidataTest extends TestCase
         }
 
         $this->assertSame([], $deprecations);
+    }
+
+    public function test_a_freight_station_item_is_read_only_when_a_correction_links_it(): void
+    {
+        $item = self::item('Q55493', ['P1619' => [self::claim(self::time('1902-05-01', 11))]]);
+
+        $this->assertNull($this->parse($item, 'Q55'), 'classe exclue : écarté');
+
+        $command = $this->command()->withLinkedWikidata(['Q55']);
+        $r = (new ReflectionMethod($command, 'parseWikidata'))->invoke($command, 'Q55', $item);
+        $this->assertSame('Q55', $r['source_ref']);
+        $this->assertSame('1902-05-01', $r['opened_on']);
+        $this->assertSame(2.5, $r['lon']);
+
+        $other = (new ReflectionMethod($command, 'parseWikidata'))->invoke($command, 'Q56', $item);
+        $this->assertNull($other, 'un autre élément de marchandises reste écarté');
+    }
+
+    public function test_linked_items_are_added_to_the_list_without_duplicates(): void
+    {
+        $ids = ImportStationSources::wikidataIds(['Q1', 'Q2'], ['Q2', 'Q9'], ['Q9', 'Q7', 'Q1', 'Q5']);
+
+        $this->assertSame(['Q1', 'Q2', 'Q9', 'Q5', 'Q7'], $ids);
+        $this->assertSame(['Q1', 'Q2'], ImportStationSources::wikidataIds(['Q1', 'Q2'], [], []));
     }
 }

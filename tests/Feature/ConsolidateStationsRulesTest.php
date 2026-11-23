@@ -296,6 +296,27 @@ class ConsolidateStationsRulesTest extends TestCase
         $this->assertSame('Q1', $this->stationOf($autet)->wikidata_id);
     }
 
+    public function test_wikidata_item_linked_by_a_correction_joins_its_station_with_its_declarations(): void
+    {
+        $sncf = $this->source('sncf', '87000001', 'Grandpuits', 48.60000, 2.94000, ['uic_code' => '87000001', 'freight' => true, 'lifecycle' => 'disused']);
+        // Élément de marchandises : autre nom, pas d'UIC, à 800 m (coordonnées d'élément placées sur l'emprise).
+        $wd = $this->source('wikidata', 'Q55', 'Terminal du raffineur', 48.60000, 2.95100, ['wikidata_id' => 'Q55', 'lifecycle' => 'disused',
+            'opened_on' => '1902-01-01', 'opened_precision' => 'year',
+            'events' => json_encode([['type' => 'opening', 'date' => '1902-01-01', 'precision' => 'year', 'prop' => 'P1619', 'applies_to' => []]])]);
+
+        $this->app->instance(StationCorrections::class, new StationCorrections([]));
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+        $this->assertNotSame($this->stationOf($sncf)->id, $this->stationOf($wd)->id, 'sans correction : deux gares');
+
+        $this->app->instance(StationCorrections::class, new StationCorrections([$this->link(['name' => 'Grandpuits', 'uic' => '87000001'], 'Q55')]));
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+
+        $this->assertSame($this->stationOf($sncf)->id, $this->stationOf($wd)->id);
+        $this->assertSame('Q55', $this->stationOf($sncf)->wikidata_id);
+        $this->assertSame('sncf', $this->stationOf($sncf)->position_source, 'la position reste celle de la liste SNCF');
+        $this->assertTrue(DB::table('station_events')->where('station_id', $this->stationOf($sncf)->id)->where('type', 'opening')->where('source', 'wikidata')->exists());
+    }
+
     public function test_unlink_naming_another_station_has_no_effect(): void
     {
         $vidal = $this->source('sncf', '87731844', 'St-Vidal', 45.07190, 3.80322, ['uic_code' => '87731844']);

@@ -11331,4 +11331,220 @@ return [
         'reason' => 'bâtiment voyageurs ou milieu des quais (règle de placement VFF) ; sources concordantes à moins de 70 m : article Wikipédia « Gare de Nurieux » (oldid 241398998) à 14 m, BD TOPO EQ_RESEA0000000008682113 à 40 m, OSM n2494019283 à 4 m, liste SNCF 87743351 à 59 m ; à 3 m de la voie du tracé (source concordante la plus proche) ; point VFF actuel (sncf) à 59 m ; à signaler à la source : Wikidata Q2945500 (P625) à 373 m',
     ],
 
+    // ── 51. Rattachements à Wikidata, deuxième passe, et deux positions fausses de la liste SNCF (23/11/2026, rapport storage/app/reports/agents/aprem-2111/wikidata-gares-2.md) ──────
+    // 17 rattachements (action « link ») : les huit candidats « nom et distance » que la première passe avait laissés (même nom, un seul élément et une
+    // seule fiche à moins de 300 m, ligne et PK de l'article ou de l'élément identiques à ceux de la fiche) et les neuf éléments de même UIC à 300 m ou
+    // plus de la fiche (faisceaux de marchandises, où la liste SNCF et Wikidata ne posent pas le point au même endroit : même UIC et même nom, une seule
+    // fiche, aucune autre gare de même nom). Appliqués par vff:consolidate-stations. Puis 2 corrections de position (liste SNCF fausse : Rédange, posée sur une autre ligne à 12 km de la
+    // commune que dit l'article ; Honfleur, bâtiment OSM de l'ancienne gare) : le plus souvent Wikidata est fautif et rien n'est changé chez nous (voir le rapport).
+
+    // Rochechouart (id 19807)
+    [
+        'station' => ['name' => 'Rochechouart', 'uic' => '87592857'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141873884',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141873884',
+        'quote' => 'Gare de Rochechouart',
+        'reason' => 'élément Wikidata Q141873884 : article « Gare de Rochechouart » (oldid 238824788) : ligne de Saillat-sur-Vienne à Bussière-Galant, PK 453,725, comme la fiche ; coordonnées de l\'article et de l\'élément à 205 m du point VFF.',
+    ],
+
+    // Lahonce (id 20131)
+    [
+        'station' => ['name' => 'Lahonce', 'uic' => '87673814'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q142182717',
+        'source_url' => 'https://www.wikidata.org/wiki/Q142182717',
+        'quote' => 'Lahonce',
+        'reason' => 'élément Wikidata Q142182717 : élément « Lahonce » (gare désaffectée) : ligne de Toulouse à Bayonne, comme la fiche ; seule gare de ce nom, à 240 m du point VFF.',
+    ],
+
+    // Pont-les-Brie (id 18966)
+    [
+        'station' => ['name' => 'Pont-les-Brie', 'uic' => '87315242'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141804024',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141804024',
+        'quote' => 'Gare de Pont-les-Brie',
+        'reason' => 'élément Wikidata Q141804024 : élément « Gare de Pont-les-Brie » : commune Villers-Carbonnel et ligne de Saint-Just-en-Chaussée à Douai, comme la fiche ; à 0 m du point VFF.',
+    ],
+
+    // Ste-Feyre (id 19873)
+    [
+        'station' => ['name' => 'Ste-Feyre', 'uic' => '87597690'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141873880',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141873880',
+        'quote' => 'Gare de Sainte-Feyre',
+        'reason' => 'élément Wikidata Q141873880 : article « Gare de Sainte-Feyre » (oldid 238055007) : ligne de Montluçon à Saint-Sulpice-Laurière, PK 398,855, comme la fiche ; à 27 m du point VFF.',
+    ],
+
+    // Chepoix (id 18977)
+    [
+        'station' => ['name' => 'Chepoix', 'uic' => '87316117'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q2356489',
+        'source_url' => 'https://www.wikidata.org/wiki/Q2356489',
+        'quote' => 'Chepoix',
+        'reason' => 'élément Wikidata Q2356489 : article « Gare de Chepoix » (oldid 225457339) : ligne de Paris-Nord à Lille, PK 92,6, comme la fiche ; à 12 m du point VFF.',
+    ],
+
+    // Marguerittes (id 20827)
+    [
+        'station' => ['name' => 'Marguerittes', 'uic' => '87775429'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q113649031',
+        'source_url' => 'https://www.wikidata.org/wiki/Q113649031',
+        'quote' => 'Gare de Marguerittes',
+        'reason' => 'élément Wikidata Q113649031 : élément « Gare de Marguerittes » (seul de ce nom, commune de Marguerittes), à 40 m du point VFF ; son UIC Wikidata (P722 8774570) n\'est pas celui de la fiche (8777542) : erreur de saisie probable de Wikidata, à signaler.',
+    ],
+
+    // Vix (Vendée) (id 19484)
+    [
+        'station' => ['name' => 'Vix (Vendée)', 'uic' => '87485086'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q141874931',
+        'source_url' => 'https://www.wikidata.org/wiki/Q141874931',
+        'quote' => 'Gare de Vix',
+        'reason' => 'élément Wikidata Q141874931 : article « Gare de Vix » (oldid 239269843) : ligne de Nantes-Orléans à Saintes, PK 141,348, comme la fiche, commune du Gué-de-Velluire ; à 162 m du point VFF.',
+    ],
+
+    // Villechaud (id 20192)
+    [
+        'station' => ['name' => 'Villechaud', 'uic' => '87691311'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q123498032',
+        'source_url' => 'https://www.wikidata.org/wiki/Q123498032',
+        'quote' => 'Gare de Villechaud',
+        'reason' => 'élément Wikidata Q123498032 : article « Gare de Villechaud » (oldid 213895944) : halte de la ligne de Moret - Veneux-les-Sablons à Lyon-Perrache, PK 200,345, comme la fiche, commune de Cosne-Cours-sur-Loire ; à 46 m du point VFF.',
+    ],
+
+    // Lille-Délivrance (id 15613)
+    [
+        'station' => ['name' => 'Lille-Délivrance', 'uic' => '87286013'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q19407022',
+        'source_url' => 'https://www.wikidata.org/wiki/Q19407022',
+        'quote' => 'gare de triage de Lille-Délivrance',
+        'reason' => 'élément Wikidata Q19407022 : gare de triage de Lomme (article oldid 236352705, ligne d\'Haubourdin à Saint-André) : même UIC, le point de l\'élément est au milieu du faisceau, celui de la liste SNCF à 1 231 m.',
+    ],
+
+    // Strasbourg-Cronenbourg (id 15346)
+    [
+        'station' => ['name' => 'Strasbourg-Cronenbourg', 'uic' => '87212050'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16508061',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16508061',
+        'quote' => 'Strasbourg-Cronenbourg',
+        'reason' => 'élément Wikidata Q16508061 : gare aux marchandises de Strasbourg-Cronenbourg (article oldid 235034564) : même UIC, faisceau de plus d\'un kilomètre ; points à 785 m l\'un de l\'autre.',
+    ],
+
+    // Strasbourg-Neudorf (id 15347)
+    [
+        'station' => ['name' => 'Strasbourg-Neudorf', 'uic' => '87212068'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q17355275',
+        'source_url' => 'https://www.wikidata.org/wiki/Q17355275',
+        'quote' => 'Strasbourg-Neudorf',
+        'reason' => 'élément Wikidata Q17355275 : gare de Strasbourg-Neudorf (article oldid 240408199) : même UIC, faisceau de marchandises ; points à 677 m l\'un de l\'autre.',
+    ],
+
+    // Rungis (MIN) (id 16689)
+    [
+        'station' => ['name' => 'Rungis (MIN)', 'uic' => '87546002'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q99709927',
+        'source_url' => 'https://www.wikidata.org/wiki/Q99709927',
+        'quote' => 'Rungis MIN',
+        'reason' => 'élément Wikidata Q99709927 : gare de Rungis MIN (article oldid 241269139) : même UIC, embranchement du marché d\'intérêt national de Rungis ; points à 766 m l\'un de l\'autre.',
+    ],
+
+    // Gravenchon-Port-Jérome (id 16226)
+    [
+        'station' => ['name' => 'Gravenchon-Port-Jérome', 'uic' => '87413484'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q16964674',
+        'source_url' => 'https://www.wikidata.org/wiki/Q16964674',
+        'quote' => 'Gravenchon-Port-Jérôme',
+        'reason' => 'élément Wikidata Q16964674 : gare de Gravenchon-Port-Jérôme (article oldid 239668426) : même UIC, PK 221,081 comme la fiche ; points à 670 m l\'un de l\'autre (écart de position à instruire).',
+    ],
+
+    // Bassens-Appontements (id 16864)
+    [
+        'station' => ['name' => 'Bassens-Appontements', 'uic' => '87581868'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120758290',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120758290',
+        'quote' => 'Bassens-Appontements',
+        'reason' => 'élément Wikidata Q120758290 : élément « Bassens-Appontements » : même UIC, même nom, voies du port de Bassens ; points à 929 m l\'un de l\'autre.',
+    ],
+
+    // Marseille-Maritime-Canet (id 20630)
+    [
+        'station' => ['name' => 'Marseille-Maritime-Canet', 'uic' => '87752717'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q18613203',
+        'source_url' => 'https://www.wikidata.org/wiki/Q18613203',
+        'quote' => 'Marseille-Canet',
+        'reason' => 'élément Wikidata Q18613203 : gare de Marseille-Canet (article oldid 235032998) : ligne de Marseille-Arenc à Marseille-Canet, comme la fiche, même UIC ; points à 981 m l\'un de l\'autre (faisceau).',
+    ],
+
+    // Trèbes (id 17194)
+    [
+        'station' => ['name' => 'Trèbes', 'uic' => '87615062'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q120757987',
+        'source_url' => 'https://www.wikidata.org/wiki/Q120757987',
+        'quote' => 'Trèbes',
+        'reason' => 'élément Wikidata Q120757987 : élément « gare de Trèbes » (le seul de Wikidata pour cette gare), même UIC et même nom ; points à 424 m l\'un de l\'autre.',
+    ],
+
+    // Grandpuits-Bagneux (id 14868)
+    [
+        'station' => ['name' => 'Grandpuits-Bagneux', 'uic' => '87112086'],
+        'action' => 'link',
+        'source' => 'wikidata',
+        'ref' => 'Q3096570',
+        'source_url' => 'https://www.wikidata.org/wiki/Q3096570',
+        'quote' => 'Grandpuits-Bagneux',
+        'reason' => 'élément Wikidata Q3096570 : même UIC et même nom ; la fiche voisine « Grandpuits » (Q3096569, PK 64,828) est une autre gare : l\'élément Q3096570 a pour lien Wikipédia une redirection vers l\'article de Grandpuits, ses coordonnées sont à 2 678 m du point VFF (PK 62,480). Confiance moyenne.',
+    ],
+
+    // Rédange (Moselle) : position
+    [
+        'station' => ['name' => 'Rédange (Moselle)', 'uic' => '87194548'],
+        'action' => 'position',
+        'lng' => 5.919448,
+        'lat' => 49.491016,
+        'source_url' => $wp('Gare de Rédange (France)', 223006410),
+        'quote' => 'située sur le territoire de la commune de Rédange',
+        'reason' => 'position SNCF posée à Boulange sur la ligne de Fontoy à Audun-le-Tiche (PK 4,570), à 12 257 m de la gare ; l\'article place la gare de Rédange sur la ligne d\'Audun-le-Tiche à Hussigny-Godbrange, PK 4,6, à un kilomètre d\'Audun-le-Tiche ; coordonnées de l\'article, de l\'élément Wikidata Q106074182 et de la commune de Rédange (point à 14 m d\'une voie de la référence VFF) (oldid 223006410).',
+    ],
+
+    // Honfleur : position
+    [
+        'station' => ['name' => 'Honfleur', 'uic' => '87444430'],
+        'action' => 'position',
+        'lng' => 0.237902,
+        'lat' => 49.418882,
+        'source_url' => $osm('w196859679'),
+        'quote' => 'name=Honfleur, building=train_station, amenity=bus_station',
+        'reason' => 'ancienne gare de Honfleur (bâtiment OSM, devenu gare routière) à 278 m du point de l\'article (Gare de Honfleur, oldid 235032148, 49,417362 N, 0,241028 E) et de Wikidata, alors que le point de la liste SNCF est à 1 950 m dans une autre partie de la ville ; la gare terminus en impasse était au PK 232,2xx de la ligne de Pont-l\'Évêque à Honfleur, au bord du bassin.',
+    ],
+
 ];

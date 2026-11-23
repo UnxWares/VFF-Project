@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\ManualStations;
 use App\Services\RouteDiagramStations;
 use App\Services\SectionResolver;
+use App\Services\StationCorrections;
 use App\Services\WikimediaClient;
 use App\Services\WikipediaLineParser;
 use App\Support\StationNames;
@@ -89,6 +90,15 @@ class ImportStationSources extends Command
 
     /** Lignes de métro / tram : un élément qui n'est QUE ça est écarté. */
     private const WD_EXCLUDED_ONLY = ['Q928830', 'Q63979268', 'Q2175765', 'Q55493'];
+
+    /**
+     * Éléments Wikidata rattachés à une gare par une correction « link » (database/data/gares_corrections.php) :
+     * lus même si leur classe est exclue (gare de marchandises) pour que leurs déclarations (UIC, dates de mise
+     * en service, coordonnées comme source secondaire) entrent dans station_sources.
+     *
+     * @var list<string>|null
+     */
+    private ?array $linkedWikidata = null;
 
     private bool $fromCache = false;
 
@@ -496,6 +506,51 @@ class ImportStationSources extends Command
 
     // ── Wikidata ────────────────────────────────────────────────────────────
 
+    /**
+     * Q-id des éléments rattachés par l'action « link » des corrections de gares.
+     *
+     * @return list<string>
+     */
+    private function linkedWikidata(): array
+    {
+        return $this->linkedWikidata ??= array_values(array_unique(array_map(
+            fn (array $l): string => $l['ref'],
+            array_filter((new StationCorrections)->links(), fn (array $l): bool => $l['source'] === 'wikidata'),
+        )));
+    }
+
+    /**
+     * Fixe les éléments rattachés (tests, sans lire le fichier des corrections).
+     *
+     * @param  list<string>  $qids
+     */
+    public function withLinkedWikidata(array $qids): static
+    {
+        $this->linkedWikidata = array_values(array_unique($qids));
+
+        return $this;
+    }
+
+    /**
+     * Liste des éléments à lire : ceux de la recherche, puis ceux déjà importés mais que la recherche ne renvoie
+     * pas, puis ceux que les corrections rattachent à une gare (classes exclues de la recherche), sans doublon.
+     *
+     * @param  list<string>  $listed
+     * @param  list<string>  $known
+     * @param  list<string>  $linked
+     * @return list<string>
+     */
+    public static function wikidataIds(array $listed, array $known, array $linked): array
+    {
+        $extra = array_values(array_diff($known, $listed));
+        sort($extra);
+        $ids = [...$listed, ...$extra];
+        $more = array_values(array_diff($linked, $ids));
+        sort($more);
+
+        return [...$ids, ...$more];
+    }
+
     private function importWikidata(): void
     {
         $records = [];
@@ -570,12 +625,16 @@ class ImportStationSources extends Command
         // Q1494165, de classe Q55488). Sans eux, le cache perdrait leurs fermetures et un import complet les supprimerait
         // comme « disparus de la source » : on redemande les éléments déjà connus mais non renvoyés.
         $known = DB::table('station_sources')->where('source', 'wikidata')->pluck('source_ref')->all();
-        $extra = array_values(array_diff($known, $ids));
-        sort($extra);
+        $all = self::wikidataIds($ids, $known, $this->linkedWikidata());
+        $extra = array_values(array_intersect(array_diff($all, $ids), $known));
         if ($extra !== []) {
             $this->line('  + '.count($extra).' éléments déjà importés, absents de la recherche');
         }
-        $ids = [...$ids, ...$extra];
+        $linkedMore = array_values(array_diff($all, $ids, $extra));
+        if ($linkedMore !== []) {
+            $this->line('  + '.count($linkedMore).' éléments rattachés par une correction (classe exclue ou hors recherche)');
+        }
+        $ids = $all;
 
         // 2. Déclarations complètes par lots de 50 (qualificatifs + précisions).
         foreach (array_chunk($ids, 50) as $batch) {
@@ -607,7 +666,10 @@ class ImportStationSources extends Command
             return null;
         }
         $p31 = array_map(fn ($v) => $v['value']['id'] ?? null, $this->wdValues($claims, 'P31'));
-        if (! array_intersect($p31, self::WD_CLASSES) || (array_intersect($p31, self::WD_EXCLUDED_ONLY) && ! array_intersect($p31, ['Q55488', 'Q55678', 'Q1793804']))) {
+        // Un élément rattaché à une gare par une correction « link » est lu quelle que soit sa classe (gare de
+        // marchandises) : la gare existe, c'est son élément Wikidata qui n'est pas de classe « gare de voyageurs ».
+        $linked = in_array($qid, $this->linkedWikidata(), true);
+        if (! $linked && (! array_intersect($p31, self::WD_CLASSES) || (array_intersect($p31, self::WD_EXCLUDED_ONLY) && ! array_intersect($p31, ['Q55488', 'Q55678', 'Q1793804'])))) {
             return null;
         }
         $name = $ent['labels']['fr']['value'] ?? $ent['labels']['en']['value'] ?? null;
