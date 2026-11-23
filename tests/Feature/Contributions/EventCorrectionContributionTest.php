@@ -233,6 +233,29 @@ class EventCorrectionContributionTest extends TestCase
         $this->assertSame('closure_passenger', DB::table('line_events')->where('fingerprint', 'contribution:'.$contribution->id)->value('type'), 'l’événement corrigé n’est jamais neutralisé');
     }
 
+    public function test_replaying_a_correction_never_rewrites_another_other_event_of_the_same_day(): void
+    {
+        $contribution = $this->submit($this->member());
+        $this->approveTwice($contribution);
+        // Import rejoué : l'événement visé revient sous un nouvel identifiant, à côté de deux faits `other` de la même
+        // source, du même jour et du même départ (un fait neutre et un fait neutralisé par un fichier de corrections).
+        DB::table('line_events')->where('id', $this->wrongId)->delete();
+        $row = ['line_id' => $this->line->id, 'event_date' => '1969-01-01', 'date_precision' => 'year', 'source' => 'wikipedia',
+            'section_from' => 'Saint-Cloud', 'section_to' => 'Versailles-Rive-Droite', 'created_at' => now(), 'updated_at' => now()];
+        $reimported = (int) DB::table('line_events')->insertGetId([...$row, 'type' => 'closure_passenger', 'description' => 'Fermeture aux voyageurs']);
+        $neutral = (int) DB::table('line_events')->insertGetId([...$row, 'type' => 'other', 'description' => 'Remplacement par des autocars']);
+        $byFile = (int) DB::table('line_events')->insertGetId([...$row, 'type' => 'other', 'description' => 'Report partiel (correction sourcée : desserte réduite)']);
+
+        $out = app(EventContributions::class)->replayCorrections($this->line->id);
+
+        $this->assertSame(1, $out['neutralized']);
+        $this->assertSame('other', DB::table('line_events')->where('id', $reimported)->value('type'));
+        $this->assertSame('Remplacement par des autocars', DB::table('line_events')->where('id', $neutral)->value('description'));
+        $this->assertSame('Report partiel (correction sourcée : desserte réduite)', DB::table('line_events')->where('id', $byFile)->value('description'));
+        // Rejoué une seconde fois : l'événement déjà neutralisé par la contribution est reconnu, rien d'autre.
+        $this->assertSame([$reimported], app(EventContributions::class)->neutralizeCorrected($contribution->refresh()));
+    }
+
     // ─── API GraphQL ────────────────────────────────────────────────────────
 
     public function test_the_mutation_accepts_a_correction(): void

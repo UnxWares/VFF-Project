@@ -286,9 +286,12 @@ final readonly class EventContributions
             return [];
         }
         $publishedId ??= DB::table('line_events')->where('fingerprint', self::fingerprint($contribution->id))->value('id');
+        // Le fait visé tel que la source le donne, ou déjà neutralisé par CETTE contribution ; jamais un autre fait
+        // `other` du même jour (fait neutre de la source, neutralisation d'un fichier de corrections ou d'une autre contribution).
+        $mine = '%, fait corrigé par la contribution n° '.$contribution->id.' ('.self::NEUTRALIZED_MARK.'%';
         $base = DB::table('line_events')->where('line_id', $contribution->target_id)
             ->where('source', $c['source'])->where('event_date', $c['date'])
-            ->whereIn('type', [$c['type'], 'other'])
+            ->where(fn ($q) => $q->where('type', $c['type'])->orWhere(fn ($o) => $o->where('type', 'other')->where('description', 'like', $mine)))
             ->when($publishedId !== null, fn ($q) => $q->where('id', '<>', $publishedId));
         $ids = (clone $base)->where('id', $c['event_id'])->pluck('id');
         if ($ids->isEmpty()) {
