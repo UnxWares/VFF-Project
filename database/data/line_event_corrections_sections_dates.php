@@ -15,8 +15,13 @@
  * Désaccords entre sources (voir le rapport sections-dates-2.md) : 316000 tranché (le 28/06/1857 est l'inauguration,
  * mise en service le 01/09/1857, confirmée par la bibliographie Palau), 441000 tranché (la gare de Dol-de-Bretagne
  * donne le 27/06/1864 pour la ligne), 579000 confirmé par les gares de Saintes et de Cognac (l'introduction qui donne
- * le 15/04/1867 pour toute la ligne est approximative) ; 242000 Compiègne - Noyon reste non tranché (20/02/1849 dans
- * l'article de la ligne, 26/02/1849 importé, 25/02/1849 dans la gare de Noyon).
+ * le 15/04/1867 pour toute la ligne est approximative) ; 242000 Compiègne - Noyon est tranché par le chantier sections-dates-3 (le corps de l'article
+ * de la ligne dit « ouverte officiellement le 26, le lendemain de son inauguration » du 25, la gare de Longueil-Annel
+ * donne le 26/02/1849, la gare de Noyon l'inauguration du 25/02 : la liste des mises en service de l'article, 20/02,
+ * est écartée).
+ *
+ * Troisième passe (sections-dates-3) : onze ouvertures de plus lues dans les articles des gares des lignes restées sans
+ * jour (570000, 690000, 720000, 304000, 468000, 420000), à la fin du fichier.
  *
  * Pas de tiret long dans les textes (consigne éditoriale) : les tirets des citations sont rendus par « - ».
  *
@@ -220,11 +225,11 @@ return [
         'reason' => 'section de Creil à Compiègne par Pont-Sainte-Maxence',
     ],
     [
-        'line' => '242000', 'action' => 'add', 'type' => 'opening', 'date' => '1849-02-20', 'precision' => 'day',
+        'line' => '242000', 'action' => 'add', 'type' => 'opening', 'date' => '1849-02-26', 'precision' => 'day',
         'from' => 'Compiègne', 'to' => 'Noyon',
-        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Creil_%C3%A0_Jeumont&oldid=236310314',
-        'quote' => 'Le 20 février 1849, de Compiègne à Noyon',
-        'reason' => 'section de Compiègne à Noyon',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Longueil-Annel&oldid=241485539',
+        'quote' => 'La section de ligne passant à Longueil-Annel entre Compiègne et Tergnier, est ouverte le 26 février 1849.',
+        'reason' => 'ouverture officielle le 26 février 1849, le lendemain de l\'inauguration du 25 (gare de Noyon et corps de l\'article de la ligne : « La ligne est ouverte officiellement le 26, le lendemain de son inauguration ») ; la liste des mises en service de l\'article donne à tort le 20 février',
     ],
     [
         'line' => '242000', 'action' => 'add', 'type' => 'opening', 'date' => '1850-01-01', 'precision' => 'day',
@@ -998,5 +1003,84 @@ return [
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
         'quote' => 'La dernière section, comprise entre Amplepuis et Tarare, l\'est pour sa part le 19 octobre 1868, à cause des difficultés rencontrées lors du percement du tunnel des Sauvages.',
         'reason' => 'dernière section, d\'Amplepuis à Tarare (tunnel des Sauvages)',
+    ],
+
+    // Troisième passe : lignes restées sans jour, lues dans les articles de leurs gares.
+    [
+        'line' => '570000', 'action' => 'add', 'type' => 'opening', 'date' => '1852-09-20', 'precision' => 'day',
+        'from' => 'Bordeaux', 'to' => 'Angoulême',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Coutras&oldid=235031509',
+        'quote' => 'La station de Coutras est mise en service le 20 septembre 1852 par la Compagnie du chemin de fer de Paris à Orléans (PO), lorsqu\'elle ouvre la section de Bordeaux à Angoulème.',
+        'reason' => 'section de Bordeaux à Angoulême (Orléans - Bordeaux), mise en service de la gare de Coutras',
+    ],
+    [
+        'line' => '570000', 'action' => 'add', 'type' => 'opening', 'date' => '1853-07-12', 'precision' => 'day',
+        'from' => 'Poitiers', 'to' => 'Angoulême',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_d%27Angoul%C3%AAme&oldid=241252828',
+        'quote' => 'La section de Poitiers à Angoulême est ouverte le 12 juillet 1853 permettant de relier Angoulême à Paris.',
+        'reason' => 'section de Poitiers à Angoulême, qui relie Angoulême à Paris',
+    ],
+    [
+        'line' => '690000', 'action' => 'add', 'type' => 'opening', 'date' => '1850-10-05', 'precision' => 'day',
+        'from' => 'Nérondes', 'to' => 'Nevers',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Nevers&oldid=235033521',
+        'quote' => 'La gare de Nevers est mise en service le 5 octobre 1850 par la Compagnie du chemin de fer du Centre, lors de l\'ouverture à l\'exploitation des 33 km cumulant le tronçon de Nérondes au Guétin et l\'embranchement du Guétin à Nevers.',
+        'reason' => 'tronçon de Nérondes au Guétin et embranchement du Guétin à Nevers, mise en service de la gare de Nevers',
+    ],
+    [
+        'line' => '690000', 'action' => 'add', 'type' => 'opening', 'date' => '1847-07-19', 'precision' => 'day',
+        'from' => 'Vierzon', 'to' => 'Bourges',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Bourges&oldid=241137044',
+        'quote' => 'La première gare de Bourges, située temporairement sur la commune limitrophe de Saint-Doulchard, est ouverte le 19 juillet 1847 par la Compagnie des chemins de fer du centre.',
+        'reason' => 'ouverture de la première gare de Bourges, terminus de la section depuis Vierzon',
+    ],
+    [
+        'line' => '720000', 'action' => 'add', 'type' => 'opening', 'date' => '1866-08-16', 'precision' => 'day',
+        'from' => 'Massiac', 'to' => 'Murat',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Neussargues&oldid=237602788',
+        'quote' => 'La gare de Neussargues est mise en service le 16 août 1866 par la Compagnie des chemins de fer de Paris à Lyon et à la Méditerranée (PLM) [...] lorsqu\'elle ouvre à l\'exploitation la section de Massiac à Murat.',
+        'reason' => 'section de Massiac à Murat, mise en service de la gare de Neussargues',
+    ],
+    [
+        'line' => '720000', 'action' => 'add', 'type' => 'opening', 'date' => '1866-11-11', 'precision' => 'day',
+        'from' => 'Aurillac', 'to' => 'Figeac',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_d%27Aurillac&oldid=241271782',
+        'quote' => 'Inauguration du chemin de fer d\'Aurillac à Figeac le 11 novembre 1866 : compte rendu de la fête et itinéraire descriptif de la ligne',
+        'reason' => 'inauguration du chemin de fer d\'Aurillac à Figeac (date de l\'inauguration, la seule que donne la source)',
+    ],
+    [
+        'line' => '304000', 'action' => 'add', 'type' => 'opening', 'date' => '1876-08-10', 'precision' => 'day',
+        'from' => 'Coudekerque-Branche', 'to' => 'Les Fontinettes',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Bourbourg&oldid=234757763',
+        'quote' => 'La gare de Bourbourg est mise en service le 10 août 1876 par la Compagnie des chemins de fer du Nord lorsqu\'elle inaugure la ligne de Calais à Dunkerque.',
+        'reason' => 'ligne de Calais à Dunkerque inaugurée par la Compagnie du Nord, mise en service de la gare de Bourbourg',
+    ],
+    [
+        'line' => '468000', 'action' => 'add', 'type' => 'opening', 'date' => '1862-09-21', 'precision' => 'day',
+        'from' => 'Rennes', 'to' => 'Redon',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Messac-Guipry&oldid=223672276',
+        'quote' => 'La station est mise en service le 21 septembre 1862, par la Compagnie des chemins de fer de l\'Ouest.',
+        'reason' => 'mise en service de la station de Messac-Guipry, sur la ligne ouverte le même jour de Rennes à Redon',
+    ],
+    [
+        'line' => '420000', 'action' => 'add', 'type' => 'opening', 'date' => '1857-05-01', 'precision' => 'day',
+        'from' => 'Laval', 'to' => 'Rennes',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Vitr%C3%A9&oldid=232112833',
+        'quote' => '1 mai 1857 : ouverture de la section Laval - Rennes de la ligne Paris-Montparnasse - Brest.',
+        'reason' => 'ouverture de la section Laval - Rennes de la ligne Paris-Montparnasse - Brest',
+    ],
+    [
+        'line' => '420000', 'action' => 'add', 'type' => 'opening', 'date' => '1863-09-07', 'precision' => 'day',
+        'from' => 'Rennes', 'to' => 'Guingamp',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Guingamp&oldid=235032016',
+        'quote' => 'La gare de Guingamp est mise en service par la compagnie des chemins de fer de l\'Ouest, le 7 septembre 1863, lors de l\'inauguration de la section de Rennes à Guingamp de la ligne de Paris-Montparnasse à Brest.',
+        'reason' => 'inauguration de la section de Rennes à Guingamp',
+    ],
+    [
+        'line' => '420000', 'action' => 'add', 'type' => 'opening', 'date' => '1865-04-25', 'precision' => 'day',
+        'from' => 'Guingamp', 'to' => 'Brest',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Brest&oldid=239804835',
+        'quote' => 'La première gare est inaugurée le 25 avril 1865.',
+        'reason' => 'arrivée du chemin de fer à Brest, première gare inaugurée',
     ],
 ];

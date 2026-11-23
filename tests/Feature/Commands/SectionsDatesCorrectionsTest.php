@@ -131,4 +131,19 @@ class SectionsDatesCorrectionsTest extends TestCase
         $this->assertSame(1, DB::table('line_events')->where('line_id', $line->id)->where('type', 'opening')->where('event_date', '1857-09-01')->where('source', 'manual')->count());
         $this->assertSame(0, DB::table('line_events')->where('line_id', $line->id)->where('type', 'opening')->where('event_date', '1857-06-28')->count());
     }
+
+    public function test_compiegne_noyon_is_settled_on_the_official_opening_of_26_february_1849(): void
+    {
+        $days = array_column(array_filter($this->additions(), fn (array $c): bool => $c['line'] === '242000' && ($c['from'] ?? '') === 'Compiègne'), 'date');
+        $this->assertSame(['1849-02-26'], array_values($days));
+    }
+
+    public function test_the_third_pass_dates_the_leftover_lines_from_their_station_articles(): void
+    {
+        $lines = array_unique(array_column($this->additions(), 'line'));
+        foreach (['570000', '690000', '720000', '304000', '468000', '420000'] as $code) {
+            $this->assertContains($code, $lines, $code);
+        }
+        $this->assertGreaterThanOrEqual(150, count($this->additions()));
+    }
 }
