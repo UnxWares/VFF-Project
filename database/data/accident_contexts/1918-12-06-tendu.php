@@ -159,15 +159,15 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le Nürtinger Tagblatt du 9 décembre 1918 relaie, d\'après Le Petit Parisien, une collision près de Châteauroux qui aurait fait 68 morts et 151 blessés « avant-hier », c\'est-à-dire le 7 décembre selon la dépêche, contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date et le bilan restent à départager.',
-                'en' => 'The Nürtinger Tagblatt of 9 December 1918 relays, from Le Petit Parisien, a collision near Châteauroux said to have caused 68 dead and 151 injured "the day before yesterday", that is 7 December according to the dispatch, against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date and the toll remain to be settled.',
-                'de' => 'Das Nürtinger Tagblatt vom 9. Dezember 1918 gibt nach dem Petit Parisien einen Zusammenstoß bei Châteauroux wieder, der vorgestern 68 Tote und 151 Verletzte gefordert haben soll, nach der Meldung also am 7. Dezember, gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; Datum und Bilanz bleiben abzuklären.',
+                'fr' => 'Le Nürtinger Tagblatt du 9 décembre 1918 relaie, d\'après Le Petit Parisien, une collision près de Châteauroux qui aurait fait 68 morts et 151 blessés « avant-hier », c\'est-à-dire le 7 décembre selon la dépêche, contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date est corrigée au 7 décembre (voir la correction) ; le bilan de 66 à 68 morts est un premier bilan, la fiche garde 74.',
+                'en' => 'The Nürtinger Tagblatt of 9 December 1918 relays, from Le Petit Parisien, a collision near Châteauroux said to have caused 68 dead and 151 injured "the day before yesterday", that is 7 December according to the dispatch, against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date is corrected to 7 December (see the correction); the toll of 66 to 68 dead is a first toll, the record keeps 74.',
+                'de' => 'Das Nürtinger Tagblatt vom 9. Dezember 1918 gibt nach dem Petit Parisien einen Zusammenstoß bei Châteauroux wieder, der vorgestern 68 Tote und 151 Verletzte gefordert haben soll, nach der Meldung also am 7. Dezember, gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; das Datum wird auf den 7. Dezember korrigiert (siehe Korrektur); die Bilanz von 66 bis 68 Toten ist eine erste Bilanz, der Datensatz behält 74.',
                 'sources' => ['ddb-1918-12-09-nuertinger'],
             ],
             [
-                'fr' => 'Trois journaux néerlandais et allemands des 8 et 9 décembre 1918 relaient Le Petit Parisien : une collision près de Châteauroux qui a fait 66 ou 68 morts et 151 blessés, avec la date du 7 décembre (« hier » ou « avant-hier » selon les dépêches du 8 et du 9), contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date reste à confirmer.',
-                'en' => 'Three Dutch and German newspapers of 8 and 9 December 1918 relay Le Petit Parisien: a collision near Châteauroux that caused 66 or 68 deaths and 151 injured, dated 7 December ("yesterday" or "the day before yesterday" according to the dispatches of the 8th and 9th), against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date remains to be confirmed.',
-                'de' => 'Drei niederländische und deutsche Zeitungen vom 8. und 9. Dezember 1918 geben den Petit Parisien wieder: ein Zusammenstoß bei Châteauroux mit 66 oder 68 Toten und 151 Verletzten, auf den 7. Dezember datiert („gestern“ oder „vorgestern“ je nach den Meldungen vom 8. und 9.), gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; das Datum bleibt zu bestätigen.',
+                'fr' => 'Trois journaux néerlandais et allemands des 8 et 9 décembre 1918 relaient Le Petit Parisien : une collision près de Châteauroux qui a fait 66 ou 68 morts et 151 blessés, avec la date du 7 décembre (« hier » ou « avant-hier » selon les dépêches du 8 et du 9), contre le 6 décembre et 74 morts dans la fiche. Le lieu est donné par la grande ville voisine ; la date est corrigée au 7 décembre (voir la correction).',
+                'en' => 'Three Dutch and German newspapers of 8 and 9 December 1918 relay Le Petit Parisien: a collision near Châteauroux that caused 66 or 68 deaths and 151 injured, dated 7 December ("yesterday" or "the day before yesterday" according to the dispatches of the 8th and 9th), against 6 December and 74 dead in the record. The place is given by the large neighbouring city; the date is corrected to 7 December (see the correction).',
+                'de' => 'Drei niederländische und deutsche Zeitungen vom 8. und 9. Dezember 1918 geben den Petit Parisien wieder: ein Zusammenstoß bei Châteauroux mit 66 oder 68 Toten und 151 Verletzten, auf den 7. Dezember datiert („gestern“ oder „vorgestern“ je nach den Meldungen vom 8. und 9.), gegenüber dem 6. Dezember und 74 Toten in der Datenbank. Der Ort wird über die große Nachbarstadt angegeben; das Datum wird auf den 7. Dezember korrigiert (siehe Korrektur).',
                 'sources' => ['kb-1918-12-09-algemeen-handelsblad', 'kb-1918-12-09-leeuwarder-courant'],
             ],
             [
@@ -182,6 +182,16 @@ return [
                 'de' => 'Die Art der Kollision wird unterschiedlich dargestellt: zwei Urlauberzüge laut der Liste von 1918, ein Urlauberzug gegen einen stehenden Güterzug laut der Vineuil-Seite. Auch die Zahl der Toten schwankt zwischen 70 und 74.',
                 'sources' => ['wp-liste-1918', 'vineuil', 'wp-gare-lothiers'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1918-12-07',
+            'sources' => ['ddb-1918-12-09-nuertinger', 'kb-1918-12-09-algemeen-handelsblad', 'vineuil', 'wp-gare-lothiers'],
+            'fr' => 'La dépêche Reuter du 8 décembre dit « hier » (le 7), la dépêche WTB du 9 « avant-hier » (le 7), le site de Vineuil donne le 7 décembre et l\'article sur la gare de Lothiers place la collision dans la nuit du 6 au 7 vers 4 h, soit le 7 au matin. La liste de Wikipédia, seule à dire le 6, parle de « vers 3 h ».',
+            'en' => 'The Reuter dispatch of 8 December says "yesterday" (the 7th), the WTB dispatch of the 9th "the day before yesterday" (the 7th), the Vineuil site gives 7 December and the article on Lothiers station puts the collision in the night of 6 to 7 at about 4 am, that is the morning of the 7th. The Wikipedia list, the only one to say the 6th, speaks of "about 3 am".',
+            'de' => 'Die Reuter-Meldung vom 8. Dezember sagt "gestern" (den 7.), die WTB-Meldung vom 9. "vorgestern" (den 7.), die Seite von Vineuil nennt den 7. Dezember, und der Artikel zum Bahnhof Lothiers verlegt den Zusammenstoß in die Nacht vom 6. auf den 7. gegen 4 Uhr, also auf den Morgen des 7. Die Wikipedia-Liste, die als einzige den 6. nennt, spricht von "gegen 3 Uhr".',
         ],
     ],
 ];

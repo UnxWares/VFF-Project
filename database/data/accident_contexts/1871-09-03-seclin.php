@@ -75,6 +75,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Jugement du tribunal correctionnel de Lille, d\'après Wikipédia ; non lu.',
         ],
+        'kb-1871-09-09-harlinger-courant' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorweg-ongeluk.',
+            'publisher' => 'Harlinger courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1871-09-09',
+            'locator' => 'article « Spoorweg-ongeluk. », texte OCR, texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMTRES04:211267122:mpeg21:a00018:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 9 septembre d\'après L\'Écho du Nord : à Seclin, l\'express heurte l\'omnibus ; quatre voyageurs tués sur le coup, cinq autres morts de leurs blessures, soit 9 morts, et 75 blessés graves.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -123,6 +137,12 @@ return [
                 'en' => 'The toll varies widely. The record keeps nine dead, the first press figure. The Wikipedia list adds that 23 of the injured died of their burns in the following days; the Victimes du rail website counts 26 dead and 69 injured after searching civil registers. Three coaches were crushed according to Wikipedia, five according to L\'Écho du Nord.',
                 'de' => 'Die Bilanz schwankt stark. Der Eintrag nennt neun Tote, die erste Zahl der Presse. Die Wikipedia-Liste fügt hinzu, dass 23 Verletzte in den folgenden Tagen ihren Verbrennungen erlagen; die Website Victimes du rail zählt nach Recherchen in den Standesregistern 26 Tote und 69 Verletzte. Laut Wikipedia wurden drei Wagen zermalmt, laut L\'Écho du Nord fünf.',
                 'sources' => ['wp-liste-1870', 'vdr-seclin'],
+            ],
+            [
+                'fr' => 'Bilan non tranché : la fiche garde 9 morts, bilan que donne la presse néerlandaise du 9 septembre 1871 d\'après L\'Écho du Nord (quatre morts sur le coup, cinq des suites des blessures, 75 blessés graves) ; huit morts selon la Compagnie du Nord deux jours après. Le site Victimes du rail compte 26 morts d\'après l\'état civil et la liste de Wikipédia ajoute 23 blessés morts plus tard, ce qui n\'est pas compatible avec 26 : seul un dépouillement de l\'état civil peut départager.',
+                'en' => 'Toll not settled: the record keeps 9 dead, the toll given by the Dutch press of 9 September 1871 after L\'Écho du Nord (four dead on the spot, five of their injuries, 75 seriously injured); eight dead according to the Nord Company two days later. The Victimes du rail site counts 26 dead from the civil registers and the Wikipedia list adds 23 injured who died later, which is not compatible with 26: only a check of the civil registers can settle it.',
+                'de' => 'Bilanz nicht geklärt: Der Datensatz behält 9 Tote, die Zahl der niederländischen Presse vom 9. September 1871 nach L\'Écho du Nord (vier sofort Tote, fünf an den Folgen der Verletzungen, 75 Schwerverletzte); acht Tote laut der Nordbahn-Gesellschaft zwei Tage später. Die Seite Victimes du rail zählt 26 Tote nach den Standesamtsregistern, und die Wikipedia-Liste fügt 23 später gestorbene Verletzte hinzu, was mit 26 nicht vereinbar ist: Nur eine Prüfung der Standesamtsregister kann dies klären.',
+                'sources' => ['kb-1871-09-09-harlinger-courant', 'vdr-seclin', 'wp-liste-1870'],
             ],
         ],
     ],

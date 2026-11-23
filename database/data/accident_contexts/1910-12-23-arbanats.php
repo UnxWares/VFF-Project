@@ -172,6 +172,12 @@ return [
                 'de' => 'Die Quellen weichen in der Rolle der Züge voneinander ab: ein Personenzug mit Soldaten, der einen Schnellzug aus Toulouse rammt (Wikipedia-Liste), ein Schnellzug, der auf einen Personenzug auffährt (De Nederlander), ein Personenzug, der mit einem Schnellzug aus Toulon kollidiert (Nieuwe Tilburgsche Courant). Dieser Unfall darf nicht mit denen desselben Abends in Cadaujac (zwei Güterzüge, ein Lokführer getötet) und in Montereau (ein Toter, elf bis zweiunddreißig Verletzte je nach Quelle) verwechselt werden, die die Wikipedia-Liste als getrennte Einträge führt.',
                 'sources' => ['wp-liste-1910', 'delpher-nederlander-1910-12-27', 'delpher-tilburgsche-1910-12-27', 'delpher-courant-1910-12-27-matin'],
             ],
+            [
+                'fr' => 'Bilan tranché : les premières dépêches du 24 décembre 1910 parlaient de six, puis de cinq morts ; les dépêches de Bordeaux des 25 et 27 décembre, reprises par trois journaux néerlandais, donnent le bilan définitif de 3 morts et 18 blessés, et Le Matin, résumé le 27 décembre, 3 morts et 21 blessés. La fiche (3 morts) est confirmée ; les cinq morts de la presse du premier jour sont un bilan provisoire.',
+                'en' => 'Toll settled: the first dispatches of 24 December 1910 spoke of six, then five dead; the dispatches from Bordeaux of 25 and 27 December, taken up by three Dutch newspapers, give the final toll of 3 dead and 18 injured, and Le Matin, summarised on 27 December, 3 dead and 21 injured. The record (3 dead) is confirmed; the five dead of the first day\'s press are a provisional toll.',
+                'de' => 'Bilanz geklärt: Die ersten Meldungen vom 24. Dezember 1910 sprachen von sechs, dann fünf Toten; die Meldungen aus Bordeaux vom 25. und 27. Dezember, von drei niederländischen Zeitungen übernommen, nennen die endgültige Bilanz von 3 Toten und 18 Verletzten, und Le Matin, am 27. Dezember zusammengefasst, 3 Tote und 21 Verletzte. Der Datensatz (3 Tote) ist bestätigt; die fünf Toten der Presse des ersten Tages sind eine vorläufige Bilanz.',
+                'sources' => ['delpher-vaderland-1910-12-24', 'delpher-maasbode-1910-12-24', 'delpher-nieuwecourant-1910-12-25', 'delpher-courant-1910-12-27-reuter', 'delpher-nederlander-1910-12-27', 'delpher-courant-1910-12-27-matin'],
+            ],
         ],
     ],
     'corrections' => [],

@@ -142,6 +142,12 @@ return [
                 'de' => 'Der Unfall liegt in Saint-Jacques an der Stelle Lieu Galant und nicht in Lisieux selbst; er wird auch als Glos-sur-Lisieux oder Saint-Mards-de-Fresne bezeichnet. Die der Gemeinde Lisieux zugeordnete Karteikarte ist daher nur ungefähr.',
                 'sources' => ['wp-lisieux', 'wp-liste-1890'],
             ],
+            [
+                'fr' => 'Bilan tranché : la fiche garde 8 morts. Le journal de Saumur du 18 août 1898 donne 7 morts et 40 blessés au premier compte ; l\'article détaillé de Wikipédia compte sept morts dans les voitures du milieu et un huitième décédé plus d\'un an plus tard. Un chiffre de 10 morts, relevé lors d\'une recherche de presse, n\'a pu être relu dans aucun document : il n\'est pas retenu.',
+                'en' => 'Toll settled: the record keeps 8 dead. The Saumur newspaper of 18 August 1898 gives 7 dead and 40 injured at the first count; the detailed Wikipedia article counts seven dead in the middle carriages and an eighth who died more than a year later. A figure of 10 dead, noted during a press search, could not be read again in any document: it is not retained.',
+                'de' => 'Bilanz geklärt: Der Datensatz behält 8 Tote. Die Zeitung aus Saumur vom 18. August 1898 nennt beim ersten Zählen 7 Tote und 40 Verletzte; der ausführliche Wikipedia-Artikel zählt sieben Tote in den mittleren Wagen und einen achten, der mehr als ein Jahr später starb. Eine bei einer Pressesuche notierte Zahl von 10 Toten konnte in keinem Dokument wieder gelesen werden: Sie wird nicht übernommen.',
+                'sources' => ['echo-saumurois-1898-08-18', 'wp-lisieux', 'wp-liste-1890'],
+            ],
         ],
     ],
     'corrections' => [],

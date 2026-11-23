@@ -103,6 +103,20 @@ return [
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche de Paris du 6 juillet : 19 morts et 100 blessés dans la catastrophe d\'Achères ; le mécanicien n\'avait pas été averti du changement de voie.',
         ],
+        'ddb-1926-07-05-bergische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Bergische Zeitung du 5 juillet 1926',
+            'publisher' => 'Bergische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1926-07-05',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/WJZD2VCPUP3G2BAYN6Q6636QO2QSV7AN?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Dépêche WTB de Paris du 4 juillet : le rapide Le Havre-Paris déraille « hier soir » entre Achères et Poissy ; environ 20 morts et 50 blessés, la tempête d\'orage tenue pour cause.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -170,6 +184,14 @@ return [
                     'wiki-ouest-etat',
                     'wp-3-juillet',
                 ],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Jour : le samedi 3 juillet 1926 est confirmé par deux dépêches WTB, l\'une datée du 4 juillet (« hier soir »), l\'autre du 5 juillet (« samedi soir »), et par la liste de Wikipédia (20 h 10) ; les numéros du 5 juillet qui disent « hier » ou « dimanche » reprennent la date de la dépêche. Bilan : 18 morts (fiche), 19 ou une vingtaine selon d\'autres dépêches ; blessés 50 à 100 contre 67 dans la fiche : désaccord non tranché.',
+                'en' => 'Day: Saturday 3 July 1926 is confirmed by two WTB dispatches, one dated 4 July ("yesterday evening"), the other 5 July ("Saturday evening"), and by the Wikipedia list (8.10 pm); the issues of 5 July saying "yesterday" or "Sunday" take over the date of the dispatch. Toll: 18 dead (record), 19 or about twenty according to other dispatches; injured 50 to 100 against 67 in the record: disagreement not settled.',
+                'de' => 'Tag: Samstag, der 3. Juli 1926, ist durch zwei WTB-Meldungen bestätigt, eine vom 4. Juli ("gestern abend"), eine vom 5. Juli ("Samstag abend"), sowie durch die Wikipedia-Liste (20.10 Uhr); die Ausgaben vom 5. Juli, die "gestern" oder "Sonntag" sagen, übernehmen das Datum der Meldung. Bilanz: 18 Tote (Datensatz), 19 oder rund zwanzig laut anderen Meldungen; Verletzte 50 bis 100 gegenüber 67 im Datensatz: Widerspruch nicht geklärt.',
+                'sources' => ['ddb-1926-07-06-rheinisches', 'ddb-1926-07-05-bergische', 'kb-1926-07-06-de-gooi-en-eemlander', 'wp-liste-1926'],
             ],
         ],
     ],

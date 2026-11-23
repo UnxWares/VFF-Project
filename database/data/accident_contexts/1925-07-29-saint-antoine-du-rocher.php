@@ -197,6 +197,12 @@ return [
                     'cheminots-forum',
                 ],
             ],
+            [
+                'fr' => 'Jour : la fiche garde le 29 juillet 1925. Une dépêche du 30 juillet parle d\'un déraillement « la veille au soir » et un journal du 1er août de « minuit » ; la liste de Wikipédia, Turonensis et une note de forum disent le 29 ou « vers 0 h 10 » le 30. L\'accident a donc lieu au tournant de minuit, dans la nuit du 29 au 30 juillet ; l\'heure n\'étant pas établie à la minute, la date de la fiche n\'est pas changée. Bilan : 3 puis 12 morts selon les premières dépêches, 19 selon les sources finales.',
+                'en' => 'Day: the record keeps 29 July 1925. A dispatch of 30 July speaks of a derailment "the previous evening" and a newspaper of 1 August of "midnight"; the Wikipedia list, Turonensis and a forum note say the 29th or "about 12.10 am" on the 30th. The accident thus happened around midnight, in the night of 29 to 30 July; as the time is not established to the minute, the date of the record is not changed. Toll: 3 then 12 dead according to the first dispatches, 19 according to the final sources.',
+                'de' => 'Tag: Der Datensatz behält den 29. Juli 1925. Eine Meldung vom 30. Juli spricht von einer Entgleisung "am Vorabend" und eine Zeitung vom 1. August von "Mitternacht"; die Wikipedia-Liste, Turonensis und ein Forumsbeitrag nennen den 29. oder "gegen 0.10 Uhr" am 30. Das Unglück geschah also um Mitternacht, in der Nacht vom 29. auf den 30. Juli; da die Uhrzeit nicht minutengenau feststeht, wird das Datum des Datensatzes nicht geändert. Bilanz: 3, dann 12 Tote laut den ersten Meldungen, 19 laut den endgültigen Quellen.',
+                'sources' => ['ddb-1925-07-31-schwerter', 'kb-1925-08-01-de-limburger', 'wp-liste-1925', 'turonensis', 'cheminots-forum'],
+            ],
         ],
     ],
 ];
