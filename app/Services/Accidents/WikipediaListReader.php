@@ -87,7 +87,7 @@ final class WikipediaListReader
      * Ce qui précède un lieu et dit que l'accident n'a PAS eu lieu à ce lieu même : origine ou destination du train
      * (« venant de », « pour », « reliant »), ligne ou parcours (« sur la ligne de », « de X à Y »). Texte en minuscules.
      */
-    private const TERMINAL = '/\b(?:venant|provenant|arrivant|partant|parti|partie|quittant|quitte|quittait|allant|reliant|desservant|relation|destination|direction|depuis|pour|ligne|jusqu[\'’]à|jusqu[\'’]a|se rendant|rejoignant|en route vers|à destination)\s*(?:(?:de|du|des|d[\'’])\s*)?(?:la |le |les |l[\'’])?$|\b(?:reliant|allant|venant|relation|service|ligne|trajet|parcours)\s+[^.;:,]{1,50}?\s(?:à|a|et|pour)\s*(?:la |le |l[\'’])?$/iu';
+    private const TERMINAL = '/\b(?:venant|provenant|arrivant|partant|parti|partie|quittant|quitte|quittait|allant|reliant|desservant|relation|destination|direction|depuis|pour|ligne|jusqu[\'’]à|jusqu[\'’]a|se rendant|rejoignant|en route vers|à destination)\s*(?:(?:de|du|des|d[\'’])\s*)?(?:la |le |les |l[\'’])?$|\b(?:allant|se rendant|se dirigeant)\s+(?:à|a|au|aux)\s*(?:la |le |les |l[\'’])?$|\b(?:reliant|allant|venant|relation|service|ligne|trajet|parcours)\s+[^.;:,]{1,50}?\s(?:à|a|et|pour)\s*(?:la |le |l[\'’])?$/iu';
 
     /**
      * Ce qui précède un lieu et dit que l'accident a eu lieu près de ce lieu, pas à ce lieu : approche, entrée, sortie,
