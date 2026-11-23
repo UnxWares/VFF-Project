@@ -213,6 +213,15 @@ return [
         ],
     ],
     [
+        'line' => '752330', 'system' => 'TVM', 'date' => '1981-09-27', 'scope' => 'section',
+        'from' => 'Montanay', 'to' => 'Sathonay',
+        'summary' => 'Fin de la première mise en service de la LGV Sud-Est : de la bifurcation de Montanay à Sathonay-Camp (Lyon-Saint-Clair), dernier tronçon de la section de Saint-Florentin à Sathonay, en TVM.',
+        'sources' => [
+            ['publisher' => 'Wikipédia', 'title' => 'LGV Sud-Est', 'url' => 'https://fr.wikipedia.org/wiki/LGV_Sud-Est'],
+            ['publisher' => 'SNCF', 'title' => 'Bilan LOTI de la LGV d\'interconnexion en Île-de-France', 'url' => 'https://www.igedd.developpement-durable.gouv.fr/IMG/pdf/Lgv_InterConnex_IDF_cle0fa1af.pdf', 'published' => '2005-12', 'official' => true],
+        ],
+    ],
+    [
         'line' => '752000', 'system' => 'TVM', 'date' => '1983-09-25', 'scope' => 'section',
         'from' => 'Combs-la-Ville', 'to' => 'Saint-Florentin',
         'summary' => 'Mise en service du tronçon nord de la LGV Sud-Est, de Combs-la-Ville à Saint-Florentin, en signalisation en cabine TVM.',

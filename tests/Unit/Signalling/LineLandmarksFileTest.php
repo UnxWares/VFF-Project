@@ -90,13 +90,38 @@ class LineLandmarksFileTest extends TestCase
     {
         $points = LineLandmarksFile::load(dirname(__DIR__, 3).'/database/data/line_landmarks.php');
 
-        $this->assertSame(['005000', '014000', '226000', '431000', '752000'], array_map('strval', array_keys($points)));
-        $this->assertSame(16, array_sum(array_map('count', $points)));
+        $lines = array_map('strval', array_keys($points));
+        sort($lines);
+        $this->assertSame(['005000', '014000', '226000', '408000', '431000', '566000', '752000', '752100', '752330', '834000'], $lines);
+        $this->assertGreaterThanOrEqual(60, array_sum(array_map('count', $points)));
         foreach ($points as $line => $list) {
             $pks = array_column($list, 'pk_m');
             $sorted = $pks;
             sort($sorted);
             $this->assertSame($sorted, $pks, "points de la ligne {$line} rangés par PK");
         }
+    }
+
+    public function test_the_junction_of_saint_quentin_fallavier_is_the_signalling_limit_not_grenay(): void
+    {
+        $points = LineLandmarksFile::load(dirname(__DIR__, 3).'/database/data/line_landmarks.php');
+        $byName = array_column($points['752000'], null, 'name');
+
+        $this->assertSame(423_442, $byName['Bifurcation de Saint-Quentin-Fallavier']['pk_m'], 'limite TVM 300 / TVM 430 de SNCF Réseau');
+        $this->assertSame('sncf_signalling_limit', $byName['Bifurcation de Saint-Quentin-Fallavier']['method']);
+        $this->assertSame(416_648, $byName['Bifurcation de Grenay']['pk_m'], 'Grenay garde son propre point');
+        // 42 km de Montanay (PK 380,5) d'après l'article de la LGV : à moins d'un kilomètre du point choisi.
+        $this->assertEqualsWithDelta(380_500 + 42_000, $byName['Bifurcation de Saint-Quentin-Fallavier']['pk_m'], 1_000);
+        $this->assertSame(148_220, array_column($points['226000'], null, 'name')['Bifurcation de Croisilles']['pk_m'], 'PK lu sur les circuits de voie');
+    }
+
+    public function test_every_new_lgv_has_its_origin_and_end_or_a_junction_with_a_source(): void
+    {
+        $points = LineLandmarksFile::load(dirname(__DIR__, 3).'/database/data/line_landmarks.php');
+
+        foreach (['408000', '566000', '752100', '834000', '014000'] as $line) {
+            $this->assertGreaterThanOrEqual(2, count($points[$line]), "points de la ligne {$line}");
+        }
+        $this->assertSame(['line_start', 'line_end'], array_column($points['752330'], 'kind'));
     }
 }

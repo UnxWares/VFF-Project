@@ -12,7 +12,7 @@ final class LineLandmarksFile
 {
     public const KINDS = ['junction', 'line_start', 'line_end', 'border'];
 
-    public const METHODS = ['sncf_line_end', 'sncf_connection', 'osm_milestones', 'sncf_calibrated'];
+    public const METHODS = ['sncf_line_end', 'sncf_connection', 'osm_milestones', 'sncf_calibrated', 'sncf_track_circuits', 'sncf_signalling_limit'];
 
     public static function defaultPath(): string
     {

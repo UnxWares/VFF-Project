@@ -35,7 +35,7 @@ class LineLandmarksTest extends TestCase
     public function test_the_lgv_facts_named_by_junctions_are_placed_on_their_landmarks(): void
     {
         $lines = [];
-        foreach (['005000', '014000', '226000', '431000', '752000'] as $code) {
+        foreach (['005000', '014000', '226000', '431000', '752000', '752330'] as $code) {
             $lines[$code] = Line::factory()->create(['slug' => "rfn-{$code}", 'code' => $code, 'is_lgv' => true]);
         }
         // Seule gare de ces lieux sur les lignes : Vendenheim, PK interpolé entre deux gares de PK connu.
@@ -60,16 +60,17 @@ class LineLandmarksTest extends TestCase
             '005000 2016-07-03 ETCS_L2' => ['landmarks', 299_784, 406_015],
             '014000 2011-12-11 TVM-430' => ['landmarks', 423, 137_899],
             '752000 1981-09-27 TVM' => ['landmarks', 117_186, 380_500],
+            '752330 1981-09-27 TVM' => ['landmarks', 380_500, 394_727],
             '752000 1983-09-25 TVM' => ['landmarks', 168, 117_186],
-            '752000 1992-12-13 TVM-300' => ['landmarks', 380_500, 416_648],
-            '752000 1994-07-03 TVM-430' => ['landmarks', 416_648, 493_427],
+            '752000 1992-12-13 TVM-300' => ['landmarks', 380_500, 423_442],
+            '752000 1994-07-03 TVM-430' => ['landmarks', 423_442, 493_427],
             '752000 2001-06-10 TVM-430' => ['landmarks', 493_427, 711_163],
             '431000 1989-09-24 TVM-300' => ['unlocated', null, null],
             '431000 1990-09-30 TVM-300' => ['landmarks', 130_190, 214_699],
-            '226000 1993-05-23 TVM-430' => ['landmarks', 0, 144_077],
-            '226000 1993-09-26 TVM-430' => ['landmarks', 144_077, 194_643],
-            '226000 1996-06-02 TVM-430' => ['landmarks', 194_643, 210_580],
-        ], $placed, 'Montrouge, début de la LGV Atlantique, n’a pas de PK sûr : la portion n’est pas placée');
+            '226000 1993-05-23 TVM-430' => ['landmarks', 0, 148_220],
+            '226000 1993-09-26 TVM-430' => ['landmarks', 148_220, 197_826],
+            '226000 1996-06-02 TVM-430' => ['landmarks', 197_826, 210_580],
+        ], $placed, 'Montrouge, début de la LGV Atlantique, n’a pas de PK dans une source (SNCF Réseau : block automatique lumineux jusqu’au PK 15,9, TVM 300 ensuite) : la portion n’est pas placée');
 
         $phase2 = $locator->locate($lines['005000']->id, 'section', 'Baudrecourt', 'Vendenheim', null, null);
         $this->assertSame([null, $vendenheim->id], [$phase2['from_station_id'], $phase2['to_station_id']], 'la gare de l’autre extrémité est gardée');
