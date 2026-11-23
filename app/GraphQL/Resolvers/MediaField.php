@@ -11,7 +11,7 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Champs calculés d'un média (`thumb_url`, `display_url`, `provider_label`, `date_precision`,
- * `depicted_year_to`, `attribution_required`, `featured`, `lat`, `lng`) : la même valeur que
+ * `depicted_year_to`, `attribution_required`, `featured`, `captions`, `lat`, `lng`) : la même valeur que
  * l'API REST, lue dans MediaResource.
  */
 final class MediaField

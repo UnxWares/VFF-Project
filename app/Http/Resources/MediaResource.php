@@ -73,6 +73,8 @@ class MediaResource extends JsonResource
             'type' => $this->resource->getRawOriginal('type'),
             'title' => $this->title,
             'caption' => $this->caption,
+            // Légende par langue (`fr`, `en`, `de`) quand l'image proposée en a reçu plusieurs, sinon nulle.
+            'captions' => $this->resource->captions(),
             'thumb_url' => $thumb,
             'display_url' => $display ?? $thumb,
             'source_url' => $this->source_url,

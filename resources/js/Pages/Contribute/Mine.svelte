@@ -173,8 +173,9 @@
                                     <span>{$i18n.t(proposalKindKey(c))}</span>
                                     {#each facts as fact (fact.id)}
                                         <span
-                                            >{fact.label}{colon($i18n.language)}<span class="value"
-                                                >{fact.text}</span
+                                            >{fact.label}{colon($i18n.language)}<span
+                                                class="value"
+                                                lang={fact.lang}>{fact.text}</span
                                             ></span
                                         >
                                     {/each}

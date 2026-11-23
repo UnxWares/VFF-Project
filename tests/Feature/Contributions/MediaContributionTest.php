@@ -41,6 +41,10 @@ class MediaContributionTest extends TestCase
 
     private const COMMONS_URL = 'https://commons.wikimedia.org/wiki/File:Gare_de_Nontron.jpg';
 
+    /** Licences proposées pour une image déposée : famille par famille, la version la plus récente d'abord. */
+    private const FREE_LICENCES = ['public_domain', 'cc0-1.0', 'cc-by-4.0', 'cc-by-3.0', 'cc-by-2.5', 'cc-by-2.0',
+        'cc-by-sa-4.0', 'cc-by-sa-3.0', 'cc-by-sa-2.5', 'cc-by-sa-2.0', 'etalab-2.0'];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -163,7 +167,9 @@ class MediaContributionTest extends TestCase
                 ->component('Contribute/ProposeMedia')
                 ->where('preselected.eventId', $event->id)
                 ->where('preselected.line.slug', $this->line->slug)
-                ->where('licenses', fn (Collection $licenses) => $licenses->pluck('value')->all() === ['public_domain', 'cc0-1.0', 'cc-by-4.0', 'cc-by-sa-4.0', 'etalab-2.0'])
+                ->where('licenses', fn (Collection $licenses) => $licenses->pluck('value')->all() === self::FREE_LICENCES)
+                ->where('licenses.3', ['value' => 'cc-by-3.0', 'name' => 'CC BY 3.0', 'url' => 'https://creativecommons.org/licenses/by/3.0/', 'family' => 'cc-by', 'version' => '3.0'])
+                ->where('licenses.0.version', null)
                 ->where('limits.max_bytes', 10 * 1024 * 1024)
                 ->where('mediaTypes', ['photo', 'plan', 'document', 'map', 'postcard']));
     }
@@ -382,6 +388,75 @@ class MediaContributionTest extends TestCase
             ->assertJsonPath('data.license', 'CC BY-SA 4.0');
     }
 
+    public function test_an_older_licence_version_is_published_with_its_own_name_and_text(): void
+    {
+        $contribution = $this->submit($this->member(), $this->upload(['license' => 'cc-by-sa-3.0']));
+        $this->assertSame(['cc-by-sa-3.0', 'CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/'],
+            [$contribution->payload['license'], $contribution->payload['license_name'], $contribution->payload['license_url']]);
+
+        $this->publish($contribution);
+
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $this->assertSame(['CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/', 'Marie Durand, CC BY-SA 3.0'], [$media->license, $media->license_url, $media->attribution]);
+        $this->assertSame([Media::RIGHTS_OPEN_LICENSE, true, true, true], [$media->rights_status, $media->commercial_ok, $media->share_alike, $media->derivatives_ok]);
+        $this->assertSame('year', $media->date_precision, 'précision de la prise de vue dans sa colonne');
+        $this->assertTrue($media->provider_meta['attribution_required']);
+    }
+
+    public function test_a_licence_outside_the_closed_list_is_refused(): void
+    {
+        foreach (['cc-by-nc-4.0', 'cc-by-nd-4.0', 'all_rights_reserved', 'unknown', 'cc-by-1.0'] as $license) {
+            $this->actingAs($this->member())->post('/contribute/media', $this->upload(['license' => $license]))->assertSessionHasErrors('license');
+        }
+        $this->assertSame(0, Contribution::query()->count());
+    }
+
+    public function test_captions_in_three_languages_are_published_and_served_by_the_api(): void
+    {
+        $contribution = $this->submit($this->member(), $this->upload([
+            'caption' => '  Vue prise depuis la passerelle. ',
+            'caption_en' => 'View from the footbridge.',
+            'caption_de' => 'Blick von der Fußgängerbrücke.',
+        ]));
+        // Ordre des clés réécrit par jsonb : comparaison sans ordre.
+        $this->assertEquals([
+            'fr' => 'Vue prise depuis la passerelle.',
+            'en' => 'View from the footbridge.',
+            'de' => 'Blick von der Fußgängerbrücke.',
+        ], $contribution->payload['captions']);
+
+        $this->publish($contribution);
+
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $this->assertSame('Vue prise depuis la passerelle.', $media->caption, 'légende principale : le français');
+        $this->assertSame('Blick von der Fußgängerbrücke.', $media->captions()['de']);
+        $this->getJson("/api/v1/media/{$media->id}")
+            ->assertOk()
+            ->assertJsonPath('data.caption', 'Vue prise depuis la passerelle.')
+            ->assertJsonPath('data.captions.en', 'View from the footbridge.')
+            ->assertJsonPath('data.captions.de', 'Blick von der Fußgängerbrücke.');
+        $this->postJson('/graphql', ['query' => '{ media(first: 5) { edges { node { id caption captions { fr en de } } } } }'])
+            ->assertOk()
+            ->assertJsonPath('data.media.edges.0.node.id', (string) $media->id)
+            ->assertJsonPath('data.media.edges.0.node.captions.en', 'View from the footbridge.')
+            ->assertJsonPath('data.media.edges.0.node.captions.de', 'Blick von der Fußgängerbrücke.');
+    }
+
+    public function test_a_caption_given_only_in_english_becomes_the_main_caption(): void
+    {
+        $contribution = $this->submit($this->member(), $this->upload(['caption' => '', 'caption_en' => 'View from the footbridge.']));
+        $this->assertSame('View from the footbridge.', $contribution->payload['caption']);
+        $this->assertSame(['en' => 'View from the footbridge.'], $contribution->payload['captions']);
+
+        $without = $this->submit($this->member(), $this->upload(['caption' => null, 'file' => $this->uploaded($this->jpegWithLocation(1700, 1200, 1))]));
+        $this->assertNull($without->payload['caption']);
+        $this->assertNull($without->payload['captions']);
+        $this->publish($without);
+        $media = Media::query()->findOrFail($without->fresh()->payload['applied']['media_id']);
+        $this->assertNull($media->captions());
+        $this->getJson("/api/v1/media/{$media->id}")->assertOk()->assertJsonPath('data.captions', null);
+    }
+
     public function test_publication_creates_webp_thumbnails_served_by_the_api(): void
     {
         $contribution = $this->submit($this->member(), $this->upload(['file' => $this->uploaded($this->realJpeg(1600, 1200, 6))]));
@@ -544,6 +619,7 @@ class MediaContributionTest extends TestCase
         $this->assertSame('contribution:'.$contribution->id, $media->provider_meta['source']);
         $this->assertSame(['Jean Dupont', 'CC BY-SA 4.0', 1962], [$media->author, $media->license, $media->depicted_year]);
         $this->assertSame(self::COMMONS_URL, $media->source_url);
+        $this->assertTrue($media->derivatives_ok, 'licence libre de Commons : modification permise');
         $this->assertNull($media->getAttribute('file_path'), 'l’image reste chez Wikimedia');
         $this->assertSame([], Storage::disk(MediaContributions::PUBLIC_DISK)->allFiles());
     }

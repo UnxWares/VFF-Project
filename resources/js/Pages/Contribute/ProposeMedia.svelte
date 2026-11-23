@@ -3,7 +3,9 @@
      * « Proposer une image » : un fichier de Wikimedia Commons (vérifié sur Commons avant l'envoi)
      * ou un fichier déposé (aperçu, contrôles de type, taille et dimensions), rattaché à une ligne,
      * une gare, un événement daté d'une ligne ou une série de matériel. Le serveur retire les métadonnées du fichier et le
-     * garde privé jusqu'à sa publication (MediaContributionController).
+     * garde privé jusqu'à sa publication (MediaContributionController). Licence en deux temps (famille, puis
+     * version), légende facultative en français, anglais et allemand ; une position GPS trouvée dans une photo
+     * JPEG est lue dans le navigateur et recopiée dans les coordonnées seulement si le contributeur le demande.
      */
     import { Link, useForm } from '@inertiajs/svelte';
     import { commonsSrc } from '$lib/commonsImage.js';
@@ -19,6 +21,7 @@
     import { formatStationDate } from '$lib/stationDates.js';
     import { colon, formatLocale } from '$lib/typo.js';
     import { figureLabel } from '$lib/altText.js';
+    import { fileExifPosition } from '$lib/exifPosition.js';
     import {
         IMAGE_MIMES,
         LIMITS,
@@ -27,10 +30,11 @@
         decimal,
         eventTypeLabel,
         formatBytes,
+        licenseFamilies,
         mediaErrors,
     } from '$components/Contribute/proposals.js';
 
-    /** @type {{ preselected?: { line: { slug: string, code: string|null, name: string }|null, station: { slug: string, name: string, city: string|null }|null, material?: { slug: string, name: string, type: string|null }|null, eventId: number|null }, mediaTypes?: string[], licenses?: { value: string, name: string, url: string|null }[], precisions?: string[], limits?: { max_bytes: number, min_side: number, max_side: number } }} */
+    /** @type {{ preselected?: { line: { slug: string, code: string|null, name: string }|null, station: { slug: string, name: string, city: string|null }|null, material?: { slug: string, name: string, type: string|null }|null, eventId: number|null }, mediaTypes?: string[], licenses?: { value: string, name: string, url: string|null, family: string, version: string|null }[], precisions?: string[], limits?: { max_bytes: number, min_side: number, max_side: number } }} */
     let {
         preselected = { line: null, station: null, material: null, eventId: null },
         mediaTypes = [],
@@ -43,6 +47,12 @@
     const tr = (key, opts) => String($i18n.t(key, opts));
     const TARGETS = ['line', 'station', 'event', 'material'];
     const SOURCES = ['commons', 'upload'];
+    /** Langues de la légende : le français d'abord (légende principale), puis l'anglais et l'allemand. */
+    const CAPTIONS = [
+        { lang: 'fr', field: 'caption' },
+        { lang: 'en', field: 'caption_en' },
+        { lang: 'de', field: 'caption_de' },
+    ];
 
     // Fiche présélectionnée depuis sa page (valeurs initiales voulues).
     const initial = untrack(() => preselected);
@@ -69,6 +79,10 @@
     let previewUrl = $state(null);
     /** @type {{ width: number, height: number }|null} */
     let dimensions = $state(null);
+    /** Position GPS lue dans la photo choisie (jamais envoyée sans le bouton « Reprendre »). */
+    /** @type {{ lat: number, lng: number }|null} */
+    let filePosition = $state(null);
+    let positionCopied = $state(false);
 
     /** Vérification d'un fichier Commons : idle | checking | ok | error. */
     let commonsStatus = $state('idle');
@@ -89,6 +103,8 @@
         media_type: 'photo',
         title: '',
         caption: '',
+        caption_en: '',
+        caption_de: '',
         author: '',
         license: '',
         place: '',
@@ -142,7 +158,53 @@
         const file = e.currentTarget.files?.[0] ?? null;
         form.file = file;
         dimensions = null;
+        filePosition = null;
+        positionCopied = false;
         previewUrl = file && IMAGE_MIMES.includes(file.type) ? URL.createObjectURL(file) : null;
+        if (file) {
+            fileExifPosition(file).then((position) => {
+                if (form.file === file) filePosition = position;
+            });
+        }
+    }
+
+    /** @param {number} value */
+    const coordinate = (value) =>
+        value.toLocaleString(formatLocale($i18n.language), {
+            maximumFractionDigits: 6,
+            useGrouping: false,
+        });
+
+    /** Recopie la position de la photo dans les coordonnées, à la demande du contributeur. */
+    function copyPosition() {
+        if (!filePosition) return;
+        form.lat = coordinate(filePosition.lat);
+        form.lng = coordinate(filePosition.lng);
+        positionCopied = true;
+    }
+
+    const licenseGroups = $derived(licenseFamilies(licenses));
+    const chosenFamily = $derived(
+        licenseGroups.find((g) => g.choices.some((c) => c.value === form.license)) ?? null,
+    );
+
+    /**
+     * Famille choisie : sa version la plus récente (la première de la liste), sauf si la licence
+     * choisie en fait déjà partie.
+     * @param {{ family: string, choices: { value: string }[] }} group
+     */
+    function chooseFamily(group) {
+        if (!group.choices.some((c) => c.value === form.license)) {
+            form.license = group.choices[0].value;
+        }
+    }
+
+    /**
+     * Licence montrée pour une famille : celle choisie, sinon sa version la plus récente.
+     * @param {{ choices: { value: string, name: string, url: string|null }[] }} group
+     */
+    function shownLicense(group) {
+        return group.choices.find((c) => c.value === form.license) ?? group.choices[0];
     }
 
     /** @param {Event & { currentTarget: HTMLImageElement }} e */
@@ -203,6 +265,8 @@
             media_type: form.media_type,
             title: form.title.trim(),
             caption: form.caption.trim() || null,
+            caption_en: form.caption_en.trim() || null,
+            caption_de: form.caption_de.trim() || null,
             author: form.author.trim(),
             license: form.license,
             captured_precision: capturedPrecision || null,
@@ -242,7 +306,9 @@
         file: 'media-file',
         media_type: 'media-type',
         title: 'media-title',
-        caption: 'media-caption',
+        caption: 'media-caption-fr',
+        caption_en: 'media-caption-en',
+        caption_de: 'media-caption-de',
         author: 'media-author',
         license: 'media-license-0',
         captured_precision: 'media-captured-year',
@@ -532,6 +598,27 @@
                                 {#if fileFacts}<figcaption>{fileFacts}</figcaption>{/if}
                             </figure>
                         {/if}
+                        {#if filePosition}
+                            <div class="gps">
+                                <p>
+                                    {$i18n.t('proposals.media.gps_found', {
+                                        lat: coordinate(filePosition.lat),
+                                        lng: coordinate(filePosition.lng),
+                                    })}
+                                </p>
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary small"
+                                    onclick={copyPosition}
+                                >
+                                    {$i18n.t('proposals.media.gps_use')}
+                                </button>
+                            </div>
+                        {/if}
+                        <!-- Zone d'annonce présente même vide : la recopie est lue (RGAA 7.5). -->
+                        <p class="status" role="status">
+                            {#if positionCopied}{$i18n.t('proposals.media.gps_copied')}{/if}
+                        </p>
                         <Notice tone="info" live="off"
                             >{$i18n.t('proposals.media.privacy_note')}</Notice
                         >
@@ -584,22 +671,30 @@
                                 />
                             {/snippet}
                         </Field>
-                        <Field
-                            id="media-caption"
-                            label={$i18n.t('proposals.media.caption')}
-                            hint={$i18n.t('proposals.media.caption_hint')}
-                            error={errorFor('caption')}
-                        >
-                            {#snippet children(attrs)}
-                                <textarea
-                                    {...attrs}
-                                    class="vff-textarea"
-                                    rows="3"
-                                    maxlength={LIMITS.caption}
-                                    bind:value={form.caption}
-                                ></textarea>
-                            {/snippet}
-                        </Field>
+                        <fieldset class="choices" aria-describedby="media-caption-hint">
+                            <legend class="vff-label">{$i18n.t('proposals.media.caption')}</legend>
+                            <p class="vff-hint" id="media-caption-hint">
+                                {$i18n.t('proposals.media.caption_hint')}
+                            </p>
+                            {#each CAPTIONS as caption (caption.lang)}
+                                <Field
+                                    id="media-caption-{caption.lang}"
+                                    label={$i18n.t(`proposals.media.caption_langs.${caption.lang}`)}
+                                    error={errorFor(caption.field)}
+                                >
+                                    {#snippet children(attrs)}
+                                        <textarea
+                                            {...attrs}
+                                            class="vff-textarea"
+                                            rows="2"
+                                            lang={caption.lang}
+                                            maxlength={LIMITS.caption}
+                                            bind:value={form[caption.field]}
+                                        ></textarea>
+                                    {/snippet}
+                                </Field>
+                            {/each}
+                        </fieldset>
                     </fieldset>
 
                     <fieldset class="vff-panel group">
@@ -635,17 +730,21 @@
                                 {$i18n.t('proposals.media.license_hint')}
                             </p>
                             <ul class="licenses">
-                                {#each licenses as license, i (license.value)}
+                                {#each licenseGroups as group, i (group.family)}
+                                    {@const license = shownLicense(group)}
                                     <li>
                                         <label class="vff-check">
                                             <input
                                                 id="media-license-{i}"
                                                 type="radio"
                                                 name="media-license"
-                                                value={license.value}
-                                                bind:group={form.license}
+                                                value={group.family}
+                                                checked={chosenFamily?.family === group.family}
+                                                onchange={() => chooseFamily(group)}
                                             />
-                                            {$i18n.t(`proposals.licenses.${license.value}`)}
+                                            {$i18n.t(
+                                                `proposals.media.license_families.${group.family}`,
+                                            )}
                                         </label>
                                         {#if license.url}
                                             <a
@@ -663,6 +762,33 @@
                                                     aria-hidden="true"
                                                 ></i></a
                                             >
+                                        {/if}
+                                        {#if chosenFamily?.family === group.family && group.choices.length > 1}
+                                            <div class="version">
+                                                <Field
+                                                    id="media-license-version"
+                                                    label={$i18n.t(
+                                                        'proposals.media.license_version',
+                                                    )}
+                                                    hint={$i18n.t(
+                                                        'proposals.media.license_version_hint',
+                                                    )}
+                                                >
+                                                    {#snippet children(attrs)}
+                                                        <select
+                                                            {...attrs}
+                                                            class="vff-select"
+                                                            bind:value={form.license}
+                                                        >
+                                                            {#each group.choices as choice (choice.value)}
+                                                                <option value={choice.value}
+                                                                    >{choice.name}</option
+                                                                >
+                                                            {/each}
+                                                        </select>
+                                                    {/snippet}
+                                                </Field>
+                                            </div>
                                         {/if}
                                     </li>
                                 {/each}
@@ -896,6 +1022,23 @@
         flex-wrap: wrap;
         align-items: center;
         gap: var(--vff-space-1) var(--vff-space-4);
+    }
+    .version {
+        flex-basis: 100%;
+        max-width: 20rem;
+        padding-inline-start: var(--vff-space-6);
+    }
+    .gps {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--vff-space-2);
+        padding: var(--vff-space-3) var(--vff-space-4);
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
+    }
+    .gps p {
+        margin: 0;
     }
     .license-link {
         display: inline-flex;

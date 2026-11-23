@@ -89,7 +89,7 @@ class EventContributionTest extends TestCase
                 ->where('eventTypes', EventContributions::eventTypes())
                 ->where('precisions', ['day', 'month', 'year'])
                 ->where('sourceKinds', ['web', 'document', 'print'])
-                ->has('licenses', 7));
+                ->has('licenses', 13));
         $this->assertNotContains('accident', EventContributions::eventTypes());
         $this->assertContains('conversion', EventContributions::eventTypes());
     }

@@ -50,6 +50,9 @@ class Media extends Model
 
     public const RIGHTS_UNKNOWN = 'unknown';
 
+    /** Langues des légendes traduites (`provider_meta.captions`, image proposée sur le site). */
+    public const CAPTION_LOCALES = ['fr', 'en', 'de'];
+
     /**
      * Droits d'une image que l'API (REST, GraphQL, serveur MCP) ne diffuse pas : une simple autorisation de
      * l'auteur vaut pour le site, pas pour une redistribution. Le site garde ces images.
@@ -110,6 +113,28 @@ class Media extends Model
     public function mediable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Légendes par langue (`fr`, `en`, `de`) rangées dans `provider_meta.captions`, null s'il n'y en a pas :
+     * `caption` reste la légende principale (le français, sinon la première langue donnée).
+     *
+     * @return array<string, string>|null
+     */
+    public function captions(): ?array
+    {
+        $captions = $this->provider_meta['captions'] ?? null;
+        if (! is_array($captions)) {
+            return null;
+        }
+        $found = [];
+        foreach (self::CAPTION_LOCALES as $locale) {
+            if (is_string($captions[$locale] ?? null) && trim($captions[$locale]) !== '') {
+                $found[$locale] = $captions[$locale];
+            }
+        }
+
+        return $found === [] ? null : $found;
     }
 
     public function isExternal(): bool

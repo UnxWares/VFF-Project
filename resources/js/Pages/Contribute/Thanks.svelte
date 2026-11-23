@@ -82,7 +82,7 @@
                         {#each facts as fact (fact.id)}
                             <div>
                                 <dt>{fact.label}</dt>
-                                <dd class="wrap">
+                                <dd class="wrap" lang={fact.lang}>
                                     {fact.text}{#if fact.note}<span class="muted"
                                             >, {fact.note}</span
                                         >{/if}

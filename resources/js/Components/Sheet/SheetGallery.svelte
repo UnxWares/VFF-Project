@@ -4,6 +4,8 @@
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
     import {
+        mediaCaption,
+        mediaCaptionLang,
         mediaHeading,
         mediaLicenseHref,
         mediaLicenseLabel,
@@ -166,7 +168,7 @@
     // Titre, licence et lien de la licence : règles communes (lib/mediaCredits.js).
     // Photo de rue sans titre (Panoramax) : intitulé générique traduit, pour le texte de remplacement.
     const heading = (m) =>
-        mediaHeading(m) || t('media.street_view', { provider: m?.provider_label ?? '' });
+        mediaHeading(m, lang) || t('media.street_view', { provider: m?.provider_label ?? '' });
     const licenseLabel = (m) => mediaLicenseLabel(m, t);
     const licenseHref = mediaLicenseHref;
     const rightsLabel = (m) => t(`media.rights.${m.rights_status ?? 'unknown'}`);
@@ -464,8 +466,11 @@
                     {dateLabel(active) ?? t('media.date.unknown')}{#if active.type !== 'photo'},
                         {t(`media.types.${active.type}`)}{/if}
                 </p>
-                {#if active.caption && heading(active) !== active.caption}<p class="lb-desc">
-                        {active.caption}
+                {#if mediaCaption(active, lang) && heading(active) !== mediaCaption(active, lang)}<p
+                        class="lb-desc"
+                        lang={mediaCaptionLang(active, lang)}
+                    >
+                        {mediaCaption(active, lang)}
                     </p>{/if}
                 <p class="lb-credit">
                     <strong>{active.author ?? t('media.author_unknown')}</strong>

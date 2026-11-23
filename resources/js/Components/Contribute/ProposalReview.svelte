@@ -165,7 +165,7 @@
         {#each facts as fact (fact.id)}
             <div>
                 <dt>{fact.label}</dt>
-                <dd class="wrap">
+                <dd class="wrap" lang={fact.lang}>
                     {#if fact.href}
                         <a
                             class="vff-link"

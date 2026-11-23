@@ -1631,6 +1631,8 @@ type Media {
   title: String
   "Légende du média."
   caption: String
+  "Légende par langue, quand l'image proposée sur le site en a reçu dans plusieurs langues ; nulle sinon (voir \`caption\`)."
+  captions: MediaCaptions
   "Adresse de la vignette (environ 500 px), chez le fournisseur pour un média externe."
   thumb_url: String
   "Adresse de l'image en grande taille."
@@ -1697,6 +1699,17 @@ type Media {
   material: Material
   "L'événement daté d'une ligne auquel le média est rattaché, si c'en est un."
   event: LineEvent
+}
+
+
+"Légende d'un média dans chaque langue donnée par son contributeur (nulle si elle n'a pas été donnée)."
+type MediaCaptions {
+  "Légende en français."
+  fr: String
+  "Légende en anglais."
+  en: String
+  "Légende en allemand."
+  de: String
 }
 
 
@@ -6171,7 +6184,8 @@ input LineMaterialContributionInput {
   source_url: String
   """
   Licence du document, obligatoire avec \`document\` et ignorée sinon : \`public_domain\`, \`cc0-1.0\`,
-  \`cc-by-4.0\`, \`cc-by-sa-4.0\`, \`etalab-2.0\`, \`all_rights_reserved\` ou \`unknown\`.
+  \`cc-by-4.0\`, \`cc-by-3.0\`, \`cc-by-2.5\`, \`cc-by-2.0\`, \`cc-by-sa-4.0\`, \`cc-by-sa-3.0\`, \`cc-by-sa-2.5\`,
+  \`cc-by-sa-2.0\`, \`etalab-2.0\`, \`all_rights_reserved\` ou \`unknown\`.
   """
   source_license: String
   """
@@ -6312,7 +6326,8 @@ input EventContributionInput {
   source_url: String
   """
   Licence du document, obligatoire avec \`document\` et ignorée sinon : \`public_domain\`, \`cc0-1.0\`,
-  \`cc-by-4.0\`, \`cc-by-sa-4.0\`, \`etalab-2.0\`, \`all_rights_reserved\` ou \`unknown\`. VFF ne reprend que
+  \`cc-by-4.0\`, \`cc-by-3.0\`, \`cc-by-2.5\`, \`cc-by-2.0\`, \`cc-by-sa-4.0\`, \`cc-by-sa-3.0\`, \`cc-by-sa-2.5\`,
+  \`cc-by-sa-2.0\`, \`etalab-2.0\`, \`all_rights_reserved\` ou \`unknown\`. VFF ne reprend que
   le fait daté et le lien : un document sous droits peut être cité.
   """
   source_license: String
@@ -6358,11 +6373,18 @@ input MediaContributionInput {
   media_type: String
   "Avec \`upload\` : titre, ce que montre l'image, de 3 à 250 caractères."
   title: String
-  "Avec \`upload\` : légende facultative, 800 caractères au plus."
+  "Avec \`upload\` : légende facultative en français, 800 caractères au plus."
   caption: String
+  "Avec \`upload\` : légende facultative en anglais, 800 caractères au plus."
+  caption_en: String
+  "Avec \`upload\` : légende facultative en allemand, 800 caractères au plus."
+  caption_de: String
   "Avec \`upload\` : auteur de la photo ou du document, de 2 à 200 caractères, publié avec l'image."
   author: String
-  "Avec \`upload\` : licence, \`public_domain\`, \`cc0-1.0\`, \`cc-by-4.0\`, \`cc-by-sa-4.0\` ou \`etalab-2.0\`."
+  """
+  Avec \`upload\` : licence, \`public_domain\`, \`cc0-1.0\`, \`cc-by-4.0\`, \`cc-by-3.0\`, \`cc-by-2.5\`, \`cc-by-2.0\`,
+  \`cc-by-sa-4.0\`, \`cc-by-sa-3.0\`, \`cc-by-sa-2.5\`, \`cc-by-sa-2.0\` ou \`etalab-2.0\`.
+  """
   license: String
   "Avec \`upload\` : précision de la date de prise de vue, \`day\`, \`month\` ou \`year\` ; à donner avec \`captured_date\`."
   captured_precision: String

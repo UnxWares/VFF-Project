@@ -376,6 +376,28 @@ export function mediaErrors(f, limits, t, dimensions = null, now = new Date()) {
     return e;
 }
 
+/**
+ * Licences d'une image regroupées par famille, dans l'ordre reçu du serveur (ContentLicense::forMedia) :
+ * le formulaire fait choisir la famille (CC BY, CC BY-SA…), puis la version quand il y en a plusieurs.
+ * @param {{ value: string, name: string, url: string|null, family: string, version: string|null }[]} licenses
+ * @returns {{ family: string, choices: { value: string, name: string, url: string|null, version: string|null }[] }[]}
+ */
+export function licenseFamilies(licenses) {
+    /** @type {Map<string, { family: string, choices: any[] }>} */
+    const groups = new Map();
+    for (const l of licenses) {
+        const family = l.family ?? l.value;
+        if (!groups.has(family)) groups.set(family, { family, choices: [] });
+        groups.get(family)?.choices.push({
+            value: l.value,
+            name: l.name,
+            url: l.url,
+            version: l.version ?? null,
+        });
+    }
+    return [...groups.values()];
+}
+
 /** Nombre décimal saisi avec une virgule ou un point → nombre envoyé (null si vide). */
 export function decimal(value) {
     const v = text(value).replace(',', '.');
@@ -500,6 +522,35 @@ export function mediaTargetText(p, t, lang) {
 }
 
 /**
+ * Légendes d'une proposition d'image : celle de Commons, ou celles du contributeur par langue
+ * (`captions`, sinon l'ancienne légende unique `caption`).
+ * @param {object|null} commons
+ * @param {object} p charge utile
+ * @param {(key: string, opts?: object) => any} t
+ */
+function captionFacts(commons, p, t) {
+    if (commons) {
+        return commons.caption
+            ? [{ id: 'caption', label: t('proposals.review.caption'), text: commons.caption }]
+            : [];
+    }
+    const captions = p.captions && typeof p.captions === 'object' ? p.captions : null;
+    if (!captions) {
+        return p.caption
+            ? [{ id: 'caption', label: t('proposals.review.caption'), text: p.caption }]
+            : [];
+    }
+    return ['fr', 'en', 'de']
+        .filter((lang) => text(captions[lang]))
+        .map((lang) => ({
+            id: `caption_${lang}`,
+            label: t(`proposals.review.captions.${lang}`),
+            text: captions[lang],
+            lang,
+        }));
+}
+
+/**
  * Faits d'une proposition d'image : origine, fiche, titre, auteur, licence, prise de vue, fichier.
  * @param {object} p charge utile
  * @param {(key: string, opts?: object) => any} t
@@ -524,11 +575,7 @@ export function mediaFacts(p, t, lang) {
             text: mediaTargetText(p, t, lang),
         },
         { id: 'title', label: t('proposals.review.title'), text: commons?.title ?? p.title },
-        (commons?.caption ?? p.caption) && {
-            id: 'caption',
-            label: t('proposals.review.caption'),
-            text: commons?.caption ?? p.caption,
-        },
+        ...captionFacts(commons, p, t),
         {
             id: 'author',
             label: t('proposals.review.author'),

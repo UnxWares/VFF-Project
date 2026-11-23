@@ -14,6 +14,7 @@ use App\Models\Station;
 use App\Services\Media\CommonsFileResolver;
 use App\Services\Media\ImageSanitizer;
 use App\Services\Media\SanitizedImage;
+use App\Services\Media\Sources\MediaRecord;
 use App\Services\Media\ThumbnailGenerator;
 use App\Services\Media\UnsupportedImage;
 use App\Services\TraceContributionService;
@@ -114,7 +115,10 @@ final readonly class MediaContributions
                 Rule::dimensions()->minWidth(self::MIN_SIDE)->minHeight(self::MIN_SIDE)->maxWidth(self::MAX_SIDE)->maxHeight(self::MAX_SIDE)],
             'media_type' => ['exclude_unless:source,upload', 'required', 'string', Rule::in(self::mediaTypes())],
             'title' => ['exclude_unless:source,upload', 'required', 'string', 'min:3', 'max:250'],
+            // Légende facultative en français (`caption`), en anglais et en allemand.
             'caption' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
+            'caption_en' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
+            'caption_de' => ['exclude_unless:source,upload', 'nullable', 'string', 'max:800'],
             'author' => ['exclude_unless:source,upload', 'required', 'string', 'min:2', 'max:200'],
             'license' => ['exclude_unless:source,upload', 'required', 'string', Rule::in(ContentLicense::mediaValues())],
             'captured_precision' => ['exclude_unless:source,upload', 'nullable', 'required_with:captured_date', 'string', Rule::in(TraceContributionService::PRECISIONS)],
@@ -209,13 +213,16 @@ final readonly class MediaContributions
             $captured = ['date' => $date, 'precision' => $data['captured_precision']];
         }
         $location = isset($data['lat'], $data['lng']) ? ['lat' => round((float) $data['lat'], 6), 'lng' => round((float) $data['lng'], 6)] : null;
+        $captions = self::captions($data);
 
         return [
             'payload' => [
                 ...$common,
                 'media_type' => $data['media_type'],
                 'title' => self::clean($data['title']),
-                'caption' => self::trimmed($data['caption'] ?? null),
+                // Légende principale (colonne `media.caption`) : le français, sinon l'anglais, sinon l'allemand.
+                'caption' => $captions === [] ? null : reset($captions),
+                'captions' => $captions === [] ? null : $captions,
                 'author' => self::clean($data['author']),
                 'license' => $license->value,
                 'license_name' => $license->label(),
@@ -583,6 +590,9 @@ final readonly class MediaContributions
             'rights_status' => $meta['rights_status'],
             'commercial_ok' => $meta['commercial_ok'] ?? null,
             'share_alike' => $meta['share_alike'] ?? null,
+            // Commons n'accepte que des licences qui permettent la modification (comme la reprise de 2026_12_11).
+            'derivatives_ok' => in_array($meta['rights_status'], [Media::RIGHTS_PUBLIC_DOMAIN, Media::RIGHTS_OPEN_LICENSE], true) ? true : null,
+            'date_precision' => in_array($meta['date_precision'] ?? null, MediaRecord::PRECISIONS, true) ? $meta['date_precision'] : null,
             'mime_type' => $meta['mime'] ?? null,
             'width' => $meta['width'] ?? null,
             'height' => $meta['height'] ?? null,
@@ -641,8 +651,11 @@ final readonly class MediaContributions
             'rights_status' => $license->rightsStatus(),
             'commercial_ok' => true,
             'share_alike' => $license->shareAlike(),
+            // Toutes les licences acceptées (ContentLicense::forMedia) permettent la modification.
+            'derivatives_ok' => true,
             'captured_at' => $captured['date'] ?? null,
             'depicted_year' => $captured !== null ? (int) substr((string) $captured['date'], 0, 4) : null,
+            'date_precision' => $captured['precision'] ?? null,
             'location' => isset($p['location']['lat'], $p['location']['lng']) ? self::point((float) $p['location']['lat'], (float) $p['location']['lng']) : null,
             'is_featured' => false,
             'provider_meta' => json_encode(array_filter([
@@ -650,6 +663,7 @@ final readonly class MediaContributions
                 'contribution_id' => $contribution->id,
                 'date_precision' => $captured['precision'] ?? null,
                 'place' => $p['place'] ?? null,
+                'captions' => is_array($p['captions'] ?? null) && $p['captions'] !== [] ? $p['captions'] : null,
                 'sha256' => $file['sha256'],
                 'metadata_removed' => $file['removed'] ?: null,
                 'attribution_required' => $license->attributionRequired(),
@@ -681,6 +695,21 @@ final readonly class MediaContributions
         if ($media !== null) {
             $this->thumbnails->forMedia($media);
         }
+    }
+
+    /**
+     * Légendes saisies, par langue (`fr`, `en`, `de`), vides écartées.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, string>
+     */
+    private static function captions(array $data): array
+    {
+        return array_filter([
+            'fr' => self::trimmed($data['caption'] ?? null),
+            'en' => self::trimmed($data['caption_en'] ?? null),
+            'de' => self::trimmed($data['caption_de'] ?? null),
+        ], fn (?string $text): bool => $text !== null);
     }
 
     private static function point(float $lat, float $lng): Expression
