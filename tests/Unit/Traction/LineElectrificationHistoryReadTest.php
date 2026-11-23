@@ -25,6 +25,19 @@ class LineElectrificationHistoryReadTest extends TestCase
         ];
     }
 
+    public function test_two_overlapping_routes_are_electrified_once(): void
+    {
+        // 890000 (SNCF Réseau) : itinéraire 1 sous 1 500 V de 8+120 à 131+281, itinéraire 2 sous 25 kV de 60+215 à 75+559.
+        $range = fn (int $from, int $to, int $v, string $system): array => ['pk_start_m' => $from, 'pk_end_m' => $to,
+            'length_m' => $to - $from, 'voltage_v' => $v, 'system' => $system];
+        $summary = LineElectrificationHistory::summary([
+            $range(8120, 131281, 1500, 'dc'), $range(60215, 75559, 25000, 'ac'), $range(131281, 152328, 25000, 'ac'),
+        ]);
+
+        $this->assertSame(144208, $summary['electrified_m'], 'réunion des tranches, recouvrement compté une fois');
+        $this->assertSame([[1500, 123161], [25000, 36391]], array_map(fn (array $b): array => [$b['voltage_v'], $b['length_m']], $summary['by_voltage']));
+    }
+
     public function test_a_sure_sentence_gives_the_date_the_voltage_and_the_system(): void
     {
         $fact = LineElectrificationHistory::read($this->event(

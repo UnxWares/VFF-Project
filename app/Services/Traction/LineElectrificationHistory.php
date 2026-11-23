@@ -125,7 +125,11 @@ final class LineElectrificationHistory
     }
 
     /**
-     * @param  list<array{length_m: int, voltage_v: ?int, system: string}>  $ranges
+     * `electrified_m` : réunion des tranches. Deux itinéraires d'une même ligne (rg_troncon 1 et 2) peuvent se
+     * recouvrir sous deux tensions (890000 : 1 500 V et 25 kV sur 15 km) ; la somme les compterait deux fois.
+     * `by_voltage` garde la longueur sous chaque tension, itinéraires compris.
+     *
+     * @param  list<array{pk_start_m: int, length_m: int, voltage_v: ?int, system: string}>  $ranges
      * @return array{line_electrified: bool, line_voltage_v: ?int, electrified_m: int, by_voltage: list<array{voltage_v: ?int, system: string, length_m: int}>}
      */
     public static function summary(array $ranges, ?Line $line = null): array
@@ -141,9 +145,33 @@ final class LineElectrificationHistory
         return [
             'line_electrified' => (bool) ($line->electrified ?? false),
             'line_voltage_v' => $line?->voltage_v === null ? null : (int) $line->voltage_v,
-            'electrified_m' => array_sum(array_column($ranges, 'length_m')),
+            'electrified_m' => self::unionLength($ranges),
             'by_voltage' => $by,
         ];
+    }
+
+    /**
+     * Longueur de la réunion des tranches (PK), sans compter deux fois un recouvrement.
+     *
+     * @param  list<array{pk_start_m: int, length_m: int}>  $ranges
+     */
+    private static function unionLength(array $ranges): int
+    {
+        $spans = array_map(fn (array $r): array => [$r['pk_start_m'], $r['pk_start_m'] + $r['length_m']], $ranges);
+        usort($spans, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+        $total = 0;
+        $end = null;
+        foreach ($spans as [$from, $to]) {
+            if ($end === null || $from > $end) {
+                $total += $to - $from;
+                $end = $to;
+            } elseif ($to > $end) {
+                $total += $to - $end;
+                $end = $to;
+            }
+        }
+
+        return $total;
     }
 
     /**
