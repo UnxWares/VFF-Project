@@ -29,6 +29,8 @@ return [
     ],
 
     'errors' => [
+        'invalid_day' => 'Jour invalide : donnez un mois (1 à 12) et un jour du mois qui existent, tous les deux ou aucun (par défaut : aujourd’hui).',
+        'invalid_period' => 'Période invalide : donnez soit `year`, soit `decade` (multiple de 10), dans l’étendue de la chronologie (1827 à aujourd’hui).',
         'unknown_arguments' => 'Arguments inconnus : :names.',
         'line_not_found' => 'Ligne introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'no_geometry' => 'Le tracé de « :line » n’existe pas pour l’ère :year : pas de point kilométrique.',

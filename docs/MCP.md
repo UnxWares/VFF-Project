@@ -1717,8 +1717,7 @@ Les instructions du serveur rappellent ces obligations aux assistants.
   `compare_line_eras` le détail d'une ligne.
 - **Chronologie seule d'une gare** (`/api/v1/stations/{slug}/events`) : `get_station` en donne
   l'essentiel ; pas d'outil dédié paginé.
-- **Gares d'une ligne dans l'ordre des PK** (`/api/v1/lines/{slug}/stops`), **conversion d'un point
-  en PK** (`/api/v1/lines/{slug}/pk`), **signalisation tranche par tranche**
+- **Signalisation tranche par tranche**
   (`/api/v1/lines/{slug}/signalling`), **tronçons par ère** (`/api/v1/lines/{slug}/segments`) et
   **géométries** (GeoJSON, tuiles, archive GTFS, dont `line_stops` donne le lien) : disponibles par l'API REST, pas
   par le serveur MCP (réponses trop volumineuses pour un assistant).

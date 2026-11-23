@@ -28,6 +28,8 @@ return [
     ],
 
     'errors' => [
+        'invalid_day' => 'Invalid day: give an existing month (1 to 12) and day of the month, both or neither (default: today).',
+        'invalid_period' => 'Invalid period: give either `year` or `decade` (a multiple of 10), within the range of the chronology (1827 to today).',
         'unknown_arguments' => 'Unknown arguments: :names.',
         'line_not_found' => 'Line not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'no_geometry' => 'The route of “:line” does not exist for the :year era: no kilometre point.',
