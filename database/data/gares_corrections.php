@@ -9592,4 +9592,238 @@ return [
         'reason' => 'article de la ligne « Ligne de Creil à Jeumont » (oldid 236310314) : chronologie des mises en service, de Creil à Compiègne via Pont-Sainte-Maxence le 20 octobre 1847 ; l\'article de la gare (oldid 241485293) dit que la gare s\'appelait d\'abord Verberie jusqu\'à l\'ouverture de la ligne d\'Ormoy-Villers à Boves en 1882 : elle est donc plus ancienne que cette ligne, 1882 de Wikidata étant la date de cette ligne. Remplace l\'année 1882 de Wikidata. Confiance moyenne.',
     ],
 
+    // ── 49. Fermetures voyageurs ou de service relues sur les articles de ligne (audit-fermetures-3, 23/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/audit-fermetures-3.md). Les 42 gares « sans source datée » de la passe 2 et 140 gares de plus de
+    // lignes fermées entre 1938 et 1990 dont la fermeture voyageurs était déduite de la ligne ont été confrontées à la chronologie par sections
+    // de leur ligne (Wikipédia, révision citée) : seules les dates qui changent l'existant ou le précisent sont corrigées ici (fermeture
+    // voyageurs, fin de l'exploitation, jour à la place de l'année) ; les autres sont confirmées ou restent à décider dans le CSV du rapport.
+
+    // Péronne-la-Chapelette (id 15799)
+    [
+        'station' => ['name' => 'Péronne-la-Chapelette', 'wikidata' => 'Q3097360'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-04-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Saint-Just-en-Chaussée à Douai', 241007487),
+        'quote' => 'le service voyageurs est également supprimé le 1 avril 1970 entre Montdidier et Cambrai',
+        'reason' => 'section Montdidier - Cambrai dont fait partie la halte de Péronne-la-Chapelette ; la date déduite (24/02/1975) était celle de la fin de la desserte marchandises de la section ; l\'article de la gare ne date pas la fermeture. Confiance moyenne : la halte n\'est pas citée nommément. (oldid 241007487)',
+    ],
+
+    // Beaune-la-Rolande (id 16652)
+    [
+        'station' => ['name' => 'Beaune-la-Rolande', 'wikidata' => 'Q16507923'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Étampes à Beaune-la-Rolande', 239193697),
+        'quote' => 'La ligne est fermée au trafic voyageurs le 15 05 1939 de Pithiviers à Beaune-la-Rolande',
+        'reason' => 'article de la ligne d\'Étampes à Beaune-la-Rolande : voyageurs fermés le 15/05/1939 de Pithiviers à Beaune-la-Rolande, et l\'article de la ligne d\'Auxy - Juranville à Bourges (oldid 240777187) donne 1939 pour Beaune-la-Rolande à Bourges (Auxy - Beaune fermée en 1932) : la dernière desserte voyageurs de la gare est de 1939. 1992 déduit de la ligne (fin du fret Pithiviers - Beaune). (oldid 239193697)',
+    ],
+
+    // Le Bouchet (id 16794)
+    [
+        'station' => ['name' => 'Le Bouchet', 'wikidata' => 'Q19407025'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // La Bourdigalière (id 21281)
+    [
+        'station' => ['name' => 'La Bourdigalière', 'wikidata' => 'Q19406990'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Berthegon (id 21288)
+    [
+        'station' => ['name' => 'Berthegon', 'wikidata' => 'Q19406977'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Cernay-Doussay (id 21485)
+    [
+        'station' => ['name' => 'Cernay-Doussay', 'wikidata' => 'Q19544659'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Monts-sur-Guesnes (id 21547)
+    [
+        'station' => ['name' => 'Monts-sur-Guesnes', 'wikidata' => 'Q19407001'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1939-05-15',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Loudun à Châtellerault', 241462135),
+        'quote' => 'Le service voyageur est arrêté le 15 mai 1939',
+        'reason' => 'article de la ligne de Loudun à Châtellerault : service voyageurs arrêté le 15/05/1939, repris partiellement pendant la guerre mais seulement jusqu\'à Châtellerault-Châteauneuf, puis arrêté définitivement à l\'été 1946 ; la date déduite était celle de la fin du fret ou de la fermeture de la section, pas celle des voyageurs. (oldid 241462135)',
+    ],
+
+    // Bray-Dunes (id 18838)
+    [
+        'station' => ['name' => 'Bray-Dunes', 'wikidata' => 'Q1935964'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1994-08-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Dunkerque-Locale à Bray-Dunes', 235337718),
+        'quote' => 'dernières circulations le dimanche 28/08',
+        'reason' => 'article de la ligne de Dunkerque-Locale à Bray-Dunes : seuls des trains des dimanches d\'été circulaient les dernières années, la dernière année étant 1994 avec des dernières circulations le 28/08 ; en 1995 le service est assuré par autocars. Précise l\'année 1994 déduite au jour (arrêt du service des trains, pas un arrêté de fermeture). (oldid 235337718)',
+    ],
+
+    // La Haye-du-Puits (id 19333)
+    [
+        'station' => ['name' => 'La Haye-du-Puits', 'wikidata' => 'Q3096789'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1976-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Ligne de Carentan à Carteret', 239830382),
+        'quote' => 'Elle a été fermée au service des voyageurs dans le courant de l\'été 1976',
+        'reason' => 'article de la ligne de Carentan à Carteret : voyageurs fermés dans le courant de l\'été 1976 (jour non donné) ; le 01/08/1976 déduit est la fin du fret Baupte - La Haye-du-Puits. La ligne de Coutances à Sottevast (oldid 240949203) est fermée aux voyageurs au printemps 1970 : 1976 est la dernière desserte. La fin du fret de la gare (24/01/1988, La Haye-du-Puits - Sottevast) reste celle de la fermeture déduite. (oldid 239830382)',
+    ],
+
+    // Domfront (Orne) (id 19361)
+    [
+        'station' => ['name' => 'Domfront (Orne)', 'wikidata' => 'Q3096379'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de La Chapelle-Anthenaise à Flers', 237590911),
+        'quote' => 'La ligne est fermée en 1970 en totalité aux voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne de La Chapelle-Anthenaise à Flers : fermée en totalité aux voyageurs le 31/05/1970 ; la ligne d\'Alençon à Domfront perd ses voyageurs le 15/05/1938 et celle de Domfront à Pontaubault le 18/07/1939 (rouverte de 1940 à 1946). Fin du fret Flers - Domfront le 01/10/1990 ; la date de fermeture 2000 déduite de la ligne n\'est pas confirmée. (oldid 237590911)',
+    ],
+
+    // Maxonchamp (id 21269)
+    [
+        'station' => ['name' => 'Maxonchamp', 'wikidata' => 'Q3097003'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1989-05-28',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne d\'Épinal à Bussang', 219647311),
+        'quote' => 'La fin de l\'exploitation de la ligne entre Remiremont et Bussang a eu lieu le 28 mai 1989',
+        'reason' => 'article de la ligne d\'Épinal à Bussang : fin de l\'exploitation de Remiremont à Bussang le 28/05/1989 ; le 15/11/1993 déduit est le déclassement de la section, pas l\'arrêt du service. (oldid 219647311)',
+    ],
+
+    // Barjols-Tavernes (id 21355)
+    [
+        'station' => ['name' => 'Barjols-Tavernes', 'wikidata' => 'Q48759889'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1950-01-02',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne Central-Var', 229972705),
+        'quote' => 'définitivement fermée le 2 janvier 1950',
+        'reason' => 'article de la ligne Central-Var : limitée à Meyrargues - Tanneron dès 1945, puis définitivement fermée le 02/01/1950. Précise l\'année 1950 déduite au jour. (oldid 229972705)',
+    ],
+
+    // Eauze (id 20061)
+    [
+        'station' => ['name' => 'Eauze', 'wikidata' => 'Q123498148'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-06-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Port-Sainte-Marie à Riscle', 239005015),
+        'quote' => 'La ligne est fermée au transport des voyageurs le 27 juin 1940.',
+        'reason' => 'article de la ligne de Port-Sainte-Marie à Riscle : voyageurs fermés le 27/06/1940 ; la ligne d\'Eauze à Auch (oldid 236368945) est fermée aux voyageurs le 15/05/1939. Dernières circulations de la section Eauze - Riscle fin 2007, la gare restant ouverte administrativement. (oldid 239005015)',
+    ],
+
+    // Montpellier - Chaptal (id 21812)
+    [
+        'station' => ['name' => 'Montpellier - Chaptal', 'wikidata' => 'Q136008508'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1948-02-01',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Montpellier à Rabieux', 239000949),
+        'quote' => 'Le 1 février 1948 le service voyageur est supprimé.',
+        'reason' => 'article de la ligne de Montpellier à Rabieux : service voyageurs suspendu le 01/01/1933, rétabli le 26/08/1939, supprimé définitivement le 01/02/1948 ; la gare reste un dépôt jusqu\'en 1961. 1953 déduit de la ligne (fin du fret de sections). (oldid 239000949)',
+    ],
+
+    // Orbe (id 19669)
+    [
+        'station' => ['name' => 'Orbe', 'wikidata' => 'Q65137503'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Pas-de-Jeu (id 19667)
+    [
+        'station' => ['name' => 'Pas-de-Jeu', 'wikidata' => 'Q65137493'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Basses-Sammarcolles (id 19649)
+    [
+        'station' => ['name' => 'Basses-Sammarcolles', 'uic' => '87571729'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // Beuxes (id 19648)
+    [
+        'station' => ['name' => 'Beuxes', 'uic' => '87571711'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
+    // La Roche-Clermault (id 19647)
+    [
+        'station' => ['name' => 'La Roche-Clermault', 'uic' => '87571703'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1970-05-31',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne des Sables-d\'Olonne à Tours', 239596144),
+        'quote' => 'La section de la ligne entre Thouars et Chinon a cessé de voir circuler des trains de voyageurs le 31 mai 1970',
+        'reason' => 'article de la ligne des Sables-d\'Olonne à Tours : voyageurs arrêtés le 31/05/1970 entre Thouars et Chinon. Précise l\'année 1970 déduite au jour. (oldid 239596144)',
+    ],
+
 ];
