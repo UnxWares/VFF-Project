@@ -20,6 +20,15 @@ enum AccidentLocationPrecision: string
     /** Seule la commune est connue : centre de la commune. */
     case Commune = 'commune';
 
+    /**
+     * La position permet-elle de dire « à X m de telle gare » ? Un centre de commune ne le permet pas : la
+     * gare « la plus proche » de ce point n'est qu'une coïncidence (Paris : jamais « à 0 m de Paris-Nord »).
+     */
+    public function pinpointsStation(): bool
+    {
+        return $this !== self::Commune;
+    }
+
     /** Rayon, en mètres, dans lequel une ligne peut être le lieu de l'accident. */
     public function matchRadiusM(): int
     {

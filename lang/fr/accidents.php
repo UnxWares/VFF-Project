@@ -65,6 +65,7 @@ return [
         'coordinates' => 'Coordonnées',
         'nearest_station' => 'Gare la plus proche',
         'station_distance' => 'à :distance du lieu',
+        'station_unspecified' => 'À :commune, gare non précisée',
         'map_title' => 'Carte du lieu : :name',
         'map_marker' => 'Lieu de l’accident',
         'osm_link' => 'Voir le lieu sur OpenStreetMap',

@@ -147,13 +147,15 @@ class AccidentLineMatcher
 
     /**
      * Gare VFF la plus proche du lieu, ouverte à la date quand ses dates sont connues (10 km au
-     * plus).
+     * plus). Aucune gare quand la position n'est que le centre d'une commune (ou de précision
+     * inconnue) : un lieu connu seulement à la commune près n'est « à X m » d'aucune gare.
      *
      * @return array{id: int, distance_m: int}|null
      */
     public function nearestStation(AccidentCandidate $c): ?array
     {
-        if ($c->lat === null || $c->lng === null || $c->date === null) {
+        if ($c->lat === null || $c->lng === null || $c->date === null
+            || $c->locationPrecision === null || ! $c->locationPrecision->pinpointsStation()) {
             return null;
         }
         $row = DB::selectOne(

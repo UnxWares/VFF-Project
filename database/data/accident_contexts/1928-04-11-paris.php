@@ -81,6 +81,14 @@ return [
                 'sources' => ['wp-liste-1928'],
             ],
         ],
+        'disagreements' => [
+            [
+                'fr' => 'La carte place l\'accident à la gare de Paris-Nord, position de la gare citée par la liste de Wikipédia. D\'après cette liste, le choc a eu lieu à environ 800 mètres de la gare, sous le pont de la rue Doudeauville : la gare du Nord est la gare de rattachement, pas le lieu du choc.',
+                'en' => 'The map places the accident at Paris-Nord station, the position of the station named by the Wikipedia list. According to that list the collision took place about 800 metres from the station, under the rue Doudeauville bridge: Paris-Nord is the station it is linked to, not the place of the impact.',
+                'de' => 'Die Karte setzt den Unfall an den Bahnhof Paris-Nord, die Position des in der Wikipedia-Liste genannten Bahnhofs. Laut dieser Liste ereignete sich der Zusammenstoß etwa 800 Meter vom Bahnhof entfernt, unter der Brücke der Rue Doudeauville: Paris-Nord ist der zugeordnete Bahnhof, nicht der Ort des Zusammenstoßes.',
+                'sources' => ['wp-liste-1928'],
+            ],
+        ],
     ],
     'images' => [
         [

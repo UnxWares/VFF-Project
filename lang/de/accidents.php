@@ -65,6 +65,7 @@ return [
         'coordinates' => 'Koordinaten',
         'nearest_station' => 'Nächster Bahnhof',
         'station_distance' => ':distance vom Unfallort',
+        'station_unspecified' => 'In :commune, Bahnhof nicht angegeben',
         'map_title' => 'Karte des Unfallorts: :name',
         'map_marker' => 'Unfallort',
         'osm_link' => 'Unfallort auf OpenStreetMap ansehen',

@@ -26,6 +26,9 @@ class AccidentLocator
     /** Distance au-delà de laquelle une coordonnée hors des contours n'est pas en France. */
     private const OFFSHORE_MAX_M = 15000;
 
+    /** Rayon autour du centre d'une commune à l'intérieur duquel un point de Wikidata n'est que ce centre. */
+    private const CENTRE_RADIUS_M = 50;
+
     public function locate(AccidentCandidate $c): void
     {
         if ($c->lat !== null && $c->lng !== null) {
@@ -92,10 +95,27 @@ class AccidentLocator
         $c->communeInsee = $commune->code_insee;
         $c->communeName = $commune->nom;
         $c->departmentCode = $commune->departement;
+        // Position d'une grande ville (Wikidata, infobox) : le point de la commune, pas celui de l'accident.
+        if (! $keepSource && $this->atCommuneCentre((float) $c->lat, (float) $c->lng, $commune->code_insee)) {
+            $c->locationPrecision = AccidentLocationPrecision::Commune;
+            $c->note('location_commune_only', $commune->nom);
+        }
         if ((int) $commune->distance_m > 0) {
             $c->offshoreM = (int) round($commune->distance_m);
             $c->note('location_offshore', "{$commune->nom}, ".round($commune->distance_m / 1000, 1).' km');
         }
+    }
+
+    /** Le point est-il celui du centre de la commune (à 50 m près) ? Aucune position réelle ne tombe si juste. */
+    private function atCommuneCentre(float $lat, float $lng, string $insee): bool
+    {
+        return DB::selectOne(
+            'SELECT 1 AS hit FROM communes
+             WHERE code_insee = ? AND geom && ST_Expand(ST_SetSRID(ST_MakePoint(?, ?), 4326), 0.001)
+               AND ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)
+             LIMIT 1',
+            [$insee, $lng, $lat, $lng, $lat, self::CENTRE_RADIUS_M],
+        ) !== null;
     }
 
     private function setPoint(AccidentCandidate $c, float $lat, float $lng, AccidentLocationPrecision $precision, string $source): void

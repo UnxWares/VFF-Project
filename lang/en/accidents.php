@@ -65,6 +65,7 @@ return [
         'coordinates' => 'Coordinates',
         'nearest_station' => 'Nearest station',
         'station_distance' => ':distance from the site',
+        'station_unspecified' => 'In :commune, station not specified',
         'map_title' => 'Map of the site: :name',
         'map_marker' => 'Site of the accident',
         'osm_link' => 'View the site on OpenStreetMap',

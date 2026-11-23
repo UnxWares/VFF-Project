@@ -61,5 +61,13 @@ return [
                 'sources' => ['wp-liste-1904'],
             ],
         ],
+        'disagreements' => [
+            [
+                'fr' => 'La carte place l\'accident à la gare du Nord, position de la gare citée par la liste de Wikipédia. Le récit de la liste le situe à environ deux kilomètres avant la gare, près de La Chapelle : la gare du Nord est la gare de rattachement, pas le lieu du choc.',
+                'en' => 'The map places the accident at the Gare du Nord, the position of the station named by the Wikipedia list. The list\'s own account puts it about two kilometres short of the station, near La Chapelle: the Gare du Nord is the station it is linked to, not the place of the impact.',
+                'de' => 'Die Karte setzt den Unfall an die Gare du Nord, die Position des in der Wikipedia-Liste genannten Bahnhofs. Der Bericht der Liste verortet ihn etwa zwei Kilometer vor dem Bahnhof, bei La Chapelle: Die Gare du Nord ist der zugeordnete Bahnhof, nicht der Ort des Zusammenstoßes.',
+                'sources' => ['wp-liste-1904'],
+            ],
+        ],
     ],
 ];

@@ -292,6 +292,15 @@
                                 >
                             </dd>
                         </div>
+                    {:else if located && place.precision === 'commune' && place.commune}
+                        <div>
+                            <dt>{$i18n.t('accidents.show.nearest_station')}</dt>
+                            <dd class="muted">
+                                {$i18n.t('accidents.show.station_unspecified', {
+                                    commune: place.commune,
+                                })}
+                            </dd>
+                        </div>
                     {/if}
                 </dl>
             </div>
