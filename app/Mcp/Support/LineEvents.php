@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\DB;
 /**
  * Événements datés d'une ligne (line_events) pour le serveur MCP : lecture brute (un type ajouté
  * en base avant l'énumération PHP ne fait pas échouer l'outil, comme l'API REST) et mise en forme
- * compacte, chaque fait avec sa source, son lien et son fournisseur (licence).
+ * compacte, chaque fait avec sa source, son lien et son fournisseur (licence). Les faits d'une source non
+ * commerciale ne sont jamais lus (NonCommercialSources).
  */
 final class LineEvents
 {
-    public function __construct(private readonly Attribution $attribution) {}
+    public function __construct(private readonly Attribution $attribution, private readonly NonCommercialSources $nonCommercial) {}
 
     /**
      * @param  list<string>  $types
@@ -23,6 +24,8 @@ final class LineEvents
     {
         return DB::table('line_events')
             ->where('line_id', $lineId)
+            // Jamais les faits d'une source non commerciale (archeoferroviaire) : NonCommercialSources.
+            ->whereRaw($this->nonCommercial->sqlKept('line_events'))
             ->when($fromYear !== null, fn (Builder $q) => $q->where('event_date', '>=', sprintf('%04d-01-01', $fromYear)))
             ->when($toYear !== null, fn (Builder $q) => $q->where('event_date', '<=', sprintf('%04d-12-31', $toYear)))
             ->when($types !== [], fn (Builder $q) => $q->whereIn('type', $types))

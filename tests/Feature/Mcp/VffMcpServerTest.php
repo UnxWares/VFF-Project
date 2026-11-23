@@ -20,7 +20,7 @@ use Tests\TestCase;
  * Serveur MCP (app/Mcp) par son transport HTTP (POST /mcp, JSON-RPC), sur un mini-réseau :
  *
  *   A ───────── B ───────── C      ligne 420000 « Ligne de A à C » : en service en 1930 et en 2030,
- *               │                  deux événements sourcés (Wikipédia, archeoferroviaire)
+ *               │                  deux événements sourcés (Wikipédia, lignes-oubliees)
  *               D                  ligne « Ligne de B à D » : en service en 1930, fermée en 2030
  */
 class VffMcpServerTest extends TestCase
@@ -49,8 +49,8 @@ class VffMcpServerTest extends TestCase
                 'description' => 'Ouverture de la ligne', 'section_from' => 'A', 'section_to' => 'C', 'source' => 'wikipedia',
                 'source_url' => 'https://fr.wikipedia.org/wiki/Ligne_de_A_%C3%A0_C', 'created_at' => now(), 'updated_at' => now()],
             ['line_id' => $ac->id, 'type' => 'electrification', 'event_date' => '1935-01-01', 'date_precision' => 'year',
-                'description' => 'Électrification', 'section_from' => null, 'section_to' => null, 'source' => 'archeoferroviaire',
-                'source_url' => 'http://archeoferroviaire.free.fr/x', 'created_at' => now(), 'updated_at' => now()],
+                'description' => 'Électrification', 'section_from' => null, 'section_to' => null, 'source' => 'lignes-oubliees',
+                'source_url' => 'https://www.lignes-oubliees.com/x', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
@@ -122,7 +122,8 @@ class VffMcpServerTest extends TestCase
         $tools = collect((array) $list->json('result.tools'))->keyBy('name');
         $this->assertEqualsCanonicalizing(
             ['search', 'get_line', 'line_events', 'get_station', 'network_at_era', 'historical_route', 'sources_and_licences',
-                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras', 'level_crossings', 'line_profile', 'line_audit', 'segment_audits', 'station_audits', 'line_greenways', 'line_infrastructure', 'line_archives', 'line_archive_records', 'line_stories', 'journal', 'line_materials', 'locate_on_line', 'signalling_history', 'list_departments'],
+                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras', 'level_crossings', 'line_profile', 'line_audit', 'segment_audits', 'station_audits', 'line_greenways', 'line_infrastructure', 'line_archives', 'line_archive_records', 'line_stories', 'journal', 'line_materials', 'locate_on_line', 'signalling_history', 'list_departments',
+                'network_in_area', 'what_was_here', 'compare_line_eras', 'line_stops', 'station_aerial'],
             $tools->keys()->all(),
         );
         foreach ($tools as $name => $tool) {
@@ -193,7 +194,7 @@ class VffMcpServerTest extends TestCase
 
         $sources = collect((array) $data['attribution']['sources'])->keyBy('provider');
         $this->assertTrue($sources['osm']['open_licence']);
-        $this->assertFalse($sources['archeoferroviaire']['open_licence'], 'source sans licence ouverte signalée');
+        $this->assertFalse($sources['lignes-oubliees']['open_licence'], 'source sans licence ouverte signalée');
         $this->assertStringContainsString('ODbL', $data['attribution']['notice']);
     }
 
@@ -217,7 +218,7 @@ class VffMcpServerTest extends TestCase
         $this->assertSame(1, $data['total']);
         $this->assertSame('electrification', $data['events'][0]['type']);
         $this->assertSame('1935', $data['events'][0]['when']);
-        $this->assertSame('archeoferroviaire', $data['events'][0]['provider']);
+        $this->assertSame('lignes-oubliees', $data['events'][0]['provider']);
 
         // Une seule borne : l'autre reste ouverte (avant, `to_year` seul était refusé).
         [$data, $error] = $this->tool('line_events', ['line' => 'rfn-420000', 'to_year' => 1900]);

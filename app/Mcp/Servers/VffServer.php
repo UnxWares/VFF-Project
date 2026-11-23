@@ -10,6 +10,7 @@ use App\Mcp\Resources\LineSheetResource;
 use App\Mcp\Tools\AccidentSheetTool;
 use App\Mcp\Tools\AccidentsTool;
 use App\Mcp\Tools\CompareErasTool;
+use App\Mcp\Tools\CompareLineErasTool;
 use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\JournalTool;
 use App\Mcp\Tools\LevelCrossingsTool;
@@ -22,6 +23,7 @@ use App\Mcp\Tools\LineInfrastructureTool;
 use App\Mcp\Tools\LineMaterialsTool;
 use App\Mcp\Tools\LineProfileTool;
 use App\Mcp\Tools\LineSheetTool;
+use App\Mcp\Tools\LineStopsTool;
 use App\Mcp\Tools\LineStoriesTool;
 use App\Mcp\Tools\ListDepartmentsTool;
 use App\Mcp\Tools\ListLinesTool;
@@ -32,12 +34,15 @@ use App\Mcp\Tools\MaterialsTool;
 use App\Mcp\Tools\MediaTool;
 use App\Mcp\Tools\NetworkAtEraTool;
 use App\Mcp\Tools\NetworkEventsTool;
+use App\Mcp\Tools\NetworkInAreaTool;
 use App\Mcp\Tools\SearchTool;
 use App\Mcp\Tools\SegmentAuditsTool;
 use App\Mcp\Tools\SignallingHistoryTool;
 use App\Mcp\Tools\SourcesTool;
+use App\Mcp\Tools\StationAerialTool;
 use App\Mcp\Tools\StationAuditsTool;
 use App\Mcp\Tools\StationSheetTool;
+use App\Mcp\Tools\WhatWasHereTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -59,9 +64,10 @@ Journal de bord : `journal` (articles longs de l'équipe sur des lignes embléma
 Territoires : `list_departments` (codes INSEE et noms des régions et des départements, à passer dans `department` et `region` de list_lines, list_stations, network_events et accidents).
 Invites (prompts) : `present_line` (présenter une ligne avec ses sources), `compare_region_eras` (comparer deux époques d'une région), `station_story` (histoire d'une gare).
 Époques : `compare_eras` (kilomètres ouverts, fermés, déposés ou restés en service entre deux ères de la carte).
+Lieux et dates : `what_was_here` (autour d'un point et pour une année : lignes présentes et leur état à cet endroit, gares proches, signalisation en vigueur, matériel daté, événements et accidents de l'année) ; `network_in_area` (réseau d'une zone, rectangle ou cercle, à une époque : km en service, fermés, déposés, lignes et gares) ; `compare_line_eras` (une ligne à deux époques : km par catégorie, gares ouvertes ou fermées, signalisation, événements entre les deux) ; `line_stops` (gares d'une ligne dans l'ordre des PK à une époque, avec le lien GTFS de l'ère) ; `station_aerial` (photos aériennes historiques de l'IGN autour d'une gare, 1950 à 1995, Licence Ouverte 2.0). Signalisation à une date : `signalling_history` avec `year`.
 Matériel roulant : `materials` (séries filtrées par catégorie, constructeur, exploitant, ligne, année ; pagination par `page`) puis `get_material` (fiche avec la provenance de chaque champ et les lignes parcourues, chaque lien avec sa preuve et ses périodes de circulation datées) ; `line_materials` (séries d'une ligne avec leurs périodes de circulation : début, fin, précision).
 Dates : ISO AAAA-MM-JJ, à lire avec leur précision (day, month, year) ; n'affichez que la partie connue. La carte est un instantané au 31/12 de chaque décennie (l'ère courante = aujourd'hui).
-Obligations en réutilisant les données : citez « Voies Ferrées de France (vff-project.org) » avec le lien `vff_url` de la réponse et les mentions du bloc `attribution` (ODbL 1.0 : © contributeurs OpenStreetMap, SNCF Open Data…). Les données d'un fournisseur dont `open_licence` vaut false ne se reprennent qu'avec sa mention et son lien (archeoferroviaire : usage non commercial). Ne présentez jamais une date « between » (non datée par une source) comme sûre.
+Obligations en réutilisant les données : citez « Voies Ferrées de France (vff-project.org) » avec le lien `vff_url` de la réponse et les mentions du bloc `attribution` (ODbL 1.0 : © contributeurs OpenStreetMap, SNCF Open Data…). Les données d'un fournisseur dont `open_licence` vaut false ne se reprennent qu'avec sa mention et son lien. Les faits d'une source à usage non commercial (archeoferroviaire) ne sont jamais servis par ce serveur ; un tracé non redistribuable n'est jamais donné en coordonnées (`geometry_withheld`). Ne présentez jamais une date « between » (non datée par une source) comme sûre.
 Langue : paramètre `lang` (fr par défaut, en, de).
 TXT)]
 class VffServer extends Server
@@ -104,6 +110,11 @@ class VffServer extends Server
         LocateOnLineTool::class,
         SignallingHistoryTool::class,
         ListDepartmentsTool::class,
+        NetworkInAreaTool::class,
+        WhatWasHereTool::class,
+        CompareLineErasTool::class,
+        LineStopsTool::class,
+        StationAerialTool::class,
     ];
 
     protected array $resources = [

@@ -45,7 +45,9 @@ final class LineDossier
             [$line->id],
         );
         $segmentIds = $era ? $line->segments()->where('era_id', $era->id)->pluck('id')->all() : [];
-        $eventCount = DB::table('line_events')->where('line_id', $line->id)->count();
+        // Événements servis (sans ceux d'une source non commerciale, LineEvents) : le compte est celui de la liste.
+        $eventRows = $this->events->query($line->id)->get();
+        $eventCount = $eventRows->count();
         $stats = $this->stats->forEra($line, $segmentIds, $era?->id, $eventCount);
 
         $phases = LinePhases::forLine($line);
@@ -66,7 +68,6 @@ final class LineDossier
             ? LineFacts::build($line, $encyclopedia, $stats, $era ? (int) $era->year : null, (bool) ($era->is_current ?? false))
             : [];
 
-        $eventRows = $this->events->query($line->id)->get();
         $byId = $eventRows->keyBy('id');
         $providers = DB::table('line_segments')->where('line_id', $line->id)->distinct()->pluck('source')
             ->map(fn ($s) => $this->attribution->providerFor('line_segments', $s))->all();

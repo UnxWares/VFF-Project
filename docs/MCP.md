@@ -151,6 +151,11 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
+| `what_was_here` | « Qu'est-ce qui passait ici en telle année ? » : autour d'un point, lignes présentes et leur état à cet endroit, gares proches, signalisation en vigueur, matériel daté, événements et accidents de l'année. |
+| `network_in_area` | Réseau d'une zone (rectangle ou cercle) à une époque : km en service, fermés et déposés dans la zone, lignes et gares avec leur état. |
+| `compare_line_eras` | Une ligne à deux époques : km par catégorie, gares ouvertes ou fermées entre les deux, signalisation en vigueur, événements qui expliquent le changement. |
+| `line_stops` | Gares d'une ligne dans l'ordre des PK à une époque, avec leur état (modèle GTFS `stop_times`) et le lien de l'archive GTFS de l'ère. |
+| `station_aerial` | Vues aériennes historiques de l'IGN autour d'une gare (1950-1965, 1965-1980, 1980-1995), avec crédit et Licence Ouverte 2.0. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
@@ -1169,6 +1174,126 @@ lieu).
 {"region": "53"}
 ```
 
+### `what_was_here` : ce qui passait ici en telle année
+
+Répond à « qu'est-ce qui passait ici en 1930 ? » à partir de coordonnées. L'état des lignes et des gares est celui de
+l'ère de la carte qui contient l'année ou la précède (`era`) ; les événements, le matériel, la signalisation et les
+accidents utilisent l'année exacte (`year`).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `lat` | nombre, -90 à 90 | oui | Latitude WGS 84, en degrés décimaux. |
+| `lng` | nombre, -180 à 180 | oui | Longitude WGS 84, en degrés décimaux. |
+| `year` | entier 1800 à 2100 | non | Année (l'année en cours par défaut). |
+| `radius_m` | entier 50 à 5 000 | non | Rayon de recherche (1 000 m par défaut). |
+| `max_lines` | entier 1 à 20 | non | Lignes renvoyées au plus (8 par défaut). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `point`, `year`, `era` (`year`, `is_current`, `snapshot`), puis :
+
+- `lines`, la plus proche d'abord : `slug`, `name`, `code`, `distance_m`, `pk_m` (PK estimé au droit du point, `null`
+  sans PK), `status` à l'ère, `traffic`, `heritage`, `electrified`, `voltage_v`, `max_speed_kmh`, `gauge_mm`,
+  `geometry_withheld`, `signalling_in_force` (mises en service datées en vigueur au 31/12 de l'année, faits sûrs
+  seulement, forme compacte de `signalling_history`), `materials` (séries dont une période de circulation datée couvre
+  l'année : `period`, `certainty` = `dated_period`, `open_end` ou `open_start`, `source`, `source_url` ; une borne
+  absente est remplacée par l'année de mise en service ou de retrait de la série, sinon une période « jusqu'en 2021 »
+  couvrirait 1930), `events` (5 au plus, mêmes champs que `line_events`), `url` ;
+- `stations` (10 au plus) : `slug`, `name`, `city`, `distance_m`, `status` à l'ère, `status_label`, `uncertain`, `url` ;
+- `accidents` publiés de l'année dans le rayon (10 au plus) : `slug`, `name`, `date`, `when`, `kind`, `deaths`,
+  `injuries`, `review_status` (`to_review` : ne pas présenter comme sûr), `distance_m`, `url` ;
+- `links.map` : la carte de l'ère centrée sur le point.
+
+Tracé non redistribuable (`geometry_withheld: true`) : comme `locate_on_line`, il est cherché autour du centre de la
+maille de 0,001 degré du point, dans 200 m au moins ; `distance_m` vaut `null` et `pk_m` est arrondi à 100 m, pour
+qu'une grille de requêtes ne redessine pas le tracé.
+
+```json
+{"lat": 45.6484, "lng": 0.1562, "year": 1930}
+```
+
+### `network_in_area` : le réseau d'une zone à une époque
+
+Version locale de `network_at_era` : les longueurs sont mesurées sur la partie des tronçons comprise dans la zone.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `south`, `west`, `north`, `east` | nombres | rectangle | Bords du rectangle en degrés WGS 84 (0,01° à 1° de haut, 0,01° à 1,5° de large). |
+| `lat`, `lng`, `radius_km` | nombres | cercle | Centre et rayon (1 à 50 km). Rectangle ou cercle, pas les deux. |
+| `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte (aujourd'hui par défaut). |
+| `max_lines` | entier 1 à 200 | non | Lignes renvoyées au plus (50 par défaut). |
+| `max_stations` | entier 0 à 300 | non | Gares renvoyées au plus (100 par défaut). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `area`, `era`, `totals` (`open_km`, `closed_km`, `gone_km`, `electrified_km`, `open_km_by_traffic`),
+`lines_total` et `lines` (la plus longue d'abord : `open_km`, `closed_km`, `gone_km`, `electrified_km`,
+`main_traffic`, `url`), `stations_total`, `stations_by_status` et `stations` (ouvertes d'abord : `status`,
+`status_label`, `uncertain`, `url`), `links.map`. Aucune géométrie. Erreurs : `invalid_area` (zone incomplète, à
+l'envers ou rectangle et cercle à la fois), `area_too_large`, `area_too_small` (une suite de zones minuscules
+redessinerait un tracé non redistribuable par ses longueurs), `era_not_found`.
+
+```json
+{"lat": 45.83, "lng": 1.26, "radius_km": 30, "year": 1930}
+```
+
+### `compare_line_eras` : une ligne à deux époques
+
+Version par ligne de `compare_eras`. Les deux années sont ramenées à leur ère et remises dans l'ordre chronologique.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `from`, `to` | entiers 1800 à 2100 | oui | Les deux années, dans n'importe quel ordre. |
+| `max_events` | entier 0 à 200 | non | Événements renvoyés au plus (30 par défaut ; 0 : comptes seulement). |
+| `max_stations` | entier 0 à 200 | non | Gares ouvertes et fermées renvoyées au plus (50 par défaut). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `from` et `to` (`year`, `snapshot`, `in_service_km`, `by_category_km` des phases de la fiche, `stations` par
+état, `signalling_in_force`), `changes` (`in_service_km`, `by_category_km` en écart, `stations_opened` et
+`stations_closed` avec leurs totaux), `events_total`, `events_by_type` et `events` (entre le 31/12 de `from` et `to`).
+Erreurs : `line_not_found`, `era_not_found`, `same_era`.
+
+```json
+{"line": "rfn-610000", "from": 1930, "to": 1990}
+```
+
+### `line_stops` : gares d'une ligne à une époque, et GTFS
+
+Mêmes données que `GET /api/v1/lines/{line}/stops` (table `line_stops`, modèle GTFS `stop_times.txt` sans horaires).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne. |
+| `year` | entier 1800 à 2100 | non | Année ramenée à l'ère (aujourd'hui par défaut). |
+| `only_open` | booléen | non | Seulement les gares ouvertes à cette ère (`active`, `tourist`, `no_commercial`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `era`, `count`, `counts` (par état), `stops` (`position`, `pk_m`, `pk_label`, `status`, `status_label`,
+`is_terminal`, `station` : `slug`, `name`, `type`, `city`, `lat`, `lng`, `url`) et `gtfs` (`url` de l'archive GTFS
+statique de l'ère, `GET /api/v1/eras/{year}/gtfs.zip`, licence ODbL 1.0, crédit). L'archive elle-même n'est pas
+renvoyée : elle se télécharge par l'API REST.
+
+```json
+{"line": "610000", "year": 1930, "only_open": true}
+```
+
+### `station_aerial` : vues aériennes historiques d'une gare
+
+Mêmes données que `GET /api/v1/stations/{station}/aerial` : une vue de 500 m sur 300 m centrée sur la gare pour
+chaque période des photographies de l'IGN (1950-1965, 1965-1980, 1980-1995).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `count` et `views` : `period`, `from`, `to`, `url` (image JPEG servie par VFF, adresse absolue ; 404 hors
+couverture), `layer`, `attribution`, `license` et `license_url` (Licence Ouverte 2.0), `source_url` (« Remonter le
+temps »), `commercial_ok`, `derivatives_ok`. Liste vide quand l'instance désactive les vues aériennes.
+
+```json
+{"station": "angouleme"}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -1213,7 +1338,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Comment aller de Rennes à Brest en train en 1930 ? » | `historical_route {"from": "rennes", "to": "brest", "year": 1930}` |
 | « Pouvait-on aller de Limoges à Angoulême en 1990 ? Et aujourd'hui ? » | `historical_route` avec `year` 1990 et `compare_year` 2026 : `differences.outcome` répond (`both`, `lost`…) |
 | « How long was the French network in 1950? » (en anglais) | `network_at_era {"year": 1950, "lang": "en"}` |
-| « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false` (archeoferroviaire : non commercial) |
+| « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false`, à reprendre avec sa mention (les faits à usage non commercial, archeoferroviaire, ne sont jamais servis) |
 | « Quelles lignes du Finistère ont fermé aux voyageurs dans les années 1930 ? » | `network_events {"department": "29", "type": "closure_passenger", "from": "1930", "to": "1939"}` |
 | « Liste les lignes fermées de la Creuse. » | `list_lines {"department": "23", "status": "closed"}` (puis `next_cursor` tant que `has_more`) |
 | « Quelles lignes de Bretagne étaient ouvertes en 1930 ? » | `list_departments {"region": "53"}` si le code n'est pas connu, puis `list_lines {"region": "53", "era": 1930, "status": "open"}` |
@@ -1232,6 +1357,12 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 | « Jusqu'à quand les X 4300 ont-ils roulé sur Lunéville - Saint-Dié ? » | `line_materials {"line": "rfn-67000", "type": "autorail"}` : période de chaque série |
+| « Qu'est-ce qui passait devant la gare d'Angoulême en 1930 ? » | `what_was_here {"lat": 45.6536, "lng": 0.1641, "year": 1930}` : lignes, signalisation, matériel daté, événements et accidents de l'année |
+| « À quoi ressemblait le réseau autour de Limoges en 1930, et aujourd'hui ? » | `network_in_area {"lat": 45.83, "lng": 1.26, "radius_km": 30, "year": 1930}` puis le même appel sans `year` |
+| « Qu'est-ce qui a changé sur Limoges - Angoulême entre 1930 et 1990 ? » | `compare_line_eras {"line": "rfn-610000", "from": 1930, "to": 1990}` : `changes`, puis `events` |
+| « Quelles gares desservait Paris - Brest en 1950 ? » | `line_stops {"line": "420000", "year": 1950, "only_open": true}` ; pour un fichier GTFS, donner `gtfs.url` |
+| « Quelle signalisation avait Paris - Brest en 1990 ? » | `signalling_history {"line": "rfn-420000", "year": 1990}` : lire `in_force` |
+| « À quoi ressemblait la gare de Brest vue d'avion dans les années 1960 ? » | `station_aerial {"station": "brest"}` : montrer la vue 1950-1965 avec son `attribution` |
 
 ## Authentification et quotas
 
@@ -1340,8 +1471,14 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
    OpenStreetMap » et SNCF Open Data, plus les fournisseurs des données renvoyées) ;
 3. publiez sous ODbL toute base de données dérivée que vous diffusez ;
 4. pour un fournisseur à `open_licence: false`, reprenez seulement avec sa mention et le lien de
-   la source (`source_url`) ; les faits venant d'**archeoferroviaire** sont réservés à un usage
-   **non commercial**.
+   la source (`source_url`).
+
+**Sources à usage non commercial.** Les faits d'**archeoferroviaire** (usage non commercial, accord pour le site
+seulement) ne sortent jamais du serveur MCP : ni événement, ni lien, ni texte, ni géométrie, que la source soit
+nommée dans `source` ou seulement par le lien cité (`App\Mcp\Support\NonCommercialSources`, appliqué à
+`line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`). Restent servis les faits que VFF
+calcule à partir de ses tracés (état d'un tronçon à une ère, longueur, PK arrondi), sans coordonnée ; le fournisseur
+reste cité dans `attribution`. L'API REST, elle, sert ces événements avec `source = archeoferroviaire`.
 
 **Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
 points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line` quand sa
@@ -1357,15 +1494,15 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 
 - **Accidents sur la carte** (`/api/v1/accidents.geojson`) : GeoJSON volumineux, disponible par l'API REST seulement.
 - **Détail par ligne d'une comparaison d'ères** et **tuiles** de comparaison : par l'API REST
-  (`/api/v1/eras/{year}/compare/{other}/tiles/...`) ; `compare_eras` donne le résumé chiffré.
+  (`/api/v1/eras/{year}/compare/{other}/tiles/...`) ; `compare_eras` donne le résumé chiffré et
+  `compare_line_eras` le détail d'une ligne.
 - **Chronologie seule d'une gare** (`/api/v1/stations/{slug}/events`) : `get_station` en donne
   l'essentiel ; pas d'outil dédié paginé.
 - **Gares d'une ligne dans l'ordre des PK** (`/api/v1/lines/{slug}/stops`), **conversion d'un point
   en PK** (`/api/v1/lines/{slug}/pk`), **signalisation tranche par tranche**
   (`/api/v1/lines/{slug}/signalling`), **tronçons par ère** (`/api/v1/lines/{slug}/segments`) et
-  **géométries** (GeoJSON, tuiles, GTFS) : disponibles par l'API REST, pas par le serveur MCP
-  (réponses trop volumineuses pour un assistant).
-- **Historique de la signalisation** par époque : pas encore dans les données.
+  **géométries** (GeoJSON, tuiles, archive GTFS, dont `line_stops` donne le lien) : disponibles par l'API REST, pas
+  par le serveur MCP (réponses trop volumineuses pour un assistant).
 - **Tuiles de la signalisation et des passages à niveau** (`/api/v1/eras/{year}/signalling/tiles/...`,
   `/api/v1/level-crossings/tiles/...`) : par l'API REST seulement.
 - **Notifications de changement** : le serveur répond aux questions mais ne prévient de rien. Pour

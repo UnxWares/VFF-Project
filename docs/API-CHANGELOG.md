@@ -1,10 +1,28 @@
 # Changements de l'API
 
-- REST : `GET /stats/network` (le réseau en chiffres, décennie par décennie : kilomètres ouverts par trafic, fermés et déposés, électrifiés, gares par statut, événements datés, accidents, part de double voie, date du calcul `computed_at`). Page : `/network`.
 Ce journal liste ce qui change pour qui appelle l'API de VFF : REST (`/api/v1`), GraphQL (`/graphql`) et le serveur MCP (`/mcp`).
 Les entrées sont datées, la plus récente en premier. Un champ n'est retiré qu'après avoir été marqué déprécié (`deprecated` dans la
 spécification OpenAPI, `@deprecated` dans le schéma GraphQL) et annoncé ici. Un test (`ApiContractTest`) compare l'API à un instantané
 versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un paramètre ou une valeur disparaît sans cette annonce.
+
+## 23/11/2026
+
+### À vérifier dans votre client
+
+- MCP : les faits d'une source à usage non commercial (archeoferroviaire) ne sont plus servis par le serveur MCP, qu'elle soit
+  nommée dans `source` ou seulement par le lien cité : `line_events`, `network_events` et `get_line` (`events`, `event_count`)
+  peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y vaut plus `archeoferroviaire`. L'API REST et GraphQL ne
+  changent pas. Aucun champ n'est retiré.
+
+### Ajouts
+
+- MCP : cinq outils. `what_was_here` (autour d'un point et pour une année : lignes présentes et leur état à cet endroit, gares
+  proches, signalisation en vigueur, matériel daté, événements et accidents de l'année), `network_in_area` (réseau d'un
+  rectangle ou d'un cercle à une époque : km en service, fermés, déposés, lignes et gares ; erreurs `invalid_area`,
+  `area_too_large`, `area_too_small`), `compare_line_eras` (une ligne à deux époques : km par catégorie, gares ouvertes ou
+  fermées, signalisation, événements entre les deux), `line_stops` (gares d'une ligne dans l'ordre des PK à une époque, comme
+  `GET /lines/{line}/stops`, avec le lien GTFS de l'ère) et `station_aerial` (vues aériennes historiques de l'IGN, comme
+  `GET /stations/{station}/aerial`, adresses absolues).
 
 ## 22/11/2026
 
@@ -51,6 +69,7 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 
 ### Ajouts
 
+- REST : `GET /stats/network` (le réseau en chiffres, décennie par décennie : kilomètres ouverts par trafic, fermés et déposés, électrifiés, gares par statut, événements datés, accidents, part de double voie, date du calcul `computed_at`). Page : `/network`.
 - Accidents : chaque entrée de `context.corrections` ajoute `single_source` (booléen, `true` quand la valeur corrigée ne repose que sur la liste des
   accidents de Wikipédia et reste à confirmer ; `false` sinon). REST (`GET /accidents/{accident}`), GraphQL (`AccidentCorrection.single_source`) et
   MCP (`get_accident`, `context.corrections`).

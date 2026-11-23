@@ -62,7 +62,7 @@ class VffMcpListToolsTest extends TestCase
         ];
         DB::table('line_events')->insert([
             $event($ac, 'opening', '1865-04-01', 'wikipedia', 'https://fr.wikipedia.org/wiki/A'),
-            $event($ac, 'closure_passenger', '1938-05-15', 'archeoferroviaire', 'http://archeoferroviaire.free.fr/x'),
+            $event($ac, 'closure_passenger', '1938-05-15', 'lignes-oubliees', 'https://www.lignes-oubliees.com/x'),
             $event($bd, 'closure_passenger', '1970-01-01', 'wikidata', 'https://www.wikidata.org/wiki/Q1'),
         ]);
 
@@ -98,11 +98,11 @@ class VffMcpListToolsTest extends TestCase
         $this->assertFalse($error);
         $this->assertSame(['1938-05-15'], array_column($data['events'], 'date'));
         $this->assertSame('rfn-420000', $data['events'][0]['line']['slug']);
-        $this->assertSame('archeoferroviaire', $data['events'][0]['provenance']['provider']);
+        $this->assertSame('lignes-oubliees', $data['events'][0]['provenance']['provider']);
         $this->assertSame('15 mai 1938', $data['events'][0]['when']);
         $this->assertFalse($data['has_more']);
         $providers = collect((array) $data['attribution']['sources'])->keyBy('provider');
-        $this->assertFalse($providers['archeoferroviaire']['open_licence']);
+        $this->assertFalse($providers['lignes-oubliees']['open_licence']);
     }
 
     public function test_network_events_paginate_with_cursor(): void
