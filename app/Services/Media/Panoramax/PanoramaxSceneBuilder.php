@@ -277,7 +277,8 @@ class PanoramaxSceneBuilder
     {
         if ($this->osm === null) {
             $this->osm = [];
-            $file = $this->osmFile ?? storage_path('app/data/panoramax/osm-gares.json');
+            // Même dossier que les bâtiments BD TOPO : un test ne lit ni n'écrit jamais le vrai cache.
+            $file = $this->osmFile ?? ($this->cacheDir ?? storage_path('app/data/panoramax')).'/osm-gares.json';
             if (! is_file($file)) {
                 if ($cacheOnly) {
                     return [];

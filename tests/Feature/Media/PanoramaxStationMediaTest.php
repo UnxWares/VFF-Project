@@ -35,6 +35,9 @@ class PanoramaxStationMediaTest extends TestCase
         $this->cacheDir = sys_get_temp_dir().'/vff-panoramax-'.bin2hex(random_bytes(6));
         $dir = $this->cacheDir;
         $this->beforeApplicationDestroyed(fn () => File::deleteDirectory($dir));
+        // Bâtiments OpenStreetMap déjà en cache (aucun) : pas de requête Overpass.
+        File::ensureDirectoryExists($dir);
+        File::put($dir.'/osm-gares.json', '[]');
         $this->app->bind(PanoramaxClient::class, fn () => new PanoramaxClient($dir, 0));
         $this->app->bind(PanoramaxSceneBuilder::class, fn () => new PanoramaxSceneBuilder(new BdtopoStationZones($dir.'/zones', 0), $dir, 0, $dir.'/aucun-quai.json'));
         Http::preventStrayRequests();
