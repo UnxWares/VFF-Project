@@ -319,6 +319,8 @@ class BuildLineReferences extends Command
         if ($j = $this->repairStats) {
             $this->line(sprintf('  continuité (avant un seul axe) : %d trous comblés tout droit par la voie précise (%s km)',
                 $j['straight_hole_filled'] ?? 0, $this->km($j['straight_hole_filled_m'] ?? 0)));
+            $this->line(sprintf('  relais des morceaux fusionnés : %d bouts recollés au bout de la voie qui les prolonge (%s m d\'écart en tout)',
+                $j['fused_relay'] ?? 0, number_format($j['fused_relay_m'] ?? 0, 1, ',', ' ')));
             $this->line(sprintf('  continuité : %d sauts entre voies parallèles retirés (%d remis faute de voie réelle), %d trous comblés (%s km), %d changements de voie sur aiguillage réel (%s km), %s km de bouts et %s km de restes parallèles retirés, %d embranchements prolongés jusqu\'à la jonction (%s km), %s km de dépassements coupés',
                 $j['jog_removed'] ?? 0, $j['jog_restored'] ?? 0, $j['hole_filled'] ?? 0, $this->km($j['hole_filled_m'] ?? 0), $j['rerouted'] ?? 0, $this->km($j['rerouted_m'] ?? 0),
                 $this->km($j['stub_trimmed_m'] ?? 0), $this->km($j['remnant_removed_m'] ?? 0), $j['extended'] ?? 0, $this->km($j['extended_m'] ?? 0), $this->km($j['overshoot_trimmed_m'] ?? 0)));

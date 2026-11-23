@@ -13,6 +13,20 @@ use Illuminate\Support\Facades\DB;
  * rattachées à la ligne, à une autre ligne ou à aucune), aiguillage par
  * aiguillage.
  *
+ *   0. Relais d'un morceau fusionné : un bout libre d'un morceau fusionné
+ *      (matched_source « fusion », vff:import-fused-traces), à plus de 0,5 m
+ *      et au plus FUSED_RELAY_M du bout libre d'une portion précise de la
+ *      ligne prise sur une autre géométrie (voie BD TOPO, OSM, contribution,
+ *      voie des photos), y est recollé : le morceau fusionné, calculé à part et
+ *      jamais noué aux voies réelles, s'arrête souvent à 1 ou 2 m de la voie
+ *      qui le prolonge (marche d'escalier, et jonction à 1 m quand cette voie
+ *      porte le dessin d'une autre ligne : 931 à Caen, à 1,03 m de 702).
+ *      Sa fin est déformée en douceur (poids en cosinus sur FUSED_RELAY_EASE
+ *      fois l'écart, au moins FUSED_RELAY_EASE_MIN_M) jusqu'au bout de la voie,
+ *      qui ne bouge pas. Refusé si une autre ligne finit sur la partie
+ *      déformée, sauf au bout de la voie visé (elle y reste posée) ou au bout
+ *      déplacé quand un de ses morceaux fusionnés y finit aussi (même relais,
+ *      recollé quand cette ligne est refaite).
  *   1. Sauts entre voies parallèles (raccords « en escalier ») : un raccord
  *      droit de moins de JOG_MAX_M entre deux portions précises, qui fait un
  *      angle de plus de KINK_DEG avec l'une d'elles, n'est pas une voie (une
@@ -183,6 +197,20 @@ class JunctionRepair
 {
     /** Raccord coudé : angle (°) au-delà duquel un raccord n'est pas la continuation d'une portion. */
     public const KINK_DEG = 35.0;
+
+    /**
+     * Règle 0 : écart max (m) entre le bout d'un morceau fusionné et le bout de la voie qui le prolonge (erreur estimée à
+     * 90 % des morceaux fusionnés candidats : sous 3 m, TraceConflation::CANDIDATES) ; longueur de la déformation : au
+     * moins FUSED_RELAY_EASE_MIN_M, FUSED_RELAY_EASE fois l'écart (pente au plus pi/2 / FUSED_RELAY_EASE : 3°), au plus
+     * le morceau ; pas des sommets ajoutés sur la partie déformée (m).
+     */
+    public const FUSED_RELAY_M = 3.0;
+
+    public const FUSED_RELAY_EASE = 30.0;
+
+    public const FUSED_RELAY_EASE_MIN_M = 30.0;
+
+    private const FUSED_RELAY_STEP_M = 5.0;
 
     /** Raccords examinés (m). */
     public const JOG_MAX_M = 60.0;
@@ -530,7 +558,7 @@ class JunctionRepair
      *                                  end_joined (+ _m), hole_smoothed (+ _m), drawing_joined (+ _m), loop_jog_removed (+ _m), spur_removed (+ _m),
      *                                  dangling_connector_removed (+ _m), long_gap_filled (+ _m),
      *                                  long_gap_partial, long_gap_left_m, long_gap_refused, terminus_extended (+ _m), terminus_rough,
-     *                                  lateral_routed (+ _m), lateral_smoothed (+ _m)
+     *                                  lateral_routed (+ _m), lateral_smoothed (+ _m), fused_relay (+ _m : somme des écarts recollés)
      */
     public function repair(int $lineId): array
     {
@@ -547,8 +575,11 @@ class JunctionRepair
             'dangling_connector_removed' => 0, 'dangling_connector_removed_m' => 0.0,
             'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0,
             'terminus_extended' => 0, 'terminus_extended_m' => 0.0, 'terminus_rough' => 0,
-            'lateral_routed' => 0, 'lateral_routed_m' => 0.0, 'lateral_smoothed' => 0, 'lateral_smoothed_m' => 0.0];
+            'lateral_routed' => 0, 'lateral_routed_m' => 0.0, 'lateral_smoothed' => 0, 'lateral_smoothed_m' => 0.0,
+            'fused_relay' => 0, 'fused_relay_m' => 0.0];
 
+        // Règle 0, avant tout : un bout de morceau fusionné à 1 ou 2 m de la voie qui le prolonge n'est pas un bout libre.
+        $this->glueFusedRelays($stats);
         // Raccords qui ferment déjà une boucle (8 bis) : retirés avant les sauts, pour que le saut qui reste d'une boîte
         // soit traité comme un saut seul (bout sans issue coupé, S lissé).
         $this->removeLoopJogs($stats);
@@ -669,6 +700,130 @@ class JunctionRepair
                 WHERE ST_Length(g) > 0
                 SQL, [$this->lineId, $m['source'], json_encode($m['source_ids']), $m['matched'], $m['matched'] !== null ? json_encode($m['matched_ids']) : null, $a->ewkb]);
         }
+    }
+
+    // ─── 0. Relais d'un morceau fusionné ───────────────────────────────
+
+    /**
+     * Règle 0 (cf. docblock). Paires (bout libre d'un morceau fusionné, bout libre d'une autre portion précise de la ligne
+     * qui n'est pas fusionnée), de la plus proche à la plus éloignée, chaque bout une fois.
+     */
+    private function glueFusedRelays(array &$stats): void
+    {
+        $pairs = DB::select(<<<'SQL'
+            WITH ends AS (
+                SELECT t.sid, e.k, e.p, p.matched_source = 'fusion' AS fused, t.rank
+                FROM jr_sub t JOIN line_reference_parts p ON p.id = t.part_id,
+                     LATERAL (VALUES (0, ST_StartPoint(t.g)), (1, ST_EndPoint(t.g))) e(k, p)
+                WHERE NOT t.removed AND NOT t.conn AND ST_Length(t.g) > 1
+                  AND NOT EXISTS (SELECT 1 FROM jr_sub o WHERE NOT o.removed AND o.sid <> t.sid AND ST_DWithin(o.g, e.p, :snap))
+            )
+            SELECT f.sid, f.k, ST_X(r.p) AS rx, ST_Y(r.p) AS ry, r.sid AS rsid, r.k AS rk, ST_Distance(f.p, r.p) AS d
+            FROM ends f JOIN ends r ON r.sid <> f.sid AND NOT COALESCE(r.fused, FALSE) AND r.rank <= 3
+                 AND ST_DWithin(f.p, r.p, :max) AND ST_Distance(f.p, r.p) > :snap2
+            WHERE f.fused
+            ORDER BY ST_Distance(f.p, r.p), f.sid, f.k, r.sid, r.k
+            SQL, ['snap' => self::SOURCE_JOIN_SNAP_M, 'snap2' => self::SOURCE_JOIN_SNAP_M, 'max' => self::FUSED_RELAY_M]);
+        $used = [];
+        foreach ($pairs as $r) {
+            $a = $r->sid.':'.$r->k;
+            $b = $r->rsid.':'.$r->rk;
+            if (isset($used[$a]) || isset($used[$b])) {
+                continue;
+            }
+            $c = $this->subCoords((int) $r->sid);
+            if ($c === null) {
+                continue;
+            }
+            if ((int) $r->k === 0) {
+                $c = array_reverse($c);
+            }
+            $glued = $this->easeEndOnto($c, [(float) $r->rx, (float) $r->ry]);
+            $len = $this->plen($c);
+            $tail = $this->subLine($c, max(0.0, $len - $glued['s']), $len);
+            $this->debug && $this->log[] = ['fused_relay' => (int) $r->sid, 'k' => (int) $r->k, 'to' => (int) $r->rsid, 'd' => round((float) $r->d, 2), 's' => round($glued['s'])];
+            if ($this->holdsOtherLineBesidesRelay($tail, end($c), [(float) $r->rx, (float) $r->ry])) {
+                $this->debug && $this->log[] = ['fused_relay' => (int) $r->sid, 'skip' => 'autre ligne sur la partie déformée'];
+
+                continue;
+            }
+            $coords = (int) $r->k === 0 ? array_reverse($glued['coords']) : $glued['coords'];
+            DB::update('UPDATE jr_sub SET g = ST_GeomFromText(?, 2154), changed = TRUE WHERE sid = ?', [$this->wkt($coords), (int) $r->sid]);
+            $used[$a] = $used[$b] = true;
+            $stats['fused_relay']++;
+            $stats['fused_relay_m'] += (float) $r->d;
+        }
+    }
+
+    /**
+     * Fin de la polyligne $c (orientée vers son bout) déformée pour finir exactement sur $q : déplacement du bout pondéré
+     * par (1 + cos(pi u / s)) / 2, u = distance au bout le long de $c, s = longueur de la déformation ; sommets ajoutés
+     * tous les FUSED_RELAY_STEP_M au plus sur la partie déformée (pas de coude).
+     *
+     * @param  list<array{0: float, 1: float}>  $c
+     * @param  array{0: float, 1: float}  $q
+     * @return array{coords: list<array{0: float, 1: float}>, s: float}
+     */
+    public function easeEndOnto(array $c, array $q): array
+    {
+        $len = $this->plen($c);
+        $end = end($c);
+        $v = [$q[0] - $end[0], $q[1] - $end[1]];
+        $s = min($len, max(self::FUSED_RELAY_EASE_MIN_M, self::FUSED_RELAY_EASE * hypot($v[0], $v[1])));
+        $from = $len - $s;
+        // Sommets d'origine, plus des sommets intermédiaires sur la partie déformée.
+        $pts = [[$c[0], 0.0]];
+        $acc = 0.0;
+        for ($i = 1; $i < count($c); $i++) {
+            $l = hypot($c[$i][0] - $c[$i - 1][0], $c[$i][1] - $c[$i - 1][1]);
+            if ($acc + $l > $from && $l > self::FUSED_RELAY_STEP_M) {
+                $a = max($acc, $from);
+                $n = (int) ceil(($acc + $l - $a) / self::FUSED_RELAY_STEP_M);
+                for ($j = $a > $acc ? 0 : 1; $j < $n; $j++) {
+                    $t = ($a + $j * ($acc + $l - $a) / $n - $acc) / $l;
+                    if ($t > 0 && $t < 1) {
+                        $pts[] = [[$c[$i - 1][0] + $t * ($c[$i][0] - $c[$i - 1][0]), $c[$i - 1][1] + $t * ($c[$i][1] - $c[$i - 1][1])], $acc + $t * $l];
+                    }
+                }
+            }
+            $acc += $l;
+            $pts[] = [$c[$i], $acc];
+        }
+        $out = [];
+        foreach ($pts as [$p, $at]) {
+            $u = $len - $at;
+            $w = $s > 0 && $u < $s ? 0.5 * (1 + cos(M_PI * $u / $s)) : 0.0;
+            $out[] = [$p[0] + $w * $v[0], $p[1] + $w * $v[1]];
+        }
+        $out[count($out) - 1] = $q;
+
+        return ['coords' => $out, 's' => $s];
+    }
+
+    /**
+     * Une autre ligne finit-elle sur la partie déformée $c (à 1 m près), ailleurs qu'au point visé $q (elle y reste posée)
+     * et hors d'un relais commun : bout à 0,5 m du bout déplacé $e quand un morceau fusionné de cette ligne finit aussi
+     * là (le même relais, recollé quand elle est refaite) ?
+     *
+     * @param  list<array{0: float, 1: float}>  $c
+     * @param  array{0: float, 1: float}  $e
+     * @param  array{0: float, 1: float}  $q
+     */
+    private function holdsOtherLineBesidesRelay(array $c, array $e, array $q): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_GeomFromText(:wkt, 2154) AS g, ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS e,
+                              ST_SetSRID(ST_MakePoint(:qx, :qy), 2154) AS q)
+            SELECT 1 AS x FROM line_reference_parts o, LATERAL ST_Dump(ST_Transform(o.geom, 2154)) d, s,
+                 LATERAL (VALUES (ST_StartPoint(d.geom)), (ST_EndPoint(d.geom))) q(p)
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(s.g, 2), 4326) AND ST_DWithin(q.p, s.g, 1)
+              AND NOT ST_DWithin(q.p, s.q, 0.5)
+              AND NOT (ST_DWithin(q.p, s.e, 0.5) AND EXISTS (
+                  SELECT 1 FROM line_reference_parts f, LATERAL ST_Dump(ST_Transform(f.geom, 2154)) fd
+                  WHERE f.line_id = o.line_id AND f.matched_source = 'fusion' AND f.geom && ST_Transform(ST_Expand(s.e, 1), 4326)
+                    AND (ST_DWithin(ST_StartPoint(fd.geom), s.e, 0.5) OR ST_DWithin(ST_EndPoint(fd.geom), s.e, 0.5))))
+            LIMIT 1
+            SQL, ['wkt' => $this->wkt($c), 'x' => $e[0], 'y' => $e[1], 'qx' => $q[0], 'qy' => $q[1], 'line' => $this->lineId]);
     }
 
     // ─── 1. Sauts (raccords coudés entre portions précises) ────────────
