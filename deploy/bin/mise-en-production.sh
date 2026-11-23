@@ -629,6 +629,13 @@ etape_commons() {
     env_egal VFF_COMMONS_PROXY_ACCEL_REDIRECT /_commons/
     local cache
     cache="$(env_val VFF_COMMONS_PROXY_CACHE_PATH)"; cache="${cache:-$VFF_DIR/storage/app/cache/commons}"
+    # Le dossier vient de .env (écrit par le compte du code) et root le crée au nom de vff : seulement sous storage/,
+    # seul dossier que l'application écrit (ReadWritePaths des unités), jamais un chemin libre ni « .. ».
+    case "$cache" in
+        */../*|*/..) manque "VFF_COMMONS_PROXY_CACHE_PATH « $cache » contient « .. »" "VFF_COMMONS_PROXY_CACHE_PATH=$VFF_DIR/storage/app/cache/commons"; return 0 ;;
+        "${VFF_DIR:?}"/storage/*) ;;
+        *) manque "VFF_COMMONS_PROXY_CACHE_PATH « $cache » hors de $VFF_DIR/storage/" "VFF_COMMONS_PROXY_CACHE_PATH=$VFF_DIR/storage/app/cache/commons"; return 0 ;;
+    esac
     if [ -d "$cache" ]; then ok "cache des vignettes $cache"; elif appliquer; then
         install -d -m 2770 -o vff -g vff -- "$cache"; fait "cache des vignettes $cache"
     else

@@ -88,6 +88,19 @@ class MiseEnProductionTest extends TestCase
         $this->assertStringContainsString('.counts', $recent);
     }
 
+    public function test_root_creates_the_commons_cache_only_under_the_storage_of_the_application(): void
+    {
+        $commons = self::function('etape_commons');
+        $create = strpos($commons, 'install -d');
+        $this->assertNotFalse($create);
+
+        // Le chemin vient de .env : root ne crée pas un dossier de vff ailleurs que sous storage/ (ni avec « .. »).
+        $guard = strpos($commons, '"${VFF_DIR:?}"/storage/*)');
+        $this->assertNotFalse($guard, 'etape_commons borne le cache à $VFF_DIR/storage/');
+        $this->assertLessThan($create, $guard);
+        $this->assertStringContainsString('*/../*|*/..)', $commons);
+    }
+
     public function test_every_step_has_a_function_and_a_section_of_the_document(): void
     {
         $steps = self::steps();
