@@ -364,4 +364,27 @@ class WikidataMaterialMapperTest extends TestCase
         $sheet = $this->mapper->map('Q432779', $entity, ['Q625151'], self::LABELS, [], [$file => ['rights_status' => 'unknown'] + $meta], [], null);
         $this->assertNull($sheet['image'], 'licence non libre : pas d\'image');
     }
+
+    /** Série que ni Wikidata ni l'article ne rangent : catégorie posée à la main (database/data/material_type_overrides.php), en dernier recours. */
+    public function test_a_hand_set_type_applies_only_when_nothing_else_ranges_the_series(): void
+    {
+        $entity = $this->bb15000([]);
+
+        $sheet = $this->mapper->map('Q2876837', $entity, [], self::LABELS, [], self::COMMONS);
+        $this->assertIsArray($sheet);
+        $this->assertSame('locomotive_diesel', $sheet['type']);
+        $this->assertStringContainsString('oldid=1274723261', $sheet['provenance']['type']['ref']);
+
+        $ranged = $this->mapper->map('Q2876837', $entity, ['Q625151'], self::LABELS, [], self::COMMONS);
+        $this->assertSame('locomotive_electrique', $ranged['type'], 'Wikidata range la série : la ligne ne sert plus');
+
+        $unnamed = $this->bb15000([]);
+        $unnamed['labels'] = [];
+        $unnamed['sitelinks'] = [];
+        $named = $this->mapper->map('Q139678896', $unnamed, [], self::LABELS, [], self::COMMONS);
+        $this->assertSame(['2D2 5546 à 5550', 'locomotive_electrique'], [$named['name'], $named['type']], 'sans libellé : le nom posé à la main');
+        $this->assertSame(WikidataMaterialMapper::SKIP_NO_NAME, $this->mapper->map('Q2876837', $unnamed, [], self::LABELS, [], self::COMMONS));
+
+        $this->assertSame(WikidataMaterialMapper::SKIP_NO_TYPE, $this->mapper->map('Q1', $entity, [], self::LABELS, [], self::COMMONS));
+    }
 }

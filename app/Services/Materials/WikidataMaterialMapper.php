@@ -9,6 +9,7 @@ use App\Services\Media\CommonsMetadata;
 use App\Support\MaterialDateCorrections;
 use App\Support\MaterialPhotoChoices;
 use App\Support\MaterialPhotoExclusions;
+use App\Support\MaterialTypeOverrides;
 
 /**
  * Traduit un élément Wikidata (réduit par WikidataMaterialSource::trimEntity) en fiche de
@@ -75,6 +76,10 @@ final readonly class WikidataMaterialMapper
             $type = $fallback;
             $typeProvenance = ['source' => 'wikipedia', 'ref' => 'Catégorie:'.$fallback[1]];
         }
+        if ($type === null && ($override = MaterialTypeOverrides::for($qid)) !== null) {
+            $type = [$override[0], $override[1]];
+            $typeProvenance = ['source' => 'wikipedia', 'ref' => $override[1]];
+        }
         if ($type === null || $typeProvenance === null) {
             return self::SKIP_NO_TYPE;
         }
@@ -84,6 +89,9 @@ final readonly class WikidataMaterialMapper
             $typeProvenance = ['source' => 'wikipedia', 'ref' => $infobox['title'].'#infobox:Type', 'revid' => $infobox['revid']];
         }
         [$name, $nameRef] = $this->name($entity);
+        if ($name === null && ($handName = MaterialTypeOverrides::nameFor($qid)) !== null) {
+            [$name, $nameRef] = [$handName, 'sitelink:dewiki'];
+        }
         if ($name === null) {
             return self::SKIP_NO_NAME;
         }

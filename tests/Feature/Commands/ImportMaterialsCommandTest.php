@@ -34,6 +34,8 @@ class ImportMaterialsCommandTest extends TestCase
     {
         parent::setUp();
         Sleep::fake();
+        // Les séries ajoutées à la main (material_extra_series.php) sont testées à part.
+        config(['vff.materials.extra_series' => false]);
         $this->cache = new InMemorySourceCache;
         $this->app->instance(SourceCache::class, $this->cache);
         Line::factory()->create(['slug' => 'rfn-67000', 'name' => 'Ligne de Lunéville à St-Dié', 'wikipedia_title' => 'Ligne de Lunéville à Saint-Dié']);
@@ -245,5 +247,17 @@ class ImportMaterialsCommandTest extends TestCase
         }
 
         return ['query' => ['pages' => $pages]];
+    }
+
+    public function test_hand_listed_extra_series_join_the_wikidata_candidates(): void
+    {
+        config(['vff.materials.extra_series' => true]);
+        /** @var list<array{material: string}> $extra */
+        $extra = require database_path('data/material_extra_series.php');
+        $expected = count(array_unique([...array_column($extra, 'material')]));
+
+        $this->artisan('vff:import-materials', ['--dry-run' => true])
+            ->expectsOutputToContain(sprintf('%d série(s) candidate(s) dans Wikidata.', $expected + 3))
+            ->assertSuccessful();
     }
 }
