@@ -27,6 +27,14 @@
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
     import { readTint, writeTint } from '$lib/eraTint.js';
     import { readMapView, writeMapView } from '$lib/mapView.js';
+    import { MAP_COLORINGS } from '$lib/railStyle.js';
+    import {
+        coloringNotice,
+        drawnColoring,
+        formatColoringYears,
+        readColoring,
+        writeColoring,
+    } from '$lib/lineColoring.js';
     import { bboxFromBounds } from '$lib/mapListing.js';
     import { pastEraFor, validPoint } from '$lib/placeHistory.js';
     import {
@@ -78,7 +86,9 @@
     // Catégories masquées via la légende interactive (tout visible par défaut :
     // réseau vivant ET disparu - fermées en tirets, déposées en pointillés).
     let hidden = $state([]);
-    // Couleur des tracés : trafic, électrification ou écartement (sélecteur de la légende).
+    // Couleur des tracés : trafic, vitesse, électrification, signalisation ou écartement (sélecteur de la
+    // légende, `?color=` de l'adresse, lib/lineColoring.js). Une coloration sans donnée datée aux époques
+    // affichées reste choisie mais grisée : la carte garde alors le trafic (`coloring`).
     let colorMode = $state('traffic');
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
@@ -120,6 +130,26 @@
     let curtainShared = $state(CURTAIN_DEFAULT);
     // Vue dessinée par la carte et décrite par la légende : le rideau est une présentation de « Comparer ».
     const drawnView = $derived(view === 'compare' && compareMode === 'curtain' ? 'curtain' : view);
+    // Époques dont la légende propose la coloration : une décennie, ou les deux côtés du rideau.
+    const coloringEras = $derived(
+        drawnView === 'era'
+            ? [selectedEra]
+            : drawnView === 'curtain'
+              ? [compareFrom, compareTo].filter((y) => y !== null)
+              : [],
+    );
+    const coloring = $derived(drawnColoring(colorMode, coloringEras, erasProp));
+    // Colorations impossibles aux époques affichées et leur explication (choix grisés de la légende).
+    const coloringNotices = $derived.by(() => {
+        /** @type {Record<string, string>} */
+        const notes = {};
+        const formatYears = (years) => formatColoringYears(years, currentEraYear, $i18n.t);
+        for (const m of MAP_COLORINGS) {
+            const notice = coloringNotice(m, coloringEras, erasProp, formatYears);
+            if (notice) notes[m] = $i18n.t(notice.key, notice.params);
+        }
+        return notes;
+    });
     const curtainLabel = (year) =>
         year === currentEraYear ? $i18n.t('maps.curtain.today') : String(year);
     const curtainInline = (year) =>
@@ -208,7 +238,7 @@
     // d'aujourd'hui, un message le dit et propose d'y revenir. Signalisation : état de SNCF Réseau
     // aujourd'hui, mises en service datées (Wikipédia) aux époques passées.
     const showLevelCrossings = $derived(drawn.levelCrossings);
-    const showSignalling = $derived(drawn.signalling);
+    const showSignalling = $derived(drawn.signalling || coloring === 'signalling');
     // Vue (centre et zoom) demandée par l'adresse, lue avant la création de la carte : elle remplace
     // alors le cadrage de la France entière. `currentView` suit la carte (lien « Intégrer »).
     const urlView = typeof window === 'undefined' ? null : readMapView(window.location.search);
@@ -526,6 +556,15 @@
         ormLayer = layers.orm;
         setDataLayers(layers.data);
         tintOn = readTint(window.location.search);
+        colorMode = readColoring(window.location.search);
+    });
+
+    // L'adresse suit la coloration choisie (`?color=speed`), même grisée à l'époque affichée.
+    $effect(() => {
+        const next = writeColoring(window.location.href, colorMode);
+        if (next !== window.location.href) {
+            window.history.replaceState(window.history.state, '', next);
+        }
     });
 
     $effect(() => {
@@ -654,6 +693,9 @@
                                 currentEra={currentEraYear}
                                 bind:hidden
                                 bind:mode={colorMode}
+                                modes={MAP_COLORINGS}
+                                drawnMode={coloring}
+                                unavailable={coloringNotices}
                                 accidents={accidentLegend}
                                 overlays={drawn.legendOverlays}
                             />
@@ -751,7 +793,7 @@
                             geolocate
                             currentEra={currentEraYear}
                             {hidden}
-                            mode={colorMode}
+                            mode={coloring}
                             overlay={ormLayer}
                             tint={tintOn}
                             accidents={showAccidents ? accidentData : null}
@@ -870,6 +912,7 @@
                     eras={listingEras}
                     bbox={mapBbox}
                     {hidden}
+                    {coloring}
                     version={dataVersion}
                     bind:headingEl={listingHeading}
                     onClose={closeListing}

@@ -118,6 +118,42 @@ return [
         'traffic' => 'Traffic',
         'electrification' => 'Electrification',
         'gauge' => 'Gauge',
+        'speed' => 'Speed',
+        'signalling' => 'Signalling',
+    ],
+
+    // Thematic route colours (the "Colour routes by" choice, lib/lineColoring.js).
+    'coloring' => [
+        'speed_title' => 'Maximum speed at this time',
+        'speed' => [
+            'v100' => 'Up to 100 km/h',
+            'v160' => '100 to 160 km/h',
+            'v220' => '160 to 220 km/h',
+            'v220_plus' => 'Over 220 km/h',
+            'unknown' => 'Speed not recorded',
+        ],
+        'speed_note' => 'Nominal maximum speed published by SNCF Réseau, section by section. In 2020, the same speed, except on sections changed since then (left without a speed).',
+        'labels_note' => 'When you zoom in, the value is also written along the routes.',
+        'fallback' => 'The map shows traffic.',
+        'unavailable' => [
+            'speed' => 'Speed: known for :years only.',
+            'speed_none' => 'Speed: not known yet.',
+            'electrification' => 'Electrification: known for :years only.',
+            'electrification_none' => 'Electrification: not known yet.',
+            'signalling' => 'Signalling: known for :years only.',
+            'signalling_none' => 'Signalling: not known yet.',
+            'one_era' => 'Signalling: one period at a time, not with the curtain.',
+        ],
+        'years_and' => ':head and :last',
+        'years_range' => 'from :from to :to',
+        'listing_none' => 'not recorded',
+        'listing_part' => ':label (:km km)',
+        'listing_label' => [
+            'speed' => 'Maximum speed:',
+            'electrification' => 'Electrification:',
+            'gauge' => 'Gauge:',
+            'signalling' => 'Signalling:',
+        ],
     ],
 
     'electrification' => [
@@ -243,7 +279,7 @@ return [
         'era_term' => 'Era',
         'era_text' => 'The timeline below the map selects the decade, from 1830 to today. The play button runs through the decades up to today, with the length of lines in service at each era; any gesture on the map stops it, and the previous and next buttons move one step at a time. The older the period, the closer the base map is to sepia; untick “Tint older periods” under the Layers button to remove the tint.',
         'color_term' => 'Colour',
-        'color_text' => 'On a line in service, the colour shows what runs on it: purple for high speed, orange for the conventional network open to passengers and freight, blue for freight only, green for a line run by an association. The Electrification and Gauge modes of the legend colour the same routes by voltage or track gauge.',
+        'color_text' => 'On a line in service, the colour shows what runs on it: purple for high speed, orange for the conventional network open to passengers and freight, blue for freight only, green for a line run by an association. The Speed, Electrification, Signalling and Gauge choices of the legend colour the same routes by maximum speed, voltage, block system or track gauge, for the periods where dated data exists; the address keeps the choice (for example ?color=speed).',
         'line_term' => 'Stroke',
         'line_text' => 'Solid line: in service. Red dashes: closed line with the track still in place. Grey dots: track lifted or trackbed gone.',
         'sheet_term' => 'Line pages',

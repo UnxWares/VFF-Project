@@ -55,7 +55,7 @@ class TileFieldsTest extends TestCase
     public function test_the_default_tile_keeps_its_cache_key(): void
     {
         $this->assertSame('', TileFields::All->cacheSuffix());
-        $this->assertSame(':map', TileFields::Map->cacheSuffix());
+        $this->assertSame(':map:'.TileFields::MAP_FORMAT, TileFields::Map->cacheSuffix());
         $this->assertSame(TileFields::Map, TileFields::from('map'));
     }
 

@@ -12,6 +12,7 @@
         visibleLines,
         visibleStations,
     } from '$lib/mapListing.js';
+    import { coloringClass } from '$lib/lineColoring.js';
 
     /**
      * Lignes et gares de la zone visible à UNE époque, en listes de liens vers les fiches. Demande la liste
@@ -20,6 +21,7 @@
      *
      * Props : year (époque), title (titre de la colonne), bbox ([ouest, sud, est, nord] ou null), active
      * (la liste est ouverte : sinon aucune requête), hidden (catégories masquées dans la légende),
+     * coloring (coloration des tracés : hors trafic, les classes de chaque ligne sont demandées et écrites),
      * onlyLine et onlyStation (état choisi, vide : tous), sort ('km' ou 'name'), version (version des
      * données, pour le cache du navigateur), cache (createListingCache, partagé entre colonnes).
      */
@@ -29,6 +31,7 @@
         bbox,
         active = true,
         hidden = [],
+        coloring = 'traffic',
         onlyLine = '',
         onlyStation = '',
         sort = 'km',
@@ -51,7 +54,8 @@
             data = null;
             return;
         }
-        const key = `${year}|${bbox.join(',')}`;
+        const color = coloring === 'traffic' ? null : coloring;
+        const key = `${year}|${bbox.join(',')}|${color ?? ''}`;
         const known = cache.get(key);
         if (known) {
             data = known;
@@ -62,7 +66,7 @@
         const controller = new AbortController();
         const timer = setTimeout(async () => {
             try {
-                const response = await fetch(listingUrl(year, bbox, version), {
+                const response = await fetch(listingUrl(year, bbox, version, color), {
                     headers: { Accept: 'application/json' },
                     signal: controller.signal,
                 });
@@ -104,6 +108,31 @@
 
     const number = (n) =>
         n.toLocaleString($i18n.language, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+
+    // Classes de la coloration (vitesse, électrification, écartement, signalisation) d'une ligne listée, en
+    // texte : une seule classe sans kilomètres, plusieurs avec leurs kilomètres dans la zone. Rien pour une
+    // entrée hors service (fermée, déposée) ; « non renseignée » pour une entrée en service sans classe.
+    const IN_SERVICE = ['lgv', 'mixed', 'freight', 'unknown', 'heritage', 'service_track'];
+    function classesText(line) {
+        if (coloring === 'traffic' || !Array.isArray(line.classes)) return '';
+        const known = line.classes
+            .map((c) => ({ ...c, style: coloringClass(coloring, c.key) }))
+            .filter((c) => c.style);
+        if (known.length === 0) {
+            return coloring === 'gauge' || IN_SERVICE.includes(line.state)
+                ? $i18n.t('maps.coloring.listing_none')
+                : '';
+        }
+        if (known.length === 1) return $i18n.t(known[0].style.labelKey);
+        return known
+            .map((c) =>
+                $i18n.t('maps.coloring.listing_part', {
+                    label: $i18n.t(c.style.labelKey),
+                    km: number(c.km),
+                }),
+            )
+            .join(' ; ');
+    }
 
     const summary = $derived.by(() => {
         if (status === 'wide') return $i18n.t('maps.listing.too_wide');
@@ -157,6 +186,7 @@
                 <ul aria-labelledby="{uid}-lines">
                     {#each linesPage.rows as line (`${line.slug}|${line.state}`)}
                         {@const state = lineStateOf(line.state)}
+                        {@const classes = classesText(line)}
                         <li>
                             <Link href="/lines/{line.slug}">{line.name}</Link>
                             <span class="meta">
@@ -166,6 +196,14 @@
                                 <span class="sep" aria-hidden="true">·</span>
                                 <span class="km">{number(line.km)} km</span>
                             </span>
+                            {#if classes}
+                                <span class="classes">
+                                    <span class="classes-label"
+                                        >{$i18n.t(`maps.coloring.listing_label.${coloring}`)}</span
+                                    >
+                                    {classes}
+                                </span>
+                            {/if}
                         </li>
                     {/each}
                 </ul>
@@ -305,6 +343,17 @@
         box-shadow: 0 0 0 1px var(--vff-border-strong);
     }
     .km {
+        font-variant-numeric: tabular-nums;
+    }
+    .classes-label {
+        font-weight: 600;
+    }
+    /* Classes de la coloration choisie (vitesse, tension…) : une ligne de texte sous l'état. */
+    .classes {
+        display: block;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text);
         font-variant-numeric: tabular-nums;
     }
     .empty,

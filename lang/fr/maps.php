@@ -118,6 +118,42 @@ return [
         'traffic' => 'Trafic',
         'electrification' => 'Électrification',
         'gauge' => 'Écartement',
+        'speed' => 'Vitesse',
+        'signalling' => 'Signalisation',
+    ],
+
+    // Colorations thématiques des tracés (choix « Colorer les tracés selon », lib/lineColoring.js).
+    'coloring' => [
+        'speed_title' => 'Vitesse maximale à cette époque',
+        'speed' => [
+            'v100' => 'Jusqu’à 100 km/h',
+            'v160' => 'De 100 à 160 km/h',
+            'v220' => 'De 160 à 220 km/h',
+            'v220_plus' => 'Plus de 220 km/h',
+            'unknown' => 'Vitesse non renseignée',
+        ],
+        'speed_note' => 'Vitesse maximale nominale publiée par SNCF Réseau, portion par portion. En 2020, la même vitesse, sauf sur les portions modifiées depuis (laissées sans vitesse).',
+        'labels_note' => 'En zoomant, la valeur est aussi écrite le long des tracés.',
+        'fallback' => 'La carte montre le trafic.',
+        'unavailable' => [
+            'speed' => 'Vitesse : connue pour :years seulement.',
+            'speed_none' => 'Vitesse : pas encore connue.',
+            'electrification' => 'Électrification : connue pour :years seulement.',
+            'electrification_none' => 'Électrification : pas encore connue.',
+            'signalling' => 'Signalisation : connue pour :years seulement.',
+            'signalling_none' => 'Signalisation : pas encore connue.',
+            'one_era' => 'Signalisation : sur une seule époque à la fois, pas avec le rideau.',
+        ],
+        'years_and' => ':head et :last',
+        'years_range' => 'de :from à :to',
+        'listing_none' => 'non renseignée',
+        'listing_part' => ':label (:km km)',
+        'listing_label' => [
+            'speed' => 'Vitesse maximale :',
+            'electrification' => 'Électrification :',
+            'gauge' => 'Écartement :',
+            'signalling' => 'Signalisation :',
+        ],
     ],
 
     'electrification' => [
@@ -243,7 +279,7 @@ return [
         'era_term' => 'Époque',
         'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies jusqu’à aujourd’hui, avec la longueur de lignes en service à chaque époque ; un geste sur la carte l’arrête, et les boutons précédent et suivant avancent pas à pas. Plus l’époque est ancienne, plus le fond de carte tire vers le sépia ; la case « Teinte des époques anciennes », dans le bouton Calques, coupe cette teinte.',
         'color_term' => 'Couleur',
-        'color_text' => 'Sur une ligne en service, la couleur dit ce qui y circule : violet pour la grande vitesse, orange pour le réseau classique ouvert aux voyageurs et au fret, bleu pour le fret seul, vert pour une ligne exploitée par une association. Les modes Électrification et Écartement de la légende colorent les mêmes tracés selon la tension ou l’écartement des voies.',
+        'color_text' => 'Sur une ligne en service, la couleur dit ce qui y circule : violet pour la grande vitesse, orange pour le réseau classique ouvert aux voyageurs et au fret, bleu pour le fret seul, vert pour une ligne exploitée par une association. Les choix Vitesse, Électrification, Signalisation et Écartement de la légende colorent les mêmes tracés selon la vitesse maximale, la tension, le mode de cantonnement ou l’écartement des voies, aux époques où la donnée datée existe ; l’adresse garde le choix (par exemple ?color=speed).',
         'line_term' => 'Trait',
         'line_text' => 'Trait plein : ligne en service. Tirets rouges : ligne fermée dont la voie est encore en place. Pointillés gris : voie déposée ou emprise disparue.',
         'sheet_term' => 'Fiches',

@@ -3,10 +3,13 @@
 namespace App\Http\Requests\Api;
 
 use App\Services\LevelCrossings\LevelCrossingQuery;
+use App\Services\Map\ViewListing;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
- * Emprise de `GET /api/v1/eras/{year}/in-view` : `bbox=ouest,sud,est,nord` en degrés WGS 84 (obligatoire).
+ * Emprise de `GET /api/v1/eras/{year}/in-view` : `bbox=ouest,sud,est,nord` en degrés WGS 84 (obligatoire), et
+ * coloration des tracés facultative (`color`).
  */
 class MapViewListingRequest extends FormRequest
 {
@@ -30,7 +33,22 @@ class MapViewListingRequest extends FormRequest
                     $fail(__('validation.custom.bbox.invalid'));
                 }
             }],
+            /**
+             * Coloration des tracés de la carte (facultatif) : `speed` (classe de vitesse maximale), `electrification`,
+             * `gauge` (écartement) ou `signalling` (famille de signalisation). Chaque ligne porte alors `classes`.
+             *
+             * @example speed
+             */
+            'color' => ['nullable', 'string', Rule::in(ViewListing::COLORINGS)],
         ];
+    }
+
+    /** Coloration demandée (ViewListing::COLORINGS), ou null. */
+    public function color(): ?string
+    {
+        $color = $this->query('color');
+
+        return is_string($color) && in_array($color, ViewListing::COLORINGS, true) ? $color : null;
     }
 
     /** @return array{0: float, 1: float, 2: float, 3: float} ouest, sud, est, nord, arrondis à 3 décimales (environ 100 m : clé de cache) */

@@ -289,11 +289,51 @@ export function gaugeColorExpr() {
 }
 
 /**
+ * Colorations de la carte /maps (choix « Colorer les tracés selon » de la légende) : les modes de
+ * MAP_MODES et deux colorations thématiques, la vitesse maximale (`speed_class` des tuiles, voir
+ * App\Support\SpeedClass) et la signalisation (tranches du calque « Signalisation » posées sur le réseau
+ * en teinte neutre). La carte intégrable garde MAP_MODES.
+ */
+export const MAP_COLORINGS = ['traffic', 'speed', 'electrification', 'signalling', 'gauge'];
+
+/**
+ * Vitesse maximale : quatre classes (bornes de App\Support\SpeedClass) et « inconnue ». Teintes
+ * distinctes en clair comme en sombre, de la plus lente à la plus rapide ; la carte écrit aussi la classe
+ * le long des tracés en zoomant et la liste de ce qui est affiché la donne en texte (lib/lineColoring.js).
+ */
+export const SPEED_STYLES = [
+    { key: 'v100', cls: 1, color: '#15803d', labelKey: 'maps.coloring.speed.v100' },
+    { key: 'v160', cls: 2, color: '#2563eb', labelKey: 'maps.coloring.speed.v160' },
+    { key: 'v220', cls: 3, color: '#9333ea', labelKey: 'maps.coloring.speed.v220' },
+    { key: 'v220_plus', cls: 4, color: '#dc2626', labelKey: 'maps.coloring.speed.v220_plus' },
+    { key: 'unknown', cls: null, color: '#9ca3af', labelKey: 'maps.coloring.speed.unknown' },
+];
+const SPEED_COLOR = Object.fromEntries(SPEED_STYLES.map((s) => [s.key, s.color]));
+
+/** Expression MapLibre : couleur d'une portion selon sa classe de vitesse maximale. */
+export function speedColorExpr() {
+    return [
+        'match',
+        ['to-number', ['coalesce', ['get', 'speed_class'], 0]],
+        ...SPEED_STYLES.filter((s) => s.cls !== null).flatMap((s) => [s.cls, s.color]),
+        SPEED_COLOR.unknown,
+    ];
+}
+
+/**
+ * Teinte neutre du réseau sous les tranches de signalisation (coloration « Signalisation ») : une
+ * portion sans tranche connue reste visible, sans couleur qui la ferait passer pour une famille.
+ */
+export const SIGNALLING_BASE_COLOR = '#a8b0bc';
+
+/**
  * Expression MapLibre : couleur d'une portion selon le mode d'affichage.
  * En mode trafic, `fallback` = la couleur propre de la couche (statut).
  */
 export function modeColorExpr(mode, fallback) {
     if (mode === 'electrification') return electrificationColorExpr();
     if (mode === 'gauge') return gaugeColorExpr();
+    if (mode === 'speed') return speedColorExpr();
+    if (mode === 'signalling') return SIGNALLING_BASE_COLOR;
     return fallback;
 }

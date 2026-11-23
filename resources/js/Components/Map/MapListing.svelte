@@ -11,13 +11,16 @@
      *
      * Props : eras ([{ year, title }] : une ou deux époques, la plus ancienne d'abord), bbox (zone visible
      * [ouest, sud, est, nord] ou null), hidden (catégories masquées dans la légende : leurs lignes ne sont
-     * pas listées), version (version des données), onClose (bouton « Fermer la liste »). Le parent monte le
+     * pas listées), coloring (coloration des tracés dessinée : hors trafic, chaque ligne donne aussi ses
+     * classes, vitesse, électrification, écartement ou signalisation), version (version des données),
+     * onClose (bouton « Fermer la liste »). Le parent monte le
      * composant seulement quand la liste est ouverte : aucune requête n'est faite avant.
      */
     let {
         eras,
         bbox = null,
         hidden = [],
+        coloring = 'traffic',
         version = null,
         onClose = null,
         headingEl = $bindable(),
@@ -92,6 +95,7 @@
                 title={era.title}
                 {bbox}
                 {hidden}
+                {coloring}
                 {onlyLine}
                 {onlyStation}
                 {sort}

@@ -25,12 +25,19 @@ enum TileFields: string
     public const MAP_PROPERTIES = [
         'line_slug', 'line_name', 'line_code', 'is_lgv', 'is_threatened', 'advocacy_kind', 'network', 'status',
         'traffic_type', 'electrified', 'voltage_v', 'electrification_source', 'gauge_class', 'is_heritage',
-        'heritage_kind', 'line_max_speed', 'line_electrified', 'line_voltage_v', 'draw_rank', 'covered',
+        'heritage_kind', 'line_max_speed', 'line_electrified', 'line_voltage_v', 'speed_class', 'draw_rank', 'covered',
     ];
+
+    /**
+     * Version des propriétés de `fields=map`, dans la clé du cache serveur et dans la version des données de la
+     * carte (adresse des tuiles) : à changer quand MAP_PROPERTIES change, pour que les tuiles gardées par le
+     * serveur et par les navigateurs soient recalculées. 2 : ajout de `speed_class` (coloration par vitesse).
+     */
+    public const MAP_FORMAT = 2;
 
     /** Suffixe de la clé de cache : vide pour la réponse par défaut, pour garder les entrées déjà calculées. */
     public function cacheSuffix(): string
     {
-        return $this === self::All ? '' : ":{$this->value}";
+        return $this === self::All ? '' : ":{$this->value}:".self::MAP_FORMAT;
     }
 }

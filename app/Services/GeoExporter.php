@@ -7,6 +7,7 @@ use App\Models\Era;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\Lgv;
 use App\Support\MapTiles;
+use App\Support\SpeedClass;
 use App\Support\TrackPriority;
 use Illuminate\Support\Facades\DB;
 
@@ -244,9 +245,21 @@ class GeoExporter
                     COALESCE(l.max_speed_kmh, ls.max_speed_kmh) AS line_max_speed,
                     COALESCE(l.electrified, ls.electrified) AS line_electrified,
                     COALESCE(l.voltage_v, ls.voltage_v) AS line_voltage_v,
+                    {$this->speedClassSql()} AS speed_class,
                     NULLIF({$drawRank}, 0) AS draw_rank,
                     NULLIF(part.covered, FALSE) AS covered,
         SQL;
+    }
+
+    /**
+     * Classe de vitesse maximale d'une portion en service (coloration « Vitesse maximale » de la carte, voir
+     * App\Support\SpeedClass) : 1 jusqu'à 100 km/h, 2 de 101 à 160, 3 de 161 à 220, 4 au-delà ; NULL (absente
+     * de l'entité) pour une portion sans vitesse connue ou hors service. Un entier sur un octet, pas la vitesse
+     * elle-même : les portions voisines de la même classe restent réunies dans la tuile allégée.
+     */
+    private function speedClassSql(): string
+    {
+        return SpeedClass::sql('ls.max_speed_kmh', "ls.status IN ('in_service', 'single_track', 'service_track')");
     }
 
     /**

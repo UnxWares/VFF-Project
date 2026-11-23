@@ -93,6 +93,8 @@
         signallingPopupHtml,
         signallingTilesUrl,
     } from '$lib/signallingMap.js';
+    // Coloration des tracés : libellés écrits le long des tracés (vitesse, tension, cantonnement).
+    import { COLORING_LABEL_LAYER_ID, coloringLabelLayer } from '$lib/lineColoring.js';
     // Calque facultatif « Voies vertes » (OpenStreetMap, sur d'anciennes emprises), toutes époques.
     import {
         GREENWAY_LAYER_IDS,
@@ -177,7 +179,8 @@
         // menacée, réouverture) décrivent l'état ACTUEL d'une ligne : ils ne
         // s'affichent qu'à cette décennie, jamais sur la carte de 1900 ou 1960.
         currentEra = 2030,
-        // Couleur des tracés : 'traffic' (défaut) | 'electrification' | 'gauge' (cf. MAP_MODES).
+        // Couleur des tracés : 'traffic' (défaut) | 'electrification' | 'gauge' (cf. MAP_MODES), et sur
+        // /maps 'speed' | 'signalling' (MAP_COLORINGS ; la signalisation demande aussi `signalling`).
         mode = 'traffic',
         // Itinéraire historique à tracer (réponse de /api/v1/route) ou null.
         route = null,
@@ -1265,6 +1268,23 @@
                 map.setPaintProperty(target, 'line-color', modeColorExpr(m, lineBaseColor[id]));
             }
         }
+        applyColoringLabels(m);
+    }
+
+    // Libellés de la coloration (lib/lineColoring.js), sous les gares : retirés puis reposés à chaque
+    // changement ; ceux de la signalisation attendent que sa source soit posée (applySignalling).
+    function applyColoringLabels(m) {
+        if (!map || !layersReady) return;
+        if (map.getLayer(COLORING_LABEL_LAYER_ID)) map.removeLayer(COLORING_LABEL_LAYER_ID);
+        const layer = coloringLabelLayer(m, {
+            font: boldLabelFont(map.getStyle().glyphs),
+            lang: get(i18n).language,
+        });
+        if (!layer || !map.getSource(layer.source)) return;
+        map.addLayer(
+            layer,
+            map.getLayer('vff-stations-points') ? 'vff-stations-points' : undefined,
+        );
     }
 
     $effect(() => applyMode(mode));
@@ -1836,6 +1856,7 @@
                 map.on('mouseenter', g.id, () => (map.getCanvas().style.cursor = 'pointer'));
                 map.on('mouseleave', g.id, () => (map.getCanvas().style.cursor = ''));
             }
+            if (mode === 'signalling') applyColoringLabels(mode);
         }
         for (const id of SIGNALLING_LAYER_IDS) setVisibility(id, on);
         const dim = !on ? 1 : year === currentEra ? NETWORK_DIM : NETWORK_DIM_HISTORY;

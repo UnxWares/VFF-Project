@@ -259,6 +259,15 @@ class GeoController extends Controller
      * (déposée ou disparue). `km` est la longueur dans l'emprise (voies parallèles comprises, arrondie à
      * 100 m : un ordre de grandeur). Les lignes sont les plus longues d'abord.
      *
+     * **Coloration** (`color`, facultatif) : chaque ligne porte aussi `classes`, ses classes dans l'emprise avec
+     * leurs kilomètres (les plus longues d'abord ; liste vide si rien n'est connu ou si l'entrée n'est pas en
+     * service). `speed` : `v100` (jusqu'à 100 km/h), `v160` (101 à 160), `v220` (161 à 220), `v220_plus`
+     * (au-delà), `unknown`. `electrification` : `ac25`, `dc1500`, `dc3000`, `ac15`, `low` (1 000 V et moins,
+     * troisième rail), `other`, `unknown_voltage`, `unknown_date` (électrifiée aujourd'hui, date inconnue),
+     * `none`. `gauge` : `standard`, `metre`, `narrow`, `broad`, `unknown`. `signalling` : familles du calque
+     * « Signalisation » (`automatic_block`, `restricted_block`, `manual_block`, `telephone`, `cab`), d'après
+     * SNCF Réseau aujourd'hui et les mises en service datées aux ères passées.
+     *
      * **Gares** (`stations.items`) : par nom, avec le statut de la carte (`active`, `tourist`,
      * `no_commercial`, `uncertain`, `declassified`).
      *
@@ -291,11 +300,12 @@ class GeoController extends Controller
     {
         abort_unless(Era::where('year', $year)->exists(), 404);
         $bbox = $request->bbox();
+        $color = $request->color();
 
         return $this->cache->json(
             $request,
-            "in-view:{$year}:".implode(',', $bbox),
-            fn (): array => $listing->list($year, $bbox),
+            "in-view:{$year}:".implode(',', $bbox).($color === null ? '' : ":{$color}"),
+            fn (): array => $listing->list($year, $bbox, $color),
         );
     }
 
@@ -340,11 +350,13 @@ class GeoController extends Controller
      * (`line_slug`, `line_name`, `line_code`, `is_lgv`, `is_threatened`, `network`,
      * `status`, `traffic_type`, `electrified`, `voltage_v`, `electrification_source`, `gauge_class`,
      * `is_heritage`, `heritage_kind`, `line_max_speed`, `line_electrified`, `line_voltage_v`,
-     * `draw_rank`, `covered`). Sans `id`, `line_id`, `max_speed_kmh`, `gauge_mm`, `electrified_year`,
+     * `speed_class`, `draw_rank`, `covered`). Sans `id`, `line_id`, `max_speed_kmh`, `gauge_mm`, `electrified_year`,
      * `operator`, `source`, `source_trace_id` ni `dismantled_at`. Une propriété sans valeur utile est
      * absente de l'entité : booléen faux (sauf `line_electrified`), `draw_rank` nul, `gauge_class`
      * `unknown`, `voltage_v` d'une portion non électrifiée, `heritage_kind` hors patrimoine ;
      * `electrification_source` ne vaut que `unknown` (électrifiée aujourd'hui, date inconnue) ou manque.
+     * `speed_class` : classe de la vitesse maximale d'une portion en service (1 jusqu'à 100 km/h, 2 de 101
+     * à 160, 3 de 161 à 220, 4 au-delà), absente sans vitesse connue.
      * Les tracés aux propriétés identiques (en général les
      * portions voisines d'une même ligne dans le même état) sont réunis en une entité `MultiLineString`.
      * Le dessin ne change pas ; la tuile du zoom 4 qui couvre l'est de la France passe de 291 à 120 Ko

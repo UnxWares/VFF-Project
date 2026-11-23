@@ -59,7 +59,7 @@ class QueryParameterRobustnessTest extends TestCase
                     ->component($component)
                     ->where('currentEraYear', 2030)
                     ->has('eras', 2)
-                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true, 'open_km' => null])
+                    ->where('eras.0', ['year' => 1960, 'label' => 'Années 1960', 'is_current' => false, 'segment_count' => 1, 'has_data' => true, 'open_km' => null, 'colorings' => ['electrification', 'speed']])
                     ->where('eras.1.is_current', true));
         }
     }
@@ -69,7 +69,7 @@ class QueryParameterRobustnessTest extends TestCase
         $version = fn () => $this->get('/maps')->viewData('page')['props']['dataVersion'];
 
         $before = $version();
-        $this->assertMatchesRegularExpression('/^\d+-2$/', $before);
+        $this->assertMatchesRegularExpression('/^\d+-2-m\d+$/', $before);
 
         DB::table('line_segments')->update(['updated_at' => now()->addMinute()]);
         $this->assertNotSame($before, $version());

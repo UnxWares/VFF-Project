@@ -118,6 +118,42 @@ return [
         'traffic' => 'Verkehr',
         'electrification' => 'Elektrifizierung',
         'gauge' => 'Spurweite',
+        'speed' => 'Geschwindigkeit',
+        'signalling' => 'Signaltechnik',
+    ],
+
+    // Thematische Einfärbung der Strecken (Auswahl „Strecken einfärben nach“, lib/lineColoring.js).
+    'coloring' => [
+        'speed_title' => 'Höchstgeschwindigkeit in dieser Epoche',
+        'speed' => [
+            'v100' => 'Bis 100 km/h',
+            'v160' => '100 bis 160 km/h',
+            'v220' => '160 bis 220 km/h',
+            'v220_plus' => 'Über 220 km/h',
+            'unknown' => 'Geschwindigkeit nicht erfasst',
+        ],
+        'speed_note' => 'Von SNCF Réseau veröffentlichte Streckenhöchstgeschwindigkeit, Abschnitt für Abschnitt. 2020 dieselbe Geschwindigkeit, außer auf seitdem geänderten Abschnitten (ohne Angabe).',
+        'labels_note' => 'Beim Hineinzoomen steht der Wert auch entlang der Strecken.',
+        'fallback' => 'Die Karte zeigt den Verkehr.',
+        'unavailable' => [
+            'speed' => 'Geschwindigkeit: nur für :years bekannt.',
+            'speed_none' => 'Geschwindigkeit: noch nicht bekannt.',
+            'electrification' => 'Elektrifizierung: nur für :years bekannt.',
+            'electrification_none' => 'Elektrifizierung: noch nicht bekannt.',
+            'signalling' => 'Signaltechnik: nur für :years bekannt.',
+            'signalling_none' => 'Signaltechnik: noch nicht bekannt.',
+            'one_era' => 'Signaltechnik: jeweils nur eine Epoche, nicht mit dem Vorhang.',
+        ],
+        'years_and' => ':head und :last',
+        'years_range' => 'von :from bis :to',
+        'listing_none' => 'nicht erfasst',
+        'listing_part' => ':label (:km km)',
+        'listing_label' => [
+            'speed' => 'Höchstgeschwindigkeit:',
+            'electrification' => 'Elektrifizierung:',
+            'gauge' => 'Spurweite:',
+            'signalling' => 'Signaltechnik:',
+        ],
     ],
 
     'electrification' => [
@@ -243,7 +279,7 @@ return [
         'era_term' => 'Epoche',
         'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander bis heute, mit der Länge der Strecken in Betrieb in jeder Epoche; jede Geste auf der Karte hält sie an, und die Tasten für das vorherige und das nächste Jahrzehnt gehen Schritt für Schritt. Je älter die Epoche, desto mehr geht die Hintergrundkarte ins Sepia; mit dem Kästchen „Ältere Epochen tönen“ unter der Schaltfläche „Ebenen“ schalten Sie die Tönung ab.',
         'color_term' => 'Farbe',
-        'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
+        'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Auswahl Geschwindigkeit, Elektrifizierung, Signaltechnik und Spurweite der Legende färbt dieselben Strecken nach Höchstgeschwindigkeit, Spannung, Zugfolgesicherung oder Spurweite, für die Epochen, zu denen datierte Daten vorliegen; die Adresse behält die Auswahl (zum Beispiel ?color=speed).',
         'line_term' => 'Linie',
         'line_text' => 'Durchgezogene Linie: Strecke in Betrieb. Rot gestrichelt: stillgelegte Strecke, deren Gleis noch vorhanden ist. Grau gepunktet: Gleis abgebaut oder Trasse beseitigt.',
         'sheet_term' => 'Streckenseiten',

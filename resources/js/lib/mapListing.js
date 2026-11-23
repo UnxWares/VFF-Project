@@ -82,9 +82,13 @@ export function isTooWide(bbox) {
     return bbox[2] - bbox[0] > MAX_LON_SPAN || bbox[3] - bbox[1] > MAX_LAT_SPAN;
 }
 
-/** Adresse de la liste d'une ère pour une emprise. */
-export function listingUrl(year, bbox, version = null) {
+/**
+ * Adresse de la liste d'une ère pour une emprise ; avec une coloration des tracés autre que le trafic
+ * (`color`), chaque ligne porte aussi ses classes (`classes`).
+ */
+export function listingUrl(year, bbox, version = null, color = null) {
     const query = new URLSearchParams({ bbox: bbox.join(',') });
+    if (color && color !== 'traffic') query.set('color', color);
     if (version) query.set('v', version);
     return `/api/v1/eras/${year}/in-view?${query}`;
 }

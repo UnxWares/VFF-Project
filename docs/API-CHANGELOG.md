@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Carte : paramètre `color` (`speed`, `electrification`, `gauge`, `signalling`) de `GET /api/v1/eras/{year}/in-view` : chaque ligne
+  porte alors `classes` (`key`, `km`), ses classes dans l'emprise ; `color` inconnu : 422. Tuiles allégées (`fields=map`) : propriété
+  `speed_class` (1 à 4, absente sans vitesse connue). Ajout seul.
 - Carte : `GET /api/v1/what-was-here?lat=&lng=&year=` (« Qu'y avait-il ici ? », panneau de la carte `/maps`) : autour d'un point et pour
   une année, les lignes présentes avec leur état à l'ère, leur PK et leur gare la plus proche, les gares proches, la signalisation, le
   matériel daté, les événements et les accidents de l'année, avec source et lien de chaque fait. Même service que l'outil MCP
