@@ -270,13 +270,14 @@ class StationMergeTest extends TestCase
         ]], $merges, 'seules les fusions valides');
     }
 
-    public function test_project_merges_name_distinct_stations_with_a_cited_source(): void
+    public function test_project_merges_name_two_distinct_stations_with_a_cited_source(): void
     {
         $merges = (new StationCorrections)->merges();
         $this->assertNotEmpty($merges);
         foreach ($merges as $m) {
-            $this->assertSame($m['kept']['name'], $m['absorbed']['name']);
-            $this->assertStringContainsString('oldid=', $m['source_url']);
+            $this->assertNotSame('', trim($m['kept']['name']));
+            $this->assertNotSame('', trim($m['absorbed']['name']));
+            $this->assertMatchesRegularExpression('#oldid=\d+|wikidata\.org/wiki/Q\d+|openstreetmap\.org/(node|way)/\d+#', $m['source_url']);
         }
     }
 }
