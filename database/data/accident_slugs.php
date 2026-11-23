@@ -95,4 +95,5 @@ return [
     ['key' => 'wikipedia:fr:1900-05-30-saint-petersbourg-a78cd435', 'from' => '1900-05-30-tergnier', 'slug' => '1900-05-30-jussy', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1920-09-19-arles-sur-tech-1d17bab1', 'from' => '1920-09-19-arles-sur-tech', 'slug' => '1920-09-19-amelie-les-bains-palalda', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1935-07-01-loudun-94ace121', 'from' => '1935-07-01-loudun', 'slug' => '1935-07-01-cernay', 'reason' => 'commune corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1910-09-20-la-faloise-296562e4', 'from' => '1910-09-20-breteuil', 'slug' => '1910-09-20-la-faloise', 'reason' => 'commune corrigée d\'après les documents du contexte'],
 ];

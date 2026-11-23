@@ -1,9 +1,9 @@
 <?php
 
-// Contexte sourcé de l'accident de la voie entre Breteuil et La Faloise du 20 septembre 1910 (recherche du 22/11/2026).
+// Contexte sourcé de l'accident de la voie de La Faloise (Somme) du 20 septembre 1910 (recherches des 22 et 23/11/2026).
 return [
-    'slug' => '1910-09-20-breteuil',
-    'checked_on' => '2026-11-22',
+    'slug' => '1910-09-20-la-faloise',
+    'checked_on' => '2026-11-23',
     'sources' => [
         'wp-liste-1910' => [
             'provider' => 'wikipedia',
@@ -61,14 +61,28 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Même dépêche reprise : trois agents de la voie tués par un rapide près d\'Amiens.',
         ],
+        'richesses-somme-monument' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Albert Roze, sculpteur : monuments aux morts, La Faloise (monument aux cantonniers)',
+            'publisher' => 'Richesses en Somme, petit patrimoine en pays de Somme',
+            'author' => null,
+            'published' => null,
+            'locator' => 'La Faloise, canton d\'Ailly-sur-Noye',
+            'url' => 'https://www.richesses-en-somme.com/sculptures/albert-roze-sculpteur/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Site local du patrimoine de la Somme : à La Faloise, monument aux cantonniers « tués à cet endroit » le 20 septembre 1910, inauguré en juin 1912 ; Adolphe Cras et Alcide Foy sont morts en voulant sauver leur camarade Jean Hein, dont la main était coincée entre le rail et la traverse.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
             [
-                'fr' => 'Le 20 septembre 1910, quatre ouvriers de l\'entretien de la voie travaillaient sur la ligne de Paris à Calais, entre Breteuil et La Faloise d\'après la liste de Wikipédia, « près d\'Amiens » d\'après la presse néerlandaise. L\'un d\'eux a vu arriver un train rapide.',
-                'en' => 'On 20 September 1910, four track maintenance workers were at work on the Paris to Calais line, between Breteuil and La Faloise according to the Wikipedia list, "near Amiens" according to the Dutch press. One of them saw a fast train approaching.',
-                'de' => 'Am 20. September 1910 arbeiteten vier Gleisarbeiter auf der Strecke Paris-Calais, nach der Wikipedia-Liste zwischen Breteuil und La Faloise, nach der niederländischen Presse „bei Amiens“. Einer von ihnen sah einen Schnellzug nahen.',
-                'sources' => ['wp-liste-1910', 'delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg'],
+                'fr' => 'Le 20 septembre 1910, quatre ouvriers de l\'entretien de la voie travaillaient sur la ligne de Paris à Calais, à La Faloise (Somme) d\'après la liste de Wikipédia et le monument local, « près d\'Amiens » d\'après la presse néerlandaise. L\'un d\'eux a vu arriver un train rapide.',
+                'en' => 'On 20 September 1910, four track maintenance workers were at work on the Paris to Calais line, at La Faloise (Somme) according to the Wikipedia list and the local monument, "near Amiens" according to the Dutch press. One of them saw a fast train approaching.',
+                'de' => 'Am 20. September 1910 arbeiteten vier Gleisarbeiter auf der Strecke Paris-Calais, nach der Wikipedia-Liste und dem örtlichen Denkmal in La Faloise (Somme), nach der niederländischen Presse „bei Amiens“. Einer von ihnen sah einen Schnellzug nahen.',
+                'sources' => ['wp-liste-1910', 'richesses-somme-monument', 'delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg'],
             ],
         ],
         'course' => [
@@ -81,22 +95,30 @@ return [
         ],
         'victims' => [
             [
-                'fr' => 'Trois agents de la voie sont morts, écrasés par le train. Les trois journaux néerlandais s\'accordent sur ce bilan.',
-                'en' => 'Three track workers died, run over by the train. The three Dutch newspapers agree on this toll.',
-                'de' => 'Drei Gleisarbeiter starben, vom Zug überfahren. Die drei niederländischen Zeitungen stimmen in dieser Zahl überein.',
-                'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem'],
+                'fr' => 'Trois agents de la voie sont morts, écrasés par le train. Les trois journaux néerlandais s\'accordent sur ce bilan. Le site Richesses en Somme nomme les victimes : Adolphe Cras et Alcide Foy, morts en voulant secourir leur camarade Jean Hein, dont la main était coincée entre le rail et la traverse.',
+                'en' => 'Three track workers died, run over by the train. The three Dutch newspapers agree on this toll. The Richesses en Somme site names the victims: Adolphe Cras and Alcide Foy, who died trying to save their comrade Jean Hein, whose hand was caught between the rail and the sleeper.',
+                'de' => 'Drei Gleisarbeiter starben, vom Zug überfahren. Die drei niederländischen Zeitungen stimmen in dieser Zahl überein. Die Seite Richesses en Somme nennt die Opfer: Adolphe Cras und Alcide Foy, die beim Versuch starben, ihren Kameraden Jean Hein zu retten, dessen Hand zwischen Schiene und Schwelle eingeklemmt war.',
+                'sources' => ['delpher-1910-09-23-tilburg', 'delpher-1910-09-24-tilburg', 'delpher-1910-09-23-haarlem', 'richesses-somme-monument'],
             ],
         ],
         'disagreements' => [
             [
-                'fr' => 'La nature n\'est pas celle d\'une collision : la liste de Wikipédia ne la précise pas, et la presse décrit des agents happés par un train. Le lieu reste à préciser : la liste cite La Faloise (Somme), la presse « près d\'Amiens », et la fiche est placée à Breteuil (Oise), à confirmer.',
-                'en' => 'The nature is not that of a collision: the Wikipedia list does not specify it, and the press describes workers struck by a train. The place remains to be pinned down: the list cites La Faloise (Somme), the press "near Amiens", and the record is placed at Breteuil (Oise), to be confirmed.',
-                'de' => 'Die Art ist nicht die eines Zusammenstoßes: Die Wikipedia-Liste nennt sie nicht, und die Presse beschreibt vom Zug erfasste Arbeiter. Der Ort bleibt zu klären: Die Liste nennt La Faloise (Somme), die Presse „bei Amiens“, und der Datensatz liegt in Breteuil (Oise), zu bestätigen.',
-                'sources' => ['wp-liste-1910', 'delpher-1910-09-23-tilburg'],
+                'fr' => 'La nature n\'est pas celle d\'une collision : la liste de Wikipédia ne la précise pas, et la presse décrit des agents happés par un train. Le lieu est tranché par une source locale : le monument aux cantonniers se trouve à La Faloise (Somme), où la liste place aussi l\'accident ; « près d\'Amiens » dans la presse néerlandaise est approximatif, et la fiche, d\'abord placée à Breteuil (Oise), est déplacée à La Faloise.',
+                'en' => 'The nature is not that of a collision: the Wikipedia list does not specify it, and the press describes workers struck by a train. The place is settled by a local source: the track workers\' monument stands at La Faloise (Somme), where the list also places the accident; "near Amiens" in the Dutch press is approximate, and the record, first placed at Breteuil (Oise), is moved to La Faloise.',
+                'de' => 'Die Art ist nicht die eines Zusammenstoßes: Die Wikipedia-Liste nennt sie nicht, und die Presse beschreibt vom Zug erfasste Arbeiter. Der Ort wird durch eine örtliche Quelle geklärt: Das Denkmal für die Gleisarbeiter steht in La Faloise (Somme), wo auch die Liste den Unfall verortet; „bei Amiens“ in der niederländischen Presse ist ungenau, und der zunächst in Breteuil (Oise) verortete Datensatz wird nach La Faloise verlegt.',
+                'sources' => ['wp-liste-1910', 'richesses-somme-monument', 'delpher-1910-09-23-tilburg'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '80299',
+            'sources' => ['richesses-somme-monument', 'wp-liste-1910'],
+            'fr' => 'Le monument aux cantonniers morts le 20 septembre 1910 se trouve à La Faloise (Somme), où la liste de Wikipédia place aussi l\'accident : la fiche quitte Breteuil (Oise) pour La Faloise.',
+            'en' => 'The monument to the track workers killed on 20 September 1910 stands at La Faloise (Somme), where the Wikipedia list also places the accident: the record moves from Breteuil (Oise) to La Faloise.',
+            'de' => 'Das Denkmal für die am 20. September 1910 getöteten Gleisarbeiter steht in La Faloise (Somme), wo auch die Wikipedia-Liste den Unfall verortet: Der Datensatz wechselt von Breteuil (Oise) nach La Faloise.',
+        ],
         [
             'field' => 'kind',
             'value' => 'person_struck',
