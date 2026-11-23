@@ -32,6 +32,9 @@ final class MapDataCache
     /** Durée de vie d'une entrée (s). */
     public const TTL = 6 * 3600;
 
+    /** Durée de vie d'une entrée réchauffée (s) : un jour, pour couvrir la journée qui suit l'application du moteur. */
+    public const WARM_TTL = 24 * 3600;
+
     /** Durée pendant laquelle la version des données est réutilisée sans être relue (s). */
     public const VERSION_TTL = 60;
 
@@ -76,6 +79,30 @@ final class MapDataCache
             'Content-Type' => 'application/x-protobuf',
             'Access-Control-Allow-Origin' => '*',
         ]);
+    }
+
+    /**
+     * Remplit le cache d'une tuile sans requête HTTP (réchauffage, vff:warm-tiles), sous la même clé que
+     * tile(). Renvoie null si l'entrée existe déjà (sauf `$refresh`), sinon sa taille en octets (gzip).
+     *
+     * @param  Closure(): string  $compute
+     */
+    public function warmTile(string $key, Closure $compute, bool $refresh = false): ?int
+    {
+        $cacheKey = "map-data:{$this->version()}:tile:{$key}";
+        if (! $refresh && Cache::has($cacheKey)) {
+            return null;
+        }
+        $packed = self::pack($compute());
+        Cache::put($cacheKey, $packed, self::WARM_TTL);
+
+        return strlen($packed);
+    }
+
+    /** Une tuile de cette clé est-elle déjà gardée (pour le dry-run du réchauffage) ? */
+    public function hasTile(string $key): bool
+    {
+        return Cache::has("map-data:{$this->version()}:tile:{$key}");
     }
 
     /**

@@ -776,3 +776,13 @@ journal de bord ([REDACTION.md](REDACTION.md)), plans du site (`/sitemap.xml`, `
 
 Pas de commande artisan : `scripts/basemap-pmtiles.sh [zone] [zoom] [date]` construit l'archive PMTiles
 (`DRY_RUN=1` pour mesurer). Détails, réglages et service : [FOND-DE-CARTE.md](FOND-DE-CARTE.md).
+
+## Carte
+
+### `vff:warm-tiles`
+
+Remplit le cache serveur (Valkey) des tuiles de la carte aux petits zooms (0 à 6 par défaut) pour toutes les ères, sous la clé de la route `GET /api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`. Sans elle, la première visite après un recalcul des données paie 0,5 à 1 s par tuile (2 à 3 s sous charge) ; une tuile réchauffée vit 24 h. Seules les tuiles qui touchent l'emprise des tracés sont calculées (22 par ère jusqu'au zoom 6, 462 pour les 22 ères). Ne modifie aucune table.
+
+- `--era=` (répétable), `--max-zoom=6` (0 à 10), `--fields=map|all|both` (défaut `map`, ce que lit la carte du site), `--pause-ms=50` et `--statement-timeout=30` (débit borné), `--refresh` (recalcule aussi l'existant), `--dry-run` (compte, ne calcule rien).
+- Durée et place mesurées le 23/11/2026 : environ 0,2 à 0,5 s par tuile, 1 Mo gzip par ère (0,5 à 1,3), soit 2 à 3 minutes et une vingtaine de Mo pour `map` ; trois fois plus avec `both`.
+- À lancer à la main ou en dernière ligne de l'application du moteur (aucun cron) : `bin/php artisan vff:warm-tiles`. La clé contient la version des données (`map-data:version`, relue toutes les 60 s) : lancer après la dernière écriture.

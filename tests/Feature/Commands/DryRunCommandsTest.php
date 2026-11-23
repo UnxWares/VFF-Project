@@ -39,7 +39,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-station-accessibility', 'vff:import-station-closures', 'vff:import-station-heritage', 'vff:import-station-names', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-structures', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:neutralize-line-slugs', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:probe-aerial-coverage', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
-        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:select-home-images', 'vff:snap-stations', 'vff:verify-accidents',
+        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:select-home-images', 'vff:snap-stations', 'vff:verify-accidents', 'vff:warm-tiles',
     ];
 
     /** Arguments supplémentaires nécessaires à certaines commandes. */
