@@ -157,6 +157,8 @@ class LineSchematicApiTest extends TestCase
         $this->getJson('/api/v1/lines/inconnue/schematic')->assertNotFound();
         $this->getJson('/api/v1/lines/rfn-990000/schematic?era=1835')->assertNotFound();
         $this->getJson('/api/v1/lines/rfn-990000/schematic?era=abc')->assertUnprocessable();
+        // Un entier qui ne tient pas dans la colonne `year` : refusé (422), pas une erreur de la base (500).
+        $this->getJson('/api/v1/lines/rfn-990000/schematic?era=99999999999')->assertUnprocessable();
     }
 
     public function test_the_schematic_is_served_from_the_cache_on_the_second_call(): void

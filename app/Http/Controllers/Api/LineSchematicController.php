@@ -93,7 +93,7 @@ class LineSchematicController extends Controller
     #[ApiResponse(404, 'Ligne ou ère inconnue.')]
     public function show(Line $line, Request $request): JsonResponse
     {
-        $request->validate(['era' => 'nullable|integer']);
+        $request->validate(['era' => 'nullable|integer|between:1800,2100']);
 
         $era = $request->filled('era')
             ? Era::where('year', $request->integer('era'))->firstOrFail()
