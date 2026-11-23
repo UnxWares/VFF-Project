@@ -220,6 +220,11 @@
         'locate_on_line',
         'signalling_history',
         'list_departments',
+        'what_was_here',
+        'network_in_area',
+        'compare_line_eras',
+        'line_stops',
+        'station_aerial',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.
