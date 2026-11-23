@@ -152,6 +152,12 @@ final class SignallingHistoryExtractor
         return $this->deduplicated(array_map($this->withCleanPlaces(...), $facts));
     }
 
+    /** Texte brut d'un article, tel que l'extracteur le lit (pour retrouver la phrase d'un complément relu). */
+    public function plainText(string $wikitext, string $title): string
+    {
+        return $this->parser->toPlainText($wikitext, $title);
+    }
+
     /**
      * Lieux de la portion sans le système qui les précède : « Le BAPR de Rezé » → « Rezé ». Un lieu qui
      * n'est plus qu'un système, ou vide, est retiré ; une portion sans lieu ni PK n'est plus une portion.

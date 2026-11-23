@@ -657,7 +657,17 @@ dans `database/data/signalling_history_sources.php`. Les deux ne touchent que `l
 | `--dry-run` | Affiche le bilan sans écrire (avec `-v`, les faits ; un fait corrigé y apparaît en fiabilité `hidden`). |
 | `--corrections=` | Autre fichier de corrections que celui de `database/data/`. |
 | `--line=`, `--limit=`, `--offline`, `--refresh`, `--cache-dir=` | Import Wikipédia seulement : lignes lues, articles du cache. |
+| `--supplements=` | Import Wikipédia seulement : autre fichier de faits relus que celui de `database/data/`. |
 | `--file=` | Import des documents seulement : autre fichier de faits. |
+
+Faits relus (`database/data/signalling_history_wikipedia_supplements.php`, contrôlé par
+`App\Services\Signalling\SignallingSupplementsFile`) : l'import Wikipédia range aussi les faits que l'extracteur prudent
+laisse passer et qu'une personne a relus dans l'article de la ligne, d'une gare ou d'une LGV. Chaque fait porte sa phrase
+(`quote`, liens ôtés, tirets écrits « - ») ; elle est cherchée dans l'article en cache à chaque import, absente (l'article
+a changé) la commande échoue après son bilan et ne range pas le fait. Le fait est rangé comme un fait de Wikipédia (source
+Wikipédia, permalien de la révision lue, origine `text`, fiabilité `high` pour un jour ou un mois, `medium` pour une année).
+Un complément se neutralise par une correction comme tout fait de Wikipédia. Un complément d'une ligne absente de la base
+est ignoré.
 
 Une correction vise un fait par sa ligne, son système, sa date et sa portion, et porte une action, des sources (un
 document officiel ou deux sites différents), une citation et une raison :

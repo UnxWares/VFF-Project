@@ -6,6 +6,7 @@ use App\Services\Signalling\SignallingCorrectionsFile;
 use App\Services\Signalling\SignallingHistoryExtractor;
 use App\Services\Signalling\SignallingHistoryMap;
 use App\Services\Signalling\SignallingSectionLocator;
+use App\Services\Signalling\SignallingSupplementsFile;
 use App\Services\Signalling\WikipediaArticleCache;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
@@ -31,6 +32,11 @@ use Illuminate\Support\Facades\DB;
  * de Wikipédia qu'une correction vise reste en base mais n'est plus montré (`confidence = 'hidden'`, colonne
  * `correction`) ; un fait visé introuvable est une erreur (la commande échoue après le bilan).
  *
+ * Compléments relus (`database/data/signalling_history_wikipedia_supplements.php`, SignallingSupplementsFile) :
+ * faits que l'extracteur laisse passer et qu'une personne a relus dans l'article, avec leur phrase. La phrase
+ * est cherchée dans l'article lu (cache) : absente, la commande échoue, le fait n'est pas rangé. Le fait est
+ * rangé comme les faits extraits (source Wikipédia, révision lue, origine `text`).
+ *
  * Deuxième passe (soirée du 19/11/2026) : l'infobox et les tableaux sont lus aussi, la TVM d'une LGV est datée
  * de son ouverture (SignallingInfoboxReader), chaque portion nommée est placée sur la ligne par ses gares
  * d'extrémité et leurs PK calés (SignallingSectionLocator), puis la carte par ère est recalculée
@@ -49,6 +55,7 @@ class ImportSignallingHistory extends Command
         {--refresh : redemande les articles même s\'ils sont en cache}
         {--cache-dir= : dossier du cache des articles}
         {--corrections= : fichier des corrections (défaut : database/data/signalling_history_corrections.php)}
+        {--supplements= : fichier des compléments relus (défaut : database/data/signalling_history_wikipedia_supplements.php)}
         {--dry-run : n\'écrit rien en base, affiche le bilan (et les faits avec -v)}';
 
     protected $description = 'Range les mises en service de signalisation (BAL, BAPR, BM, CT, TVM, ETCS, KVB) datées dans les articles Wikipédia des lignes, les place sur le tracé et recalcule la carte par ère.';
@@ -60,6 +67,10 @@ class ImportSignallingHistory extends Command
             return self::FAILURE;
         }
         $this->corrections = $loaded;
+        $supplements = $this->supplements();
+        if ($supplements === null) {
+            return self::FAILURE;
+        }
         $lines = $this->lines();
         if ($lines === []) {
             $this->error('Aucune ligne avec un article Wikipédia.');
@@ -69,7 +80,7 @@ class ImportSignallingHistory extends Command
         $this->info('Lignes avec un article : '.count($lines));
 
         $cache = new WikipediaArticleCache($wiki, $this->option('cache-dir') ?: WikipediaArticleCache::defaultDirectory());
-        $titles = array_values(array_unique(array_column($lines, 'wikipedia_title')));
+        $titles = array_values(array_unique([...array_column($lines, 'wikipedia_title'), ...array_values(array_filter(array_column($supplements, 'article')))]));
         if (! $this->option('offline')) {
             $asked = $cache->fill($titles, (bool) $this->option('refresh'), fn (int $done, int $all) => $this->line("  Wikipédia : lot {$done}/{$all}"));
             $this->line("  Articles demandés à Wikipédia : {$asked} (le reste vient du cache)");
@@ -80,7 +91,7 @@ class ImportSignallingHistory extends Command
             ->groupBy('wikipedia_title')->selectRaw('wikipedia_title, COUNT(*) AS n')->pluck('n', 'wikipedia_title')->map(fn ($n): int => (int) $n)->all();
         $readIds = [];
         $readRefs = [];
-        $stats = ['read' => 0, 'missing' => 0, 'rejected' => 0, 'with_facts' => 0, 'facts' => 0, 'removed' => 0, 'confidence' => [], 'system' => [], 'origin' => [], 'location' => []];
+        $stats = ['quote_missing' => [], 'read' => 0, 'missing' => 0, 'rejected' => 0, 'with_facts' => 0, 'facts' => 0, 'removed' => 0, 'confidence' => [], 'system' => [], 'origin' => [], 'location' => []];
         $dry = (bool) $this->option('dry-run');
 
         foreach ($lines as $line) {
@@ -106,6 +117,25 @@ class ImportSignallingHistory extends Command
                 // Article de plusieurs lignes : on ne sait pas à laquelle le fait s'applique. Sauf la TVM d'une
                 // LGV datée de son ouverture : elle équipe toutes les lignes de l'article.
                 $facts = array_map(fn (array $f) => $f['origin'] === 'opening' ? $f : ['confidence' => 'low'] + $f, $facts);
+            }
+            // Les compléments relus de la ligne : phrase retrouvée dans l'article lu, sinon la commande échoue après le bilan.
+            foreach ($supplements as $k => $s) {
+                if (! in_array($s['line'], array_filter([$line['code'], $line['slug']]), true)) {
+                    continue;
+                }
+                $source = $s['article'] === null ? $article : $cache->get($s['article']);
+                if ($source === null || ! SignallingSupplementsFile::quoteIn($s['quote'], $extractor->plainText($source['content'], $source['title']))) {
+                    $stats['quote_missing'][] = sprintf('%s %s %s : « %s »', $s['line'], $s['system'], $s['date'], mb_substr($s['quote'], 0, 60));
+
+                    continue;
+                }
+                $this->supplemented[$k] = true;
+                $facts[] = [
+                    'system' => $s['system'], 'role' => $s['role'], 'date' => $s['date'], 'precision' => $s['precision'], 'scope' => $s['scope'],
+                    'section_from' => $s['section_from'], 'section_to' => $s['section_to'], 'pk_start_m' => null, 'pk_end_m' => null,
+                    'confidence' => $s['confidence'], 'origin' => 'text', 'excerpt' => $s['quote'],
+                    'article' => ['title' => $source['title'], 'revid' => $source['revid']],
+                ];
             }
             $rows = $this->rows($line, $article, $facts, $locator, ! $dry);
             if ($rows !== []) {
@@ -164,8 +194,21 @@ class ImportSignallingHistory extends Command
         foreach ($unused as $label) {
             $this->error("Correction sans fait visé : {$label} (l'article a changé ?)");
         }
+        // Un complément dont la ligne a été lue mais dont la phrase n'est plus dans l'article, ou dont la ligne n'est pas lue du tout.
+        $lost = $stats['quote_missing'];
+        $inBaseRefs = DB::table('lines')->whereIn('code', array_column($supplements, 'line'))->orWhereIn('slug', array_column($supplements, 'line'))->get(['code', 'slug'])
+            ->flatMap(fn ($l): array => [$l->code, $l->slug])->filter()->all();
+        foreach ($supplements as $k => $s) {
+            // Une ligne absente de la base (copie partielle) n'est pas une erreur : il n'y a rien à compléter.
+            if (! isset($this->supplemented[$k]) && $whole && in_array($s['line'], $inBaseRefs, true) && ! in_array($s['line'], $readRefs, true)) {
+                $lost[] = sprintf('%s %s %s : ligne non lue (article absent, partagé ou d\'une autre ligne)', $s['line'], $s['system'], $s['date']);
+            }
+        }
+        foreach ($lost as $label) {
+            $this->error("Complément sans phrase retrouvée : {$label} (l'article a changé ?)");
+        }
 
-        return $unused === [] ? self::SUCCESS : self::FAILURE;
+        return $unused === [] && $lost === [] ? self::SUCCESS : self::FAILURE;
     }
 
     /** @var list<array<string, mixed>> */
@@ -173,6 +216,41 @@ class ImportSignallingHistory extends Command
 
     /** @var array<int, true> corrections appliquées pendant cette passe (indices) */
     private array $applied = [];
+
+    /** @var array<int, true> compléments relus rangés pendant cette passe (indices) */
+    private array $supplemented = [];
+
+    /**
+     * Compléments relus du fichier, ou null (erreur affichée) s'il est illisible ou contient un fait refusé.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function supplements(): ?array
+    {
+        $path = $this->option('supplements') ?: SignallingSupplementsFile::defaultPath();
+        if (! is_file($path)) {
+            $this->error("Fichier des compléments introuvable : {$path}");
+
+            return null;
+        }
+        $entries = require $path;
+        if (! is_array($entries)) {
+            $this->error('Le fichier des compléments doit renvoyer une liste.');
+
+            return null;
+        }
+        ['facts' => $facts, 'errors' => $errors] = SignallingSupplementsFile::parse(array_values($entries));
+        foreach ($errors as $error) {
+            $this->warn('  Refusé : '.$error);
+        }
+        if ($errors !== []) {
+            $this->error(count($errors).' complément(s) refusé(s) : corrigez le fichier, rien n\'est écrit.');
+
+            return null;
+        }
+
+        return $facts;
+    }
 
     /**
      * Corrections du fichier, ou null (erreur affichée) s'il est illisible ou contient une correction refusée.
@@ -234,9 +312,11 @@ class ImportSignallingHistory extends Command
     private function rows(array $line, array $article, array $facts, SignallingSectionLocator $locator, bool $withGeometry): array
     {
         $now = now();
-        $url = WikimediaClient::permalink($article['title'], $article['revid']);
         $rows = [];
         foreach ($facts as $f) {
+            // Un complément relu peut venir d'un autre article que celui de la ligne (article d'une gare, d'une LGV).
+            $source = $f['article'] ?? $article;
+            $url = WikimediaClient::permalink($source['title'], $source['revid']);
             $fingerprint = sha1(implode('|', [$line['id'], $f['system'], $f['date'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']]));
             $place = $locator->locate($line['id'], $f['scope'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']);
             $geometry = $withGeometry && $place['pk_start_m'] !== null ? $locator->geometry($line['code'], $place['pk_start_m'], (int) $place['pk_end_m']) : null;
@@ -268,8 +348,8 @@ class ImportSignallingHistory extends Command
                 'correction' => $correction === null ? null : SignallingCorrectionsFile::stored($correction),
                 'origin' => $f['origin'],
                 'source' => 'wikipedia',
-                'source_title' => $article['title'],
-                'source_revision' => $article['revid'],
+                'source_title' => $source['title'],
+                'source_revision' => $source['revid'],
                 'source_url' => $url,
                 'source_excerpt' => $f['excerpt'],
                 'fingerprint' => $fingerprint,
