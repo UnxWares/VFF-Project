@@ -134,6 +134,9 @@ class SingleAxis
     /** Bout libre qui dépasse le croisement avec une autre portion de la ligne en la longeant (< NEAR_M) : longueur max coupée (m). */
     public const CROSS_STUB_MAX_M = 30.0;
 
+    /** Bulle au bout d'une portion (cf. trimEndBubbles) : côté plus court ignoré (géométrie d'aiguillage) (m). */
+    public const BUBBLE_MIN_M = 10.0;
+
     /** Fragment isolé (cf. dropIsolatedFragments) : longueur max retirée (m), = MIN_PART_M de vff:build-line-references. */
     public const ISOLATED_MAX_M = 60.0;
 
@@ -221,6 +224,10 @@ class SingleAxis
      *      qui dépasse de moins de CROSS_STUB_MAX_M le point où elle croise une
      *      autre portion de la ligne, en la longeant à moins de NEAR_M, est coupé
      *      au croisement (deux tracés de la même voie qui se croisent en biais).
+     *   1 quater. Bulles au bout d'une portion longue (cf. trimEndBubbles) : de
+     *      deux chemins de moins de MIN_RUN_M entre les deux mêmes nœuds, à moins
+     *      de NEAR_M l'un de l'autre, celui qui longe le dessin d'une autre ligne
+     *      part (voie de cette ligne empruntée deux fois), sans contact perdu.
      *   2. Recollage exact : les extrémités à moins de SNAP_M l'une de l'autre
      *      prennent les mêmes coordonnées, au bit près ; une extrémité posée sur
      *      une portion (raccord en T) devient un sommet de celle-ci. Sinon le
@@ -240,7 +247,7 @@ class SingleAxis
      * tracé source retirés sont listés dans line_reference_duplicates (cause
      * « superposition », ou « fragment isolé »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m et bubble_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
      */
     public function tidy(int $lineId): array
     {
@@ -265,6 +272,7 @@ class SingleAxis
         $records = $this->trimCoincident($stats);
         $this->dropNearDuplicates($stats, $records);
         $this->trimCrossedStubs($stats, $records);
+        $this->trimEndBubbles($lineId, $stats, $records);
         $stats['snapped'] = $this->snapEnds();
 
         // Portions dégénérées, puis doublons exacts (après recollage) : la moins fiable / la plus courte part.
@@ -554,6 +562,106 @@ class SingleAxis
             // Compté à part (pas dans superposed_m) : vff:build-line-references affiche les deux postes côte à côte.
             $stats['crossed_m'] = ($stats['crossed_m'] ?? 0) + (float) $c->stub;
         }
+    }
+
+    /**
+     * Bulles courtes au bout d'une portion longue (cf. tidy, 1 quater). L'extrémité P de la portion A est posée sur la
+     * portion B (raccord en T), et A rejoint l'extrémité Q de B à moins de MIN_RUN_M de P en la longeant à moins de NEAR_M
+     * (au moins NEAR_SHARE de chaque côté) : de P à Q, la ligne est dessinée deux fois, une bulle entre les deux mêmes
+     * nœuds (deux tronçons en double à chaque ère). dropNearDuplicates ne la voit pas : A est longue (Lyon-Perrache,
+     * 830000 : 33 m de la voie convergente de 750000 au début d'une portion de 2,4 km, à 3 m de la voie de 830000,
+     * rejeu du 23/11/2026). Seule une bulle dont un côté longe le dessin d'une autre ligne est retirée : c'est la voie
+     * de cette autre ligne, empruntée deux fois. Le côté le plus proche (en moyenne) de ce dessin part : le début de A
+     * (A commence alors en Q, sur l'extrémité de B) ou la fin de B (B finit alors en P, sur l'extrémité de A). Rien ne
+     * part si une autre portion de la ligne finit sur ce côté hors de P et de Q, ou si l'extrémité d'une autre ligne
+     * posée dessus (SNAP_M) ne toucherait plus le reste de la ligne : pas de contact à 0 m perdu.
+     */
+    private function trimEndBubbles(int $lineId, array &$stats, array &$records): void
+    {
+        $cands = DB::select(<<<'SQL'
+            WITH e AS (
+                SELECT t.sid, e.k, e.p, t.g, ST_Length(t.g) AS len FROM tx_sub t, LATERAL (VALUES (0, ST_StartPoint(t.g)), (1, ST_EndPoint(t.g))) e(k, p)
+                WHERE NOT t.removed AND NOT t.conn AND ST_Length(t.g) >= :min
+            )
+            SELECT e.sid, e.k, e.len, b.sid AS bsid, ST_Length(b.g) AS blen,
+                   ST_LineLocatePoint(b.g, e.p) AS bp, q.k AS bk, ST_LineLocatePoint(e.g, q.p) AS aq
+            FROM e
+            JOIN tx_sub b ON NOT b.removed AND NOT b.conn AND b.sid <> e.sid AND ST_DWithin(b.g, e.p, :snap)
+                AND NOT ST_DWithin(ST_StartPoint(b.g), e.p, :snap2) AND NOT ST_DWithin(ST_EndPoint(b.g), e.p, :snap3)
+            CROSS JOIN LATERAL (VALUES (0, ST_StartPoint(b.g)), (1, ST_EndPoint(b.g))) q(k, p)
+            WHERE ST_DWithin(e.g, q.p, :snap4)
+              AND CASE WHEN e.k = 0 THEN ST_LineLocatePoint(e.g, q.p) ELSE 1 - ST_LineLocatePoint(e.g, q.p) END * e.len BETWEEN :min2 AND :max
+            ORDER BY e.sid, e.k, b.sid, q.k
+            SQL, ['min' => self::BUBBLE_MIN_M, 'min2' => self::BUBBLE_MIN_M, 'max' => self::MIN_RUN_M,
+            'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M, 'snap4' => self::SNAP_M]);
+        $done = [];
+        foreach ($cands as $c) {
+            $sid = (int) $c->sid;
+            $bsid = (int) $c->bsid;
+            if (isset($done[$sid]) || isset($done[$bsid])) {
+                continue;
+            }
+            // Côtés de la bulle, de P à Q : [a0, a1] sur A, [b0, b1] sur B (abscisses 0-1).
+            [$a0, $a1] = (int) $c->k === 0 ? [0.0, (float) $c->aq] : [(float) $c->aq, 1.0];
+            [$b0, $b1] = (int) $c->bk === 0 ? [0.0, (float) $c->bp] : [(float) $c->bp, 1.0];
+            $m = DB::selectOne(<<<'SQL'
+                WITH a AS (SELECT ST_LineSubstring(g, :a0, :a1) AS g FROM tx_sub WHERE sid = :sid),
+                b AS (SELECT ST_LineSubstring(g, :b0, :b1) AS g FROM tx_sub WHERE sid = :bsid),
+                o AS (SELECT ST_Collect(ST_Transform(d.geom, 2154)) AS g FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, a
+                      WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(a.g, :near), 4326))
+                SELECT ST_Length(ST_Intersection(a.g, ST_Buffer(b.g, :near2))) / NULLIF(ST_Length(a.g), 0) AS sa,
+                       ST_Length(ST_Intersection(b.g, ST_Buffer(a.g, :near3))) / NULLIF(ST_Length(b.g), 0) AS sb,
+                       (SELECT AVG(ST_Distance(o.g, ST_LineInterpolatePoint(a.g, f / 10.0))) FROM generate_series(0, 10) f) AS da,
+                       (SELECT AVG(ST_Distance(o.g, ST_LineInterpolatePoint(b.g, f / 10.0))) FROM generate_series(0, 10) f) AS db
+                FROM a, b, o
+                SQL, ['a0' => $a0, 'a1' => $a1, 'b0' => $b0, 'b1' => $b1, 'sid' => $sid, 'bsid' => $bsid, 'line' => $lineId,
+                'near' => self::NEAR_M, 'near2' => self::NEAR_M, 'near3' => self::NEAR_M]);
+            if ($m === null || (float) $m->sa < self::NEAR_SHARE || (float) $m->sb < self::NEAR_SHARE || $m->da === null) {
+                continue;
+            }
+            // Le côté le plus proche du dessin de l'autre ligne part, s'il le longe (NEAR_M en moyenne).
+            $cutA = (float) $m->da <= (float) $m->db;
+            if (min((float) $m->da, (float) $m->db) > self::NEAR_M) {
+                continue;
+            }
+            [$csid, $f0, $f1, $keep] = $cutA ? [$sid, $a0, $a1, (int) $c->k === 0 ? [$a1, 1.0] : [0.0, $a0]]
+                : [$bsid, $b0, $b1, (int) $c->bk === 0 ? [$b1, 1.0] : [0.0, $b0]];
+            if (! $this->bubbleSideFree($lineId, $csid, $f0, $f1, $cutA ? $bsid : $sid)) {
+                continue;
+            }
+            $cut = DB::selectOne("SELECT encode(ST_AsEWKB(ST_LineSubstring(g, ?, ?)), 'hex') AS ewkb, ST_Length(g) * CAST(? AS float8) AS m FROM tx_sub WHERE sid = ?",
+                [$f0, $f1, $f1 - $f0, $csid]);
+            DB::update('UPDATE tx_sub SET g = ST_LineSubstring(g, ?, ?) WHERE sid = ?', [$keep[0], $keep[1], $csid]);
+            $stats['superposed_m'] += (float) $cut->m;
+            $stats['bubble_m'] = ($stats['bubble_m'] ?? 0) + (float) $cut->m;
+            $records[] = ['sid' => $csid, 'ksid' => $cutA ? $bsid : $sid, 'ewkb' => $cut->ewkb];
+            $done[$sid] = $done[$bsid] = true;
+        }
+    }
+
+    /**
+     * Côté [f0, f1] de la portion $sid retirable (cf. trimEndBubbles) : aucune autre portion de la ligne (hors $other)
+     * n'y finit, et toute extrémité d'une autre ligne posée dessus touche encore le reste de la ligne (SNAP_M).
+     */
+    private function bubbleSideFree(int $lineId, int $sid, float $f0, float $f1, int $other): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_LineSubstring(g, :f0, :f1) AS g FROM tx_sub WHERE sid = :sid),
+            k AS (SELECT ST_Collect(x.g) AS g FROM (
+                      SELECT t.g FROM tx_sub t WHERE NOT t.removed AND t.sid <> :sid2
+                      UNION ALL SELECT ST_LineSubstring(t.g, 0, :g0) FROM tx_sub t WHERE t.sid = :sid3 AND CAST(:g0b AS float8) > 0
+                      UNION ALL SELECT ST_LineSubstring(t.g, :g1, 1) FROM tx_sub t WHERE t.sid = :sid4 AND CAST(:g1b AS float8) < 1) x)
+            SELECT NOT EXISTS (
+                       SELECT 1 FROM tx_sub t, s, LATERAL (VALUES (ST_StartPoint(t.g)), (ST_EndPoint(t.g))) e(p)
+                       WHERE NOT t.removed AND t.sid <> :sid5 AND t.sid <> :other AND ST_DWithin(s.g, e.p, :snap))
+               AND NOT EXISTS (
+                       SELECT 1 FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d, s, k,
+                            LATERAL (VALUES (ST_Transform(ST_StartPoint(d.geom), 2154)), (ST_Transform(ST_EndPoint(d.geom), 2154))) e(p)
+                       WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(s.g, 2), 4326)
+                         AND ST_DWithin(s.g, e.p, :snap2) AND NOT ST_DWithin(k.g, e.p, :snap3)) AS ok
+            FROM s, k
+            SQL, ['f0' => $f0, 'f1' => $f1, 'sid' => $sid, 'sid2' => $sid, 'sid3' => $sid, 'sid4' => $sid, 'sid5' => $sid, 'other' => $other,
+            'g0' => $f0, 'g0b' => $f0, 'g1' => $f1, 'g1b' => $f1, 'line' => $lineId, 'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M])?->ok;
     }
 
     /**

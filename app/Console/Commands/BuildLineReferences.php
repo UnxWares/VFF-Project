@@ -100,8 +100,12 @@ use Illuminate\Support\Facades\Storage;
  *    retirés quelle que soit leur longueur (chevauchements bout à bout de
  *    deux tracés, raccords en double), extrémités recollées au bit près
  *    (raccords en T : sommet inséré), raccords de moins de 6 m fusionnés avec
- *    la portion qu'ils prolongent. Sans lui, le moteur décennal produit des
- *    tronçons en double et des tronçons de longueur nulle.
+ *    la portion qu'ils prolongent, bulle courte (moins de 100 m, deux chemins
+ *    à moins de 5 m entre les deux mêmes nœuds) dont un côté longe le dessin
+ *    d'une autre ligne : ce côté retiré, sans contact à 0 m perdu
+ *    (Lyon-Perrache, 830000 sur la voie convergente de 750000). Sans lui, le
+ *    moteur décennal produit des tronçons en double et des tronçons de
+ *    longueur nulle.
  *
  * 5 bis. Retraits à la main (App\Services\LineReferenceExclusions, database/data/line_reference_exclusions.php) :
  *    une voie source listée pour une ligne n'entre pas dans son tracé (ni tracé rattaché, ni voie proposée par le
@@ -312,8 +316,8 @@ class BuildLineReferences extends Command
                 $r['rounded'] ?? 0, $r['added_points'] ?? 0));
         }
         if ($n = $this->tidyStats) {
-            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
-                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
+            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m, et %s m de bulles le long d\'une autre ligne), %s m de bouts croisés coupés, %s m de fragments isolés retirés, %d extrémités recollées, %d raccords courts fusionnés',
+                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['bubble_m'] ?? 0, 0, ',', ' '), number_format($n['crossed_m'] ?? 0, 0, ',', ' '),
                 number_format($n['isolated_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
         }
         if ($x = $this->exclusionStats) {
