@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Carte : `GET /api/v1/what-was-here?summary=1` (page « Autour de moi » `/nearby`) : rayon jusqu'à 10 000 m, 15 lignes et 20 gares
+  au plus, `history` de chaque ligne (années d'ouverture, de fermeture et de dépose, `sections` pour une portion), années d'ouverture et
+  de fermeture des gares et `commune` du point ; sans signalisation, matériel, événements ni accidents. Ajout seul.
 - Communes : `GET /api/v1/communes/{insee}` (le rail d'une commune : gares avec leur état et leurs dates, lignes qui la traversent
   avec au moins 50 m de voie, événements des portions qui y passent, accidents ; 404 sans gare ni ligne) et clé `communes` de
   `GET /api/v1/search` (communes qui ont du rail, par leur nom : `insee`, `slug`, département, population ; sans noms approchés).

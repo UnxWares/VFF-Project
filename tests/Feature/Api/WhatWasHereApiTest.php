@@ -112,4 +112,64 @@ class WhatWasHereApiTest extends TestCase
         $this->getJson('/api/v1/what-was-here')->assertStatus(422);
         $this->assertSame([], $this->ask(['lat' => 43.3, 'lng' => 5.4, 'year' => 1962])['lines']);
     }
+
+    public function test_the_summary_mode_gives_history_station_years_and_the_commune_without_the_heavy_parts(): void
+    {
+        $now = now();
+        DB::table('line_events')->insert([
+            ['line_id' => $this->line->id, 'type' => 'opening', 'event_date' => '1869-05-01', 'date_precision' => 'month', 'description' => 'Ouverture.', 'source' => 'wikipedia', 'source_url' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['line_id' => $this->line->id, 'type' => 'closure_passenger', 'event_date' => '1938-09-01', 'date_precision' => 'day', 'description' => 'Fermeture.', 'source' => 'wikipedia', 'source_url' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['line_id' => $this->line->id, 'type' => 'closure_freight', 'event_date' => '1950-01-01', 'date_precision' => 'year', 'description' => 'Fermeture.', 'source' => 'wikipedia', 'source_url' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['line_id' => $this->line->id, 'type' => 'reopening', 'event_date' => '1960-01-01', 'date_precision' => 'year', 'description' => 'Réouverture.', 'source' => 'wikipedia', 'source_url' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['line_id' => $this->line->id, 'type' => 'closure', 'event_date' => '1990-01-01', 'date_precision' => 'year', 'description' => 'Fermeture.', 'source' => 'archeoferroviaire', 'source_url' => 'http://archeoferroviaire.free.fr/x', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('stations')->where('id', $this->origin->id)->update(['opened_at' => '1850-01-01', 'closed_at' => '1999-06-01']);
+
+        $data = $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 10_000, 'summary' => 1]);
+
+        $line = $data['lines'][0];
+        // La fermeture aux voyageurs et au fret est suivie d'une réouverture : écartée ; la source non commerciale n'est jamais lue.
+        $this->assertSame(['opened' => 1839], $line['history']); // la plus ancienne ouverture, celle du jeu d'essai
+        $this->assertSame([], $line['events']);
+        $this->assertSame([], $data['accidents']);
+        $this->assertArrayHasKey('commune', $data);
+        $station = array_column($data['stations'], null, 'slug')[$this->origin->slug];
+        $this->assertSame(1850, $station['opened_year']);
+        $this->assertSame(1999, $station['closed_year']);
+    }
+
+    public function test_a_large_radius_needs_the_summary_mode_and_the_cache_keeps_the_modes_apart(): void
+    {
+        $this->getJson('/api/v1/what-was-here?lat=48.85&lng=2.24&radius_m=5000')->assertStatus(422);
+        $this->getJson('/api/v1/what-was-here?lat=48.85&lng=2.24&radius_m=10001&summary=1')->assertStatus(422);
+        $short = $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 1000, 'summary' => 1]);
+        $full = $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 1000]);
+        $this->assertArrayHasKey('commune', $short);
+        $this->assertArrayNotHasKey('commune', $full);
+    }
+
+    public function test_a_section_event_is_never_a_whole_line_fact(): void
+    {
+        $now = now();
+        $base = ['line_id' => $this->line->id, 'date_precision' => 'year', 'source' => 'wikipedia', 'source_url' => null, 'created_at' => $now, 'updated_at' => $now,
+            'section_from' => null, 'section_to' => null, 'section_pk_start_m' => null, 'section_pk_end_m' => null];
+        DB::table('line_events')->insert([
+            ['type' => 'dismantling', 'event_date' => '1962-01-01', 'description' => 'Dépose.', 'section_from' => 'Nexon', 'section_to' => 'Périgueux'] + $base,
+            ['type' => 'closure', 'event_date' => '2018-01-01', 'description' => 'Fermeture.', 'section_pk_start_m' => 1000, 'section_pk_end_m' => 5000] + $base,
+            ['type' => 'closure_freight', 'event_date' => '1980-01-01', 'description' => 'Fermeture.'] + $base,
+        ]);
+
+        $history = $this->ask(['lat' => self::LAT, 'lng' => self::LNG, 'radius_m' => 5000, 'summary' => 1])['lines'][0]['history'];
+
+        $this->assertArrayNotHasKey('dismantled', $history);
+        $this->assertArrayNotHasKey('closed', $history);
+        $this->assertSame(1980, $history['closed_freight']);
+        // Ligne en service : une fermeture ou une dépose sans portion n'est pas celle de toute la ligne.
+        DB::table('line_events')->insert([['type' => 'closure', 'event_date' => '1942-01-01', 'description' => 'Fermeture.'] + $base]);
+        $other = $this->ask(['lat' => self::LAT + 0.001, 'lng' => self::LNG, 'radius_m' => 5000, 'summary' => 1])['lines'][0]['history'];
+        $this->assertArrayNotHasKey('closed', $other);
+        $this->assertContains(['key' => 'closed', 'year' => 1942, 'from' => null, 'to' => null], $other['sections']);
+        $this->assertContains(['key' => 'dismantled', 'year' => 1962, 'from' => 'Nexon', 'to' => 'Périgueux'], $history['sections']);
+        $this->assertContains(['key' => 'closed', 'year' => 2018, 'from' => null, 'to' => null], $history['sections']);
+    }
 }

@@ -16,6 +16,9 @@ class WhatWasHereRequest extends FormRequest
 
     public const MAX_RADIUS_M = 1000;
 
+    /** Rayon maximal en mode `summary` (page « Autour de moi » : 1, 5 ou 10 km). */
+    public const SUMMARY_MAX_RADIUS_M = 10_000;
+
     public function authorize(): bool
     {
         return true;
@@ -48,7 +51,13 @@ class WhatWasHereRequest extends FormRequest
              *
              * @example 400
              */
-            'radius_m' => ['sometimes', 'integer', 'min:'.self::MIN_RADIUS_M, 'max:'.self::MAX_RADIUS_M],
+            'radius_m' => ['sometimes', 'integer', 'min:'.self::MIN_RADIUS_M, 'max:'.($this->boolean('summary') ? self::SUMMARY_MAX_RADIUS_M : self::MAX_RADIUS_M)],
+            /**
+             * Version courte pour l'écran « Autour de moi » (rayon jusqu'à 10 000 m).
+             *
+             * @example false
+             */
+            'summary' => ['sometimes', 'boolean'],
             /**
              * Langue des libellés : fr (défaut), en ou de.
              *

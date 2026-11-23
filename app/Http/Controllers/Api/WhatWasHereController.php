@@ -29,6 +29,11 @@ class WhatWasHereController extends Controller
      * réponse. L'année est ramenée à l'ère qui la contient (1937 donne 1930) pour l'état des lignes ; les
      * événements et les accidents utilisent l'année demandée. Sans `year` : aujourd'hui.
      *
+     * **Version courte** (`summary=1`, page « Autour de moi » `/nearby`) : rayon jusqu'à 10 000 m, 15 lignes et 20 gares
+     * au plus, une `history` par ligne (années d'ouverture, de fermeture aux voyageurs, au fret, de fermeture, de
+     * dépose), les années d'ouverture et de fermeture des gares, et la `commune` du point ; sans signalisation,
+     * matériel, événements ni accidents. Même case de 0,001 degré, même cache : la position n'est ni stockée ni journalisée.
+     *
      * **Droits** : pour un tracé qui ne vient pas d'une source redistribuable, `geometry_withheld` vaut `true`,
      * `distance_m` est `null` et `pk_m` est arrondi à 100 m. Les faits d'une source à usage non commercial ne
      * sont jamais servis.
@@ -54,12 +59,13 @@ class WhatWasHereController extends Controller
         $year = (int) $request->query('year', date('Y'));
         $radius = (int) $request->query('radius_m', WhatWasHereRequest::DEFAULT_RADIUS_M);
         $lang = (string) $request->query('lang', 'fr');
+        $summary = $request->boolean('summary');
 
         return $this->cache->json(
             $request,
-            "here:{$year}:{$lat}:{$lng}:{$radius}:{$lang}",
-            function () use ($lat, $lng, $year, $radius, $lang): array {
-                $result = $this->here->around(['lat' => $lat, 'lng' => $lng, 'year' => $year, 'radius_m' => $radius, 'max_lines' => 6], $lang);
+            "here:{$year}:{$lat}:{$lng}:{$radius}:{$lang}".($summary ? ':summary' : ''),
+            function () use ($lat, $lng, $year, $radius, $lang, $summary): array {
+                $result = $this->here->around(['lat' => $lat, 'lng' => $lng, 'year' => $year, 'radius_m' => $radius, 'max_lines' => $summary ? WhatWasHere::SUMMARY_MAX_LINES : 6, 'summary' => $summary], $lang);
                 if ($result === null) {
                     abort(404, (string) trans('mcp.errors.era_not_found', ['year' => $year], $lang));
                 }

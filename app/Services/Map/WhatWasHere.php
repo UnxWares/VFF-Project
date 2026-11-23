@@ -11,10 +11,12 @@ use App\Mcp\Support\SignallingFacts;
 use App\Models\Accident;
 use App\Models\Line;
 use App\Models\LineMaterialPeriod;
+use App\Services\Communes\CommuneRail;
 use App\Services\Signalling\LineSignallingHistory;
 use App\Services\Signalling\SignallingHistoryState;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\EventText;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -35,6 +37,11 @@ class WhatWasHere
 
     public const MAX_STATIONS = 10;
 
+    /** Mode `summary` (page « Autour de moi ») : lignes et gares au plus, sans signalisation, matériel, événements ni accidents. */
+    public const SUMMARY_MAX_STATIONS = 20;
+
+    public const SUMMARY_MAX_LINES = 15;
+
     public const MAX_ACCIDENTS = 10;
 
     /** Rayon minimal de recherche d'un tracé non redistribuable, en mètres, autour du centre de la maille du point. */
@@ -46,6 +53,8 @@ class WhatWasHere
         private readonly NonCommercialSources $nonCommercial,
         private readonly LineEvents $events,
         private readonly LineSignallingHistory $signalling,
+        private readonly LineHistoryFacts $history,
+        private readonly CommuneRail $communes,
     ) {}
 
     private function url(string $path): string
@@ -54,7 +63,10 @@ class WhatWasHere
     }
 
     /**
-     * @param  array<string, mixed>  $input  lat, lng, year, radius_m, max_lines (déjà validés)
+     * Avec `summary` : version courte pour « Autour de moi » (lignes et gares avec une phrase d'histoire, la
+     * commune du point), sans signalisation, matériel, événements ni accidents.
+     *
+     * @param  array<string, mixed>  $input  lat, lng, year, radius_m, max_lines, summary (déjà validés)
      * @return array{payload: array<string, mixed>, providers: list<?string>, map: string}|null null si aucune ère ne contient l'année
      */
     public function around(array $input, string $lang): ?array
@@ -63,7 +75,8 @@ class WhatWasHere
         $lng = (float) $input['lng'];
         $year = (int) ($input['year'] ?? date('Y'));
         $radius = (int) ($input['radius_m'] ?? 1000);
-        $maxLines = (int) ($input['max_lines'] ?? 8);
+        $summary = (bool) ($input['summary'] ?? false);
+        $maxLines = (int) ($input['max_lines'] ?? ($summary ? self::SUMMARY_MAX_LINES : 8));
         $era = Lookup::era($year);
         if ($era === null) {
             return null;
@@ -101,6 +114,8 @@ class WhatWasHere
         $nearest = $this->nearestStations(array_keys($lineModels->all()), $era->id, $lng, $lat);
         $providers = [];
         $lines = [];
+        $history = $summary ? $this->history->forLines(array_keys($lineModels->all())) : ['facts' => [], 'providers' => []];
+        array_push($providers, ...$history['providers']);
         foreach ($segments as $s) {
             $line = $lineModels[(int) $s->line_id] ?? null;
             if ($line === null) {
@@ -111,19 +126,24 @@ class WhatWasHere
             $pk = $s->pk_start_m !== null && $s->pk_end_m !== null
                 ? (int) round($s->pk_start_m + (float) $s->f * ($s->pk_end_m - $s->pk_start_m)) : null;
 
-            $facts = array_map(SignallingFacts::compact(...),
-                SignallingHistoryState::inForce($this->signalling->forSheet($line), $until));
-            if ($facts !== []) {
-                $providers[] = 'wikipedia';
-            }
-            $events = $this->events->query($line->id, $year, $year)->limit(self::EVENTS_PER_LINE)->get()
-                ->map(fn (object $e): array => $this->events->format($e, $lang))->values()->all();
-            foreach ($events as $e) {
-                $providers[] = $e['provider'];
-            }
-            $materials = $this->materials($line->id, $yearStart, $until);
-            foreach ($materials as $m) {
-                $providers[] = $this->attribution->providerFor('line_material_periods', $m['source']);
+            $facts = [];
+            $events = [];
+            $materials = [];
+            if (! $summary) {
+                $facts = array_map(SignallingFacts::compact(...),
+                    SignallingHistoryState::inForce($this->signalling->forSheet($line), $until));
+                if ($facts !== []) {
+                    $providers[] = 'wikipedia';
+                }
+                $events = $this->events->query($line->id, $year, $year)->limit(self::EVENTS_PER_LINE)->get()
+                    ->map(fn (object $e): array => $this->events->format($e, $lang))->values()->all();
+                foreach ($events as $e) {
+                    $providers[] = $e['provider'];
+                }
+                $materials = $this->materials($line->id, $yearStart, $until);
+                foreach ($materials as $m) {
+                    $providers[] = $this->attribution->providerFor('line_material_periods', $m['source']);
+                }
             }
 
             $lines[] = [
@@ -145,10 +165,13 @@ class WhatWasHere
                 'materials' => $materials,
                 'events' => $events,
                 'url' => $this->url('/lines/'.$line->slug),
-            ];
+            ] + ($summary ? ['history' => LineHistoryFacts::reconcile($history['facts'][$line->id] ?? [], (string) $s->status) ?: (object) []] : []);
         }
 
-        $stations = array_map(function (object $r) use ($lang, &$providers): array {
+        // « Autour de moi » : une gare sans ligne à l'ère actuelle (fermée depuis longtemps) garde son état de la fiche.
+        $status = $summary ? 'COALESCE(se.status, s.status)' : 'se.status';
+        $kept = $summary ? "AND COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')" : '';
+        $stations = array_map(function (object $r) use ($lang, $summary, &$providers): array {
             $providers[] = $this->attribution->providerFor('station_sources', $r->position_source === null ? null : (string) $r->position_source);
 
             return [
@@ -157,17 +180,20 @@ class WhatWasHere
                 'status_label' => $r->status === null ? null : (string) trans('stations.statuses.'.$r->status, [], $lang),
                 'uncertain' => (bool) $r->uncertain,
                 'url' => $this->url('/stations/'.$r->slug),
-            ];
+            ] + ($summary ? [
+                'opened_year' => $r->opened_at === null ? null : (int) substr((string) $r->opened_at, 0, 4),
+                'closed_year' => $r->closed_at === null ? null : (int) substr((string) $r->closed_at, 0, 4),
+            ] : []);
         }, DB::select(
-            "SELECT s.slug, s.name, s.city, s.position_source, se.status, COALESCE(se.uncertain, false) AS uncertain,
+            "SELECT s.slug, s.name, s.city, s.position_source, s.opened_at, s.closed_at, {$status} AS status, COALESCE(se.uncertain, false) AS uncertain,
                     ST_Distance(s.geom::geography, p.g::geography) AS d
              FROM stations s LEFT JOIN station_eras se ON se.station_id = s.id AND se.era_id = ?, (SELECT {$point} AS g) p
-             WHERE s.geom && ST_Expand(p.g, ?) AND ST_DWithin(s.geom::geography, p.g::geography, ?) AND se.status IS NOT NULL
-             ORDER BY d LIMIT ".self::MAX_STATIONS,
+             WHERE s.geom && ST_Expand(p.g, ?) AND ST_DWithin(s.geom::geography, p.g::geography, ?) AND {$status} IS NOT NULL {$kept}
+             ORDER BY d LIMIT ".($summary ? self::SUMMARY_MAX_STATIONS : self::MAX_STATIONS),
             [$era->id, $lng, $lat, $deg, $radius],
         ));
 
-        $accidents = Accident::query()
+        $accidents = $summary ? new Collection : Accident::query()
             ->whereBetween('occurred_on', [$yearStart, sprintf('%04d-12-31', $year)])
             ->whereRaw("geom && ST_Expand({$point}, ?) AND ST_DWithin(geom::geography, {$point}::geography, ?)", [$lng, $lat, $deg, $lng, $lat, $radius])
             ->selectRaw("accidents.*, ST_Distance(geom::geography, {$point}::geography) AS d", [$lng, $lat])
@@ -211,10 +237,31 @@ class WhatWasHere
                 'stations' => $stations,
                 'accidents' => $accidentItems,
                 'links' => ['map' => $map],
-            ],
+            ] + ($summary ? ['commune' => $this->commune($gridLng, $gridLat)] : []),
             'providers' => $providers,
             'map' => $map,
         ];
+    }
+
+    /**
+     * Commune qui contient le centre de la case du point, avec sa fiche « Le rail à … » si elle en a une.
+     *
+     * @return array{insee: string, name: string, slug: string|null, url: string|null}|null
+     */
+    private function commune(float $lng, float $lat): ?array
+    {
+        $row = DB::selectOne(
+            'SELECT code_insee, nom FROM commune_contours
+             WHERE geom && ST_SetSRID(ST_MakePoint(?, ?), 4326) AND ST_Intersects(ST_MakeValid(geom), ST_SetSRID(ST_MakePoint(?, ?), 4326))
+             ORDER BY code_insee LIMIT 1',
+            [$lng, $lat, $lng, $lat],
+        );
+        if ($row === null) {
+            return null;
+        }
+        $slug = in_array($row->code_insee, $this->communes->codes(), true) ? CommuneRail::slug($row->code_insee, $row->nom) : null;
+
+        return ['insee' => $row->code_insee, 'name' => $row->nom, 'slug' => $slug, 'url' => $slug === null ? null : $this->url('/communes/'.$slug)];
     }
 
     /**
