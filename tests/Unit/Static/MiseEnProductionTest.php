@@ -62,6 +62,32 @@ class MiseEnProductionTest extends TestCase
         $this->assertStringContainsString('chemin_permis', $script, 'les chemins écrits sont vérifiés contre des préfixes littéraux');
     }
 
+    /** Corps d'une fonction du script (jusqu'à l'accolade fermante en début de ligne). */
+    private static function function(string $name): string
+    {
+        preg_match('/^'.preg_quote($name, '/').'\(\) \{\n(.*?)^\}/ms', self::script(), $m);
+
+        return $m[1] ?? '';
+    }
+
+    public function test_migrations_never_run_without_a_recent_checked_backup_even_as_a_single_step(): void
+    {
+        $migrations = self::function('etape_migrations');
+        $this->assertStringContainsString('migrate --force', $migrations);
+
+        // « --appliquer --etape migrations » (nouvelle version) saute l'étape sauvegarde : l'étape vérifie elle-même
+        // qu'une sauvegarde contrôlée récente existe avant de changer le schéma (retour arrière = restauration).
+        $guard = strpos($migrations, 'sauvegarde_recente');
+        $this->assertNotFalse($guard, 'etape_migrations vérifie la sauvegarde');
+        $this->assertLessThan(strpos($migrations, 'migrate --force'), $guard);
+        $this->assertMatchesRegularExpression('/\[ -n "\$\(sauvegarde_recente\)" \] \|\| die /', $migrations);
+
+        $recent = self::function('sauvegarde_recente');
+        $this->assertStringContainsString('-mmin -1560', $recent);
+        $this->assertStringContainsString('.sha256', $recent);
+        $this->assertStringContainsString('.counts', $recent);
+    }
+
     public function test_every_step_has_a_function_and_a_section_of_the_document(): void
     {
         $steps = self::steps();

@@ -423,6 +423,13 @@ etape_application() {
 }
 
 # --- 7. Sauvegarde quotidienne contrôlée (deploy/backup, docs/SAUVEGARDE.md) ---------------------------------
+# Dernière sauvegarde contrôlée de moins de 26 h (dump avec son .sha256 et son .counts), rien s'il n'y en a pas.
+sauvegarde_recente() {
+    local d
+    d="$(find /var/backups/vff/daily -maxdepth 1 -type f -name 'vff-*.dump' -mmin -1560 2>/dev/null | sort | tail -n 1 || true)"
+    if [ -n "$d" ] && [ -f "$d.sha256" ] && [ -f "$d.counts" ]; then printf '%s' "$d"; fi
+}
+
 etape_sauvegarde() {
     exiger_root || { info "sauvegarde non vérifiée sans root"; return 0; }
     local f
@@ -453,13 +460,13 @@ etape_sauvegarde() {
     done
     if appliquer; then systemctl daemon-reload; fi
     local dernier
-    dernier="$(find /var/backups/vff/daily -maxdepth 1 -type f -name 'vff-*.dump' -mmin -1560 2>/dev/null | sort | tail -n 1 || true)"
+    dernier="$(sauvegarde_recente)"
     if [ -z "$dernier" ] && appliquer; then
         info "premier passage de la sauvegarde (peut durer : relever durée et taille)"
         systemctl start vff-backup.service || die "sauvegarde en échec : journalctl -u vff-backup.service -n 80"
-        dernier="$(find /var/backups/vff/daily -maxdepth 1 -type f -name 'vff-*.dump' -mmin -1560 | sort | tail -n 1 || true)"
+        dernier="$(sauvegarde_recente)"
     fi
-    if [ -n "$dernier" ] && [ -f "$dernier.sha256" ] && [ -f "$dernier.counts" ]; then
+    if [ -n "$dernier" ]; then
         ok "sauvegarde de moins de 26 h contrôlée : $(basename -- "$dernier") ($(du -h -- "$dernier" | cut -f1))"
     else
         manque "aucune sauvegarde contrôlée de moins de 26 h" "sudo systemctl start vff-backup.service ; journalctl -u vff-backup.service"
@@ -473,6 +480,9 @@ etape_migrations() {
     exiger_root || { info "migrations non vérifiées sans root"; return 0; }
     [ -f "$VFF_DIR/artisan" ] || { manque "application absente" "étape application"; return 0; }
     if artisan_vff migrate:status --pending=1 >/dev/null 2>&1; then ok "aucune migration en attente"; elif appliquer; then
+        # Aussi quand l'étape est lancée seule (nouvelle version) : le retour arrière d'une migration est la restauration
+        # de cette sauvegarde, jamais migrate:rollback.
+        [ -n "$(sauvegarde_recente)" ] || die "aucune sauvegarde contrôlée de moins de 26 h : la lancer avant de migrer (sudo systemctl start vff-backup.service, puis --verifier --etape sauvegarde)"
         artisan_vff migrate --force
         fait "migrations"
     else

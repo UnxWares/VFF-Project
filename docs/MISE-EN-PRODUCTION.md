@@ -205,7 +205,8 @@ mois). Il refuse un `backup.env` qui garde une valeur fictive de l'exemple.
 
 ## 8. Migrations (`migrations`)
 
-Après la sauvegarde : un dump existe avant tout changement de schéma.
+Après la sauvegarde : un dump existe avant tout changement de schéma. Le script refuse de migrer sans une sauvegarde
+contrôlée de moins de 26 h (dump, `.sha256` et `.counts`), même quand l'étape est lancée seule.
 
 ```bash
 sudo deploy/bin/mise-en-production.sh --appliquer --etape migrations
