@@ -74,6 +74,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche dpa de Reims du 14 juin : jeudi matin, à la gare de Fismes près de Reims, la quatrième voiture de l\'express Paris-Luxembourg sort des rails à 90 km/h et heurte un pilier de pont ; onze morts et 30 blessés graves.',
+            'facts' => ['date' => '1956-06-14', 'commune_insee' => '51250', 'deaths' => 11],
         ],
         'kb-1956-06-15-nieuwsblad-van-het-zuiden' => [
             'provider' => 'delpher',
@@ -88,6 +89,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche UP de Fismes du 14 juin : jeudi, l\'express Paris-Luxembourg déraille en gare de Fismes ; 11 morts, 150 blessés dont 34 graves.',
+            'facts' => ['date' => '1956-06-14', 'commune_insee' => '51250', 'deaths' => 11],
         ],
         'kb-1956-06-15-de-gooi-en-eemlander' => [
             'provider' => 'delpher',
@@ -102,6 +104,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 15 juin : le nombre de morts est monté à onze (sept morts sur place, deux en route vers l\'hôpital, deux à l\'hôpital) ; un douzième blessé en danger de mort.',
+            'facts' => ['commune_insee' => '51250', 'deaths' => 11],
         ],
     ],
     'sections' => [

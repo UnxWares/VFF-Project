@@ -18,6 +18,14 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   coïncidence (sept accidents de Paris rattachés à Paris-Nord « à 0 m »). Le filtre `station` de `GET /api/v1/accidents` et la
   chronologie des gares ne les renvoient plus. Aucun champ n'est retiré ni ajouté ; la fiche web affiche « À Paris, gare non précisée ».
 
+- Accidents : la presse d'époque numérisée (Delpher, Deutsches Zeitungsportal, Europeana, Gallica, Le Temps...) compte désormais comme
+  une famille de sources pour le statut `ok` (`vff:verify-accidents`) : un article lu confirme la fiche s'il en donne la date (au jour, ou
+  « hier » dans le journal du lendemain), la commune et le bilan (le même, ou un bilan provisoire inférieur ou égal) ; plusieurs articles ne
+  comptent que pour une famille. Dans `review.verification` (REST) et `verification` (GraphQL, JSON), `families.date` et `families.place`
+  peuvent contenir `press`, les entrées de `confirmed_by` et `disagreeing` peuvent avoir `role` = `press` avec `deaths` et
+  `deaths_provisional`, et un objet `deaths` (bilan de la fiche, articles qui le confirment ou en donnent un autre) apparaît quand un article
+  donne un bilan. Ajout seul ; la fiche web dit quelles familles ont confirmé une fiche relue.
+
 - MCP : les faits d'une source à usage non commercial ne sont plus servis par le serveur MCP, qu'elle soit
   nommée dans `source` ou seulement par le lien cité : `line_events`, `network_events` et `get_line` (`events`, `event_count`)
   peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y prend plus la valeur de cette source. L'API REST et GraphQL ne

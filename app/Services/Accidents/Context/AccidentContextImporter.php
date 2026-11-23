@@ -181,6 +181,7 @@ final class AccidentContextImporter
                 'access' => $s['access'],
                 'consulted_on' => $s['consulted_on'],
                 'note' => $s['note'] ?? null,
+                'facts' => $s['facts'] ?? null,
             ]);
             $result->references++;
         }

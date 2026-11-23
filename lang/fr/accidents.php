@@ -102,6 +102,15 @@ return [
         'review_intro' => 'Cette fiche a été constituée automatiquement à partir des sources ; ces points restent incertains :',
         'reserves_title' => 'Réserves',
         'reserves_intro' => 'La date et la commune sont confirmées par les sources ; à noter :',
+        'reviewed_by' => 'Fiche relue : date et commune confirmées par :families.',
+        'families' => [
+            'official' => 'l’enquête officielle (BEA-TT)',
+            'wikipedia' => 'Wikipédia',
+            'wikidata' => 'Wikidata',
+            'wikidata-bare' => 'Wikidata',
+            'wikipedia-edition' => 'une liste de Wikipédia en anglais ou en allemand avec sa propre référence',
+            'press' => 'la presse d’époque numérisée',
+        ],
         'back' => 'Tous les accidents',
     ],
 

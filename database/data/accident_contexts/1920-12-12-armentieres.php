@@ -46,6 +46,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêches Havas-Reuter d\'Armentières des 12 et 13 décembre : un train de voyageurs heurte un train de marchandises venant de Lille ; une dizaine de morts, puis onze morts et une trentaine de blessés.',
+            'facts' => ['deaths' => 11],
         ],
         'kb-1920-12-13-nieuwsblad-van-het-noorden' => [
             'provider' => 'delpher',
@@ -60,6 +61,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche du 12 décembre : l\'accident de ce dimanche matin près d\'Armentières, le train de voyageurs 2102 venant de Berguette vers Lille heurte un autre train à la Chapelle-d\'Armentières.',
+            'facts' => ['date' => '1920-12-12', 'commune_insee' => '59143', 'deaths' => 11],
         ],
     ],
     'sections' => [

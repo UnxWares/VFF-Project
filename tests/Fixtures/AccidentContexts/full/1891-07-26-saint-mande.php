@@ -15,6 +15,7 @@ return [
             'provider' => 'presse', 'kind' => 'press', 'reliability' => 'press',
             'title' => 'Journal d\'essai', 'publisher' => 'Le Journal', 'author' => null, 'published' => '1891-07-28',
             'locator' => 'p. 1', 'url' => 'https://example.org/journal', 'access' => 'open', 'consulted_on' => '2026-11-21',
+            'facts' => ['date' => '1891-07-26', 'commune_insee' => '94080', 'deaths' => 43, 'deaths_provisional' => true],
         ],
         'retronews' => [
             'provider' => 'retronews', 'kind' => 'press', 'reliability' => 'press',

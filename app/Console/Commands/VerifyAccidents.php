@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Vérifie les fiches d'accidents d'après les sources déjà lues (cf. App\Services\Accidents\AccidentVerifier) :
- * date et lieu confirmés par une source primaire ou par deux sources indépendantes (fiche « ok »), doublons
+ * date et lieu confirmés par une source primaire ou par deux sources indépendantes (fiche « ok » ; la presse numérisée
+ * du contexte, quand le fichier en écrit les faits, compte pour une famille), doublons
  * gardés en alias, nature reclassée quand la source la dit, ligne citée par la source rattachée avec son
  * permalien.
  *
@@ -61,6 +62,7 @@ class VerifyAccidents extends Command
         ));
         $byRule = array_count_values($r->promoted);
         $this->line(sprintf('  passées à « ok » : %d (%s)', count($r->promoted), implode(', ', array_map(fn ($k, $n) => "{$k} {$n}", array_keys($byRule), $byRule)) ?: 'aucune'));
+        $this->line(sprintf('  « ok » confirmées entre autres par la presse numérisée : %d', count($r->pressConfirmed)));
         $this->line('  « ok » par règle : '.(implode(', ', array_map(fn ($k, $n) => "{$k} {$n}", array_keys($r->rules), $r->rules)) ?: 'aucune'));
         $this->line(sprintf('  « ok » sans confirmation (laissées telles quelles) : %d ; rendues « à vérifier » : %d', count($r->unconfirmedOk), count($r->demoted)));
         $this->line(sprintf('  alias : %d ; doublons possibles : %d ; natures reclassées : %d', count($r->aliases), count($r->possibleDuplicates), count($r->reclassified)));

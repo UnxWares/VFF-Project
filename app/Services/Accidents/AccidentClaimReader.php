@@ -3,9 +3,14 @@
 namespace App\Services\Accidents;
 
 use App\Enums\AccidentDatePrecision;
+use App\Enums\AccidentReferenceAccess;
+use App\Enums\AccidentReferenceKind;
 use App\Models\Accident;
+use App\Models\AccidentReference;
 use App\Models\AccidentSource;
+use App\Services\Accidents\Context\AccidentContextValidator;
 use App\Services\PlaceNames;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -27,6 +32,10 @@ use Illuminate\Support\Facades\DB;
  * prouve pas son indépendance. Une entrée des listes de Wikipédia en anglais ou en allemand forme sa propre
  * famille (WIKIPEDIA_EDITION) seulement si elle cite une référence qui lui est propre ; sinon elle compte
  * avec Wikipédia.
+ *
+ * Presse numérisée : chaque article lu du contexte (accident_references, nature `press`, accès `open`) dont le
+ * fichier écrit les faits (`facts` : date ou jour relatif à la date de l'article, commune par code INSEE, bilan)
+ * donne une affirmation de la famille PRESS ; un article sans faits écrits ne dit rien au vérificateur.
  */
 final class AccidentClaimReader
 {
@@ -73,8 +82,50 @@ final class AccidentClaimReader
                 lng: $lng,
             );
         }
+        foreach ($accident->references as $reference) {
+            $claim = $this->pressClaim($reference);
+            if ($claim !== null) {
+                $claims[] = $claim;
+            }
+        }
 
         return $claims;
+    }
+
+    /** Ce qu'un article de presse lu dit de l'accident, d'après les faits écrits par le fichier de contexte. */
+    private function pressClaim(AccidentReference $reference): ?AccidentClaim
+    {
+        $facts = $reference->facts ?? [];
+        if ($facts === [] || $reference->kind !== AccidentReferenceKind::Press || $reference->access !== AccidentReferenceAccess::Open) {
+            return null;
+        }
+        $date = is_string($facts['date'] ?? null) ? $facts['date'] : null;
+        $offset = AccidentContextValidator::RELATIVE_DAYS[$facts['date_relative'] ?? ''] ?? null;
+        if ($date === null && $offset !== null && $reference->published !== null && strlen($reference->published) === 10) {
+            $date = Carbon::parse($reference->published)->subDays($offset)->toDateString();
+        }
+        $commune = is_string($facts['commune_insee'] ?? null)
+            ? DB::selectOne('SELECT code_insee, nom FROM communes WHERE code_insee = ? ORDER BY (type = \'commune-actuelle\') DESC LIMIT 1', [$facts['commune_insee']])
+            : null;
+
+        return new AccidentClaim(
+            sourceId: $reference->id,
+            provider: $reference->provider,
+            role: AccidentReferenceKind::Press->value,
+            dateFamily: AccidentClaim::PRESS,
+            placeFamily: AccidentClaim::PRESS,
+            url: $reference->url,
+            title: $reference->title,
+            retrievedAt: $reference->consulted_on->toIso8601String(),
+            date: $date,
+            datePrecision: $date !== null ? AccidentDatePrecision::Day : null,
+            communeInsee: $commune?->code_insee,
+            communeName: $commune?->nom,
+            lat: null,
+            lng: null,
+            deaths: is_int($facts['deaths'] ?? null) ? $facts['deaths'] : null,
+            deathsProvisional: ($facts['deaths_provisional'] ?? false) === true,
+        );
     }
 
     /**

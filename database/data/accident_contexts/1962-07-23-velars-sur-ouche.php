@@ -116,6 +116,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche dpa : 39 morts, 58 blessés hospitalisés, accident à dix kilomètres avant Dijon, rupture d\'attelage supposée entre la troisième et la quatrième voiture.',
+            'facts' => ['deaths' => 39],
         ],
         'kb-1962-07-25-de-nieuwe-limburger' => [
             'provider' => 'delpher',
@@ -130,6 +131,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 25 juillet : 38 morts et 45 blessés selon les sources officielles, l\'express Paris-Marseille sur un viaduc à Velars-sur-Ouche ; cinq voitures sur six tombent.',
+            'facts' => ['commune_insee' => '21661', 'deaths' => 38, 'deaths_provisional' => true],
         ],
         'kb-1962-07-24-de-gooi-en-eemlander' => [
             'provider' => 'delpher',
@@ -144,6 +146,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 24 juillet : 36 morts de la catastrophe près de Dijon ; un directeur de sanatorium de Velars a vu l\'accident.',
+            'facts' => ['date_relative' => 'previous_day', 'deaths' => 36, 'deaths_provisional' => true],
         ],
     ],
     'sections' => [

@@ -76,6 +76,9 @@ class EnrichAccidentsCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame(['rapport', 'journal', 'retronews'], AccidentReference::query()->where('accident_id', $this->mande->id)->orderBy('position')->pluck('key')->all());
+        // Faits de l'article de presse, relus par vff:verify-accidents ; un document sans faits n'en garde aucun.
+        $facts = AccidentReference::query()->where('accident_id', $this->mande->id)->orderBy('position')->pluck('facts', 'key')->all();
+        $this->assertSame(['rapport' => null, 'journal' => ['date' => '1891-07-26', 'deaths' => 43, 'commune_insee' => '94080', 'deaths_provisional' => true], 'retronews' => null], $facts);
         $entries = AccidentContextEntry::query()->where('accident_id', $this->mande->id)->orderBy('position')->get();
         $this->assertSame(['circumstances', 'causes', 'disagreements'], $entries->map(fn ($e) => $e->section->value)->all());
         // Typographie : apostrophe courbe, espaces insécables dans les nombres et les heures.

@@ -164,7 +164,10 @@ class AccidentDetailResource extends AccidentResource
                  * allemand qui cite sa propre référence (livre, presse), famille `wikipedia-edition` ; nul : aucune règle satisfaite), `date` et `place` (valeur retenue, et pour
                  * chacune les sources qui concordent `confirmed_by`, celles qui divergent `disagreeing`, les communes
                  * voisines `nearby` ; chaque source avec `provider`, `role`, `url`, sa valeur et `retrieved_at`, la date
-                 * de lecture), `families`, `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
+                 * de lecture), `families` (familles qui confirment la date et le lieu : `official`, `wikipedia`, `wikidata`,
+                 * `wikidata-bare`, `wikipedia-edition`, `press` pour la presse d'époque numérisée, plusieurs articles ne
+                 * comptant que pour une famille), `deaths` (bilan de la fiche et articles de presse qui le confirment ou
+                 * en donnent un autre, absent si aucun article n'en donne), `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
                  * (autres éléments Wikidata du même accident, gardés avec leurs sources).
                  *
                  * @var array<string, mixed>|null

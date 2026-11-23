@@ -102,6 +102,15 @@ return [
         'review_intro' => 'This page was compiled automatically from the sources; these points remain uncertain:',
         'reserves_title' => 'Reservations',
         'reserves_intro' => 'The date and the municipality are confirmed by the sources; please note:',
+        'reviewed_by' => 'Reviewed record: date and municipality confirmed by :families.',
+        'families' => [
+            'official' => 'the official investigation (BEA-TT)',
+            'wikipedia' => 'Wikipedia',
+            'wikidata' => 'Wikidata',
+            'wikidata-bare' => 'Wikidata',
+            'wikipedia-edition' => 'an English or German Wikipedia list citing its own reference',
+            'press' => 'digitised newspapers of the time',
+        ],
         'back' => 'All accidents',
     ],
 

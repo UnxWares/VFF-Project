@@ -74,3 +74,21 @@ export function timeText(time, lang = 'fr') {
     if (lang === 'fr') return `${Number(h)}${NBSP}h${NBSP}${m}`;
     return lang === 'de' ? `${h}:${m}${NBSP}Uhr` : `${h}:${m}`;
 }
+
+/** Ordre d'affichage des familles de sources qui confirment une fiche (accidents.verification.families). */
+const FAMILY_ORDER = ['official', 'wikipedia', 'wikidata', 'wikipedia-edition', 'press'];
+
+/**
+ * Familles de sources qui ont confirmé à la fois la date et la commune d'une fiche relue (`review.status` = `ok`
+ * et une règle satisfaite), dans un ordre stable ; Wikidata avec ou sans référence n'est citée qu'une fois.
+ * @param {{status: string, verification?: {rule?: string, families?: {date?: string[], place?: string[]}}|null}} review
+ * @returns {string[]}
+ */
+export function confirmingFamilies(review) {
+    const v = review?.verification;
+    if (review?.status !== 'ok' || !v?.rule) return [];
+    const norm = (f) => (f === 'wikidata-bare' ? 'wikidata' : f);
+    const place = new Set((v.families?.place ?? []).map(norm));
+    const both = new Set((v.families?.date ?? []).map(norm).filter((f) => place.has(f)));
+    return FAMILY_ORDER.filter((f) => both.has(f));
+}

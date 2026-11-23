@@ -74,6 +74,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Brève du 4 novembre : l\'express Paris-Brest heurte, en gare de Châtelaudren, un train de marchandises en manoeuvre ; quatorze personnes tuées.',
+            'facts' => ['commune_insee' => '22206', 'deaths' => 14, 'deaths_provisional' => true],
         ],
         'kb-1922-10-30-de-volkskrant' => [
             'provider' => 'delpher',
@@ -88,6 +89,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 30 octobre : hier dimanche matin, l\'express Paris-Brest heurte à la gare de Châtelaudren un train de marchandises ; le signal était fermé mais la tempête de neige empêche le mécanicien de le voir ; 14 morts et 39 blessés.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '22206', 'deaths' => 14, 'deaths_provisional' => true],
         ],
         'kb-1922-11-01-nieuwe-hengeloosche-courant' => [
             'provider' => 'delpher',
@@ -102,6 +104,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 1er novembre : l\'express parti de Paris le samedi à 17 h entre en gare de Châtelaudren à pleine vitesse et heurte un train de marchandises en manoeuvre ; 14 morts.',
+            'facts' => ['commune_insee' => '22206', 'deaths' => 14, 'deaths_provisional' => true],
         ],
     ],
     'sections' => [

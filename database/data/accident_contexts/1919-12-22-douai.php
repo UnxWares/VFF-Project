@@ -46,6 +46,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Brève d\'après une dépêche Havas : à la gare de Douai, un train de marchandises est entré dans un express ; quatre voitures détruites, 9 morts et un certain nombre de blessés.',
+            'facts' => ['commune_insee' => '59178', 'deaths' => 9, 'deaths_provisional' => true],
         ],
         'kb-1919-12-24-de-tijd' => [
             'provider' => 'delpher',
@@ -60,6 +61,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche du 23 décembre : à Douai, 12 morts et 25 blessés ; l\'express Lille-Paris, juste avant la gare, heurté par un train de marchandises ; trois voitures en pièces.',
+            'facts' => ['commune_insee' => '59178', 'deaths' => 12],
         ],
     ],
     'sections' => [

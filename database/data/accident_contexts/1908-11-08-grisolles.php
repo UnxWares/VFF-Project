@@ -74,6 +74,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche de Toulouse du 8 novembre : un train de Bordeaux vers Cette déraille près de Grisolles (Tarn-et-Garonne) ; une voiture écrasée ; 10 morts dont 8 soldats.',
+            'facts' => ['date' => '1908-11-08', 'commune_insee' => '82075', 'deaths' => 10],
         ],
         'kb-1908-11-10-de-courant' => [
             'provider' => 'delpher',
@@ -88,6 +89,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 10 novembre : accident à 5 h du matin près du village de Grisolles, sur la ligne de Cette à Bordeaux, le train en pleine vitesse déraille juste avant le viaduc ; cinq wagons sortent des rails.',
+            'facts' => ['commune_insee' => '82075', 'deaths' => 10],
         ],
     ],
     'sections' => [

@@ -23,6 +23,9 @@ final class AccidentVerificationResult
     /** @var list<string> fiches « ok » qu'aucune règle ne confirme (laissées « ok » : le comptage ne les rétrograde pas) */
     public array $unconfirmedOk = [];
 
+    /** @var list<string> fiches « ok » dont la date et la commune sont confirmées, entre autres, par la presse numérisée */
+    public array $pressConfirmed = [];
+
     /** @var list<string> fiches repassées « à vérifier » parce que les sources divergent */
     public array $demoted = [];
 

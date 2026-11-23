@@ -102,6 +102,15 @@ return [
         'review_intro' => 'Diese Seite wurde automatisch aus den Quellen erstellt; folgende Punkte bleiben unsicher:',
         'reserves_title' => 'Vorbehalte',
         'reserves_intro' => 'Datum und Gemeinde sind durch die Quellen bestätigt; zu beachten:',
+        'reviewed_by' => 'Geprüfter Eintrag: Datum und Gemeinde bestätigt durch :families.',
+        'families' => [
+            'official' => 'die amtliche Untersuchung (BEA-TT)',
+            'wikipedia' => 'Wikipedia',
+            'wikidata' => 'Wikidata',
+            'wikidata-bare' => 'Wikidata',
+            'wikipedia-edition' => 'eine englische oder deutsche Wikipedia-Liste mit eigenem Beleg',
+            'press' => 'digitalisierte Zeitungen der Zeit',
+        ],
         'back' => 'Alle Unfälle',
     ],
 

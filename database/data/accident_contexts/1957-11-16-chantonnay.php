@@ -116,6 +116,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Brève du 18 novembre 1957 : accident de train en France, 29 morts, une locomotive ayant éventré une voiture de voyageurs.',
+            'facts' => ['deaths' => 29],
         ],
         'kb-1957-11-18-twentsch-dagblad-tubantia' => [
             'provider' => 'delpher',
@@ -130,6 +131,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Article du 18 novembre : samedi, collision entre un autorail diesel et un train de marchandises près de Chantonnay, au sud-est de Nantes, sur voie unique ; 29 morts et 21 blessés.',
+            'facts' => ['date' => '1957-11-16', 'commune_insee' => '85051', 'deaths' => 29],
         ],
         'kb-1957-11-18-de-telegraaf' => [
             'provider' => 'delpher',
@@ -144,6 +146,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Reportage du 18 novembre : 29 morts et 21 blessés, dont quelques-uns très graves, à Chantonnay en Vendée ; machiniste et chef de gare arrêtés ; automotrice à 80 km/h.',
+            'facts' => ['date' => '1957-11-16', 'commune_insee' => '85051', 'deaths' => 29],
         ],
     ],
     'sections' => [

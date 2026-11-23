@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     accidentDate,
+    confirmingFamilies,
     distanceText,
     providerKey,
     timeText,
@@ -76,5 +77,43 @@ describe('timeText', () => {
         expect(timeText('06:29', 'en')).toBe('06:29');
         expect(timeText('06:29', 'de')).toBe('06:29\u00a0Uhr');
         expect(timeText(null)).toBe('');
+    });
+});
+
+describe('confirmingFamilies', () => {
+    const ok = (date, place, rule = 'two_sources') => ({
+        status: 'ok',
+        verification: { rule, families: { date, place } },
+    });
+
+    it('donne les familles qui confirment la date et la commune, dans un ordre stable', () => {
+        expect(confirmingFamilies(ok(['press', 'wikipedia'], ['wikipedia', 'press']))).toEqual([
+            'wikipedia',
+            'press',
+        ]);
+        expect(confirmingFamilies(ok(['official'], ['official'], 'primary_source'))).toEqual([
+            'official',
+        ]);
+    });
+
+    it('ne cite qu’une famille qui confirme les deux faits, et Wikidata une seule fois', () => {
+        expect(
+            confirmingFamilies(ok(['wikipedia', 'official'], ['wikipedia', 'wikidata-bare'])),
+        ).toEqual(['wikipedia']);
+        expect(confirmingFamilies(ok(['wikidata-bare', 'wikidata'], ['wikidata']))).toEqual([
+            'wikidata',
+        ]);
+    });
+
+    it('ne dit rien d’une fiche à vérifier ou sans règle satisfaite', () => {
+        expect(
+            confirmingFamilies({
+                ...ok(['press', 'wikipedia'], ['press', 'wikipedia']),
+                status: 'to_review',
+            }),
+        ).toEqual([]);
+        expect(confirmingFamilies(ok(['wikipedia'], ['wikipedia'], null))).toEqual([]);
+        expect(confirmingFamilies({ status: 'ok', verification: null })).toEqual([]);
+        expect(confirmingFamilies(null)).toEqual([]);
     });
 });

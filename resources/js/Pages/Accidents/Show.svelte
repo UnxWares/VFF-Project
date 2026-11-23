@@ -13,6 +13,7 @@
     import {
         CONFIDENCE_TONE,
         accidentDate,
+        confirmingFamilies,
         distanceText,
         providerKey,
         timeText,
@@ -36,6 +37,19 @@
             .filter((l) => accident.wikipedia?.[l])
             .map((l) => [l, accident.wikipedia[l]]),
     );
+
+    /** « Wikipédia et la presse d'époque numérisée » : familles qui ont confirmé la date et la commune d'une fiche relue. */
+    const reviewedBy = $derived.by(() => {
+        const labels = confirmingFamilies(accident.review).map((f) =>
+            String($i18n.t(`accidents.show.families.${f}`)),
+        );
+        return labels.length
+            ? new Intl.ListFormat(formatLocale(lang), {
+                  style: 'long',
+                  type: 'conjunction',
+              }).format(labels)
+            : '';
+    });
 
     const unknown = $derived(String($i18n.t('accidents.show.unknown')));
     const statItems = $derived([
@@ -155,6 +169,11 @@
                 <div class="vff-prose">
                     <p>{summary}</p>
                     <p class="note">{$i18n.t('accidents.show.summary_note')}</p>
+                    {#if reviewedBy}
+                        <p class="note">
+                            {$i18n.t('accidents.show.reviewed_by', { families: reviewedBy })}
+                        </p>
+                    {/if}
                 </div>
                 {#if accident.review.notes.length || wikipedia.length}
                     <div class="aside-col">
