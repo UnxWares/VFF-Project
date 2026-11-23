@@ -63,7 +63,12 @@ const PAGES = [
     { nom: 'recherche', chemin: '/search?q=limoges', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     { nom: 'chronologie', chemin: '/chronology', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     { nom: 'ce jour-là', chemin: '/on-this-day', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
-    { nom: 'trains touristiques', chemin: '/tourist-railways', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
+    {
+        nom: 'trains touristiques',
+        chemin: '/tourist-railways',
+        titre: { fr: /VFF/, en: /VFF/ },
+        cle: h1,
+    },
     { nom: 'glossaire', chemin: '/glossary', titre: { fr: /VFF/, en: /VFF/ }, cle: h1 },
     {
         nom: 'fiche commune',
