@@ -1,0 +1,83 @@
+<?php
+
+// „Projekte: Wiedereröffnungen und Neubaustrecken“ (/projects): Texte der Seite. Die Daten stammen aus
+// App\Services\RailProjects (Katalog database/data/projets_ferroviaires.php); die Kurzbeschreibungen der Projekte sind französisch.
+return [
+    'meta_title' => 'Projekte: Wiedereröffnungen und Neubaustrecken',
+    'meta_description' => 'Französische Bahnprojekte, die noch nicht in Betrieb sind: Wiedereröffnungen für den Personenverkehr, Neubau- und Hochgeschwindigkeitsstrecken, Regional-Express-Netze der Metropolen, Elektrifizierungen. Zu jedem Projekt der Stand, das Datum jeder erreichten Etappe, die Träger und die Quelle jeder datierten Angabe.',
+    'hero_title' => 'Projekte: Wiedereröffnungen und Neubaustrecken',
+    'hero_subtitle' => ':count Bahnprojekte in Frankreich mit ihrem Stand, dem Datum jeder erreichten Etappe und der Quelle jeder Angabe. Ein für später angekündigtes Datum wird immer als geplant gekennzeichnet, mit Angabe, wer es nennt.',
+    'link_figures' => 'Projekte: Wiedereröffnungen und Neubaustrecken',
+
+    'filters_title' => 'Projekt suchen',
+    'search_label' => 'Name, Strecke, Träger oder Region',
+    'search_hint' => 'z. B. Limoges, LGV, Occitanie',
+    'filter_state' => 'Stand',
+    'all_states' => 'Alle Stände',
+    'filter_kind' => 'Projektart',
+    'all_kinds' => 'Alle Arten',
+    'filter_region' => 'Region',
+    'all_regions' => 'Alle Regionen',
+    'results' => 'Projekte: :count',
+    'reset' => 'Zurücksetzen',
+    'empty_title' => 'Kein Projekt gefunden',
+    'empty_text' => 'Versuchen Sie ein anderes Wort oder entfernen Sie einen Filter.',
+
+    'kinds' => [
+        'reopening' => 'Wiedereröffnung für den Personenverkehr',
+        'new_line' => 'Neubaustrecke',
+        'lgv' => 'Hochgeschwindigkeitsstrecke',
+        'rer' => 'Regional-Express-Netz einer Metropole',
+        'electrification' => 'Elektrifizierung',
+    ],
+    'states' => [
+        'study' => 'Studie',
+        'debate' => 'Öffentliche Debatte',
+        'dup' => 'Gemeinnützigkeit erklärt',
+        'funding' => 'Finanzierung beschlossen',
+        'works' => 'Bauarbeiten',
+        'suspended' => 'Ausgesetzt oder verschoben',
+    ],
+    'state_help' => [
+        'study' => 'Die letzte erreichte Etappe ist eine Studie.',
+        'debate' => 'Die letzte erreichte Etappe ist eine öffentliche Debatte oder Konsultation.',
+        'dup' => 'Das Projekt ist für gemeinnützig erklärt.',
+        'funding' => 'Die Finanzierung ist beschlossen, die Bauarbeiten haben nicht begonnen.',
+        'works' => 'Die Bauarbeiten haben begonnen.',
+        'suspended' => 'Das Projekt ist ausgesetzt, ohne Termin verschoben oder aufgegeben.',
+    ],
+    'stages' => [
+        'study' => 'Studie',
+        'debate' => 'Öffentliche Debatte oder Konsultation',
+        'dup' => 'Erklärung der Gemeinnützigkeit',
+        'funding' => 'Finanzierung',
+        'works' => 'Bauarbeiten',
+        'service' => 'Personenverkehr',
+        'commissioning' => 'Inbetriebnahme',
+    ],
+    'stage_done' => 'Erreicht',
+    'stage_planned' => 'Geplant',
+    'stage_source' => 'Quelle',
+    'source_published' => 'veröffentlicht am :date',
+
+    'planned_line' => 'Inbetriebnahme geplant: :date, laut :source.',
+    'planned_line_next' => 'Nächste geplante Etappe: :stage, :date, laut :source.',
+    'no_planned' => 'Keine Inbetriebnahme, die eine Quelle datiert.',
+    'porteurs' => 'Träger',
+    'regions' => 'Regionen',
+    'lines' => 'Streckenseite',
+    'stages_title' => 'Etappen',
+    'no_stages' => 'Keine datierte Etappe.',
+    'checked' => 'Quellen geprüft am :date.',
+    'summary_lang_note' => 'Zusammenfassung auf Französisch.',
+
+    'table_label' => 'Liste der Bahnprojekte',
+    'list_label' => 'Bahnprojekte',
+
+    'method_title' => 'So lesen Sie diese Seite',
+    'method_dates' => 'Eine „erreichte“ Etappe hat ein vergangenes Datum und eine Quelle; eine „geplante“ Etappe ist ein Datum, das ein Bauherr, eine Region oder der Staat nennt und das sich ändern kann: Es wird nie als sicher dargestellt. Nennt eine Quelle nur das Jahr oder den Monat, sagt diese Seite nicht mehr.',
+    'method_state' => 'Der Stand eines Projekts ist der seiner letzten erreichten Etappe in dieser Reihenfolge: Studie, öffentliche Debatte, Erklärung der Gemeinnützigkeit, Finanzierung, Bauarbeiten. Ein Projekt, das in Betrieb gegangen ist, verlässt die Liste und erscheint auf der Seite seiner Strecke.',
+    'method_sources' => 'Quellen sind zuerst amtliche Dokumente (SNCF Réseau, Regionen, Präfekturen, Staat-Region-Planverträge, Légifrance für Dekrete, öffentliche Debatten der Commission nationale du débat public), danach die Regionalpresse. Wikipedia dient nur zum Gegenprüfen.',
+    'method_scope' => 'Die Liste erhebt keinen Anspruch auf Vollständigkeit: Sie umfasst die Projekte, deren Stand und Daten in öffentlichen Quellen geprüft werden konnten.',
+    'api_link' => 'Dieselben Daten als JSON: /api/v1/projects',
+];

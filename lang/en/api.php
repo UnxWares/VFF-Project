@@ -120,6 +120,7 @@ return [
             'gtfs' => 'Network of an era in GTFS Static format (ZIP archive), with shapes only for lines whose whole route may be redistributed.',
             'lines' => 'Directory of lines, current and closed, with the same filters as the Lines page.',
             'tourist_railways' => 'Heritage railways and rail bikes running today (operator, type, gauge, length, start year, region, links) and greenways on former railway lines, with the source of every fact.',
+            'projects' => 'Railway projects not yet in service (reopenings to passenger service, new and high-speed lines, metropolitan express rail, electrifications): status, date of every stage passed or announced, sponsors, line page and source of every dated fact; filters by status, type and region.',
             'line' => 'Full entry for a line, as on the site: key figures, dated phases, sourced chronicle, stations and sources.',
             'segments' => 'Uniform sections of a line’s route at an era, in kilometre-point order.',
             'history' => 'Chronology of a line: dated events and state at each era.',

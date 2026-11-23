@@ -38,6 +38,7 @@ use App\Http\Controllers\OnThisDayController;
 use App\Http\Controllers\OpenDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\RailProjectController;
 use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
@@ -94,6 +95,8 @@ Route::get('/departments/{slug}', [DepartmentController::class, 'show'])
 Route::get('/network', [NetworkFiguresController::class, 'index'])->name('network.figures');
 // Chemins de fer touristiques et vélorails exploités aujourd'hui, voies vertes sur ancienne voie à part.
 Route::get('/tourist-railways', [TouristRailwayController::class, 'index'])->name('tourist-railways');
+// Projets : réouvertures, lignes nouvelles, LGV, RER métropolitains et électrifications, avec l'état et la source de chaque étape.
+Route::get('/projects', [RailProjectController::class, 'index'])->name('projects');
 // Chronologie du rail en France : faits datés année par année, une décennie à la fois (en cache).
 Route::get('/chronology', [ChronologyController::class, 'index'])->name('network.chronology');
 // Ce jour-là : ce qui s'est passé un jour du calendrier les années précédentes (aujourd'hui par défaut).

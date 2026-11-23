@@ -25,6 +25,7 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- REST : `GET /projects` (projets ferroviaires pas encore en service : réouvertures voyageurs, lignes nouvelles et LGV, RER métropolitains, électrifications ; état `study`/`debate`/`dup`/`funding`/`works`/`suspended`, étapes avec date à leur précision, `done` = franchie ou prévue, source de chaque étape, porteurs, fiches de ligne ; filtres `state`, `kind` et `region`). Une date prévue n'est jamais certaine : à lire avec sa source. Page : `/projects`. Ajout seul.
 - Accessibilité et services des gares (SNCF Gares & Connexions et SNCF Voyageurs, ODbL) : REST
   `GET /api/v1/stations/{station}/accessibility` et champ `accessibility` de la fiche `GET /api/v1/stations/{station}` (avec
   `links.accessibility`), GraphQL `Station.accessibility` (types `StationAccessibility`, `StationAccessibilityAccess`,

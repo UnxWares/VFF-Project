@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NetworkAuditController;
 use App\Http\Controllers\Api\NetworkFiguresController;
 use App\Http\Controllers\Api\OnThisDayController;
+use App\Http\Controllers\Api\RailProjectController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
@@ -119,6 +120,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/tourist-railways', [TouristRailwayController::class, 'index'])->name('api.tourist-railways');
+    Route::get('/v1/projects', [RailProjectController::class, 'index'])->name('api.projects');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');

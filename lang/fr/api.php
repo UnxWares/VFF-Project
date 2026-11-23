@@ -121,6 +121,7 @@ return [
             'gtfs' => 'Réseau d’une ère au format GTFS Static (archive ZIP), avec les formes des seules lignes dont tout le tracé est redistribuable.',
             'lines' => 'Annuaire des lignes, actuelles et disparues, avec les mêmes filtres que la page Lignes.',
             'tourist_railways' => 'Chemins de fer touristiques et vélorails exploités aujourd’hui (exploitant, type, écartement, longueur, année de début, région, liens) et voies vertes sur ancienne voie, avec la source de chaque fait.',
+            'projects' => 'Projets ferroviaires pas encore en service (réouvertures voyageurs, lignes nouvelles et LGV, RER métropolitains, électrifications) : état, date de chaque étape franchie ou annoncée, porteurs, fiche de ligne et source de chaque fait daté ; filtres état, type et région.',
             'line' => 'Fiche complète d’une ligne, comme sur le site : chiffres clés, phases datées, chronique sourcée, gares et sources.',
             'segments' => 'Portions homogènes du tracé d’une ligne à une ère, dans l’ordre des points kilométriques.',
             'history' => 'Chronologie d’une ligne : événements datés et état à chaque ère.',
