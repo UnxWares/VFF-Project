@@ -99,11 +99,21 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   ouverte par Entrée ou « Tous les résultats ») avec les correspondances surlignées et une suggestion « vouliez-vous
   dire » ; itinéraire historique (« Paris - Brest en 1950 ») et comparaison d'un
   trajet entre deux époques.
+- Lecture des époques : une barre de lecture parcourt la carte décennie par décennie jusqu'à aujourd'hui (mouvement
+  réduit respecté, aussi sur la carte intégrée). Coloration des lignes par vitesse maximale ou par signalisation, grisée
+  quand une époque n'a pas de données datées.
+- « Qu'y avait-il ici ? » (clic droit, appui long ou bouton) donne ce qui existait en un lieu à l'époque choisie ;
+  « Liste de ce qui est affiché » est l'équivalent texte de la carte, avec ses filtres.
+- Position par point kilométrique : « 570000 PK 120 » (champ de recherche, page `/search`, `GET /api/v1/lines/{line}/at-pk`)
+  donne les gares autour, la commune et un point sur la carte.
 - Carte intégrable sur un autre site (iframe).
 
 ### Fiches
 
-- Lignes (`/lines/{slug}`) : tracé par période, schéma « Où et quand » (une bande par phase, mises bout à bout le
+- Lignes (`/lines/{slug}`) : tracé par période, schéma de la ligne par PK (gares, bifurcations, passages à niveau,
+  ouvrages, voies, énergie, signalisation et vitesses, par époque), tunnels, viaducs et grands ponts dans l'ordre des PK
+  (IGN BD TOPO et Wikidata), histoire de l'électrification par section, bibliographie « Pour aller plus loin »
+  (catalogue de la BnF, références de Wikipédia, Wikidata), schéma « Où et quand » (une bande par phase, mises bout à bout le
   long de la ligne, relié à la carte de la phase), chronologie datée, frise par décennie, gares par époque, longueur,
   électrification (ligne dite électrifiée quand la majorité de ses tronçons en service l'est), vitesses maximales par PK
   (SNCF Réseau, ODbL) et changements de vitesse datés lus dans Wikipédia, signalisation
@@ -114,11 +124,14 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   vertes, archives de Gallica et des Archives SNCF (titre, classement et lien, jamais l'image), galerie de médias
   crédités, sources, et « histoires » d'archives sur un événement.
 - Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, quais (longueur et PK, SNCF Réseau), frise, mini-carte, et la vie de la gare en une chronologie
-  datée (événements regroupés, dessertes, noms, accidents proches, vues aériennes) ;
+  datée (événements regroupés, dessertes, noms, accidents proches, vues aériennes) ; fréquentation annuelle (SNCF Gares &
+  Connexions, ODbL), noms successifs, accessibilité et services (ascenseurs, assistance, vélos), desserte d'un mardi type
+  (horaires ouverts SNCF et Transilien), patrimoine protégé du bâtiment, gares voisines par PK, lectures conseillées ;
   une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle. Une gare fermée aux voyageurs
   mais encore desservie par le fret (Onnaing) est dite « fret seul » ; sur la carte d'une époque, une gare fermée
   n'apparaît fermée qu'à l'époque de sa fermeture, puis disparaît. Une ouverture connue à un intervalle s'écrit « entre A et B ».
-- Matériel roulant (`/materials`) : 727 séries tirées de Wikidata, avec photo Commons créditée. Le matériel
+- Matériel roulant (`/materials`) : 885 séries tirées de Wikidata, avec photo Commons créditée, une frise par traction
+  (`/materials/timeline`) et le matériel préservé des musées, associations et lignes touristiques (`/materials/preserved`). Le matériel
   d'une ligne vient de liens attestés (Wikidata, articles cités) et, depuis le 21/11/2026, des relations
   (Intercités, TER) qui la parcourent : la ligne d'Argentan à Granville affiche ainsi les X 72500, l'AGC et le
   Régiolis. Les périodes de circulation sont datées quand une source le dit ; la fiche d'une série garde ses rames
@@ -131,13 +144,21 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   (`database/data/accident_records_manual.php`, voir [docs/COMMANDES.md](docs/COMMANDES.md)). Une personne heurtée par un
   train n'est publiée que si le BEA-TT ou un contexte sourcé l'établit ; les doublons de la liste de Wikipédia sont fondus
   dans la fiche sourcée, avec redirection.
+- Territoire et histoire : « Le rail à <commune> » (`/communes/{slug}`), fiches de départements avec la longueur de rail
+  et les gares décennie par décennie, compagnies historiques (`/companies`), projets de lignes pas encore en service
+  (`/projects`), chemins de fer touristiques, vélorails et voies vertes (`/tourist-railways`), patrimoine ferroviaire
+  protégé (`/heritage`), « Autour de moi » (`/nearby`), chronologie du rail en France depuis 1827 (`/chronology`), « Ce
+  jour-là » (`/on-this-day`), glossaire (`/glossary`).
 - Accueil : une image d'archive du rail renouvelée toutes les 30 minutes (« Le rail en images »), les campagnes de
   réouverture et de maintien d'une ligne avec leurs sources chiffrées (AngouLim, Hirondelles, Argentan - Granville).
 - Journal de bord (`/journal`) : articles longs sur des lignes emblématiques, écrits en Markdown dans
   `resources/content/journal` (français, anglais, allemand), flux Atom et RSS, lus aussi par l'API et le serveur MCP
   ([docs/REDACTION.md](docs/REDACTION.md)).
-- Quiz (`/quiz`) : reconnaître une ligne ou un matériel.
-- Le réseau en chiffres (`/network`) : longueurs, gares, électrification, fermetures et accidents par décennie.
+- Quiz (`/quiz`) : reconnaître une ligne ou un matériel, ou répondre à des questions de culture ferroviaire dont chaque
+  réponse est sourcée.
+- Le réseau en chiffres (`/network`) : longueurs, gares, électrification, fermetures et accidents par décennie ;
+  « Ce que sait l'encyclopédie » (`/network/coverage`) mesure la couverture des données ; les accidents en chiffres
+  (`/accidents/statistics`) ne devinent jamais un bilan inconnu.
 - Données ouvertes (`/open-data`) : jeux sous ODbL (réseau par époque en CSV et GeoJSON, événements datés, accidents,
   matériel roulant), limités aux sources dont la licence le permet, avec leur archive ZIP et leur licence.
 - Impression : les fiches s'impriment et s'enregistrent en PDF A4 propre.
@@ -163,11 +184,16 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 - GraphQL (Lighthouse) en complément : lecture de tout le modèle et mutations de contribution ; référence Magidoc
   sur `/docs/graphql` et GraphiQL sur `/graphiql`.
 - Serveur MCP en lecture seule (`POST /mcp`, ou `php artisan mcp:start vff` en local) pour que les assistants IA
-  interrogent l'encyclopédie avec ses sources et ses licences : 38 outils, dont `what_was_here` (ce qui existait en
-  un lieu à une époque), `network_in_area`, `compare_line_eras`, `line_stops`, `station_aerial`, `line_speeds` et
-  `station_attendance` ([docs/MCP.md](docs/MCP.md)).
+  interrogent l'encyclopédie avec ses sources et ses licences : 47 outils, dont `what_was_here` (ce qui existait en
+  un lieu à une époque), `network_in_area`, `compare_line_eras`, `line_speeds`, `line_structures`, `station_heritage`,
+  `network_chronology`, `on_this_day` et `tourist_railways` ; un fait venu d'une source non commerciale n'est jamais
+  servi ([docs/MCP.md](docs/MCP.md)).
 - Les chiffres du réseau par décennie sont servis par `GET /api/v1/stats/network`, les vitesses d'une ligne par
   `GET /api/v1/lines/{line}/speeds` et `Line.speeds`, la chronologie d'une gare par sa fiche (`chronology`).
+- Les nouvelles pages ont leur équivalent en REST, sans clé : `/api/v1/chronology`, `/api/v1/on-this-day`,
+  `/api/v1/tourist-railways`, `/api/v1/heritage`, `/api/v1/projects`, `/api/v1/companies`, `/api/v1/stats/coverage`,
+  `/api/v1/accidents/statistics`, et par ligne ou par gare `/structures`, `/schematic`, `/at-pk` et `/heritage` ; le
+  contrat versionné suit chaque ajout ([docs/API-CHANGELOG.md](docs/API-CHANGELOG.md)).
 - Le nombre de voies et la liaison radio d'une ligne sont servis par `GET /api/v1/lines/{line}/infrastructure`,
   `Line.infrastructure` et l'outil `line_infrastructure`, les quais par la fiche d'une gare. Un instantané versionné
   du contrat de l'API fait échouer un test si un champ disparaît sans avoir été annoncé dans
@@ -207,18 +233,19 @@ Le détail est dans [ROADMAP.md](ROADMAP.md).
   ([docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md), [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md)) ; reste à repasser
   les ères passées et les gares sur la base complète.
 - Matériel : les relations ambiguës dont aucun itinéraire proche ne tranche, et le retrait de deux liens de Z 20500 jugés faux à la relecture.
-- Moteur des tracés et jonctions : trois règles de plus (raccords en équerre lissés, bouts prolongés jusqu'à la gare, raccords
-  pendants retirés) et une passe de fusion des lignes du même couloir sont écrites et mesurées, à appliquer au réseau ;
-  les chronologies lues par étapes dans les articles de Wikipédia attendent leur réimport, puis le recalcul des gares et de
+- Moteur des tracés et jonctions : les règles de raccords en équerre lissés, de bouts prolongés jusqu'à la gare et de
+  raccords pendants retirés, sont appliquées au réseau depuis la nuit du 22 au 23/11 et les jonctions latérales sont en
+  cours d'application ; restent les retraits à la main de trois fragments (arrêtés par prudence à Domfront), la fusion des lignes du même couloir et le recalcul des gares et de
   leurs ères.
 - Fusion des sources de géométrie à 1 m : l'erreur de chaque source (vecteurs, photos aériennes, LiDAR HD) est mesurée et la
   fusion validée sur six lignes ; un morceau n'est dit « précis » que sous 3 m d'erreur estimée. À faire : pilote sur le
-  Calvados, passe nationale, puis `ortho-v2`, le modèle sur photos aériennes centré sur l'axe de la voie.
-- Médias : droits propres à chaque image, comblement par Wikidata et Commons et premiers fonds ouverts (autochromes,
-  cartes postales d'archives, Getty, École des ponts) prêts mais pas encore appliqués ; photos de rue Panoramax triées
-  par ce qu'elles voient, import en attente ; d'autres fonds d'images libres à intégrer.
-- Altitude de la voie estimée d'après le terrain et import de l'infrastructure SNCF Réseau (nombre de voies, radio, quais)
-  : code commité, à lancer sur la base.
+  Calvados, passe nationale, puis un modèle sur photos aériennes centré sur l'axe de la voie.
+- Médias : droits propres à chaque image, comblement par Wikidata et Commons, premiers fonds ouverts (autochromes,
+  cartes postales d'archives, Rosalis, Pireneas) appliqués ; photos de rue Panoramax triées par un modèle de vision, import
+  en attente ; d'autres fonds d'images libres à intégrer.
+- Altitude de la voie estimée d'après le terrain et étalonnée sur le LiDAR HD : code commité, à lancer sur la base.
+- Signalisation datée lue dans Wikipédia (mises en service de BAL et de BAPR par section) et exports de données ouvertes
+  complets par époque : code commité, à lancer sur la base.
 - Temps réel en production (lancer Reverb et le proxy WebSocket, code prêt) ; relais des vignettes de Wikimedia Commons
   (`VFF_COMMONS_PROXY`, code prêt, désactivé) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
 - Adresses de lignes neutres : `vff:neutralize-line-slugs` retire le préfixe de source des adresses et garde une
@@ -347,7 +374,7 @@ bin/pnpm test                # vitest
 bin/pnpm test:e2e            # Playwright (fumée) contre le serveur de dev, voir docs/TESTS-E2E.md
 ```
 
-Plus de 7 600 tests PHPUnit et 1 200 tests vitest passent au 22/11/2026.
+Plus de 10 000 tests PHPUnit et 1 200 tests vitest passent au 23/11/2026.
 
 | Outil | Commande | Ce qu'il vérifie |
 |---|---|---|
