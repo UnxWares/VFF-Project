@@ -165,4 +165,29 @@ return [
         'quote' => 'Am 7. Oktober 1950 wurde der Reisezugverkehr zwischen Rastatt und Wintersdorf eingestellt.',
         'reason' => 'fin du service voyageurs entre Rastatt et Wintersdorf',
     ],
+
+    // 713000 Le Palais - Eygurande-Merlines : « Le tunnel de La Saulière (86 m) [...] a été supprimé en 1964 par le creusement d'une
+    // tranchée ouverte » est une phrase d'infrastructure, lue à tort comme l'ouverture de la portion Barsanges - Ambrugeat
+    // (chantier « datation-gares », 23/11/2026).
+    [
+        'line' => '713000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1964-01-01'],
+        'label' => 'Suppression du tunnel de La Saulière',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Palais_%C3%A0_Eygurande_-_Merlines&oldid=238876015',
+        'quote' => 'Le tunnel de La Saulière (86 m), en très mauvais état, situé entre les gares de Barsanges et Ambrugeat a été supprimé en 1964 par le creusement d\'une tranchée ouverte.',
+        'reason' => 'la suppression d\'un tunnel n\'est pas l\'ouverture de la portion Barsanges - Ambrugeat (section Eymoutiers - Meymac ouverte le 8 octobre 1883, même article)',
+    ],
+
+    // 559000 Pont-de-Braye - Blois : « Le tronçon de Troo à Sougé (6 km) est inauguré en juin 2026 » est la réouverture
+    // touristique d'un tronçon de la ligne ouverte le 20 novembre 1881, pas une ouverture : elle datait Troo de 2026.
+    [
+        'line' => '559000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '2026-06-01'],
+        'label' => 'Réouverture touristique du tronçon Troo - Sougé',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Pont-de-Braye_%C3%A0_Blois&oldid=239961138',
+        'quote' => 'Le tronçon de Troo à Sougé (6 km) est inauguré en juin 2026.',
+        'reason' => 'réouverture d\'un tronçon de la ligne ouverte le 20 novembre 1881 (même article) : la gare de Troo date de 1881',
+    ],
 ];

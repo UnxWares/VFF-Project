@@ -3517,4 +3517,29 @@ return [
         'quote' => 'la halte est créée à la suite de l\'accident du 13 juillet 1878',
         'reason' => 'halte créée après l\'accident du 13/07/1878 (source de l\'article : mairie de Saint-Aubin-des-Landes) ; la date de 1857 de Wikidata est fausse',
     ],
+
+    // Gares datées par une phrase de portion mal lue (chantier « datation-gares », 23/11/2026). Barsanges et Ambrugeat sont entre
+    // Viam et Meymac (PK 468329 et 473150 de la ligne 713000), sur la section Eymoutiers - Meymac, dont l'événement reste non
+    // résolu : sans date propre, elles prenaient l'ouverture de la ligne entière (1880) ou la phrase « tunnel de La Saulière
+    // supprimé en 1964 », lue à tort comme une ouverture (neutralisée dans line_event_corrections_sourcees.php).
+    [
+        'station' => ['name' => 'Barsanges', 'uic' => '87592188'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-10-08',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne du Palais à Eygurande - Merlines', 238876015),
+        'quote' => 'd\'Eymoutiers à Meymac : le 8 octobre 1883',
+        'reason' => 'ouverture de la section Eymoutiers - Meymac, où se trouve la gare (PK 468329, entre Viam et Meymac)',
+    ],
+    [
+        'station' => ['name' => 'Ambrugeat', 'uic' => '87592196'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1883-10-08',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne du Palais à Eygurande - Merlines', 238876015),
+        'quote' => 'd\'Eymoutiers à Meymac : le 8 octobre 1883',
+        'reason' => 'ouverture de la section Eymoutiers - Meymac, où se trouve la gare (PK 473150, entre Viam et Meymac)',
+    ],
 ];
