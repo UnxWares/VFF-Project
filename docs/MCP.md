@@ -1468,6 +1468,52 @@ Renvoie `day` (« MM-JJ »), `count`, `facts[]` (`subject`, `kind`, `traffic`, `
 {"month": 11, "day": 23}
 ```
 
+### `network_chronology` : chronologie du rail en France
+
+Mêmes données que `GET /api/v1/chronology` et la page `/chronology` (service `NetworkChronology`, calculé par commande puis
+gardé en cache : `computed_at`). Sans `year` ni `decade` : le panorama par décennie ; avec `decade` : les comptes de chaque
+année, sans les faits ; avec `year` : les faits détaillés de l'année, paginés. Les faits d'une source dont les faits ne sont
+pas publiés (dont toute source à usage non commercial) sont comptés dans `hidden`, jamais détaillés.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `year` | entier | non | 1827 à aujourd'hui ; exclusif avec `decade`. |
+| `decade` | entier | non | Multiple de 10 (1820 à la décennie en cours). |
+| `types` | liste | non | `milestone`, `opening`, `reopening`, `closure`, `electrification`, `signalling`, `material`, `accident`. |
+| `region` | texte | non | Code INSEE de la région (voir `list_departments`) ; jalons et matériel n'ont pas de région. |
+| `limit`, `offset` | entiers | non | Avec `year` : pagination des faits (40 par défaut, 100 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des textes rédigés. |
+
+Renvoie `computed_at`, `filters`, puis `decades[]` (`decade`, `shown`, `hidden`), `years[]` (`year`, `counts` par type :
+`shown`, `hidden`, `km`) ou, avec `year`, `counts`, `total`, `has_more` et `facts[]` (`id`, `kind`, `traffic`, `date` à lire
+avec `precision`, `when`, `title`, `text`, `line`, `sections`, `km`, `deaths`, `units`, `path`, `regions`, `sources[]`).
+Les accidents (au moins 5 morts) se reprennent avec sobriété.
+
+```json
+{"year": 1938, "types": ["closure"], "region": "53"}
+```
+
+### `tourist_railways` : chemins de fer touristiques et vélorails
+
+Mêmes données que `GET /api/v1/tourist-railways` et la page `/tourist-railways` (service `TouristRailways`) : les exploitations
+en activité aujourd'hui, état actuel seulement (ni saison ni horaires). Un champ `null` est inconnu, jamais « aucun ».
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `type` | texte | non | `steam`, `railcar`, `tram`, `rack`, `velorail`, `train`. |
+| `region` | texte | non | Nom exact de la région, tel que listé dans `regions` de la réponse. |
+| `greenways` | booléen | non | Ajouter les voies vertes sur ancienne voie (OpenStreetMap, ODbL, 5 km au moins) ; vide avec `type`. |
+| `limit`, `offset` | entiers | non | Pagination (40 par défaut, 100 au plus). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Renvoie `total`, `has_more`, `railways[]` (`name`, `type`, `operator`, `gauge_mm`, `length_m`, `start_year`, `regions`,
+`departements`, `lines[]`, `website`, `wikipedia_url`, `wikidata`, `lat`, `lng`, `origin`, `sources` par fait), `regions`,
+`types` et `sources` (libellé, adresse, licence de chaque clé citée).
+
+```json
+{"type": "steam", "region": "Occitanie"}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |

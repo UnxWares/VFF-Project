@@ -244,6 +244,8 @@
         'line_timetable',
         'station_heritage',
         'on_this_day',
+        'network_chronology',
+        'tourist_railways',
         'sources_and_licences',
     ];
     // Invites (prompts) du serveur MCP, dans l'ordre du serveur.

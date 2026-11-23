@@ -330,6 +330,8 @@ return [
             'line_timetable' => 'Passenger trains per day on a line on a typical Tuesday, each counted once; scheduled SNCF and Transilien timetables, ODbL.',
             'station_heritage' => 'Heritage of a station\'s passenger building and structures: listed (classé) or registered (inscrit) historic monument with the date of the order, Architecture contemporaine remarquable label, architect, construction, Mérimée record (Licence Ouverte 2.0) and Wikidata (CC0).',
             'on_this_day' => 'What happened on a calendar day in earlier years: openings and closures of lines and stations, electrifications, commissionings, accidents, each with its year, source and sheet link; dates known to the exact day only.',
+            'network_chronology' => 'The French railway network year by year since 1827: openings, closures, electrifications, signalling, rolling stock, serious accidents and milestones; overview, counts for a decade or facts for a year, type and region filters; dates to be read with their precision.',
+            'tourist_railways' => 'Heritage railways and rail bikes running today: type, operator, gauge, length, start of operation, linked lines and the source of each fact; greenways on request.',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'The server also offers prompts, which an MCP client shows as ready-made commands. Each one sends the assistant a message saying which tools to call and how to cite the sources. Arguments are completed as you type.',

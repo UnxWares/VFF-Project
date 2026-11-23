@@ -330,6 +330,8 @@ return [
             'line_timetable' => 'Personenzüge pro Tag auf einer Strecke an einem typischen Dienstag, jeder Zug einmal gezählt; planmäßige Fahrpläne von SNCF und Transilien, ODbL.',
             'station_heritage' => 'Denkmalschutz des Empfangsgebäudes und der Bauwerke eines Bahnhofs: eingestuftes (classé) oder eingetragenes (inscrit) Monument historique mit Datum des Erlasses, Label Architecture contemporaine remarquable, Architekt, Bauzeit, Mérimée-Eintrag (Licence Ouverte 2.0) und Wikidata (CC0).',
             'on_this_day' => 'Was an einem Kalendertag in früheren Jahren geschah: Eröffnungen und Stilllegungen von Strecken und Bahnhöfen, Elektrifizierungen, Inbetriebnahmen, Unfälle, jeweils mit Jahr, Quelle und Link zur Seite; nur tagesgenaue Daten.',
+            'network_chronology' => 'Das französische Bahnnetz Jahr für Jahr seit 1827: Eröffnungen, Stilllegungen, Elektrifizierungen, Signaltechnik, Fahrzeuge, schwere Unfälle und Meilensteine; Überblick, Zahlen eines Jahrzehnts oder Fakten eines Jahres, Filter nach Art und Region; Daten mit ihrer Genauigkeit lesen.',
+            'tourist_railways' => 'Museums- und Touristikbahnen und Schienenfahrräder im Betrieb: Art, Betreiber, Spurweite, Länge, Betriebsbeginn, zugehörige Strecken und Quelle jeder Angabe; Radwege auf Wunsch.',
         ],
         'prompts_title' => 'Prompts',
         'prompts_intro' => 'Der Server bietet auch Prompts an, die ein MCP-Client als fertige Befehle anzeigt. Jeder schickt dem Assistenten eine Nachricht, welche Werkzeuge er aufrufen und wie er die Quellen nennen soll. Die Argumente werden bei der Eingabe ergänzt.',
