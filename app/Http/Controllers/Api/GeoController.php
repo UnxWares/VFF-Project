@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\EraTileRequest;
+use App\Http\Requests\Api\MapViewListingRequest;
 use App\Models\Era;
 use App\Services\GeoExporter;
+use App\Services\Map\ViewListing;
 use App\Services\MapDataCache;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\MapTiles;
@@ -242,6 +244,59 @@ class GeoController extends Controller
         abort_unless(Era::where('year', $year)->exists(), 404);
 
         return $this->cache->json($request, "stations:{$year}", fn (): array => $this->exporter->stationsAsGeoJson($year));
+    }
+
+    /**
+     * Lignes et gares d'une emprise.
+     *
+     * Ce que la carte montre dans une emprise, sous une forme compacte et lisible sans la carte : les lignes
+     * (avec leur état à l'ère et leurs kilomètres dans l'emprise) et les gares. C'est la liste « Liste de ce
+     * qui est affiché » de la carte du site, pour les lecteurs d'écran, le clavier et les petits écrans.
+     *
+     * **Lignes** (`lines.items`) : une entrée par ligne et par état, `state` reprenant la légende de la carte :
+     * `lgv`, `mixed`, `freight`, `unknown` (en service, selon le trafic), `heritage` (train touristique),
+     * `velorail`, `service_track`, `construction`, `abandoned` (fermée, voie en place) et `dismantled`
+     * (déposée ou disparue). `km` est la longueur dans l'emprise (voies parallèles comprises, arrondie à
+     * 100 m : un ordre de grandeur). Les lignes sont les plus longues d'abord.
+     *
+     * **Gares** (`stations.items`) : par nom, avec le statut de la carte (`active`, `tourist`,
+     * `no_commercial`, `uncertain`, `declassified`).
+     *
+     * **Bornes** : chaque liste est plafonnée à `limit` entrées (`total` donne le nombre complet). Une emprise
+     * de plus de 4 degrés de large ou de 3 de haut n'est pas calculée : `too_wide` vaut `true` et les listes
+     * sont vides (zoomez). Les coordonnées de l'emprise sont arrondies à 0,001 degré (environ 100 m), ce qui
+     * permet de partager le cache entre deux lecteurs qui regardent à peu près la même chose.
+     *
+     * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
+     */
+    #[PathParameter('year', "Année de l'ère : une décennie de 1830 à 2030 (2030 = réseau actuel).", example: 1930)]
+    #[ApiResponse(200, 'Lignes et gares de l\'emprise.', examples: [[
+        'era' => 1930,
+        'bbox' => [2.2, 48.8, 2.5, 48.95],
+        'too_wide' => false,
+        'limit' => 300,
+        'lines' => ['total' => 1, 'items' => [
+            ['slug' => 'rfn-001000', 'name' => 'Ligne de Paris-Saint-Lazare au Havre', 'code' => '001000', 'state' => 'mixed', 'km' => 12.4],
+        ]],
+        'stations' => ['total' => 1, 'items' => [
+            ['slug' => 'paris-saint-lazare', 'name' => 'Paris-Saint-Lazare', 'city' => 'Paris', 'state' => 'active'],
+        ]],
+    ]])]
+    #[ApiResponse(404, "Ère inconnue (année qui n'est pas une décennie entre 1830 et 2030).")]
+    #[ApiResponse(422, 'Emprise absente ou mal formée.', examples: [[
+        'message' => 'L’emprise doit être « ouest,sud,est,nord » en degrés, avec ouest < est et sud < nord.',
+        'errors' => ['bbox' => ['L’emprise doit être « ouest,sud,est,nord » en degrés, avec ouest < est et sud < nord.']],
+    ]])]
+    public function inView(MapViewListingRequest $request, int $year, ViewListing $listing): Response
+    {
+        abort_unless(Era::where('year', $year)->exists(), 404);
+        $bbox = $request->bbox();
+
+        return $this->cache->json(
+            $request,
+            "in-view:{$year}:".implode(',', $bbox),
+            fn (): array => $listing->list($year, $bbox),
+        );
     }
 
     /**

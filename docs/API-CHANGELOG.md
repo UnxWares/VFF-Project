@@ -21,6 +21,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Carte : `GET /api/v1/eras/{year}/in-view?bbox=ouest,sud,est,nord` liste les lignes (état à l'ère, kilomètres dans l'emprise) et les
+  gares d'une emprise, sous une forme compacte : alternative textuelle à la carte `/maps` (bouton « Liste de ce qui est affiché »). Listes
+  plafonnées à 300 entrées (`total`), emprise bornée à 4 degrés sur 3 (`too_wide`). Ajout seul.
 - Histoire de l'électrification d'une ligne : tranches de PK électrifiées avec leur tension (SNCF Réseau, ODbL) et mises sous tension,
   conversions de tension et désélectrifications datées et sûres (Wikipédia, Wikidata) : REST `GET /api/v1/lines/{line}/electrification-history`,
   GraphQL `Line.electrification_history` (types `LineElectrificationHistory`, `LineElectrificationRange`, `LineElectrificationSummary`,

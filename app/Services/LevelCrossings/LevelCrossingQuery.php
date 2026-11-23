@@ -21,7 +21,7 @@ final class LevelCrossingQuery
     public const CURSOR_COLUMNS = ['code_ligne', 'pk_sort', 'id'];
 
     /** Emprise « ouest,sud,est,nord » en degrés WGS 84 (nombres décimaux, point comme séparateur). */
-    private const BBOX_PATTERN = '/^-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?,-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?$/';
+    public const BBOX_PATTERN = '/^-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?,-?\d{1,3}(\.\d+)?,-?\d{1,2}(\.\d+)?$/';
 
     /** @return array<string, list<mixed>> */
     public static function rules(): array

@@ -217,6 +217,10 @@
         // Rappelé avec { center: [lon, lat], zoom } à la fin de chaque déplacement fait après le
         // chargement (pas au cadrage d'ouverture) : le parent écrit la vue dans l'adresse.
         onViewChange = null,
+        // Rappelé avec les limites de la zone visible (LngLatBounds de MapLibre) au chargement puis à la
+        // fin de chaque déplacement : le parent en tire la « Liste de ce qui est affiché » (alternative
+        // textuelle à la carte, lib/mapListing.js).
+        onBoundsChange = null,
         // Teinte d'époque du fond (lib/eraTint.js) voulue par le visiteur. Coupée aussi quand le
         // système demande un contraste renforcé, hors de la vue « une décennie » et sous un fond
         // historique de l'IGN (rendu d'origine).
@@ -1085,6 +1089,10 @@
             applySignalling(signalling, signallingYear);
             applyGreenways(greenways);
             map.on('zoomend', () => syncStations());
+            if (typeof onBoundsChange === 'function') {
+                onBoundsChange(map.getBounds());
+                map.on('moveend', () => onBoundsChange(map.getBounds()));
+            }
             if (typeof onViewChange === 'function') {
                 map.on('moveend', () => {
                     const c = map.getCenter();

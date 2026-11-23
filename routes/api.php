@@ -66,6 +66,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->group(function (): void {
             Route::get('/lines.geojson', [GeoController::class, 'lines'])->name('api.eras.lines');
             Route::get('/stations.geojson', [GeoController::class, 'stations'])->name('api.eras.stations');
+            // Lignes et gares d'une emprise (alternative textuelle à la carte /maps).
+            Route::get('/in-view', [GeoController::class, 'inView'])->name('api.eras.in-view');
             // Plan schématique (vue ferroviaire de /maps), calculé une fois par graphe de l'ère.
             Route::get('/schematic.geojson', [SchematicMapController::class, 'show'])->name('api.eras.schematic');
             Route::get('/tiles/{z}/{x}/{y}.mvt', [GeoController::class, 'tile'])

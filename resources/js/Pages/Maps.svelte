@@ -1,5 +1,5 @@
 <script>
-    import { onMount, untrack } from 'svelte';
+    import { onMount, tick, untrack } from 'svelte';
     import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
@@ -15,6 +15,7 @@
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import EraCurtain from '$components/Map/EraCurtain.svelte';
+    import MapListing from '$components/Map/MapListing.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, mapViews, readViewParams, writeViewParams } from '$lib/epochViews.js';
@@ -23,6 +24,7 @@
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
     import { readTint, writeTint } from '$lib/eraTint.js';
     import { readMapView, writeMapView } from '$lib/mapView.js';
+    import { bboxFromBounds } from '$lib/mapListing.js';
     import {
         CURTAIN_DEFAULT,
         DEFAULT_COMPARE_MODE,
@@ -210,6 +212,43 @@
             window.history.replaceState(window.history.state, '', url);
     }
 
+    // « Liste de ce qui est affiché » : alternative textuelle à la carte (lignes et gares de la zone
+    // visible). Proposée pour la carte d'une époque et la comparaison ; `mapBbox` suit la carte à la fin
+    // de chaque déplacement.
+    let listingOpen = $state(false);
+    let listingHeading = $state();
+    let mapBbox = $state.raw(null);
+    const listingAvailable = $derived(view === 'era' || view === 'compare');
+    const listingTitle = (year) =>
+        year === currentEraYear
+            ? $i18n.t('maps.legend.title_current')
+            : $i18n.t('maps.legend.title', { year });
+    const listingEras = $derived(
+        view === 'compare' && compareFrom !== null && compareTo !== null
+            ? [compareFrom, compareTo].map((year) => ({ year, title: listingTitle(year) }))
+            : [{ year: selectedEra, title: listingTitle(selectedEra) }],
+    );
+
+    async function toggleListing() {
+        listingOpen = !listingOpen;
+        if (!listingOpen) return;
+        await tick();
+        listingHeading?.scrollIntoView({ block: 'start' });
+        listingHeading?.focus({ preventScroll: true });
+    }
+
+    // Fermée par son bouton : le focus revient au bouton qui l'a ouverte (celui de la barre d'outils ou
+    // celui sous la carte, selon la largeur : le seul visible).
+    async function closeListing() {
+        listingOpen = false;
+        await tick();
+        /** @type {HTMLElement[]} */
+        const toggles = [...document.querySelectorAll('[data-listing-toggle]')].map(
+            (el) => /** @type {HTMLElement} */ (el),
+        );
+        toggles.find((el) => el.offsetParent !== null)?.focus();
+    }
+
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -382,6 +421,21 @@
                                     bind:tint={() => tintOn, setTint}
                                 />
                             {/if}
+                            {#if listingAvailable}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary embed-btn"
+                                    title={$i18n.t('maps.listing.button')}
+                                    data-listing-toggle
+                                    aria-expanded={listingOpen}
+                                    aria-controls={listingOpen ? 'liste-carte' : undefined}
+                                    onclick={toggleListing}
+                                >
+                                    <i class="bi bi-list-ul" aria-hidden="true"></i>
+                                    <span class="embed-label">{$i18n.t('maps.listing.button')}</span
+                                    >
+                                </button>
+                            {/if}
                             <button
                                 type="button"
                                 class="vff-btn secondary embed-btn"
@@ -508,6 +562,7 @@
                             greenways={drawn.greenways}
                             onZoomChange={(z) => (mapZoom = z)}
                             onViewChange={writeViewToUrl}
+                            onBoundsChange={(bounds) => (mapBbox = bboxFromBounds(bounds))}
                             center={mapCenter}
                             zoom={mapStartZoom}
                             {dataVersion}
@@ -548,6 +603,19 @@
 
         <div class="vff-container map-after">
             <p class="map-lead">{$i18n.t('maps.hero.subtitle')}</p>
+            {#if listingAvailable}
+                <button
+                    type="button"
+                    class="vff-btn secondary small embed-btn"
+                    data-listing-toggle
+                    aria-expanded={listingOpen}
+                    aria-controls={listingOpen ? 'liste-carte' : undefined}
+                    onclick={toggleListing}
+                >
+                    <i class="bi bi-list-ul" aria-hidden="true"></i>
+                    {$i18n.t('maps.listing.button')}
+                </button>
+            {/if}
             <button
                 type="button"
                 class="vff-btn secondary small embed-btn"
@@ -558,6 +626,19 @@
                 {$i18n.t('maps.embed.button')}
             </button>
         </div>
+
+        {#if listingOpen && listingAvailable}
+            <div class="vff-container">
+                <MapListing
+                    eras={listingEras}
+                    bbox={mapBbox}
+                    {hidden}
+                    version={dataVersion}
+                    bind:headingEl={listingHeading}
+                    onClose={closeListing}
+                />
+            </div>
+        {/if}
 
         <div class="vff-container route-section" id="itineraire">
             <RoutePlanner
