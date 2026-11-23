@@ -4,6 +4,7 @@ namespace Tests\Feature\Speed;
 
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Speed\LineSpeeds;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -173,5 +174,19 @@ WIKI;
         $this->getJson('/api/v1/lines/'.$other->slug.'/speeds')->assertOk()
             ->assertJsonPath('ranges', [])->assertJsonPath('history', [])
             ->assertJsonPath('summary.max_speed_kmh', null);
+    }
+
+    /** Deux itinéraires SNCF d'une ligne (rg_troncon 1 et 2) qui se recouvrent : la longueur couverte n'est comptée qu'une fois. */
+    public function test_overlapping_routes_are_covered_once(): void
+    {
+        $summary = LineSpeeds::summary([
+            ['pk_start_m' => 57109, 'length_m' => 5668, 'max_speed_kmh' => 115],
+            ['pk_start_m' => 60215, 'length_m' => 2685, 'max_speed_kmh' => 90],
+            ['pk_start_m' => 62777, 'length_m' => 8736, 'max_speed_kmh' => 105],
+            ['pk_start_m' => 80000, 'length_m' => 1000, 'max_speed_kmh' => 105],
+        ]);
+
+        $this->assertSame(71513 - 57109 + 1000, $summary['covered_m']);
+        $this->assertSame([115, 90], [$summary['max_speed_kmh'], $summary['min_speed_kmh']]);
     }
 }

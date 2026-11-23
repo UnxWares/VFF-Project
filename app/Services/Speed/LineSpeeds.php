@@ -99,7 +99,7 @@ final class LineSpeeds
     /**
      * Longueur couverte et répartition par vitesse (km), vitesse la plus haute d'abord.
      *
-     * @param  list<array{length_m: int, max_speed_kmh: int}>  $ranges
+     * @param  list<array{pk_start_m: int, length_m: int, max_speed_kmh: int}>  $ranges
      * @return array{max_speed_kmh: ?int, min_speed_kmh: ?int, covered_m: int, by_speed: list<array{max_speed_kmh: int, length_m: int}>}
      */
     public static function summary(array $ranges): array
@@ -109,11 +109,26 @@ final class LineSpeeds
             $by[$r['max_speed_kmh']] = ($by[$r['max_speed_kmh']] ?? 0) + $r['length_m'];
         }
         krsort($by);
+        // Longueur couverte : réunion des tranches. Deux itinéraires d'une même ligne (rg_troncon 1 et 2) peuvent
+        // se recouvrir à des vitesses différentes ; la somme les compterait deux fois.
+        $spans = array_map(fn (array $r): array => [$r['pk_start_m'], $r['pk_start_m'] + $r['length_m']], $ranges);
+        usort($spans, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+        $covered = 0;
+        $end = null;
+        foreach ($spans as [$from, $to]) {
+            if ($end === null || $from > $end) {
+                $covered += $to - $from;
+                $end = $to;
+            } elseif ($to > $end) {
+                $covered += $to - $end;
+                $end = $to;
+            }
+        }
 
         return [
             'max_speed_kmh' => $by === [] ? null : (int) array_key_first($by),
             'min_speed_kmh' => $by === [] ? null : (int) array_key_last($by),
-            'covered_m' => array_sum($by),
+            'covered_m' => $covered,
             'by_speed' => array_map(fn (int $k, int $m): array => ['max_speed_kmh' => $k, 'length_m' => $m], array_keys($by), array_values($by)),
         ];
     }
