@@ -189,7 +189,7 @@ final class AccidentImporter
 
                 continue;
             }
-            $externalId = $entry->lang.':'.$entry->date.'-'.$accident->commune_insee;
+            $externalId = ($entry->role === 'article' ? $entry->lang.'-article:' : $entry->lang.':').$entry->date.'-'.$accident->commune_insee;
             $kept[$entry->lang === 'de' ? 'wikipedia-de' : 'wikipedia-en'][] = $externalId;
             if ($dryRun) {
                 continue;
@@ -197,7 +197,7 @@ final class AccidentImporter
             $provider = $entry->lang === 'de' ? 'wikipedia-de' : 'wikipedia-en';
             $row = AccidentSource::query()->firstOrNew(['provider' => $provider, 'external_id' => $externalId]);
             $row->fill([
-                'accident_id' => $accident->id, 'role' => 'list', 'title' => Str::limit($entry->title, 297), 'url' => $entry->url(),
+                'accident_id' => $accident->id, 'role' => $entry->role, 'title' => Str::limit($entry->title, 297), 'url' => $entry->url(),
                 'licence' => WikipediaEditionCollector::LICENCE, 'licence_url' => WikipediaEditionCollector::LICENCE_URL,
                 'revision' => $entry->revision,
                 'facts' => array_filter([

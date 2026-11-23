@@ -149,7 +149,7 @@ final class AccidentClaimReader
 
             return [$read['place'] !== null ? $this->communeByName($read['place'], $read['department']) : null, null, null];
         }
-        if ($source->role === 'list' && isset($facts['place'])) {
+        if (($source->role === 'list' || in_array($source->provider, ['wikipedia-en', 'wikipedia-de'], true)) && isset($facts['place'])) {
             return [$this->communeByName((string) $facts['place'], isset($facts['department']) ? (string) $facts['department'] : null), null, null];
         }
 
