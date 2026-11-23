@@ -1,0 +1,102 @@
+<?php
+
+// Contexte sourcé de l'accident d'une voiture déraillée avant la gare d'Hersbach (Wisches), ligne de Strasbourg à Saint-Dié, 26 mars 1932 (recherche du 23/11/2026).
+return [
+    'slug' => '1932-03-26-wisches',
+    'checked_on' => '2026-11-23',
+    'sources' => [
+        'wp-liste-1932' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1932',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1932, 26 mars',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1932&oldid=241584329#Mars',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Entrée du 26 mars 1932 : ligne Strasbourg-Saint-Dié, vers 6 heures, avant la gare d\'Hersbach, rupture d\'un essieu d\'une voiture mixte de première et deuxième classe (vide) du train de Saales à Strasbourg, qui heurte un butoir et est projetée sur une voiture de troisième classe bondée, un mort et trois blessés. Cite Le Petit Parisien du 27 mars 1932, p. 1 et 3.',
+        ],
+        'wp-gare-russ-hersbach' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare de Russ - Hersbach',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Situation ferroviaire',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Russ_-_Hersbach&oldid=241566374',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'La gare de Russ - Hersbach est au point kilométrique 38,950 de la ligne de Strasbourg-Ville à Saint-Dié, entre les gares de Wisches et de Schirmeck - La Broque.',
+        ],
+        'wp-wisches' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Wisches',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Écarts et lieux-dits',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Wisches&oldid=240619863',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Hersbach figure parmi les écarts et lieux-dits de la commune de Wisches (Bas-Rhin), que dessert aussi sa propre gare.',
+        ],
+        'petit-parisien-1932-03-27' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 27 mars 1932',
+            'publisher' => 'Le Petit Parisien (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1932-03-27',
+            'locator' => 'p. 1 et 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k627315s/f1.image',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Pages citées par la liste de Wikipédia ; non lues (Gallica refuse les accès automatiques).',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 26 mars 1932, vers 6 heures, sur la ligne de Strasbourg à Saint-Dié, avant la gare d\'Hersbach, un essieu s\'est rompu sous une voiture mixte de première et deuxième classe, vide, du train de Saales à Strasbourg. La voiture a heurté un butoir au passage, puis a été projetée sur une voiture de troisième classe bondée, selon la liste de Wikipédia.',
+                'en' => 'On 26 March 1932, at about 6 am, on the Strasbourg to Saint-Dié line, before Hersbach station, an axle broke under an empty mixed first and second class carriage of the Saales to Strasbourg train. The carriage struck a buffer stop in passing, then was thrown onto a crowded third class carriage, according to the Wikipedia list.',
+                'de' => 'Am 26. März 1932 gegen 6 Uhr brach auf der Strecke von Straßburg nach Saint-Dié vor dem Bahnhof Hersbach eine Achse unter einem leeren gemischten Wagen erster und zweiter Klasse des Zuges von Saales nach Straßburg. Der Wagen stieß im Vorbeifahren gegen einen Prellbock und wurde dann auf einen überfüllten Wagen dritter Klasse geschleudert, nach der Wikipedia-Liste.',
+                'sources' => ['wp-liste-1932'],
+            ],
+        ],
+        'circumstances' => [
+            [
+                'fr' => 'La gare de Russ - Hersbach est au point kilométrique 38,950 de la ligne, entre Wisches et Schirmeck - La Broque, et Hersbach est un écart de la commune de Wisches. Le train allant de Saales vers Strasbourg, l\'accident se place donc sur la section précédant cette gare, mais la liste ne donne ni point kilométrique précis ni nom d\'ouvrage.',
+                'en' => 'Russ - Hersbach station is at kilometre point 38.950 of the line, between Wisches and Schirmeck - La Broque, and Hersbach is a hamlet of the commune of Wisches. As the train was running from Saales towards Strasbourg, the accident therefore lies on the section before this station, but the list gives neither a precise kilometre point nor the name of a structure.',
+                'de' => 'Der Bahnhof Russ - Hersbach liegt bei Kilometer 38,950 der Strecke, zwischen Wisches und Schirmeck - La Broque, und Hersbach ist ein Weiler der Gemeinde Wisches. Da der Zug von Saales Richtung Straßburg fuhr, liegt der Unfall also auf dem Abschnitt vor diesem Bahnhof, doch die Liste nennt weder eine genaue Kilometrierung noch den Namen eines Bauwerks.',
+                'sources' => ['wp-gare-russ-hersbach', 'wp-wisches', 'wp-liste-1932'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un mort et trois blessés, selon la liste de Wikipédia.',
+                'en' => 'One dead and three injured, according to the Wikipedia list.',
+                'de' => 'Ein Toter und drei Verletzte, nach der Wikipedia-Liste.',
+                'sources' => ['wp-liste-1932'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'derailment',
+            'sources' => ['wp-liste-1932'],
+            'fr' => 'La liste décrit la rupture d\'un essieu sous une voiture, qui heurte un butoir puis une autre voiture, et non la défaillance d\'un ouvrage d\'art comme la fiche le disait.',
+            'en' => 'The list describes an axle breaking under a carriage, which strikes a buffer stop and then another carriage, not the failure of a structure as the record said.',
+            'de' => 'Die Liste beschreibt einen Achsbruch unter einem Wagen, der gegen einen Prellbock und dann gegen einen anderen Wagen stößt, nicht das Versagen eines Bauwerks, wie der Eintrag es angab.',
+            'single_source' => true,
+        ],
+    ],
+];
