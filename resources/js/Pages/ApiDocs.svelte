@@ -328,13 +328,13 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
   "offset": 0,
   "items": [
     {
-      "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+      "line_slug": "ligne-de-landerneau-a-lesneven",
       "line_code": null,
       "line_name": "Ligne de Landerneau à Lesneven",
       "segment_id": 9309008,
       "status": "abandoned",
       "traffic_type": "unknown",
-      "trace_source": "archeoferroviaire",
+      "trace_source": "bdtopo",
       "length_m": 53,
       "grades": { "classification": "fair", "placement": "poor", "accuracy": "poor", "trace": "poor" },
       "worst_grade": "poor",
@@ -491,7 +491,7 @@ JSON`;
       "total": 26,
       "items": [
         {
-          "line_slug": "archeo-ligne-de-landerneau-a-lesneven",
+          "line_slug": "ligne-de-landerneau-a-lesneven",
           "length_m": 53,
           "worst_grade": "POOR",
           "reasons": { "placement": ["median_over_tolerance"], "accuracy": ["hole"], "…": "…" }
@@ -526,7 +526,7 @@ JSON`;
     "content": [
       {
         "type": "text",
-        "text": "{\\"era_year\\":2030,\\"total\\":26,\\"limit\\":1,\\"offset\\":0,\\"items\\":[{\\"line_slug\\":\\"archeo-ligne-de-landerneau-a-lesneven\\",\\"segment_id\\":9309008,\\"worst_grade\\":\\"poor\\",\\"…\\":\\"…\\"}],\\"vff_url\\":\\"https://vff-project.org/lines\\",\\"attribution\\":{\\"…\\":\\"…\\"}}"
+        "text": "{\\"era_year\\":2030,\\"total\\":26,\\"limit\\":1,\\"offset\\":0,\\"items\\":[{\\"line_slug\\":\\"ligne-de-landerneau-a-lesneven\\",\\"segment_id\\":9309008,\\"worst_grade\\":\\"poor\\",\\"…\\":\\"…\\"}],\\"vff_url\\":\\"https://vff-project.org/lines\\",\\"attribution\\":{\\"…\\":\\"…\\"}}"
       }
     ],
     "isError": false

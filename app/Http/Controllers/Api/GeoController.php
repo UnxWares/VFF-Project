@@ -66,8 +66,8 @@ class GeoController extends Controller
      *   millimètres : 1435 voie normale, 1000 voie métrique, 600 voie étroite) ;
      * - `source` : provenance du tracé (`sncf` SNCF Réseau Open Data, ODbL ;
      *   `bdtopo` IGN BD TOPO, Licence Ouverte 2.0 ; `osm` OpenStreetMap, ODbL ;
-     *   `ohm` OpenHistoricalMap, CC0 ; `archeoferroviaire` relevés du site
-     *   archeoferroviaire.free.fr, hors ODbL, non redistribués : voir ci-dessous) ;
+     *   `ohm` OpenHistoricalMap, CC0 ; d'autres fournisseurs hors ODbL, à usage
+     *   non commercial et non redistribués : voir ci-dessous et `/sources`) ;
      * - `geometry_withheld` : `true` quand la géométrie du tronçon n'est pas
      *   redistribuée ; `geometry_withheld_reason` en donne la raison
      *   (`licence_not_open` : source dont la licence n'autorise pas la

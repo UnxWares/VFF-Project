@@ -14,9 +14,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   coïncidence (sept accidents de Paris rattachés à Paris-Nord « à 0 m »). Le filtre `station` de `GET /api/v1/accidents` et la
   chronologie des gares ne les renvoient plus. Aucun champ n'est retiré ni ajouté ; la fiche web affiche « À Paris, gare non précisée ».
 
-- MCP : les faits d'une source à usage non commercial (archeoferroviaire) ne sont plus servis par le serveur MCP, qu'elle soit
+- MCP : les faits d'une source à usage non commercial ne sont plus servis par le serveur MCP, qu'elle soit
   nommée dans `source` ou seulement par le lien cité : `line_events`, `network_events` et `get_line` (`events`, `event_count`)
-  peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y vaut plus `archeoferroviaire`. L'API REST et GraphQL ne
+  peuvent donc renvoyer moins d'événements qu'avant, et `source` n'y prend plus la valeur de cette source. L'API REST et GraphQL ne
   changent pas. Aucun champ n'est retiré.
 
 ### Ajouts

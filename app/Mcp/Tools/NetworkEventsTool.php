@@ -49,7 +49,7 @@ class NetworkEventsTool extends VffTool
         return [
             'line' => $schema->string()->max(255)->description('Slug de la ligne (ex. "rfn-447000"), tel que renvoyé par search. Par défaut : toutes les lignes.'),
             'type' => $schema->string()->enum(LineEventsTool::types())->description('Type d\'événement. Par défaut : tous.'),
-            'source' => $schema->string()->max(64)->description('Provenance : wikipedia, wikidata, ohm, lignes-oubliees, osm, heritage, manual… (archeoferroviaire, à usage non commercial, n\'est jamais servi). Par défaut : toutes.'),
+            'source' => $schema->string()->max(64)->description('Provenance : wikipedia, wikidata, ohm, lignes-oubliees, osm, heritage, manual… (les sources à usage non commercial ne sont jamais servies). Par défaut : toutes.'),
             'department' => $schema->string()->max(3)->description('Code INSEE du département en majuscules ("29", "2A", "974") : lignes citant ce département ou y desservant une gare.'),
             'region' => $schema->string()->enum(FrenchDepartments::regionCodes())->description('Code INSEE de la région ("53" Bretagne ; liste avec les noms : outil list_departments) : lignes citant l\'un de ses départements ou y desservant une gare.'),
             'from' => $schema->string()->max(10)->description('Début de période inclus : année ("1930", soit le 1er janvier) ou date ("1930-06-15").'),

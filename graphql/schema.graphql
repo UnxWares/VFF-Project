@@ -67,8 +67,8 @@ Une ligne ferroviaire : un itinéraire nommé, décrit ère par ère par ses tro
 
 Les lignes du réseau ferré national portent un code SNCF Réseau à 6 chiffres
 (ex. `420000`, Paris-Montparnasse à Brest) et un slug `rfn-<code>`. Les lignes disparues,
-secondaires ou particulières ont d'autres slugs (ex. `archeo-…` pour les relevés
-d'archeoferroviaire).
+secondaires ou particulières ont d'autres slugs (ex. un slug sans code pour les relevés
+d'une source tierce).
 """
 type Line {
     "Identifiant interne de la ligne."
@@ -761,7 +761,7 @@ type LineSegment {
     """
     Provenance du tracé : `sncf` (SNCF Réseau Open Data, ODbL), `bdtopo` (IGN BD TOPO,
     Licence Ouverte 2.0), `osm` (OpenStreetMap, ODbL), `ohm` (OpenHistoricalMap, CC0),
-    `archeoferroviaire` (relevés tiers hors ODbL : usage non commercial uniquement, crédit et
+    d'autres valeurs pour des relevés tiers hors ODbL : usage non commercial uniquement, crédit et
     lien vers la source obligatoires).
     """
     source: String
@@ -880,7 +880,7 @@ type LineEvent {
 
     """
     Provenance de l'information : `wikipedia`, `wikipedia-reseaux`, `wikidata`, `ohm`
-    (OpenHistoricalMap), `lignes-oubliees`, `archeoferroviaire`, `osm`, `heritage`,
+    (OpenHistoricalMap), `lignes-oubliees`, `osm`, `heritage`,
     `estimation-reseau` (date déduite du réseau voisin), `manual` (saisie VFF)…
     """
     source: String
@@ -3062,7 +3062,7 @@ type NetworkSegmentAudit {
     "Trafic du tronçon audité : passenger, freight, mixed, unknown."
     traffic_type: String
 
-    "Source du dessin (bdtopo, osm, ohm, sncf, archeoferroviaire…), nulle si inconnue."
+    "Source du dessin (bdtopo, osm, ohm, sncf…), nulle si inconnue."
     trace_source: String
 
     "Longueur du tronçon, en mètres."
@@ -3170,7 +3170,7 @@ type SegmentAudit {
     "Trafic du tronçon audité : passenger, freight, mixed, unknown."
     traffic_type: String!
 
-    "Source du dessin (bdtopo, osm, ohm, sncf, archeoferroviaire…), nulle si inconnue."
+    "Source du dessin (bdtopo, osm, ohm, sncf…), nulle si inconnue."
     trace_source: String
 
     "Longueur du tronçon, en mètres."
@@ -4855,10 +4855,10 @@ type LineName {
     "Le nom."
     name: String!
 
-    "Nature : `name` (nom successif ou usuel), `section` (section nommée), `merged` (fiche fusionnée), `wikipedia` (titre de l'article), `lignes-oubliees`, `archeo`…"
+    "Nature : `name` (nom successif ou usuel), `section` (section nommée), `merged` (fiche fusionnée), `wikipedia` (titre de l'article), `lignes-oubliees`…"
     kind: String!
 
-    "Source du nom (`wikidata`, `wikipedia`, `lignes-oubliees`, `archeoferroviaire`…)."
+    "Source du nom (`wikidata`, `wikipedia`, `lignes-oubliees`…)."
     source: String
 
     "Lien vers la source."
@@ -5389,7 +5389,7 @@ type LineSheet {
     "Titre de l'article Wikipédia."
     wikipedia_title: String
 
-    "Article d'archeoferroviaire (usage non commercial, crédit et lien)."
+    "Article d'une source tierce (usage non commercial, crédit et lien)."
     archeo_url: String
 
     "État aujourd'hui."
@@ -6413,7 +6413,7 @@ extend type Query {
 
     "Un fournisseur, par sa clé (celle de `Provenance.provider`) ; nul s'il est inconnu."
     source(
-        "Clé du fournisseur (ex. `osm`, `sncf`, `archeoferroviaire`)."
+        "Clé du fournisseur (ex. `osm`, `sncf`)."
         provider: String!
     ): SourceProvider @field(resolver: "App\\GraphQL\\Resolvers\\SourceField@find")
 

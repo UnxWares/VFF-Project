@@ -71,8 +71,8 @@ class EraController extends Controller
      * Les longueurs sont la somme des tronçons de la carte (voies parallèles
      * d'une même ligne comprises) : un ordre de grandeur, pas le kilométrage
      * officiel. Provenance des tracés : OpenStreetMap et SNCF (ODbL), IGN
-     * (Licence Ouverte 2.0), OpenHistoricalMap (CC0), archeoferroviaire
-     * (usage non commercial) ; voir `/sources`.
+     * (Licence Ouverte 2.0), OpenHistoricalMap (CC0), une source à usage
+     * non commercial ; voir `/sources`.
      */
     #[PathParameter('year', "Année de l'ère : une décennie de 1830 à 2030 (1 à 4 chiffres).", example: 1930)]
     #[ApiResponse(200, "L'ère 1930 et ses statistiques.", examples: [[

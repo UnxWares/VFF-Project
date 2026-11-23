@@ -104,7 +104,7 @@ d'erreur.
 - **Unités** : longueurs en kilomètres (`*_km`, une décimale) ou en mètres (`*_m`), vitesses en
   km/h, écartements en mm, tensions en volts, coordonnées WGS 84 en degrés décimaux, PK en km.
 - **Sources** : chaque fait porte `source` (valeur brute : `wikipedia`, `wikidata`, `ohm`, `osm`,
-  `sncf`, `jorf`, `lignes-oubliees`, `archeoferroviaire`, `manual`…), `source_url` (document
+  `sncf`, `jorf`, `lignes-oubliees`, `manual`…), `source_url` (document
   consulté) et `provider` (fournisseur dont la licence s'applique, détaillé par
   `sources_and_licences`).
 - **Enveloppe** : chaque réponse réussie contient `vff_url` (lien de la fiche VFF à citer) et
@@ -404,7 +404,7 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
-| `provider` | clé de fournisseur | non | Un seul fournisseur (`osm`, `sncf`, `ign`, `ohm`, `wikipedia`, `wikidata`, `commons`, `jorf`, `lignes-oubliees`, `archeoferroviaire`…). Par défaut : tous. |
+| `provider` | clé de fournisseur | non | Un seul fournisseur (`osm`, `sncf`, `ign`, `ohm`, `wikipedia`, `wikidata`, `commons`, `jorf`, `lignes-oubliees`…). Par défaut : tous. |
 | `lang` | `fr`, `en`, `de` | non | Langue. |
 
 Renvoie `database_licence` (ODbL 1.0 et conditions) et `providers` : `provider`, `name`,
@@ -434,7 +434,7 @@ aucun élément. `count` donne le nombre d'éléments renvoyés, `filters` rappe
 |---|---|---|---|
 | `line` | slug | non | Une seule ligne (ex. `rfn-447000`). |
 | `type` | type d'événement | non | Mêmes types que `line_events`. |
-| `source` | chaîne, 64 au plus | non | `wikipedia`, `wikidata`, `ohm`, `lignes-oubliees`, `archeoferroviaire`, `osm`, `heritage`, `manual`… |
+| `source` | chaîne, 64 au plus | non | `wikipedia`, `wikidata`, `ohm`, `lignes-oubliees`, `osm`, `heritage`, `manual`… |
 | `department` | code INSEE en majuscules | non | `29`, `2A`, `974` : lignes citant ce département ou y desservant une gare. |
 | `region` | code INSEE de la région | non | `53`, `84`, `01` : lignes citant l'un de ses départements ou y desservant une gare. Codes et noms : `list_departments`. |
 | `from`, `to` | année `AAAA` ou date `AAAA-MM-JJ` | non | Période, bornes incluses (une année va du 1er janvier au 31 décembre). |
@@ -1386,7 +1386,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Comment aller de Rennes à Brest en train en 1930 ? » | `historical_route {"from": "rennes", "to": "brest", "year": 1930}` |
 | « Pouvait-on aller de Limoges à Angoulême en 1990 ? Et aujourd'hui ? » | `historical_route` avec `year` 1990 et `compare_year` 2026 : `differences.outcome` répond (`both`, `lost`…) |
 | « How long was the French network in 1950? » (en anglais) | `network_at_era {"year": 1950, "lang": "en"}` |
-| « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false`, à reprendre avec sa mention (les faits à usage non commercial, archeoferroviaire, ne sont jamais servis) |
+| « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false`, à reprendre avec sa mention (les faits à usage non commercial ne sont jamais servis) |
 | « Quelles lignes du Finistère ont fermé aux voyageurs dans les années 1930 ? » | `network_events {"department": "29", "type": "closure_passenger", "from": "1930", "to": "1939"}` |
 | « Liste les lignes fermées de la Creuse. » | `list_lines {"department": "23", "status": "closed"}` (puis `next_cursor` tant que `has_more`) |
 | « Quelles lignes de Bretagne étaient ouvertes en 1930 ? » | `list_departments {"region": "53"}` si le code n'est pas connu, puis `list_lines {"region": "53", "era": 1930, "status": "open"}` |
@@ -1521,12 +1521,11 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
 4. pour un fournisseur à `open_licence: false`, reprenez seulement avec sa mention et le lien de
    la source (`source_url`).
 
-**Sources à usage non commercial.** Les faits d'**archeoferroviaire** (usage non commercial, accord pour le site
-seulement) ne sortent jamais du serveur MCP : ni événement, ni lien, ni texte, ni géométrie, que la source soit
+**Sources à usage non commercial.** Les faits d'une source à usage non commercial ne sortent jamais du serveur MCP : ni événement, ni lien, ni texte, ni géométrie, que la source soit
 nommée dans `source` ou seulement par le lien cité (`App\Mcp\Support\NonCommercialSources`, appliqué à
 `line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`). Restent servis les faits que VFF
 calcule à partir de ses tracés (état d'un tronçon à une ère, longueur, PK arrondi), sans coordonnée ; le fournisseur
-reste cité dans `attribution`. L'API REST, elle, sert ces événements avec `source = archeoferroviaire`.
+reste cité dans `attribution`. L'API REST, elle, sert ces événements avec la valeur `source` du fournisseur concerné (voir `/sources`).
 
 **Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
 points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line` quand sa

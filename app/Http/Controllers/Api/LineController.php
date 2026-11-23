@@ -312,7 +312,7 @@ class LineController extends Controller
      * - `dismantled_at` (`AAAA-MM-JJ`) ; `reuse` après dépose : `greenway`
      *   (voie verte), `road`, `path`, `urban`, `other` ;
      * - `source` du tracé (`osm`, `bdtopo` IGN, `ohm`, `sncf`,
-     *   `archeoferroviaire`, `contrib`…) et `provenance` : fournisseur et
+     *   `contrib`… ; voir `/sources`) et `provenance` : fournisseur et
      *   licence (voir `/sources`) ;
      * - `geometry` (avec `geometry=true`) : LineString GeoJSON, WGS 84,
      *   coordonnées longitude, latitude à 6 décimales ; `null` pour un tronçon
