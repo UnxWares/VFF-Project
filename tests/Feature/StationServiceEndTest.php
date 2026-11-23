@@ -105,9 +105,10 @@ class StationServiceEndTest extends TestCase
             ['briouze', 'year', 'line_events'], ['morlaix', null, 'station']];
         $pick = fn (array $stations): array => array_map(fn (array $s): array => [$s['slug'], $s['served_until_kind'], $s['years_source']], $stations);
 
-        $this->get('/lines/'.$this->line->slug)->assertOk()->assertInertia(function (Assert $page) use ($expected): void {
+        // Page : fin de desserte dans les détails de la liste des gares, reçus après le premier affichage (station_details).
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()->assertInertia(function (Assert $page) use ($expected): void {
             foreach ($expected as $i => [$slug, $kind, $source]) {
-                $page->where("stations.{$i}.slug", $slug)->where("stations.{$i}.served_until_kind", $kind)->where("stations.{$i}.years_source", $source);
+                $page->where("station_details.{$i}.slug", $slug)->where("station_details.{$i}.served_until_kind", $kind)->where("station_details.{$i}.years_source", $source);
             }
             $page->etc();
         });

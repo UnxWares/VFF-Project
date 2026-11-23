@@ -147,10 +147,11 @@ class StationServiceDatesTest extends TestCase
     }
 
     /**
-     * Début et fin de desserte datés par un événement d'une source non commerciale : inchangés sur la page et en
-     * REST (règle de la mention). Dans get_station et get_line, seul un événement servi de même date qui couvre la
-     * gare (même règle que la page) le remplace : l'ouverture de même date sur une autre portion (opening_far) ne
-     * compte pas, la date est nulle ; une ouverture servie de la portion de la gare la remplace.
+     * Début et fin de desserte datés par un événement d'une source non commerciale : inchangés sur la page (règle
+     * de la mention). Hors du site (REST, get_station, get_line ; App\Support\RedistributableDates depuis le
+     * 23/11/2026), seul un événement servi de même date qui couvre la gare (même règle que la page) le remplace :
+     * l'ouverture de même date sur une autre portion (opening_far) ne compte pas, la date est nulle ; une ouverture
+     * servie de la portion de la gare la remplace.
      */
     public function test_mcp_never_dates_a_service_by_a_non_commercial_source_only(): void
     {
@@ -164,14 +165,19 @@ class StationServiceDatesTest extends TestCase
             return [[$station['service_start']['event_id'] ?? null, $station['service_end']], [$line['service_start']['event_id'] ?? null, $line['service_end']]];
         };
 
+        // La page garde chaque date avec sa source.
+        $this->get('/stations/saint-calais')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('lines.0.service_start.event_id', $this->events['opening'])
+            ->where('lines.0.service_end.event_id', $this->events['closure'])->etc());
         $this->getJson('/api/v1/stations/saint-calais')->assertOk()
-            ->assertJsonPath('data.lines.0.service_start.event_id', $this->events['opening'])
-            ->assertJsonPath('data.lines.0.service_end.event_id', $this->events['closure']);
+            ->assertJsonPath('data.lines.0.service_start', null)
+            ->assertJsonPath('data.lines.0.service_end', null);
         $this->assertSame([[null, null], [null, null]], $both(), 'opening_far ne couvre pas la gare : aucune date');
 
         $covering = $this->event('opening', '1879-03-31', 'day', [0, 20_000]);
         $this->getJson('/api/v1/stations/saint-calais')->assertOk()
-            ->assertJsonPath('data.lines.0.service_start.event_id', $this->events['opening']);
+            ->assertJsonPath('data.lines.0.service_start.event_id', $covering)
+            ->assertJsonPath('data.lines.0.service_end', null);
         $this->assertSame([[$covering, null], [$covering, null]], $both(), 'ouverture servie de la portion de la gare');
     }
 
@@ -194,10 +200,11 @@ class StationServiceDatesTest extends TestCase
             ->mapWithKeys(fn (array $s): array => [$s['slug'] => [$s['service_start'], $s['service_end']]])->all();
         $rest = array_map(fn (array $b): array => [self::rest($b[0]), self::rest($b[1])], $expected);
 
-        $this->get('/lines/'.$this->line->slug)->assertOk()->assertInertia(function (Assert $page) use ($expected): void {
+        // Page : dates de desserte dans les détails de la liste des gares, reçus après le premier affichage (station_details).
+        $this->getWithDeferredProps('/lines/'.$this->line->slug)->assertOk()->assertInertia(function (Assert $page) use ($expected): void {
             foreach (array_keys($expected) as $i => $slug) {
                 [$start, $end] = $expected[$slug];
-                $page->where("stations.{$i}.slug", $slug)->where("stations.{$i}.service_start", $start)->where("stations.{$i}.service_end", $end);
+                $page->where("station_details.{$i}.slug", $slug)->where("station_details.{$i}.service_start", $start)->where("station_details.{$i}.service_end", $end);
             }
             $page->etc();
         });
