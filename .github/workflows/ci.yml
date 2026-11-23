@@ -1,7 +1,9 @@
 # VFF - Intégration continue
 #
-#   php   : composer audit, Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check), PHPStan + Larastan (niveau 6, baseline),
-#           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.7
+#   php     : composer audit, Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check),
+#             PHPStan + Larastan (niveau 6, baseline), contrôles statiques (tests/Unit/Static)
+#   phpunit : suite PHPUnit complète sur PostgreSQL 18 + PostGIS 3.7, en parallèle (un processus par cœur du runner,
+#             une base vff_test_test_<n> par processus), en même temps que le job php
 #   front : pnpm install, pnpm audit, Prettier, ESLint, vitest, svelte-check (baseline), build Vite
 #   e2e   : suite Playwright de fumée (tests/e2e) contre l'application démarrée sur une base migrée et
 #           remplie par E2eSeeder (jeu de données minimal), PostgreSQL + PostGIS et Valkey en services
@@ -29,11 +31,10 @@ permissions: {}
 
 jobs:
   php:
-    name: PHP 8.5 - Pint, i18n, PHPStan, PHPUnit
+    name: PHP 8.5 - Pint, i18n, PHPStan, contrôles statiques
     runs-on: ubuntu-latest
-    # Mesuré le 23/11/2026 : 4 min avant PHPUnit, puis 12 à 19 min de PHPUnit (10 300 tests) selon le runner,
-    # soit jusqu'à 23 min ; 30 laisse une marge sans laisser tourner longtemps une suite bloquée.
-    timeout-minutes: 30
+    # Mesuré le 22/11/2026 : environ 3 min (PHPStan en tête) ; PHPUnit tourne à part, dans le job phpunit.
+    timeout-minutes: 15
     permissions:
       contents: read
 
@@ -120,8 +121,72 @@ jobs:
       - name: Contrôles statiques (tirets, clés i18n, palette carte, routes)
         run: php artisan test tests/Unit/Static --ansi
 
-      - name: PHPUnit
-        run: php artisan test --ansi
+  # PHPUnit séparé du job php : il démarre aussitôt au lieu d'attendre PHPStan, et donne son verdict même quand
+  # l'analyse statique échoue. Les processus parallèles ont chacun leur base (vff_test_test_1 à _<n>), créée et
+  # migrée par Laravel à partir de vff_test ; le garde-fou de tests/CreatesApplication.php accepte ces noms.
+  phpunit:
+    name: PHPUnit (parallèle)
+    runs-on: ubuntu-latest
+    # Avant le 23/11/2026 : 10 à 14 min de PHPUnit sur un seul processus (10 300 tests), 19 au pire ; en parallèle
+    # sur les 4 cœurs du runner, environ le tiers. 20 laisse la marge d'un runner lent sans laisser traîner une suite bloquée.
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgis/postgis:18-3.7
+        env:
+          POSTGRES_USER: vff
+          POSTGRES_PASSWORD: vff
+          # Les tests visent obligatoirement une base suffixée _test (cf. phpunit.xml).
+          POSTGRES_DB: vff_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vff -d vff_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: vff
+      DB_PASSWORD: vff
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, pcntl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparer .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      # Options de parallélisme AVANT toute autre option (docs/TESTS.md, piège 1).
+      - name: PHPUnit (un processus par cœur)
+        run: php artisan test --parallel --processes="$(nproc)" --ansi
 
   front:
     name: Front - Prettier, ESLint, svelte-check, build Vite
@@ -268,8 +333,29 @@ jobs:
           cat storage/logs/serve.log
           exit 1
 
+      # Navigateur gardé en cache, clé sur la version de Playwright réellement installée (pnpm-lock.yaml). Les
+      # bibliothèques système ne sont installées (apt) que si Chromium ne démarre pas sans elles.
+      - name: Version de Playwright
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache des navigateurs Playwright
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+
       - name: Navigateur Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        env:
+          CACHE_HIT: ${{ steps.playwright-cache.outputs.cache-hit }}
+        run: |
+          if [ "$CACHE_HIT" != 'true' ]; then
+            pnpm exec playwright install chromium
+          fi
+          if ! pnpm exec node -e "import('@playwright/test').then(async ({ chromium }) => (await chromium.launch()).close())"; then
+            pnpm exec playwright install-deps chromium
+          fi
 
       - name: Suite de fumée Playwright
         env:

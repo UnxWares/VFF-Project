@@ -89,6 +89,6 @@ avec le même `DB_DATABASE`, partagent leurs clés sans toucher à celles du sit
 
 Le job `e2e` de `.github/workflows/ci.yml` démarre PostgreSQL + PostGIS et Valkey en services, migre la base
 `vff_e2e_test`, lance `E2eSeeder`, construit le front (`pnpm build`), démarre `php artisan serve` sur 127.0.0.1:8000,
-installe Chromium (`pnpm exec playwright install --with-deps chromium`) puis lance `pnpm test:e2e` (`CI=1` : une
+installe Chromium (gardé en cache par version de Playwright ; `playwright install-deps` seulement si le navigateur ne démarre pas sans les bibliothèques système) puis lance `pnpm test:e2e` (`CI=1` : une
 relance par test, rapport HTML). En cas d'échec, `storage/app/reports/e2e/html` et `traces` sont publiés en artefact
 `playwright-report`. Durée visée : moins de 10 minutes (la suite seule dure environ 1 min 10 en local).

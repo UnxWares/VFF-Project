@@ -14,6 +14,9 @@ parallélisme avant `--filter`, `--group` et les chemins. La suite complète res
 `VFF_TEST_DB=vff_<sujet>_test bin/php artisan test --parallel --processes=4 --recreate-databases` (`make test`).
 Avec plusieurs agents sur la machine, voir le verrou commun et le plafond de processus de leurs consignes.
 
+En CI (`.github/workflows/ci.yml`, job `phpunit`), la suite complète tourne à part de PHPStan, en parallèle sur
+tous les cœurs du runner : `php artisan test --parallel --processes="$(nproc)"`, bases `vff_test_test_<n>`.
+
 ## Les deux pièges (analyse du 22/11/2026)
 
 1. **Ordre des options.** `artisan test` ne reconnaît `--parallel`, `--processes` et `--recreate-databases` que s'ils
