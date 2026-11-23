@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\StationLineExclusions;
 use App\Services\StationLinkChanges;
+use App\Services\StationPkProjector;
 use App\Services\StationTerminusOverrides;
 use App\Support\StationNames;
 use Illuminate\Console\Command;
@@ -53,9 +54,10 @@ use Throwable;
  *                  (complet, --termini-only, --years-only) : ils l'emportent sur les étapes 1 à 5, y
  *                  compris une décision « attach » de l'étape 5.
  *
- * PK manquant : projection sur le tracé, interpolée entre les gares voisines
- * de PK connu de la même ligne (pk_source = projected), sinon abscisse
- * curviligne depuis le début du tronçon (pk_source = projected_raw).
+ *      wikidata_p81 : retiré si aucune position de la gare n'est à moins de 2 km d'un tracé de la ligne (dropFarWikidataLinks).
+ *
+ * PK manquant : StationPkProjector (projection sur le tracé, interpolée entre les gares voisines de PK connu de la même
+ * ligne, pk_source = projected ; sinon abscisse brute mise bout à bout, projected_raw ; aucun PK au-delà de 2 km du tracé).
  *
  * Période de desserte (first_year / last_year) : événements de la ligne
  * (`line_events`) dont la section couvre le PK de la gare, sinon tracés datés
@@ -303,6 +305,8 @@ class AttachStations extends Command
             $this->line("  {$method} : {$n}");
         }
 
+        $this->line('  wikidata_p81 retirés (aucune position de la gare à moins de '.StationPkProjector::FAR_M.' m d\'un tracé de la ligne) : '.$this->dropFarWikidataLinks($geoms));
+
         // 4. Terminus nommés des lignes sans liste officielle ; 5. terminus relus à la main.
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
         $this->applyTerminusOverrides();
@@ -319,6 +323,30 @@ class AttachStations extends Command
         $total = DB::table('stations')->count();
         $this->table(['rattachements', 'gares rattachées', 'lignes', 'avec PK', 'début daté', 'fin datée'],
             [[(int) $r->links, "{$r->stations} / {$total}", (int) $r->lines, (int) $r->with_pk, (int) $r->with_first, (int) $r->with_last]]);
+    }
+
+    /**
+     * « Ligne desservie » (P81) de Wikidata : le rattachement est retiré si aucune position de la gare n'est à moins de 2 km d'un tracé
+     * connu de la ligne (SNCF, tracés des sources, tronçons, référence), alors qu'elle en a. Ces liens viennent d'une
+     * correspondance wikidata_lines → lines erronée ou d'un homonyme (mesure du 23/11/2026 : 73 gares, Paris-Tolbiac à 105 km
+     * de la 590000, Derval à 31 km de la 464000, Cluny à 40 km de la 772000), et recevaient un PK de bout de tronçon.
+     * Les gares sans position sur un tracé (aucun tracé pour la ligne) sont gardées : rien ne les contredit.
+     *
+     * @param  array<string, ?string>  $geoms  requêtes de tracés par méthode (étape 3)
+     */
+    private function dropFarWikidataLinks(array $geoms): int
+    {
+        $union = implode(' UNION ALL ', array_filter($geoms));
+        $far = StationPkProjector::FAR_M;
+
+        return DB::affectingStatement(<<<SQL
+            DELETE FROM station_lines sl
+            WHERE sl.method = 'wikidata_p81'
+              AND EXISTS (SELECT 1 FROM ({$union}) g WHERE g.line_id = sl.line_id)
+              AND NOT EXISTS (SELECT 1 FROM tmp_pos p JOIN ({$union}) g ON g.line_id = sl.line_id
+                              AND ST_DWithin(g.geom, p.geom, 0.05) AND ST_DWithin(g.geom::geography, p.geom::geography, {$far})
+                              WHERE p.station_id = sl.station_id)
+        SQL);
     }
 
     /**
@@ -625,85 +653,14 @@ class AttachStations extends Command
     }
 
     /**
-     * PK des rattachements par proximité : projection sur le tronçon le plus
-     * proche de la ligne, interpolée entre gares voisines de PK connu.
+     * PK des rattachements sans PK : projection sur le tracé, interpolée entre gares de PK connu (StationPkProjector).
      *
      * @param  list<int>|null  $only  rattachements à traiter (--years-only : terminus relus ajoutés), sinon tous ceux sans PK
      */
     private function projectMissingPk(?array $only = null): void
     {
-        DB::statement('DROP TABLE IF EXISTS tmp_line_tr');
-        // Tronçons SNCF avec leurs PK officiels de début et de fin (pk_debut / pk_fin) : une gare sans
-        // voisine de PK connu sur le même tronçon prend le PK interpolé dans le tronçon, pas son abscisse
-        // depuis le début du tronçon (Angoulême affichait « PK 2+083 » sur Limoges - Angoulême, au lieu
-        // d'environ 520 km, et passait en tête de la liste des gares).
-        DB::statement('CREATE TEMP TABLE tmp_line_tr (tid serial PRIMARY KEY, line_id bigint, geom geometry(LineString, 4326), pk_debut int, pk_fin int)');
-        DB::statement(<<<'SQL'
-            INSERT INTO tmp_line_tr (line_id, geom, pk_debut, pk_fin)
-            SELECT l.id, lg.geom, lg.pk_debut_m, lg.pk_fin_m FROM sncf_line_geometries lg JOIN lines l ON l.code = lg.code_ligne
-            WHERE l.id IN (SELECT line_id FROM station_lines WHERE pk_m IS NULL)
-        SQL);
-        $fallbacks = array_filter([
-            Schema::hasTable('line_reference_geometries') ? 'SELECT line_id, geom FROM line_reference_geometries' : null,
-            'SELECT line_id, geom FROM source_traces WHERE line_id IS NOT NULL',
-            'SELECT line_id, geom FROM line_segments WHERE line_id IS NOT NULL',
-        ]);
-        // Morceaux d'un tracé séparés de quelques mètres (tracés de deux sources bout à bout : 433000
-        // Couterne - La Ferté-Macé, 50 m) : extrémités recollées au début du morceau suivant (≈ 100 m),
-        // sinon une gare seule sur son morceau prenait son abscisse depuis le début du morceau
-        // (La Ferté-Macé « PK 4,736 », entre Couterne et Bagnoles dans la liste des gares).
-        foreach ($fallbacks as $sql) {
-            DB::statement(<<<SQL
-                INSERT INTO tmp_line_tr (line_id, geom)
-                SELECT line_id, (ST_Dump(CASE WHEN ST_NumGeometries(g) > 1
-                    THEN ST_LineMerge(ST_Snap(g, (SELECT ST_Collect(ST_StartPoint(d.geom)) FROM ST_Dump(g) d), 0.0015)) ELSE g END)).geom
-                FROM (SELECT line_id, ST_LineMerge(ST_Collect(ST_Force2D(geom))) AS g
-                      FROM ({$sql}) x
-                      WHERE line_id IN (SELECT line_id FROM station_lines WHERE pk_m IS NULL)
-                        AND line_id NOT IN (SELECT line_id FROM tmp_line_tr)
-                      GROUP BY line_id) y
-            SQL);
-        }
-        DB::statement("DELETE FROM tmp_line_tr WHERE GeometryType(geom) <> 'LINESTRING'");
-        DB::statement('CREATE INDEX ON tmp_line_tr USING GIST (geom)');
-
-        // Position de chaque gare rattachée sur le tronçon le plus proche de sa ligne.
-        DB::statement('DROP TABLE IF EXISTS tmp_sl_loc');
-        DB::statement(<<<'SQL'
-            CREATE TEMP TABLE tmp_sl_loc AS
-            SELECT sl.id, sl.line_id, sl.pk_m, tr.tid, ST_LineLocatePoint(tr.geom, s.geom) AS frac,
-                   ST_Length(tr.geom::geography) AS len, tr.pk_debut, tr.pk_fin
-            FROM station_lines sl
-            JOIN stations s ON s.id = sl.station_id
-            JOIN LATERAL (SELECT tid, geom, pk_debut, pk_fin FROM tmp_line_tr t WHERE t.line_id = sl.line_id
-                          ORDER BY t.geom <-> s.geom LIMIT 1) tr ON TRUE
-        SQL);
-        $onlySql = $only === null ? '' : ' AND sl.id IN ('.implode(',', array_map('intval', $only ?: [0])).')';
-        $n = DB::affectingStatement(<<<SQL
-            WITH t AS (
-                SELECT a.id, a.tid, a.frac, a.len, a.pk_debut, a.pk_fin,
-                       lo.pk_m AS lpk, lo.frac AS lfrac, hi.pk_m AS hpk, hi.frac AS hfrac
-                FROM tmp_sl_loc a
-                LEFT JOIN LATERAL (SELECT pk_m, frac FROM tmp_sl_loc b WHERE b.tid = a.tid AND b.pk_m IS NOT NULL AND b.frac <= a.frac
-                                   ORDER BY b.frac DESC LIMIT 1) lo ON TRUE
-                LEFT JOIN LATERAL (SELECT pk_m, frac FROM tmp_sl_loc b WHERE b.tid = a.tid AND b.pk_m IS NOT NULL AND b.frac >= a.frac
-                                   ORDER BY b.frac ASC LIMIT 1) hi ON TRUE
-                WHERE a.pk_m IS NULL
-            )
-            UPDATE station_lines sl SET
-                pk_m = ROUND(CASE
-                    WHEN t.lpk IS NOT NULL AND t.hpk IS NOT NULL AND t.hfrac > t.lfrac
-                        THEN t.lpk + (t.frac - t.lfrac) * (t.hpk - t.lpk) / (t.hfrac - t.lfrac)
-                    WHEN t.lpk IS NOT NULL AND t.hpk IS NOT NULL THEN t.lpk
-                    WHEN t.lpk IS NOT NULL THEN t.lpk + (t.frac - t.lfrac) * t.len
-                    WHEN t.hpk IS NOT NULL THEN t.hpk - (t.hfrac - t.frac) * t.len
-                    WHEN t.pk_debut IS NOT NULL AND t.pk_fin IS NOT NULL THEN t.pk_debut + t.frac * (t.pk_fin - t.pk_debut)
-                    ELSE t.frac * t.len END),
-                pk_source = CASE WHEN t.lpk IS NOT NULL OR t.hpk IS NOT NULL OR (t.pk_debut IS NOT NULL AND t.pk_fin IS NOT NULL)
-                    THEN 'projected' ELSE 'projected_raw' END
-            FROM t WHERE t.id = sl.id{$onlySql}
-        SQL);
-        $this->line("  PK projetés : {$n}");
+        $r = app(StationPkProjector::class)->project($only);
+        $this->line("  PK projetés : {$r['projected']} (abscisse brute : {$r['raw']}, sans PK car à plus de ".StationPkProjector::FAR_M." m du tracé : {$r['none']}, PK de source en collision recalculés : {$r['released']})");
     }
 
     /**
