@@ -3,7 +3,7 @@
 // Historique de la signalisation (vff:import-signalling-history) : frise de la fiche ligne.
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
-    'title' => 'Signalisierung im Lauf der Zeit',
+    'title' => 'Signalisierung und Zugbeeinflussung im Lauf der Zeit',
     'intro' => 'Inbetriebnahmedaten aus dem Wikipedia-Artikel der Strecke und aus weiteren Dokumenten (Entscheidungen und Berichte der EPSF, Bilanzen von SNCF Réseau und des Staates, Presse). Die Liste ist unvollständig: Ein System, das fehlt, kann in Betrieb gegangen sein, ohne dass eines dieser Dokumente ein Datum nennt.',
     'system' => [
         'BM' => 'BM, Handblock',

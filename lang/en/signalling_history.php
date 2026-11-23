@@ -3,7 +3,7 @@
 // Historique de la signalisation (vff:import-signalling-history) : frise de la fiche ligne.
 // Faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
 return [
-    'title' => 'Signalling over time',
+    'title' => 'Signalling and train protection over time',
     'intro' => 'Commissioning dates taken from the line’s Wikipedia article and from other documents (EPSF decisions and reports, SNCF Réseau and government reviews, newspapers). The list is incomplete: a system that is missing may have been commissioned without any of these documents giving a date.',
     'system' => [
         'BM' => 'BM, manual block',
