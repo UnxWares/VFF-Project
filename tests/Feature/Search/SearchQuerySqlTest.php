@@ -7,6 +7,7 @@ use App\Support\Search\SearchFields;
 use App\Support\Search\SearchQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /** Conditions SQL, rang et ressemblance de la recherche commune, mesurés sur des gares (une mutation par assertion). */
@@ -25,7 +26,9 @@ class SearchQuerySqlTest extends TestCase
 
     private function station(string $name, ?string $city = null): Station
     {
-        return Station::factory()->create(['name' => $name, 'city' => $city ?? $name, 'alt_names' => null]);
+        // Slug fixé : celui de la fabrique contient une commune tirée au hasard, que la clé « tous les noms » indexe (un
+        // test sur « pa » trouvait parfois L'Isle-Adam par le slug « gare-de-parisot-1234 »).
+        return Station::factory()->create(['name' => $name, 'city' => $city ?? $name, 'alt_names' => null, 'slug' => Str::slug($name)]);
     }
 
     /** @return list<string> */
@@ -110,6 +113,31 @@ class SearchQuerySqlTest extends TestCase
         $this->assertSame(["L'Isle-Adam"], $this->found("l'isle"));
         $this->assertSame([], $this->found("paris'; DROP TABLE stations; --"));
         $this->assertSame(1, DB::table('stations')->where('name', 'Paris')->count());
+    }
+
+    public function test_wildcards_never_widen_the_match(): void
+    {
+        $this->station('Abc');
+        $this->station('Ab Cd');
+        // Joker : « a_c » et « a%c » trouveraient Abc ; ponctuation : « a » et « c » doivent chacun commencer un mot.
+        $this->assertSame(['Ab Cd'], $this->found('a_c'));
+        $this->assertSame(['Ab Cd'], $this->found('a%c'));
+        $this->assertSame(['Ab Cd'], $this->found('a\\c'));
+        $this->assertSame([], $this->found('\\'), 'barre oblique inverse seule : rien');
+        $this->assertSame([], $this->found('%%%'));
+        $this->assertSame([], $this->found('_'));
+        foreach (['%', '_', '\\', '%_\\', 'pa%', 'p_ris', '\\%'] as $q) {
+            $query = SearchQuery::parse($q);
+            foreach ($query->tokens as $alternatives) {
+                foreach ($alternatives as $word) {
+                    $this->assertMatchesRegularExpression('/^[a-z0-9]+$/', $word, "jeton propre pour « {$q} »");
+                }
+            }
+            [, $bindings] = $query->matchSql('x', true);
+            foreach ($bindings as $b) {
+                $this->assertSame(0, preg_match('/[_\\\\]/', $b), 'aucun joker ni échappement dans les liaisons');
+            }
+        }
     }
 
     public function test_extra_match_is_or_joined_but_not_in_approximate_mode(): void

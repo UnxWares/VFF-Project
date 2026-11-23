@@ -68,6 +68,16 @@ final class SearchQuery
         return new self($raw, $key, SearchText::core($key), $tokens);
     }
 
+    /**
+     * Motif LIKE littéral : « % », « _ » et « \ » sont des données, jamais des jokers. La clé de recherche ne garde
+     * que des lettres, chiffres et espaces, donc cet échappement ne change rien aujourd'hui ; il garde la requête
+     * sûre (et son parcours d'index borné) si la normalisation évolue.
+     */
+    private static function escapeLike(string $text): string
+    {
+        return addcslashes($text, '%_\\');
+    }
+
     public function isEmpty(): bool
     {
         return $this->tokens === [];
@@ -92,7 +102,7 @@ final class SearchQuery
         foreach ($this->tokens as $alternatives) {
             $parts[] = '('.implode(' OR ', array_fill(0, count($alternatives), "{$keyExpr} LIKE ?")).')';
             foreach ($alternatives as $word) {
-                $bindings[] = ($anywhere && strlen($word) >= 3 ? '%' : '% ').$word.'%';
+                $bindings[] = ($anywhere && strlen($word) >= 3 ? '%' : '% ').self::escapeLike($word).'%';
             }
         }
 
@@ -114,7 +124,7 @@ final class SearchQuery
 
         return [
             "CASE WHEN {$core} = ? THEN 0 WHEN {$core} LIKE ? THEN 1 WHEN {$core} LIKE ? THEN 2 WHEN {$inName} THEN 3 WHEN {$inAll} THEN 4 ELSE 5 END",
-            [$this->core, $this->core.'%', '%'.$this->core.'%', ...$inNameBindings, ...$inAllBindings],
+            [$this->core, self::escapeLike($this->core).'%', '%'.self::escapeLike($this->core).'%', ...$inNameBindings, ...$inAllBindings],
         ];
     }
 
