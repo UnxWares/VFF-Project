@@ -180,6 +180,13 @@ class PageQueryBudgetTest extends TestCase
         $this->assertLessThanOrEqual(6, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
+    public function test_the_example_environment_does_not_record_every_page_for_the_inertia_devtools(): void
+    {
+        // Enregistrer chaque page sur disque coûtait 100 à 300 ms par page en local (mesures du 23/11/2026,
+        // storage/app/reports/agents/aprem-2111/budgets-pages.md) : désactivé par défaut dans l'environnement d'exemple.
+        $this->assertMatchesRegularExpression('/^INERTIA_DEVTOOLS_ENABLED=false$/m', (string) file_get_contents(base_path('.env.example')));
+    }
+
     public function test_the_last_segment_update_is_read_through_an_index(): void
     {
         $this->assertTrue(collect(DB::select("SELECT indexname FROM pg_indexes WHERE tablename = 'line_segments'"))

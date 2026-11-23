@@ -97,6 +97,35 @@ class LineFactsTest extends TestCase
         $this->assertSame([71, 69], array_map(fn ($d) => (int) $d['code'], LineFacts::departments($line->id)), 'du plus long parcours au plus court');
     }
 
+    public function test_departments_are_measured_track_by_track_with_the_same_lengths(): void
+    {
+        $era = Era::factory()->current()->create(['year' => 2030]);
+        $line = Line::factory()->create();
+        // Deux tracés bout à bout (2,00 à 2,15° E puis 2,15 à 2,30° E), la limite de département à 2,20° E.
+        foreach ([[2.00, 2.15], [2.15, 2.30]] as [$from, $to]) {
+            LineSegment::factory()->create(['line_id' => $line->id, 'era_id' => $era->id,
+                'geom' => LineString::make([Point::makeGeodetic(46.50, $from), Point::makeGeodetic(46.50, $to)])]);
+        }
+        foreach ([['71001', '71', 1.99, 2.20], ['69001', '69', 2.20, 2.31]] as [$insee, $dep, $w, $e]) {
+            DB::table('commune_contours')->insert(['code_insee' => $insee, 'nom' => "Commune {$insee}", 'departement' => $dep,
+                'geom' => DB::raw(sprintf('ST_Multi(ST_MakeEnvelope(%F, 46.4, %F, 46.6, 4326))', $w, $e)), 'created_at' => now(), 'updated_at' => now()]);
+        }
+        Cache::flush();
+        $queries = [];
+        DB::listen(function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        $departments = LineFacts::departments($line->id);
+
+        // 0,20° et 0,10° de longitude à 46,5° N : 15 353 m et 7 676 m (géodésique), comme sur la ligne fusionnée.
+        $this->assertSame([['71', 15353], ['69', 7676]], array_map(fn ($d) => [$d['code'], $d['m']], $departments));
+        // La ligne n'est plus fusionnée avant l'intersection (2,7 s sur Paris - Marseille) : chaque tracé est croisé
+        // avec les seuls contours proches.
+        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'commune_contours')
+            && str_contains($sql, 'ST_Collect'))));
+    }
+
     public function test_an_invalid_commune_contour_is_repaired_instead_of_failing(): void
     {
         $era = Era::factory()->current()->create(['year' => 2030]);

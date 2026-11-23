@@ -52,6 +52,13 @@ final class FactPool
     /** Rôles de Mérimée tenus pour « architecte » (le seul rôle qui répond à la question). */
     private const ARCHITECT_ROLE = 'architecte';
 
+    /** Tables facultatives (imports pas encore passés) dont dépendent des familles de questions. */
+    private const OPTIONAL_TABLES = ['structures', 'line_structures', 'station_heritage', 'station_attendances', 'station_events',
+        'line_signalling_events', 'line_materials', 'accidents', 'accident_sources'];
+
+    /** @var list<string>|null Tables facultatives présentes, lues une fois (has). */
+    private ?array $existingTables = null;
+
     /** Mots qui montrent qu'un « architecte » est une institution ou un service, pas une personne. */
     private const NOT_A_PERSON = '/\b(compagnie|chemins? de fer|administration|soci[ée]t[ée]|service|bureau|ville|[ée]tat|sncf|ing[ée]nieur|ponts|architectes|agence|atelier|cabinet|entreprise)\b/iu';
 
@@ -85,12 +92,21 @@ final class FactPool
         return ['items' => $items, 'complete' => $complete];
     }
 
-    /** Vrai quand toutes les tables existent (une lecture du catalogue, sans erreur SQL quand une table manque). */
+    /**
+     * Vrai quand toutes les tables existent (sans erreur SQL quand une table manque). Le catalogue est lu une fois
+     * pour toutes les tables facultatives du vivier (OPTIONAL_TABLES), pas une fois par famille de questions.
+     */
     private function has(string ...$tables): bool
     {
-        $missing = DB::scalar('SELECT COUNT(*) FROM unnest(?::text[]) t WHERE to_regclass(t) IS NULL', ['{'.implode(',', $tables).'}']);
+        $this->existingTables ??= array_column(DB::select(
+            'SELECT t FROM unnest(?::text[]) t WHERE to_regclass(t) IS NOT NULL',
+            ['{'.implode(',', self::OPTIONAL_TABLES).'}'],
+        ), 't');
+        if (array_diff($tables, self::OPTIONAL_TABLES) !== []) {
+            throw new \LogicException('Table facultative du vivier à ajouter à FactPool::OPTIONAL_TABLES : '.implode(', ', array_diff($tables, self::OPTIONAL_TABLES)));
+        }
 
-        return (int) $missing === 0;
+        return array_diff($tables, $this->existingTables) === [];
     }
 
     /**
