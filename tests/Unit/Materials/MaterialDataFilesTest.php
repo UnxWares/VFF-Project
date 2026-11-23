@@ -151,6 +151,49 @@ class MaterialDataFilesTest extends TestCase
         $this->assertSame(2024, $by['Q137669875']['in_service_from'], 'Z 56800');
     }
 
+    public function test_every_value_is_cited_with_a_revision_and_plausible(): void
+    {
+        $by = [];
+        foreach (self::dateSupplements() as $i => $r) {
+            $where = "valeur {$i} ({$r['material']} {$r['field']})";
+            $this->assertMatchesRegularExpression('/^Q[1-9]\d{0,9}$/', $r['material'], $where);
+            $this->assertIsInt($r['revid'], "{$where} : révision");
+            $this->assertGreaterThan(0, $r['revid'], $where);
+            $this->assertLessThanOrEqual(255, mb_strlen($r['quote']), "{$where} : citation trop longue");
+            if (in_array($r['field'], ['in_service_from', 'in_service_to'], true)) {
+                $this->assertIsInt($r['value'], $where);
+                $this->assertGreaterThanOrEqual(1830, $r['value'], $where);
+                $this->assertLessThanOrEqual(2030, $r['value'], $where);
+            }
+            if ($r['field'] === 'units_built') {
+                $this->assertIsInt($r['value'], $where);
+                $this->assertGreaterThan(0, $r['value'], $where);
+            }
+            $by[$r['material']][$r['field']] = $r['value'];
+        }
+        foreach ($by as $qid => $fields) {
+            if (isset($fields['in_service_from'], $fields['in_service_to'])) {
+                $this->assertGreaterThanOrEqual($fields['in_service_from'], $fields['in_service_to'], "{$qid} : retrait avant la mise en service");
+            }
+        }
+    }
+
+    public function test_the_dates_read_in_the_series_articles_on_23_11_are_present(): void
+    {
+        $by = [];
+        foreach (self::dateSupplements() as $r) {
+            $by[$r['material']][$r['field']] = $r['value'];
+        }
+        $this->assertSame(1960, $by['Q3574426']['in_service_from'], 'Z 9056 à 9059 : livrées en 1960');
+        $this->assertSame(1867, $by['Q113833028']['in_service_from'], '030 Ouest 1904 à 2244 : première livraison (1951-1974 par Schneider en 1867)');
+        $this->assertSame(1938, $by['Q2931155']['in_service_from'], 'CC 1100 : prototypes livrés en 1937, mis en service en 1938');
+        $this->assertSame(1960, $by['Q585475']['in_service_from'], 'BB 20004 : sortie de transformation le 30/03/1960');
+        $this->assertSame(1969, $by['Q585475']['in_service_to'], 'BB 20004 : remise au type en 1969');
+        $this->assertSame(2016, $by['Q3588094']['in_service_to'], 'EAD modernisés radiés en 2016');
+        $this->assertSame(32, $by['Q120253464']['units_built'], 'Z 56700');
+        $this->assertSame(2025, $by['Q134528511']['in_service_from'], 'Z 59000 : Transdev depuis le 29/06/2025');
+    }
+
     public function test_families_are_disjoint_and_a_family_is_never_its_own_version(): void
     {
         $versions = [];
