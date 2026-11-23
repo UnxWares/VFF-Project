@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\NetworkFigures;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\PendingCommand;
 use Tests\TestCase;
@@ -68,7 +70,9 @@ class RefreshCurrentEraTest extends TestCase
         $untouched = $this->segmentIds($closesLater);
 
         $this->travelTo('2026-10-20 04:30:00');
+        Cache::forever(NetworkFigures::CACHE_KEY, ['computed_at' => 'avant']);
         $this->refresh()->expectsOutputToContain('1 ligne(s), 0 gare(s)')->assertSuccessful();
+        $this->assertNotSame('avant', Cache::get(NetworkFigures::CACHE_KEY)['computed_at'], 'chiffres du réseau recalculés');
 
         $this->assertSame(['abandoned/unknown'], array_keys($this->km($closesTomorrow, 2030)), 'fermée ce jour : fermée');
         $this->assertSame(['in_service/mixed'], array_keys($this->km($closesTomorrow, 2020)), 'ères passées inchangées');

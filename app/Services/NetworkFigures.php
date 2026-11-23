@@ -52,12 +52,22 @@ final class NetworkFigures
         'dismantled' => ['dismantling'],
     ];
 
-    /** Dernier calcul rangé dans le cache, ou calcul si le cache est vide. */
+    /**
+     * Dernier calcul rangé dans le cache, ou calcul si le cache est vide. Le calcul (agrégats de toutes les ères,
+     * quelques secondes) n'est lancé que par une requête à la fois : les autres attendent son résultat.
+     */
     public function get(): array
     {
         $cached = Cache::get(self::CACHE_KEY);
+        if (is_array($cached)) {
+            return $cached;
+        }
 
-        return is_array($cached) ? $cached : $this->refresh();
+        return Cache::lock(self::CACHE_KEY.':lock', 120)->block(60, function (): array {
+            $cached = Cache::get(self::CACHE_KEY);
+
+            return is_array($cached) ? $cached : $this->refresh();
+        });
     }
 
     /** Recalcule et range le résultat (sans expiration). */

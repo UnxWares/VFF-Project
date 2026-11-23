@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Events\CurrentEraRefreshed;
+use App\Services\NetworkFigures;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -125,6 +126,8 @@ class RefreshCurrentEra extends Command
         }
 
         Cache::forget('home_stats');
+        // Chiffres du réseau (/network, /api/v1/stats/network) : la ligne de l'ère courante vient de changer.
+        app(NetworkFigures::class)->refresh();
         // Webhooks `current_era.refreshed` (abonnés de l'API).
         CurrentEraRefreshed::dispatch((int) $era->year, $today, count($lineIds), count($stationIds));
         $this->info('✓ Ère courante recalculée au '.$today.'.');
