@@ -42,4 +42,11 @@ return [
     ['kind' => 'fragment', 'line' => 'archeo-ligne-militaire-de-somme-bionne-a-courtemont-1914-1918', 'at' => [4.75724, 49.13993], 'max_m' => 70,
         'reason' => 'tracé archeo non recalé de 51 m dans un champ, parallèle à la courbe de la ligne à 87 m',
         'source' => $fragments.'2936-235236-8.png)', 'reviewed_at' => $day],
+
+    // Nice - Breil-sur-Roya : la voie OHM 198736884 (10,4 km, de Breil vers Tende, au nord de 44,11° de latitude) est
+    // un morceau de la ligne de Coni à Vintimille (946000), rattaché à 945000 par recouvrement de tracé. Elle mettait
+    // dans le tracé de 945000 un morceau isolé à 19 km de Breil, que le profil en long reliait par un trou de 19 km.
+    ['kind' => 'trace', 'line' => '945000', 'source_name' => 'ohm', 'source_ref' => '198736884',
+        'reason' => 'voie de la ligne de Coni à Vintimille entre Breil-sur-Roya et Tende, rattachée à tort à Nice - Breil-sur-Roya',
+        'source' => 'https://www.openhistoricalmap.org/way/198736884 ; storage/app/reports/agents/aprem-2111/trous-trace.md', 'reviewed_at' => $day],
 ];
