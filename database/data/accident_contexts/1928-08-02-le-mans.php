@@ -32,6 +32,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche de Paris du 2 août : « ce matin », en gare du Mans, un express venant de Paris déraille ; six morts, pour la plupart des agents des postes dans le fourgon.',
+            'facts' => ['date' => '1928-08-02', 'commune_insee' => '72181', 'deaths' => 6],
         ],
         'ddb-1928-08-03-volkswacht' => [
             'provider' => 'presse',

@@ -74,6 +74,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Dépêche de Paris du 22 octobre : accident la veille à 4 h du matin sur le chemin de fer de Paris à Lyon, entre Thomery et Moret ; l\'express parti de Lyon à 19 h est arrivé sur un train de bestiaux qui le précédait.',
+            'facts' => ['date' => '1855-10-21', 'commune_insee' => '77463', 'deaths' => 16],
         ],
         'kb-1855-10-25-provinciale-noordbrabantsche-en-boss' => [
             'provider' => 'delpher',

@@ -89,6 +89,21 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Source de la date du 6 novembre donnée par Wikipédia ; non lu.',
         ],
+        'kb-1904-10-23-p-den-hengst' => [
+            'provider' => 'delpher',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenlandsch (spoorwegongeluk tusschen Chouzy en Onzain)',
+            'publisher' => 'P. den Hengst en Zoon (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1904-10-23',
+            'locator' => 'rubrique « Buitenlandsch », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010648379:mpeg21:a0087:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Article du 23 octobre : vendredi à 1 h du matin, déraillement de l\'express Paris - Bordeaux entre Chouzy et Onzain, puis collision avec l\'express de Nantes ; trois morts (deux enfants et un sergent).',
+            'facts' => ['date' => '1904-10-21', 'commune_insee' => '41055', 'deaths' => 3, 'deaths_provisional' => true],
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -119,6 +134,12 @@ return [
                 'en' => 'The list adds that while the wreckage was being cleared, the body of a fifth victim was found under the locomotive of train 18: a passenger who had got off the express just after it derailed and was run down by the train coming the other way.',
                 'de' => 'Die Liste fügt hinzu, dass beim Räumen der Trümmer unter der Lokomotive des Zuges 18 die Leiche eines fünften Opfers gefunden wurde: ein Reisender, der unmittelbar nach der Entgleisung aus dem Schnellzug gestiegen und vom entgegenkommenden Zug erfasst worden war.',
                 'sources' => ['wp-liste-1904'],
+            ],
+            [
+                'fr' => 'Un journal néerlandais du 23 octobre 1904 compte trois morts (deux enfants et un sergent) pour l\'accident du vendredi à 1 h du matin entre Chouzy et Onzain, chiffre inférieur au bilan de la fiche (4).',
+                'en' => 'A Dutch newspaper of 23 October 1904 counts three dead (two children and a sergeant) for the accident of Friday at 1 am between Chouzy and Onzain, a figure below the record\'s toll (4).',
+                'de' => 'Eine niederländische Zeitung vom 23. Oktober 1904 zählt drei Tote (zwei Kinder und einen Sergeanten) bei dem Unfall am Freitag um 1 Uhr morgens zwischen Chouzy und Onzain, weniger als die Datenbank (4).',
+                'sources' => ['kb-1904-10-23-p-den-hengst'],
             ],
         ],
         'causes' => [

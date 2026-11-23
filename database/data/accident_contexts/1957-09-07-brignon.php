@@ -88,6 +88,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Brève : environ 50 blessés, en partie graves, quand l\'express Paris-Nîmes déraille à 22 km de sa destination, près de la petite gare de Nozières-Brignon où des travaux imposaient une déviation.',
+            'facts' => ['date' => '1957-09-07', 'commune_insee' => '30053', 'deaths' => 25, 'deaths_provisional' => true],
         ],
         'kb-1957-09-09-nieuwe-haarlemsche-courant' => [
             'provider' => 'delpher',

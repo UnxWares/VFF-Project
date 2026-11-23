@@ -88,6 +88,7 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Brève du 12 février : à un passage à niveau non gardé de Colmar, un train de Strasbourg est entré dans un autobus de travailleurs ; dix morts, 12 blessés et de nombreux voyageurs du train blessés.',
+            'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '68066', 'deaths' => 10, 'deaths_provisional' => true],
         ],
     ],
     'sections' => [
