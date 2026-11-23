@@ -92,7 +92,11 @@ class ExportOpenDataSuiteTest extends TestCase
             [['id' => 'p1', 'name' => 'Projet un', 'kind' => 'reopening', 'regions' => ['Bretagne'], 'line_slugs' => ['rfn-999000'], 'summary' => 'Résumé rédigé', 'checked' => '2026-11-23',
                 'stages' => [
                     ['kind' => 'dup', 'date' => '2020-05-01', 'done' => true, 'note' => 'note', 'source' => ['label' => 'JO', 'url' => 'https://www.legifrance.gouv.fr/jorf/id/1', 'published' => '2020-05-02']],
-                    ['kind' => 'works', 'date' => '2024', 'done' => false, 'note' => 'note', 'source' => ['label' => 'Presse', 'url' => 'https://journal.test/p', 'published' => '2024-01-01']],
+                    ['kind' => 'works', 'date' => '2024', 'done' => false, 'note' => 'note', 'source' => ['label' => 'Presse régionale', 'url' => 'https://www.quotidien-regional.test/p', 'published' => '2024-01-01']],
+                    ['kind' => 'funding', 'date' => '2025-03', 'done' => true, 'note' => 'note', 'source' => ['label' => 'Banque des Territoires', 'url' => 'https://www.banquedesterritoires.fr/f', 'published' => '2025-03-02']],
+                    ['kind' => 'study', 'date' => '1990', 'done' => true, 'note' => 'note', 'source' => ['label' => 'Titre secret', 'url' => 'http://archeoferroviaire.free.fr/v31/x']],
+                    ['kind' => 'debate', 'date' => '2001', 'done' => true, 'note' => 'note', 'source' => ['label' => 'Revue', 'url' => 'https://www.persee.fr/doc/x']],
+                    ['kind' => 'service', 'date' => '2010', 'done' => true, 'note' => 'note', 'source' => ['label' => 'Sans lien']],
                 ]]],
             ['archeo-ancien' => 'rfn-999000', 'ancienne-ligne' => 'rfn-999000'],
             ['rfn-999000' => ['max_grade_permil' => 12, 'provider' => 'wikipedia', 'license' => 'CC BY-SA 4.0', 'source_url' => 'https://fr.wikipedia.org/w/index.php?oldid=9', 'source_title' => 'Ligne', 'quote' => 'pente = 12']],
@@ -162,9 +166,21 @@ class ExportOpenDataSuiteTest extends TestCase
 
         $this->assertSame(['p1'], array_column($this->csv('projets/projets.csv'), 'project_id'));
         $this->assertArrayNotHasKey('summary', $this->csv('projets/projets.csv')[0]);
-        $stages = $this->csv('projets/projets-etapes.csv');
-        $this->assertSame(['dup'], array_column($stages, 'stage'), 'l\'étape dont le lien n\'a pas de fournisseur libre est retirée');
-        $this->assertSame('jorf', $stages[0]['source']);
+        // Décision du 23/11 : une étape est rédigée par VFF ; un lien de presse, de ministère ou de collectivité n'est
+        // qu'une citation. Restent retirées les étapes sans lien et celles d'une source non commerciale ou non citable.
+        $stages = array_column($this->csv('projets/projets-etapes.csv'), null, 'stage');
+        $this->assertSame(['dup', 'works', 'funding'], array_keys($stages));
+        $this->assertSame(['jorf', 'Licence Ouverte', 'source'], [$stages['dup']['source'], $stages['dup']['licence'], $stages['dup']['link_role']]);
+        foreach (['works' => 'https://www.quotidien-regional.test/p', 'funding' => 'https://www.banquedesterritoires.fr/f'] as $stage => $url) {
+            $this->assertSame(['vff', 'ODbL 1.0', 'citation', $url], [$stages[$stage]['source'], $stages[$stage]['licence'], $stages[$stage]['link_role'], $stages[$stage]['source_url']]);
+        }
+        $this->assertSame(['2024', 'year', 'false'], [$stages['works']['stage_date'], $stages['works']['date_precision'], $stages['works']['done']]);
+        $text = (string) file_get_contents($this->out.'/projets/projets-etapes.csv');
+        foreach (['archeoferroviaire', 'persee', 'Presse régionale', 'Banque des Territoires', 'note'] as $needle) {
+            $this->assertStringNotContainsString($needle, $text);
+        }
+        $withheld = array_column(OpenDataCatalogue::read($this->out), null, 'id')['projets']['withheld']['projects.stages']['removed'];
+        $this->assertSame(3, array_sum($withheld), 'sans lien, non commercial (archeoferroviaire) et usage privé (Persée)');
 
         $this->assertSame(['osm-1-alpha'], array_column($this->csv('redirections/redirections-gares.csv'), 'old_slug'));
         $this->assertSame(['ancienne-ligne'], array_column($this->csv('redirections/redirections-lignes.csv'), 'old_slug'));

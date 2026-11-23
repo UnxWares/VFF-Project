@@ -780,8 +780,9 @@ cantonnement, SNCF Réseau ODbL), `profils` (profils en long mesurés, points, d
 et même `--date`, mêmes octets). Seules les sources autorisées par `database/data/source_rights.php` entrent
 (`App\Services\OpenData\OpenDataRights`) ; le reste est retiré ou remplacé par une donnée libre et compté (code des nouveaux jeux :
 `App\Services\OpenData\OpenDataSuiteExporter`, champs : `OpenDataDictionary`). Règles propres aux jeux récents : aucun
-texte rédigé ni donnée personnelle ; une étape de projet n'entre que si le domaine de son lien est un fournisseur libre
-du registre ; un ancien slug qui porte un préfixe de source non libre (`archeo-`) est retiré ; un profil en long
+texte rédigé ni donnée personnelle ; une étape de projet, rédigée par VFF, est attribuée au fournisseur libre du domaine de son lien,
+ou sort comme relevé de VFF quand le lien (presse, ministère, collectivité : domaine absent du registre ou `tiers-cites`)
+n'est qu'une citation (colonne `link_role`), et reste retirée sans lien ou pour toute autre source (non commerciale, accord) ; un ancien slug qui porte un préfixe de source non libre (`archeo-`) est retiré ; un profil en long
 mesuré sur un tracé non libre n'est publié ni en mesures ni en points.
 
 | Option | Effet |

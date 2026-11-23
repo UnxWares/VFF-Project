@@ -42,7 +42,13 @@ final class OpenDataSuiteExporter
     public const PROJECT_FIELDS = ['project_id', 'name', 'kind', 'regions', 'line_slugs', 'suspended', 'checked_on', 'source', 'licence'];
 
     public const PROJECT_STAGE_FIELDS = ['project_id', 'stage', 'stage_date', 'date_precision', 'done', 'source', 'licence', 'source_url',
-        'source_published'];
+        'source_published', 'link_role'];
+
+    /**
+     * Fournisseurs du registre dont un lien d'étape de projet n'est qu'une citation (presse, ministères, collectivités
+     * cités ponctuellement) ; les domaines absents du registre sont traités de même. Décision de Baptiste du 23/11/2026.
+     */
+    public const PROJECT_CITED_PROVIDERS = ['tiers-cites'];
 
     public const TRACK_FIELDS = ['line_slug', 'line_code', 'section_rank', 'pk_start_m', 'pk_end_m', 'regime', 'tracks', 'source', 'licence',
         'dataset_modified_on'];
@@ -288,9 +294,12 @@ final class OpenDataSuiteExporter
     // ------------------------------------------------------------------------------------------------------------
 
     /**
-     * Projets ferroviaires et leurs étapes datées. Un projet (nom, type, régions) est un relevé de VFF ; une étape
-     * n'entre que si le fournisseur de sa source (domaine du lien) est autorisé : les liens vers des sites absents du
-     * registre des droits retirent l'étape. Ni résumé, ni note, ni porteur de projet.
+     * Projets ferroviaires et leurs étapes datées. Un projet (nom, type, régions) est un relevé de VFF. Une étape
+     * (nature, date, franchie ou prévue) est rédigée par VFF : si le domaine de son lien est un fournisseur libre du
+     * registre, elle lui est attribuée (`link_role` = source) ; si le lien vient de la presse, d'un ministère ou d'une
+     * collectivité (domaine absent du registre, ou fournisseur de PROJECT_CITED_PROVIDERS), elle sort comme relevé de
+     * VFF et le lien n'est qu'une citation (`link_role` = citation). Tout autre fournisseur (non commercial, accord,
+     * réutilisation interdite) retire l'étape. Ni résumé, ni note, ni libellé de la source, ni porteur de projet.
      *
      * @param  list<int>|null  $lineIds
      */
@@ -313,16 +322,20 @@ final class OpenDataSuiteExporter
             foreach (is_array($project['stages'] ?? null) ? $project['stages'] : [] as $stage) {
                 $url = is_array($stage['source'] ?? null) ? ($stage['source']['url'] ?? null) : null;
                 $provider = is_string($url) ? $this->rights->registry()->providerForUrl($url) : null;
+                $role = 'source';
                 if (($refusal = $this->rights->refusal($provider)) !== null) {
-                    $ledger->withhold('projects.stages', $refusal);
+                    if (! is_string($url) || ($provider !== null && ! in_array($provider, self::PROJECT_CITED_PROVIDERS, true))) {
+                        $ledger->withhold('projects.stages', $refusal);
 
-                    continue;
+                        continue;
+                    }
+                    [$provider, $role] = ['vff', 'citation'];
                 }
                 $ledger->cite($provider);
                 $date = (string) ($stage['date'] ?? '');
                 $stages->row([$project['id'] ?? null, $stage['kind'] ?? null, $date, strlen($date) === 4 ? 'year' : (strlen($date) === 7 ? 'month' : 'day'),
                     ! empty($stage['done']) ? 'true' : 'false', $provider, $this->licence($provider), $url,
-                    is_array($stage['source'] ?? null) ? ($stage['source']['published'] ?? null) : null]);
+                    is_array($stage['source'] ?? null) ? ($stage['source']['published'] ?? null) : null, $role]);
             }
         }
         $ledger->count('projets.csv', $projects->close());

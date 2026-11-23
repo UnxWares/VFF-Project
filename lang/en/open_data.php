@@ -34,7 +34,7 @@ return [
         'materials' => ['title' => 'Rolling stock', 'text' => 'Rolling stock series: builder, operators, years in service and characteristics.'],
         'signalling' => ['title' => 'Signalling and train protection', 'text' => 'Dated commissioning of block, cab signalling, KVB and centralised control, and the state in force in each decade.'],
         'preserved' => ['title' => 'Preserved stock', 'text' => 'Preserved units: number, place, state and listed-heritage protection, with the places of preservation.'],
-        'projects' => ['title' => 'Line projects', 'text' => 'Upcoming reopenings, new lines and electrifications, with the dated stages whose source is open.'],
+        'projects' => ['title' => 'Line projects', 'text' => 'Upcoming reopenings, new lines and electrifications, with their dated stages and a link to the source of each date.'],
         'infrastructure' => ['title' => 'SNCF infrastructure', 'text' => 'Tracks, ground-train radio, platforms and current block of SNCF Réseau, linked to lines and stations.'],
         'profiles' => ['title' => 'Long profiles', 'text' => 'Altitudes measured along the lines, maximum gradient and gradients published by SNCF Réseau and Wikipedia.'],
         'redirects' => ['title' => 'Address redirects', 'text' => 'Former addresses of merged stations and renamed lines, with the current address.'],

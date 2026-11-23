@@ -34,7 +34,7 @@ return [
         'materials' => ['title' => 'Fahrzeuge', 'text' => 'Fahrzeugbaureihen: Hersteller, Betreiber, Einsatzjahre und technische Daten.'],
         'signalling' => ['title' => 'Signalisierung und Zugsicherung', 'text' => 'Datierte Inbetriebnahmen von Blockbetrieb, Führerraumsignalisierung, KVB und zentraler Steuerung sowie der in jedem Jahrzehnt geltende Stand.'],
         'preserved' => ['title' => 'Erhaltene Fahrzeuge', 'text' => 'Erhaltene Fahrzeuge: Nummer, Ort, Zustand und Denkmalschutz, mit den Aufbewahrungsorten.'],
-        'projects' => ['title' => 'Streckenprojekte', 'text' => 'Künftige Reaktivierungen, Neubaustrecken und Elektrifizierungen, mit den datierten Etappen, deren Quelle frei ist.'],
+        'projects' => ['title' => 'Streckenprojekte', 'text' => 'Künftige Reaktivierungen, Neubaustrecken und Elektrifizierungen, mit ihren datierten Etappen und einem Link zur Quelle jedes Datums.'],
         'infrastructure' => ['title' => 'SNCF-Infrastruktur', 'text' => 'Gleise, Zugfunk, Bahnsteige und aktueller Blockbetrieb von SNCF Réseau, Strecken und Bahnhöfen zugeordnet.'],
         'profiles' => ['title' => 'Längsprofile', 'text' => 'Entlang der Strecken gemessene Höhen, maximale Neigung und von SNCF Réseau und Wikipedia veröffentlichte Neigungen.'],
         'redirects' => ['title' => 'Adressweiterleitungen', 'text' => 'Frühere Adressen zusammengelegter Bahnhöfe und umbenannter Strecken, mit der aktuellen Adresse.'],
