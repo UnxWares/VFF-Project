@@ -132,6 +132,20 @@ return [
             'note' => 'Article du 17 octobre : « ce matin de bonne heure », collision à Melun entre un train de marchandises et le rapide Paris-Nice ; au moins 14 morts, bilan provisoire.',
             'facts' => ['date_relative' => 'same_day', 'commune_insee' => '77288', 'deaths' => 14, 'deaths_provisional' => true],
         ],
+        'wp-en-liste-1990s' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1990-1999)',
+            'publisher' => 'Wikipedia en anglais',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section 1991, octobre',
+            'url' => 'https://en.wikipedia.org/wiki/List_of_rail_accidents_(1990%E2%80%931999)',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Entrée de la liste anglaise : « October 16 - France » ; un train de marchandises coupe la voie du train de nuit Nice-Paris à Melun, 16 morts. Le jour est d\'une journée avant celui des autres sources.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -204,6 +218,12 @@ return [
                 'en' => 'The speeds differ: 60 km/h for the night train and 30 km/h for the goods train according to Wikipedia, about 120 and 40 km/h according to a press retrospective. The number of injured is 55 according to Wikipedia and 57 according to the press.',
                 'de' => 'Die Geschwindigkeiten unterscheiden sich: 60 km/h für den Nachtzug und 30 km/h für den Güterzug nach Wikipedia, etwa 120 und 40 km/h nach einem Presserückblick. Die Zahl der Verletzten beträgt nach Wikipedia 55 und nach der Presse 57.',
                 'sources' => ['wp-fr', 'gulfnews'],
+            ],
+            [
+                'fr' => 'La liste anglaise des accidents ferroviaires de 1990 à 1999 date la catastrophe du 16 octobre 1991. L\'article de Wikipédia en français, le titre de la page, les questions écrites à l\'Assemblée nationale et deux journaux néerlandais du 18 octobre (« la veille au matin ») disent le 17 octobre à 6 h 29 : le 17 octobre est retenu, l\'écart de la liste anglaise étant une erreur d\'une journée.',
+                'en' => 'The English list of rail accidents from 1990 to 1999 dates the disaster to 16 October 1991. The French Wikipedia article, its page title, the written questions in the National Assembly and two Dutch newspapers of 18 October ("the day before in the morning") say 17 October at 6.29 am: 17 October is kept, the gap in the English list being an error of one day.',
+                'de' => 'Die englische Liste der Eisenbahnunfälle von 1990 bis 1999 datiert die Katastrophe auf den 16. Oktober 1991. Der französische Wikipedia-Artikel, sein Seitentitel, die schriftlichen Anfragen in der Nationalversammlung und zwei niederländische Zeitungen vom 18. Oktober ("am Vortag am Morgen") nennen den 17. Oktober um 6.29 Uhr: Der 17. Oktober wird beibehalten, die Abweichung der englischen Liste ist ein Fehler von einem Tag.',
+                'sources' => ['wp-en-liste-1990s', 'wp-fr', 'qe-50542'],
             ],
         ],
     ],

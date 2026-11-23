@@ -116,6 +116,12 @@ return [
                 'de' => 'Es handelt sich um einen von den Unfällen in Cadaujac und Arbanats, die am selben Abend auf der Strecke nach Bordeaux stattfanden, getrennten Unfall. Die Zahl der Verletzten weicht zwischen den Quellen ab (11, 20 oder 32).',
                 'sources' => ['wp-liste-1910', 'delpher-courant-1910-12-27-matin', 'delpher-nederlander-1910-12-27'],
             ],
+            [
+                'fr' => 'Le jour n\'est pas tranché entre le 23 décembre (fiche, vendredi, vers 23 h 45) et le 24 décembre (liste anglaise). Les dépêches néerlandaises sont datées de Paris le 24 décembre et rangent Montereau avec l\'accident d\'Arbanats, que la presse du 27 décembre place le vendredi (« vrijdag », le 23) ; aucun article lu ne donne le jour de Montereau lui-même ni ne dit « cette nuit ». Le 23 décembre est gardé, sans second document qui l\'établisse.',
+                'en' => 'The day is not settled between 23 December (record, Friday, at about 11.45 pm) and 24 December (English list). The Dutch dispatches are dated Paris, 24 December, and place Montereau alongside the Arbanats accident, which the press of 27 December places on the Friday ("vrijdag", the 23rd); no article read gives the day of Montereau itself or says "last night". 23 December is kept, with no second document to establish it.',
+                'de' => 'Der Tag ist nicht geklärt zwischen dem 23. Dezember (Eintrag, Freitag, gegen 23.45 Uhr) und dem 24. Dezember (englische Liste). Die niederländischen Depeschen sind auf Paris, den 24. Dezember, datiert und reihen Montereau neben den Unfall von Arbanats ein, den die Presse vom 27. Dezember auf den Freitag ("vrijdag", den 23.) legt; kein gelesener Artikel nennt den Tag von Montereau selbst oder sagt "heute nacht". Der 23. Dezember bleibt, ohne zweites Dokument, das ihn belegt.',
+                'sources' => ['wp-liste-1910', 'delpher-vaderland-1910-12-24', 'delpher-maasbode-1910-12-24', 'delpher-nederlander-1910-12-27'],
+            ],
         ],
     ],
     'corrections' => [

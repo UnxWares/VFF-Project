@@ -132,6 +132,20 @@ return [
             'note' => 'Article du 17 juin : « hier soir », près de Vierzy (Aisne), deux trains de voyageurs roulent sur les gravats d\'un tunnel en partie effondré ; au moins 50 morts, bilan provisoire.',
             'facts' => ['date_relative' => 'previous_day', 'commune_insee' => '02799', 'deaths' => 50, 'deaths_provisional' => true],
         ],
+        'wp-en-liste-1970s' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1970-1979)',
+            'publisher' => 'Wikipedia en anglais',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section 1972, juin',
+            'url' => 'https://en.wikipedia.org/wiki/List_of_rail_accidents_(1970%E2%80%931979)',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Entrée de la liste anglaise : « June 17 - France - Vierzy tunnel disaster » ; 108 morts. Le jour diffère de l\'article dédié de la même édition (June 16, 1972).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -248,6 +262,12 @@ return [
                 'en' => 'The tunnel inventory sheet dates the collapse to 17 June and describes railcars of 6 and 2 cars, whereas Wikipedia gives 16 June and sets of 3 and 2 cars. The other sources read give 16 June.',
                 'de' => 'Das Datenblatt des Tunnelinventars datiert den Einsturz auf den 17. Juni und beschreibt Triebwagen mit 6 und 2 Wagen, während Wikipedia den 16. Juni und Einheiten mit 3 und 2 Wagen angibt. Die übrigen gelesenen Quellen nennen den 16. Juni.',
                 'sources' => ['itff', 'wp-fr', 'larousse-1972'],
+            ],
+            [
+                'fr' => 'La liste anglaise des accidents ferroviaires de 1970 à 1979 date l\'effondrement du 17 juin, alors que l\'article anglais qui lui est consacré dit le 16 juin 1972. Deux journaux néerlandais du 19 et du 21 juin parlent du vendredi soir (le 16 juin) et le 19 juin des autorités qui renoncent aux recherches : le 16 juin est confirmé par plusieurs sources indépendantes, et l\'écart de la liste anglaise (comme celui de la fiche de l\'inventaire des tunnels) est une erreur d\'une journée.',
+                'en' => 'The English list of rail accidents from 1970 to 1979 dates the collapse to 17 June, whereas the English article dedicated to it says 16 June 1972. Two Dutch newspapers of 19 and 21 June speak of Friday evening (16 June): 16 June is confirmed by several independent sources, and the gap in the English list (like that of the tunnel inventory sheet) is an error of one day.',
+                'de' => 'Die englische Liste der Eisenbahnunfälle von 1970 bis 1979 datiert den Einsturz auf den 17. Juni, während der ihm gewidmete englische Artikel den 16. Juni 1972 nennt. Zwei niederländische Zeitungen vom 19. und 21. Juni sprechen vom Freitagabend (16. Juni): Der 16. Juni wird durch mehrere unabhängige Quellen bestätigt, und die Abweichung der englischen Liste (wie die des Tunnelinventarblatts) ist ein Fehler von einem Tag.',
+                'sources' => ['wp-en-liste-1970s', 'wp-en'],
             ],
         ],
     ],

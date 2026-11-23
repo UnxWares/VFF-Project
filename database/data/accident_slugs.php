@@ -97,5 +97,8 @@ return [
     ['key' => 'wikipedia:fr:1935-07-01-loudun-94ace121', 'from' => '1935-07-01-loudun', 'slug' => '1935-07-01-cernay', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1910-09-20-la-faloise-296562e4', 'from' => '1910-09-20-breteuil', 'slug' => '1910-09-20-la-faloise', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'bea-tt:2015-12-02-laroche-migennes-f', 'from' => '2015-12-02-migennes', 'slug' => '2015-12-01-migennes', 'reason' => 'date corrigée d\'après les documents du contexte'],
-    ['key' => 'bea-tt:2024-01-18-saint-florentin-vergigny-f', 'from' => '2024-01-18-saint-florentin', 'slug' => '2024-01-17-saint-florentin', 'reason' => 'date corrigée d\'après les documents du contexte'],
+    ['key' => 'bea-tt:2024-01-18-saint-florentin-vergigny-f', 'from' => '2024-01-18-saint-florentin', 'slug' => '2024-01-17-vergigny', 'reason' => 'date et commune corrigées d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1924-03-23-benestroff-bdacf5e5', 'from' => '1924-03-23-benestroff', 'slug' => '1924-03-24-benestroff', 'reason' => 'date corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1938-04-24-noyant-a7e102fc', 'from' => '1938-04-24-noyant', 'slug' => '1938-04-25-noyant', 'reason' => 'date corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1924-07-11-vitry-la-ville-57bcb09c', 'from' => '1924-07-11-vitry-la-ville', 'slug' => '1924-07-12-vitry-la-ville', 'reason' => 'date corrigée d\'après les documents du contexte'],
 ];
