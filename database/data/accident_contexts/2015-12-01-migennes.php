@@ -1,8 +1,8 @@
 <?php
 
-// Contexte sourcé de du déraillement d'un TER à la suite d'un talonnage d'aiguille à Laroche-Migennes (Yonne) en décembre 2015 (recherche du 23/11/2026).
+// Contexte sourcé de du déraillement d'un TER à la suite d'un talonnage d'aiguille à Laroche-Migennes (Yonne) le 1er décembre 2015 (recherche du 23/11/2026).
 return [
-    'slug' => '2015-12-02-migennes',
+    'slug' => '2015-12-01-migennes',
     'checked_on' => '2026-11-23',
     'sources' => [
         'bea-tt-2015-12-02-migennes' => [
@@ -18,6 +18,20 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Présentation de l\'enquête du BEA-TT : localisation, faits, ouverture ou conclusions de l\'enquête.',
+        ],
+        'bea-tt-2015-017' => [
+            'provider' => 'bea-tt',
+            'kind' => 'report',
+            'reliability' => 'official',
+            'title' => 'Rapport d\'enquête sur le déraillement d\'un TER par talonnage d\'aiguille survenu le 1er décembre 2015 en gare de Laroche-Migennes (89)',
+            'publisher' => 'BEA-TT',
+            'author' => null,
+            'published' => '2016-12',
+            'locator' => 'affaire BEATT-2015-017',
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/IMG/pdf/rapport_beatt_2015-017.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Rapport final : la page de couverture et l\'en-tête situent le déraillement le 1er décembre 2015.',
         ],
     ],
     'sections' => [
@@ -39,14 +53,22 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le BEA-TT date l\'accident du 1er décembre 2015 dans le titre de sa page et de son rapport, alors que la fiche est datée du 2 décembre ; la date de la fiche est à vérifier avant d\'être corrigée.',
-                'en' => 'The BEA-TT dates the accident to 1 December 2015 in the title of its page and report, whereas the record is dated 2 December; the record\'s date needs checking before it is corrected.',
-                'de' => 'Die BEA-TT datiert den Unfall im Titel ihrer Seite und ihres Berichts auf den 1. Dezember 2015, während der Datensatz den 2. Dezember nennt; das Datum des Datensatzes ist zu prüfen, bevor es korrigiert wird.',
-                'sources' => ['bea-tt-2015-12-02-migennes'],
+                'fr' => 'Le tableau du bilan des enquêtes du BEA-TT, dont la fiche était tirée, date l\'accident du 2 décembre 2015 ; la page de l\'enquête, son adresse et le rapport final disent le 1er décembre 2015, jour retenu.',
+                'en' => 'The table of investigations of the BEA-TT, from which the record was taken, dates the accident to 2 December 2015; the investigation page, its address and the final report say 1 December 2015, the day kept.',
+                'de' => 'Die Übersichtstabelle der Untersuchungen der BEA-TT, aus der der Eintrag stammte, datiert den Unfall auf den 2. Dezember 2015; die Seite der Untersuchung, ihre Adresse und der Abschlussbericht nennen den 1. Dezember 2015, den beibehaltenen Tag.',
+                'sources' => ['bea-tt-2015-12-02-migennes', 'bea-tt-2015-017'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '2015-12-01',
+            'sources' => ['bea-tt-2015-017', 'bea-tt-2015-12-02-migennes'],
+            'fr' => 'Le rapport et la page du BEA-TT donnent le 1er décembre 2015 ; la fiche portait le 2.',
+            'en' => 'The BEA-TT report and page give 1 December 2015; the record had the 2nd.',
+            'de' => 'Der BEA-TT-Bericht und die Seite nennen den 1. Dezember 2015; der Eintrag nannte den 2.',
+        ],
         [
             'field' => 'injuries',
             'value' => 0,

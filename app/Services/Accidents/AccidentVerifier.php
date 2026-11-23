@@ -33,7 +33,8 @@ use Illuminate\Support\Facades\DB;
  *   fiche (au jour, ou « hier » dans la presse du lendemain), sa commune et son bilan (le même nombre de morts, ou un
  *   bilan provisoire, marqué comme tel dans le fichier de contexte, inférieur ou égal) ; un article qui donne un autre
  *   jour ou une autre commune contredit la fiche, un autre bilan la laisse sans confirmation (`verification.deaths`).
- * et qu'aucune note de doute sur la date, le lieu ou le bilan ne reste (BLOCKING). La précision du lieu
+ * et qu'aucune note de doute sur la date, le lieu ou le bilan ne reste (BLOCKING ; une source primaire retire ou lève les notes
+ * DROPPED_BY_PRIMARY et RESOLVED_BY_PRIMARY, qu'elle tranche). La précision du lieu
  * reste celle que la source donne (commune, gare, point) ; le rattachement à une ligne porte sa propre
  * confiance. Une fiche déjà « ok » n'est jamais rendue « à vérifier » pour un défaut de confirmation : seulement
  * quand deux sources se contredisent (note `verification_conflict` ou `alias_toll_mismatch`).
@@ -59,6 +60,17 @@ final class AccidentVerifier
         'level_crossing_not_found', 'outside_france', 'no_location', 'hinted_line_far', 'place_corrected',
         'possible_duplicate', 'alias_toll_mismatch', 'verification_conflict',
     ];
+
+    /**
+     * Notes d'import sur la date ou la commune que la source primaire tranche. Quand l'enquête du BEA-TT donne la date ET la
+     * commune de la fiche (`primary_source`), le doute d'import sur le lieu (commune homonyme, lieu introuvable) n'a plus
+     * d'objet : la note est retirée (DROPPED_BY_PRIMARY). La correction du lieu du bilan et le jour que Wikidata donne autrement
+     * restent écrits sur la fiche mais ne la bloquent plus (RESOLVED_BY_PRIMARY). Les autres notes (bilan, passage à niveau,
+     * doublon, contradiction) gardent leur effet.
+     */
+    public const DROPPED_BY_PRIMARY = ['commune_ambiguous', 'commune_not_found', 'no_location'];
+
+    public const RESOLVED_BY_PRIMARY = ['place_corrected', 'date_mismatch'];
 
     /** Notes que la vérification écrit elle-même et recalcule à chaque passage. */
     private const OWN_NOTES = ['possible_duplicate', 'alias_toll_mismatch', 'verification_conflict'];
@@ -247,7 +259,8 @@ final class AccidentVerifier
         }
 
         $current = $accident->review_status;
-        $notes = array_values(array_filter($accident->review_notes ?? [], fn (array $n): bool => ! in_array($n['code'], self::OWN_NOTES, true)));
+        $notes = array_values(array_filter($accident->review_notes ?? [], fn (array $n): bool => ! in_array($n['code'], self::OWN_NOTES, true)
+            && ! ($rule === self::RULE_PRIMARY && in_array($n['code'], self::DROPPED_BY_PRIMARY, true))));
         $own = [];
         $conflict = $date['disagree'] !== [] || $place['disagree'] !== [];
         if ($conflict && $rule !== self::RULE_PRIMARY) {
@@ -269,7 +282,8 @@ final class AccidentVerifier
         }
         $notes = [...$notes, ...$own];
 
-        $blocked = array_any($notes, fn (array $n): bool => in_array($n['code'], self::BLOCKING, true));
+        $blocked = array_any($notes, fn (array $n): bool => in_array($n['code'], self::BLOCKING, true)
+            && ! ($rule === self::RULE_PRIMARY && in_array($n['code'], self::RESOLVED_BY_PRIMARY, true)));
         $status = match (true) {
             $rule !== null && ! $blocked => AccidentReviewStatus::Ok,
             $current === AccidentReviewStatus::Ok && ($own !== [] || ($demote && $rule === null)) => AccidentReviewStatus::ToReview,

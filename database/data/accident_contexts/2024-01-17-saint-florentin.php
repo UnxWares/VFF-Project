@@ -2,7 +2,7 @@
 
 // Contexte sourcé de du déraillement d'un train de travaux à Saint-Florentin-Vergigny (Yonne) du 17 janvier 2024 (recherche du 23/11/2026).
 return [
-    'slug' => '2024-01-18-saint-florentin',
+    'slug' => '2024-01-17-saint-florentin',
     'checked_on' => '2026-11-23',
     'sources' => [
         'bea-tt-2024-01-18-saint-florentin' => [
@@ -18,6 +18,20 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-23',
             'note' => 'Présentation de l\'enquête du BEA-TT : localisation, faits, ouverture ou conclusions de l\'enquête.',
+        ],
+        'bea-tt-2024-01' => [
+            'provider' => 'bea-tt',
+            'kind' => 'report',
+            'reliability' => 'official',
+            'title' => 'Rapport d\'enquête sur le déraillement d\'un train de travaux survenu le 17 janvier 2024 sur la base arrière de Saint-Florentin-Vergigny (89)',
+            'publisher' => 'BEA-TT',
+            'author' => null,
+            'published' => '2024-12',
+            'locator' => 'affaire BEATT-2024-01',
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/IMG/pdf/beatt_2024_01_stflorentin-rapport.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-23',
+            'note' => 'Rapport final : le 17 janvier 2024 à 10 h 11 est écrit dans l\'en-tête et dans le récit des faits.',
         ],
     ],
     'sections' => [
@@ -39,6 +53,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '2024-01-17',
+            'sources' => ['bea-tt-2024-01', 'bea-tt-2024-01-18-saint-florentin'],
+            'fr' => 'Le rapport et la page du BEA-TT donnent le 17 janvier 2024 ; la fiche, tirée du tableau du bilan des enquêtes, portait le 18.',
+            'en' => 'The BEA-TT report and page give 17 January 2024; the record, taken from the table of investigations, had the 18th.',
+            'de' => 'Der BEA-TT-Bericht und die Seite nennen den 17. Januar 2024; der aus der Übersichtstabelle der Untersuchungen stammende Eintrag nannte den 18.',
+        ],
         [
             'field' => 'injuries',
             'value' => 0,

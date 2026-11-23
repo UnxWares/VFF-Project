@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\DB;
  *     code INSEE de Wikidata ;
  *   - listes de Wikipédia : nom de commune cité et département, retrouvés dans la table des communes
  *     (une seule commune de ce nom, jamais un choix au hasard) ;
- *   - BEA-TT : commune et département de l'intitulé de l'enquête, retrouvés de la même façon.
+ *   - BEA-TT : commune et département de l'intitulé de l'enquête, retrouvés de la même façon ; quand la page de
+ *     l'enquête a été relue (BeaTtReportTable), la commune et le jour de cette page, avec le rapport cité.
  *
  * Famille d'une source (AccidentClaim), pour la date et pour le lieu : le BEA-TT est officiel ; les
  * articles et listes de Wikipédia forment une seule famille ; Wikidata en forme une autre, sauf pour une
@@ -47,13 +48,17 @@ final class AccidentClaimReader
 
     private readonly string $cacheDir;
 
+    private readonly BeaTtReportTable $reports;
+
     /** @param ?string $cacheDir cache des sources (par défaut storage/app/data/accidents) */
     public function __construct(
         private readonly AccidentLocator $locator,
         private readonly BeaTtTitleReader $titles,
         ?string $cacheDir = null,
+        ?BeaTtReportTable $reports = null,
     ) {
         $this->cacheDir = $cacheDir ?? AccidentSourceClient::defaultCacheDir();
+        $this->reports = $reports ?? new BeaTtReportTable;
     }
 
     /** @return list<AccidentClaim> */
@@ -65,6 +70,12 @@ final class AccidentClaimReader
             $precision = isset($facts['date_precision']) ? AccidentDatePrecision::tryFrom((string) $facts['date_precision']) : AccidentDatePrecision::Day;
             $date = isset($facts['date']) && is_string($facts['date']) ? $facts['date'] : null;
             [$commune, $lat, $lng] = $this->place($source, $facts);
+            $report = $source->provider === 'bea-tt' ? $this->reports->find($source->url) : null;
+            if ($report !== null) {
+                // Page de l'enquête relue : son jour et sa commune priment sur ceux du tableau du bilan.
+                $date = $report['date'] ?? $date;
+                $commune = isset($report['commune_insee']) ? $this->communeByInsee($report['commune_insee']) ?? $commune : $commune;
+            }
             $claims[] = new AccidentClaim(
                 sourceId: $source->id,
                 provider: $source->provider,
@@ -80,6 +91,7 @@ final class AccidentClaimReader
                 communeName: $commune?->nom,
                 lat: $lat,
                 lng: $lng,
+                report: $report['report'] ?? null,
             );
         }
         foreach ($accident->references as $reference) {
@@ -154,6 +166,11 @@ final class AccidentClaimReader
         }
 
         return [null, null, null];
+    }
+
+    private function communeByInsee(string $insee): ?object
+    {
+        return DB::selectOne('SELECT code_insee, nom FROM communes WHERE code_insee = ? ORDER BY (type = \'commune-actuelle\') DESC LIMIT 1', [$insee]) ?: null;
     }
 
     /** La seule commune de ce nom (dans le département quand il est connu), sinon rien. */
