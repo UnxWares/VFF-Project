@@ -36,7 +36,7 @@ class DryRunCommandsTest extends TestCase
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-candidates', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-line-speeds', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-open-data-media', 'vff:import-panoramax-media', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-attendance', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
-        'vff:import-station-closures', 'vff:import-station-heritage', 'vff:import-station-names', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-structures', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
+        'vff:import-station-accessibility', 'vff:import-station-closures', 'vff:import-station-heritage', 'vff:import-station-names', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-structures', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:neutralize-line-slugs', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:probe-aerial-coverage', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
         'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:select-home-images', 'vff:snap-stations', 'vff:verify-accidents',
@@ -69,6 +69,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-open-data-media' => ['--offline' => true],
         'vff:import-sncf-archives' => ['--file' => 'tests/Fixtures/Sncf/archives-sncf-sardo-extrait.json'],
         'vff:import-sncf-attendance' => ['--cache-dir' => 'tests/Fixtures/SncfAttendance'],
+        'vff:import-station-accessibility' => ['--cache-dir' => 'tests/Fixtures/SncfAccessibility'],
         'vff:import-station-heritage' => ['--cache-dir' => 'tests/Fixtures/Heritage'],
         'vff:import-station-names' => ['--from-cache' => true],
         'vff:import-sncf-grades' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
@@ -83,7 +84,7 @@ class DryRunCommandsTest extends TestCase
     private const OTHER_TABLES = [
         'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'line_signalling_history_map', 'accidents', 'accident_lines', 'accident_sources', 'accident_references', 'accident_context_entries', 'accident_images',
         'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos', 'line_archive_documents', 'line_archive_records',
-        'station_audits', 'station_date_candidates', 'segment_audits', 'station_platforms', 'line_track_portions', 'line_radio_portions', 'station_attendances', 'station_heritage',
+        'station_audits', 'station_date_candidates', 'segment_audits', 'station_platforms', 'line_track_portions', 'line_radio_portions', 'station_attendances', 'station_accessibility', 'station_heritage',
     ];
 
     private Era $past;

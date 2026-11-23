@@ -324,6 +324,7 @@ return [
             'line_stops' => 'Stations of a line in kilometre point order in a given period, with their state and the link to the GTFS archive of the era.',
             'station_aerial' => 'Historical IGN aerial views around a station (1950 to 1995), with credit and Licence Ouverte 2.0.',
             'station_attendance' => 'Yearly footfall of a station since 2015 (passengers and non-passengers), SNCF Gares & Connexions, ODbL; 2025 is not comparable with 2015-2024 (another method).',
+            'station_accessibility' => 'Accessibility and services of a station: step-free access, lifts and their published status at the last reading, hearing loop, tactile strips, toilets, assistance, ticket office, bike parking; SNCF Gares & Connexions, ODbL.',
             'station_timetable' => 'Service at a station on a typical Tuesday: trains by type and direction, first and last times, direct destinations; scheduled SNCF and Transilien timetables, ODbL.',
             'line_timetable' => 'Passenger trains per day on a line on a typical Tuesday, each counted once; scheduled SNCF and Transilien timetables, ODbL.',
             'station_heritage' => 'Heritage of a station\'s passenger building and structures: listed (classé) or registered (inscrit) historic monument with the date of the order, Architecture contemporaine remarquable label, architect, construction, Mérimée record (Licence Ouverte 2.0) and Wikidata (CC0).',

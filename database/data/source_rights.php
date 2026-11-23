@@ -100,7 +100,8 @@ return [
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-quais (modifié le 2020-05-26), lu le 2026-11-22 (vff:import-sncf-platforms, table station_platforms, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour regime-dexploitation-des-lignes (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-track-regime, tables line_track_portions et lines.nb_voies_default, trace line_sources « sncf-regime ») ; '
                 .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour lignes-equipees-de-liaison-radio-sol-train (modifié le 2022-03-24), lu le 2026-11-22 (vff:import-sncf-radio, table line_radio_portions) ; les deux commandes revérifient la licence et l\'éditeur à chaque téléchargement ; '
-                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (modifié le 2026-11-13) et frequentation-gares-archive (modifié le 2025-07-03), relus le 2026-11-23 (vff:import-sncf-attendance, table station_attendances, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; SNCF y écrit que 2025 vient d\'autres sources et d\'une autre méthode de calcul que 2015-2024',
+                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (modifié le 2026-11-13) et frequentation-gares-archive (modifié le 2025-07-03), relus le 2026-11-23 (vff:import-sncf-attendance, table station_attendances, qui revérifie la licence et l\'éditeur à chaque téléchargement) ; SNCF y écrit que 2025 vient d\'autres sources et d\'une autre méthode de calcul que 2015-2024 ; '
+                .'"license": "Open Data Commons Open Database License (ODbL)" ou "Open Database License (ODbL)", "publisher": "Gares & Connexions" pour accessibilite_gares (NeTEx, modifié le 2026-05-21), equipements-accessibilite-en-gare, assistance-psh-pmr, etat-fonctionnement-elevatique-gare, gares-de-voyageurs et stationnement-securise-velo-en-gare-au-30-06-24, et "publisher": "SNCF Voyageurs" pour points-vente, lus le 2026-11-23 (vff:import-station-accessibility, table station_accessibility, qui revérifie la licence et l\'éditeur à chaque téléchargement)',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -953,6 +954,8 @@ return [
         'line_radio_portions' => ['sncf' => 'sncf'],
         // Fréquentation annuelle des gares (vff:import-sncf-attendance) : SNCF Gares & Connexions, ODbL, colonne source = sncf.
         'station_attendances' => ['sncf' => 'sncf'],
+        // Accessibilité et services des gares (vff:import-station-accessibility) : SNCF Gares & Connexions et SNCF Voyageurs, ODbL, colonne source = sncf.
+        'station_accessibility' => ['sncf' => 'sncf'],
         // Desserte d'un jour type des gares et des lignes (vff:import-station-timetables) : horaires GTFS SNCF et Transilien (ODbL), colonne source = sncf.
         'station_timetables' => ['sncf' => 'sncf'],
         'line_timetables' => ['sncf' => 'sncf'],

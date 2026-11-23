@@ -25,6 +25,16 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Accessibilité et services des gares (SNCF Gares & Connexions et SNCF Voyageurs, ODbL) : REST
+  `GET /api/v1/stations/{station}/accessibility` et champ `accessibility` de la fiche `GET /api/v1/stations/{station}` (avec
+  `links.accessibility`), GraphQL `Station.accessibility` (types `StationAccessibility`, `StationAccessibilityAccess`,
+  `StationAccessibilityQuays`, `StationAccessibilityElevators`, `StationAccessibilityElevatorStatus`, `StationAccessibilityElevator`,
+  `StationAccessibilityAssistance`, `StationAccessibilitySales`, `StationAccessibilityBikeParking`, `StationAccessibilityDataset`),
+  MCP outil `station_accessibility` : accès des personnes à mobilité réduite (`mobility` : `partial` ou `none`, non déclarée
+  accessible), ascenseurs recensés et leur état publié daté (`state_at`, non contractuel), équipements (boucle magnétique, bandes
+  d'éveil, toilettes…), assistance en gare avec horaires, guichet et automates, stationnement vélo sécurisé, jeux lus avec leur date et
+  leur licence. Filtre `accessible` (gares accessibles au moins en partie) de `GET /api/v1/stations` et de l'outil MCP `list_stations`.
+  `null` quand les jeux n'ont rien pour la gare ; une absence d'équipement ne prouve rien. Ajout seul.
 - REST : `GET /lines/{line}/schematic?era=AAAA` (schéma de ligne par PK : gares et haltes avec leurs correspondances, bifurcations en pleine voie, passages à niveau, ouvrages d'art, et quatre bandes `tracks`, `electrification`, `signalling`, `speed`, chacune avec `available` ; `eras[]` donne les ères proposées ; aux ères passées, les jeux de SNCF Réseau ne sont pas proposés). 404 pour une ligne ou une ère inconnue, 422 pour une ère illisible. En cache. Ajout seul.
 - Desserte d'un jour ouvrable type (un mardi d'une semaine sans jour férié, d'après les horaires ouverts SNCF, Transilien et ZOU !,
   ODbL) : REST `GET /api/v1/stations/{station}/timetable` et champ `timetable` de la fiche `GET /api/v1/stations/{station}` (avec

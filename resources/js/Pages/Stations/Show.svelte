@@ -11,6 +11,7 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
+    import StationAccessibility from '$components/Stations/StationAccessibility.svelte';
     import StationAttendance from '$components/Stations/StationAttendance.svelte';
     import StationTimetable from '$components/Stations/StationTimetable.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
@@ -52,6 +53,7 @@
         'history',
         'lines',
         'timetable',
+        'accessibility',
         'attendance',
         'location',
         'gallery',
@@ -343,6 +345,8 @@
         </SheetSection>
 
         <StationTimetable slug={station.slug} name={station.name} />
+
+        <StationAccessibility slug={station.slug} name={station.name} />
 
         <StationAttendance {attendance} name={station.name} />
 

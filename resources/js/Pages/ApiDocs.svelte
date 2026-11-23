@@ -238,6 +238,7 @@
         'line_stops',
         'station_aerial',
         'station_attendance',
+        'station_accessibility',
         'station_timetable',
         'line_timetable',
         'station_heritage',

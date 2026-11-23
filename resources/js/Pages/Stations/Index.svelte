@@ -36,6 +36,8 @@
     let flagged = $state(!!filters.flagged);
     // svelte-ignore state_referenced_locally
     let heritage = $state(!!filters.heritage);
+    // svelte-ignore state_referenced_locally
+    let accessible = $state(!!filters.accessible);
     // Tri choisi par le visiteur, '' sinon (pertinence avec une recherche, nom sans : $lib/directorySort.js).
     // svelte-ignore state_referenced_locally
     let sort = $state(sort_chosen ? (filters.sort ?? '') : '');
@@ -51,7 +53,9 @@
     ];
     const shownSort = $derived(effectiveSort(sort, q));
     const sorts = $derived(sortOptions(SORTS, q));
-    const hasFilters = $derived(!!(q || status || era || dept || flagged || heritage));
+    const hasFilters = $derived(
+        !!(q || status || era || dept || flagged || heritage || accessible),
+    );
     const fmt = (n) => (n ?? 0).toLocaleString($i18n.language ?? 'fr');
     const showInferredNote = $derived(
         stations.data.some(
@@ -72,6 +76,7 @@
             dept,
             flagged: flagged ? 1 : '',
             heritage: heritage ? 1 : '',
+            accessible: accessible ? 1 : '',
             sort: sortParam(sort, q),
             ...extra,
         };
@@ -102,6 +107,7 @@
         q = status = era = dept = '';
         flagged = false;
         heritage = false;
+        accessible = false;
         sort = '';
         router.get('/stations', {}, { preserveState: true, replace: true });
     }
@@ -253,6 +259,14 @@
                         onchange={() => applyFilters(true)}
                     />
                     {$i18n.t('stations.heritage_only')}
+                </label>
+                <label class="vff-check wide">
+                    <input
+                        type="checkbox"
+                        bind:checked={accessible}
+                        onchange={() => applyFilters(true)}
+                    />
+                    {$i18n.t('stations.accessible_only')}
                 </label>
                 <label class="vff-check wide">
                     <input

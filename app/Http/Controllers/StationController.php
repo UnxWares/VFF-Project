@@ -36,6 +36,7 @@ class StationController extends Controller
         $dept = $this->filterString($request, 'dept', trim: true);
         $flagged = $request->boolean('flagged');
         $heritage = $request->boolean('heritage');
+        $accessible = $request->boolean('accessible');
         $sort = $this->filterString($request, 'sort');
         // Sans tri choisi : pertinence avec une recherche, sinon le nom.
         $sort = in_array($sort, ['relevance', 'name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : '';
@@ -43,7 +44,7 @@ class StationController extends Controller
         $eras = Era::orderBy('year')->get(['id', 'year', 'is_current']);
         $era = $request->integer('era') ? $eras->firstWhere('year', $request->integer('era')) : null;
 
-        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged, 'heritage' => $heritage];
+        $filters = ['q' => $q, 'department' => $dept, 'flagged' => $flagged, 'heritage' => $heritage, 'accessible' => $accessible];
         $approximate = $directory->approximate($filters, $era);
         $base = $directory->base($filters, $era, $approximate);
         $statusExpr = $directory->statusExpression($era);
@@ -75,7 +76,7 @@ class StationController extends Controller
                 'last_page' => $list->lastPage(),
                 'total' => $list->total(),
             ],
-            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'heritage' => $heritage, 'sort' => $order],
+            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'heritage' => $heritage, 'accessible' => $accessible, 'sort' => $order],
             // Tri choisi par le visiteur (sinon : pertinence avec une recherche, nom sans recherche).
             'sort_chosen' => $sort !== '',
             // Rien ne correspond mot pour mot à la recherche : la liste montre les noms approchés.

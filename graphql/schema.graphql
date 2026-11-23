@@ -1478,6 +1478,15 @@ type Station {
     timetable: StationTimetable @field(resolver: "App\\GraphQL\\Resolvers\\StationTimetableField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
+    Accessibilité et services de la gare d'aujourd'hui, d'après SNCF Gares & Connexions et SNCF Voyageurs (ODbL,
+    `vff:import-station-accessibility`) : accès des personnes à mobilité réduite, ascenseurs et leur état publié,
+    équipements (boucle magnétique, bandes d'éveil, toilettes), assistance en gare, guichet, stationnement vélo. Même bloc
+    que `accessibility` de `GET /api/v1/stations/{station}` et `GET /api/v1/stations/{station}/accessibility`. Nul quand les
+    jeux n'ont rien pour la gare. Une absence n'est pas une négation. Mention à reproduire : `attribution`.
+    """
+    accessibility: StationAccessibility @field(resolver: "App\\GraphQL\\Resolvers\\StationAccessibilityField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
     Patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou inscrits, label
     Architecture contemporaine remarquable, Inventaire général), d'après la base Mérimée du ministère de la Culture
     (Licence Ouverte 2.0) et Wikidata (CC0), `vff:import-station-heritage`. Même bloc que `heritage` de
@@ -1485,6 +1494,189 @@ type Station {
     patrimoine pour la gare : ce n'est pas « sans intérêt ». Mention à reproduire : `attribution`.
     """
     heritage: StationHeritage @field(resolver: "App\\GraphQL\\Resolvers\\StationHeritageField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+}
+
+"Accessibilité et services d'une gare d'aujourd'hui (SNCF Gares & Connexions, ODbL)."
+type StationAccessibility {
+    "Code UIC de la gare dans les jeux de SNCF."
+    uic_code: String!
+
+    "Accès des personnes à mobilité réduite."
+    access: StationAccessibilityAccess!
+
+    "Ascenseurs, escaliers mécaniques et leur état publié."
+    elevators: StationAccessibilityElevators!
+
+    "Équipements recensés : `step_free_entrance`, `boarding_assistance`, `induction_loop`, `tactile_strips`, `audio_information`, `information_screens`, `wheelchair_loan`, `staff`, `toilets`, `toilets_accessible`. Une absence n'est pas une négation."
+    amenities: [String!]!
+
+    "Assistance aux personnes en situation de handicap ou à mobilité réduite (service dit « Accès Plus »)."
+    assistance: StationAccessibilityAssistance
+
+    "Points de vente (guichet, automates). Transilien n'y est pas."
+    sales: StationAccessibilitySales
+
+    "Stationnement vélo sécurisé (fin 2024)."
+    bike_parking: StationAccessibilityBikeParking
+
+    "Jeux lus : titre, éditeur, licence, date de modification, page."
+    datasets: [StationAccessibilityDataset!]!
+
+    "Mention de la source à reproduire avec les données (ODbL 1.0)."
+    attribution: String!
+
+    "Ce que les données disent et ne disent pas (équipements incomplets, état des ascenseurs daté, Transilien absent)."
+    method: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
+}
+
+"Accès des personnes à mobilité réduite à la gare (jeu NeTEx de SNCF Gares & Connexions)."
+type StationAccessibilityAccess {
+    "`partial` : accessible en partie aux personnes à mobilité réduite ; `none` : non déclarée accessible par SNCF ; nul : le jeu « Accessibilité des gares » (NeTEx) n'a pas la gare."
+    mobility: String
+
+    "Vrai quand `mobility` vaut `partial`."
+    accessible: Boolean!
+
+    "Cheminement sans marche."
+    step_free: Boolean
+
+    "Guidage tactile."
+    tactile_guidance: Boolean
+
+    "Quais et quais sans marche."
+    quays: StationAccessibilityQuays
+
+    "Commentaire de SNCF sur l'accessibilité de la gare."
+    comment: String
+}
+
+"Quais de la gare et ceux qui se rejoignent sans marche."
+type StationAccessibilityQuays {
+    "Quais de la gare."
+    total: Int!
+
+    "Quais sans marche."
+    step_free: Int!
+}
+
+"Ascenseurs, escaliers mécaniques et trottoirs roulants de la gare."
+type StationAccessibilityElevators {
+    "Ascenseurs recensés."
+    count: Int
+
+    "Escaliers mécaniques recensés."
+    escalators: Int
+
+    "Trottoirs roulants recensés."
+    travelators: Int
+
+    "État de fonctionnement publié à la dernière lecture (non contractuel d'après SNCF). Nul quand le jeu n'a pas la gare."
+    status: StationAccessibilityElevatorStatus
+}
+
+"État de fonctionnement publié par SNCF à la dernière lecture, non contractuel."
+type StationAccessibilityElevatorStatus {
+    "Date et heure de la lecture (ISO 8601) : l'état n'est pas celui du moment."
+    state_at: String
+
+    "Ascenseurs en état `ok`."
+    ok: Int!
+
+    "Ascenseurs en panne."
+    ko: Int!
+
+    "Ascenseurs dont l'état est inconnu."
+    unknown: Int!
+
+    "Chaque équipement d'élévatique avec son état : ascenseurs, escaliers mécaniques, trottoirs roulants."
+    items: [StationAccessibilityElevator!]!
+}
+
+"Un équipement d'élévatique et son état publié."
+type StationAccessibilityElevator {
+    "Nom de l'équipement tel que SNCF l'écrit."
+    label: String!
+
+    "`lift`, `escalator` ou `travelator`."
+    kind: String!
+
+    "Emplacement dans la gare, tel que SNCF l'écrit."
+    location: String
+
+    "`ok`, `ko` ou `unknown`."
+    state: String!
+}
+
+"Service d'assistance en gare aux personnes en situation de handicap ou à mobilité réduite."
+type StationAccessibilityAssistance {
+    "`reserved`, `walk_in` ou `reserved_or_walk_in`."
+    mode: String
+
+    "Service gratuit."
+    free: Boolean
+
+    "Lieu de rendez-vous dans la gare."
+    meeting_point: String
+
+    "Service disponible du premier au dernier train."
+    first_to_last_train: Boolean!
+
+    "Horaires par jour (`monday` à `sunday`), nuls les jours sans service."
+    hours: JSON!
+
+    "Date de création du service (`AAAA-MM-JJ`)."
+    since: String
+}
+
+"Points de vente de billets de la gare (Transilien exclu)."
+type StationAccessibilitySales {
+    "Guichet de vente."
+    counter: Boolean!
+
+    "Automates : `ter`, `tgv_intercites`."
+    machines: [String!]!
+
+    "Libre-service assisté."
+    assisted: Boolean!
+}
+
+"Stationnement vélo sécurisé de la gare."
+type StationAccessibilityBikeParking {
+    "Places sécurisées installées."
+    places: Int!
+
+    "Date du comptage (`AAAA-MM-JJ`)."
+    as_of: String!
+
+    "Gare concernée par le décret de la loi d'orientation des mobilités."
+    lom: Boolean!
+
+    "Objectif du décret, nul quand la gare n'en a pas."
+    lom_target: Int
+}
+
+"Un jeu de SNCF Open Data lu pour la gare."
+type StationAccessibilityDataset {
+    "Identifiant du jeu sur data.sncf.com."
+    dataset: String!
+
+    "Titre du jeu."
+    title: String!
+
+    "Éditeur du jeu."
+    publisher: String!
+
+    "Licence du jeu (`ODbL`)."
+    license: String!
+
+    "Date de dernière modification du jeu (`AAAA-MM-JJ`)."
+    modified: String
+
+    "Page du jeu sur le portail de SNCF."
+    page: String!
 }
 
 "Fréquentation annuelle d'une gare (SNCF Gares & Connexions, ODbL)."

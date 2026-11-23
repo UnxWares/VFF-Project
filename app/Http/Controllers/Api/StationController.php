@@ -75,6 +75,7 @@ class StationController extends Controller
     #[QueryParameter('era', "Année d'une ère (décennie de 1830 à 2030) : statut à cette ère, gares absentes de l'ère exclues. Une année sans ère donne HTTP 422.", type: 'int', example: 1930)]
     #[QueryParameter('flagged', 'Seulement les gares dont la position est à vérifier : `true` ou `false`.', type: 'boolean', example: false)]
     #[QueryParameter('heritage', 'Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable : `true` ou `false`.', type: 'boolean', example: false)]
+    #[QueryParameter('accessible', 'Seulement les gares accessibles au moins en partie aux personnes à mobilité réduite d\'après SNCF Gares & Connexions (jeu NeTEx « Accessibilité des gares », ODbL) : `true` ou `false`. Détail d\'une gare : `GET /api/v1/stations/{station}/accessibility`.', type: 'boolean', example: false)]
     #[QueryParameter('sort', 'Clé de tri : `name` (par défaut), `city`, `opened` ou `closed`.', type: 'string', default: 'name', example: 'opened')]
     #[QueryParameter('order', 'Sens du tri : `asc` (par défaut) ou `desc`.', type: 'string', default: 'asc', example: 'asc')]
     #[QueryParameter('facets', 'Ajouter le nombre de gares par statut (`meta.facets`) et par département (`meta.department_facets`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: true)]
@@ -217,6 +218,11 @@ class StationController extends Controller
      * - `timetable` : desserte d'un jour ouvrable type (un mardi, semaine sans jour férié) d'après les horaires ouverts SNCF
      *   et Transilien : `trains`, `by_type`, `first`, `last`, `directions[]`, `destinations[]`, `feeds[]`, `attribution` ; même
      *   bloc que `GET /api/v1/stations/{station}/timetable`. `null` quand aucun train de voyageurs ne s'y arrête ce jour-là ;
+     * - `accessibility` : accessibilité et services d'aujourd'hui d'après SNCF Gares & Connexions (ODbL) : `access` (accessible en
+     *   partie ou non, cheminement sans marche, quais), `elevators` (ascenseurs recensés et leur état publié à la dernière lecture),
+     *   `amenities` (boucle magnétique, bandes d'éveil, toilettes…), `assistance` (assistance en gare, horaires), `sales` (guichet,
+     *   automates), `bike_parking`, `datasets[]`, `attribution` ; même bloc que `GET /api/v1/stations/{station}/accessibility`.
+     *   `null` quand les jeux n'ont rien pour la gare ;
      * - `heritage` : patrimoine du bâtiment voyageurs et des ouvrages de la gare (monuments historiques classés ou
      *   inscrits, label Architecture contemporaine remarquable, Inventaire général) : protection et date de l'arrêté,
      *   architectes, construction, style, référence Mérimée avec son lien, image libre ; même bloc que

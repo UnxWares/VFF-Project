@@ -325,6 +325,7 @@ return [
             'line_stops' => 'Gares d’une ligne dans l’ordre des points kilométriques à une époque, avec leur état et le lien de l’archive GTFS de l’ère.',
             'station_aerial' => 'Vues aériennes historiques de l’IGN autour d’une gare (1950 à 1995), avec crédit et Licence Ouverte 2.0.',
             'station_attendance' => 'Fréquentation annuelle d’une gare depuis 2015 (voyageurs et non-voyageurs), SNCF Gares & Connexions, ODbL ; 2025 ne se compare pas à 2015-2024 (autre méthode).',
+            'station_accessibility' => 'Accessibilité et services d’une gare : accès des personnes à mobilité réduite, ascenseurs et leur état à la dernière lecture, boucle magnétique, bandes d’éveil, toilettes, assistance en gare, guichet, vélos ; SNCF Gares & Connexions, ODbL.',
             'station_timetable' => 'Desserte d’une gare un mardi type : trains par type et par sens, premières et dernières heures, destinations directes ; horaires théoriques SNCF et Transilien, ODbL.',
             'line_timetable' => 'Trains de voyageurs par jour sur une ligne un mardi type, chacun compté une fois ; horaires théoriques SNCF et Transilien, ODbL.',
             'station_heritage' => 'Patrimoine du bâtiment voyageurs et des ouvrages d’une gare : monument historique classé ou inscrit avec la date de l’arrêté, label Architecture contemporaine remarquable, architecte, construction, notice Mérimée (Licence Ouverte 2.0) et Wikidata (CC0).',

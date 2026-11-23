@@ -158,6 +158,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_stops` | Gares d'une ligne dans l'ordre des PK à une époque, avec leur état (modèle GTFS `stop_times`) et le lien de l'archive GTFS de l'ère. |
 | `station_aerial` | Vues aériennes historiques de l'IGN autour d'une gare (1950-1965, 1965-1980, 1980-1995), avec crédit et Licence Ouverte 2.0. |
 | `station_attendance` | Fréquentation annuelle d'une gare depuis 2015 (voyageurs, non-voyageurs) : SNCF Gares & Connexions, ODbL ; 2025 n'est pas comparable à 2015-2024. |
+| `station_accessibility` | Accessibilité et services d'une gare : accès des personnes à mobilité réduite, ascenseurs (état daté), boucle magnétique, bandes d'éveil, toilettes, assistance, guichet, vélos ; SNCF Gares & Connexions, ODbL. |
 | `station_timetable` | Desserte d'une gare un mardi type : trains par type et par sens, premières et dernières heures, destinations directes ; horaires théoriques SNCF et Transilien, ODbL. |
 | `line_timetable` | Trains de voyageurs par jour sur une ligne un mardi type, chacun compté une fois ; horaires théoriques SNCF et Transilien, ODbL. |
 
@@ -526,6 +527,7 @@ Renvoie `era_year` et `lines` : `slug`, `code`, `name`, `network`, `historical_o
 | `era` | décennie 1830 à 2030 | non | Statut à cette ère ; gares absentes de l'ère exclues. |
 | `flagged` | booléen | non | Position à vérifier. |
 | `heritage` | booléen | non | Seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable. |
+| `accessible` | booléen | non | Seulement les gares accessibles au moins en partie aux personnes à mobilité réduite d'après SNCF Gares & Connexions (détail : `station_accessibility`). |
 | `sort` | `name`, `city`, `opened`, `closed` | non | Tri (valeurs manquantes en dernier). |
 | `order` | `asc`, `desc` | non | Sens du tri. |
 | `facets` | booléen | non | Ajoute le nombre de gares par statut (`facets`) et par département (`department_facets`, sans le filtre `department`). |
@@ -1364,6 +1366,27 @@ Renvoie `attendance` (nul quand les jeux n'en donnent aucune pour la gare : cela
 
 ```json
 {"station": "angouleme"}
+```
+
+### `station_accessibility` : accessibilité et services d'une gare
+
+Mêmes données que `GET /api/v1/stations/{station}/accessibility` (service `StationAccessibility`) d'après SNCF Gares & Connexions et
+SNCF Voyageurs (ODbL) : accès des personnes à mobilité réduite, ascenseurs et leur état publié, équipements (boucle magnétique,
+bandes d'éveil, toilettes), assistance en gare, guichet, stationnement vélo sécurisé.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `accessibility` (nul quand les jeux n'ont rien pour la gare) : `access` (`mobility` : `partial`, `none` = non déclarée accessible
+par SNCF, ou nul ; `step_free`, `tactile_guidance`, `quays`), `elevators` (`count`, `status` avec `state_at`, `ok`, `ko`, `unknown`,
+`items[]`), `amenities[]`, `assistance`, `sales`, `bike_parking`, `datasets[]`, `mention`. Précautions : une absence d'équipement ne prouve
+rien ; l'état des ascenseurs est celui de la lecture (`state_at`), non contractuel : toujours dire la date ; ne jamais écrire
+« inaccessible » pour `mobility` = `none`.
+
+```json
+{"station": "limoges-benedictins"}
 ```
 
 ### `station_timetable` : desserte d'une gare un jour ouvrable type

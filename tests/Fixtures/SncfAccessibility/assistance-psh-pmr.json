@@ -1,0 +1,25 @@
+{
+ "dataset": "assistance-psh-pmr",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "id_gare": "aaaaaaaa-0000-4000-8000-000000000001",
+   "nom": "Alpha-Centre",
+   "typepriseencharge": "RESERVE ET SPONTANE",
+   "datestatut": "2025-06-04T14:19:35.06",
+   "typetarification": "GRATUIT",
+   "lieurendezvousgare": "Guichet",
+   "premierauderniertrain": null,
+   "code_uic": "87000001",
+   "horaires_jour_nominal_lundi": "08:45 - 12:00 / 13:30 - 17:00",
+   "horaires_jour_nominal_mardi": "08:45 - 12:00 / 13:30 - 17:00",
+   "horaires_jour_nominal_mercredi": "08:45 - 12:00 / 13:30 - 17:00",
+   "horaires_jour_nominal_jeudi": "08:45 - 12:00 / 13:30 - 17:00",
+   "horaires_jour_nominal_vendredi": "08:45 - 12:00 / 13:30 - 17:00",
+   "horaires_jour_nominal_samedi": null,
+   "horaires_jour_nominal_dimanche": null
+  }
+ ]
+}

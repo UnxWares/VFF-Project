@@ -53,6 +53,7 @@ class ListStationsTool extends VffTool
             'era' => $schema->integer()->min(1830)->max(2030)->description('Année d\'une ère (décennie, ex. 1930) : statut à cette ère, gares absentes exclues.'),
             'flagged' => $schema->boolean()->description('true : seulement les gares dont la position est à vérifier.'),
             'heritage' => $schema->boolean()->description('true : seulement les gares dont le bâtiment voyageurs ou un ouvrage est classé ou inscrit aux monuments historiques, ou labellisé Architecture contemporaine remarquable.'),
+            'accessible' => $schema->boolean()->description('true : seulement les gares accessibles au moins en partie aux personnes à mobilité réduite d\'après SNCF Gares & Connexions (détail : outil station_accessibility).'),
             'sort' => $schema->string()->enum(StationDirectoryQuery::SORTS)->default('name')->description('Clé de tri : name (par défaut), city, opened ou closed.'),
             'order' => $schema->string()->enum(['asc', 'desc'])->default('asc')->description('Sens du tri.'),
             'facets' => $schema->boolean()->default(false)->description('true : ajouter le nombre de gares par statut (`facets`).'),

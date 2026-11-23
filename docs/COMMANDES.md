@@ -276,6 +276,28 @@ GraphQL `Station.timetable` et `LineSheet.timetable`, outils MCP `station_timeta
 | `--today=AAAA-MM-JJ` | Date du jour (défaut : aujourd'hui). |
 | `--report=dossier` | Écrit `couverture.csv`, `gares-sans-desserte.csv` et `flux.json`. |
 
+### `vff:import-station-accessibility`
+
+Importe l'accessibilité et les services des gares d'aujourd'hui d'après sept jeux ouverts de SNCF Gares & Connexions et SNCF
+Voyageurs (ODbL) : « Accessibilité des gares » (NeTEx : accès des personnes à mobilité réduite, quais, ascenseurs recensés),
+« Equipements d'accessibilité en gare » (boucle magnétique, bandes d'éveil, toilettes…), assistance en gare (horaires), état de
+fonctionnement des ascenseurs, points de vente (guichet, automates), stationnement vélo sécurisé, et le référentiel « Gares de
+voyageurs » qui relie codes UIC et trigrammes à l'identifiant commun. Une gare du référentiel peut porter plusieurs codes UIC :
+chaque fiche de VFF reconnue (`StationAttendanceMatcher`) reçoit les informations. Une absence n'est jamais une négation : seul le NeTEx
+répond oui ou non (`mobility` : `partial` ou `none`, c'est-à-dire non déclarée accessible par SNCF). Toutes les lignes `sncf` de
+`station_accessibility` sont remplacées d'un coup, dans une transaction ; aucune autre table n'est écrite. Cache
+`storage/app/sources/sncf-accessibility/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement ; l'état des ascenseurs est
+celui de la lecture (`--refresh` pour celui du jour). Points d'accès : `GET /api/v1/stations/{station}/accessibility`, `accessibility`
+de la fiche REST, filtre `accessible` de l'annuaire (web, REST, MCP), GraphQL `Station.accessibility`, outil MCP `station_accessibility`.
+Migration `2026_12_17_010000_create_station_accessibility_table` ; application : `storage/app/reports/agents/aprem-2111/gares-accessibilite-appliquer.sh`.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : couverture par statut, gares non rattachées, gares ouvertes sans information. |
+| `--refresh` | Télécharge de nouveau les jeux au lieu du cache local. |
+| `--cache-dir=dossier` | Dossier du cache (défaut : `storage/app/sources/sncf-accessibility`). |
+| `--csv=dossier` | Écrit `non-rattachees.csv`, `doublons.csv` et `sans-information.csv`. |
+
 ### `vff:import-sncf-attendance`
 
 Importe la fréquentation annuelle des gares : jeux SNCF Open Data « Fréquentation en gares » (SNCF Gares & Connexions, ODbL),

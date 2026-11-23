@@ -1,0 +1,34 @@
+{
+ "dataset": "points-vente",
+ "fetched_at": "2026-11-23 10:00:00",
+ "license": "Open Data Commons Open Database License (ODbL)",
+ "modified": "2026-11-20",
+ "records": [
+  {
+   "pays": "FRANCE",
+   "adresse": "x",
+   "ville": "PARIS",
+   "region": "IDF",
+   "gare_code_uic": "87000001",
+   "gare": "ALPHA",
+   "type_de_point_de_vente": "Poste de vente guichet",
+   "codepostal": 75001,
+   "cb": "Oui",
+   "especes": "Oui",
+   "cheque": "Non"
+  },
+  {
+   "pays": "FRANCE",
+   "adresse": "x",
+   "ville": "PARIS",
+   "region": "IDF",
+   "gare_code_uic": "87000001",
+   "gare": "ALPHA",
+   "type_de_point_de_vente": "Automates TER",
+   "codepostal": 75001,
+   "cb": "Oui",
+   "especes": "Non",
+   "cheque": "Non"
+  }
+ ]
+}
