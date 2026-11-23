@@ -117,6 +117,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   GraphQL `Line.electrification_history` (types `LineElectrificationHistory`, `LineElectrificationRange`, `LineElectrificationSummary`,
   `LineElectrificationShare`, `LineElectrificationEvent`, `LineElectrificationSection`, `LineElectrificationSource`,
   `LineElectrificationProvenance`), MCP outil `line_electrification_history`. Ajout seul.
+- Lignes : l'ancien slug d'une ligne renommée ou fusionnée dans une autre (fichier versionné `database/data/line_slug_redirects.php`)
+  répond `301` vers la même adresse sous le slug actuel, sous-chemin et paramètres gardés (`GET /api/v1/lines/{line}/…`, pages
+  `/lines/{line}`, paramètre `?line=` des listes) ; GraphQL `line(slug:)` et les outils MCP qui prennent une ligne acceptent l'ancien
+  slug et renvoient la ligne sous son slug actuel (champ `slug`). Un ancien slug n'est jamais redonné à une autre ligne. Ajout seul.
 - Fréquentation annuelle des gares (SNCF Gares & Connexions, ODbL) : REST `GET /api/v1/stations/{station}/attendance` et champ
   `attendance` de la fiche `GET /api/v1/stations/{station}` (avec `links.attendance`), GraphQL `Station.attendance` (types
   `StationAttendance`, `StationAttendanceYear`, `StationAttendanceLatest`, `StationAttendanceSource`), MCP outil `station_attendance`.
