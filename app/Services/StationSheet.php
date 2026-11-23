@@ -202,13 +202,16 @@ final class StationSheet
     }
 
     /**
-     * Chronologie (sources + dates déduites).
+     * Chronologie (sources + dates déduites). `$keptSql` : condition SQL de plus sur station_events (le serveur MCP y
+     * retire les faits d'une source non commerciale, NonCommercialSources::sqlKeptStationEvent).
      *
      * @return Collection<int, \stdClass>
      */
-    public function events(int $stationId): Collection
+    public function events(int $stationId, ?string $keptSql = null): Collection
     {
-        return DB::table('station_events')->where('station_id', $stationId)->orderBy('event_date')->orderBy('is_inferred')
+        return DB::table('station_events')->where('station_id', $stationId)
+            ->when($keptSql !== null, fn ($q) => $q->whereRaw((string) $keptSql))
+            ->orderBy('event_date')->orderBy('is_inferred')
             ->get(['type', 'event_date', 'date_precision', 'source', 'source_url', 'is_inferred', 'note']);
     }
 

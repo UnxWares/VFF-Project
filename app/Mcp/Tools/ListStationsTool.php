@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Support\CursorPage;
+use App\Mcp\Support\ServedStationDates;
 use App\Mcp\Support\VffTool;
 use App\Rules\PaginationCursor;
 use App\Services\Api\SortedCursor;
@@ -68,7 +69,10 @@ class ListStationsTool extends VffTool
         $filters = StationDirectoryQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'facets', 'lang'])));
         $page = $service->query($filters)
             ->cursorPaginate((int) ($input['limit'] ?? 25), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
-        $stations = array_map(fn (array $s): array => $s + ['vff_url' => self::url('/stations/'.$s['slug'])], $service->present($page->items()));
+        $presented = $service->present($page->items());
+        // Ouverture ou fermeture que seule une source non commerciale donne : non servie (ServedStationDates).
+        $dates = app(ServedStationDates::class)->load(array_column($presented, 'slug'));
+        $stations = array_map(fn (array $s): array => $dates->station($s) + ['vff_url' => self::url('/stations/'.$s['slug'])], $presented);
 
         return $this->respondPage(
             ['filters' => $filters, 'era_year' => $service->era($filters)?->year]

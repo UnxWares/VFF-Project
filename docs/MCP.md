@@ -1967,7 +1967,9 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
 **Sources à usage non commercial.** Les faits d'une source à usage non commercial ne sortent jamais du serveur MCP : ni événement, ni lien, ni texte, ni géométrie, que la source soit
 nommée dans `source` ou seulement par le lien cité (`App\Mcp\Support\NonCommercialSources`, appliqué à
 `line_events`, `network_events`, `get_line`, `compare_line_eras`, `what_was_here`, `station_events`, `get_commune`,
-`department_history`). Restent servis les faits que VFF
+`department_history`). Une date de gare déduite d'un événement de ligne d'une telle source (`inferred:line_event`)
+ne l'est pas non plus : ni dans `station_events` et la chronologie de `get_station`, ni comme ouverture ou fermeture
+de la gare dans `get_station`, `list_stations` et `get_commune` (`App\Mcp\Support\ServedStationDates`). Restent servis les faits que VFF
 calcule à partir de ses tracés (état d'un tronçon à une ère, longueur, PK arrondi), sans coordonnée ; le fournisseur
 reste cité dans `attribution`. L'API REST, elle, sert ces événements avec la valeur `source` du fournisseur concerné (voir `/sources`).
 

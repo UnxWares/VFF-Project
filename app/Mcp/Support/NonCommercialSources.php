@@ -57,4 +57,17 @@ final class NonCommercialSources
 
         return $parts === [] ? 'TRUE' : '('.implode(' AND ', $parts).')';
     }
+
+    /**
+     * Condition SQL « l'événement de gare n'est pas tiré d'une source non commerciale » : ni par sa provenance
+     * (sqlKept), ni, pour une date déduite d'un événement de ligne (`inferred:line_event`, `source_ref`
+     * « line_event:<id> », vff:build-station-eras), par l'événement de ligne dont elle recopie la date.
+     */
+    public function sqlKeptStationEvent(string $table = 'station_events'): string
+    {
+        return '('.$this->sqlKept('station_events', "{$table}.source", "{$table}.source_url")
+            ." AND NOT ({$table}.source = 'inferred:line_event' AND EXISTS (SELECT 1 FROM line_events nc_le"
+            ." WHERE nc_le.id = (substring({$table}.source_ref from '^line_event:([0-9]+)\$'))::bigint"
+            .' AND NOT '.$this->sqlKept('line_events', 'nc_le.source', 'nc_le.source_url').')))';
+    }
 }

@@ -3,7 +3,9 @@
 namespace App\Mcp\Tools;
 
 use App\Enums\ServiceEnd;
+use App\Mcp\Support\NonCommercialSources;
 use App\Mcp\Support\ServedEventDates;
+use App\Mcp\Support\ServedStationDates;
 use App\Mcp\Support\VffTool;
 use App\Services\Api\MediaGallery;
 use App\Services\Sncf\StationPlatforms;
@@ -65,7 +67,10 @@ class StationSheetTool extends VffTool
         // Fermeture encadrée (range) : jamais écrite comme un jour. Bornes en années ; borne haute nulle
         // quand elle n'est que l'année du calcul (fermeture non datée, comme ServiceEnd::Undated).
         $currentYear = (int) now()->year;
+        // Ouverture ou fermeture que seule une source non commerciale donne : non servie (ServedStationDates).
+        $served = app(ServedStationDates::class)->load([$station->slug]);
         $closedAt = $station->closed_at?->format('Y-m-d');
+        $closedAt = $served->served($station->slug, 'closed', $closedAt) ? $closedAt : null;
         // Borne basse de l'intervalle, lue comme la fiche (StationSheet) : fermée après cette année.
         $closedAfter = is_numeric($station->provenance['closed_after'] ?? null) ? (int) $station->provenance['closed_after'] : null;
         $closed = $closedAt !== null && $station->closed_precision === StationTimeline::RANGE
@@ -78,6 +83,7 @@ class StationSheetTool extends VffTool
         // Ouverture déduite et bornée par la carte (règle G3, range) : jamais un jour sûr. Bornes en années ;
         // la borne haute reste l'année de opened_at, même l'année en cours (la gare est desservie à l'ère courante).
         $openedAt = $station->opened_at?->format('Y-m-d');
+        $openedAt = $served->served($station->slug, 'opened', $openedAt) ? $openedAt : null;
         $openedAfter = is_numeric($station->provenance['opened_after'] ?? null) ? (int) $station->provenance['opened_after'] : null;
         $opened = $openedAt !== null && $station->opened_precision === StationTimeline::RANGE
             ? ['date' => null, 'precision' => StationTimeline::RANGE,
@@ -96,7 +102,8 @@ class StationSheetTool extends VffTool
         $servedBounds = app(ServedEventDates::class)->bounds($requests);
 
         $providers = [];
-        $events = $sheet->events($sid)->map(function ($e) use ($lang, $date, &$providers) {
+        // Chronologie sans les faits d'une source non commerciale, ni les dates déduites de ses événements de ligne.
+        $events = $sheet->events($sid, app(NonCommercialSources::class)->sqlKeptStationEvent('station_events'))->map(function ($e) use ($lang, $date, &$providers) {
             $providers[] = $this->attribution->providerFor('station_events', $e->source, $e->source_url);
             $note = GeneratedText::stationNote($e->note, $lang);
             $label = 'stations.events.'.$e->type;
