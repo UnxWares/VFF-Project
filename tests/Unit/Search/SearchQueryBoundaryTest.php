@@ -49,8 +49,8 @@ class SearchQueryBoundaryTest extends TestCase
     {
         $this->assertSame(' '.$long, SearchText::key($short));
         $this->assertSame([[$long, $short]], SearchQuery::parse($short)->tokens, 'en dernier : développée et telle quelle');
-        $expected = in_array($long, SearchText::STOPWORDS, true) ? [['paris']] : [[$long], ['paris']];
-        $this->assertSame($expected, SearchQuery::parse("{$short} paris")->tokens, 'ailleurs : développée seulement (un petit mot tombe)');
+        $optional = in_array($long, SearchText::STOPWORDS, true) || in_array($long, SearchText::GENERIC_WORDS, true);
+        $this->assertSame($optional ? [['paris']] : [[$long], ['paris']], SearchQuery::parse("{$short} paris")->tokens, 'ailleurs : développée seulement (un petit mot ou un mot générique tombe)');
         $this->assertSame(' un'.' '.$long.' x', SearchText::key("un {$short} x"));
         $this->assertSame(' '.$short.'a', SearchText::key("{$short}a"), 'jamais au milieu d’un mot');
         $this->assertSame(' a'.$short, SearchText::key("a{$short}"), 'jamais au milieu d’un mot');

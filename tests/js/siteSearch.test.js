@@ -396,3 +396,30 @@ describe('position sur une ligne (PK)', () => {
         expect(groups[0].items[0].index).toBe(0);
     });
 });
+
+describe('glossaire', () => {
+    const term = {
+        type: 'glossary',
+        slug: 'catenaire',
+        name: 'Caténaire',
+        names: { fr: 'Caténaire', en: 'Overhead line (catenary)', de: 'Fahrleitung (Oberleitung)' },
+        abbr: null,
+    };
+
+    it('un groupe Glossaire vient après les accidents et avant les communes, avec le nom dans la langue de la page', () => {
+        const groups = searchGroups({
+            query: 'overhead line',
+            suggestions: false,
+            results: { ...EMPTY, accidents: [], glossary: [term], communes: [] },
+            searched: true,
+            t,
+            idPrefix: 'x',
+            lang: 'en',
+        });
+        expect(groups.map((g) => g.type)).toEqual(['glossary', 'more']);
+        expect(groups[0].items[0]).toMatchObject({
+            href: '/glossary#catenaire',
+            name: 'Overhead line (catenary)',
+        });
+    });
+});

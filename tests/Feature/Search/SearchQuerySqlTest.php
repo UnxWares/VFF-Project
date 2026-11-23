@@ -52,8 +52,8 @@ class SearchQuerySqlTest extends TestCase
         $this->assertSame(0, $rows['Paris']);
         $this->assertSame(1, $rows['Paris Nord']);
         $this->assertSame(2, $rows['Gare Paris Est']);
-        $this->assertSame(4, $rows['Zzzville'], 'le mot est dans un autre nom (commune)');
-        $this->assertSame(5, $rows['Hypariste'], 'milieu de mot seulement');
+        $this->assertSame(6, $rows['Zzzville'], 'le mot est dans un autre nom (commune)');
+        $this->assertSame(7, $rows['Hypariste'], 'milieu de mot seulement');
     }
 
     public function test_rank_ignores_small_words_for_equality(): void
@@ -66,11 +66,28 @@ class SearchQuerySqlTest extends TestCase
         $this->assertSame(1, $rows['Mans Nord']);
     }
 
-    public function test_rank_three_words_in_any_order_is_three(): void
+    public function test_rank_words_in_any_order_is_five(): void
     {
         $this->station('Hilaire Nord Saint', 'Nulle part');
         [$rank, $bindings] = SearchQuery::parse('saint hilaire')->rankSql(...$this->keys);
-        $this->assertSame(3, DB::table('stations')->selectRaw("{$rank} AS r", $bindings)->value('r'));
+        $this->assertSame(5, DB::table('stations')->selectRaw("{$rank} AS r", $bindings)->value('r'));
+    }
+
+    public function test_rank_counts_the_query_without_its_generic_words_and_a_phrase_of_another_name(): void
+    {
+        $this->station('Paris-Nord');
+        $this->station('Paris-Nord-Surface');
+        $this->station('Haut Melun', 'Eisenbahnunfall von Melun');
+        $this->station('Bas Melun', 'Nulle part');
+        [$rank, $bindings] = SearchQuery::parse('Paris Nord station')->rankSql(...$this->keys);
+        $rows = DB::table('stations')->selectRaw("name, {$rank} AS r", $bindings)->pluck('r', 'name')->all();
+        $this->assertSame(0, $rows['Paris-Nord'], '« station » est facultatif : nom exact');
+        $this->assertSame(1, $rows['Paris-Nord-Surface']);
+
+        [$rank, $bindings] = SearchQuery::parse('Eisenbahnunfall von Melun')->rankSql(...$this->keys);
+        $rows = DB::table('stations')->selectRaw("name, {$rank} AS r", $bindings)->pluck('r', 'name')->all();
+        $this->assertSame(3, $rows['Haut Melun'], 'la requête entière est un autre nom');
+        $this->assertSame(4, $rows['Bas Melun'], 'la requête sans ses mots génériques est dans le nom');
     }
 
     public function test_order_by_relevance_puts_the_closest_first(): void

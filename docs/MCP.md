@@ -126,7 +126,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 
 | Outil | Rôle |
 |---|---|
-| `search` | Trouver une ligne, une gare, un matériel ou un accident par son nom (identifiants pour les autres outils). |
+| `search` | Trouver une ligne, une gare, un matériel, un accident ou un terme du glossaire par son nom (identifiants pour les autres outils). |
 | `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, gares, chronologie. |
 | `line_events` | Événements d'une ligne sur une période. |
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies et dates de desserte, sources. |
@@ -178,14 +178,14 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `data_coverage` | Ce que sait l'encyclopédie : parts renseignées et précision des dates pour les lignes, gares, accidents, matériel et ères. |
 | `position_at_pk` | Où tombe un point kilométrique sur une ligne : gares qui l'encadrent, commune, point sur la carte. |
 
-### `search` : rechercher une ligne, une gare, un matériel ou un accident
+### `search` : rechercher une ligne, une gare, un matériel, un accident ou un terme du glossaire
 
 Point de départ : trouve les identifiants attendus par les autres outils.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
 | `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare, de matériel ou d'accident, commune ou date d'accident (`1891`, `07/2013`, `2013-07-12`). Casse et accents ignorés. |
-| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents` | non | Catégories cherchées (par défaut : les quatre). |
+| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents`, `glossary` | non | Catégories cherchées (par défaut : les cinq). |
 | `limit` | entier 1 à 20 | non | Résultats par catégorie (8 par défaut). |
 | `lang` | `fr`, `en`, `de` | non | Langue (fr par défaut). |
 
@@ -193,7 +193,12 @@ Renvoie `lines` (`slug`, `name`, `code`, `vff_url`), `stations` (`slug`, `name`,
 `department_code`, `lat`, `lng`, `vff_url`), `materials` (`slug`, `name`, `kind`, `builder`,
 `vff_url`), `accidents` (`slug`, `name` dans la langue demandée, `names` en `fr`, `en` et `de`, `date`
 et `date_precision`, `kind`, `commune`, `department_code`, `lat`, `lng` nuls sans position,
-`vff_url` ; le `slug` va à `get_accident`). Les accidents se trouvent par leur nom (dans les trois
+`vff_url` ; le `slug` va à `get_accident`), `glossary` (`slug`, `name` dans la langue demandée, `abbr`, `vff_url` vers la
+définition sur `/glossary`, par le nom, le sigle ou le développé du terme dans l'une des trois langues : `TVM 430`, `KVB`,
+`block automatique lumineux`, `overhead line`). Mots génériques facultatifs (`gare`, `station`, `Bahnhof`, `ligne`, `line`,
+`Strecke`, `accident`, `UIC` : `Paris Nord station`, `ligne 830 000`) ; noms allemands et anglais des villes (`Straßburg`,
+`Mülhausen`) ; l'ancien slug d'une gare fusionnée ou d'une ligne renommée trouve la fiche qui l'a remplacé, en premier ; une
+année à côté d'un lieu limite les accidents à cette année (`Lagny 1933`). Les accidents se trouvent par leur nom (dans les trois
 langues), leur commune ou leur date : une année (`1891`), un mois (`07/2013`, `2013-07`) ou un jour
 (`12/07/2013`, `2013-07-12`) ; un accident dont seule l'année ou le mois est connu ne répond pas à
 un jour précis. Seuls les accidents publiés sortent, jamais ceux que VFF ne montre pas. Tri par

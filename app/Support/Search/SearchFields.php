@@ -63,6 +63,15 @@ final class SearchFields
             ."COALESCE({$t}fleet_numbers, '')";
     }
 
+    /**
+     * Fréquentation d'une gare (voyageurs de sa meilleure année, station_attendances), nulle sans comptage : à
+     * pertinence égale, la gare la plus fréquentée d'abord (« mulhouse » : Mulhouse-Ville avant Mulhouse-Dornach).
+     */
+    public static function stationAttendance(string $t): string
+    {
+        return "(SELECT MAX(sa.passengers) FROM station_attendances sa WHERE sa.station_id = {$t}id)";
+    }
+
     /** Autres noms d'une colonne JSON : valeurs des clés `name` à toute profondeur et chaînes d'une liste. */
     private static function altNames(string $column): string
     {

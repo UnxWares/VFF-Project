@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * Second jeu d'essai de la recherche (banc « qualité » du 23/11/2026) : 80 requêtes réelles, par famille, et la
+ * fiche attendue. `type` : station, line, material, accident, glossary (terme du glossaire). Mesuré sur la base de
+ * développement par `vff:search-eval --file=tests/Fixtures/Search/queries-qualite.php` (rang du bon résultat,
+ * temps) et rejoué sur un petit corpus par tests/Feature/Search/SearchQualityTest.php.
+ *
+ * @return list<array{q: string, type: string, slug: string, family: string}>
+ */
+return [
+    // Gares : accents, tirets, abréviations, grandes gares d'une ville.
+    ['family' => 'gares', 'q' => 'Saint-Etienne Chateaucreux', 'type' => 'station', 'slug' => 'st-etienne-chateaucreux'],
+    ['family' => 'gares', 'q' => 'pleine fougeres', 'type' => 'station', 'slug' => 'pleine-fougeres'],
+    ['family' => 'gares', 'q' => 'besancon viotte', 'type' => 'station', 'slug' => 'besancon-viotte'],
+    ['family' => 'gares', 'q' => 'chalon sur saone', 'type' => 'station', 'slug' => 'chalon-sur-saone'],
+    ['family' => 'gares', 'q' => 'chateauroux', 'type' => 'station', 'slug' => 'chateauroux'],
+    ['family' => 'gares', 'q' => 'nimes', 'type' => 'station', 'slug' => 'nimes'],
+    ['family' => 'gares', 'q' => 'sete', 'type' => 'station', 'slug' => 'sete'],
+    ['family' => 'gares', 'q' => 'aix en provence tgv', 'type' => 'station', 'slug' => 'aix-en-provence-tgv'],
+    ['family' => 'gares', 'q' => 'marseille st-charles', 'type' => 'station', 'slug' => 'marseille-st-charles'],
+    ['family' => 'gares', 'q' => 'bordeaux saint jean', 'type' => 'station', 'slug' => 'bordeaux-st-jean'],
+    ['family' => 'gares', 'q' => 'paris gare de lyon', 'type' => 'station', 'slug' => 'paris-gare-de-lyon'],
+    ['family' => 'gares', 'q' => 'lyon part dieu', 'type' => 'station', 'slug' => 'lyon-part-dieu'],
+    ['family' => 'gares', 'q' => 'strasbourg', 'type' => 'station', 'slug' => 'strasbourg-ville'],
+    ['family' => 'gares', 'q' => 'metz', 'type' => 'station', 'slug' => 'metz-ville'],
+    ['family' => 'gares', 'q' => 'mulhouse', 'type' => 'station', 'slug' => 'mulhouse-ville'],
+    // Anciens noms et anciennes adresses : nom historique d'une gare, ligne renommée ou fusionnée, ancien slug.
+    ['family' => 'anciens noms', 'q' => 'capelles', 'type' => 'station', 'slug' => 'lardenne'],
+    ['family' => 'anciens noms', 'q' => 'la garenne bezons', 'type' => 'station', 'slug' => 'la-garenne-colombes'],
+    ['family' => 'anciens noms', 'q' => 'plourivo lezardrieux', 'type' => 'station', 'slug' => 'lancerf'],
+    ['family' => 'anciens noms', 'q' => 'montceaux les mines', 'type' => 'station', 'slug' => 'montceau-les-mines'],
+    ['family' => 'anciens noms', 'q' => 'nimes centre', 'type' => 'station', 'slug' => 'nimes'],
+    ['family' => 'anciens noms', 'q' => 'archeo-ligne-de-nouvel-avricourt-a-dieuze', 'type' => 'line', 'slug' => 'rfn-100000'],
+    ['family' => 'anciens noms', 'q' => 'ligne de nouvel avricourt a dieuze', 'type' => 'line', 'slug' => 'rfn-100000'],
+    ['family' => 'anciens noms', 'q' => 'archeo-chemin-de-fer-des-combes', 'type' => 'line', 'slug' => 'chemin-de-fer-des-combes'],
+    ['family' => 'anciens noms', 'q' => 'archeo-bifurcation-de-mirambeau', 'type' => 'line', 'slug' => 'bifurcation-de-mirambeau'],
+    ['family' => 'anciens noms', 'q' => 'lgv est europeenne', 'type' => 'line', 'slug' => 'rfn-5000'],
+    ['family' => 'anciens noms', 'q' => 'artere imperiale', 'type' => 'line', 'slug' => 'rfn-830000'],
+    ['family' => 'anciens noms', 'q' => 'polt', 'type' => 'line', 'slug' => 'rfn-590000'],
+    // Codes : code de ligne (avec ou sans espace, mot « ligne », identifiant), code UIC.
+    ['family' => 'codes', 'q' => '005000', 'type' => 'line', 'slug' => 'rfn-5000'],
+    ['family' => 'codes', 'q' => '640 000', 'type' => 'line', 'slug' => 'rfn-640000'],
+    ['family' => 'codes', 'q' => 'ligne 570000', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['family' => 'codes', 'q' => 'ligne 830 000', 'type' => 'line', 'slug' => 'rfn-830000'],
+    ['family' => 'codes', 'q' => 'rfn-752000', 'type' => 'line', 'slug' => 'rfn-752000'],
+    ['family' => 'codes', 'q' => '87271007', 'type' => 'station', 'slug' => 'paris-nord'],
+    ['family' => 'codes', 'q' => '87547000', 'type' => 'station', 'slug' => 'paris-austerlitz'],
+    ['family' => 'codes', 'q' => 'uic 87686006', 'type' => 'station', 'slug' => 'paris-gare-de-lyon'],
+    // Communes homonymes : la gare voyageurs ouverte de la commune attendue.
+    ['family' => 'homonymes', 'q' => 'saint denis', 'type' => 'station', 'slug' => 'st-denis'],
+    ['family' => 'homonymes', 'q' => 'valence', 'type' => 'station', 'slug' => 'valence'],
+    ['family' => 'homonymes', 'q' => 'valence d agen', 'type' => 'station', 'slug' => 'valence-dagen'],
+    ['family' => 'homonymes', 'q' => 'montreuil', 'type' => 'station', 'slug' => 'montreuil'],
+    ['family' => 'homonymes', 'q' => 'tours', 'type' => 'station', 'slug' => 'tours'],
+    ['family' => 'homonymes', 'q' => 'vienne', 'type' => 'station', 'slug' => 'vienne'],
+    // Matériel roulant : séries, noms commerciaux, surnoms, chiffres collés.
+    ['family' => 'materiel', 'q' => 'Z 56800', 'type' => 'material', 'slug' => 'z-56800'],
+    ['family' => 'materiel', 'q' => 'Regio2N', 'type' => 'material', 'slug' => 'regio-2n'],
+    ['family' => 'materiel', 'q' => 'regio 2n', 'type' => 'material', 'slug' => 'regio-2n'],
+    ['family' => 'materiel', 'q' => 'BB 22200', 'type' => 'material', 'slug' => 'bb-22200'],
+    ['family' => 'materiel', 'q' => 'bb22200', 'type' => 'material', 'slug' => 'bb-22200'],
+    ['family' => 'materiel', 'q' => 'omneo', 'type' => 'material', 'slug' => 'regio-2n'],
+    ['family' => 'materiel', 'q' => 'sybic', 'type' => 'material', 'slug' => 'bb-26000'],
+    ['family' => 'materiel', 'q' => 'agc', 'type' => 'material', 'slug' => 'autorail-grande-capacite'],
+    ['family' => 'materiel', 'q' => 'picasso', 'type' => 'material', 'slug' => 'x-3800'],
+    ['family' => 'materiel', 'q' => 'francilien', 'type' => 'material', 'slug' => 'z-50000'],
+    ['family' => 'materiel', 'q' => 'ter 2n ng', 'type' => 'material', 'slug' => 'z-24500'],
+    ['family' => 'materiel', 'q' => 'z2n', 'type' => 'material', 'slug' => 'z-2n'],
+    ['family' => 'materiel', 'q' => 'nez casse', 'type' => 'material', 'slug' => 'bb-22200'],
+    // Accidents : lieu et année, nom de l'article, commune.
+    ['family' => 'accidents', 'q' => 'Lagny 1933', 'type' => 'accident', 'slug' => '1933-12-23-pomponne'],
+    ['family' => 'accidents', 'q' => 'lagny pomponne', 'type' => 'accident', 'slug' => '1933-12-23-pomponne'],
+    ['family' => 'accidents', 'q' => 'catastrophe de melun 1913', 'type' => 'accident', 'slug' => '1913-11-04-melun'],
+    ['family' => 'accidents', 'q' => 'melun 1991', 'type' => 'accident', 'slug' => '1991-10-17-melun'],
+    ['family' => 'accidents', 'q' => 'bretigny 2013', 'type' => 'accident', 'slug' => '2013-07-12-bretigny-sur-orge'],
+    ['family' => 'accidents', 'q' => 'accident gare de lyon 1988', 'type' => 'accident', 'slug' => '1988-06-27-paris'],
+    ['family' => 'accidents', 'q' => 'eckwersheim', 'type' => 'accident', 'slug' => '2015-11-14-eckwersheim'],
+    ['family' => 'accidents', 'q' => 'zoufftgen', 'type' => 'accident', 'slug' => '2006-10-11-zoufftgen'],
+    // Glossaire : sigles, développés, termes, dans les trois langues.
+    ['family' => 'glossaire', 'q' => 'TVM 430', 'type' => 'glossary', 'slug' => 'tvm-430'],
+    ['family' => 'glossaire', 'q' => 'tvm430', 'type' => 'glossary', 'slug' => 'tvm-430'],
+    ['family' => 'glossaire', 'q' => 'kvb', 'type' => 'glossary', 'slug' => 'kvb'],
+    ['family' => 'glossaire', 'q' => 'block automatique lumineux', 'type' => 'glossary', 'slug' => 'bal'],
+    ['family' => 'glossaire', 'q' => 'caténaire', 'type' => 'glossary', 'slug' => 'catenaire'],
+    ['family' => 'glossaire', 'q' => 'ertms niveau 2', 'type' => 'glossary', 'slug' => 'ertms-niveau-2'],
+    ['family' => 'glossaire', 'q' => 'overhead line', 'type' => 'glossary', 'slug' => 'catenaire'],
+    ['family' => 'glossaire', 'q' => 'fahrleitung', 'type' => 'glossary', 'slug' => 'catenaire'],
+    // Fautes de frappe courantes.
+    ['family' => 'fautes', 'q' => 'strasbourd', 'type' => 'station', 'slug' => 'strasbourg-ville'],
+    ['family' => 'fautes', 'q' => 'marseile saint charles', 'type' => 'station', 'slug' => 'marseille-st-charles'],
+    ['family' => 'fautes', 'q' => 'bordeau saint jean', 'type' => 'station', 'slug' => 'bordeaux-st-jean'],
+    ['family' => 'fautes', 'q' => 'toulouse matabio', 'type' => 'station', 'slug' => 'toulouse-matabiau'],
+    ['family' => 'fautes', 'q' => 'eckwershiem', 'type' => 'accident', 'slug' => '2015-11-14-eckwersheim'],
+    ['family' => 'fautes', 'q' => 'regiolys', 'type' => 'material', 'slug' => 'regiolis'],
+    // Anglais et allemand : mots « station », « Bahnhof », « line », « Strecke », exonymes.
+    ['family' => 'anglais et allemand', 'q' => 'Paris Nord station', 'type' => 'station', 'slug' => 'paris-nord'],
+    ['family' => 'anglais et allemand', 'q' => 'Bahnhof Straßburg', 'type' => 'station', 'slug' => 'strasbourg-ville'],
+    ['family' => 'anglais et allemand', 'q' => 'Lyon Part-Dieu railway station', 'type' => 'station', 'slug' => 'lyon-part-dieu'],
+    ['family' => 'anglais et allemand', 'q' => 'Mülhausen Bahnhof', 'type' => 'station', 'slug' => 'mulhouse-ville'],
+    ['family' => 'anglais et allemand', 'q' => 'Paris to Bordeaux line', 'type' => 'line', 'slug' => 'rfn-570000'],
+    ['family' => 'anglais et allemand', 'q' => 'Strecke Paris Lille', 'type' => 'line', 'slug' => 'rfn-272000'],
+    ['family' => 'anglais et allemand', 'q' => 'Lagny rail accident', 'type' => 'accident', 'slug' => '1933-12-23-pomponne'],
+    ['family' => 'anglais et allemand', 'q' => 'Eisenbahnunfall von Melun', 'type' => 'accident', 'slug' => '1913-11-04-melun'],
+];

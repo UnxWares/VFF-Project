@@ -9,6 +9,16 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### À vérifier dans votre client
 
+- Recherche (REST `GET /api/v1/search`, GraphQL `search`, MCP `search`, pages Gares et Accidents et leurs API de liste) : le
+  classement change pour quelques requêtes. La gare ouverte aux voyageurs d'une commune dont le nom commence par celui de la
+  commune vaut un nom exact (`strasbourg` donne Strasbourg-Ville avant l'ancienne gare Strasbourg) ; à pertinence égale, la gare
+  la plus fréquentée passe devant (Mulhouse-Ville avant Mulhouse-Dornach). Les mots génériques (`gare`, `station`, `Bahnhof`,
+  `ligne`, `line`, `Strecke`, `accident`, `UIC`, et `the`, `to`, `von`…) sont facultatifs : `Paris Nord station`, `ligne 830 000`
+  et `UIC 87686006` trouvent leur fiche, et un code de ligne ou UIC se reconnaît malgré eux. Les noms allemands et anglais des
+  villes valent le nom français (`Straßburg`, `Mülhausen`, `Diedenhofen`). Une année à côté d'autres mots limite les accidents à
+  cette année (`Lagny 1933`, `accident gare de Lyon 1988`), et l'ancien slug d'une gare fusionnée ou d'une ligne renommée trouve
+  la fiche actuelle, en premier. Aucun champ ne change.
+
 - MCP : un outil appelé avec l'ancien slug d'une ligne renommée, d'une gare fondue dans une autre fiche ou d'un accident
   renommé ou fusionné (argument `line`, `station` ou `accident`, et filtres `line` et `station` de `network_events`, `media`,
   `accidents`, `materials`, `level_crossings`) répond avec la fiche actuelle comme avant, et le dit désormais en tête de
@@ -100,6 +110,11 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   lien compte comme un rattachement ferme (contrairement aux terminus nommés). Une valeur de plus dans une liste déjà ouverte ; ne vous en servez que pour l'afficher.
 
 ### Ajouts
+
+- Recherche : termes du glossaire. REST `GET /api/v1/search` renvoie `glossary` (5 termes au plus : `type`, `slug`, `name`,
+  `names` en `fr`, `en` et `de`, `abbr`), le serveur MCP accepte `glossary` dans `kinds` de `search` (cherché par défaut, avec
+  `vff_url` vers `/glossary#{slug}`). Trouvés par le nom, le sigle ou le développé dans l'une des trois langues (`TVM 430`,
+  `tvm430`, `KVB`, `block automatique lumineux`, `overhead line`, `Fahrleitung`). Ajout seul.
 
 - MCP : sept outils couvrent ce que REST était seul à servir. `bibliography` (REST `/lines/{line}/bibliography` et
   `/stations/{station}/bibliography`, paginé par `limit` et `offset`), `protected_heritage` (REST `/heritage`, mêmes filtres

@@ -266,7 +266,7 @@ class ApiRobustnessTest extends TestCase
     {
         $this->getJson('/api/v1/search?q[]=versailles&q[]=paris')
             ->assertOk()
-            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
+            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => [], 'glossary' => []]);
     }
 
     public function test_search_strips_control_characters_but_keeps_the_words(): void
@@ -279,8 +279,8 @@ class ApiRobustnessTest extends TestCase
     public function test_search_wildcards_are_literal_not_match_all(): void
     {
         // « %% » ou « __ » ne doivent pas tout renvoyer (jokers SQL échappés).
-        $this->getJson('/api/v1/search?q=%25%25')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
-        $this->getJson('/api/v1/search?q=__')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => []]);
+        $this->getJson('/api/v1/search?q=%25%25')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => [], 'glossary' => []]);
+        $this->getJson('/api/v1/search?q=__')->assertOk()->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => [], 'communes' => [], 'pk_positions' => [], 'glossary' => []]);
 
         Station::factory()->create(['slug' => 'pourcent', 'name' => 'Halte 100% vélo', 'geom' => Point::makeGeodetic(45.0, 5.0)]);
         $this->getJson('/api/v1/search?q='.rawurlencode('100%'))
@@ -330,13 +330,15 @@ class ApiRobustnessTest extends TestCase
         $this->assertIsFloat($response->json('stations.0.lat'));
         $this->assertIsFloat($response->json('stations.0.lng'));
 
-        // Gares commençant par la requête d'abord, puis ordre alphabétique.
+        // La gare ouverte de la commune cherchée d'abord (Versailles-Rive-Droite, du réseau de test), puis les gares
+        // commençant par la requête, dans l'ordre alphabétique.
         $names = array_column($response->json('stations'), 'name');
-        $this->assertStringStartsWith('Versailles', $names[0]);
+        $this->assertSame('Versailles-Rive-Droite', $names[0]);
         $this->assertNotContains('Porchefontaine (Versailles)', $names, 'les préfixes passent avant');
-        $sorted = $names;
+        $others = array_slice($names, 1);
+        $sorted = $others;
         sort($sorted, SORT_STRING);
-        $this->assertSame($sorted, $names);
+        $this->assertSame($sorted, $others);
     }
 
     public function test_search_by_line_code(): void
