@@ -39,6 +39,7 @@
      *                 réouverture) n'existent qu'à cette décennie (cf. RailMap)
      *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge'
      *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`),
+     *                 'curtain' (rideau : `era` à gauche, `compareEra` à droite, symboles d'une époque),
      *                 'stack' (toutes les époques) ou 'schema' (vue ferroviaire : catégories masquables
      *                 et symboles des gares du plan) ; hors 'era', la légende décrit le calque de la vue
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
@@ -76,6 +77,10 @@
     const title = $derived.by(() => {
         if (view === 'compare' && compareEra !== null)
             return $i18n.t('maps.compare.legend_title', { from: era, to: inline(compareEra) });
+        // « 1930 à gauche, aujourd'hui à droite » (la gauche est toujours la plus ancienne).
+        if (view === 'curtain' && compareEra !== null) {
+            return $i18n.t('maps.curtain.legend_title', { left: era, right: inline(compareEra) });
+        }
         if (view === 'stack') return $i18n.t('maps.stack.legend_title');
         if (view === 'schema') {
             return era === currentEra
@@ -120,7 +125,9 @@
     );
 
     // Halos de campagne : légende affichée seulement quand la carte peut les montrer.
-    const showAdvocacy = $derived(era === null || era === currentEra);
+    const showAdvocacy = $derived(
+        era === null || era === currentEra || (view === 'curtain' && compareEra === currentEra),
+    );
 
     const style = (key) => STATUS_STYLES.find((s) => s.key === key);
 

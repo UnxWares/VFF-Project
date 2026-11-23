@@ -233,7 +233,7 @@ return [
         'layers_term' => 'Calques',
         'layers_text' => 'Le bouton Calques, au-dessus de la carte, en affiche plusieurs à la fois. Un fond OpenRailwayMap (un seul à la fois) superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement. Le calque Voies vertes dessine, sur l’emprise de lignes disparues ou fermées, les voies vertes d’OpenStreetMap ; il se superpose à toutes les époques.',
         'views_term' => 'Comparer les époques',
-        'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
+        'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies : un rideau à faire glisser, ou à déplacer avec les flèches du clavier, montre l’une à gauche et l’autre à droite ; la présentation « Différences » colore les lignes ouvertes, fermées ou déposées entre les deux. Il superpose aussi toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
         'schema_term' => 'Vue ferroviaire',
         'schema_text' => 'Le choix « Schéma », dans « Vue », ouvre la vue ferroviaire : le réseau en service à l’époque choisie, dessiné comme un plan de transport, sans fond de carte. Les lignes y sont redressées à 45 ou 90 degrés ; bifurcations, correspondances et terminus sont des cercles, les autres gares de petits traits qui apparaissent en zoomant. Sur la France entière, les grandes gares portent le nom de leur ville ; en zoomant, chaque gare retrouve le sien. Une ligne qu’aucune voie en service ne relie au reste du réseau (souvent un train touristique) est dessinée à sa place, sans trait vers les autres lignes. Paris, Lyon, Lille et Marseille sont agrandies pour que leurs gares tiennent : les positions et les distances ne sont donc pas à l’échelle. Un clic sur une ligne ou une gare ouvre la même fiche que sur la carte.',
     ],
@@ -308,6 +308,17 @@ return [
             'removed' => 'Déposée ou disparue entre :from et :to',
             'kept' => 'En service aux deux dates (:from, :to)',
         ],
+    ],
+
+    // Rideau de comparaison : une époque à gauche, l'autre à droite, sur la même carte.
+    'curtain' => [
+        'mode_label' => 'Présentation',
+        'mode_curtain' => 'Rideau',
+        'mode_changes' => 'Différences',
+        'label' => 'Position du rideau',
+        'position' => ':left à gauche, :right à droite, rideau à :percent % de la largeur',
+        'legend_title' => ':left à gauche, :right à droite',
+        'today' => 'Aujourd’hui',
     ],
 
     // Toutes les époques empilées (teinte = dernière décennie en service).

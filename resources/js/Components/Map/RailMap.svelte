@@ -105,6 +105,18 @@
     } from '$lib/greenwayMap.js';
     // Gares : fichier de l'époque demandé seulement en approchant du zoom où elles se dessinent.
     import { STATIONS_MIN_ZOOM, noStations, stationsToLoad } from '$lib/mapStations.js';
+    // Rideau de comparaison : deux époques sur la même carte, découpées de part et d'autre.
+    import {
+        CLIP_END_ID,
+        CLIP_LEFT_ID,
+        CLIP_RIGHT_ID,
+        CURTAIN_DEFAULT,
+        clipBox,
+        clipLayer,
+        sideAt,
+        twinId,
+        twinLayer,
+    } from '$lib/eraCurtain.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
@@ -178,10 +190,13 @@
         // Liens des bulles ouverts dans un nouvel onglet (carte intégrée dans un autre site).
         popupLinksNewTab = false,
         // Vue : 'era' (une décennie, couches habituelles), 'compare' (changements entre `era`
-        // et `compareEra`) ou 'stack' (toutes les décennies empilées).
+        // et `compareEra`), 'curtain' (rideau : `era` à gauche, `compareEra` à droite) ou 'stack'
+        // (toutes les décennies empilées).
         view = 'era',
         // Seconde décennie de la comparaison (la plus récente ; `era` est la plus ancienne).
         compareEra = null,
+        // Position du rideau (vue 'curtain'), en pour cent de la largeur de la carte.
+        curtain = CURTAIN_DEFAULT,
         // Bouton « Me localiser » (sur action du visiteur seulement ; position gardée dans le navigateur).
         geolocate = false,
         // Accidents à afficher (FeatureCollection de GET /api/v1/accidents.geojson) ou null (calque
@@ -758,7 +773,13 @@
             maxzoom: def.maxzoom,
         });
         // Insère AVANT le layer des lignes pour qu'il passe en-dessous.
-        const beforeId = ['vff-lines-threatened', ...LINE_LAYERS].find((id) => map.getLayer(id));
+        // Sous le découpage du rideau s'il existe (le fond OpenRailwayMap couvre toute la carte).
+        const beforeId = [
+            CLIP_LEFT_ID,
+            'vff-lines-reopening',
+            'vff-lines-threatened',
+            ...LINE_LAYERS,
+        ].find((id) => map.getLayer(id));
         map.addLayer(
             {
                 id: OVERLAY_LAYER_ID,
@@ -864,93 +885,98 @@
         }
     }
 
-    function setupInteractions() {
-        // Click sur un tracé → soit callback parent (drawer), soit popup fallback.
-        map.on('click', LINE_LAYERS, (e) => {
-            if (!e.features?.length || overlayAt(e.point)) return;
-            const props = e.features[0].properties;
+    // Clic sur un tracé → soit callback parent (fiche latérale), soit bulle. `side` : côté du rideau
+    // dont la couche a été cliquée ('left' hors rideau) ; un tracé masqué par le rideau est ignoré.
+    function onLineFeatureClick(e, side) {
+        if (!e.features?.length || overlayAt(e.point) || curtainSideAt(e.point) !== side) return;
+        const lineEra = side === 'right' ? compareEra : era;
+        const props = e.features[0].properties;
 
-            const line = {
-                slug: props.line_slug,
-                name: props.line_name,
-                code: props.line_code,
-                status: props.status,
-                traffic_type: props.traffic_type,
-                is_lgv: isTrue(props.is_lgv),
-                network: props.network,
-                // Exploitation associative : tourist_train | velorail | museum
-                heritage_kind: isTrue(props.is_heritage)
-                    ? (props.heritage_kind ?? 'tourist_train')
-                    : null,
-                era,
-                // Valeurs au niveau LIGNE → cohérentes quel que soit le trait/voie cliqué
-                max_speed_kmh: props.line_max_speed ?? props.max_speed_kmh,
-                electrified: props.line_electrified ?? props.electrified,
-                voltage_v: props.line_voltage_v ?? props.voltage_v,
-            };
+        const line = {
+            slug: props.line_slug,
+            name: props.line_name,
+            code: props.line_code,
+            status: props.status,
+            traffic_type: props.traffic_type,
+            is_lgv: isTrue(props.is_lgv),
+            network: props.network,
+            // Exploitation associative : tourist_train | velorail | museum
+            heritage_kind: isTrue(props.is_heritage)
+                ? (props.heritage_kind ?? 'tourist_train')
+                : null,
+            era: lineEra,
+            // Valeurs au niveau LIGNE → cohérentes quel que soit le trait/voie cliqué
+            max_speed_kmh: props.line_max_speed ?? props.max_speed_kmh,
+            electrified: props.line_electrified ?? props.electrified,
+            voltage_v: props.line_voltage_v ?? props.voltage_v,
+        };
 
-            // Si le parent a fourni onLineClick, on lui délègue (fiche latérale)
-            if (typeof onLineClick === 'function') {
-                onLineClick(line);
-                // Téléphone : la fiche s'ouvre en bas de la carte ; le point cliqué remonte
-                // dans la partie visible au lieu de rester caché dessous.
-                if (mapContainer.clientWidth <= 600) {
-                    map.easeTo({
-                        center: e.lngLat,
-                        offset: [0, -mapContainer.clientHeight * 0.25],
-                        duration: 300,
-                    });
-                }
-                return;
+        // Si le parent a fourni onLineClick, on lui délègue (fiche latérale)
+        if (typeof onLineClick === 'function') {
+            onLineClick(line);
+            // Téléphone : la fiche s'ouvre en bas de la carte ; le point cliqué remonte
+            // dans la partie visible au lieu de rester caché dessous.
+            if (mapContainer.clientWidth <= 600) {
+                map.easeTo({
+                    center: e.lngLat,
+                    offset: [0, -mapContainer.clientHeight * 0.25],
+                    duration: 300,
+                });
             }
+            return;
+        }
 
-            // Bulle MapLibre (carte intégrée) : mêmes mots que la fiche latérale et la légende.
-            const t = get(i18n).t;
-            const lang = get(i18n).language;
-            const sep = colon(lang);
-            const row = (label, value) =>
-                `<li><span class="rail-popup-label">${escapeHtml(label)}${sep}</span>${escapeHtml(value)}</li>`;
-            const when = era === currentEra ? t('maps.drawer.today') : String(era);
-            const traffic = trafficInfo(line, t);
-            const rows = [
-                row(t('maps.drawer.status'), `${statusLabel(line.status, t)} (${when})`),
-                traffic
-                    ? row(
-                          t(line.heritage_kind ? 'maps.drawer.heritage' : 'maps.drawer.traffic'),
-                          traffic.label,
-                      )
-                    : '',
-                line.network
-                    ? row(t('maps.drawer.network'), t(`maps.networks.${line.network}`))
-                    : '',
-                line.max_speed_kmh
-                    ? row(
-                          t('maps.drawer.max_speed'),
-                          `${formatNumber(line.max_speed_kmh, lang)}\u00a0km/h`,
-                      )
-                    : '',
-                isTrue(line.electrified)
-                    ? row(
-                          t('maps.drawer.electrification'),
-                          electrificationInfo(line.voltage_v, t, lang).label,
-                      )
-                    : '',
-            ].join('');
-            const href = line.slug ? `/lines/${encodeURIComponent(line.slug)}` : null;
-            const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(line.name ?? t('maps.drawer.fallback_line_name'))}</p><ul>${rows}</ul>${popupLink(href)}</div>`;
-            openPopup(e.lngLat, html, href);
-        });
+        // Bulle MapLibre (carte intégrée) : mêmes mots que la fiche latérale et la légende.
+        const t = get(i18n).t;
+        const lang = get(i18n).language;
+        const sep = colon(lang);
+        const row = (label, value) =>
+            `<li><span class="rail-popup-label">${escapeHtml(label)}${sep}</span>${escapeHtml(value)}</li>`;
+        const when = lineEra === currentEra ? t('maps.drawer.today') : String(lineEra);
+        const traffic = trafficInfo(line, t);
+        const rows = [
+            row(t('maps.drawer.status'), `${statusLabel(line.status, t)} (${when})`),
+            traffic
+                ? row(
+                      t(line.heritage_kind ? 'maps.drawer.heritage' : 'maps.drawer.traffic'),
+                      traffic.label,
+                  )
+                : '',
+            line.network ? row(t('maps.drawer.network'), t(`maps.networks.${line.network}`)) : '',
+            line.max_speed_kmh
+                ? row(
+                      t('maps.drawer.max_speed'),
+                      `${formatNumber(line.max_speed_kmh, lang)}\u00a0km/h`,
+                  )
+                : '',
+            isTrue(line.electrified)
+                ? row(
+                      t('maps.drawer.electrification'),
+                      electrificationInfo(line.voltage_v, t, lang).label,
+                  )
+                : '',
+        ].join('');
+        const href = line.slug ? `/lines/${encodeURIComponent(line.slug)}` : null;
+        const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(line.name ?? t('maps.drawer.fallback_line_name'))}</p><ul>${rows}</ul>${popupLink(href)}</div>`;
+        openPopup(e.lngLat, html, href);
+    }
+
+    // Clic sur une gare → bulle (celle de l'époque du côté cliqué, avec le rideau).
+    function onStationClick(e, side) {
+        if (!e.features?.length || accidentAt(e.point) || levelCrossingAt(e.point)) return;
+        if (curtainSideAt(e.point) !== side) return;
+        const props = e.features[0].properties;
+        const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
+        const html = stationPopupHtml(props, popupLink(href, 'maps.drawer.view_station'));
+        openPopup(e.lngLat, html, href);
+    }
+
+    function setupInteractions() {
+        map.on('click', LINE_LAYERS, (e) => onLineFeatureClick(e, 'left'));
         map.on('mouseenter', LINE_LAYERS, () => (map.getCanvas().style.cursor = 'pointer'));
         map.on('mouseleave', LINE_LAYERS, () => (map.getCanvas().style.cursor = ''));
 
-        // Click sur une gare → popup
-        map.on('click', 'vff-stations-points', (e) => {
-            if (!e.features?.length || accidentAt(e.point) || levelCrossingAt(e.point)) return;
-            const props = e.features[0].properties;
-            const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
-            const html = stationPopupHtml(props, popupLink(href, 'maps.drawer.view_station'));
-            openPopup(e.lngLat, html, href);
-        });
+        map.on('click', 'vff-stations-points', (e) => onStationClick(e, 'left'));
         map.on(
             'mouseenter',
             'vff-stations-points',
@@ -1082,7 +1108,9 @@
         for (const id of LINE_LAYERS) {
             if (!map.getLayer(id)) continue;
             if (!(id in lineBaseColor)) lineBaseColor[id] = map.getPaintProperty(id, 'line-color');
-            map.setPaintProperty(id, 'line-color', modeColorExpr(m, lineBaseColor[id]));
+            for (const target of withTwin(id)) {
+                map.setPaintProperty(target, 'line-color', modeColorExpr(m, lineBaseColor[id]));
+            }
         }
     }
 
@@ -1117,7 +1145,7 @@
         [...(hidden ?? [])];
         if (!map || !layersReady) return;
         for (const id of [...LINE_LAYERS, CASING_LAYER_ID]) {
-            if (map.getLayer(id)) map.setFilter(id, LINE_FILTERS[id]());
+            for (const target of withTwin(id)) map.setFilter(target, LINE_FILTERS[id]());
         }
     });
 
@@ -1147,7 +1175,7 @@
     $effect(() => {
         const slug = selectedLine;
         if (!map || !layersReady || !map.getLayer(SELECTED_LAYER_ID)) return;
-        map.setFilter(SELECTED_LAYER_ID, selectedFilter(slug));
+        for (const id of withTwin(SELECTED_LAYER_ID)) map.setFilter(id, selectedFilter(slug));
     });
 
     // ── Vues par époque : comparaison de deux décennies, toutes les décennies empilées ──
@@ -1296,12 +1324,22 @@
         if (!map || !layersReady) return;
         const comparing = v === 'compare' && from != null && to != null && from !== to;
         const stacking = v === 'stack';
+        const curtained = v === 'curtain' && from != null && to != null && from !== to;
         if (comparing) ensureCompareLayers(compareTilesUrl(from, to));
         if (stacking) ensureStackLayer();
+        if (curtained) ensureCurtain(to);
         for (const layer of map.getStyle().layers) {
             if (BASE_SOURCES.includes(layer.source)) {
                 setVisibility(layer.id, !comparing && !stacking);
             }
+            if (TWIN_SOURCES.includes(layer.source)) setVisibility(layer.id, curtained);
+        }
+        for (const id of [CLIP_LEFT_ID, CLIP_RIGHT_ID, CLIP_END_ID]) setVisibility(id, curtained);
+        if (curtainOn !== curtained) {
+            curtainOn = curtained;
+            relocateFreeLayers(curtained);
+            popup?.remove();
+            map.triggerRepaint();
         }
         for (const group of COMPARE_DASHES) {
             setVisibility(group.id, comparing);
@@ -1313,6 +1351,117 @@
     }
 
     $effect(() => applyView(view, era, compareEra));
+
+    // ── Rideau : `era` à gauche, `compareEra` à droite, sur la même carte ──
+    // Les couches des sources habituelles sont copiées (couches jumelles, lib/eraCurtain.js) sur deux
+    // sources de l'époque de droite ; trois couches sans dessin règlent le découpage WebGL autour des
+    // deux groupes. Une seule carte : un seul fond, un seul jeu de commandes, aucun décalage à synchroniser.
+    const TWIN_SOURCES = BASE_SOURCES.map(twinId);
+    // Rideau affiché (couches jumelles visibles) ; époque et fichier des gares posés à droite.
+    let curtainOn = false;
+    let twinEra = null;
+    let twinStationsLoaded = null;
+
+    /** La couche et sa jumelle de droite si elle existe (réglages communs : filtres, couleurs). */
+    function withTwin(id) {
+        if (!map?.getLayer(id)) return [];
+        return map.getLayer(twinId(id)) ? [id, twinId(id)] : [id];
+    }
+
+    /** Côté du rideau sous un point de la carte ; toujours la gauche sans rideau. */
+    function curtainSideAt(point) {
+        if (!curtainOn || !mapContainer) return 'left';
+        return sideAt(point.x, curtain, mapContainer.clientWidth);
+    }
+
+    // Boîte de découpe lue à chaque image : la position suit le rideau sans recréer de couche.
+    const clipFor = (side) => (gl) =>
+        clipBox(side, curtain, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+    function syncTwinStations(year = compareEra) {
+        const source = map?.getSource(twinId('vff-stations'));
+        if (!source || year == null) return;
+        const url = stationsToLoad(map.getZoom(), stationsUrlForEra(year), twinStationsLoaded);
+        if (!url) return;
+        twinStationsLoaded = url;
+        source.setData(url);
+    }
+
+    function restingOpacity(id) {
+        if (id in LINE_LAYER_OPACITY) return { 'line-opacity': lineOpacity(id) };
+        if (id === CASING_LAYER_ID) return { 'line-opacity': casingOpacity() };
+        if (id === 'vff-stations-points')
+            return { 'circle-opacity': 1, 'circle-stroke-opacity': 1 };
+        if (id === 'vff-stations-labels') return { 'text-opacity': 1 };
+        return {};
+    }
+
+    function ensureCurtain(year) {
+        if (map.getSource(twinId('vff-lines'))) {
+            if (year !== twinEra) {
+                twinEra = year;
+                map.getSource(twinId('vff-lines')).setTiles([tilesUrlForEra(year)]);
+                syncTwinStations(year);
+                map.setFilter(twinId('vff-lines-threatened'), buildThreatenedFilter(year));
+                map.setFilter(twinId('vff-lines-reopening'), buildReopeningFilter(year));
+            }
+            return;
+        }
+        twinEra = year;
+        map.addSource(twinId('vff-lines'), {
+            type: 'vector',
+            tiles: [tilesUrlForEra(year)],
+            minzoom: 0,
+            maxzoom: 14,
+        });
+        map.addSource(twinId('vff-stations'), { type: 'geojson', data: noStations() });
+        syncTwinStations(year);
+        // Couches habituelles, dans l'ordre de la pile, et la première couche posée au-dessus d'elles.
+        const layers = map.getStyle().layers;
+        const base = layers.filter((l) => BASE_SOURCES.includes(l.source));
+        const lastIndex = layers.indexOf(base[base.length - 1]);
+        const above = layers[lastIndex + 1]?.id;
+        map.addLayer(clipLayer(CLIP_LEFT_ID, clipFor('left')), base[0].id);
+        map.addLayer(clipLayer(CLIP_RIGHT_ID, clipFor('right')), above);
+        for (const layer of base) {
+            const twin = twinLayer(layer);
+            if (layer.id === 'vff-lines-threatened') twin.filter = buildThreatenedFilter(year);
+            if (layer.id === 'vff-lines-reopening') twin.filter = buildReopeningFilter(year);
+            // Opacité de repos (la copie peut être prise au milieu du fondu d'un changement d'époque).
+            twin.paint = { ...twin.paint, ...restingOpacity(layer.id) };
+            map.addLayer(twin, above);
+        }
+        map.addLayer(
+            clipLayer(CLIP_END_ID, () => null),
+            above,
+        );
+        map.on('click', LINE_LAYERS.map(twinId), (e) => onLineFeatureClick(e, 'right'));
+        map.on('click', twinId('vff-stations-points'), (e) => onStationClick(e, 'right'));
+        for (const id of [...LINE_LAYERS, 'vff-stations-points'].map(twinId)) {
+            map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
+            map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
+        }
+        map.on('zoomend', () => syncTwinStations());
+    }
+
+    // Calques facultatifs valables à toutes les époques (voies vertes...) : au-dessus du rideau quand il
+    // est là (sinon ils seraient coupés avec l'époque de gauche), sous les gares sans lui.
+    const freeLayerIds = () =>
+        [...GREENWAY_LAYER_IDS, ...SIGNALLING_LAYER_IDS, LEVEL_CROSSING_LAYER_ID].filter((id) =>
+            map.getLayer(id),
+        );
+
+    function relocateFreeLayers(on) {
+        if (!map.getLayer(CLIP_END_ID)) return;
+        const before = on ? overlayBefore() : 'vff-stations-points';
+        for (const id of freeLayerIds()) map.moveLayer(id, before);
+    }
+
+    // Le rideau suit sa position à l'image suivante.
+    $effect(() => {
+        curtain;
+        if (curtainOn) map?.triggerRepaint();
+    });
 
     // Bulle d'un tracé des vues par époque : nom, ce qui lui est arrivé, lien vers la fiche.
     function openViewPopup(kind, lngLat, props) {
@@ -1460,9 +1609,9 @@
     // calques facultatifs, de haut en bas : accidents, passages à niveau, signalisation, puis le
     // réseau ; le fond OpenRailwayMap (image) reste sous le réseau.
     function overlayBefore() {
-        return [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS, 'vff-stations-points'].find((id) =>
-            map.getLayer(id),
-        );
+        // Avec le rideau : au-dessus des deux époques (sous les accidents et l'itinéraire).
+        const top = curtainOn ? [] : ['vff-stations-points'];
+        return [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS, ...top].find((id) => map.getLayer(id));
     }
 
     function applyLevelCrossings(on) {

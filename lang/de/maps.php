@@ -233,7 +233,7 @@ return [
         'layers_term' => 'Ebenen',
         'layers_text' => 'Die Schaltfläche Ebenen über der Karte zeigt mehrere Ebenen zugleich. Ein Hintergrund von OpenRailwayMap (jeweils einer) blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem. Die Ebene Bahntrassenradwege zeichnet Radwege von OpenStreetMap auf der Trasse stillgelegter oder abgebauter Strecken; sie lässt sich über jede Epoche legen.',
         'views_term' => 'Epochen vergleichen',
-        'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
+        'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte: Ein Vorhang, den Sie ziehen oder mit den Pfeiltasten verschieben, zeigt das eine links und das andere rechts; die Darstellung „Unterschiede“ färbt die dazwischen eröffneten, stillgelegten oder abgebauten Strecken. Außerdem legt sie alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
         'schema_term' => 'Netzplan',
         'schema_text' => 'Die Auswahl „Schema“ unter „Ansicht“ öffnet den Netzplan: das Netz, das in der gewählten Epoche in Betrieb war, dargestellt als schematischer Verkehrsplan ohne Hintergrundkarte. Die Strecken sind auf 45 oder 90 Grad begradigt; Abzweige, Umsteige- und Endbahnhöfe erscheinen als Kreise, die übrigen Bahnhöfe als kurze Striche, die beim Hineinzoomen sichtbar werden. Auf der ganzen Frankreichkarte tragen die großen Bahnhöfe den Namen ihrer Stadt; beim Hineinzoomen zeigt jeder Bahnhof seinen eigenen Namen. Eine Strecke, die kein Gleis in Betrieb mit dem übrigen Netz verbindet (oft eine Museumsbahn), wird an ihrem Platz gezeichnet, ohne Verbindungsstrich zu den anderen Strecken. Paris, Lyon, Lille und Marseille sind vergrößert, damit ihre Bahnhöfe Platz finden; Lage und Entfernungen sind daher nicht maßstabsgetreu. Ein Klick auf eine Strecke oder einen Bahnhof öffnet dieselbe Seitenleiste wie auf der Karte.',
     ],
@@ -308,6 +308,17 @@ return [
             'removed' => 'Zwischen :from und :to abgebaut oder verschwunden',
             'kept' => 'Zu beiden Zeitpunkten in Betrieb (:from, :to)',
         ],
+    ],
+
+    // Vergleichsvorhang: eine Epoche links, die andere rechts, auf derselben Karte.
+    'curtain' => [
+        'mode_label' => 'Darstellung',
+        'mode_curtain' => 'Vorhang',
+        'mode_changes' => 'Unterschiede',
+        'label' => 'Position des Vorhangs',
+        'position' => ':left links, :right rechts, Vorhang bei :percent % der Breite',
+        'legend_title' => ':left links, :right rechts',
+        'today' => 'Heute',
     ],
 
     // Alle Epochen übereinander (Farbton = letztes Jahrzehnt in Betrieb).

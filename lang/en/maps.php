@@ -233,7 +233,7 @@ return [
         'layers_term' => 'Overlays',
         'layers_text' => 'The Layers button, above the map, shows several overlays at once. An OpenRailwayMap background (one at a time) adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system. The Greenways overlay draws OpenStreetMap greenways on the trackbed of closed or dismantled lines; it can be added to any period.',
         'views_term' => 'Comparing eras',
-        'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
+        'views_text' => 'The "View" choice above the map compares two decades: a curtain you drag, or move with the arrow keys, shows one on the left and the other on the right, and the "Differences" display colours the lines opened, closed or lifted in between. It also stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
         'schema_term' => 'Railway view',
         'schema_text' => 'The "Schematic" option under "View" opens the railway view: the network in service at the chosen era, drawn as a transport diagram with no background map. Lines are straightened to 45 or 90 degrees; junctions, interchanges and termini are circles, and other stations are short ticks that appear as you zoom in. When the whole of France is shown, the main stations carry the name of their city; zoom in and each station shows its own name. A line that no track in service links to the rest of the network (often a heritage railway) is drawn where it is, with no line joining it to the others. Paris, Lyon, Lille and Marseille are enlarged so that their stations fit, which means positions and distances are not to scale. Clicking a line or a station opens the same panel as on the map.',
     ],
@@ -308,6 +308,17 @@ return [
             'removed' => 'Lifted or gone between :from and :to',
             'kept' => 'In service at both dates (:from, :to)',
         ],
+    ],
+
+    // Comparison curtain: one era on the left, the other on the right, on the same map.
+    'curtain' => [
+        'mode_label' => 'Display',
+        'mode_curtain' => 'Curtain',
+        'mode_changes' => 'Differences',
+        'label' => 'Curtain position',
+        'position' => ':left on the left, :right on the right, curtain at :percent% of the width',
+        'legend_title' => ':left on the left, :right on the right',
+        'today' => 'Today',
     ],
 
     // All eras stacked (shade = last decade in service).

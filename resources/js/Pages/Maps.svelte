@@ -14,6 +14,7 @@
     import RouteCompareKey from '$components/Map/RouteCompareKey.svelte';
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
+    import EraCurtain from '$components/Map/EraCurtain.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, mapViews, readViewParams, writeViewParams } from '$lib/epochViews.js';
@@ -22,6 +23,12 @@
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
     import { readTint, writeTint } from '$lib/eraTint.js';
     import { readMapView, writeMapView } from '$lib/mapView.js';
+    import {
+        CURTAIN_DEFAULT,
+        DEFAULT_COMPARE_MODE,
+        readCompareParams,
+        writeCompareParams,
+    } from '$lib/eraCurtain.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -91,6 +98,24 @@
     // Décennies comparées (compareFrom < compareTo), choisies au passage à la comparaison.
     let compareFrom = $state(null);
     let compareTo = $state(null);
+    // Présentation de la comparaison : rideau (une décennie de chaque côté) ou différences colorées.
+    let compareMode = $state(DEFAULT_COMPARE_MODE);
+    // Position du rideau (pour cent de la largeur) ; l'adresse la suit après le geste (`curtainShared`),
+    // pas à chaque pixel (les navigateurs limitent les réécritures de l'adresse).
+    let curtainPos = $state(CURTAIN_DEFAULT);
+    let curtainShared = $state(CURTAIN_DEFAULT);
+    // Vue dessinée par la carte et décrite par la légende : le rideau est une présentation de « Comparer ».
+    const drawnView = $derived(view === 'compare' && compareMode === 'curtain' ? 'curtain' : view);
+    const curtainLabel = (year) =>
+        year === currentEraYear ? $i18n.t('maps.curtain.today') : String(year);
+    const curtainInline = (year) =>
+        year === currentEraYear ? $i18n.t('maps.compare.today_inline') : String(year);
+
+    function setCompareMode(next) {
+        // La fiche latérale (ouverte d'un clic sur le rideau) décrit une ligne à une décennie.
+        if (next !== 'curtain') drawerLine = null;
+        compareMode = next;
+    }
 
     function setView(next) {
         if (next === 'compare' && compareFrom === null) {
@@ -260,7 +285,15 @@
               }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
     );
 
-    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, ?view=schema&era=1930
+    // Le rideau entre dans l'adresse un court instant après le dernier mouvement.
+    $effect(() => {
+        const pos = curtainPos;
+        const timer = setTimeout(() => (curtainShared = pos), 300);
+        return () => clearTimeout(timer);
+    });
+
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980 (rideau, &curtain=30 pour sa position,
+    // &show=changes pour les différences), ?view=stack, ?view=schema&era=1930
     // (vue ferroviaire), et ?layer=… pour chaque calque (lue au montage).
     onMount(() => {
         const fromUrl = readViewParams(window.location.search, eras, views);
@@ -268,6 +301,11 @@
         if (fromUrl.view === 'compare') {
             compareFrom = fromUrl.era;
             compareTo = fromUrl.compare;
+            // ?show=changes : différences colorées ; sinon le rideau, à ?curtain= (pour cent) ou au milieu.
+            const shown = readCompareParams(window.location.search);
+            compareMode = shown.mode;
+            curtainPos = shown.curtain;
+            curtainShared = shown.curtain;
         }
         view = fromUrl.view;
         // Calques demandés par un lien (fiche ligne : « Voir la signalisation sur la carte »).
@@ -283,6 +321,10 @@
                 ? { view, era: compareFrom, compare: compareTo }
                 : { view, era: selectedEra };
         let next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        next = writeCompareParams(
+            next,
+            view === 'compare' ? { mode: compareMode, curtain: curtainShared } : null,
+        );
         // La vue ferroviaire a son propre cadrage : ni centre ni zoom dans son adresse.
         if (view === 'schema') next = writeMapView(next, null);
         if (next !== window.location.href) {
@@ -355,10 +397,19 @@
 
                     <!-- Légende, messages, fiche latérale : posés sur la carte comme sur le plan. -->
                     {#snippet mapOverlays()}
+                        {#if drawnView === 'curtain'}
+                            <EraCurtain
+                                bind:value={curtainPos}
+                                left={curtainLabel(compareFrom)}
+                                right={curtainLabel(compareTo)}
+                                leftText={curtainInline(compareFrom)}
+                                rightText={curtainInline(compareTo)}
+                            />
+                        {/if}
                         <div class="legend-slot">
                             <MapLegend
                                 era={view === 'compare' ? compareFrom : selectedEra}
-                                {view}
+                                view={drawnView}
                                 compareEra={compareTo}
                                 currentEra={currentEraYear}
                                 bind:hidden
@@ -442,8 +493,9 @@
                     {:else}
                         <RailMap
                             era={view === 'compare' ? compareFrom : selectedEra}
-                            {view}
+                            view={drawnView}
                             compareEra={compareTo}
+                            curtain={curtainPos}
                             geolocate
                             currentEra={currentEraYear}
                             {hidden}
@@ -479,6 +531,7 @@
                             currentEra={currentEraYear}
                             bind:from={compareFrom}
                             bind:to={compareTo}
+                            bind:mode={() => compareMode, setCompareMode}
                         />
                     {:else if view === 'era' || view === 'schema'}
                         <TimelineSlider
