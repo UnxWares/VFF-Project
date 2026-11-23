@@ -29,4 +29,10 @@ return [
         'close' => 'Fermer',
         'announce' => 'Clin d\'œil : le TGV 01 « Patrick », première rame du TGV Sud-Est (1978). Un lien en bas de l\'écran mène à sa fiche.',
     ],
+    // Impression des fiches : pied de page (resources/css/print.css, resources/js/lib/print.js).
+    'print' => [
+        'printed_on' => 'Imprimé le :date',
+        'page' => 'Page',
+        'of' => 'sur',
+    ],
 ];

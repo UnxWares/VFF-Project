@@ -1,0 +1,400 @@
+/* Impression des fiches et enregistrement en PDF depuis le navigateur : une page d'encyclopédie.
+   Texte noir sur blanc, polices du site, marges A4, aucun élément de navigation ni de saisie, mode
+   sombre ignoré. Rien ici ne s'applique à l'écran. Le pied de page (adresse, date, numéro de page) est
+   rempli par resources/js/lib/print.js. Essais : PDF sans fenêtre (Playwright, page.pdf()). */
+@media print {
+    @page {
+        size: A4;
+        margin: 16mm 15mm 20mm;
+
+        @bottom-left {
+            content: var(--vff-print-address, '');
+            font:
+                8pt Lato,
+                'Lato Fallback',
+                Arial,
+                sans-serif;
+            color: #444;
+            vertical-align: top;
+            padding-top: 4mm;
+            width: 70%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        @bottom-right {
+            content: var(--vff-print-date, '') ' - ' var(--vff-print-page, '') ' ' counter(page) ' '
+                var(--vff-print-of, '/') ' ' counter(pages);
+            font:
+                8pt Lato,
+                'Lato Fallback',
+                Arial,
+                sans-serif;
+            color: #444;
+            vertical-align: top;
+            padding-top: 4mm;
+            white-space: nowrap;
+        }
+    }
+
+    /* Mode sombre ignoré : les variables reprennent leurs valeurs du thème clair, sur du blanc. */
+    html:root,
+    html:root[data-theme='dark'] {
+        color-scheme: light;
+        --vff-accent-ink: #8a3700;
+        --vff-accent-strong: #d65000;
+        --vff-accent-soft: rgba(255, 101, 0, 0.12);
+        --vff-bg: #fff;
+        --vff-bg-elevated: #fff;
+        --vff-bg-subtle: #fff;
+        --vff-bg-muted: #eee;
+        --vff-bg-accent: #fbe9da;
+        --vff-text: #000;
+        --vff-text-muted: #333;
+        --vff-text-inverse: #fff;
+        --vff-link: #000;
+        --vff-border: #bbb;
+        --vff-border-strong: #888;
+        --vff-border-control: #888;
+        --vff-danger: #b42318;
+        --vff-danger-bg: #fff;
+        --vff-success: #166534;
+        --vff-success-bg: #fff;
+        --vff-warning: #8a3c00;
+        --vff-warning-bg: #fff;
+        --vff-info: #1f4e79;
+        --vff-info-bg: #fff;
+        --vff-shadow: transparent;
+        --vff-shadow-strong: transparent;
+        --vff-shadow-popover: none;
+        /* Échelle typographique : points, pour le papier. */
+        --vff-fs-xs: 8.5pt;
+        --vff-fs-sm: 9.5pt;
+        --vff-fs-md: 10pt;
+        --vff-fs-body: 10.5pt;
+        --vff-fs-lead: 11.5pt;
+        --vff-fs-h3: 11.5pt;
+        --vff-fs-h2: 15pt;
+        --vff-fs-h1: 23pt;
+        --vff-fs-figure: 16pt;
+        --vff-gutter: 0px;
+        --vff-container: 100%;
+        --vff-section-space: 14pt;
+    }
+
+    html,
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        font-size: 10.5pt;
+        line-height: 1.45;
+        -webkit-print-color-adjust: economy;
+        print-color-adjust: economy;
+    }
+    body,
+    #app,
+    #contenu,
+    main {
+        display: block !important;
+        min-height: 0 !important;
+        height: auto !important;
+        padding-top: 0 !important;
+        background: #fff !important;
+    }
+
+    /* Navigation, menus, boutons, formulaires, dialogues, bandeaux et pied de site : rien de tout cela
+       n'a de sens sur papier. */
+    .vff-skip-link,
+    .site-header,
+    .site-footer,
+    .sheet-toc,
+    .crumbs,
+    .report-error,
+    .offline-copy,
+    .vff-search-dialog,
+    dialog:not([open]),
+    dialog.report-dialog,
+    nav[aria-label]:not(.sheet-hero nav),
+    select,
+    textarea,
+    input,
+    [role='toolbar'],
+    .see-map,
+    .vff-btn,
+    .tool,
+    .best-jump,
+    .more-below,
+    .see,
+    .chip,
+    .lb-btn,
+    .phase-map-wrap,
+    button[aria-expanded],
+    details.fold > summary,
+    #lines-map,
+    .download,
+    main form,
+    .vff-ext,
+    .vff-sr-only,
+    .maplibregl-ctrl,
+    .maplibregl-ctrl-group,
+    .patrick-train,
+    #vff-progress,
+    [data-print='hide'] {
+        display: none !important;
+    }
+    /* Le sommaire de la fiche est replié dans le menu du site : à l'impression, la fiche se lit d'un trait. */
+
+    main {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* En-tête de fiche : titre, indications et chiffres clés sur fond blanc, filet en dessous. */
+    .sheet-hero {
+        background: none !important;
+        color: #000 !important;
+        padding: 0 0 8pt !important;
+        margin: 0 0 10pt !important;
+        border: 0 !important;
+        border-bottom: 1.5pt solid #000 !important;
+        box-shadow: none !important;
+        break-after: avoid;
+    }
+    .sheet-hero .inner,
+    .sheet-section {
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .sheet-hero h1 {
+        margin: 4pt 0 6pt !important;
+    }
+    .sheet-hero :is(p, span, li, a, dd, dt, strong) {
+        color: #000 !important;
+    }
+    .sheet-hero [style*='--status'] {
+        color: #000 !important;
+    }
+
+    /* Sections : une marge au-dessus, des titres qui ne restent jamais seuls en bas de page. */
+    .sheet-section {
+        padding-top: 14pt !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+        background: none !important;
+        border: 0 !important;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    summary,
+    figcaption,
+    .sheet-section .head {
+        break-after: avoid;
+        break-inside: avoid;
+    }
+    .sheet-section .head + *,
+    h2 + *,
+    h3 + * {
+        break-before: avoid;
+    }
+    p,
+    li,
+    dd,
+    blockquote {
+        orphans: 3;
+        widows: 3;
+    }
+
+    /* Blocs qui ne se coupent pas : tableaux (en-têtes répétés), lignes, cartes, légendes, notes. */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    thead {
+        display: table-header-group;
+    }
+    tfoot {
+        display: table-footer-group;
+    }
+    tr,
+    figure,
+    blockquote,
+    pre,
+    li,
+    dl > div,
+    .vff-panel,
+    .vff-notice,
+    .vff-figure,
+    .vff-table-wrap,
+    .source,
+    .refs > li,
+    .line-row,
+    .card {
+        break-inside: avoid;
+    }
+    /* Tableaux défilants à l'écran : en entier sur la page, sans colonne collée ni largeur plancher. */
+    .vff-table-wrap,
+    [class*='table-wrap'] {
+        overflow: visible !important;
+        max-height: none !important;
+        max-width: none !important;
+    }
+    table {
+        table-layout: auto !important;
+    }
+    td.closures {
+        width: 38%;
+    }
+    .strip-col {
+        width: 16% !important;
+        min-width: 0 !important;
+    }
+    th,
+    td {
+        position: static !important;
+        min-width: 0 !important;
+        white-space: normal !important;
+        background: none !important;
+    }
+
+    /* Panneaux et pastilles : filet fin, sans fond ni ombre. */
+    .vff-panel,
+    .vff-notice,
+    .vff-tile {
+        background: none !important;
+        box-shadow: none !important;
+        border: 0.5pt solid #888 !important;
+    }
+    .vff-badge,
+    .vff-plate {
+        background: none !important;
+        color: #000 !important;
+        border: 0.5pt solid #444 !important;
+        box-shadow: none !important;
+    }
+
+    /* Blocs repliables : ouverts (lib/print.js les ouvre aussi pour les navigateurs sans cette règle). */
+    details > summary {
+        list-style: none;
+    }
+    details > summary::-webkit-details-marker,
+    details > summary::marker {
+        display: none;
+    }
+    details::details-content {
+        content-visibility: visible;
+        display: block;
+    }
+    details > summary i,
+    details > summary .bi {
+        display: none !important;
+    }
+
+    /* Liens : texte noir ; adresse des liens externes juste derrière, en petit. */
+    a,
+    a:visited {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+    main a[href^='http']:not(:has(> img, > picture, > svg))::after {
+        content: ' (' attr(href) ')';
+        font-family: var(--vff-font-body);
+        font-size: 7.5pt;
+        font-weight: 400;
+        font-style: normal;
+        color: #444;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+    }
+    /* Lien vers une autre page du site (marqué par lib/print.js) : pas d'adresse, la page voisine est une fiche. */
+    main a[href^='http'][data-print-internal]::after {
+        content: none;
+    }
+    a[href^='#']::after,
+    a[href^='mailto:']::after,
+    a[href^='tel:']::after {
+        content: none !important;
+    }
+
+    /* Boutons qui portent du contenu (vignette, ligne d'un graphique, date d'une phase) : leur contenu
+       s'imprime, sans l'aspect d'un bouton. Les vrais boutons de commande sont masqués plus haut. */
+    button {
+        display: block;
+        appearance: none;
+        width: 100%;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: none !important;
+        color: #000 !important;
+        font: inherit;
+        text-align: left;
+        cursor: auto;
+    }
+    button img {
+        width: 100%;
+        height: auto;
+    }
+    button.thumb {
+        width: auto;
+    }
+
+    /* Images : jamais coupées, jamais plus larges que la page ; crédit et licence gardés (légendes). */
+    img,
+    svg,
+    canvas,
+    video {
+        max-width: 100% !important;
+        break-inside: avoid;
+    }
+    img {
+        height: auto;
+    }
+    ul.grid,
+    ul.material-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10pt !important;
+    }
+    figcaption,
+    .credit,
+    .credits {
+        color: #000 !important;
+        font-size: 8.5pt !important;
+        opacity: 1 !important;
+    }
+
+    /* Graphiques (frises, bandes d'ères, bandes de dates, schémas SVG) : dessinés avec des fonds de couleur,
+       imprimés tels quels même quand le navigateur n'imprime pas les fonds par défaut. Les fonds de
+       page, de panneau et de bandeau sont retirés plus haut. Cartes interactives (MapLibre, WebGL) :
+       leur toile s'imprime vide ou sans fond de carte selon le navigateur ; elles sont donc retirées, et
+       la fiche garde le texte voisin (position, lien vers la carte, adresse de la page). */
+    main *,
+    main svg * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .maplibregl-map,
+    :has(> .maplibregl-map),
+    details.notes {
+        display: none !important;
+    }
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+    ::selection {
+        background: transparent;
+    }
+}

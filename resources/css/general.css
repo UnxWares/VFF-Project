@@ -16,6 +16,7 @@
 @import url('./bootstrap-icons-subset.css');
 @import url('./header/header.css');
 @import url('./footer/footer.css');
+@import url('./print.css');
 
 /* Polices de repli ajustées (anti-décalage de mise en page) : tant que la police web n'est pas arrivée
    (affichage swap), le texte s'écrit avec Arial réglé aux dimensions de la police web (largeur moyenne des

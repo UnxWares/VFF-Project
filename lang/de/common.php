@@ -29,4 +29,10 @@ return [
         'close' => 'Schließen',
         'announce' => 'Eine kleine Überraschung: TGV 01 „Patrick“, der erste Triebzug des TGV Sud-Est (1978). Ein Link unten auf dem Bildschirm führt zu seiner Seite.',
     ],
+    // Ausdruck der Seiten: Fußzeile (resources/css/print.css, resources/js/lib/print.js).
+    'print' => [
+        'printed_on' => 'Gedruckt am :date',
+        'page' => 'Seite',
+        'of' => 'von',
+    ],
 ];

@@ -29,4 +29,10 @@ return [
         'close' => 'Close',
         'announce' => 'A small nod: TGV 01 “Patrick”, the first TGV Sud-Est set (1978). A link at the bottom of the screen leads to its page.',
     ],
+    // Printing a sheet: page footer (resources/css/print.css, resources/js/lib/print.js).
+    'print' => [
+        'printed_on' => 'Printed on :date',
+        'page' => 'Page',
+        'of' => 'of',
+    ],
 ];
