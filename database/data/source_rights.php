@@ -587,6 +587,18 @@ return [
             'domaines' => ['delpher.nl', 'resolver.kb.nl', 'kb.nl'],
             'lu_le' => '2026-11-22',
         ],
+        'letempsarchives' => [
+            'nom' => 'Le Temps Archives (Journal de Genève, Gazette de Lausanne, Le Nouveau Quotidien)',
+            'statut' => 'incertain',
+            'licence' => 'Pas de licence ouverte : archives numérisées de Le Temps SA, sans page de conditions propre ; les conditions générales de letemps.ch interdisent la reproduction, la mise en lien et l\'utilisation à des fins publiques ou commerciales sans autorisation écrite de Le Temps ; les journaux du XIXe et du début du XXe siècle sont sans doute dans le domaine public (auteurs morts depuis plus de 70 ans), mais la numérisation et la base appartiennent au Temps',
+            'accord' => null,
+            'preuve' => ['https://www.letempsarchives.ch/robots.txt', 'https://www.letemps.ch/conditions-generales', 'https://www.letempsarchives.ch/'],
+            'citation' => 'La reproduction (entière ou partielle), la transmission (électronique ou par d\'autres voies), la modification, la mise en lien ou l\'utilisation de ces marques, noms, logos, photos, éléments visuels, textes et autres matériaux à des fins publiques ou commerciales sont interdites sans autorisation écrite préalable de Le Temps.',
+            'obligations' => 'Faits seulement (date, lieu, bilan), rédigés par VFF, avec le journal, la date, la page et le lien vers la page du numéro (letempsarchives.ch/page/<numéro>/<page>) ; une citation de quelques mots au plus ; aucune image, aucune reproduction de page ni d\'extrait de texte ; pas d\'extraction en masse.',
+            'remarques' => 'robots.txt du 06/11/2026 : « Disallow: /* », « Allow: /$ » (seule la page d\'accueil est ouverte aux programmes) ; la recherche demande un jeton de session. Le 22/11/2026 (21 h 50) puis le 23/11/2026 vers 1 h, Baptiste, responsable du projet, a donné l\'ordre exprès d\'accéder au site malgré le robots.txt, parce qu\'il estime avoir lui-même cette autorisation, un humain étant derrière les requêtes : l\'accès est donc fait pour lui et sur son autorisation, pas sur un accord de Le Temps SA (aucun accord écrit reçu ; en demander un reste conseillé). Conditions d\'accès tenues : une requête toutes les 5 secondes au moins, User-Agent « VFF-Bot/1.0 (+https://vff-project.org) », seulement la recherche et les pages des accidents sans article déjà connu, aucune barrière technique contournée. Les pages sont des images (IIIF) sans texte lisible par programme ; la recherche est floue et renvoie surtout des faux positifs (Nyon pour Saint-Sornin, Siedlice pour Vrizy).',
+            'domaines' => ['letempsarchives.ch'],
+            'lu_le' => '2026-11-23',
+        ],
         'ddb-zeitungsportal' => [
             'nom' => 'Deutsches Zeitungsportal (Deutsche Digitale Bibliothek)',
             'statut' => 'incertain',
@@ -952,6 +964,7 @@ return [
             'retronews' => 'retronews', 'assemblee-nationale' => 'assemblee-nationale', 'senat' => 'senat',
             'archives-nationales' => 'archives-nationales', 'francearchives' => 'francearchives',
             'archives-departementales' => 'archives-departementales', 'persee' => 'persee', 'europeana' => 'europeana', 'ina' => 'ina',
+            'letempsarchives' => 'letempsarchives',
         ],
         // Images d'archives des accidents : fichiers de Wikimedia Commons, licence relue sur chaque fichier.
         'accident_images' => ['commons' => 'commons'],
