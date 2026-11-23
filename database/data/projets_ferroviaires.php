@@ -769,11 +769,10 @@ return [
         'checked' => '2026-11-23',
     ],
     [
-        // Doutes : la date du 12 décembre 2027 vient d'un article d'août 2025 ; d'autres documents du concessionnaire
-        // parlent de fin 2027 et de 2028 pour la première année de pleine fréquentation. Le communiqué de lancement du
-        // chantier (janvier 2026) est un PDF non lisible : la date du 17 décembre 2025 est celle citée par une synthèse
-        // de recherche. Les sources de financement du chantier (200 M EUR de financement cités en titre) ne sont pas
-        // détaillées dans les pages lues.
+        // Vérifié le 23/11/2026 dans le communiqué du 22/01/2026 (texte extrait du PDF) : « Démarrés le 17 décembre
+        // 2025, après l'obtention de l'ensemble des autorisations administratives » et « jusqu'à la réouverture au
+        // service annuel 2028 », qui commence le dimanche 12/12/2027. Les sources de financement du chantier ne sont
+        // pas détaillées dans les pages lues.
         'id' => 'nancy-contrexeville',
         'name' => 'Réouverture de Nancy à Contrexéville (ligne 14)',
         'kind' => 'reopening',
