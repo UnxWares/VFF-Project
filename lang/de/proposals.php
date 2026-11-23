@@ -105,7 +105,7 @@ return [
             'source_license' => 'Wählen Sie die Lizenz des Dokuments.',
             'excerpt_length' => 'Das Zitat hat höchstens :max Zeichen.',
             'reason' => 'Erklären Sie in :min bis :max Zeichen, was falsch ist.',
-            'corrected_missing' => 'Dieses Ereignis kann nicht korrigiert werden: Es existiert auf dieser Strecke nicht mehr, oder es ist ein Unfall oder eine bereits korrigierte Tatsache.',
+            'corrected_missing' => 'Dieses Ereignis kann nicht korrigiert werden: Es existiert auf dieser Strecke nicht mehr, oder es ist ein Unfall oder ein bereits korrigiertes Ereignis.',
         ],
     ],
 

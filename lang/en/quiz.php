@@ -126,7 +126,7 @@ return [
             'station_opening_year' => 'In which year did this station open?',
             'cab_signalling' => 'Which cab signalling system equips this high-speed line?',
             'electrification_date' => 'On what date was this line electrified?',
-            'line_material' => 'Which of these rolling stock series is cited among those that run this line?',
+            'line_material' => 'Which of these rolling stock series is cited as running on this line?',
             'accident_year' => 'In which year did this accident happen?',
         ],
         'reveal' => [
@@ -144,7 +144,7 @@ return [
             'station_opening_year' => '“:station” station opened on :date.',
             'cab_signalling' => '“:line” is equipped with :system, since its first section opened on :date.',
             'electrification_date' => '“:line” was electrified on :date.',
-            'line_material' => 'The :series series is cited among the rolling stock of “:line” by the encyclopedia\'s sources. No source links the other series offered to this line: :others.',
+            'line_material' => 'The :series series is cited among the rolling stock of “:line” by the encyclopaedia\'s sources. No source links the other series offered to this line: :others.',
             'accident_year' => ':accident, on :date.',
         ],
         'cab' => [

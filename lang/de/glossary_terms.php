@@ -182,7 +182,7 @@ return [
     'bmu' => [
         'name' => 'BMU',
         'full' => 'Block manuel unifié (einheitlicher Handblock)',
-        'definition' => 'Variante des nicht selbsttätigen Streckenblocks für zweigleisige Strecken, Bauart SNCF: Geräte verbinden die beiden benachbarten Stellwerke, und ein Bediensteter erlaubt einem Zug die Einfahrt in den Blockabschnitt zwischen ihnen. Die Ausführung für eingleisige Strecken ist der BMVU.',
+        'definition' => 'Variante des nicht selbsttätigen Streckenblocks für zweigleisige Strecken, Bauart SNCF: Geräte verbinden die beiden benachbarten Stellwerke, und ein Fahrdienstleiter erlaubt einem Zug die Einfahrt in den Blockabschnitt zwischen ihnen. Die Ausführung für eingleisige Strecken ist der BMVU.',
     ],
     'bmvu' => [
         'name' => 'BMVU',
@@ -254,7 +254,7 @@ return [
     'prci' => [
         'name' => 'PRCI',
         'full' => 'Poste à relais à commande informatique (Relaisstellwerk mit Rechnersteuerung)',
-        'definition' => 'Stellwerk, in dem die Abhängigkeiten zwischen Weichen und Signalen durch Relais hergestellt werden und die Fahrstraßen von einem Rechner gestellt werden: Tastatur und Bildschirm ersetzen das Pult des Relaisstellwerks mit geografischer Verdrahtung, und der Bedienstete kann Fahrstraßenfolgen programmieren. Das erste ging 1984 in Frankreich in Betrieb.',
+        'definition' => 'Stellwerk, in dem die Abhängigkeiten zwischen Weichen und Signalen durch Relais hergestellt werden und die Fahrstraßen von einem Rechner gestellt werden: Tastatur und Bildschirm ersetzen das Pult des Relaisstellwerks mit geografischer Verdrahtung, und der Fahrdienstleiter kann Fahrstraßenfolgen programmieren. Das erste ging 1984 in Frankreich in Betrieb.',
     ],
     'electrification' => [
         'name' => 'Elektrifizierung',
@@ -438,7 +438,7 @@ return [
         'definition' => 'Physischer Ausbau des Gleises (Schienen, Schwellen). Eine Strecke kann zurückgebaut werden, wenn sie stillgelegt oder entwidmet ist; ihre Trasse kann erhalten bleiben.',
     ],
     'desaffectation' => [
-        'name' => 'Entwidmung der Nutzung (désaffectation)',
+        'name' => 'Nutzungsaufgabe (désaffectation)',
         'definition' => 'Feststellung, dass ein Grundstück oder eine Anlage dem öffentlichen Eisenbahndienst nicht mehr dient. Sie geht der Entwidmung (déclassement) voraus, die das Gut anschließend aus dem öffentlichen Eigentum herauslöst; das Gleis wird dadurch nicht entfernt und kann liegen bleiben.',
     ],
     'monument-historique' => [

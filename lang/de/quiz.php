@@ -24,7 +24,7 @@ return [
         'materials' => 'Fahrzeug erkennen',
         'materials_text' => 'Ein Foto von Wikimedia Commons und vier Baureihen desselben Typs.',
         'facts' => 'Bahnwissen',
-        'facts_text' => 'Textfragen zu belegten Fakten: Eröffnung einer Strecke, Gesellschaft, längster Tunnel, Architekt und Eröffnung eines Bahnhofs, Signalsystem einer Hochgeschwindigkeitsstrecke, Elektrifizierung, Fahrzeuge einer Strecke, alte Unfälle, meistgenutzter Bahnhof, erste Baureihe im Einsatz. Beim leichten Schwierigkeitsgrad liegen die falschen Antworten weit entfernt, und die anspruchsvollsten Fragen entfallen.',
+        'facts_text' => 'Textfragen zu belegten Angaben: Eröffnung einer Strecke, Gesellschaft, längster Tunnel, Architekt und Eröffnung eines Bahnhofs, Signalsystem einer Hochgeschwindigkeitsstrecke, Elektrifizierung, Fahrzeuge einer Strecke, alte Unfälle, meistgenutzter Bahnhof, erste Baureihe im Einsatz. Beim leichten Schwierigkeitsgrad liegen die falschen Antworten weit entfernt, und die anspruchsvollsten Fragen entfallen.',
         'unavailable' => 'Für dieses Spiel gibt es noch nicht genug geprüfte Daten.',
     ],
     'levels' => [
@@ -126,7 +126,7 @@ return [
             'station_opening_year' => 'In welchem Jahr wurde dieser Bahnhof eröffnet?',
             'cab_signalling' => 'Welches Führerstandssignalsystem ist auf dieser Hochgeschwindigkeitsstrecke eingebaut?',
             'electrification_date' => 'An welchem Datum wurde diese Strecke elektrifiziert?',
-            'line_material' => 'Welche dieser Baureihen wird unter denen genannt, die diese Strecke bedienen?',
+            'line_material' => 'Welche dieser Baureihen wird als auf dieser Strecke eingesetzt genannt?',
             'accident_year' => 'In welchem Jahr ereignete sich dieser Unfall?',
         ],
         'reveal' => [

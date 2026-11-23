@@ -105,7 +105,7 @@ return [
             'journal' => 'Logbook',
         ],
         'items' => [
-            'stats_coverage' => 'What the encyclopedia knows: for lines, stations, accidents and rolling stock, what is filled in as a number and a share, the share from open sources, the precision by period and the date of the calculation.',
+            'stats_coverage' => 'What the encyclopaedia knows: for lines, stations, accidents and rolling stock, what is filled in as a number and a share, the share from open sources, the precision by period and the date of the calculation.',
             'stats_network' => 'The network in figures, decade by decade: kilometres open (passenger, freight only), closed and lifted, electrification, stations, dated closures and accidents, with the date of the calculation.',
             'chronology' => 'A chronology of French railways, year by year: counts of openings, reopenings, closures, electrifications, signalling commissionings, rolling stock series, major accidents and national milestones, by kind and by region.',
             'chronology_decade' => 'The facts of one decade, year by year: date at its precision, line, sections, kilometres, page and publishable sources of each fact.',
