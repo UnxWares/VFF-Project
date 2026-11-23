@@ -43,7 +43,11 @@ final class StationAttendanceMatcher
             if ($s->uic_code !== null && $s->uic_code !== '') {
                 $this->byUic[$s->uic_code][] = $s;
             }
-            $this->byName[self::normalize($s->name)][] = $s;
+            // Un nom sans lettre latine ni chiffre (« 東京 », « ??? ») se réduit à '' : jamais une clé de rattachement.
+            $key = self::normalize($s->name);
+            if ($key !== '') {
+                $this->byName[$key][] = $s;
+            }
         }
     }
 
@@ -73,7 +77,8 @@ final class StationAttendanceMatcher
         if (isset(self::ALIASES[$uic], $this->bySlug[self::ALIASES[$uic]])) {
             return ['station' => $this->bySlug[self::ALIASES[$uic]], 'method' => 'alias'];
         }
-        $named = array_values(array_filter($this->byName[self::normalize($name)] ?? [],
+        $key = self::normalize($name);
+        $named = array_values(array_filter($key === '' ? [] : ($this->byName[$key] ?? []),
             fn ($s) => $department !== null && self::sameDepartment($s->department_code, $department)));
         if (count($named) === 1) {
             return ['station' => $named[0], 'method' => 'name-department'];
