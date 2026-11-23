@@ -17,6 +17,13 @@ namespace App\Services\Signalling;
  */
 final class SncfBlockLabels
 {
+    /**
+     * Code d'une section que SNCF Réseau déclare « Sans cantonnement » (ligne sans circulation régulière,
+     * trains menés à vue ou par une autre règle) : une valeur à part entière, qui se distingue d'un trou des
+     * données. Ce n'est ni un cantonnement ni une signalisation : aucune famille de la carte, aucun KVB à lui seul.
+     */
+    public const NONE = 'NONE';
+
     /** Libellé SNCF d'un seul système → code VFF ; null : libellé connu, sans cantonnement à garder. */
     private const MAPPING = [
         'Block automatique lumineux' => 'BAL',
@@ -41,13 +48,13 @@ final class SncfBlockLabels
         'Transmission voie-machine 300' => 'TVM-300',
         'Transmission voie-machine 430' => 'TVM-430',
         'Marche Tramway (circulation à vue)' => null,
-        'Sans cantonnement' => null,
+        'Sans cantonnement' => self::NONE,
         '_Autre' => null,
     ];
 
     /**
      * Codes VFF d'un libellé, dans son ordre, sans doublon. Liste vide pour un libellé sans
-     * cantonnement à garder (« Sans cantonnement », « _Autre »), null pour un libellé inconnu (ou
+     * cantonnement à garder (« Marche Tramway », « _Autre » : le système n'est pas dit), null pour un libellé inconnu (ou
      * dont une partie est inconnue : rien n'est deviné).
      *
      * @return list<string>|null

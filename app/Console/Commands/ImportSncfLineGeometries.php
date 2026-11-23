@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Sncf\SncfPk;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -98,16 +99,11 @@ class ImportSncfLineGeometries extends Command
     }
 
     /**
-     * PK SNCF « 057+727 » → 57 727 m ; « 001-250 » → 750 m (km moins mètres, comme
-     * les autres importeurs SNCF) ; « -001+200 » → -1 200 m.
+     * PK SNCF « 057+727 » → 57 727 m ; « 001-250 » → 750 m ; « -001+200 » → -1 200 m ;
+     * « D+841 » → 3 841 m (lettre à la place du kilomètre, RER C : voir SncfPk).
      */
     private function parsePk(?string $pk): ?int
     {
-        if (! $pk || ! preg_match('/^(-?)(\d+)([+\-])(\d{1,3})$/', trim($pk), $m)) {
-            return null;
-        }
-        $value = (int) $m[2] * 1000 + ($m[3] === '-' ? -(int) $m[4] : (int) $m[4]);
-
-        return $m[1] === '-' ? -$value : $value;
+        return SncfPk::meters($pk);
     }
 }

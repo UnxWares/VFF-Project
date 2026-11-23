@@ -127,6 +127,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, selbsttätiger Lichtblock',
             'BAL-VB' => 'BAL, Gleiswechselbetrieb',
+            'NONE' => 'Ohne Blocksystem',
             'BAL-Tram' => 'Selbsttätiger Straßenbahnblock',
             'BAPR' => 'BAPR, selbsttätiger Block mit eingeschränkter Zulässigkeit',
             'BAPR-DV' => 'BAPR, zweigleisig',

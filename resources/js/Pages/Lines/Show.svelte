@@ -1201,9 +1201,9 @@
                                             ></i>
                                             <span
                                                 ><span class="sig-kind"
-                                                    >{isCabin(r.signalling)
-                                                        ? t('lines.signalling.cabin')
-                                                        : t('lines.signalling.block')}</span
+                                                    >{#if r.signalling !== 'NONE'}{isCabin(r.signalling)
+                                                            ? t('lines.signalling.cabin')
+                                                            : t('lines.signalling.block')}{/if}</span
                                                 >
                                                 {systemsLabel(r, t)}</span
                                             >

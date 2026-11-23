@@ -196,4 +196,44 @@ class SignallingHistoryExtractorTest extends TestCase
         $this->assertSame([], $this->extract('Elle est électrifiée depuis le 15 septembre 1966, équipée du block automatique lumineux (BAL).'));
         $this->assertSame([], $this->extract('* En 1995, mise en service de l\'électrification, installation du block manuel.'));
     }
+
+    public function test_a_section_put_under_voltage_with_the_introduction_of_the_block_is_dated_by_the_sentence(): void
+    {
+        $facts = $this->extract('Le {{date|22|mai|1962|dans les chemins de fer}}, dans le cadre du programme d\'électrification du réseau Est, la section Bondy - Gargan est mise sous tension en 25 kV - 50Hz, avec introduction du [[block automatique lumineux]] entre Bondy et Gargan, avec une exploitation par des locomotives.');
+
+        $this->assertCount(1, $facts);
+        $this->assertSame(['BAL', '1962-05-22', 'day'], [$facts[0]['system'], $facts[0]['date'], $facts[0]['precision']]);
+    }
+
+    public function test_a_block_ensuring_spacing_since_a_date_is_dated(): void
+    {
+        $facts = $this->extract('Depuis le {{date|12 avril 2015}}, l\'espacement et la sécurité des circulations est assurée grâce au [[block automatique lumineux]] (BAL) entre Niort et La Rochelle.');
+
+        $this->assertCount(1, $facts);
+        $this->assertSame(['BAL', '2015-04-12', 'day'], [$facts[0]['system'], $facts[0]['date'], $facts[0]['precision']]);
+    }
+
+    public function test_an_introduction_carried_out_in_a_month_is_dated_by_that_month(): void
+    {
+        $facts = $this->extract('La modernisation de ce tronçon avec électrification par caténaire en 25 kV et introduction du [[block automatique lumineux]] (BAL) ne pose pas de difficultés et est réalisée de manière anticipée en {{date|mai 1983}}, dans le cadre du projet VMI.');
+
+        $this->assertCount(1, $facts);
+        $this->assertSame(['BAL', '1983-05-01', 'month'], [$facts[0]['system'], $facts[0]['date'], $facts[0]['precision']]);
+    }
+
+    public function test_a_framing_link_to_another_line_does_not_hide_the_fact(): void
+    {
+        $facts = $this->extract('La modernisation avec introduction du [[block automatique lumineux]] (BAL) est réalisée en {{date|mai 1983}}, dans le cadre du [[Ligne d\'Ermont - Eaubonne à Champ-de-Mars|projet VMI]], dont l\'objet est la création d\'une antenne, ouverte le {{date|25|septembre|1988}}.');
+
+        $this->assertSame([['BAL', '1983-05-01']], array_map(fn ($f) => [$f['system'], $f['date']], $facts));
+    }
+
+    public function test_the_new_forms_do_not_date_a_future_or_an_unrelated_date(): void
+    {
+        // Futur, date d'une autre action, date de consultation d'une source : rien.
+        $this->assertSame([], $this->extract('Depuis le 12 avril 2015, la ligne est fermée ; le block automatique lumineux sera assuré plus tard.'));
+        $this->assertSame([], $this->extract('La modernisation, avec introduction du block automatique lumineux, est prévue en mai 1983.'));
+        $this->assertSame([], $this->extract('Dans le cadre du programme de modernisation, le block automatique lumineux sera installé en 1990.'));
+        $this->assertSame([], $this->extract('La section est mise sous tension le 22 mai 1962, le block automatique lumineux étant déjà en place.'));
+    }
 }

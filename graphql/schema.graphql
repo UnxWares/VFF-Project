@@ -353,7 +353,8 @@ type LineSignallingRange {
     `CAPI` (cantonnement assisté par informatique), `CT` (cantonnement téléphonique de double voie),
     `TVM-300` / `TVM-430` (signalisation en cabine des LGV, sans signaux latéraux),
     `ETCS_L1` / `ETCS_L2`. Suffixes : `-VB` voie banalisée (circulation dans les deux sens
-    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train. Quand deux systèmes sont
+    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train. `NONE` : SNCF Réseau déclare
+    la section « Sans cantonnement » (une section absente de la liste est, elle, inconnue). Quand deux systèmes sont
     installés ensemble, c'est le premier du libellé de SNCF Réseau : voir `signalling_systems`.
     """
     signalling: String!

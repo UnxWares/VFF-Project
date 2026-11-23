@@ -27,7 +27,7 @@ enum SignallingFamily: string
     /** Signalisation en cabine des lignes à grande vitesse : TVM 300, TVM 430, ETCS niveaux 1 et 2. */
     case Cab = 'cab';
 
-    /** Famille d'un code de cantonnement VFF ; null pour un code inconnu. */
+    /** Famille d'un code de cantonnement VFF ; null pour un code inconnu et pour `NONE` (« sans cantonnement » : rien à dessiner). */
     public static function fromCode(string $code): ?self
     {
         return match (true) {

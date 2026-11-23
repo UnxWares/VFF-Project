@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Services\Signalling\SignallingMap;
+use App\Services\Signalling\SignallingRegimeRules;
 use App\Services\Signalling\SncfBlockLabels;
+use App\Services\Sncf\SncfPk;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +41,12 @@ class ImportSncfSignalling extends Command
 
     /** @var array<string, true> libellés SNCF inconnus (tranches ignorées, signalées en fin d'import) */
     private array $unknownLabels = [];
+
+    /** @var array<string, list<array{from: int, to: int, regime: string}>> portions de régime d'exploitation par ligne */
+    private array $regimes = [];
+
+    /** Tranches « _Autre » dont le système est déduit du régime d'exploitation (portions écrites). */
+    private int $regimeDeduced = 0;
 
     /** @var array<string,bool> codes LGV (depuis sncf_line_catlig) */
     private array $lgvCodes = [];
@@ -81,12 +89,14 @@ class ImportSncfSignalling extends Command
             return self::FAILURE;
         }
 
+        $this->loadRegimes();
+
         [$totalCant, $totalKvb] = DB::transaction(function () use ($eraId, $cantonnement, $kvb) {
             DB::table('line_signalling')->where('era_id', $eraId)->delete();
 
             $this->info('  ► [1/2] Cantonnement (mode-de-cantonnement-des-lignes)…');
             $totalCant = $this->importCantonnement($eraId, $cantonnement);
-            $this->info("    ✓ {$totalCant} tranches insérées");
+            $this->info("    ✓ {$totalCant} tranches insérées (dont {$this->regimeDeduced} déduites du régime d'exploitation)");
             if ($this->unknownLabels !== []) {
                 $this->warn('    Libellés inconnus, tranches ignorées : '.implode(' ; ', array_keys($this->unknownLabels)));
             }
@@ -110,6 +120,36 @@ class ImportSncfSignalling extends Command
         $this->info("Carte de la signalisation : {$pieces} morceaux de tracé recalculés");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Portions de régime d'exploitation (jeu `regime-dexploitation-des-lignes`), par code de ligne, pour les tranches
+     * « _Autre ». Cache du pipeline (storage/app/sources/sncf-regime) s'il existe, sinon téléchargement ; une panne laisse
+     * ces tranches sans système (rien n'est deviné).
+     */
+    private function loadRegimes(): void
+    {
+        $records = [];
+        $file = storage_path('app/sources/sncf-regime/regime-dexploitation-des-lignes.json');
+        try {
+            if (! app()->runningUnitTests() && is_file($file)) {
+                $cached = json_decode((string) file_get_contents($file), true);
+                $records = is_array($cached['records'] ?? null) ? $cached['records'] : [];
+            }
+            if ($records === []) {
+                $records = $this->fetchAllRecords('regime-dexploitation-des-lignes');
+            }
+        } catch (\RuntimeException $e) {
+            $this->warn('  Régimes d\'exploitation indisponibles ('.$e->getMessage().') : tranches « _Autre » ignorées.');
+        }
+        foreach ($records as $r) {
+            $from = $this->parsePk($r['pkd'] ?? null);
+            $to = $this->parsePk($r['pkf'] ?? null);
+            if ($from === null || $to === null || ! isset($r['code_ligne'], $r['exploitati'])) {
+                continue;
+            }
+            $this->regimes[(string) $r['code_ligne']][] = ['from' => $from, 'to' => $to, 'regime' => (string) $r['exploitati']];
+        }
     }
 
     /**
@@ -188,10 +228,10 @@ class ImportSncfSignalling extends Command
 
                     continue;
                 }
-                if ($systems === []) {
+                $isOther = $label === SignallingRegimeRules::OTHER_LABEL;
+                if ($systems === [] && ! $isOther) {
                     continue;
                 }
-                $sig = $systems[0];
 
                 $code = $r['code_ligne'] ?? null;
                 if (! $code) {
@@ -211,21 +251,35 @@ class ImportSncfSignalling extends Command
                     [$pkStart, $pkEnd] = [$pkEnd, $pkStart];
                 }
 
-                $prot = SncfBlockLabels::protection($systems);
-                $inserts[] = [
-                    'line_id' => $lineId,
-                    'era_id' => $eraId,
-                    'pk_start_m' => $pkStart,
-                    'pk_end_m' => $pkEnd,
-                    'signalling' => $sig,
-                    'signalling_systems' => json_encode($systems),
-                    'source_label' => mb_substr($label, 0, 160),
-                    'train_protection' => $prot ? json_encode($prot) : null,
-                    'kvb_equipped' => false,
-                    'note' => 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+                // Tranche « _Autre » : le jeu ne dit pas le système ; le régime d'exploitation le donne pour certaines
+                // portions (règles sourcées de database/data/signalling_regime_systems.php), les autres restent sans système.
+                $parts = [[$pkStart, $pkEnd, $systems, 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes']];
+                if ($isOther) {
+                    $parts = [];
+                    foreach (SignallingRegimeRules::pieces($pkStart, $pkEnd, $this->regimes[$code] ?? []) as $p) {
+                        $parts[] = [$p['from'], $p['to'], [$p['system']],
+                            'Déduit du régime d\'exploitation (SNCF Open Data, regime-dexploitation-des-lignes) : '.$p['source']];
+                        $this->regimeDeduced++;
+                    }
+                }
+
+                foreach ($parts as [$from, $to, $sys, $note]) {
+                    $prot = SncfBlockLabels::protection($sys);
+                    $inserts[] = [
+                        'line_id' => $lineId,
+                        'era_id' => $eraId,
+                        'pk_start_m' => $from,
+                        'pk_end_m' => $to,
+                        'signalling' => $sys[0],
+                        'signalling_systems' => json_encode($sys),
+                        'source_label' => mb_substr($label, 0, 160),
+                        'train_protection' => $prot ? json_encode($prot) : null,
+                        'kvb_equipped' => false,
+                        'note' => $note,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
             }
             if ($inserts) {
                 DB::table('line_signalling')->insert($inserts);
@@ -299,14 +353,9 @@ class ImportSncfSignalling extends Command
         return $applied;
     }
 
-    /** "016+953" → 16953 m ; "000-168" → -168 m. */
+    /** "016+953" → 16953 m ; "000-168" → -168 m ; "D+841" → 3841 m (RER C, cf. SncfPk). */
     private function parsePk(?string $pk): ?int
     {
-        if (! $pk || ! preg_match('/^(\d+)([+\-])(\d{1,3})$/', trim($pk), $m)) {
-            return null;
-        }
-        $base = (int) $m[1] * 1000;
-
-        return $m[2] === '-' ? $base - (int) $m[3] : $base + (int) $m[3];
+        return SncfPk::meters($pk);
     }
 }

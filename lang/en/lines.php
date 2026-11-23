@@ -127,6 +127,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, automatic light block',
             'BAL-VB' => 'BAL, bidirectional track',
+            'NONE' => 'No block system',
             'BAL-Tram' => 'Tram automatic block',
             'BAPR' => 'BAPR, restricted permissive automatic block',
             'BAPR-DV' => 'BAPR, double track',

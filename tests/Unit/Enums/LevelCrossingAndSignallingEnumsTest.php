@@ -65,6 +65,7 @@ class LevelCrossingAndSignallingEnumsTest extends TestCase
         yield 'CAPI' => ['CAPI', SignallingFamily::Telephone];
         yield 'TVM-300' => ['TVM-300', SignallingFamily::Cab];
         yield 'ETCS_L2' => ['ETCS_L2', SignallingFamily::Cab];
+        yield 'Sans cantonnement : rien à dessiner' => ['NONE', null];
         yield 'KVB n’est pas un cantonnement' => ['KVB', null];
         yield 'ERTMS est un contrôle' => ['ERTMS_L2', null];
     }

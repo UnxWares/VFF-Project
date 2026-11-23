@@ -38,7 +38,7 @@ use App\Services\WikipediaLineParser;
 final class SignallingHistoryExtractor
 {
     /** Verbe ou nom de mise en service. */
-    private const VERB = '/\bmis(?:e|es)?\s+en\s+(?:service|place|œuvre)|\bentr\w+\s+en\s+service|\binstall\w+|\bpos(?:é|ée|és|ées|ent|er)\b|\bpose\b|\béquip\w+|\bdot(?:é|ée|és|ées|ation)\b|\bétend\w+|\bétendu\w*|\bextension\b|\bdéploy\w+|\bgénéralis\w+|\binaugur\w+|\brempla[cç]\w+|\bactiv(?:é|ée|ation)\b|\bsubstitu\w+|\bintrodui\w+|\binstauré\w*/iu';
+    private const VERB = '/\bmis(?:e|es)?\s+en\s+(?:service|place|œuvre)|\bentr\w+\s+en\s+service|\binstall\w+|\bpos(?:é|ée|és|ées|ent|er)\b|\bpose\b|\béquip\w+|\bdot(?:é|ée|és|ées|ation)\b|\bétend\w+|\bétendu\w*|\bextension\b|\bdéploy\w+|\bgénéralis\w+|\binaugur\w+|\brempla[cç]\w+|\bactiv(?:é|ée|ation)\b|\bsubstitu\w+|\bintrodui\w+|\bintroduction\b|\bassur(?:é|ée|és|ées)\s+grâce\s+(?:au|à)\b|\binstauré\w*/iu';
 
     /** Futur, projet, retrait : pas une mise en service passée. */
     private const NEGATIVE = '/\b(?:sera|seront|serait|seraient|prévu\w*|projet\w*|doit|doivent|devai(?:t|ent)|devrait|devraient|envisag\w+|programm\w+|futur\w*|à terme|souhait\w+|étud(?:e|es|ié\w*)|supprim\w+|abandonn\w+|dépos\w+|retir\w+|désaffect\w+|déman\w+|désactiv\w+|rempla[cç]era\w*|fermeture|fermé\w*)\b/iu';
@@ -210,7 +210,7 @@ final class SignallingHistoryExtractor
             $verbOk = $hasVerb || ($previousHadVerb && preg_match(self::CONTINUATION, $clause));
             $previousHadVerb = $hasVerb || $previousHadVerb && preg_match(self::CONTINUATION, $clause);
             $mentions = SignallingSystems::mentions($clause);
-            if ($mentions === [] || ! $verbOk || preg_match(self::NEGATIVE, $clause) || str_contains($clause, '⟦')) {
+            if ($mentions === [] || ! $verbOk || preg_match(self::NEGATIVE, $framed = $this->withoutFraming($clause)) || str_contains($framed, '⟦')) {
                 continue;
             }
             $dates = $this->datesOf($clause);
@@ -268,6 +268,16 @@ final class SignallingHistoryExtractor
         }
 
         return $out;
+    }
+
+    /**
+     * Proposition sans son complément de cadre : « …, dans le cadre du programme d'électrification, … » ou « …, dans le cadre
+     * du projet VMI » nomment un programme ou un projet qui n'est pas celui de la phrase (un projet futur) : leurs mots ne
+     * rendent pas le fait futur.
+     */
+    private function withoutFraming(string $clause): string
+    {
+        return (string) preg_replace('/,?\s*\bdans\s+le\s+cadre\s+(?:du|de\s+la|des|de\s+l[’\']|d[’\'])(?:⟦[^⟧]*⟧|[^,.;⟦])*/iu', '', $clause);
     }
 
     /**

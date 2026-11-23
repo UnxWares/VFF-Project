@@ -127,6 +127,7 @@ return [
         'codes' => [
             'BAL' => 'BAL, block automatique lumineux',
             'BAL-VB' => 'BAL de voie banalisée',
+            'NONE' => 'Sans cantonnement',
             'BAL-Tram' => 'Block automatique tramway',
             'BAPR' => 'BAPR, block automatique à permissivité restreinte',
             'BAPR-DV' => 'BAPR de double voie',

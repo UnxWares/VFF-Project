@@ -54,7 +54,9 @@ class LineSignallingController extends Controller
      *   `CT` (cantonnement téléphonique de double voie), `TVM-300` / `TVM-430` (signalisation
      *   en cabine des LGV, sans signaux latéraux), `ETCS_L1` / `ETCS_L2`.
      *   Suffixes : `-VB` voie banalisée (circulation dans les deux sens sur
-     *   chaque voie), `-VU` voie unique, `-Tram` section tram-train ;
+     *   chaque voie), `-VU` voie unique, `-Tram` section tram-train. `NONE` : SNCF Réseau
+     *   déclare la section « Sans cantonnement » (valeur à part entière, qui ne veut pas dire
+     *   « donnée absente » : une section absente de la liste est, elle, inconnue) ;
      * - `signalling_systems` : **tous** les systèmes de cantonnement installés sur la
      *   tranche, code principal (`signalling`) en premier. En général un seul ; deux sur les
      *   LGV équipées à la fois de l'ETCS niveau 2 et de la TVM (`["ETCS_L2", "TVM-300"]` sur
