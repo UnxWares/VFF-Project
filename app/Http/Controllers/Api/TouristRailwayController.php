@@ -29,6 +29,9 @@ class TouristRailwayController extends Controller
      * - `lines` : fiches de ligne (`slug`, `name`, `length_m` de la portion exploitée), vide quand la ligne n'est pas
      *   rattachée ;
      * - `website` (site officiel), `wikipedia_url`, `wikidata`, `lat` et `lng` quand connus ;
+     * - `section` (`from`, `to` : lieux de départ et d'arrivée de la section exploitée, `null` quand inconnue), `season`
+     *   (saison d'exploitation en texte), `opened_on` (jour d'ouverture touristique, AAAA-MM-JJ) et `detail_source_url`
+     *   (version de l'article Wikipédia qui les donne), tous `null` quand aucune source ne les donne ;
      * - `origin` : `both` (catalogue Wikipédia et exploitation de la base), `catalogue` ou `database` ;
      * - `sources` : pour chaque fait (`type`, `gauge`, `region`, `length`, `start_year`, `operator`, `website`), la clé de sa
      *   source dans `sources` de la réponse (libellé, adresse, licence), `null` quand le fait est inconnu.
@@ -48,6 +51,8 @@ class TouristRailwayController extends Controller
                 'lines' => [['slug' => 'rfn-815000', 'name' => 'Ligne de Saint-Germain-des-Fossés à Nîmes-Courbessac', 'length_m' => 13700]],
                 'website' => 'http://www.trainavapeur.com/', 'wikipedia_url' => 'https://fr.wikipedia.org/wiki/Train_%C3%A0_vapeur_des_C%C3%A9vennes', 'wikidata' => 'Q737163',
                 'lat' => null, 'lng' => null,
+                'section' => ['from' => 'Anduze', 'to' => 'Saint-Jean-du-Gard'], 'season' => null, 'opened_on' => null,
+                'detail_source_url' => 'https://fr.wikipedia.org/w/index.php?title=Train_%C3%A0_vapeur_des_C%C3%A9vennes&oldid=241322938',
                 'sources' => ['type' => 'wp-article', 'gauge' => 'wp-list', 'region' => 'wp-list', 'length' => 'ign', 'start_year' => 'wp-article', 'operator' => null, 'website' => 'wp-article'],
             ]],
             'greenways' => [[

@@ -62,6 +62,36 @@ class TouristRailwaysCatalogueTest extends TestCase
         }
     }
 
+    public function test_section_season_and_opening_facts_cite_the_article_version(): void
+    {
+        $withDetails = 0;
+        foreach ($this->entries() as $e) {
+            $facts = array_filter([$e['section_from'] ?? null, $e['section_to'] ?? null, $e['season'] ?? null, $e['opened_on'] ?? null]);
+            if ($facts === []) {
+                continue;
+            }
+            $withDetails++;
+            $this->assertMatchesRegularExpression('#^https://fr\.wikipedia\.org/w/index\.php\?title=[^&]+&oldid=\d+$#', (string) ($e['detail_source'] ?? ''), $e['name']);
+            if (isset($e['section_to'])) {
+                $this->assertNotEmpty($e['section_from'] ?? null, $e['name']);
+                $this->assertNotSame($e['section_from'], $e['section_to'], $e['name']);
+            }
+            if (isset($e['opened_on'])) {
+                $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $e['opened_on'], $e['name']);
+                $this->assertTrue(checkdate((int) substr($e['opened_on'], 5, 2), (int) substr($e['opened_on'], 8, 2), (int) substr($e['opened_on'], 0, 4)), $e['name']);
+            }
+        }
+        $this->assertGreaterThanOrEqual(50, $withDetails);
+    }
+
+    public function test_the_thur_doller_section_starts_at_the_saint_andre_halt_not_at_the_sncf_station(): void
+    {
+        $byName = array_column($this->entries(), null, 'name');
+        // Cernay : le train part de la halte de Cernay-Saint-André, sans liaison depuis la gare SNCF.
+        $this->assertSame('Cernay-Saint-André', $byName['Train Thur Doller Alsace']['section_from']);
+        $this->assertSame('Sentheim', $byName['Train Thur Doller Alsace']['section_to']);
+    }
+
     public function test_no_long_dash_in_the_catalogue(): void
     {
         $text = (string) file_get_contents(dirname(__DIR__, 2).'/'.TouristRailways::CATALOGUE);

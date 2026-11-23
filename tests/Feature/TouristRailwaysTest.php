@@ -112,6 +112,18 @@ class TouristRailwaysTest extends TestCase
         $this->assertSame('velorail', $this->railways()['Vélorail du Larzac']['type']);
     }
 
+    public function test_the_section_season_and_article_version_of_the_catalogue_are_served(): void
+    {
+        $r = $this->railways()['Train Thur Doller Alsace'];
+
+        $this->assertSame(['from' => 'Cernay-Saint-André', 'to' => 'Sentheim'], $r['section']);
+        $this->assertStringContainsString('oldid=238310486', $r['detail_source_url']);
+        $this->assertNull($r['opened_on']);
+        $this->assertSame('d\'avril à octobre', $this->railways()['Le p\'tit train de Saint-Trojan']['season']);
+        $this->assertSame('2012-06-28', $this->railways()['Panoramique des Dômes']['opened_on']);
+        $this->assertNull($this->railways()['Vélo-rail du Grand Morin']['section']);
+    }
+
     public function test_a_catalogue_operation_without_a_database_match_is_listed_without_length(): void
     {
         $r = $this->railways()['Chemin de fer touristique de la Sarthe'];
