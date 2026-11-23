@@ -135,7 +135,7 @@ class EnumRulesTest extends TestCase
     {
         $this->assertSame(['public_domain', 'cc0-1.0', 'cc-by-4.0', 'cc-by-3.0', 'cc-by-2.5', 'cc-by-2.0', 'cc-by-sa-4.0',
             'cc-by-sa-3.0', 'cc-by-sa-2.5', 'cc-by-sa-2.0', 'etalab-2.0'], ContentLicense::mediaValues());
-        $this->assertSame(array_values(array_filter(ContentLicense::cases(), fn (ContentLicense $l): bool => ! in_array($l, [ContentLicense::AllRightsReserved, ContentLicense::Unknown], true))),
+        $this->assertSame([...array_filter(ContentLicense::cases(), fn (ContentLicense $l): bool => ! in_array($l, [ContentLicense::AllRightsReserved, ContentLicense::Unknown], true))],
             ContentLicense::forMedia());
         $this->assertFalse(ContentLicense::AllRightsReserved->allowsMedia());
         $this->assertTrue(ContentLicense::Etalab2->allowsMedia());
