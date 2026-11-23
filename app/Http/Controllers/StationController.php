@@ -112,7 +112,7 @@ class StationController extends Controller
             // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
             'media_count' => $gallery->count($station),
             // Vues aériennes historiques de l'IGN (relais /media/aerial) : une par période, absente si hors couverture.
-            'aerial_views' => AerialImages::views($station->slug, $page['station']['lat'], $page['station']['lng']),
+            'aerial_views' => AerialImages::views($station->slug, $page['station']['lat'], $page['station']['lng'], (int) $station->id),
             // Fréquentation annuelle (SNCF Gares & Connexions, ODbL) : nulle quand les jeux n'en donnent aucune.
             'attendance' => $attendance->forStation((int) $station->id),
         ]);

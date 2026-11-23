@@ -94,6 +94,17 @@ class AerialImageRelayTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_sheet_omits_periods_already_known_to_be_missing_but_the_api_keeps_all_three(): void
+    {
+        Http::fakeSequence('data.geopf.fr/*')->push(self::png('blank'), 200, ['Content-Type' => 'image/png']);
+        $this->get('/media/aerial/gare-aerienne/1965-1980.jpg')->assertNotFound();
+
+        $this->get('/stations/gare-aerienne')->assertOk()
+            ->assertInertia(fn ($page) => $page->has('aerial_views', 2)
+                ->where('aerial_views.0.period', '1950-1965')->where('aerial_views.1.period', '1980-1995'));
+        $this->getJson('/api/v1/stations/gare-aerienne/aerial')->assertOk()->assertJsonCount(3, 'data');
+    }
+
     public function test_upstream_failure_is_not_cached(): void
     {
         Http::fakeSequence('data.geopf.fr/*')

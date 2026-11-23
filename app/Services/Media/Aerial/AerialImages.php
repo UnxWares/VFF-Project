@@ -60,16 +60,21 @@ final class AerialImages
     /**
      * Vues proposées pour une gare, une par période : adresse du relais, couche, crédit, licence, lien vers
      * « Remonter le temps » de l'IGN. Une vue peut manquer (période hors couverture) : le relais répond alors 404.
+     * Avec `$stationId`, les périodes déjà reconnues hors couverture (marqueur négatif encore valable) sont omises :
+     * la page de la gare ne demande plus une image qui répondrait 404 à chaque visite.
      *
      * @return list<array{period: string, from: int, to: int, url: string, layer: string, attribution: string, license: string, license_url: string, source_url: string, commercial_ok: bool, derivatives_ok: bool}>
      */
-    public static function views(string $slug, float $lat, float $lng): array
+    public static function views(string $slug, float $lat, float $lng, ?int $stationId = null): array
     {
         if (! (bool) config('vff.media.aerial.enabled', true)) {
             return [];
         }
         $out = [];
         foreach (self::PERIODS as $period => $layer) {
+            if ($stationId !== null && self::knownMissing($stationId, $period)) {
+                continue;
+            }
             [$from, $to] = array_map('intval', explode('-', $period));
             $out[] = [
                 'period' => $period,
@@ -102,8 +107,7 @@ final class AerialImages
         if (is_file($file)) {
             return $file;
         }
-        $none = $this->dir($period).'/'.$stationId.'.none';
-        if (is_file($none) && time() - (int) filemtime($none) < self::NEGATIVE_TTL) {
+        if (self::noneValid($this->dir($period).'/'.$stationId.'.none')) {
             return null;
         }
 
@@ -127,7 +131,7 @@ final class AerialImages
             return false;
         }
         if ($jpeg === null) {
-            self::atomicWrite($none, '');
+            self::atomicWrite($this->dir($period).'/'.$stationId.'.none', '');
 
             return null;
         }
@@ -206,6 +210,20 @@ final class AerialImages
         $var = array_sum(array_map(fn (float $g): float => ($g - $mean) ** 2, $grays)) / count($grays);
 
         return [$opaque / $n, sqrt($var)];
+    }
+
+    /** Vrai si la période a déjà été reconnue hors couverture pour cette gare (lecture seule, rien n'est créé). */
+    private static function knownMissing(int $stationId, string $period): bool
+    {
+        $dir = (string) config('vff.media.aerial.cache_path', storage_path('app/cache/aerial')).'/'.$period.'/'.$stationId;
+
+        return ! is_file($dir.'.jpg') && self::noneValid($dir.'.none');
+    }
+
+    /** Marqueur négatif encore valable (30 jours). */
+    private static function noneValid(string $none): bool
+    {
+        return is_file($none) && time() - (int) filemtime($none) < self::NEGATIVE_TTL;
     }
 
     private function dir(string $period): string
