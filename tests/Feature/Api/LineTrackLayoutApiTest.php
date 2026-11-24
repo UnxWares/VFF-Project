@@ -1,0 +1,193 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Models\Era;
+use App\Models\Line;
+use App\Services\TrackLayout\TrackLayout;
+use App\Services\TrackLayout\TrackLayoutPart;
+use App\Services\TrackLayout\TrackLayoutSource;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+/**
+ * Schéma des voies (`GET /api/v1/lines/{line}/track-layout`, contrat agents-commun/contrat-schema-voies.md) :
+ * réponse vide conforme pour une ligne sans donnée, voies et points d'exploitation du RINF avec leurs rangées,
+ * une source OSM branchée par l'étiquette du conteneur qui ne fait que compléter, filtres de portion et de familles.
+ * Extrait réel de la ligne 579000 (Beillant - Angoulême), RINF © ERA, graphe de SNCF Réseau, lu le 24/11/2026.
+ */
+class LineTrackLayoutApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private Line $line;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Cache::flush();
+        Era::factory()->current()->create(['year' => 2030]);
+        $this->line = Line::factory()->create(['slug' => 'rfn-579000', 'code' => '579000', 'name' => 'Ligne de Beillant à Angoulême']);
+        Line::factory()->create(['slug' => 'rfn-001000', 'code' => '001000', 'name' => 'Ligne sans données']);
+    }
+
+    /** Extrait de la ligne 579000 autour de Cognac : trois sections, la gare et ses voies. */
+    private function seedRinf(): void
+    {
+        $meta = ['dataset' => 'http://data.europa.eu/949/graph/0087 (https://graph.data.era.europa.eu/repositories/rinf-plus)', 'fetched_at' => '2026-11-24 20:00:00'];
+        foreach ([
+            ['FR0000009305', 'Faisceau Pair', null, 'other'], ['FR0000003513', 'Cognac', 10, 'station'],
+            ['FR9900004367', 'Accès à Faisceau Pair', null, 'other'], ['FR0000006311', 'Faisceau Impair', null, 'other'],
+        ] as [$uopid, $name, $type, $kind]) {
+            DB::table('rinf_operational_points')->insert(['uopid' => $uopid, 'name' => $name, 'op_type' => $type, 'kind' => $kind,
+                'uri' => 'http://data.europa.eu/949/operationalPoint/'.$uopid] + $meta);
+        }
+        foreach ([
+            ['579000-1_FR0000009305_FR0000003513', 'FR0000009305', 'FR0000003513', 17095, 17277, 'regular'],
+            ['579000-1_FR0000003513_FR9900004367', 'FR0000003513', 'FR9900004367', 17277, 17917, 'regular'],
+            ['579000-1_FR9900004367_FR0000006311', 'FR9900004367', 'FR0000006311', 17917, 17919, 'regular'],
+            ['579000-1_FR0000009305_FR9900004367', 'FR0000009305', 'FR9900004367', 17095, 17917, 'link'],
+        ] as [$uri, $start, $end, $from, $to, $nature]) {
+            DB::table('rinf_sections')->insert(['uri' => 'http://data.europa.eu/949/sectionOfLine/'.$uri, 'national_line' => '579000-1', 'line_code' => '579000',
+                'line_id' => $this->line->id, 'op_start_uopid' => $start, 'op_end_uopid' => $end, 'pk_start_m' => $from, 'pk_end_m' => $to,
+                'length_m' => $to - $from, 'nature' => $nature] + $meta);
+        }
+        $section = fn (string $s): string => 'http://data.europa.eu/949/sectionOfLine/579000-1_'.$s;
+        foreach ([
+            ['t1', 'section', $section('FR0000009305_FR0000003513'), null, 'running', 'Voie UNIQUE de Beillant à St-Michel-sur-Charente', 'B', 110, null],
+            ['t2', 'section', $section('FR0000003513_FR9900004367'), null, 'running', 'Voie UNIQUE de Beillant à St-Michel-sur-Charente', 'B', 140, null],
+            ['t3', 'section', $section('FR9900004367_FR0000006311'), null, 'running', 'Voie UNIQUE de Beillant à St-Michel-sur-Charente', 'B', 140, null],
+            ['t4', 'op', null, 'FR0000003513', 'running', 'Voie E de Cognac', null, null, null],
+            ['t5', 'op', null, 'FR0000003513', 'running', 'D', null, null, null],
+            ['s3', 'op', null, 'FR0000003513', 'siding', '3 - COGNAC', null, null, 413],
+            ['s4', 'op', null, 'FR0000003513', 'siding', '4 - COGNAC', null, null, 530],
+            ['s5', 'op', null, 'FR0000003513', 'siding', '5 - COGNAC', null, null, 370],
+            ['l1', 'op', null, 'FR0000003513', 'siding', 'Liaison BS83/84', null, null, 0],
+        ] as [$id, $parent, $sectionUri, $op, $class, $ref, $dir, $speed, $length]) {
+            DB::table('rinf_tracks')->insert(['uri' => 'http://data.europa.eu/949/track/'.$id, 'parent' => $parent, 'section_uri' => $sectionUri,
+                'op_uopid' => $op, 'rinf_class' => $class, 'ref' => $ref, 'direction' => $dir, 'max_speed_kmh' => $speed, 'length_m' => $length,
+                'electrified' => $parent === 'section' ? false : null] + $meta);
+        }
+        DB::table('rinf_platforms')->insert(['uri' => 'http://data.europa.eu/949/platformEdge/pe', 'track_uri' => 'http://data.europa.eu/949/track/t4',
+            'op_uopid' => 'FR0000003513', 'ref' => 'Quai VE', 'length_m' => 145, 'height_mm' => 300] + $meta);
+    }
+
+    public function test_a_line_without_data_gets_an_empty_layout_in_the_contract_shape(): void
+    {
+        $json = $this->getJson('/api/v1/lines/rfn-001000/track-layout')->assertOk()->json();
+
+        $this->assertSame(['code' => '001000', 'slug' => 'rfn-001000', 'name' => 'Ligne sans données'], $json['line']);
+        $this->assertSame(['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'strip', 'coverage'], array_keys($json));
+        $this->assertSame([], $json['sources']);
+        $this->assertSame([], $json['tracks']);
+        $this->assertSame(['speeds' => [], 'gradients' => []], $json['strip']);
+        $this->assertSame(['total_m' => 0, 'rinf_m' => 0, 'osm_m' => 0, 'vff_m' => 0, 'missing' => []], $json['coverage']);
+        $this->assertNull($json['pk']['start_m']);
+        $this->getJson('/api/v1/lines/inconnue/track-layout')->assertNotFound();
+    }
+
+    public function test_rinf_tracks_points_and_lanes_follow_the_contract(): void
+    {
+        $this->seedRinf();
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
+
+        $this->assertSame(['start_m' => 17012, 'end_m' => 17919, 'start_label' => '17+012', 'end_label' => '17+919'], $json['pk']);
+        $this->assertSame('rinf', $json['sources'][0]['key']);
+        $this->assertStringContainsString('European Union Agency for Railways', $json['sources'][0]['attribution']);
+        $this->assertSame('2026-11-24', $json['sources'][0]['fetched_at']);
+
+        $cognac = collect($json['operational_points'])->firstWhere('uopid', 'FR0000003513');
+        $this->assertSame(['id' => 'rinf:op:FR0000003513', 'name' => 'Cognac', 'kind' => 'station', 'pk_m' => 17277, 'uopid' => 'FR0000003513',
+            'station_slug' => null, 'rinf_type' => 10, 'source' => 'rinf', 'precision' => 'exact'], $cognac);
+
+        $tracks = collect($json['tracks'])->keyBy('rinf_ref');
+        // Voie unique : rangée 0, position exacte, une pièce par section (la liaison de longueur nulle est écartée).
+        $main = collect($json['tracks'])->where('ref', 'VU')->values();
+        $this->assertCount(3, $main);
+        $this->assertSame([0], $main->pluck('lane')->unique()->values()->all());
+        $this->assertSame('both', $main[0]['direction']);
+        $this->assertSame('exact', $main[0]['precision']);
+        // Voies de la gare : centrées sur le PK de Cognac, approchées ; impaires au-dessus, paires au-dessous.
+        $this->assertSame(['loop', 17205, 17350, true, 'approximate'], [$tracks['Voie E de Cognac']['kind'], $tracks['Voie E de Cognac']['pk_from_m'],
+            $tracks['Voie E de Cognac']['pk_to_m'], $tracks['Voie E de Cognac']['platform'], $tracks['Voie E de Cognac']['precision']]);
+        $this->assertLessThan(0, $tracks['3 - COGNAC']['lane']);
+        $this->assertLessThan(0, $tracks['5 - COGNAC']['lane']);
+        $this->assertNotSame($tracks['3 - COGNAC']['lane'], $tracks['5 - COGNAC']['lane']);
+        $this->assertSame(1, $tracks['4 - COGNAC']['lane']);
+        $this->assertSame('crossover', $tracks['Liaison BS83/84']['kind']);
+        $this->assertSame('rinf:op:FR0000003513', $tracks['4 - COGNAC']['op_id']);
+
+        $this->assertSame([['pk_from_m' => 17095, 'pk_to_m' => 17277, 'kmh' => 110, 'source' => 'rinf'],
+            ['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'source' => 'rinf'],
+            ['pk_from_m' => 17917, 'pk_to_m' => 17919, 'kmh' => 140, 'source' => 'rinf']], $json['strip']['speeds']);
+
+        // Ni aiguillage ni signal au RINF français : familles absentes sur toute la ligne.
+        $this->assertSame(907, $json['coverage']['total_m']);
+        $this->assertSame(824, $json['coverage']['rinf_m']);
+        $missing = collect($json['coverage']['missing']);
+        $this->assertTrue($missing->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] === 17012 && $m['pk_to_m'] === 17919));
+        $this->assertTrue($missing->contains(fn (array $m): bool => $m['what'] === 'signals'));
+    }
+
+    public function test_a_tagged_osm_source_only_completes_the_rinf(): void
+    {
+        $this->seedRinf();
+        $this->app->tag([FakeOsmSource::class], TrackLayout::TAG);
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
+
+        $this->assertSame(['rinf', 'osm'], array_column($json['sources'], 'key'));
+        // Voie OSM sous une portion décrite par le RINF : écartée ; au-delà : gardée, avec sa rangée.
+        $osm = collect($json['tracks'])->where('source', 'osm')->values();
+        $this->assertSame(['osm:way:2'], $osm->pluck('id')->all());
+        $this->assertSame(0, $osm[0]['lane']);
+        // Aiguillages : le RINF n'en a pas, ceux d'OSM sont servis ; le doublon à 10 m de même référence est écarté.
+        $this->assertSame(['osm:node:10'], array_column($json['switches'], 'id'));
+        $this->assertSame(['pk_from_m' => 17919, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][4]);
+        $this->assertSame(['pk_from_m' => 17000, 'pk_to_m' => 17095, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][0]);
+        $this->assertSame(1081, $json['coverage']['osm_m']);
+        $this->assertFalse(collect($json['coverage']['missing'])->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] <= 17500 && $m['pk_to_m'] >= 17600));
+    }
+
+    public function test_portion_and_kinds_filters(): void
+    {
+        $this->seedRinf();
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout?from_pk=17%2B500&to_pk_m=17700&kinds=tracks,speeds')->assertOk()->json();
+
+        $this->assertSame(17500, $json['pk']['start_m']);
+        $this->assertSame(17700, $json['pk']['end_m']);
+        $this->assertSame([], $json['operational_points']);
+        $this->assertNotSame([], $json['tracks']);
+        $this->assertSame([['pk_from_m' => 17500, 'pk_to_m' => 17700, 'kmh' => 140, 'source' => 'rinf']], $json['strip']['speeds']);
+        $this->assertSame(200, $json['coverage']['total_m']);
+
+        $this->getJson('/api/v1/lines/rfn-579000/track-layout?kinds=tracks,aiguilles')->assertStatus(422);
+        $this->getJson('/api/v1/lines/rfn-579000/track-layout?from_pk=abc')->assertStatus(422);
+    }
+}
+
+/** Source OSM de test : une voie sous le RINF, une au-delà, deux aiguillages dont un doublon, une vitesse. */
+final class FakeOsmSource implements TrackLayoutSource
+{
+    public function key(): string
+    {
+        return 'osm';
+    }
+
+    public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
+    {
+        $track = fn (string $id, int $from, int $to): array => ['id' => $id, 'ref' => '1', 'kind' => 'running', 'pk_from_m' => $from, 'pk_to_m' => $to,
+            'op_id' => null, 'length_m' => $to - $from, 'electrified' => false, 'platform' => false, 'source' => 'osm', 'precision' => 'derived'];
+        $switch = fn (string $id, int $pk): array => ['id' => $id, 'ref' => '12', 'pk_m' => $pk, 'kind' => 'simple', 'from_track' => null,
+            'to_track' => null, 'facing' => null, 'source' => 'osm', 'precision' => 'derived'];
+
+        return new TrackLayoutPart(
+            source: ['key' => 'osm', 'label' => 'OpenStreetMap', 'licence' => 'ODbL', 'dataset' => null, 'fetched_at' => '2026-11-24', 'url' => 'https://www.openstreetmap.org/copyright'],
+            tracks: [$track('osm:way:1', 17300, 17400), $track('osm:way:2', 17919, 19000)],
+            switches: [$switch('osm:node:10', 17550), $switch('osm:node:11', 17560)],
+            speeds: [['pk_from_m' => 17000, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm']],
+            covered: ['tracks' => [[17919, 19000]], 'switches' => [[17000, 19000]]],
+        );
+    }
+}

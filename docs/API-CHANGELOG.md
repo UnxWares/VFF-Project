@@ -5,6 +5,18 @@ Les entrées sont datées, la plus récente en premier. Un champ n'est retiré q
 spécification OpenAPI, `@deprecated` dans le schéma GraphQL) et annoncé ici. Un test (`ApiContractTest`) compare l'API à un instantané
 versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un paramètre ou une valeur disparaît sans cette annonce.
 
+## 24/11/2026
+
+### Ajouts
+
+- Schéma des voies d'une ligne (REST `GET /api/v1/lines/{line}/track-layout`) : voies principales numérotées, voies de gare,
+  d'évitement et de service, liaisons, aiguillages, traversées, signaux et points d'exploitation dans l'ordre des PK, avec une
+  bande des vitesses et des déclivités et la couverture par source (`coverage`). Sources par ordre de préférence : RINF de
+  l'Agence de l'Union européenne pour les chemins de fer (`rinf`), OpenStreetMap (`osm`), données de VFF (`vff`) ; provenance
+  et précision (`exact`, `derived`, `approximate`) sur chaque objet, rangée du schéma (`lane`) calculée par le serveur.
+  Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
+  ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal.
+
 ## 23/11/2026
 
 ### À vérifier dans votre client
