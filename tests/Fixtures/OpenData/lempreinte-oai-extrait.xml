@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-23T20:46:41Z</responseDate>
+  <request verb="ListRecords" metadataPrefix="oai_dc" set="theme:gares-et-chemins-de-fer">http://www.lempreinte.valenceromansagglo.fr/oai/oai2.php</request>
+  <ListRecords>
+    <record>
+      <header>
+        <identifier>B263626101_CP1560</identifier>
+        <datestamp>-0001-11-30T00:00:00Z</datestamp>
+        <setSpec/>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>http://www.lempreinte.valenceromansagglo.fr/valence-avenue-de-la-gare,B263626101_CP1560.htm</dc:identifier>
+          <dc:title>Valence - Avenue de la Gare</dc:title>
+          <dc:date>1908</dc:date>
+          <dc:subject/>
+          <dc:subject>Avenue</dc:subject>
+          <dc:subject/>
+          <dc:subject>Gare</dc:subject>
+          <dc:format>14x19 cm ; Noir et blanc</dc:format>
+          <dc:type>Image</dc:type>
+          <dc:source>MÃ©diathÃ¨que Publique et Universitaire de Valence</dc:source>
+          <dc:rights>Domaine Public</dc:rights>
+          <dc:description>CA 1908</dc:description>
+          <dc:coverage>Valence </dc:coverage>
+          <dc:publisher>E.D</dc:publisher>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>B263626101_CP1538</identifier>
+        <datestamp>-0001-11-30T00:00:00Z</datestamp>
+        <setSpec/>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>http://www.lempreinte.valenceromansagglo.fr/valence-boulevard-bancel,B263626101_CP1538.htm</dc:identifier>
+          <dc:title>Valence - Boulevard Bancel</dc:title>
+          <dc:date>1910</dc:date>
+          <dc:subject>Boulevard</dc:subject>
+          <dc:subject>Chemin de fer</dc:subject>
+          <dc:format>14x19 cm ; Noir et blanc</dc:format>
+          <dc:type>Image</dc:type>
+          <dc:source>MÃ©diathÃ¨que Publique et Universitaire de Valence</dc:source>
+          <dc:rights>Domaine Public</dc:rights>
+          <dc:description>CA 1910</dc:description>
+          <dc:coverage>Valence </dc:coverage>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>B263626101_CP1886</identifier>
+        <datestamp>-0001-11-30T00:00:00Z</datestamp>
+        <setSpec/>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>http://www.lempreinte.valenceromansagglo.fr/valence-la-passerelle-de-jappe-renard,B263626101_CP1886.htm</dc:identifier>
+          <dc:title>Valence - La Passerelle de Jappe-Renard</dc:title>
+          <dc:date>0000</dc:date>
+          <dc:subject/>
+          <dc:subject>Gare</dc:subject>
+          <dc:subject>Pont</dc:subject>
+          <dc:format>14x19 cm ; Noir et blanc</dc:format>
+          <dc:type>Image</dc:type>
+          <dc:source>MÃ©diathÃ¨que Publique et Universitaire de Valence</dc:source>
+          <dc:rights>Domaine Public</dc:rights>
+          <dc:description>CA 1900</dc:description>
+          <dc:coverage>Valence </dc:coverage>
+          <dc:publisher>Collection Nouvelles Galeries</dc:publisher>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>B263626101_CP1554</identifier>
+        <datestamp>-0001-11-30T00:00:00Z</datestamp>
+        <setSpec/>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>http://www.lempreinte.valenceromansagglo.fr/valence-la-gare,B263626101_CP1554.htm</dc:identifier>
+          <dc:title>Valence - La Gare</dc:title>
+          <dc:date>1902</dc:date>
+          <dc:subject/>
+          <dc:subject>Gare</dc:subject>
+          <dc:format>14x19 cm ; Noir et blanc</dc:format>
+          <dc:type>Image</dc:type>
+          <dc:source>MÃ©diathÃ¨que Publique et Universitaire de Valence</dc:source>
+          <dc:rights>Domaine Public</dc:rights>
+          <dc:description>CA 1902</dc:description>
+          <dc:coverage>Valence </dc:coverage>
+          <dc:publisher>Edition Artistique</dc:publisher>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+    <resumptionToken expirationDate="2026-11-24T20:46:41Z" completeListSize="68" cursor="20">1795466800988</resumptionToken>
+  </ListRecords>
+</OAI-PMH>

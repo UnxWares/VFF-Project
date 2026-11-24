@@ -1,0 +1,893 @@
+[
+ {
+  "@context": "https://bnl-bfm.limoges.fr/api-context",
+  "@id": "https://bnl-bfm.limoges.fr/api/items/6568",
+  "@type": [
+   "o:Item",
+   "dctype:Image"
+  ],
+  "o:id": 6568,
+  "o:is_public": true,
+  "o:owner": {
+   "@id": "https://bnl-bfm.limoges.fr/api/users/1",
+   "o:id": 1
+  },
+  "o:resource_class": {
+   "@id": "https://bnl-bfm.limoges.fr/api/resource_classes/26",
+   "o:id": 26
+  },
+  "o:resource_template": null,
+  "o:thumbnail": null,
+  "o:title": "Chemin de fer et moulins Caillaud et Chilloux à Saint-Priest-Taurion - Fonds Boudeau (B17-n°485)",
+  "thumbnail_display_urls": {
+   "large": "https://bnl-bfm.limoges.fr/files/large/982a99f92adfbbee6a3cecad94bffafa0aa584cb.jpg",
+   "medium": "https://bnl-bfm.limoges.fr/files/medium/982a99f92adfbbee6a3cecad94bffafa0aa584cb.jpg",
+   "square": "https://bnl-bfm.limoges.fr/files/square/982a99f92adfbbee6a3cecad94bffafa0aa584cb.jpg"
+  },
+  "o:created": {
+   "@value": "2021-10-09T15:51:38+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:modified": {
+   "@value": "2024-03-27T12:28:43+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:primary_media": {
+   "@id": "https://bnl-bfm.limoges.fr/api/media/6569",
+   "o:id": 6569
+  },
+  "o:media": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/media/6569",
+    "o:id": 6569
+   }
+  ],
+  "o:item_set": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/item_sets/4853",
+    "o:id": 4853
+   }
+  ],
+  "o:site": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/sites/1",
+    "o:id": 1
+   }
+  ],
+  "dcterms:title": [
+   {
+    "type": "literal",
+    "property_id": 1,
+    "property_label": "Title",
+    "is_public": true,
+    "@value": "Chemin de fer et moulins Caillaud et Chilloux à Saint-Priest-Taurion - Fonds Boudeau (B17-n°485)"
+   }
+  ],
+  "dcterms:description": [
+   {
+    "type": "literal",
+    "property_id": 4,
+    "property_label": "Description",
+    "is_public": true,
+    "@value": "Le photographe domine le chemin de fer qui longe la Vienne à Saint-Priest-Taurion, rive droite. Le moulin sous la voie ferrée est celui du meunier Caillaud, dit moulin de la Roche. Le moulin de la rive gauche, en face, est celui du meunier Chilloux, dit moulin de Cintrat. Ce dernier se trouve en réalité à Saint-Just-le-Martel puisque la rivière délimite les deux communes."
+   }
+  ],
+  "dcterms:creator": [
+   {
+    "type": "literal",
+    "property_id": 2,
+    "property_label": "Creator",
+    "is_public": true,
+    "@value": "Boudeau, Jean-Baptiste (1881-1959)"
+   }
+  ],
+  "dcterms:date": [
+   {
+    "type": "literal",
+    "property_id": 7,
+    "property_label": "Date",
+    "is_public": true,
+    "@value": "1909"
+   }
+  ],
+  "dcterms:rights": [
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Droits de reproduction réservés."
+   },
+   {
+    "type": "uri",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@id": "https://www.adagp.fr/fr/droit-dauteur/droits-patrimoniaux",
+    "o:label": "Voir le site de l'ADAGP sur les droits patrimoniaux"
+   },
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Pour toute réutilisation, merci de nous contacter à l'aide du formulaire."
+   }
+  ],
+  "dcterms:format": [
+   {
+    "type": "literal",
+    "property_id": 9,
+    "property_label": "Format",
+    "is_public": true,
+    "@value": "image jpeg"
+   }
+  ],
+  "dcterms:medium": [
+   {
+    "type": "literal",
+    "property_id": 26,
+    "property_label": "Medium",
+    "is_public": true,
+    "@value": "Plaque au gélatino-bromure d'argent"
+   }
+  ],
+  "dcterms:spatial": [
+   {
+    "type": "literal",
+    "property_id": 40,
+    "property_label": "Spatial Coverage",
+    "is_public": true,
+    "@value": "Saint-Priest-Taurion, Haute-Vienne"
+   },
+   {
+    "type": "literal",
+    "property_id": 40,
+    "property_label": "Spatial Coverage",
+    "is_public": true,
+    "@value": "Saint-Just-le-Martel, Haute-Vienne"
+   }
+  ],
+  "dcterms:provenance": [
+   {
+    "type": "literal",
+    "property_id": 51,
+    "property_label": "Provenance",
+    "is_public": true,
+    "@value": "Bibliothèque Francophone Multimédia - Ville de Limoges, fonds Jean-Baptiste Boudeau Boîte 17"
+   }
+  ],
+  "dcterms:accrualPolicy": [
+   {
+    "type": "literal",
+    "property_id": 55,
+    "property_label": "Accrual Policy",
+    "is_public": true,
+    "@value": "Limousin"
+   }
+  ],
+  "dcterms:type": [
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "Photographie"
+   },
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "Image"
+   }
+  ],
+  "dcterms:relation": [
+   {
+    "type": "literal",
+    "property_id": 13,
+    "property_label": "Relation",
+    "is_public": true,
+    "@value": "vignette : https://bnl-bfm.limoges.fr/files/medium/982a99f92adfbbee6a3cecad94bffafa0aa584cb.jpg"
+   }
+  ],
+  "o-module-folksonomy:tag": [
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Haute-Vienne",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Haute-Vienne"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Vienne",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Vienne"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/moulin",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "moulin"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Saint-Just-le-Martel",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Saint-Just-le-Martel"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Saint-Priest-Taurion",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Saint-Priest-Taurion"
+   }
+  ]
+ },
+ {
+  "@context": "https://bnl-bfm.limoges.fr/api-context",
+  "@id": "https://bnl-bfm.limoges.fr/api/items/94",
+  "@type": [
+   "o:Item",
+   "dctype:Image"
+  ],
+  "o:id": 94,
+  "o:is_public": true,
+  "o:owner": {
+   "@id": "https://bnl-bfm.limoges.fr/api/users/1",
+   "o:id": 1
+  },
+  "o:resource_class": {
+   "@id": "https://bnl-bfm.limoges.fr/api/resource_classes/26",
+   "o:id": 26
+  },
+  "o:resource_template": null,
+  "o:thumbnail": null,
+  "o:title": "La Vienne près du Pont de chemin de fer, près de la carrière Ardant",
+  "thumbnail_display_urls": {
+   "large": "https://bnl-bfm.limoges.fr/files/large/d604fe2b4212440c28e1cf3a638d2c4b96dc8093.jpg",
+   "medium": "https://bnl-bfm.limoges.fr/files/medium/d604fe2b4212440c28e1cf3a638d2c4b96dc8093.jpg",
+   "square": "https://bnl-bfm.limoges.fr/files/square/d604fe2b4212440c28e1cf3a638d2c4b96dc8093.jpg"
+  },
+  "o:created": {
+   "@value": "2019-08-29T15:22:23+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:modified": {
+   "@value": "2024-07-17T13:42:14+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:primary_media": {
+   "@id": "https://bnl-bfm.limoges.fr/api/media/169",
+   "o:id": 169
+  },
+  "o:media": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/media/169",
+    "o:id": 169
+   }
+  ],
+  "o:item_set": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/item_sets/6153",
+    "o:id": 6153
+   }
+  ],
+  "o:site": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/sites/1",
+    "o:id": 1
+   }
+  ],
+  "dcterms:title": [
+   {
+    "type": "literal",
+    "property_id": 1,
+    "property_label": "Title",
+    "is_public": true,
+    "@value": "La Vienne près du Pont de chemin de fer, près de la carrière Ardant"
+   }
+  ],
+  "dcterms:description": [
+   {
+    "type": "literal",
+    "property_id": 4,
+    "property_label": "Description",
+    "is_public": true,
+    "@value": "Jean-Baptiste Audiguet (1811-1897) est un des pionniers de la photographie professionnelle à Limoges. Né à Bellac dans un milieu modeste, il se lance dans la photographie à la fin des années 1850 et devient le grand portraitiste de la société limougeaude du Second Empire et de la Troisième République. C'est aussi le premier photographe connu à proposer des vues de la ville et de ses alentours, avec une parfaite maîtrise de la composition et une sensibilité esthétique surprenante. Avec Audiguet, Limoges devient paysage photographique.\n\ncote : 9Fi502/39 (Bfm Limoges)"
+   }
+  ],
+  "dcterms:creator": [
+   {
+    "type": "literal",
+    "property_id": 2,
+    "property_label": "Creator",
+    "is_public": true,
+    "@value": "Jean-Baptiste Audiguet (1811-1897)"
+   }
+  ],
+  "dcterms:date": [
+   {
+    "type": "literal",
+    "property_id": 7,
+    "property_label": "Date",
+    "is_public": true,
+    "@value": "Vers 1870-1875"
+   }
+  ],
+  "dcterms:rights": [
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Domaine public"
+   }
+  ],
+  "dcterms:license": [
+   {
+    "type": "literal",
+    "property_id": 49,
+    "property_label": "License",
+    "is_public": true,
+    "@value": "Licence ouverte"
+   }
+  ],
+  "dcterms:relation": [
+   {
+    "type": "literal",
+    "property_id": 13,
+    "property_label": "Relation",
+    "is_public": true,
+    "@value": "vignette : https://bnl-bfm.limoges.fr/files/medium/d604fe2b4212440c28e1cf3a638d2c4b96dc8093.jpg"
+   }
+  ],
+  "dcterms:format": [
+   {
+    "type": "literal",
+    "property_id": 9,
+    "property_label": "Format",
+    "is_public": true,
+    "@value": "application/pdf"
+   }
+  ],
+  "dcterms:medium": [
+   {
+    "type": "literal",
+    "property_id": 26,
+    "property_label": "Medium",
+    "is_public": true,
+    "@value": "Tirage sur papier albuminé"
+   }
+  ],
+  "dcterms:bibliographicCitation": [
+   {
+    "type": "literal",
+    "property_id": 48,
+    "property_label": "Bibliographic Citation",
+    "is_public": true,
+    "@value": "Étienne Rouziès et Jean-Marc Ferrer, Limoges, une histoire de la photographie, Limoges : Les Ardents éditeurs, 2011."
+   },
+   {
+    "type": "uri",
+    "property_id": 48,
+    "property_label": "Bibliographic Citation",
+    "is_public": true,
+    "@id": "https://geoculture.fr/recherche?quoi=auteurs&recherche=audiguet",
+    "o:label": "Jean-Baptiste Audiguet sur Geoculture"
+   }
+  ],
+  "dcterms:provenance": [
+   {
+    "type": "literal",
+    "property_id": 51,
+    "property_label": "Provenance",
+    "is_public": true,
+    "@value": "Bibliothèque francophone multimédia-Ville de Limoges (cote : 9Fi502/39)"
+   }
+  ],
+  "dcterms:accrualPolicy": [
+   {
+    "type": "literal",
+    "property_id": 55,
+    "property_label": "Accrual Policy",
+    "is_public": true,
+    "@value": "Limousin"
+   }
+  ],
+  "dcterms:type": [
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "image"
+   }
+  ],
+  "o-module-folksonomy:tag": [
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Jean-Baptiste%20Audiguet",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Jean-Baptiste Audiguet"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Limoges",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Limoges"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/pont",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "pont"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Vienne",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Vienne"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/paysage",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "paysage"
+   }
+  ]
+ },
+ {
+  "@context": "https://bnl-bfm.limoges.fr/api-context",
+  "@id": "https://bnl-bfm.limoges.fr/api/items/6773",
+  "@type": [
+   "o:Item",
+   "dctype:StillImage"
+  ],
+  "o:id": 6773,
+  "o:is_public": true,
+  "o:owner": {
+   "@id": "https://bnl-bfm.limoges.fr/api/users/1",
+   "o:id": 1
+  },
+  "o:resource_class": {
+   "@id": "https://bnl-bfm.limoges.fr/api/resource_classes/33",
+   "o:id": 33
+  },
+  "o:resource_template": {
+   "@id": "https://bnl-bfm.limoges.fr/api/resource_templates/14",
+   "o:id": 14
+  },
+  "o:thumbnail": null,
+  "o:title": "Pont sur le chemin de fer à Lamberterie, commune de Royères - Fonds Boudeau (B26-n°619)",
+  "thumbnail_display_urls": {
+   "large": "https://bnl-bfm.limoges.fr/files/large/9cda54cdadf4607278462794590583c763fa7b39.jpg",
+   "medium": "https://bnl-bfm.limoges.fr/files/medium/9cda54cdadf4607278462794590583c763fa7b39.jpg",
+   "square": "https://bnl-bfm.limoges.fr/files/square/9cda54cdadf4607278462794590583c763fa7b39.jpg"
+  },
+  "o:created": {
+   "@value": "2021-12-18T11:46:42+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:modified": {
+   "@value": "2024-03-27T12:43:53+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:primary_media": {
+   "@id": "https://bnl-bfm.limoges.fr/api/media/6774",
+   "o:id": 6774
+  },
+  "o:media": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/media/6774",
+    "o:id": 6774
+   }
+  ],
+  "o:item_set": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/item_sets/4853",
+    "o:id": 4853
+   },
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/item_sets/6153",
+    "o:id": 6153
+   }
+  ],
+  "o:site": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/sites/1",
+    "o:id": 1
+   }
+  ],
+  "dcterms:title": [
+   {
+    "type": "literal",
+    "property_id": 1,
+    "property_label": "Title",
+    "is_public": true,
+    "@value": "Pont sur le chemin de fer à Lamberterie, commune de Royères - Fonds Boudeau (B26-n°619)"
+   }
+  ],
+  "dcterms:creator": [
+   {
+    "type": "literal",
+    "property_id": 2,
+    "property_label": "Creator",
+    "is_public": true,
+    "@value": "Boudeau, Jean-Baptiste (1881-1959)"
+   }
+  ],
+  "dcterms:date": [
+   {
+    "type": "literal",
+    "property_id": 7,
+    "property_label": "Date",
+    "is_public": true,
+    "@value": "1909"
+   }
+  ],
+  "dcterms:description": [
+   {
+    "type": "literal",
+    "property_id": 4,
+    "property_label": "Description",
+    "is_public": true,
+    "@value": "Imaginons Jean-Baptiste Boudeau arrivé avec son cheval et sa carriole sur ce chemin escarpé de la vallée de la Vienne, attendre patiemment le passage du train pour l'immortaliser."
+   }
+  ],
+  "dcterms:format": [
+   {
+    "type": "literal",
+    "property_id": 9,
+    "property_label": "Format",
+    "is_public": true,
+    "@value": "image jpeg"
+   }
+  ],
+  "dcterms:medium": [
+   {
+    "type": "literal",
+    "property_id": 26,
+    "property_label": "Medium",
+    "is_public": true,
+    "@value": "Plaque au gélatino-bromure d'argent, 13 x 18 cm"
+   }
+  ],
+  "dcterms:type": [
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "Image"
+   },
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "Photographie"
+   }
+  ],
+  "dcterms:subject": [
+   {
+    "type": "literal",
+    "property_id": 3,
+    "property_label": "Subject",
+    "is_public": true,
+    "@value": "Royères (Haute-Vienne, France)"
+   }
+  ],
+  "dcterms:rights": [
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Droits de reproduction réservés."
+   },
+   {
+    "type": "uri",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@id": "https://www.adagp.fr/fr/droit-dauteur/droits-patrimoniaux",
+    "o:label": "Voir le site de l'ADAGP sur les droits patrimoniaux"
+   },
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Pour toute réutilisation, merci de nous contacter à l'aide du formulaire."
+   }
+  ],
+  "dcterms:license": [
+   {
+    "type": "literal",
+    "property_id": 49,
+    "property_label": "License",
+    "is_public": true,
+    "@value": "Droits réservés"
+   }
+  ],
+  "dcterms:relation": [
+   {
+    "type": "literal",
+    "property_id": 13,
+    "property_label": "Relation",
+    "is_public": true,
+    "@value": "vignette : https://bnl-bfm.limoges.fr/files/medium/9cda54cdadf4607278462794590583c763fa7b39.jpg"
+   }
+  ],
+  "dcterms:provenance": [
+   {
+    "type": "literal",
+    "property_id": 51,
+    "property_label": "Provenance",
+    "is_public": true,
+    "@value": "Bibliothèque Francophone Multimédia - Ville de Limoges, fonds Jean-Baptiste Boudeau - Boîte 26"
+   }
+  ],
+  "dcterms:accrualPolicy": [
+   {
+    "type": "literal",
+    "property_id": 55,
+    "property_label": "Accrual Policy",
+    "is_public": true,
+    "@value": "Boudeau"
+   },
+   {
+    "type": "literal",
+    "property_id": 55,
+    "property_label": "Accrual Policy",
+    "is_public": true,
+    "@value": "Limousin"
+   }
+  ],
+  "dcterms:coverage": [
+   {
+    "type": "literal",
+    "property_id": 14,
+    "property_label": "Coverage",
+    "is_public": true,
+    "@value": "Lamberterie, Royères, Haute-Vienne."
+   }
+  ],
+  "o-module-folksonomy:tag": [
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Haute-Vienne",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Haute-Vienne"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Roy%C3%A8res",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Royères"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/chemin%20de%20fer",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "chemin de fer"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/train",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "train"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/pont",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "pont"
+   }
+  ]
+ },
+ {
+  "@context": "https://bnl-bfm.limoges.fr/api-context",
+  "@id": "https://bnl-bfm.limoges.fr/api/items/1141",
+  "@type": [
+   "o:Item",
+   "dctype:Image"
+  ],
+  "o:id": 1141,
+  "o:is_public": true,
+  "o:owner": {
+   "@id": "https://bnl-bfm.limoges.fr/api/users/1",
+   "o:id": 1
+  },
+  "o:resource_class": {
+   "@id": "https://bnl-bfm.limoges.fr/api/resource_classes/26",
+   "o:id": 26
+  },
+  "o:resource_template": null,
+  "o:thumbnail": null,
+  "o:title": "Le train en gare de Nexon",
+  "thumbnail_display_urls": {
+   "large": "https://bnl-bfm.limoges.fr/files/large/a44e8cf8d5139ecc71a6fd83eee42c101a9274be.jpg",
+   "medium": "https://bnl-bfm.limoges.fr/files/medium/a44e8cf8d5139ecc71a6fd83eee42c101a9274be.jpg",
+   "square": "https://bnl-bfm.limoges.fr/files/square/a44e8cf8d5139ecc71a6fd83eee42c101a9274be.jpg"
+  },
+  "o:created": {
+   "@value": "2019-08-29T16:01:04+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:modified": {
+   "@value": "2024-07-23T12:50:40+00:00",
+   "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  },
+  "o:primary_media": {
+   "@id": "https://bnl-bfm.limoges.fr/api/media/1229",
+   "o:id": 1229
+  },
+  "o:media": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/media/1229",
+    "o:id": 1229
+   }
+  ],
+  "o:item_set": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/item_sets/6153",
+    "o:id": 6153
+   }
+  ],
+  "o:site": [
+   {
+    "@id": "https://bnl-bfm.limoges.fr/api/sites/1",
+    "o:id": 1
+   }
+  ],
+  "dcterms:title": [
+   {
+    "type": "literal",
+    "property_id": 1,
+    "property_label": "Title",
+    "is_public": true,
+    "@value": "Le train en gare de Nexon"
+   }
+  ],
+  "dcterms:description": [
+   {
+    "type": "literal",
+    "property_id": 4,
+    "property_label": "Description",
+    "is_public": true,
+    "@value": "cote : 9FI 484 (Bfm Limoges)"
+   }
+  ],
+  "dcterms:creator": [
+   {
+    "type": "literal",
+    "property_id": 2,
+    "property_label": "Creator",
+    "is_public": true,
+    "@value": "Eugène Juge"
+   }
+  ],
+  "dcterms:date": [
+   {
+    "type": "literal",
+    "property_id": 7,
+    "property_label": "Date",
+    "is_public": true,
+    "@value": "vers 1900"
+   }
+  ],
+  "dcterms:rights": [
+   {
+    "type": "literal",
+    "property_id": 15,
+    "property_label": "Rights",
+    "is_public": true,
+    "@value": "Domaine public"
+   }
+  ],
+  "dcterms:license": [
+   {
+    "type": "literal",
+    "property_id": 49,
+    "property_label": "License",
+    "is_public": true,
+    "@value": "Licence ouverte"
+   }
+  ],
+  "dcterms:relation": [
+   {
+    "type": "literal",
+    "property_id": 13,
+    "property_label": "Relation",
+    "is_public": true,
+    "@value": "vignette : https://bnl-bfm.limoges.fr/files/medium/a44e8cf8d5139ecc71a6fd83eee42c101a9274be.jpg"
+   }
+  ],
+  "dcterms:format": [
+   {
+    "type": "literal",
+    "property_id": 9,
+    "property_label": "Format",
+    "is_public": true,
+    "@value": "12 x 17 cm"
+   },
+   {
+    "type": "literal",
+    "property_id": 9,
+    "property_label": "Format",
+    "is_public": true,
+    "@value": "application/pdf"
+   }
+  ],
+  "dcterms:medium": [
+   {
+    "type": "literal",
+    "property_id": 26,
+    "property_label": "Medium",
+    "is_public": true,
+    "@value": "Tirage sur papier albuminé"
+   }
+  ],
+  "dcterms:provenance": [
+   {
+    "type": "literal",
+    "property_id": 51,
+    "property_label": "Provenance",
+    "is_public": true,
+    "@value": "Bibliothèque francophone multimedia - ville de Limoges (cote 9FI 484)"
+   }
+  ],
+  "dcterms:accrualPolicy": [
+   {
+    "type": "literal",
+    "property_id": 55,
+    "property_label": "Accrual Policy",
+    "is_public": true,
+    "@value": "Limousin"
+   }
+  ],
+  "dcterms:type": [
+   {
+    "type": "literal",
+    "property_id": 8,
+    "property_label": "Type",
+    "is_public": true,
+    "@value": "image"
+   }
+  ],
+  "o-module-folksonomy:tag": [
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/gare",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "gare"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Haute-Vienne",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Haute-Vienne"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/train",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "train"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/XXe%20si%C3%A8cle",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "XXe siècle"
+   },
+   {
+    "@context": "https://bnl-bfm.limoges.fr/api-context",
+    "@id": "https://bnl-bfm.limoges.fr/api/tags/Nexon",
+    "@type": "o-module-folksonomy:Tag",
+    "o:id": "Nexon"
+   }
+  ]
+ }
+]

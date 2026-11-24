@@ -28,7 +28,7 @@ use Throwable;
 class ImportOpenDataMedia extends Command
 {
     protected $signature = 'vff:import-open-data-media
-        {source?* : Clés des jeux (albert-kahn, ad92-9fi, suresnes-cp, evry-cp, sevres-cp, gadagne-cp, sl71-cp, getty, enpc-ph, numistral, rosalis, pireneas) ; tous par défaut}
+        {source?* : Clés des jeux (albert-kahn, ad92-9fi, suresnes-cp, evry-cp, sevres-cp, gadagne-cp, sl71-cp, getty, enpc-ph, numistral, rosalis, pireneas, bnl-limousin, lempreinte) ; tous par défaut}
         {--dry-run : N\'écrit rien en base : compte les images, les gares et les lignes gagnées}
         {--refresh : Relit le jeu sur le réseau et réécrit le cache}
         {--retry-errors : Jeu IIIF : redemande les manifestes dont la lecture avait échoué}

@@ -18,6 +18,8 @@ use RuntimeException;
  *   - `wfs` : GeoJSON du WFS de data.grandlyon.com (jeu du musée Gadagne) ;
  *   - `getty` : SPARQL puis une notice Linked Art par objet de data.getty.edu (GettyReader) ;
  *   - `iiif` : plan du site puis manifestes IIIF d'une bibliothèque numérique de marque blanche Gallica (IiifManifestReader) ;
+ *   - `omeka` : API publique d'une bibliothèque numérique Omeka S, une recherche par mot (OmekaReader : Bibliothèque numérique du Limousin) ;
+ *   - `oai-pmh` : entrepôt OAI-PMH Dublin Core (`ListRecords`, jeton de reprise, OaiPmhReader : L'Empreinte de Valence) ;
  *   - `oai-dc` : recherche (HTML) puis notice Dublin Core par ark (Rosalis, Pireneas : DublinCoreReader), une requête toutes les 5 s.
  * Politesse : une requête toutes les 2 secondes au plus (attente via Sleep, simulable), User-Agent générique
  * de VFF, lecture séquentielle, une reprise unique sur 429 ou 5xx. Le cache (`storage/app/sources/open-data-media`,
@@ -98,6 +100,8 @@ class OpenDataFetcher
             'getty' => (new GettyReader($this))->read($dataset, $limit),
             'iiif' => (new IiifManifestReader($this, $key))->read($dataset, $limit),
             'oai-dc' => (new DublinCoreReader($this, $key))->read($dataset, $limit),
+            'omeka' => (new OmekaReader($this))->read($dataset, $limit),
+            'oai-pmh' => (new OaiPmhReader($this))->read($dataset, $limit),
             default => throw new RuntimeException("Jeu {$key} : accès inconnu."),
         };
 
