@@ -6,6 +6,7 @@ namespace App\Services\TrackLayout;
 
 use App\Models\Line;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Source `osm` of the track layout: the OpenStreetMap tracks and track nodes attached to the line by
@@ -45,6 +46,10 @@ final class OsmTrackLayoutSource implements TrackLayoutSource
 
     public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
     {
+        // Code deployed before its migration: no OSM layout yet, never an error.
+        if (! Schema::hasTable('osm_tracks') || ! Schema::hasTable('osm_track_nodes') || ! Schema::hasTable('osm_track_imports')) {
+            return TrackLayoutPart::empty();
+        }
         $rows = DB::table('osm_tracks as t')->leftJoin('stations as s', 's.id', '=', 't.station_id')
             ->where('t.line_id', $line->id)->whereNotNull('t.pk_from_m')
             ->when($fromM !== null, fn ($q) => $q->where('t.pk_to_m', '>=', $fromM))

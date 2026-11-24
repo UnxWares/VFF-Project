@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\Support\CommandSandbox;
 use Tests\TestCase;
 
@@ -133,6 +134,16 @@ class ImportOsmTrackDetailTest extends TestCase
         $this->import();
         $this->assertSame($first, DB::table('osm_tracks')->count());
         $this->assertSame(2, DB::table('osm_track_imports')->count());
+    }
+
+    public function test_track_layout_answers_before_the_osm_tables_exist(): void
+    {
+        Schema::drop('osm_track_nodes');
+        Schema::drop('osm_tracks');
+
+        $json = $this->getJson('/api/v1/lines/rfn-672000/track-layout')->assertOk()->json();
+        $this->assertSame([], $json['tracks']);
+        $this->assertSame([], $json['sources']);
     }
 
     public function test_track_layout_api_serves_the_osm_tracks_with_lanes(): void
