@@ -4445,6 +4445,8 @@ type TrackLayoutSpeed {
   pk_to_m: Int!
   "Vitesse maximale, en km/h."
   kmh: Int!
+  "Voies auxquelles cette vitesse s'applique (références courtes : V1, V2…), null quand la source ne le dit pas."
+  tracks: [String!]
   "Provenance : \`rinf\`, \`osm\` ou \`vff\`."
   source: String!
 }
