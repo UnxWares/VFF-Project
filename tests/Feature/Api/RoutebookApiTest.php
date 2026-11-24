@@ -131,14 +131,14 @@ class RoutebookApiTest extends TestCase
         $this->assertNotContains(12000, array_column($book['signals'], 'pk_m'));
 
         // Déclivité de la ligne en rampe (+2,5 ‰ à PK croissants) : pente dans le sens de marche.
-        $gradient = collect($book['strip']['gradients'])->firstWhere('line_slug', 'rfn-100000');
+        $gradient = collect((array) $book['strip']['gradients'])->firstWhere('line_slug', 'rfn-100000');
         $this->assertSame([-2.5, 2.5], [$gradient['permille'], $gradient['line_permille']]);
         // Voies coupées aux bornes de la portion ; rangées retournées à PK décroissants.
-        $running = collect($book['tracks'])->firstWhere('id', '1:t-1');
+        $running = collect((array) $book['tracks'])->firstWhere('id', '1:t-1');
         $this->assertSame([0, 7450, 7450], [$running['pk_from_m'], $running['pk_to_m'], $running['length_m']]);
         $this->assertSame([0, 1], [$running['lane'], $running['route_lane']]);
-        $this->assertSame(1, collect($book['tracks'])->firstWhere('id', '1:t-2')['lane']);
-        $this->assertSame(0, collect($book['tracks'])->firstWhere('id', '1:t-2')['route_lane']);
+        $this->assertSame(1, collect((array) $book['tracks'])->firstWhere('id', '1:t-2')['lane']);
+        $this->assertSame(0, collect((array) $book['tracks'])->firstWhere('id', '1:t-2')['route_lane']);
 
         // La gare de changement de ligne n'est listée qu'une fois, avec ses deux lignes.
         $b = array_values(array_filter($book['operational_points'], fn (array $p): bool => $p['station_slug'] === 'b'));
@@ -146,7 +146,7 @@ class RoutebookApiTest extends TestCase
         $this->assertSame(['rfn-200000', 'rfn-100000'], $b[0]['lines']);
         $this->assertSame(count($book['operational_points']) + count($book['tracks']) + count($book['switches'])
             + count($book['signals']) + count($book['crossings']), $book['objects']);
-        $this->assertSame(['osm', 'rinf'], collect($book['sources'])->pluck('key')->sort()->values()->all());
+        $this->assertSame(['osm', 'rinf'], collect((array) $book['sources'])->pluck('key')->sort()->values()->all());
     }
 
     public function test_a_line_change_on_open_line_is_placed_on_both_lines(): void
@@ -172,7 +172,7 @@ class RoutebookApiTest extends TestCase
 
         $this->assertFalse($book['legs'][0]['has_detail']);
         $this->assertTrue($book['legs'][1]['has_detail']);
-        $missing = collect($book['coverage']['missing'])->firstWhere('line_code', '100000');
+        $missing = collect((array) $book['coverage']['missing'])->firstWhere('line_code', '100000');
         $this->assertSame('all', $missing['what']);
         $this->assertSame(0.0, (float) $missing['route_from_km']);
         $this->assertEqualsWithDelta(7.45, $missing['route_to_km'], 0.2);
