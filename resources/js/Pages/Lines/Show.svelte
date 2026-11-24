@@ -36,6 +36,7 @@
     import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
     import LineSchematic from '$components/Lines/LineSchematic.svelte';
+    import LineTrackLayout from '$components/Lines/LineTrackLayout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { Link } from '@inertiajs/svelte';
@@ -220,6 +221,7 @@
         'heritage',
         'tech',
         'schematic',
+        'track-layout',
         'profile',
         'speeds',
         'electrification',
@@ -1444,6 +1446,9 @@
         {#if stations.length >= 2}
             <LineSchematic slug={line.slug} />
         {/if}
+
+        <!-- Schéma des voies (état actuel) : chargé à la demande (API dédiée), replié ; plein écran sur /lines/{slug}/voies. -->
+        <LineTrackLayout slug={line.slug} lineName={line.name} />
 
         {#if profile}
             <LineProfile {profile} structures={structures.items} />

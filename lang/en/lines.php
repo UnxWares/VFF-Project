@@ -578,6 +578,7 @@ return [
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
         'schematic' => 'Diagram',
+        'track-layout' => 'Tracks',
         'profile' => 'Gradient profile',
         'speeds' => 'Speeds',
         'electrification' => 'Electrification',

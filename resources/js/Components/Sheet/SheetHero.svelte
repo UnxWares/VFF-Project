@@ -8,7 +8,7 @@
      * Titre en encre sur fond plat (même famille que PageHero) : le blanc sur l'orange de la charte
      * ne passe pas le contraste AA (2,95:1) ; l'orange reste celui du rail.
      * `titleLang` : langue du titre quand elle diffère de celle de la page (nom français affiché sur
-     * la page anglaise ou allemande, par exemple).
+     * la page anglaise ou allemande, par exemple). `wide` : page plein écran, contenu large jusqu'à 2 400 px.
      */
     /** @type {{
      *   crumbs?: Array<{ href: string, label: string, icon?: string }>,
@@ -21,6 +21,7 @@
      *   children?: import('svelte').Snippet,
      *   rail?: import('svelte').Snippet,
      *   stats?: import('svelte').Snippet,
+     *   wide?: boolean,
      * }} */
     let {
         crumbs = [],
@@ -33,11 +34,12 @@
         children,
         rail,
         stats,
+        wide = false,
     } = $props();
 </script>
 
 <header class="sheet-hero">
-    <div class="inner">
+    <div class={['inner', wide && 'wide']}>
         {#if crumbs.length}
             <nav class="crumbs" aria-label={crumbsLabel}>
                 <ol>
@@ -79,6 +81,10 @@
         max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
         margin: 0 auto;
         padding: 0 var(--vff-gutter);
+    }
+    /* Page plein écran (schéma des voies) : même bord gauche que son contenu, large jusqu'à 2 400 px. */
+    .inner.wide {
+        max-width: calc(2400px + 2 * var(--vff-gutter));
     }
     .crumbs ol {
         display: flex;

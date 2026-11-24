@@ -26,6 +26,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LineStoryController;
+use App\Http\Controllers\LineTrackLayoutPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
@@ -73,6 +74,8 @@ Route::middleware('throttle:public-api')->group(function (): void {
 });
 Route::get('/lines', [LineController::class, 'index'])->name('lines.index');
 Route::get('/lines/{line:slug}', [LineController::class, 'show'])->name('lines.show');
+// Schéma des voies en plein écran (état actuel) : voies, aiguillages, signaux, tableau de parcours (API track-layout).
+Route::get('/lines/{line:slug}/voies', [LineTrackLayoutPageController::class, 'show'])->name('lines.tracks');
 // Histoire d'un événement de la ligne : images de l'époque et documents de Gallica (EventStories).
 Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])
     ->where('event', '[0-9]{1,18}')->name('lines.stories.show');

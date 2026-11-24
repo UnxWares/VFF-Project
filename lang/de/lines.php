@@ -578,6 +578,7 @@ return [
         'heritage' => 'Museumsbahn',
         'tech' => 'Technik',
         'schematic' => 'Streckenband',
+        'track-layout' => 'Gleisplan',
         'profile' => 'Höhenprofil',
         'speeds' => 'Geschwindigkeiten',
         'electrification' => 'Elektrifizierung',
