@@ -466,7 +466,7 @@ final class LineSheet
             return [
                 'slug' => $m->slug,
                 'name' => $m->name,
-                'type' => $m->type,
+                'type' => $m->type->value,
                 // `builder` : noms joints, coupés à 255 caractères (« … ») pour les séries aux nombreux
                 // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon. Un
                 // constructeur sans libellé (identifiant Wikidata seul) n'est dans aucun des deux.
