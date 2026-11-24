@@ -9,6 +9,7 @@ use App\Services\TrackLayout\TrackLayout;
 use App\Support\Search\PkQuery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,11 @@ class LineTrackLayoutController extends Controller
      * }
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-579000')]
+    #[QueryParameter('from_pk', 'Début de la portion, PK en kilomètres : `120`, `120,5` ou `120+500` (« + » encodé `%2B` dans une adresse). Par défaut : début de la ligne.', type: 'string', example: '17+000')]
+    #[QueryParameter('to_pk', 'Fin de la portion, PK en kilomètres, même notation. Par défaut : fin de la ligne.', type: 'string', example: '18+000')]
+    #[QueryParameter('from_pk_m', 'Début de la portion, PK en mètres (au lieu de `from_pk`).', type: 'int', example: 17000)]
+    #[QueryParameter('to_pk_m', 'Fin de la portion, PK en mètres (au lieu de `to_pk`).', type: 'int', example: 18000)]
+    #[QueryParameter('kinds', 'Familles à servir, séparées par des virgules : `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `speeds`, `gradients`. Par défaut : toutes.', type: 'string', example: 'tracks,operational_points')]
     #[ApiResponse(200, 'Schéma des voies de la ligne (listes vides et couverture si aucune source ne la décrit).', examples: [[
         'line' => ['code' => '579000', 'slug' => 'rfn-579000', 'name' => 'Ligne de Beillant à Angoulême'],
         'pk' => ['start_m' => 17095, 'end_m' => 17917, 'start_label' => '17+095', 'end_label' => '17+917'],
@@ -83,7 +89,7 @@ class LineTrackLayoutController extends Controller
             'pk_from_m' => 17277, 'pk_to_m' => 17917, 'lane' => 0, 'op_id' => null, 'length_m' => 640, 'electrified' => false,
             'platform' => false, 'direction' => 'both', 'max_speed_kmh' => 140, 'source' => 'rinf', 'precision' => 'exact',
         ], [
-            'id' => 'rinf:t:5e6f7a8b9c0d', 'ref' => 'E de Cognac', 'rinf_ref' => 'Voie E de Cognac', 'kind' => 'loop',
+            'id' => 'rinf:t:5e6f7a8b9c0d', 'ref' => 'E', 'rinf_ref' => 'Voie E de Cognac', 'kind' => 'loop',
             'pk_from_m' => 17205, 'pk_to_m' => 17350, 'lane' => -1, 'op_id' => 'rinf:op:FR0000003513', 'length_m' => null, 'electrified' => null,
             'platform' => true, 'direction' => null, 'max_speed_kmh' => null, 'source' => 'rinf', 'precision' => 'approximate',
         ]],

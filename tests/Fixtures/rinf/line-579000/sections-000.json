@@ -1,0 +1,1095 @@
+{
+  "head" : {
+    "vars" : [
+      "g",
+      "sol",
+      "uri",
+      "lineId",
+      "len",
+      "nature",
+      "opS",
+      "opE",
+      "skm",
+      "soff",
+      "slrs",
+      "ekm",
+      "eoff",
+      "elrs"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/0385402180"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000000960_FR0000000153"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.935"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000000960"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000000153"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "63.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "732.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "64.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "667.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/da3325721f"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001119_FR0000009305"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "16.629"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000001119"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "470.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "95.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/7d9001461e"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001608_FR0000003470"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.204"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000001608"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-235.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-31.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/ae85e724ba"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000002507_FR0000004229"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "13.219"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "31.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "207.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "44.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "427.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/fb800f3449"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000003470_FR0000001119"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.501"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000001119"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-31.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "470.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/43ca498756"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000003513_FR9900004367"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.64"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR9900004367"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "277.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "917.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/e16bb217da"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000004229_FR0000008263"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.411"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000008263"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "44.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "427.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "44.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "838.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/f806bcedad"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000005890_FR0000009117"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "2.44"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000009117"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "19.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "504.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "21.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "942.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/752728b70a"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000006311_FR0000005890"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "1.585"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "919.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "19.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "504.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/c14d3b0961"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007078_FR0000001119"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/20"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000001119"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "470.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "470.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/26937bee6f"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007897_FR9900001730"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "9.937"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000007897"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR9900001730"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "52.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "695.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "62.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "631.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/1cb3f58b24"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000008263_FR0000007897"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "7.857"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000008263"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000007897"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "44.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "838.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "52.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "695.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/67a72c1290"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009117_FR0000002507"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "9.265"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000009117"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "21.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "942.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "31.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "207.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/1f65d23af1"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009305_FR0000003513"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.182"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "95.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "277.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/a99bb6c180"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009305_FR9900004367"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/20"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR9900004367"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "95.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "917.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/0afcb3bd3a"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR9900001730_FR0000000960"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "1.101"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR9900001730"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000000960"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "62.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "631.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "63.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "732.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "sol" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/07e4c3a7d7"
+        },
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR9900004367_FR0000006311"
+        },
+        "lineId" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.002"
+        },
+        "nature" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/sol-natures/10"
+        },
+        "opS" : {
+          "type" : "literal",
+          "value" : "FR9900004367"
+        },
+        "opE" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "skm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "soff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "917.0"
+        },
+        "slrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        },
+        "ekm" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "17.0"
+        },
+        "eoff" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "919.0"
+        },
+        "elrs" : {
+          "type" : "literal",
+          "value" : "579000-1"
+        }
+      }
+    ]
+  }
+}

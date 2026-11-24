@@ -10,6 +10,7 @@ return [
             'vff' => 'French Railway Lines (Voies Ferrées de France, vff-project.org), UnxWares, ODbL 1.0',
             'osm' => '© OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright)',
             'sncf' => 'SNCF Open Data (SNCF Réseau, SNCF Voyageurs, SNCF Gares & Connexions), ODbL 1.0',
+            'rinf' => 'RINF, Register of Infrastructure, © European Union Agency for Railways (ERA Knowledge Graph, EUPL 1.2)',
             'ohm' => 'OpenHistoricalMap, CC0 1.0',
             'ign' => 'IGN (BD TOPO, historical BD ORTHO), Licence Ouverte 2.0',
             'wikipedia' => 'Wikipedia, CC BY-SA 4.0 (texts); facts reused with a link to the article',

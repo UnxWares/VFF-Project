@@ -65,14 +65,21 @@ final class RinfDataset
     }
 
     /**
-     * Référence courte d'une voie : « Voie V1 » devient « V1 », « Voie UNIQUE de … » devient « VU », le reste
-     * perd seulement le mot « Voie » de tête (l'identifiant complet reste dans `rinf_ref`).
+     * Référence courte d'une voie : « Voie V1 », « Voie 1 », « Voie V1 de Paris-12 à Marseille-01 » et « 1 »
+     * deviennent « V1 » (de même pour la voie 2), « Voie UNIQUE de … », « Voie unique » et « UNIQUE » deviennent
+     * « VU », « Voie V1BIS » « V1BIS », « Voie E de Sireuil » « E », « 5 - COGNAC » « 5 » ; un autre identifiant
+     * perd seulement le mot « Voie » de tête. L'identifiant complet reste dans `rinf_ref`.
      */
     public static function shortTrackRef(string $ref): string
     {
         $ref = trim($ref);
-        if (preg_match('/^voie\s+unique\b/iu', $ref) === 1) {
+        if (preg_match('/^(voie\s+)?unique\b/iu', $ref) === 1) {
             return 'VU';
+        }
+        if (preg_match('/^(?:voie\s+)?(V?\d{1,4}[A-Z]?(?:\s?BIS|\s?TER)?|[A-Z]{1,2}\d{0,3})(?:\s*-\s*.*|\s+(?:de|du|des|d\'|à)\b.*)?$/iu', $ref, $m) === 1) {
+            $id = strtoupper((string) preg_replace('/\s+/', '', $m[1]));
+
+            return in_array($id, ['1', '2'], true) ? 'V'.$id : $id;
         }
 
         return trim((string) preg_replace('/^voie\s+/iu', '', $ref));
@@ -93,7 +100,8 @@ final class RinfDataset
     }
 
     /**
-     * Sorte (contrat) d'une voie de point d'exploitation : liaison (« Liaison BS83/84 ») = crossover, voie de
+     * Sorte (contrat) d'une voie de point d'exploitation : liaison (« Liaison BS83/84 ») = crossover, voie
+     * principale qui traverse le point (voie 1, voie 2, voie unique) = running, voie de
      * faisceau ou de triage = yard, voie d'installation terminale embranchée = spur, voie de service = siding,
      * voie de gare parcourue par les trains (era:RunningTrack d'un point) = loop.
      */
@@ -101,6 +109,7 @@ final class RinfDataset
     {
         return match (true) {
             preg_match('/^liaison\b/iu', trim($ref)) === 1 => 'crossover',
+            $rinfClass === 'running' && in_array(self::shortTrackRef($ref), ['V1', 'V2', 'VU'], true) => 'running',
             $rinfClass === 'running' => 'loop',
             $opType === 130 || preg_match('/\bITE\b/u', $ref) === 1 => 'spur',
             $opType === 100 || preg_match('/\b(faisceau|triage)\b/iu', $ref) === 1 => 'yard',

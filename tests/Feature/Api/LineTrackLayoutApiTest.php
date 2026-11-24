@@ -10,6 +10,7 @@ use App\Services\TrackLayout\TrackLayoutSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -100,13 +101,13 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertStringContainsString('European Union Agency for Railways', $json['sources'][0]['attribution']);
         $this->assertSame('2026-11-24', $json['sources'][0]['fetched_at']);
 
-        $cognac = collect($json['operational_points'])->firstWhere('uopid', 'FR0000003513');
+        $cognac = collect((array) $json['operational_points'])->firstWhere('uopid', 'FR0000003513');
         $this->assertSame(['id' => 'rinf:op:FR0000003513', 'name' => 'Cognac', 'kind' => 'station', 'pk_m' => 17277, 'uopid' => 'FR0000003513',
             'station_slug' => null, 'rinf_type' => 10, 'source' => 'rinf', 'precision' => 'exact'], $cognac);
 
-        $tracks = collect($json['tracks'])->keyBy('rinf_ref');
+        $tracks = collect((array) $json['tracks'])->keyBy('rinf_ref');
         // Voie unique : rangée 0, position exacte, une pièce par section (la liaison de longueur nulle est écartée).
-        $main = collect($json['tracks'])->where('ref', 'VU')->values();
+        $main = collect((array) $json['tracks'])->where('ref', 'VU')->values();
         $this->assertCount(3, $main);
         $this->assertSame([0], $main->pluck('lane')->unique()->values()->all());
         $this->assertSame('both', $main[0]['direction']);
@@ -128,7 +129,7 @@ class LineTrackLayoutApiTest extends TestCase
         // Ni aiguillage ni signal au RINF français : familles absentes sur toute la ligne.
         $this->assertSame(907, $json['coverage']['total_m']);
         $this->assertSame(824, $json['coverage']['rinf_m']);
-        $missing = collect($json['coverage']['missing']);
+        $missing = collect((array) $json['coverage']['missing']);
         $this->assertTrue($missing->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] === 17012 && $m['pk_to_m'] === 17919));
         $this->assertTrue($missing->contains(fn (array $m): bool => $m['what'] === 'signals'));
     }
@@ -141,7 +142,7 @@ class LineTrackLayoutApiTest extends TestCase
 
         $this->assertSame(['rinf', 'osm'], array_column($json['sources'], 'key'));
         // Voie OSM sous une portion décrite par le RINF : écartée ; au-delà : gardée, avec sa rangée.
-        $osm = collect($json['tracks'])->where('source', 'osm')->values();
+        $osm = collect((array) $json['tracks'])->where('source', 'osm')->values();
         $this->assertSame(['osm:way:2'], $osm->pluck('id')->all());
         $this->assertSame(0, $osm[0]['lane']);
         // Aiguillages : le RINF n'en a pas, ceux d'OSM sont servis ; le doublon à 10 m de même référence est écarté.
@@ -149,7 +150,7 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame(['pk_from_m' => 17919, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][4]);
         $this->assertSame(['pk_from_m' => 17000, 'pk_to_m' => 17095, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][0]);
         $this->assertSame(1081, $json['coverage']['osm_m']);
-        $this->assertFalse(collect($json['coverage']['missing'])->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] <= 17500 && $m['pk_to_m'] >= 17600));
+        $this->assertFalse(collect((array) $json['coverage']['missing'])->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] <= 17500 && $m['pk_to_m'] >= 17600));
     }
 
     public function test_osm_service_tracks_are_kept_on_rinf_portions_and_replace_approximate_station_tracks(): void
@@ -160,7 +161,7 @@ class LineTrackLayoutApiTest extends TestCase
             FakeOsmSource::track('osm:way:4', 17880, 17915, null, 'yard'),
         ];
         $this->app->tag([FakeOsmSource::class], TrackLayout::TAG);
-        $tracks = collect($this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json('tracks'));
+        $tracks = collect((array) $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json('tracks'));
 
         // Voies de service d'OSM sur une portion décrite par le RINF : gardées.
         $this->assertSame(['osm:way:2', 'osm:way:3', 'osm:way:4'], $tracks->where('source', 'osm')->pluck('id')->sort()->values()->all());
@@ -183,7 +184,7 @@ class LineTrackLayoutApiTest extends TestCase
         $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
 
         $this->assertSame('osm:way:1', $json['switches'][0]['from_track']);
-        $this->assertSame(['osm:way:1', 'osm:way:2'], collect($json['tracks'])->where('source', 'osm')->pluck('id')->sort()->values()->all());
+        $this->assertSame(['osm:way:1', 'osm:way:2'], collect((array) $json['tracks'])->where('source', 'osm')->pluck('id')->sort()->values()->all());
     }
 
     public function test_track_numbers_for_matching_sources(): void
@@ -193,6 +194,55 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame('1BIS', TrackLayout::trackNumber('Voie V1BIS'));
         $this->assertSame('E', TrackLayout::trackNumber('E de Cognac'));
         $this->assertSame('', TrackLayout::trackNumber(''));
+    }
+
+    public function test_graphql_and_mcp_serve_the_same_content(): void
+    {
+        $this->seedRinf();
+        $rest = $this->getJson('/api/v1/lines/rfn-579000/track-layout?from_pk_m=17000&to_pk_m=18000&kinds=tracks,operational_points,speeds')->assertOk()->json();
+        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { track_layout(from_pk_m: 17000, to_pk_m: 18000, kinds: [TRACKS, OPERATIONAL_POINTS, SPEEDS]) {
+            line { code slug name } pk { start_m end_m start_label end_label }
+            sources { key label licence dataset fetched_at url attribution licence_url }
+            operational_points { id name kind pk_m uopid station_slug rinf_type source precision }
+            tracks { id ref rinf_ref rinf_id kind pk_from_m pk_to_m lane op_id length_m electrified platform direction max_speed_kmh source precision }
+            switches { id } signals { id } crossings { id }
+            strip { speeds { pk_from_m pk_to_m kmh source } gradients { pk_from_m pk_to_m permille source precision } }
+            coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
+
+        $this->assertSame($rest['tracks'], $gql['tracks']);
+        $this->assertSame($rest['operational_points'], $gql['operational_points']);
+        $this->assertSame($rest['strip'], $gql['strip']);
+        $this->assertSame($rest['coverage'], $gql['coverage']);
+        $this->assertSame($rest['sources'], $gql['sources']);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_track_layout',
+                'arguments' => ['line' => '579000', 'from_pk_m' => 17000, 'to_pk_m' => 18000, 'kinds' => ['tracks', 'operational_points', 'speeds']]]])
+            ->assertOk()->json('result');
+        $this->assertFalse((bool) ($result['isError'] ?? false));
+        $mcp = json_decode((string) $result['content'][0]['text'], true);
+        $this->assertSame($rest['tracks'], $mcp['tracks']);
+        $this->assertSame($rest['coverage'], $mcp['coverage']);
+        $this->assertContains('rinf', array_column((array) $mcp['attribution']['sources'], 'provider'));
+        $this->assertStringContainsString("Agence de l'Union européenne pour les chemins de fer", (string) json_encode($mcp['attribution'], JSON_UNESCAPED_UNICODE));
+        $this->assertStringContainsString('European Union Agency for Railways', $mcp['sources'][0]['attribution']);
+    }
+
+    public function test_a_missing_table_never_breaks_the_endpoint(): void
+    {
+        $this->seedRinf();
+        // Table d'une source absente (migration d'osm-voies pas encore passée) : la source est ignorée, le RINF reste.
+        $this->app->tag([MissingTableSource::class], TrackLayout::TAG);
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
+        $this->assertSame(['rinf'], array_column($json['sources'], 'key'));
+        $this->assertNotSame([], $json['tracks']);
+
+        // Table du RINF absente (migration pas encore passée en production) : 200, listes vides et couverture.
+        Schema::drop('rinf_platforms');
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
+        $this->assertSame([], $json['sources']);
+        $this->assertSame([], $json['tracks']);
+        $this->assertSame(0, $json['coverage']['total_m']);
     }
 
     public function test_portion_and_kinds_filters(): void
@@ -245,5 +295,21 @@ final class FakeOsmSource implements TrackLayoutSource
             speeds: [['pk_from_m' => 17000, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm']],
             covered: ['tracks' => [[17919, 19000]], 'switches' => [[17000, 19000]]],
         );
+    }
+}
+
+/** Source de test dont la table n'existe pas. */
+final class MissingTableSource implements TrackLayoutSource
+{
+    public function key(): string
+    {
+        return 'osm';
+    }
+
+    public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
+    {
+        DB::table('osm_track_layout_absente')->where('line_id', $line->id)->get();
+
+        return TrackLayoutPart::empty();
     }
 }

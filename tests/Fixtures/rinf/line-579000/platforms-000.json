@@ -1,0 +1,232 @@
+{
+  "head" : {
+    "vars" : [
+      "uopid",
+      "t",
+      "pe",
+      "ref",
+      "len",
+      "h"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/163473fb85"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/18e1239a02"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai 1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "162.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2c993a1d25"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/4e80d95e43"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai 2"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "350.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/70ac4bdd1e"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/54788bfa94"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai VD"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "145.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/ae13d2b6f2"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/c59e1a6aff"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai VD"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "155.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/992a4eb540"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/c7a7decf24"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai VE"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "145.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/9a5d22b588"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/d186d7f259"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai 2"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "142.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2639ba0e75"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/da6117a627"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai 1"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "343.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/ab37e8820a"
+        },
+        "pe" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/platformEdge/eb97161f8f"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Quai"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "155.0"
+        },
+        "h" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/platform-heights/300"
+        }
+      }
+    ]
+  }
+}

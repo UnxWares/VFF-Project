@@ -27,15 +27,25 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
     /** Longueur (m) donnée à une liaison (crossover), dessinée autour du PK du point. */
     public const CROSSOVER_M = 60;
 
+    /** Rattachements aux gares de VFF assez sûrs pour servir `station_slug` (RinfStationMatcher). */
+    public const SURE_MATCHES = ['name_distance', 'name'];
+
     public function key(): string
     {
         return 'rinf';
     }
 
+    /** Tables rinf_* présentes (migration passée) : sinon, part vide plutôt qu'une erreur. */
+    public static function tablesReady(): bool
+    {
+        return (bool) DB::scalar("SELECT to_regclass('rinf_sections') IS NOT NULL AND to_regclass('rinf_operational_points') IS NOT NULL
+            AND to_regclass('rinf_tracks') IS NOT NULL AND to_regclass('rinf_platforms') IS NOT NULL");
+    }
+
     public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
     {
         $code = (string) ($line->code ?? '');
-        if ($code === '') {
+        if ($code === '' || ! self::tablesReady()) {
             return TrackLayoutPart::empty();
         }
         $sections = DB::table('rinf_sections')->where('line_code', $code)->where('nature', 'regular')
@@ -52,13 +62,21 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
             $opPk[$s->op_end_uopid] ??= (int) $s->pk_end_m;
         }
         $ops = DB::table('rinf_operational_points as o')->leftJoin('stations as s', 's.id', '=', 'o.station_id')
-            ->whereIn('o.uopid', array_keys($opPk))->get(['o.uopid', 'o.name', 'o.kind', 'o.op_type', 's.slug as station_slug']);
+            ->whereIn('o.uopid', array_keys($opPk))
+            ->get(['o.uopid', 'o.name', 'o.kind', 'o.op_type', 'o.station_match', 's.slug as station_slug', 's.type as station_type']);
         $points = [];
         $opKinds = [];
         foreach ($ops as $o) {
             $opKinds[$o->uopid] = (int) $o->op_type;
+            // Gare servie seulement quand le rattachement est sûr (même nom, à moins de 3 km, ou nom unique).
+            if (! in_array($o->station_match, self::SURE_MATCHES, true)) {
+                $o->station_slug = null;
+            }
+            // Point rattaché à une gare de VFF : gare ou halte selon VFF (le RINF français type ses haltes en gares).
+            $kind = $o->station_slug !== null && in_array($o->kind, ['station', 'halt', 'other'], true)
+                ? ($o->station_type === 'halte' ? 'halt' : 'station') : $o->kind;
             $points[] = [
-                'id' => 'rinf:op:'.$o->uopid, 'name' => $o->name, 'kind' => $o->kind, 'pk_m' => $opPk[$o->uopid],
+                'id' => 'rinf:op:'.$o->uopid, 'name' => $o->name, 'kind' => $kind, 'pk_m' => $opPk[$o->uopid],
                 'uopid' => $o->uopid, 'station_slug' => $o->station_slug, 'rinf_type' => $o->op_type === null ? null : (int) $o->op_type,
                 'source' => 'rinf', 'precision' => 'exact',
             ];

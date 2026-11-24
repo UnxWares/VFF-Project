@@ -71,6 +71,28 @@ return [
             'domaines' => ['ign.fr', 'geopf.fr', 'cartes.gouv.fr'],
             'lu_le' => '2026-10-20',
         ],
+        'rinf' => [
+            'nom' => 'RINF, registre de l\'infrastructure (Agence de l\'Union européenne pour les chemins de fer, ERA)',
+            'statut' => 'sur',
+            'licence' => 'EUPL 1.2 (dump officiel du graphe de connaissances de l\'ERA) ; reproduction autorisée sous réserve de citer la source (mention de copyright de l\'ERA)',
+            'accord' => null,
+            'preuve' => [
+                'https://zenodo.org/records/16413403/latest',
+                'https://zenodo.org/api/records/16413403',
+                'https://www.era.europa.eu/content/disclaimer-and-copyright-notice',
+                'https://www.era.europa.eu/de/node/1665',
+                'https://graph.data.era.europa.eu/repositories/rinf-plus',
+            ],
+            'citation' => '« European Union Public License 1.2 » (Zenodo, « ERA Knowledge Graph », v11.0 du 31/10/2026, rinf-kg-20261031.nq, créateur « European Union Agency for Railways (ERA) (Data collector) ») ; '
+                .'« Reproduction is authorised, provided the source is acknowledged, save where otherwise stated. » (era.europa.eu, Disclaimer and copyright notice) ; les dumps de 2025 (v3.0.3) étaient sous CC BY 4.0.',
+            'obligations' => 'Mention « RINF data © European Union Agency for Railways » (RinfDataset::ATTRIBUTION) et lien vers la licence ; données modifiées par VFF signalées. EUPL 1.2 : '
+                .'partage à l\'identique d\'une œuvre dérivée diffusée, licences compatibles de son annexe admises (dont l\'ODbL et la CC BY-SA).',
+            'remarques' => 'Lu par vff:import-rinf au point SPARQL public (graphe 0087 de SNCF Réseau et six autres gestionnaires français), sans compte ni clé. '
+                .'L\'ERA ne publie aucune formule d\'attribution imposée ; sa page du graphe ne cite l\'EUPL que pour l\'ontologie, la licence des données est celle du dump officiel : confirmation écrite à demander par Baptiste (QUESTIONS.md). '
+                .'SNCF Réseau n\'y déclare ni aiguillage ni signal.',
+            'domaines' => ['era.europa.eu', 'data.europa.eu'],
+            'lu_le' => '2026-11-24',
+        ],
         'sncf' => [
             'nom' => 'SNCF Open Data (SNCF Réseau, Gares & Connexions, GTFS voyageurs)',
             'statut' => 'sur',

@@ -305,6 +305,29 @@ que le régime d'exploitation.
 | `--cache-dir=` | Dossier du cache. |
 | `--csv=` | Rapport par ligne (km par système). |
 
+### `vff:import-rinf`
+
+Importe le RINF français (registre de l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, données
+déclarées par SNCF Réseau et six autres gestionnaires) depuis le point SPARQL public du graphe de connaissances de l'ERA
+(`https://graph.data.era.europa.eu/repositories/rinf-plus`, sans compte ni clé) : points d'exploitation
+(`rinf_operational_points`, UOPID, type, position, gare de VFF rattachée par le nom et la distance), sections de ligne et
+leurs PK (`rinf_sections`, code de ligne = `lines.code`), voies des sections et des points d'exploitation, voies de service
+et liaisons (`rinf_tracks`, sens, vitesse, profil de déclivités déclaré), quais (`rinf_platforms`). Six requêtes paginées,
+une toutes les 5 s, User-Agent du projet, budget de 80 requêtes (une trentaine pour la France) ; réponses gardées dans
+`storage/app/data/rinf/<portée>/` (dossier `.nobackup`, 84 Mo pour la France). Seules les tables `rinf_*` sont écrites, dans
+une transaction : toutes remplacées, ou seulement la ligne demandée. Source du schéma des voies
+(`GET /api/v1/lines/{line}/track-layout`). SNCF Réseau n'y déclare ni aiguillage ni signal. Licence : EUPL 1.2 (dump officiel),
+mention « RINF data © European Union Agency for Railways ».
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Mesure seulement : points, sections, km, lignes rattachées, voies, quais ; aucune écriture. |
+| `--offline` | N'utilise que le cache disque, aucune requête réseau (erreur si une réponse manque). |
+| `--refresh` | Relit le point SPARQL au lieu du cache. |
+| `--line=` | Une seule ligne nationale (code à 6 chiffres) ; seule cette ligne est remplacée. |
+| `--cache-dir=` | Dossier du cache (défaut `storage/app/data/rinf`). |
+| `--csv=` | Rapport par code de ligne (sections, km, voies, points, gares). |
+
 ### `vff:import-station-timetables`
 
 Calcule la desserte d'un jour ouvrable type des gares et des lignes d'après les horaires ouverts : GTFS SNCF (TER, Intercités, TGV INOUI,

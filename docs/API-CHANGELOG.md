@@ -24,7 +24,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   l'Agence de l'Union européenne pour les chemins de fer (`rinf`), OpenStreetMap (`osm`), données de VFF (`vff`) ; provenance
   et précision (`exact`, `derived`, `approximate`) sur chaque objet, rangée du schéma (`lane`) calculée par le serveur.
   Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
-  ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal.
+  ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal. Même contenu en
+  GraphQL (`Line.track_layout(from_pk_m, to_pk_m, kinds)`, types `TrackLayout…`, énumération `TrackLayoutKind`) et en MCP
+  (outil `line_track_layout`, avec le bloc d'attribution) ; fournisseur `rinf` ajouté à `sources_and_licences`.
 - Schéma des voies, suite : `buffer_stops` (heurtoirs : `id`, `pk_m`, `track`, `source`, `precision`) et `milestones`
   (bornes kilométriques : `id`, `pk_m`, `label` tel qu'écrit sur la borne, `source`, `precision`), familles demandables
   par `kinds` ; voies, aiguillages, signaux, traversées, heurtoirs et bornes d'OpenStreetMap (`osm`, ODbL, « ©

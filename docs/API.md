@@ -45,6 +45,7 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 | Audit des tronçons d'une ligne (4 notes, preuves) | `GET /lines/{line}/audit?era&grade&limit&offset` | `Line.audit(era)` : `segments(grade, limit, offset)`, `segments_total(grade)` | `line_audit` (`era`, `grade`, `limit`, `offset`) |
 | Audit d'une gare (placement, dates, services) | `GET /stations/{station}/audit` | `Station.audit` | clé `audit` de `get_station` |
 | Nombre de voies et radio sol-train (GSM-R) d'une ligne par portion de PK, aujourd'hui (SNCF Réseau, ODbL) | `GET /lines/{line}/infrastructure` | `Line.infrastructure` | `line_infrastructure` |
+| Schéma des voies d'une ligne aujourd'hui : voies, voies de service, liaisons, aiguillages, signaux, points d'exploitation, vitesses, déclivités (RINF de l'ERA, OpenStreetMap, VFF) | `GET /lines/{line}/track-layout` | `Line.track_layout` | `line_track_layout` |
 | Ouvrages d'art d'une ligne (tunnels, viaducs, grands ponts) par PK, lignes déposées comprises (IGN BD TOPO, Wikidata) | `GET /lines/{line}/structures` | `Line.structures` | `line_structures` |
 | Quais d'une gare (nombre, longueurs, PK ; SNCF Réseau, ODbL) | clé `platforms` de `GET /stations/{station}` | `Station.platforms` | clé `platforms` de `get_station` |
 | Audit des tronçons de tout le réseau (liste, filtres, tri, total) | `GET /audits/segments?era&grade&check&reason&status&department&region&line&q&sort&limit&offset` | `segmentAudits(...)` : `total`, `items` | `segment_audits` (mêmes paramètres) |

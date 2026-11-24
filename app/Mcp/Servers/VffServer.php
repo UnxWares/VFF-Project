@@ -34,6 +34,7 @@ use App\Mcp\Tools\LineStopsTool;
 use App\Mcp\Tools\LineStoriesTool;
 use App\Mcp\Tools\LineStructuresTool;
 use App\Mcp\Tools\LineTimetableTool;
+use App\Mcp\Tools\LineTrackLayoutTool;
 use App\Mcp\Tools\ListDepartmentsTool;
 use App\Mcp\Tools\ListLinesTool;
 use App\Mcp\Tools\ListStationsTool;
@@ -135,6 +136,7 @@ class VffServer extends Server
         StationAuditsTool::class,
         LineGreenwaysTool::class,
         LineInfrastructureTool::class,
+        LineTrackLayoutTool::class,
         LineStructuresTool::class,
         LineArchivesTool::class,
         LineArchiveRecordsTool::class,

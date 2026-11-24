@@ -1,0 +1,578 @@
+{
+  "head" : {
+    "vars" : [
+      "g",
+      "op",
+      "uopid",
+      "name",
+      "type",
+      "lat",
+      "lon"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/01c5a400c5"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "ITE du Km 19,5"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/130"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.679141"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.3022299"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/07896d7681"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000001608"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Bif 500000/579000"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/80"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.7486571"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.6173957"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/09e92ebe3c"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Faisceau V3/V5 et V26/V28"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/50"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6965001"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.5277942"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/30fb83a7e8"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000000960"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Bif 579000/579306"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/80"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6398986"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.1232392"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/39a02aea6d"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009117"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "ITE du Km 21,9"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/130"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6674734"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.2758993"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/3c81e4fb94"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Cognac"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/10"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6844235"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.3261472"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/48e2f2e130"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000008263"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Faisceau Pair"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/50"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.5976236"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.0459796"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/5110d71dcb"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR9900001730"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "St-Michel-sur-Charente"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/40"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6443445"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.1106611"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/699cdca644"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Jarnac"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/10"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6711384"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.177784"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/6bc88fc0db"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Beillant"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/10"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.7008893"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.5267"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/7f621eca2c"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Faisceau Pair"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/50"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6837238"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.3282465"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/9c4f2ddfd0"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000001119"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Bif 579000/500306"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/80"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6985275"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.5216155"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/a5b4d9ccf6"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR9900004367"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Accès à Faisceau Pair"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/80"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6868165"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.3186755"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/b317e627c7"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007897"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "ITE UCACC"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/130"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6046697"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0169002"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/c8f2b6e62f"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000000153"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Bif des Alliers"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/80"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6407265"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.1339044"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/ee4e8c78d5"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Châteauneuf-sur-Charente"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/10"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.5998877"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.0500839"
+        }
+      },
+      {
+        "g" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/graph/0087"
+        },
+        "op" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/operationalPoint/fbcdd89790"
+        },
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "name" : {
+          "xml:lang" : "en",
+          "type" : "literal",
+          "value" : "Faisceau Impair"
+        },
+        "type" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/op-types/50"
+        },
+        "lat" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.6868237"
+        },
+        "lon" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "-0.3186414"
+        }
+      }
+    ]
+  }
+}

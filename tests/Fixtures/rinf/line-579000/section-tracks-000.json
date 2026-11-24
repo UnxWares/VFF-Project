@@ -1,0 +1,843 @@
+{
+  "head" : {
+    "vars" : [
+      "uri",
+      "t",
+      "trackId",
+      "dir",
+      "vmax",
+      "radius",
+      "cls"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009305_FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/02c9daac9e"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "99999"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001119_FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/08b7491249"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "120"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "410"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000000960_FR0000000153"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/13735464ce"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/20"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "100"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "400"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009117_FR0000002507"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/1e5f9da784"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "380"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000000960_FR0000000153"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2213a3fa8d"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "100"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "495"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000008263_FR0000007897"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/283c4168bc"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "476"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000003513_FR9900004367"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/28494ce088"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "379"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000002507_FR0000004229"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/3d554602a4"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "480"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001119_FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/53e0a47d1e"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "120"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "455"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000008263_FR0000007897"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/62571e73b0"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie E de Sireuil"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007078_FR0000001119"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/685bae6db9"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "VLINK"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007897_FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/6ca6eb0e7e"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/20"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "397"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR9900001730_FR0000000960"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/785050dd35"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/20"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "100"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "758"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001119_FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7a1ae5b320"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "120"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "410"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000004229_FR0000008263"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7d8bd3548d"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "500"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007897_FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7db14a6725"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "397"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007897_FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/802ed8a1b2"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "400"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000007897_FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/8445c89474"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie E de Sireuil"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000009305_FR9900004367"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/9e288fa827"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "VLINK"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000003470_FR0000001119"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/a6931a2f9d"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "120"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "410"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR9900004367_FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/b3d58f2f08"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "379"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001608_FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/cf6a363211"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "99999"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000006311_FR0000005890"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/e0d7446104"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "379"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000003470_FR0000001119"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/f2fa4b1ae8"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/20"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "120"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "410"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000005890_FR0000009117"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/f69e983154"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie UNIQUE de Beillant à St-Michel-sur-Charente"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/30"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "140"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "943"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR0000001608_FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/fdd6985c0e"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/20"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "110"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "99999"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      },
+      {
+        "uri" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/sectionOfLine/579000-1_FR9900001730_FR0000000960"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/fe36fac425"
+        },
+        "trackId" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        },
+        "dir" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/track-running-directions/10"
+        },
+        "vmax" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "100"
+        },
+        "radius" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+          "type" : "literal",
+          "value" : "758"
+        },
+        "cls" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        }
+      }
+    ]
+  }
+}

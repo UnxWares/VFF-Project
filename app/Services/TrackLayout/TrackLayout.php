@@ -4,6 +4,9 @@ namespace App\Services\TrackLayout;
 
 use App\Models\Line;
 use App\Services\LineStations;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Schéma des voies d'une ligne (`GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, outil MCP
@@ -35,6 +38,8 @@ use App\Services\LineStations;
  * - vitesses et déclivités : rognées aux trous de la bande déjà remplie.
  * Puis les rangées des voies (LaneAssigner), le tri par PK, la couverture (`coverage`) et les sources utilisées.
  *
+ * Une source dont une table manque (migration pas encore passée) est ignorée : 200 et ce que disent les autres.
+ *
  * Paramètres : portion [from, to] en mètres (objets qui la touchent ; bornes nulles : toute la ligne), familles
  * à servir (`kinds`). Une ligne sans donnée rend 200, des listes vides et la couverture (jamais une erreur).
  */
@@ -60,6 +65,25 @@ final class TrackLayout
 
     /** Deux points d'exploitation à moins de cette distance (m) : le second double le premier. */
     public const OP_MERGE_M = 150;
+
+    /** Champs de chaque famille, dans l'ordre de la réponse (contrat, puis ajouts) ; un champ absent vaut null. */
+    public const FIELDS = [
+        'sources' => ['key', 'label', 'licence', 'dataset', 'fetched_at', 'url', 'attribution', 'licence_url'],
+        'operational_points' => ['id', 'name', 'kind', 'pk_m', 'uopid', 'station_slug', 'rinf_type', 'source', 'precision'],
+        'tracks' => ['id', 'ref', 'rinf_ref', 'rinf_id', 'kind', 'pk_from_m', 'pk_to_m', 'lane', 'op_id', 'length_m', 'electrified',
+            'platform', 'direction', 'max_speed_kmh', 'source', 'precision'],
+        'switches' => ['id', 'ref', 'pk_m', 'kind', 'from_track', 'to_track', 'facing', 'source', 'precision'],
+        'signals' => ['id', 'ref', 'pk_m', 'kind', 'track', 'direction', 'source', 'precision'],
+        'crossings' => ['id', 'pk_m', 'kind', 'ref', 'source'],
+        'buffer_stops' => ['id', 'pk_m', 'track', 'source', 'precision'],
+        'milestones' => ['id', 'pk_m', 'ref', 'source', 'precision'],
+    ];
+
+    /** Clés de travail des sources, retirées de la réponse. */
+    private const INTERNAL = ['parent_ref', 'offset_m', 'connects'];
+
+    /** Codes SQLSTATE d'une table ou d'une colonne absente (PostgreSQL : undefined_table, undefined_column). */
+    private const MISSING_RELATION = ['42P01', '42703'];
 
     /** Version de la forme de la réponse (à changer avec elle). */
     public const FORMAT = 1;
@@ -99,7 +123,7 @@ final class TrackLayout
 
         $parts = [];
         foreach ($this->sources as $source) {
-            $part = $source->part($line, $fromM, $toM);
+            $part = $this->read($source, $line, $fromM, $toM);
             if (! $part->isEmpty()) {
                 $parts[$source->key()] = $part;
             }
@@ -167,14 +191,14 @@ final class TrackLayout
             'line' => ['code' => $line->code, 'slug' => $line->slug, 'name' => $line->name],
             'pk' => ['start_m' => $start, 'end_m' => $end,
                 'start_label' => LineStations::pkLabel($start), 'end_label' => LineStations::pkLabel($end)],
-            'sources' => $used,
-            'operational_points' => self::sortByPk($points),
-            'tracks' => self::sortTracks($tracks),
-            'switches' => $pointFilter($merged['switches']),
-            'signals' => $pointFilter($merged['signals']),
-            'crossings' => $pointFilter($merged['crossings']),
-            'buffer_stops' => $pointFilter($merged['buffer_stops']),
-            'milestones' => $pointFilter($merged['milestones']),
+            'sources' => self::shape('sources', $used),
+            'operational_points' => self::shape('operational_points', self::sortByPk($points)),
+            'tracks' => self::shape('tracks', self::sortTracks($tracks)),
+            'switches' => self::shape('switches', $pointFilter($merged['switches'])),
+            'signals' => self::shape('signals', $pointFilter($merged['signals'])),
+            'crossings' => self::shape('crossings', $pointFilter($merged['crossings'])),
+            'buffer_stops' => self::shape('buffer_stops', $pointFilter($merged['buffer_stops'])),
+            'milestones' => self::shape('milestones', $pointFilter($merged['milestones'])),
             'strip' => ['speeds' => $rangeFilter($merged['speeds']), 'gradients' => $rangeFilter($merged['gradients'])],
             'coverage' => self::coverage($start, $end, $covered, $coveredBy),
         ];
@@ -192,6 +216,21 @@ final class TrackLayout
         return $out;
     }
 
+    /**
+     * Objets d'une famille dans la forme de la réponse : champs de FIELDS dans l'ordre (null si absent), puis les
+     * ajouts d'une source, sans les clés de travail.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private static function shape(string $family, array $items): array
+    {
+        $fields = array_fill_keys(self::FIELDS[$family], null);
+        $internal = array_flip(self::INTERNAL);
+
+        return array_map(fn (array $o): array => array_diff_key(array_replace($fields, $o), $internal), $items);
+    }
+
     /** Réponse vide conforme au contrat (ligne inconnue des sources). */
     public static function emptyFor(Line $line): array
     {
@@ -203,6 +242,25 @@ final class TrackLayout
         $i = array_search($key, self::PRIORITY, true);
 
         return $i === false ? count(self::PRIORITY) : (int) $i;
+    }
+
+    /**
+     * Part d'une source, ou une part vide si une de ses tables manque (ordre de déploiement : migration pas encore
+     * passée) : jamais d'erreur 500 pour autant. Lue dans une transaction (point de sauvegarde dans une transaction
+     * en cours) pour qu'une requête en échec n'empêche pas les suivantes.
+     */
+    private function read(TrackLayoutSource $source, Line $line, ?int $fromM, ?int $toM): TrackLayoutPart
+    {
+        try {
+            return DB::transaction(fn (): TrackLayoutPart => $source->part($line, $fromM, $toM));
+        } catch (QueryException $e) {
+            if (! in_array((string) $e->getCode(), self::MISSING_RELATION, true)) {
+                throw $e;
+            }
+            Log::warning("Schéma des voies : source {$source->key()} ignorée, table ou colonne absente.", ['error' => $e->getMessage()]);
+
+            return TrackLayoutPart::empty();
+        }
     }
 
     /**
