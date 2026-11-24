@@ -1,4 +1,4 @@
-/* Fichier généré par scripts/bootstrap-icons/subset.sh (bootstrap-icons 1.13.2, 134 icônes) :
+/* Fichier généré par scripts/bootstrap-icons/subset.sh (bootstrap-icons 1.13.2, 135 icônes) :
    ne pas modifier à la main. Après l'ajout d'une icône dans le code, relancer le script ; le test
    tests/js/bootstrap-icons-subset.test.js échoue tant que la police réduite ne la contient pas. */
 /*!
@@ -318,6 +318,9 @@
 }
 .bi-plus-circle::before {
     content: '\f4fa';
+}
+.bi-printer::before {
+    content: '\f501';
 }
 .bi-question-circle::before {
     content: '\f505';
