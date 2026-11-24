@@ -20,7 +20,13 @@ use App\Services\LineStations;
  *    passages à niveau de SNCF Réseau), VffTrackLayoutSource.
  *
  * RÈGLES DE FUSION (une source plus loin dans l'ordre ne fait que compléter) :
- * - voies : gardées seulement hors des portions `tracks` couvertes par une source préférée ;
+ * - voies (décision du 24/11/2026, avec osm-voies) : sur une portion `tracks` couverte par une source préférée, ses
+ *   voies `running` priment et celles d'une source suivante sont écartées ; les autres voies (évitement, service,
+ *   faisceau, liaison…) d'une source suivante sont gardées. À un point d'exploitation dont la source préférée n'a
+ *   que des voies `approximate` (voies d'une gare du RINF centrées sur son PK), des voies de service exactes ou
+ *   déduites d'une source suivante (à OP_ZONE_M près) les remplacent ; une voie remplaçante de même numéro qu'une
+ *   seule voie remplacée garde son identifiant et sa référence RINF (`rinf_id`, `rinf_ref`) et le point (`op_id`).
+ *   Toute voie citée par un aiguillage gardé (`from_track`, `to_track`) est gardée ;
  * - aiguillages, signaux, traversées : gardés hors des portions couvertes de leur famille par une source préférée,
  *   et sauf doublon (même famille, même référence ou référence absente, à DEDUPE_M près) ;
  * - points d'exploitation : gardés sauf s'ils doublent un point déjà retenu (même gare de VFF, ou à OP_MERGE_M près) ;
@@ -46,6 +52,9 @@ final class TrackLayout
 
     /** Deux objets ponctuels d'une même famille à moins de cette distance (m) et de même référence : doublon. */
     public const DEDUPE_M = 30;
+
+    /** Marge (m) autour des voies approchées d'un point d'exploitation où une voie de service d'une autre source les remplace. */
+    public const OP_ZONE_M = 300;
 
     /** Deux points d'exploitation à moins de cette distance (m) : le second double le premier. */
     public const OP_MERGE_M = 150;
@@ -97,21 +106,43 @@ final class TrackLayout
         $merged = array_fill_keys(TrackLayoutPart::FAMILIES, []);
         $covered = array_fill_keys(TrackLayoutPart::FAMILIES, []);
         $coveredBy = [];
+        $dropped = [];
         foreach ($parts as $key => $part) {
             foreach (TrackLayoutPart::FAMILIES as $family) {
                 $items = $part->family($family);
-                $merged[$family] = [...$merged[$family], ...match ($family) {
-                    'operational_points' => self::newPoints($merged[$family], $items),
-                    'tracks' => array_values(array_filter($items, fn (array $t): bool => ! self::overlapsAny($covered['tracks'], (int) $t['pk_from_m'], (int) $t['pk_to_m']))),
-                    'switches', 'signals', 'crossings' => self::newPunctual($merged[$family], $covered[$family], $items),
-                    default => self::clipRanges($items, $covered[$family]),
-                }];
+                if ($family === 'tracks') {
+                    [$merged['tracks'], $out] = self::mergeTracks($merged['tracks'], $covered['tracks'], $items);
+                    $dropped = [...$dropped, ...$out];
+                } else {
+                    $merged[$family] = [...$merged[$family], ...match ($family) {
+                        'operational_points' => self::newPoints($merged[$family], $items),
+                        'switches', 'signals', 'crossings' => self::newPunctual($merged[$family], $covered[$family], $items),
+                        default => self::clipRanges($items, $covered[$family]),
+                    }];
+                }
                 $own = $part->covered[$family] ?? [];
                 if (in_array($family, ['speeds', 'gradients'], true)) {
                     $own = [...$own, ...array_map(fn (array $r): array => [(int) $r['pk_from_m'], (int) $r['pk_to_m']], $items)];
                 }
                 $covered[$family] = self::union([...$covered[$family], ...$own]);
                 $coveredBy[$key][$family] = self::union($own);
+            }
+        }
+
+        // Une voie citée par un aiguillage gardé reste, même écartée par les règles ci-dessus.
+        $keptIds = array_flip(array_map(fn (array $t): string => (string) $t['id'], $merged['tracks']));
+        $cited = [];
+        foreach ($merged['switches'] as $sw) {
+            foreach (['from_track', 'to_track'] as $k) {
+                if (($sw[$k] ?? null) !== null) {
+                    $cited[(string) $sw[$k]] = true;
+                }
+            }
+        }
+        foreach ($dropped as $t) {
+            if (isset($cited[(string) $t['id']]) && ! isset($keptIds[(string) $t['id']])) {
+                $merged['tracks'][] = $t;
+                $keptIds[(string) $t['id']] = true;
             }
         }
 
@@ -168,6 +199,78 @@ final class TrackLayout
         $i = array_search($key, self::PRIORITY, true);
 
         return $i === false ? count(self::PRIORITY) : (int) $i;
+    }
+
+    /**
+     * Voies d'une source moins préférée ajoutées à celles déjà retenues (règles en tête de classe).
+     *
+     * @param  list<array<string, mixed>>  $kept  voies des sources préférées
+     * @param  list<array{0: int, 1: int}>  $covered  portions `tracks` couvertes par les sources préférées
+     * @param  list<array<string, mixed>>  $items  voies de la source
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>} voies retenues, voies écartées
+     */
+    private static function mergeTracks(array $kept, array $covered, array $items): array
+    {
+        $dropped = [];
+        $new = [];
+        foreach ($items as $t) {
+            if (($t['kind'] ?? null) === 'running' && self::overlapsAny($covered, (int) $t['pk_from_m'], (int) $t['pk_to_m'])) {
+                $dropped[] = $t;
+            } else {
+                $new[] = $t;
+            }
+        }
+
+        // Voies approchées des sources préférées, par point d'exploitation.
+        $groups = [];
+        foreach ($kept as $i => $t) {
+            if (($t['precision'] ?? null) === 'approximate' && ($t['kind'] ?? null) !== 'running' && ($t['op_id'] ?? null) !== null) {
+                $groups[(string) $t['op_id']][] = $i;
+            }
+        }
+        $remove = [];
+        foreach ($groups as $opId => $indices) {
+            $zoneFrom = min(array_map(fn (int $i): int => (int) $kept[$i]['pk_from_m'], $indices)) - self::OP_ZONE_M;
+            $zoneTo = max(array_map(fn (int $i): int => (int) $kept[$i]['pk_to_m'], $indices)) + self::OP_ZONE_M;
+            $replacing = array_keys(array_filter($new, fn (array $t): bool => ($t['kind'] ?? null) !== 'running'
+                && ($t['precision'] ?? null) !== 'approximate' && (int) $t['pk_from_m'] < $zoneTo && $zoneFrom < (int) $t['pk_to_m']));
+            if ($replacing === []) {
+                continue;
+            }
+            foreach ($indices as $i) {
+                $remove[$i] = true;
+                $dropped[] = $kept[$i];
+            }
+            $byNumber = [];
+            foreach ($indices as $i) {
+                $byNumber[self::trackNumber((string) ($kept[$i]['ref'] ?? ''))][] = $i;
+            }
+            foreach ($replacing as $j) {
+                $number = self::trackNumber((string) ($new[$j]['ref'] ?? ''));
+                $same = $number === '' ? [] : ($byNumber[$number] ?? []);
+                if (count($same) === 1 && ($kept[$same[0]]['source'] ?? null) === 'rinf') {
+                    $new[$j]['rinf_id'] = $kept[$same[0]]['id'];
+                    $new[$j]['rinf_ref'] = $kept[$same[0]]['rinf_ref'] ?? $kept[$same[0]]['ref'];
+                }
+                $new[$j]['op_id'] ??= $opId;
+            }
+        }
+
+        return [[...array_values(array_diff_key($kept, $remove)), ...$new], $dropped];
+    }
+
+    /**
+     * Numéro d'une voie pour rapprocher deux sources : premier mot de la référence, sans « Voie » ni « V » devant un
+     * chiffre (« 3 - COGNAC », « V3 » et « 3 » : « 3 » ; « E de Cognac » : « E »), « » sans référence.
+     */
+    public static function trackNumber(string $ref): string
+    {
+        $ref = strtoupper(trim((string) preg_replace('/^\s*voie\s+/iu', '', $ref)));
+        if (preg_match('/^V?(\d+[A-Z]?(?:BIS|TER)?)\b/', $ref, $m) === 1) {
+            return $m[1];
+        }
+
+        return preg_match('/^([A-Z0-9]+)\b/', $ref, $m) === 1 ? $m[1] : '';
     }
 
     /**

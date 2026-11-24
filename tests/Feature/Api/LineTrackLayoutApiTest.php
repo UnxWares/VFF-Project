@@ -28,6 +28,8 @@ class LineTrackLayoutApiTest extends TestCase
     {
         parent::setUp();
         Cache::flush();
+        FakeOsmSource::$extraTracks = [];
+        FakeOsmSource::$citedTrack = null;
         Era::factory()->current()->create(['year' => 2030]);
         $this->line = Line::factory()->create(['slug' => 'rfn-579000', 'code' => '579000', 'name' => 'Ligne de Beillant à Angoulême']);
         Line::factory()->create(['slug' => 'rfn-001000', 'code' => '001000', 'name' => 'Ligne sans données']);
@@ -150,6 +152,49 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertFalse(collect($json['coverage']['missing'])->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] <= 17500 && $m['pk_to_m'] >= 17600));
     }
 
+    public function test_osm_service_tracks_are_kept_on_rinf_portions_and_replace_approximate_station_tracks(): void
+    {
+        $this->seedRinf();
+        FakeOsmSource::$extraTracks = [
+            FakeOsmSource::track('osm:way:3', 17150, 17500, '3', 'siding'),
+            FakeOsmSource::track('osm:way:4', 17880, 17915, null, 'yard'),
+        ];
+        $this->app->tag([FakeOsmSource::class], TrackLayout::TAG);
+        $tracks = collect($this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json('tracks'));
+
+        // Voies de service d'OSM sur une portion décrite par le RINF : gardées.
+        $this->assertSame(['osm:way:2', 'osm:way:3', 'osm:way:4'], $tracks->where('source', 'osm')->pluck('id')->sort()->values()->all());
+        // À Cognac, elles remplacent les voies approchées du RINF ; la voie 3 garde l'identifiant et la référence RINF.
+        $this->assertSame([], $tracks->where('source', 'rinf')->where('precision', 'approximate')->values()->all());
+        $this->assertCount(3, $tracks->where('source', 'rinf')->where('kind', 'running'));
+        $three = $tracks->firstWhere('id', 'osm:way:3');
+        $this->assertSame('rinf:t:'.substr(md5('http://data.europa.eu/949/track/s3'), 0, 12), $three['rinf_id']);
+        $this->assertSame('3 - COGNAC', $three['rinf_ref']);
+        $this->assertSame('rinf:op:FR0000003513', $three['op_id']);
+        $this->assertSame(-1, $three['lane']);
+        $this->assertNull($tracks->firstWhere('id', 'osm:way:4')['op_id']);
+    }
+
+    public function test_a_track_cited_by_a_kept_switch_is_kept(): void
+    {
+        $this->seedRinf();
+        FakeOsmSource::$citedTrack = 'osm:way:1';
+        $this->app->tag([FakeOsmSource::class], TrackLayout::TAG);
+        $json = $this->getJson('/api/v1/lines/rfn-579000/track-layout')->assertOk()->json();
+
+        $this->assertSame('osm:way:1', $json['switches'][0]['from_track']);
+        $this->assertSame(['osm:way:1', 'osm:way:2'], collect($json['tracks'])->where('source', 'osm')->pluck('id')->sort()->values()->all());
+    }
+
+    public function test_track_numbers_for_matching_sources(): void
+    {
+        $this->assertSame('3', TrackLayout::trackNumber('3 - COGNAC'));
+        $this->assertSame('3', TrackLayout::trackNumber('V3'));
+        $this->assertSame('1BIS', TrackLayout::trackNumber('Voie V1BIS'));
+        $this->assertSame('E', TrackLayout::trackNumber('E de Cognac'));
+        $this->assertSame('', TrackLayout::trackNumber(''));
+    }
+
     public function test_portion_and_kinds_filters(): void
     {
         $this->seedRinf();
@@ -167,25 +212,36 @@ class LineTrackLayoutApiTest extends TestCase
     }
 }
 
-/** Source OSM de test : une voie sous le RINF, une au-delà, deux aiguillages dont un doublon, une vitesse. */
+/** Source OSM de test : une voie sous le RINF, une au-delà, deux aiguillages dont un doublon, une vitesse ; voies en plus au besoin. */
 final class FakeOsmSource implements TrackLayoutSource
 {
+    /** @var list<array<string, mixed>> */
+    public static array $extraTracks = [];
+
+    /** Voie citée par le premier aiguillage (`from_track`). */
+    public static ?string $citedTrack = null;
+
     public function key(): string
     {
         return 'osm';
     }
 
+    /** @return array<string, mixed> */
+    public static function track(string $id, int $from, int $to, ?string $ref = '1', string $kind = 'running'): array
+    {
+        return ['id' => $id, 'ref' => $ref, 'kind' => $kind, 'pk_from_m' => $from, 'pk_to_m' => $to,
+            'op_id' => null, 'length_m' => $to - $from, 'electrified' => false, 'platform' => false, 'source' => 'osm', 'precision' => 'derived'];
+    }
+
     public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
     {
-        $track = fn (string $id, int $from, int $to): array => ['id' => $id, 'ref' => '1', 'kind' => 'running', 'pk_from_m' => $from, 'pk_to_m' => $to,
-            'op_id' => null, 'length_m' => $to - $from, 'electrified' => false, 'platform' => false, 'source' => 'osm', 'precision' => 'derived'];
-        $switch = fn (string $id, int $pk): array => ['id' => $id, 'ref' => '12', 'pk_m' => $pk, 'kind' => 'simple', 'from_track' => null,
+        $switch = fn (string $id, int $pk, ?string $from = null): array => ['id' => $id, 'ref' => '12', 'pk_m' => $pk, 'kind' => 'simple', 'from_track' => $from,
             'to_track' => null, 'facing' => null, 'source' => 'osm', 'precision' => 'derived'];
 
         return new TrackLayoutPart(
             source: ['key' => 'osm', 'label' => 'OpenStreetMap', 'licence' => 'ODbL', 'dataset' => null, 'fetched_at' => '2026-11-24', 'url' => 'https://www.openstreetmap.org/copyright'],
-            tracks: [$track('osm:way:1', 17300, 17400), $track('osm:way:2', 17919, 19000)],
-            switches: [$switch('osm:node:10', 17550), $switch('osm:node:11', 17560)],
+            tracks: [self::track('osm:way:1', 17300, 17400), self::track('osm:way:2', 17919, 19000), ...self::$extraTracks],
+            switches: [$switch('osm:node:10', 17550, self::$citedTrack), $switch('osm:node:11', 17560)],
             speeds: [['pk_from_m' => 17000, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm']],
             covered: ['tracks' => [[17919, 19000]], 'switches' => [[17000, 19000]]],
         );
