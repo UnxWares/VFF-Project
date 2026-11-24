@@ -81,7 +81,7 @@ class LineTrackLayoutApiTest extends TestCase
         $json = $this->getJson('/api/v1/lines/rfn-001000/track-layout')->assertOk()->json();
 
         $this->assertSame(['code' => '001000', 'slug' => 'rfn-001000', 'name' => 'Ligne sans données'], $json['line']);
-        $this->assertSame(['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'strip', 'coverage'], array_keys($json));
+        $this->assertSame(['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage'], array_keys($json));
         $this->assertSame([], $json['sources']);
         $this->assertSame([], $json['tracks']);
         $this->assertSame(['speeds' => [], 'gradients' => []], $json['strip']);

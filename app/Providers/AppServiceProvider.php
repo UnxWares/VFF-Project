@@ -26,6 +26,7 @@ use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
 use App\Services\Contributions\ContributionLimits;
 use App\Services\Reputation\ReputationLevels;
+use App\Services\TrackLayout\OsmTrackLayoutSource;
 use App\Services\TrackLayout\RinfTrackLayoutSource;
 use App\Services\TrackLayout\TrackLayout;
 use App\Support\ApiAuthDocumentation;
@@ -63,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Schéma des voies : sources étiquetées TrackLayout::TAG, lues dans l'ordre TrackLayout::PRIORITY (rinf, osm,
         // vff). Une nouvelle source (OpenStreetMap) s'ajoute par une ligne : $this->app->tag([…::class], TrackLayout::TAG).
-        $this->app->tag([RinfTrackLayoutSource::class], TrackLayout::TAG);
+        $this->app->tag([RinfTrackLayoutSource::class, OsmTrackLayoutSource::class], TrackLayout::TAG);
         $this->app->bind(TrackLayout::class, fn ($app): TrackLayout => new TrackLayout($app->tagged(TrackLayout::TAG)));
     }
 

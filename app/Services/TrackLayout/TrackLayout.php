@@ -27,8 +27,10 @@ use App\Services\LineStations;
  *   déduites d'une source suivante (à OP_ZONE_M près) les remplacent ; une voie remplaçante de même numéro qu'une
  *   seule voie remplacée garde son identifiant et sa référence RINF (`rinf_id`, `rinf_ref`) et le point (`op_id`).
  *   Toute voie citée par un aiguillage gardé (`from_track`, `to_track`) est gardée ;
- * - aiguillages, signaux, traversées : gardés hors des portions couvertes de leur famille par une source préférée,
- *   et sauf doublon (même famille, même référence ou référence absente, à DEDUPE_M près) ;
+ * - aiguillages, signaux, traversées, heurtoirs, bornes kilométriques : gardés hors des portions couvertes de leur
+ *   famille par une source préférée, et sauf doublon d'un objet d'une source préférée (même famille, même
+ *   référence ou référence absente, à DEDUPE_M près) ; dans une même source, seule la même référence au même
+ *   endroit fait un doublon ;
  * - points d'exploitation : gardés sauf s'ils doublent un point déjà retenu (même gare de VFF, ou à OP_MERGE_M près) ;
  * - vitesses et déclivités : rognées aux trous de la bande déjà remplie.
  * Puis les rangées des voies (LaneAssigner), le tri par PK, la couverture (`coverage`) et les sources utilisées.
@@ -45,7 +47,7 @@ final class TrackLayout
     public const PRIORITY = ['rinf', 'osm', 'vff'];
 
     /** Familles que l'on peut demander (`kinds`). */
-    public const KINDS = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'speeds', 'gradients'];
+    public const KINDS = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'speeds', 'gradients'];
 
     /** Familles dont les trous sont listés dans `coverage.missing`. */
     public const COVERAGE_FAMILIES = ['tracks', 'switches', 'signals', 'speeds', 'gradients'];
@@ -116,7 +118,7 @@ final class TrackLayout
                 } else {
                     $merged[$family] = [...$merged[$family], ...match ($family) {
                         'operational_points' => self::newPoints($merged[$family], $items),
-                        'switches', 'signals', 'crossings' => self::newPunctual($merged[$family], $covered[$family], $items),
+                        'switches', 'signals', 'crossings', 'buffer_stops', 'milestones' => self::newPunctual($merged[$family], $covered[$family], $items),
                         default => self::clipRanges($items, $covered[$family]),
                     }];
                 }
@@ -171,10 +173,12 @@ final class TrackLayout
             'switches' => $pointFilter($merged['switches']),
             'signals' => $pointFilter($merged['signals']),
             'crossings' => $pointFilter($merged['crossings']),
+            'buffer_stops' => $pointFilter($merged['buffer_stops']),
+            'milestones' => $pointFilter($merged['milestones']),
             'strip' => ['speeds' => $rangeFilter($merged['speeds']), 'gradients' => $rangeFilter($merged['gradients'])],
             'coverage' => self::coverage($start, $end, $covered, $coveredBy),
         ];
-        foreach (['operational_points', 'tracks', 'switches', 'signals', 'crossings'] as $family) {
+        foreach (['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'] as $family) {
             if (! in_array($family, $kinds, true)) {
                 $out[$family] = [];
             }
@@ -303,7 +307,7 @@ final class TrackLayout
     }
 
     /**
-     * Objets ponctuels (aiguillages, signaux, traversées) d'une source moins préférée : hors des portions déjà
+     * Objets ponctuels (aiguillages, signaux, traversées, heurtoirs, bornes) d'une source moins préférée : hors des portions déjà
      * couvertes pour leur famille et sans doublon.
      *
      * @param  list<array<string, mixed>>  $kept
@@ -319,8 +323,15 @@ final class TrackLayout
             if (self::overlapsAny($covered, $pk, $pk)) {
                 continue;
             }
-            foreach ([...$kept, ...$out] as $k) {
+            foreach ($kept as $k) {
                 if (abs((int) $k['pk_m'] - $pk) <= self::DEDUPE_M && (($k['ref'] ?? null) === null || ($o['ref'] ?? null) === null || $k['ref'] === $o['ref'])) {
+                    continue 2;
+                }
+            }
+            // Within one source, two objects are distinct (the switches of a ladder, the signals of a gantry lie a
+            // few metres apart): only the same reference at the same place is a duplicate.
+            foreach ($out as $k) {
+                if (abs((int) $k['pk_m'] - $pk) <= self::DEDUPE_M && ($o['ref'] ?? null) !== null && ($k['ref'] ?? null) === $o['ref']) {
                     continue 2;
                 }
             }

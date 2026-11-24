@@ -25,6 +25,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   et précision (`exact`, `derived`, `approximate`) sur chaque objet, rangée du schéma (`lane`) calculée par le serveur.
   Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
   ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal.
+- Schéma des voies, suite : `buffer_stops` (heurtoirs : `id`, `pk_m`, `track`, `source`, `precision`) et `milestones`
+  (bornes kilométriques : `id`, `pk_m`, `label` tel qu'écrit sur la borne, `source`, `precision`), familles demandables
+  par `kinds` ; voies, aiguillages, signaux, traversées, heurtoirs et bornes d'OpenStreetMap (`osm`, ODbL, « ©
+  contributeurs OpenStreetMap ») là où le RINF n'en donne pas ; `form` (forme du signal), `use` (passage à niveau routier
+  ou piéton), `station_slug` et `max_speed_kmh` des voies OSM en plus ; `kind` d'un aiguillage vaut `null` quand OSM
+  montre trois voies qui se rejoignent sans dire le type d'appareil.
 
 ### À vérifier dans votre client
 

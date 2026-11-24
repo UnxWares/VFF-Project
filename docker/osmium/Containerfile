@@ -1,0 +1,8 @@
+# osmium-tool in a container (nothing installed on the host): filters the Geofabrik France extract for
+# vff:import-osm-track-detail. Build: podman build -t localhost/vff-osmium:1 docker/osmium
+FROM docker.io/library/debian:trixie
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends osmium-tool \
+    && apt-get clean
+WORKDIR /work
+ENTRYPOINT ["osmium"]

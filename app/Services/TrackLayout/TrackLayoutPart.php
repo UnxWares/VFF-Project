@@ -15,6 +15,8 @@ namespace App\Services\TrackLayout;
  *   (kind : simple, single_slip, double_slip, three_way, diamond ; facing : up, down ou null) ;
  * - signals : {id, ref, pk_m, kind, track, direction, source, precision} ;
  * - crossings : {id, pk_m, kind, ref, source} (kind : level_crossing, railway_crossing) ;
+ * - buffer_stops : {id, pk_m, track, source, precision} (heurtoirs) ;
+ * - milestones : {id, pk_m, label, source, precision} (bornes kilométriques, `label` tel qu'écrit sur la borne) ;
  * - speeds : {pk_from_m, pk_to_m, kmh, source} ; gradients : {pk_from_m, pk_to_m, permille, source, precision}.
  *
  * `precision` : exact (position déclarée par la source), derived (calculée par VFF à partir de la source),
@@ -24,7 +26,7 @@ namespace App\Services\TrackLayout;
 final readonly class TrackLayoutPart
 {
     /** Familles d'objets du schéma, dans l'ordre de la réponse. */
-    public const FAMILIES = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'speeds', 'gradients'];
+    public const FAMILIES = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'speeds', 'gradients'];
 
     /**
      * @param  array{key: string, label: string, licence: string, dataset: ?string, fetched_at: ?string, url: ?string}|null  $source
@@ -36,6 +38,8 @@ final readonly class TrackLayoutPart
      * @param  list<array<string, mixed>>  $speeds
      * @param  list<array<string, mixed>>  $gradients
      * @param  array<string, list<array{0: int, 1: int}>>  $covered  famille => portions [début, fin] décrites par la source
+     * @param  list<array<string, mixed>>  $bufferStops
+     * @param  list<array<string, mixed>>  $milestones
      */
     public function __construct(
         public ?array $source = null,
@@ -47,6 +51,8 @@ final readonly class TrackLayoutPart
         public array $speeds = [],
         public array $gradients = [],
         public array $covered = [],
+        public array $bufferStops = [],
+        public array $milestones = [],
     ) {}
 
     public static function empty(): self
@@ -57,7 +63,7 @@ final readonly class TrackLayoutPart
     public function isEmpty(): bool
     {
         return $this->operationalPoints === [] && $this->tracks === [] && $this->switches === [] && $this->signals === []
-            && $this->crossings === [] && $this->speeds === [] && $this->gradients === [];
+            && $this->crossings === [] && $this->bufferStops === [] && $this->milestones === [] && $this->speeds === [] && $this->gradients === [];
     }
 
     /**
@@ -73,6 +79,8 @@ final readonly class TrackLayoutPart
             'switches' => $this->switches,
             'signals' => $this->signals,
             'crossings' => $this->crossings,
+            'buffer_stops' => $this->bufferStops,
+            'milestones' => $this->milestones,
             'speeds' => $this->speeds,
             'gradients' => $this->gradients,
             default => [],

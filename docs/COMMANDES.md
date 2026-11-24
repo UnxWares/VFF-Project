@@ -390,6 +390,30 @@ plusieurs gares.
 | `--cache-dir=` | Dossier du cache (défaut : `storage/app/sources/sncf-quais`). |
 | `--csv=` | Rapport détaillé par gare SNCF et ligne (quais, plus long, gare de VFF, rattachement, distance, note). |
 
+### `vff:import-osm-track-detail`
+
+Voies détaillées d'OpenStreetMap (ODbL) pour le schéma des voies (`GET /api/v1/lines/{line}/track-layout`, source
+`osm`) : chaque voie des lignes en service aujourd'hui (voies principales avec leur numéro tel qu'étiqueté, évitements,
+voies de service, faisceaux, liaisons, embranchements) avec sa plage de PK, ses aiguillages (voie d'où il part, voie où il
+mène, sens où il est pris en pointe), traversées, heurtoirs, passages à niveau, signaux et bornes kilométriques. Écrit
+seulement `osm_tracks`, `osm_track_nodes` et `osm_track_imports`, ligne par ligne ; ne lit la base qu'en lecture.
+
+Préparation, une fois (extrait France de Geofabrik, 5 Go, filtré par osmium en conteneur, `docker/osmium`) :
+`bin/osm-track-detail france-latest.osm.pbf <dossier>` écrit `<dossier>/track-detail.opl.gz` (37 Mo le 24/11/2026).
+
+| Option | Effet |
+|:-|:-|
+| `--file=` | Fichier OPL écrit par `bin/osm-track-detail` (brut ou `.gz`), obligatoire. |
+| `--line=` | Code ou slug d'une ligne, répétable ; toutes les lignes en service par défaut (les lignes voisines sont lues pour les voies partagées). |
+| `--dry-run` | Calcule et affiche le tableau par ligne sans rien écrire. |
+
+Rattachement : une voie qui porte le code d'une ligne (`ref`, `ref:FR:SNCF_Reseau`, relation `route=railway`) va à
+cette ligne seule ; les autres voies vont à la ligne dont le tracé de référence passe à moins de 30 m (voies principales
+parallèles seulement, lignes à moins de 8 m de la plus proche comprises) ou, pour les voies de service, à moins de 600 m
+d'une gare de la ligne. PK : tracé de référence de l'ère courante calé sur les PK sourcés (gares, passages à niveau de
+SNCF Réseau, PK portés par OSM, `TrackChainage`) ; un nœud qui porte le PK de sa ligne le garde (`exact`). Toute la France :
+environ 90 s et 1,7 Go de mémoire, à lancer par `agents-commun/lourd.sh`.
+
 ### `vff:build-line-references`
 
 Fusionne les tracés de chaque ligne (IGN, OSM, OHM, SNCF…), recale les morceaux peu précis sur la voie réelle et croise

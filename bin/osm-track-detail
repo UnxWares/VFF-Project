@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Filters a Geofabrik extract (france-latest.osm.pbf, ODbL) down to the detailed track layout read by
+# `vff:import-osm-track-detail`, with osmium in a container (nothing installed on the host):
+#   - ways railway=rail|light_rail|narrow_gauge (service, usage, railway:track_ref, electrified, maxspeed, gauge...);
+#   - nodes railway=switch|railway_crossing|buffer_stop|level_crossing|crossing|signal|milestone;
+#   - relations route=railway (line codes of the ways);
+# node locations are written into the ways and untagged nodes dropped, then the result is converted to OPL.
+#   bin/osm-track-detail /path/france-latest.osm.pbf /path/out-dir
+# Output: <out-dir>/track-detail.osm.pbf and <out-dir>/track-detail.opl.gz (the file the import reads).
+set -euo pipefail
+
+SRC="${1:?Geofabrik .osm.pbf extract}"
+OUT="${2:?output directory}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker)}"
+IMAGE="${VFF_OSMIUM_IMAGE:-localhost/vff-osmium:1}"
+[[ -f "$SRC" ]] || { echo "missing extract: $SRC" >&2; exit 2; }
+mkdir -p "$OUT"
+SRC_DIR="$(cd "$(dirname "$SRC")" && pwd)"
+OUT_DIR="$(cd "$OUT" && pwd)"
+if ! "$ENGINE" image exists "$IMAGE" 2>/dev/null; then
+    "$ENGINE" build -q -t "$IMAGE" "$ROOT/docker/osmium"
+fi
+if [[ "$ENGINE" == *podman ]]; then USER_OPTS=(--userns=keep-id --security-opt label=disable); else USER_OPTS=(--user "$(id -u):$(id -g)"); fi
+osmium() { "$ENGINE" run --rm "${USER_OPTS[@]}" -v "$SRC_DIR":/src:ro -v "$OUT_DIR":/out "$IMAGE" "$@"; }
+
+osmium tags-filter --overwrite "/src/$(basename "$SRC")" \
+    w/railway=rail,light_rail,narrow_gauge \
+    n/railway=switch,railway_crossing,buffer_stop,level_crossing,crossing,signal,milestone \
+    r/route=railway \
+    -o /out/track-detail-raw.osm.pbf
+osmium add-locations-to-ways --overwrite /out/track-detail-raw.osm.pbf -o /out/track-detail.osm.pbf
+osmium cat --overwrite /out/track-detail.osm.pbf -f opl.gz,locations_on_ways=true -o /out/track-detail.opl.gz
+osmium fileinfo -e /out/track-detail.osm.pbf | grep -E 'Number of (nodes|ways|relations)|Timestamp|osmosis_replication_timestamp' || true
