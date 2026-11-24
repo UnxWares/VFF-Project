@@ -221,9 +221,16 @@ describe('trackLayout : tableau de parcours et synchronisation', () => {
         expect(granges.prov.code).toBe('R');
         const pre = rows.find((r) => r.key === 'op-op-sp');
         expect(pre.prov).toMatchObject({ code: 'O', approx: true });
-        // Même PK : le point d'exploitation avant la vitesse et la déclivité.
-        const zero = rows.filter((r) => r.pk_m === 0).map((r) => r.kind);
-        expect(zero).toEqual(['speed', 'gradient']);
+        // La bande commence au premier point d'exploitation (Val, PK 0+420) : la vitesse et la déclivité qui le
+        // couvrent y sont lues, après lui ; l'aiguillage d'entrée de Val, avant lui, reste.
+        expect(rows[0].key).toBe('sw-sw-val-1');
+        expect(
+            rows
+                .filter((r) => r.pk_m < 420)
+                .every((r) => r.kind !== 'speed' && r.kind !== 'gradient'),
+        ).toBe(true);
+        const val = rows.filter((r) => r.pk_m === 420).map((r) => r.kind);
+        expect(val.slice(0, 3)).toEqual(['op', 'speed', 'gradient']);
         // Le manque de la couverture devient une ligne « ! ».
         const miss = rows.find((r) => r.kind === 'missing');
         expect(miss).toMatchObject({ pk_m: 14000, prov: { code: '!' } });
@@ -248,7 +255,7 @@ describe('trackLayout : tableau de parcours et synchronisation', () => {
         expect(nearestRow(rows, -100)).toBe(0);
         expect(nearestRow(rows, 1e9)).toBe(rows.length - 1);
         // À égalité de PK, la première ligne du PK.
-        expect(rows[nearestRow(rows, 0)].kind).toBe('speed');
+        expect(rows[nearestRow(rows, 420)].kind).toBe('op');
     });
 
     it('centre le schéma sur la ligne choisie du tableau, et l inverse', () => {

@@ -44,6 +44,7 @@ return [
         'travelled' => 'Voie parcourue',
         'main' => 'Voie principale',
         'service' => 'Voie de service',
+        'derived' => 'Raccord déduit',
         'switch' => 'Aiguillage',
         'crossing' => 'Traversée',
         'buffer' => 'Heurtoir',
@@ -51,6 +52,7 @@ return [
         'level_crossing' => 'Passage à niveau',
         'zone' => 'Point d’exploitation',
         'note' => 'Haut = gauche du sens de marche (PK croissants) ; la pleine ligne est comprimée, les gares et évitements sont dilatés.',
+        'merged' => 'Dans la bande, une case en pointillé regroupe des portions trop courtes pour l’échelle (« ≈ » : déclivité moyenne) ; le curseur et le tableau donnent les valeurs exactes.',
     ],
 
     'fold' => [
@@ -153,6 +155,7 @@ return [
             'other' => 'Données absentes du PK :from au PK :to',
         ],
         'on_track' => 'voie :ref',
+        'on_tracks' => 'voies :refs',
         'up' => 'PK croissants',
         'down' => 'PK décroissants',
     ],

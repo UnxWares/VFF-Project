@@ -44,6 +44,7 @@ return [
         'travelled' => 'Befahrenes Gleis',
         'main' => 'Hauptgleis',
         'service' => 'Nebengleis',
+        'derived' => 'Abgeleitete Verbindung',
         'switch' => 'Weiche',
         'crossing' => 'Kreuzung',
         'buffer' => 'Prellbock',
@@ -51,6 +52,7 @@ return [
         'level_crossing' => 'Bahnübergang',
         'zone' => 'Betriebsstelle',
         'note' => 'Oben = links der Fahrtrichtung (steigende Kilometrierung); die freie Strecke ist gestaucht, Bahnhöfe und Ausweichen sind gedehnt.',
+        'merged' => 'Im Band fasst ein gepunktetes Feld Abschnitte zusammen, die für den Maßstab zu kurz sind („≈“: mittlere Neigung); Cursor und Tabelle zeigen die genauen Werte.',
     ],
 
     'fold' => [
@@ -153,6 +155,7 @@ return [
             'other' => 'Daten fehlen von km :from bis km :to',
         ],
         'on_track' => 'Gleis :ref',
+        'on_tracks' => 'Gleise :refs',
         'up' => 'steigende Kilometrierung',
         'down' => 'fallende Kilometrierung',
     ],

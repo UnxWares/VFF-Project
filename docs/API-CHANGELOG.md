@@ -14,12 +14,22 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`
   (110 Ko au lieu de 3,9 Mo pour Paris - Marseille) dit ainsi ce qu'une longue ligne a avant d'en lire les objets par
   portions (`from_pk_m`, `to_pk_m`) ; GraphQL : type `TrackLayoutCounts`.
+- Schéma des voies : `strip.speeds[].tracks`, voies auxquelles la vitesse s'applique (références courtes : `V1`, `V2`,
+  `V1S`…), `null` quand la source ne le dit pas. Deux sections parallèles d'une même ligne au RINF ont chacune leur vitesse
+  au même PK (Paris-Austerlitz : 90 km/h sur `V1`, `V2`, 60 km/h sur `V1S`, `V2S`) ; GraphQL `TrackLayoutSpeed.tracks`.
 
 ### Corrections
 
 - Schéma des voies : une voie d'OpenStreetMap dont l'étendue en PK dépasse deux fois sa longueur plus 2 km (calage du PK
   rompu : 496 voies de 40 lignes à l'import du 24/11/2026, dont une voie de 602 m placée du PK 1+516 au PK 523+044 de
   Paris - Marseille) n'est plus servie.
+- Schéma des voies : une même voie décrite deux fois n'est plus servie qu'une fois. Une voie de ligne du RINF (identifiant
+  officiel) absorbe les voies d'OpenStreetMap de même numéro (`1bis` et `V1BIS`, `U` et `VU`) ou sans numéro au même endroit
+  (décalage latéral à 1,5 m près), et la voie de gare approchée du RINF de même numéro ; elle prend leur place latérale
+  (`lane`), et les aiguillages, signaux, heurtoirs et traversées qui citaient une voie absorbée citent la voie gardée. Les
+  pièces d'une même voie (voie du RINF coupée à chaque section) ont une seule `lane`. Paris - Bordeaux, PK 0 à 3 : 507
+  voies au lieu de 558. Un passage à niveau « PN 1 » de SNCF Réseau et « 1 » d'OpenStreetMap au même endroit n'en font
+  qu'un.
 
 ## 24/11/2026
 

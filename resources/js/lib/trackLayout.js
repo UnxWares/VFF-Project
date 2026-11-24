@@ -28,6 +28,9 @@ export const AXIS = {
     trackPad: 120,
     // Deux zones plus proches que cet écart (m) n'en font qu'une.
     mergeGap: 400,
+    // Écart minimal (px, au zoom 100 %) entre deux aiguillages ou traversées d'une zone : une gorge de gare dense est
+    // dilatée localement plutôt que d'empiler ses objets.
+    minObjectPx: 14,
 };
 
 /** Hauteur d'une rangée de voies, longueur horizontale d'une diagonale par rangée franchie (px). */
@@ -222,17 +225,40 @@ export function detailZones(data, opts = AXIS) {
 }
 
 /**
+ * PK des objets qui doivent rester séparés sur l'axe (aiguillages et traversées de voies dessinés), triés, sans
+ * doublon.
+ *
+ * @param {{ switches: Array<{ pk_m: number }>, crossings: Array<{ pk_m: number, kind?: string }> }} data
+ * @returns {number[]}
+ */
+export function objectPks(data) {
+    const pks = [
+        ...data.switches.map((s) => s.pk_m),
+        ...data.crossings.filter((c) => c.kind !== 'level_crossing').map((c) => c.pk_m),
+    ];
+    return [...new Set(pks.filter(Number.isFinite))].sort((a, b) => a - b);
+}
+
+/**
  * Axe des PK : morceaux linéaires, dilatés dans les zones, comprimés en pleine ligne (largeur proportionnelle
  * à la longueur, bornée). `x(pk)` et `pk(x)` sont réciproques ; hors de l'étendue, ramenés au bord.
  *
- * @returns {{ pieces: Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain' }>,
+ * `dense` (objectPks) : dans une zone, deux objets voisins gardent au moins `minObjectPx` pixels entre eux (au zoom
+ * 100 %) : l'intervalle qui les sépare est élargi, le reste de la zone garde son échelle. Une zone est alors faite de
+ * plusieurs morceaux (`zone` : son index, `first` : son premier morceau).
+ *
+ * @param {ReturnType<typeof normalize>} data
+ * @param {typeof AXIS} [opts]
+ * @param {number[]} [dense] PK triés des objets à séparer
+ * @returns {{ pieces: Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain',
+ *   zone?: number, first?: boolean }>,
  *   zones: Array<{ from_m: number, to_m: number, ops: string[] }>, width: number,
  *   x: (pk: number) => number, pk: (x: number) => number }}
  */
-export function buildAxis(data, opts = AXIS) {
+export function buildAxis(data, opts = AXIS, dense = []) {
     const { start_m, end_m } = data.pk;
     const zones = detailZones(data, opts);
-    /** @type {Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain' }>} */
+    /** @type {Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain', zone?: number, first?: boolean }>} */
     const pieces = [];
     let x = 0;
     let at = start_m;
@@ -242,14 +268,50 @@ export function buildAxis(data, opts = AXIS) {
         pieces.push({ from_m: from, to_m: to, x0: x, x1: x + w, kind: 'plain' });
         x += w;
     };
-    for (const z of zones) {
+    const minGap = (opts.minObjectPx ?? 0) / opts.zoneScale;
+    let d = 0;
+    zones.forEach((z, zi) => {
         plain(at, z.from_m);
-        const w = (z.to_m - z.from_m) * opts.zoneScale;
-        pieces.push({ from_m: z.from_m, to_m: z.to_m, x0: x, x1: x + w, kind: 'zone' });
-        x += w;
+        // Bornes de la zone et objets qu'elle contient ; un intervalle entre deux objets trop proches est élargi.
+        while (d < dense.length && dense[d] <= z.from_m) d++;
+        const inside = [];
+        while (d < dense.length && dense[d] < z.to_m) inside.push(dense[d++]);
+        const marks = [z.from_m, ...inside, z.to_m];
+        let open = null;
+        // Le dernier morceau est-il élargi (un morceau à l'échelle de la zone peut s'allonger) ?
+        let openStretched = true;
+        for (let i = 0; i + 1 < marks.length; i++) {
+            const [a, b] = [marks[i], marks[i + 1]];
+            if (b <= a) continue;
+            const between = i > 0 && i + 2 < marks.length;
+            const natural = (b - a) * opts.zoneScale;
+            const w = between && b - a < minGap ? Math.max(natural, opts.minObjectPx) : natural;
+            // Morceaux contigus à l'échelle de la zone : un seul.
+            if (w === natural && open && !openStretched) {
+                open.to_m = b;
+                open.x1 += w;
+            } else {
+                open = {
+                    from_m: a,
+                    to_m: b,
+                    x0: x,
+                    x1: x + w,
+                    kind: /** @type {const} */ ('zone'),
+                    zone: zi,
+                    first: false,
+                };
+                openStretched = w !== natural;
+                pieces.push(open);
+            }
+            x += w;
+        }
         at = z.to_m;
-    }
+    });
     plain(at, end_m);
+    for (let i = 0; i < pieces.length; i++) {
+        if (pieces[i].kind === 'zone')
+            pieces[i].first = i === 0 || pieces[i - 1].zone !== pieces[i].zone;
+    }
     if (pieces.length === 0) {
         pieces.push({ from_m: start_m, to_m: end_m, x0: 0, x1: 0, kind: 'plain' });
     }
@@ -273,7 +335,14 @@ export function buildAxis(data, opts = AXIS) {
         if (px <= pieces[0].x0) return pieces[0].from_m;
         const last = pieces.at(-1);
         if (px >= last.x1) return last.to_m;
-        const p = pieces.find((q) => px <= q.x1) ?? last;
+        let lo = 0;
+        let hi = pieces.length - 1;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (pieces[mid].x1 < px) lo = mid + 1;
+            else hi = mid;
+        }
+        const p = pieces[lo];
         const w = p.x1 - p.x0;
         return w > 0 ? p.from_m + ((px - p.x0) / w) * (p.to_m - p.from_m) : p.from_m;
     };
@@ -358,20 +427,38 @@ export function zoneKey(zone, opsById) {
 export function compactLanes(tracks) {
     const out = new Map();
     for (const side of [-1, 1]) {
-        // Les plus proches des voies principales d'abord ; à rangée égale, par PK.
+        // Pièces d'une même voie (même rangée du serveur, même numéro, qui se touchent) : une seule unité, qui garde
+        // une seule rangée (une voie du RINF coupée à chaque section ne saute pas d'une rangée à l'autre).
+        /** @type {Array<{ ids: string[], lane: number, from: number, to: number }>} */
+        const units = [];
+        /** @type {Map<string, { ids: string[], lane: number, from: number, to: number }>} */
+        const open = new Map();
         const own = tracks
             .filter((t) => (side < 0 ? t.lane < 0 : t.lane > 1))
-            .sort((a, b) => Math.abs(a.lane) - Math.abs(b.lane) || a.pk_from_m - b.pk_from_m);
+            .sort((a, b) => a.pk_from_m - b.pk_from_m);
+        for (const t of own) {
+            const key = t.ref ? `${t.lane}|${t.ref}` : null;
+            const u = key ? open.get(key) : undefined;
+            if (u && t.pk_from_m <= u.to + 10) {
+                u.ids.push(t.id);
+                u.to = Math.max(u.to, t.pk_to_m);
+                continue;
+            }
+            const unit = { ids: [t.id], lane: t.lane, from: t.pk_from_m, to: t.pk_to_m };
+            units.push(unit);
+            if (key) open.set(key, unit);
+        }
+        // Les plus proches des voies principales d'abord ; à rangée égale, par PK.
+        units.sort((a, b) => Math.abs(a.lane) - Math.abs(b.lane) || a.from - b.from);
         /** @type {Array<{ from: number, to: number, depth: number }>} */
         const placed = [];
-        for (const t of own) {
+        for (const u of units) {
             let depth = 0;
             for (const p of placed) {
-                if (p.from < t.pk_to_m && t.pk_from_m < p.to && p.depth >= depth)
-                    depth = p.depth + 1;
+                if (p.from < u.to && u.from < p.to && p.depth >= depth) depth = p.depth + 1;
             }
-            placed.push({ from: t.pk_from_m, to: t.pk_to_m, depth });
-            out.set(t.id, side < 0 ? -1 - depth : 2 + depth);
+            placed.push({ from: u.from, to: u.to, depth });
+            for (const id of u.ids) out.set(id, side < 0 ? -1 - depth : 2 + depth);
         }
     }
     return out;
@@ -516,17 +603,31 @@ export function foldLayout(data, zones, expanded = new Set()) {
                 .filter((l) => l !== undefined);
             return { ...t, lane: linked.length ? Math.min(...linked) : laneOf(t) };
         });
-    const groupTracks = closed.map((g) => ({
-        id: g.id,
-        ref: null,
-        kind: 'group',
-        pk_from_m: g.pk_from_m,
-        pk_to_m: g.pk_to_m,
-        lane: g.lane,
-        count: g.count,
-        source: null,
-        precision: null,
-    }));
+    // Chaque groupe replié : sa bande, et au-delà une rangée pour son bouton (« 23 voies de service »), dans la marge
+    // de la zone : le bouton ne recouvre jamais le dessin.
+    const groupTracks = closed.flatMap((g) => [
+        {
+            id: g.id,
+            ref: null,
+            kind: 'group',
+            pk_from_m: g.pk_from_m,
+            pk_to_m: g.pk_to_m,
+            lane: g.lane,
+            count: g.count,
+            source: null,
+            precision: null,
+        },
+        {
+            id: `${g.id}:label`,
+            ref: null,
+            kind: 'group-label',
+            pk_from_m: g.pk_from_m,
+            pk_to_m: g.pk_to_m,
+            lane: g.lane + g.side,
+            source: null,
+            precision: null,
+        },
+    ]);
 
     // Aiguillage dans le groupe (ses deux voies repliées, ou la seule connue) : pas dessiné.
     const inside = (sw) =>
@@ -562,14 +663,21 @@ export function foldLayout(data, zones, expanded = new Set()) {
 }
 
 /** Extrémité d'une voie la plus proche d'un PK : 'start', 'end', ou null si le PK est loin des deux. */
-export function nearEnd(track, pk) {
+export function nearEnd(track, pk, maxTol = Infinity) {
     const len = Math.max(1, track.pk_to_m - track.pk_from_m);
-    const tol = Math.max(60, Math.min(250, len * 0.2));
+    const tol = Math.min(maxTol, Math.max(60, Math.min(250, len * 0.2)));
     const dStart = Math.abs(pk - track.pk_from_m);
     const dEnd = Math.abs(pk - track.pk_to_m);
     if (Math.min(dStart, dEnd) > tol) return null;
     return dStart <= dEnd ? 'start' : 'end';
 }
+
+/**
+ * Tolérance (m) d'une voie principale (rangées 0 et 1) pour finir à un aiguillage : une voie de ligne du RINF, coupée
+ * à chaque section, ne se détourne pas vers sa voisine au premier aiguillage venu ; c'est la voie qui s'en écarte qui
+ * prend la diagonale.
+ */
+const mainTol = (t) => (t.kind === 'running' && (t.lane === 0 || t.lane === 1) ? 15 : Infinity);
 
 /**
  * Raccordements des voies : pour chaque aiguillage, la voie qui s'en écarte (celle qui commence ou finit à
@@ -596,8 +704,8 @@ export function connections(data) {
             if (from.kind !== 'group') stubs.push({ sw, from, to, short: true });
             continue;
         }
-        const bEnd = nearEnd(b, sw.pk_m);
-        const aEnd = nearEnd(a, sw.pk_m);
+        const bEnd = nearEnd(b, sw.pk_m, mainTol(b));
+        const aEnd = nearEnd(a, sw.pk_m, mainTol(a));
         if (bEnd && !ends.get(b.id)[bEnd]) {
             ends.get(b.id)[bEnd] = { sw, other: a };
         } else if (aEnd && !ends.get(a.id)[aEnd]) {
@@ -607,6 +715,74 @@ export function connections(data) {
         }
     }
     return { ends, stubs };
+}
+
+/** Distance (m) sous laquelle un heurtoir ou la pièce suivante d'une voie ferme son extrémité. */
+const END_TOL_M = 40;
+
+/**
+ * Extrémités qui flotteraient : une voie d'évitement, de gare ou de service (hors voies principales des rangées 0 et
+ * 1) dont un bout n'a ni aiguillage connu, ni heurtoir, ni pièce suivante sur sa rangée, et n'est pas au bout de la
+ * ligne (premier ou dernier point d'exploitation, bord des données). Chacune
+ * reçoit sa voie mère : la voie dessinée la plus proche, du côté des voies principales, présente à ce PK. Le schéma y
+ * trace un raccord court et discret, marqué déduit (VFF) : la voie ne flotte plus, sans inventer d'aiguillage.
+ *
+ * @param {ReturnType<typeof normalize>} data
+ * @param {Map<string, { start: any, end: any }>} ends extrémités raccordées (connections)
+ * @returns {Array<{ track: any, end: 'start'|'end', pk: number, mother: any }>}
+ */
+export function looseEnds(data, ends) {
+    const drawn = data.tracks.filter(
+        (t) => t.kind !== 'crossover' && t.kind !== 'group' && t.kind !== 'group-label',
+    );
+    const buffers = data.buffer_stops ?? [];
+    // Bouts de la ligne (gare origine ou terminus, bord des données) : une voie qui y finit n'a pas à se raccorder.
+    const ops = data.operational_points;
+    const lineFrom = Math.max(data.pk.start_m, ops[0]?.pk_m ?? -Infinity);
+    const lineTo = Math.min(data.pk.end_m, ops.at(-1)?.pk_m ?? Infinity);
+    const out = [];
+    for (const t of drawn) {
+        if (t.lane === 0 || t.lane === 1) continue;
+        const c = ends.get(t.id);
+        for (const end of /** @type {const} */ (['start', 'end'])) {
+            if (c?.[end]) continue;
+            const pk = end === 'start' ? t.pk_from_m : t.pk_to_m;
+            if (pk <= lineFrom + 1 || pk >= lineTo - 1) continue;
+            if (
+                buffers.some(
+                    (b) =>
+                        Math.abs(b.pk_m - pk) <= END_TOL_M && (b.track == null || b.track === t.id),
+                )
+            )
+                continue;
+            const goesOn = drawn.some(
+                (o) =>
+                    o !== t &&
+                    o.lane === t.lane &&
+                    (end === 'start'
+                        ? o.pk_from_m < pk && o.pk_to_m >= pk - END_TOL_M
+                        : o.pk_to_m > pk && o.pk_from_m <= pk + END_TOL_M),
+            );
+            if (goesOn) continue;
+            const towards = t.lane < 0 ? 1 : -1;
+            const limit = t.lane < 0 ? 0 : 1;
+            let mother = null;
+            for (const o of drawn) {
+                if (o === t || o.pk_from_m > pk + 1 || o.pk_to_m < pk - 1) continue;
+                const between =
+                    towards > 0
+                        ? o.lane > t.lane && o.lane <= limit
+                        : o.lane < t.lane && o.lane >= limit;
+                if (
+                    between &&
+                    (!mother || Math.abs(o.lane - t.lane) < Math.abs(mother.lane - t.lane))
+                )
+                    mother = o;
+            }
+            if (mother) out.push({ track: t, end, pk, mother });
+        }
+    }
+    return out;
 }
 
 /**
@@ -621,6 +797,7 @@ export function trackPaths(data, x, y) {
     const { ends, stubs } = connections(data);
     const out = [];
     for (const t of data.tracks) {
+        if (t.kind === 'group-label') continue;
         const c = ends.get(t.id);
         if (t.kind === 'crossover' && c.start && c.end) {
             out.push({
@@ -666,6 +843,21 @@ export function trackPaths(data, x, y) {
         const a = flat[0]?.[0] ?? x0;
         const b = flat.at(-1)?.[0] ?? x1;
         out.push({ track: t, points, label: t.ref ? { x: (a + b) / 2, y: yt, a, b } : null });
+    }
+    for (const l of looseEnds(data, ends)) {
+        const y0 = y(l.track.lane);
+        const y1 = y(l.mother.lane);
+        const xe = x(l.pk);
+        const dx =
+            Math.min(2 * DIAG, (Math.abs(y1 - y0) / ROW_H) * DIAG) * (l.end === 'start' ? -1 : 1);
+        out.push({
+            track: { id: `loose-${l.track.id}-${l.end}`, kind: 'derived', source: 'vff' },
+            points: [
+                [xe, y0],
+                [xe + dx, y1],
+            ],
+            label: null,
+        });
     }
     for (const s of stubs) {
         const xs = x(s.sw.pk_m);
@@ -789,6 +981,161 @@ export function refSpots(path, zoneStarts) {
     return spots;
 }
 
+/** Références d'une voie principale (voie 1, voie 2, voie unique) : la vitesse de la bande est la leur. */
+const MAIN_REF = /^(V?[12]|VU|U)$/i;
+
+/**
+ * Portions de la bande sans chevauchement : quand deux portions se recouvrent (deux sections parallèles d'une même
+ * ligne au RINF), la première dans l'ordre de préférence garde l'endroit, l'autre n'en garde que ce qui reste. Pour
+ * les vitesses, celles des voies principales passent d'abord (`tracks`).
+ *
+ * @template {{ pk_from_m: number, pk_to_m: number, tracks?: string[]|null }} T
+ * @param {T[]} ranges
+ * @returns {T[]} triées par PK
+ */
+export function flattenRanges(ranges) {
+    const rank = (r) => (!r.tracks?.length || r.tracks.some((ref) => MAIN_REF.test(ref)) ? 0 : 1);
+    const order = ranges
+        .map((r, i) => ({ r, i }))
+        .sort((a, b) => rank(a.r) - rank(b.r) || a.i - b.i);
+    /** @type {Array<[number, number]>} */
+    let taken = [];
+    const out = [];
+    for (const { r } of order) {
+        let parts = [[r.pk_from_m, r.pk_to_m]];
+        for (const [a, b] of taken) {
+            parts = parts.flatMap(([x0, x1]) =>
+                b <= x0 || a >= x1
+                    ? [[x0, x1]]
+                    : [...(a > x0 ? [[x0, a]] : []), ...(b < x1 ? [[b, x1]] : [])],
+            );
+        }
+        for (const [x0, x1] of parts) {
+            if (x1 > x0) out.push({ ...r, pk_from_m: x0, pk_to_m: x1 });
+        }
+        taken = [...taken, [r.pk_from_m, r.pk_to_m]];
+    }
+    return out.sort((a, b) => a.pk_from_m - b.pk_from_m);
+}
+
+/**
+ * Cases de la bande (vitesses, déclivités) à l'échelle du dessin : une portion trop courte pour être lue (moins de
+ * `minPx` pixels) est regroupée avec ses voisines trop courtes, jusqu'à la largeur lisible, en une case marquée
+ * (`merged`) qui donne leur valeur résumée (`combine` : moyenne pondérée des déclivités, plus petite et plus grande
+ * vitesse). Une portion assez large reste seule ; un trou dans la bande coupe un regroupement. Le curseur et le
+ * tableau gardent les valeurs exactes.
+ *
+ * @template {{ pk_from_m: number, pk_to_m: number }} T
+ * @param {T[]} ranges triées, sans chevauchement (flattenRanges)
+ * @param {(pk: number) => number} x
+ * @param {{ minPx?: number }} [opts]
+ * @returns {Array<{ items: T[], pk_from_m: number, pk_to_m: number, x0: number, x1: number, merged: boolean }>}
+ */
+export function bandCells(ranges, x, { minPx = 36 } = {}) {
+    const out = [];
+    /** @type {T[]} */
+    let group = [];
+    const flush = () => {
+        if (!group.length) return;
+        const pk_from_m = group[0].pk_from_m;
+        const pk_to_m = group.at(-1).pk_to_m;
+        out.push({
+            items: group,
+            pk_from_m,
+            pk_to_m,
+            x0: x(pk_from_m),
+            x1: x(pk_to_m),
+            merged: group.length > 1,
+        });
+        group = [];
+    };
+    for (const r of ranges) {
+        const w = x(r.pk_to_m) - x(r.pk_from_m);
+        if (group.length && r.pk_from_m - group.at(-1).pk_to_m > 1) flush();
+        if (w >= minPx) {
+            flush();
+            group = [r];
+            flush();
+            continue;
+        }
+        group.push(r);
+        if (x(r.pk_to_m) - x(group[0].pk_from_m) >= minPx) flush();
+    }
+    flush();
+    return out;
+}
+
+/** Déclivité moyenne d'une case regroupée, pondérée par la longueur de chaque portion (‰, au dixième). */
+export function meanPermille(items) {
+    let sum = 0;
+    let len = 0;
+    for (const r of items) {
+        const l = Math.max(0, r.pk_to_m - r.pk_from_m);
+        sum += r.permille * l;
+        len += l;
+    }
+    return len > 0 ? Math.round((sum / len) * 10) / 10 : (items[0]?.permille ?? 0);
+}
+
+/**
+ * Graduations de l'axe des PK : chaque candidat garde son trait ; seuls ceux dont le texte tient sans toucher un
+ * voisin à `gap` pixels près (par priorité, `rank` le plus petit d'abord) sont écrits, les autres restent des
+ * graduations sans texte.
+ *
+ * @param {Array<{ x: number, tx: number, half: number, rank: number }>} items
+ * @param {number} [gap]
+ * @returns {boolean[]} texte écrit ou non, dans l'ordre reçu
+ */
+export function tickLabels(items, gap = 24) {
+    return placeBoxes(
+        items.map((c) => ({ x0: c.tx - c.half, x1: c.tx + c.half, y0: 0, y1: 10, rank: c.rank })),
+        gap,
+    );
+}
+
+/**
+ * Marques regroupées : une seule marque par portion comprimée de pleine ligne, et dans une zone dilatée une seule pour
+ * des marques à moins de `minPx` pixels l'une de l'autre ; la marque restante est à l'abscisse moyenne de celles
+ * qu'elle remplace et dit combien elle en porte (`count`). Le tableau de parcours les garde toutes.
+ *
+ * @template {{ x: number }} M
+ * @param {M[]} marks triées par abscisse
+ * @param {(m: M) => number} pieceOf index de la portion comprimée de la marque, -1 dans une zone dilatée
+ * @param {number} [minPx]
+ * @returns {Array<M & { count: number }>}
+ */
+export function clusterMarks(marks, pieceOf, minPx = 14) {
+    /** @type {Array<any>} */
+    const out = [];
+    for (const m of marks) {
+        const piece = pieceOf(m);
+        const last = out.at(-1);
+        const together = last && last.piece === piece && (piece >= 0 || m.x - last.lastX < minPx);
+        if (last) last.lastX = m.x;
+        if (together) {
+            last.sum += m.x;
+            last.count += 1;
+            last.x = last.sum / last.count;
+            continue;
+        }
+        out.push({ ...m, count: 1, piece, sum: m.x, lastX: m.x });
+    }
+    return out.map(({ sum: _sum, piece: _piece, lastX: _lastX, ...m }) => m);
+}
+
+/** Index de la portion comprimée (pleine ligne) qui contient un PK, -1 dans une zone dilatée ou hors de l'axe. */
+export function plainPieceAt(pieces, pk) {
+    let lo = 0;
+    let hi = pieces.length - 1;
+    while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (pk < pieces[mid].from_m) hi = mid - 1;
+        else if (pk > pieces[mid].to_m) lo = mid + 1;
+        else return pieces[mid].kind === 'plain' ? mid : -1;
+    }
+    return -1;
+}
+
 /** Largeur estimée d'un texte (px), sans mesurer le DOM : 0,56 em par caractère en moyenne (Inter). */
 export function textWidth(text, size = 14) {
     return String(text ?? '').length * size * 0.56;
@@ -819,15 +1166,33 @@ export function routeRows(data) {
     data.coverage.missing.forEach((m, i) =>
         add('missing', `miss-${i}`, { ...m, source: null }, m.pk_from_m),
     );
+    // La bande (vitesses, déclivités, manques) commence au premier point d'exploitation : une déclivité calculée avant
+    // la gare d'origine n'ouvre pas le tableau ; une tranche qui le couvre est lue à son PK. Les objets (aiguillages,
+    // signaux…) avant lui restent : le tableau nomme tout ce que le dessin montre.
+    const first = data.operational_points[0]?.pk_m;
+    const BAND = new Set(['speed', 'gradient', 'missing']);
+    const kept = [];
+    for (const r of rows) {
+        if (first === undefined || !BAND.has(r.kind) || r.pk_m >= first) kept.push(r);
+        else if (r.item.pk_to_m > first) kept.push({ ...r, pk_m: first });
+    }
     const order = (k) => ROW_KINDS.indexOf(k);
-    rows.sort((a, b) => a.pk_m - b.pk_m || order(a.kind) - order(b.kind));
+    kept.sort((a, b) => a.pk_m - b.pk_m || order(a.kind) - order(b.kind));
     const start = data.pk.start_m;
-    return rows.map((r) => ({
+    // Plusieurs vitesses au même PK (sections parallèles d'une ligne) : chacune dit à quelles voies elle s'applique.
+    const speedsAt = new Map();
+    for (const r of kept) {
+        if (r.kind === 'speed') speedsAt.set(r.pk_m, (speedsAt.get(r.pk_m) ?? 0) + 1);
+    }
+    return kept.map((r) => ({
         ...r,
         km: (r.pk_m - start) / 1000,
         kmh: valueAt(data.strip.speeds, r.pk_m)?.kmh ?? null,
         permille: valueAt(data.strip.gradients, r.pk_m)?.permille ?? null,
         prov: provenance(r.item),
+        ...(r.kind === 'speed' && speedsAt.get(r.pk_m) > 1 && r.item.tracks?.length
+            ? { tracks: r.item.tracks }
+            : {}),
     }));
 }
 
@@ -1081,8 +1446,15 @@ export function rowTitle(row, t, lang = 'fr') {
             return t('tracks.row.speed', { kmh: formatNumber(it.kmh, lang) });
         case 'gradient':
             return t('tracks.row.gradient', { value: formatPermille(it.permille, lang) });
-        case 'signal':
         case 'switch':
+            // « Aiguillage simple 12 » : le genre suffit à dire que c'est un aiguillage, suivi de son repère.
+            if (it.kind) {
+                const kind = t(`tracks.switch_kind.${it.kind}`, { defaultValue: it.kind });
+                const title = kind.charAt(0).toLocaleUpperCase(lang) + kind.slice(1);
+                return it.ref ? `${title} ${it.ref}` : title;
+            }
+            return it.ref ? t('tracks.row.switch', { ref: it.ref }) : t('tracks.row.switch_noref');
+        case 'signal':
         case 'level_crossing':
         case 'milestone':
             return it.ref

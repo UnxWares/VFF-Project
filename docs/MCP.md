@@ -1022,7 +1022,7 @@ Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
 voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
-inscription), `strip.speeds[]`, `strip.gradients[]` (‰
+inscription), `strip.speeds[]` (`tracks` : voies auxquelles la vitesse s'applique), `strip.gradients[]` (‰
 dans le sens des PK croissants), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), `counts` (nombre d'objets de chaque
 famille sur la portion, même filtrée par `kinds` : `kinds=operational_points` donne un aperçu léger d'une longue ligne avant
 d'en demander une portion), le bloc d'attribution et `vff_url`.

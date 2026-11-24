@@ -102,7 +102,9 @@ describe('trackLayout : voies repliées des grandes gares', () => {
             pk_from_m: 9850,
             pk_to_m: 10150,
         });
-        expect(laneRows(view.tracks).lanes).toEqual([-1, 0, 1, 2, 3]);
+        // Au-delà de la bande, la rangée de son bouton (marge de la zone, sans recouvrir le dessin).
+        expect(view.tracks.find((t) => t.kind === 'group-label')).toMatchObject({ lane: 4 });
+        expect(laneRows(view.tracks).lanes).toEqual([-1, 0, 1, 2, 3, 4]);
         // Aiguillage dans le faisceau, son signal et son heurtoir : pas dessinés ; celui qui y mène depuis la voie 2
         // reste sur la voie 2 et pointe vers le groupe (court départ, pas une diagonale jusqu'à la bande).
         const sw = new Map(view.switches.map((s) => [s.id, s]));
@@ -150,7 +152,8 @@ describe('trackLayout : voies repliées des grandes gares', () => {
         const { data: view, groups } = foldLayout(data, buildAxis(data).zones);
         expect(groups).toHaveLength(1);
         expect(groups[0]).toMatchObject({ side: -1, count: ROW_BUDGET + 4, service: false });
-        expect(laneRows(view.tracks).count).toBe(2);
+        // La voie 1, la bande du groupe et la rangée de son bouton.
+        expect(laneRows(view.tracks).count).toBe(3);
     });
 
     it('resserre les rangées en gardant l’ordre latéral des voies qui se chevauchent', () => {

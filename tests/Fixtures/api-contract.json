@@ -2355,6 +2355,7 @@
     "gql TrackLayoutSpeed.pk_from_m": "Int!",
     "gql TrackLayoutSpeed.pk_to_m": "Int!",
     "gql TrackLayoutSpeed.source": "String!",
+    "gql TrackLayoutSpeed.tracks": "[String!]",
     "gql TrackLayoutStrip.gradients": "[TrackLayoutGradient!]!",
     "gql TrackLayoutStrip.speeds": "[TrackLayoutSpeed!]!",
     "gql TrackLayoutSwitch.facing": "String",

@@ -19,6 +19,10 @@
         <line class="main" x1="1" y1="11" x2="21" y2="11" />
     {:else if kind === 'service'}
         <line class="service" x1="1" y1="11" x2="21" y2="11" />
+    {:else if kind === 'derived'}
+        <line class="main" x1="1" y1="17" x2="21" y2="17" />
+        <line class="derived" x1="7" y1="17" x2="15" y2="6" />
+        <line class="service" x1="15" y1="6" x2="21" y2="6" />
     {:else if kind === 'speed'}
         <path class="stroke" d="M4 15 A7 7 0 1 1 18 15" />
         <line class="stroke" x1="11" y1="15" x2="15.5" y2="8.5" />
@@ -72,6 +76,11 @@
     .travelled {
         stroke: var(--vff-accent-strong);
         stroke-width: 4;
+    }
+    .derived {
+        stroke: var(--vff-text-muted);
+        stroke-width: 1.5;
+        stroke-dasharray: 3 3;
     }
     .service {
         stroke: var(--vff-text-muted);

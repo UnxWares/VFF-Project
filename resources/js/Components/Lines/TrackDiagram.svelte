@@ -1,20 +1,27 @@
 <script>
-    import { formatNumber } from '$lib/typo.js';
+    import { formatNumber, NBSP } from '$lib/typo.js';
     import {
         CROSSING_SWITCHES,
         ROW_H,
         SERVICE_KINDS,
         axisLabel,
+        bandCells,
         centerScroll,
+        clusterMarks,
+        flattenRanges,
         formatPermille,
+        joinRanges,
         laneRows,
+        meanPermille,
         pathD,
         pkLabel,
         placeBoxes,
         refSpots,
         rowAtX,
+        plainPieceAt,
         stackLabels,
         textWidth,
+        tickLabels,
         trackPaths,
         valueAt,
     } from '$lib/trackLayout.js';
@@ -221,11 +228,20 @@
     const height = $derived(stripTop + 3 * STRIP_ROW + 8);
 
     const zoneStarts = $derived(
-        axis.pieces.filter((p) => p.kind === 'zone').map((p) => PAD_L + p.x0 * zoom),
+        axis.pieces.filter((p) => p.kind === 'zone' && p.first).map((p) => PAD_L + p.x0 * zoom),
     );
 
+    // La voie parcourue est dessinée en dernier : rien ne la recouvre.
     const paths = $derived(
-        schema ? trackPaths(winData, X, Y).filter((p) => p.track.kind !== 'group') : [],
+        schema
+            ? trackPaths(winData, X, Y)
+                  .filter((p) => p.track.kind !== 'group')
+                  .sort(
+                      (a, b) =>
+                          Number(kindOf(a.track) === 'travelled') -
+                          Number(kindOf(b.track) === 'travelled'),
+                  )
+            : [],
     );
     // Groupes repliés : une bande par groupe, et son bouton (HTML, au clavier) qui le déplie.
     const bands = $derived(
@@ -251,7 +267,17 @@
                               scroll + half + 4,
                               Math.min(scroll + view - half - 4, (va + vb) / 2),
                           );
-                      return { tr, g, x0, x1, y: Y(tr.lane), at, text };
+                      // Le bouton est dans la rangée réservée au-delà de la bande (marge de la zone).
+                      return {
+                          tr,
+                          g,
+                          x0,
+                          x1,
+                          y: Y(tr.lane),
+                          labelY: Y(tr.lane + (g?.side ?? 0)),
+                          at,
+                          text,
+                      };
                   })
                   .filter((b) => b.g && nearSpan(b.x0, b.x1))
             : [],
@@ -267,6 +293,7 @@
             (tr) =>
                 tr.kind !== 'crossover' &&
                 tr.kind !== 'group' &&
+                tr.kind !== 'group-label' &&
                 tr.pk_from_m <= pk &&
                 tr.pk_to_m >= pk,
         );
@@ -280,8 +307,8 @@
             ? 'travelled'
             : SERVICE_KINDS.has(tr.kind)
               ? 'service'
-              : tr.kind === 'crossover'
-                ? 'crossover'
+              : tr.kind === 'crossover' || tr.kind === 'derived'
+                ? tr.kind
                 : 'main';
 
     const switchMarks = $derived(
@@ -299,29 +326,51 @@
                   .filter((m) => near(m.x) && tracksById.get(m.sw.from_track)?.kind !== 'group')
             : [],
     );
+    // En pleine ligne comprimée, une seule marque par portion (par voie et par sens pour les signaux) : les objets
+    // de quelques kilomètres tiendraient sinon en quelques pixels.
+    const pieceOf = (m) => plainPieceAt(axis.pieces, m.pk);
+    /** Regroupe des marques par clé (même rangée, même sens), puis par portion comprimée. */
+    function clustered(marks, keyOf) {
+        /** @type {Record<string, any[]>} */
+        const by = {};
+        for (const m of marks.sort((a, b) => a.x - b.x)) (by[keyOf(m)] ??= []).push(m);
+        return Object.values(by).flatMap((list) => clusterMarks(list, pieceOf));
+    }
     const signalMarks = $derived(
         schema
-            ? data.signals
-                  .map((s) => {
-                      const dir = s.direction === 'down' ? -1 : 1;
-                      return { s, x: X(s.pk_m), y: Y(laneOf(s.track)), dir };
-                  })
-                  .filter((m) => near(m.x))
+            ? clustered(
+                  data.signals
+                      .map((s) => {
+                          const dir = s.direction === 'down' ? -1 : 1;
+                          return { s, pk: s.pk_m, x: X(s.pk_m), y: Y(laneOf(s.track)), dir };
+                      })
+                      .filter((m) => near(m.x)),
+                  (m) => `${m.y}:${m.dir}`,
+              )
             : [],
     );
     // Traversées piétonnes des quais (zones dilatées des gares) : dans le tableau seulement, elles cacheraient les voies.
     const inZone = (pk) => axis.zones.some((z) => pk >= z.from_m && pk <= z.to_m);
     const crossingMarks = $derived(
-        data.crossings
-            .filter((c) => !(c.use === 'pedestrian' && inZone(c.pk_m)))
-            .map((c) => {
-                const [y0, y1] = schema ? spanAt(c.pk_m) : [TOP + 20, TOP + 20];
-                // Traversée de voies : sur la voie qu'elle croise quand on la connaît.
-                const on = (c.tracks ?? []).find((id) => tracksById.has(id));
-                const yc = schema && on ? Y(laneOf(on)) : y0;
-                return { c, x: X(c.pk_m), y0: c.kind === 'level_crossing' ? y0 : yc, y1 };
-            })
-            .filter((m) => near(m.x)),
+        clustered(
+            data.crossings
+                .filter((c) => !(c.use === 'pedestrian' && inZone(c.pk_m)))
+                .map((c) => {
+                    const [y0, y1] = schema ? spanAt(c.pk_m) : [TOP + 20, TOP + 20];
+                    // Traversée de voies : sur la voie qu'elle croise quand on la connaît.
+                    const on = (c.tracks ?? []).find((id) => tracksById.has(id));
+                    const yc = schema && on ? Y(laneOf(on)) : y0;
+                    return {
+                        c,
+                        pk: c.pk_m,
+                        x: X(c.pk_m),
+                        y0: c.kind === 'level_crossing' ? y0 : yc,
+                        y1,
+                    };
+                })
+                .filter((m) => near(m.x)),
+            (m) => `${m.c.kind}:${m.c.use === 'pedestrian'}`,
+        ),
     );
     const bufferMarks = $derived(
         schema
@@ -335,12 +384,17 @@
     const labels = $derived.by(() => {
         if (!schema) return [];
         const out = [];
+        // Pièce qui prolonge une pièce de même numéro sur la même rangée (voie du RINF coupée à chaque section) : son
+        // numéro n'est pas répété à son début.
+        const endsAt = new Set(winTracks.map((tr) => `${tr.lane}|${tr.ref}|${tr.pk_to_m}`));
         for (const p of paths) {
             if (!p.label || !nearSpan(p.label.a, p.label.b)) continue;
             const w = textWidth(p.track.ref, 14) + 4;
             if (p.label.b - p.label.a < w + 10) continue;
+            const goesOn = endsAt.has(`${p.track.lane}|${p.track.ref}|${p.track.pk_from_m}`);
             for (const spot of refSpots(p, zoneStarts)) {
                 if (!near(spot.x)) continue;
+                if (goesOn && spot.x === p.label.a + 8) continue;
                 const x0 = spot.anchor === 'middle' ? spot.x - w / 2 : spot.x;
                 out.push({
                     text: p.track.ref,
@@ -353,7 +407,7 @@
             }
         }
         for (const m of signalMarks) {
-            if (!m.s.ref) continue;
+            if (!m.s.ref || m.count > 1) continue;
             const w = textWidth(m.s.ref, 14);
             const up = m.dir > 0;
             const x = up ? m.x + 10 : m.x - 10;
@@ -380,6 +434,21 @@
                 box: { x0: m.x - w / 2, x1: m.x + w / 2, y0: m.y + 9, y1: m.y + 23, rank: 2 },
             });
         }
+        // Marque regroupée en pleine ligne : le nombre d'objets qu'elle porte.
+        for (const m of [...signalMarks, ...crossingMarks]) {
+            if (m.count < 2) continue;
+            const text = `×${formatNumber(m.count, lang)}`;
+            const w = textWidth(text, 14);
+            const y = (m.y0 ?? m.y) - 14;
+            out.push({
+                text,
+                cls: 'count',
+                x: m.x + 6,
+                y,
+                anchor: 'start',
+                box: { x0: m.x + 6, x1: m.x + 6 + w, y0: y - 12, y1: y + 2, rank: 1 },
+            });
+        }
         // Les symboles eux-mêmes occupent leur place : une étiquette ne les recouvre pas.
         const symbols = [
             ...switchMarks.map((m) => ({
@@ -402,56 +471,92 @@
     });
 
     // Bande : graduation des PK (gares d'abord), vitesses, déclivités.
+    // Chaque candidat a son trait ; seuls ceux dont le texte tient à 24 px de ses voisins sont écrits (les chiffres
+    // tabulaires font environ 0,62 em).
     const pkTicks = $derived.by(() => {
         const cands = data.operational_points.map((op) => ({ pk: op.pk_m, rank: 0 }));
-        for (const p of axis.pieces) cands.push({ pk: p.from_m, rank: p.kind === 'zone' ? 1 : 2 });
+        for (const p of axis.pieces) {
+            if (p.kind === 'plain' || p.first) {
+                cands.push({ pk: p.from_m, rank: p.kind === 'zone' ? 1 : 2 });
+            }
+        }
         cands.push({ pk: data.pk.end_m, rank: 1 });
         // Kilomètres ronds, là où la place le permet.
         const step = zoom >= 1 ? 1000 : zoom >= 0.4 ? 5000 : 10000;
         for (let k = Math.ceil(data.pk.start_m / step) * step; k <= data.pk.end_m; k += step) {
             cands.push({ pk: k, rank: 3 });
         }
+        // Un trait par abscisse (au pixel près), le plus important gardé.
+        /** @type {Record<number, any>} */
+        const byX = {};
+        for (const c of cands) {
+            const x = X(c.pk);
+            if (!near(x)) continue;
+            const k = Math.round(x);
+            if (!byX[k] || byX[k].rank > c.rank) byX[k] = { ...c, x };
+        }
         // Texte centré sur son trait, sans passer sous les en-têtes de la bande (64 px à gauche).
-        const items = cands
-            .map((c) => {
-                const text = axisLabel(c.pk, axisMode, lang);
-                const half = textWidth(text, 14) / 2;
-                const x = X(c.pk);
-                return {
-                    ...c,
-                    x,
-                    tx: Math.min(width - 4 - half, Math.max(68 + half, x)),
-                    half,
-                    text,
-                };
-            })
-            .filter((c) => near(c.x));
-        const shown = placeBoxes(
-            items.map((c) => ({
-                x0: c.tx - c.half,
-                x1: c.tx + c.half,
-                y0: 0,
-                y1: 10,
-                rank: c.rank,
-            })),
-            8,
-        );
-        return items.filter((_, i) => shown[i]);
+        const items = Object.values(byX).map((c) => {
+            const text = axisLabel(c.pk, axisMode, lang);
+            const half = (text.length * 14 * 0.62) / 2;
+            return {
+                ...c,
+                tx: Math.min(width - 4 - half, Math.max(68 + half, c.x)),
+                half,
+                text,
+            };
+        });
+        const written = tickLabels(items, 24);
+        return items.map((c, i) => ({ ...c, written: written[i] }));
     });
 
-    function cells(ranges, text) {
-        return ranges
-            .map((r) => {
-                const x0 = X(r.pk_from_m);
-                const x1 = X(r.pk_to_m);
-                const label = text(r);
-                return { r, x0, x1, label, fits: x1 - x0 >= textWidth(label, 15) + 10 };
-            })
-            .filter((c) => nearSpan(c.x0, c.x1));
-    }
+    // Bande des vitesses et des déclivités : portions sans chevauchement, les trop courtes regroupées en une case
+    // marquée (moyenne pondérée des déclivités, plus petite et plus grande vitesse).
     const permille = (v) => formatPermille(v, lang);
-    const speedCells = $derived(cells(data.strip.speeds, (r) => formatNumber(r.kmh, lang)));
-    const gradientCells = $derived(cells(data.strip.gradients, (r) => permille(r.permille)));
+    // Largeur lisible d'une case : de quoi écrire « 140 » ou « ≈ -12,5 ».
+    function cells(ranges, text, minPx, value) {
+        // Portions voisines de même valeur : une seule case.
+        const joined = joinRanges(flattenRanges(ranges), (a, b) => value(a) === value(b));
+        return bandCells(joined, X, { minPx })
+            .filter((c) => nearSpan(c.x0, c.x1))
+            .map((c) => {
+                const label = text(c);
+                return { ...c, label, fits: c.x1 - c.x0 >= textWidth(label, 15) + 10 };
+            });
+    }
+    const speedCells = $derived(
+        cells(
+            data.strip.speeds,
+            (c) => {
+                const v = c.items.map((r) => r.kmh);
+                const [lo, hi] = [Math.min(...v), Math.max(...v)];
+                return lo === hi
+                    ? formatNumber(lo, lang)
+                    : `${formatNumber(lo, lang)}-${formatNumber(hi, lang)}`;
+            },
+            44,
+            (r) => r.kmh,
+        ),
+    );
+    const gradientCells = $derived(
+        cells(
+            data.strip.gradients,
+            (c) =>
+                c.merged
+                    ? `≈${NBSP}${permille(meanPermille(c.items))}`
+                    : permille(c.items[0].permille),
+            64,
+            (r) => r.permille,
+        ),
+    );
+
+    /** Texte d'une case : au milieu de sa partie visible (une longue case garde sa valeur à l'écran). */
+    function cellX(c) {
+        const half = textWidth(c.label, 15) / 2 + 6;
+        const a = Math.max(c.x0, printing ? c.x0 : scroll + PAD_L);
+        const b = Math.min(c.x1, printing ? c.x1 : scroll + (view || width));
+        return b - a < 2 * half ? (c.x0 + c.x1) / 2 : (a + b) / 2;
+    }
 
     // Curseur : PK, vitesse et déclivité du point survolé.
     const cursorPk = $derived(cursor === null ? null : axis.pk((cursor - PAD_L) / zoom));
@@ -650,15 +755,23 @@
             <g class="strip">
                 <line class="rule" x1={PAD_L} x2={width - PAD_R} y1={stripTop} y2={stripTop} />
                 {#each pkTicks as tk (tk.pk)}
-                    <line class="tick" x1={tk.x} x2={tk.x} y1={stripTop} y2={stripTop + 6} />
-                    <text class="pk" x={tk.tx} y={stripTop + 21} text-anchor="middle"
-                        >{tk.text}</text
-                    >
+                    <line
+                        class="tick"
+                        x1={tk.x}
+                        x2={tk.x}
+                        y1={stripTop}
+                        y2={stripTop + (tk.written ? 6 : 4)}
+                    />
+                    {#if tk.written}
+                        <text class="pk" x={tk.tx} y={stripTop + 21} text-anchor="middle"
+                            >{tk.text}</text
+                        >
+                    {/if}
                 {/each}
                 {#each [{ list: speedCells, row: 1, cls: 'speed' }, { list: gradientCells, row: 2, cls: 'gradient' }] as band (band.cls)}
                     {#each band.list as c, i (i)}
                         <rect
-                            class={['cell', band.cls, i % 2 && 'alt']}
+                            class={['cell', band.cls, i % 2 && 'alt', c.merged && 'merged']}
                             x={c.x0}
                             y={stripTop + band.row * STRIP_ROW + 2}
                             width={Math.max(1, c.x1 - c.x0)}
@@ -668,7 +781,7 @@
                         {#if c.fits}
                             <text
                                 class="val"
-                                x={(c.x0 + c.x1) / 2}
+                                x={cellX(c)}
                                 y={stripTop + band.row * STRIP_ROW + 20}
                                 text-anchor="middle">{c.label}</text
                             >
@@ -689,7 +802,7 @@
                 type="button"
                 class="fold"
                 style:left="{b.at}px"
-                style:top="{b.y}px"
+                style:top="{b.labelY}px"
                 aria-expanded="false"
                 aria-label={t('tracks.fold.expand', {
                     count: b.g.count,
@@ -806,6 +919,12 @@
     .track.approx {
         stroke-dasharray: 2 5;
     }
+    /* Raccord déduit par VFF (aucun aiguillage connu) : court, fin et discret. */
+    .track.derived {
+        stroke: var(--vff-text-muted);
+        stroke-width: 1.5;
+        stroke-dasharray: 3 3;
+    }
     .group {
         fill: var(--tl-zone);
         stroke: var(--vff-text-muted);
@@ -876,7 +995,8 @@
     }
     .ref,
     .sig-ref,
-    .sw-ref {
+    .sw-ref,
+    .count {
         font-size: 14px;
         paint-order: stroke;
         stroke: var(--vff-bg-elevated);
@@ -890,7 +1010,8 @@
     .sig-ref {
         fill: var(--vff-info);
     }
-    .sw-ref {
+    .sw-ref,
+    .count {
         fill: var(--vff-text-muted);
     }
     .rule,
@@ -910,6 +1031,10 @@
     }
     .cell.alt {
         fill: var(--vff-bg-muted);
+    }
+    /* Case qui regroupe des portions trop courtes pour l'échelle. */
+    .cell.merged {
+        stroke-dasharray: 3 3;
     }
     .val {
         font-size: 15px;

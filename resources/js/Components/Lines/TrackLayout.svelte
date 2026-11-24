@@ -6,6 +6,7 @@
     import { cleanUrl, linkLabel } from '$lib/linkLabel.js';
     import { formatEventDate } from '$lib/linePhases.js';
     import {
+        AXIS,
         ROW_KINDS,
         ZOOM_STEP,
         axisLabel,
@@ -16,6 +17,7 @@
         hasTracks,
         nearestRow,
         normalize,
+        objectPks,
         pkLabel,
         routeRows,
         rowTitle,
@@ -61,14 +63,17 @@
 
     const raw = $derived(layout ?? loader?.layout ?? null);
     const data = $derived(normalize(raw));
-    const axis = $derived(buildAxis(data));
+    // Axe en deux temps : les zones (pour replier les faisceaux), puis l'axe dessiné, dilaté là où les aiguillages et
+    // traversées encore dessinés sont serrés (gorges de gare).
+    const zonesAxis = $derived(buildAxis(data));
     const allRows = $derived(routeRows(data));
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
     const detailed = $derived(hasTracks(data) || (raw?.counts?.tracks ?? 0) > 0);
 
     // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
     const expanded = new SvelteSet();
-    const folded = $derived(foldLayout(data, axis.zones, expanded));
+    const folded = $derived(foldLayout(data, zonesAxis.zones, expanded));
+    const axis = $derived(buildAxis(data, AXIS, objectPks(folded.data)));
     const anyClosed = $derived(folded.groups.some((g) => !g.expanded));
     function toggleGroup(g) {
         if (expanded.has(g.key)) expanded.delete(g.key);
@@ -316,6 +321,7 @@
         'travelled',
         'main',
         'service',
+        'derived',
         'switch',
         'crossing',
         'buffer_stop',
@@ -422,6 +428,7 @@
             <p class="note">
                 {t(axisMode === 'route' ? 'tracks.route.note' : 'tracks.legend.note')}
                 {#if folded.groups.length}{t('tracks.fold.note')}{/if}
+                {t('tracks.legend.merged')}
             </p>
         </div>
 

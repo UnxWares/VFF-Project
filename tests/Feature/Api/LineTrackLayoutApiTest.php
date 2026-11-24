@@ -123,9 +123,9 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame('crossover', $tracks['Liaison BS83/84']['kind']);
         $this->assertSame('rinf:op:FR0000003513', $tracks['4 - COGNAC']['op_id']);
 
-        $this->assertSame([['pk_from_m' => 17095, 'pk_to_m' => 17277, 'kmh' => 110, 'source' => 'rinf'],
-            ['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'source' => 'rinf'],
-            ['pk_from_m' => 17917, 'pk_to_m' => 17919, 'kmh' => 140, 'source' => 'rinf']], $json['strip']['speeds']);
+        $this->assertSame([['pk_from_m' => 17095, 'pk_to_m' => 17277, 'kmh' => 110, 'tracks' => ['VU'], 'source' => 'rinf'],
+            ['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'tracks' => ['VU'], 'source' => 'rinf'],
+            ['pk_from_m' => 17917, 'pk_to_m' => 17919, 'kmh' => 140, 'tracks' => ['VU'], 'source' => 'rinf']], $json['strip']['speeds']);
 
         // Ni aiguillage ni signal au RINF français : familles absentes sur toute la ligne.
         $this->assertSame(907, $json['coverage']['total_m']);
@@ -148,8 +148,8 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame(0, $osm[0]['lane']);
         // Aiguillages : le RINF n'en a pas, ceux d'OSM sont servis ; le doublon à 10 m de même référence est écarté.
         $this->assertSame(['osm:node:10'], array_column($json['switches'], 'id'));
-        $this->assertSame(['pk_from_m' => 17919, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][4]);
-        $this->assertSame(['pk_from_m' => 17000, 'pk_to_m' => 17095, 'kmh' => 100, 'source' => 'osm'], $json['strip']['speeds'][0]);
+        $this->assertSame(['pk_from_m' => 17919, 'pk_to_m' => 19000, 'kmh' => 100, 'tracks' => null, 'source' => 'osm'], $json['strip']['speeds'][4]);
+        $this->assertSame(['pk_from_m' => 17000, 'pk_to_m' => 17095, 'kmh' => 100, 'tracks' => null, 'source' => 'osm'], $json['strip']['speeds'][0]);
         $this->assertSame(1081, $json['coverage']['osm_m']);
         $this->assertFalse(collect((array) $json['coverage']['missing'])->contains(fn (array $m): bool => $m['what'] === 'switches' && $m['pk_from_m'] <= 17500 && $m['pk_to_m'] >= 17600));
     }
@@ -212,7 +212,7 @@ class LineTrackLayoutApiTest extends TestCase
             crossings { id pk_m kind ref use tracks source precision }
             buffer_stops { id pk_m track source precision }
             milestones { id pk_m label source precision }
-            strip { speeds { pk_from_m pk_to_m kmh source } gradients { pk_from_m pk_to_m permille source precision } }
+            strip { speeds { pk_from_m pk_to_m kmh tracks source } gradients { pk_from_m pk_to_m permille source precision } }
             coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } }
             counts { operational_points tracks switches signals crossings buffer_stops milestones } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
 
@@ -263,7 +263,7 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame(17700, $json['pk']['end_m']);
         $this->assertSame([], $json['operational_points']);
         $this->assertNotSame([], $json['tracks']);
-        $this->assertSame([['pk_from_m' => 17500, 'pk_to_m' => 17700, 'kmh' => 140, 'source' => 'rinf']], $json['strip']['speeds']);
+        $this->assertSame([['pk_from_m' => 17500, 'pk_to_m' => 17700, 'kmh' => 140, 'tracks' => ['VU'], 'source' => 'rinf']], $json['strip']['speeds']);
         $this->assertSame(200, $json['coverage']['total_m']);
 
         $this->getJson('/api/v1/lines/rfn-579000/track-layout?kinds=tracks,aiguilles')->assertStatus(422);

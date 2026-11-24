@@ -10,7 +10,9 @@
      * proche, que le tableau fait défiler dans son propre cadre (jamais la page). Un point d'exploitation rattaché à
      * une gare de VFF (`station_slug`) a un lien vers sa fiche.
      *
-     * `axisMode` : `route` sur un livret de parcours (sens des signaux dit par rapport au sens de marche).
+     * `axisMode` : `route` sur un livret de parcours (sens des signaux dit par rapport au sens de marche, colonne des
+     * kilomètres parcourus : plusieurs lignes bout à bout). Sur une ligne, le PK de ligne suffit : la colonne des
+     * kilomètres parcourus n'est pas répétée, l'objet a la place d'être lu sur une ligne.
      *
      * @type {{
      *   rows: Array<any>, selected?: string|null, lang: string, t: (key: string, options?: object) => string,
@@ -35,8 +37,12 @@
             parts.push(t(`tracks.op.${it.kind}`, { defaultValue: t('tracks.op.other') }));
             if (it.uopid) parts.push(it.uopid);
         }
-        if (row.kind === 'switch' && it.kind) {
-            parts.push(t(`tracks.switch_kind.${it.kind}`, { defaultValue: it.kind }));
+        if (row.kind === 'speed' && row.tracks) {
+            parts.push(
+                row.tracks.length === 1
+                    ? t('tracks.row.on_track', { ref: row.tracks[0] })
+                    : t('tracks.row.on_tracks', { refs: row.tracks.join(', ') }),
+            );
         }
         if (row.kind === 'signal' || row.kind === 'switch' || row.kind === 'buffer_stop') {
             const ref = tracksById.get(it.track ?? it.from_track)?.ref;
@@ -87,10 +93,14 @@
         >
         <thead>
             <tr>
-                <th scope="col" class="num">{t('tracks.table.km')}</th>
+                <!-- Ligne : le PK de ligne ouvre la rangée ; livret : les kilomètres parcourus, le PK de chaque ligne après. -->
+                <th scope="col" class="num"
+                    >{t(axisMode === 'route' ? 'tracks.table.km' : 'tracks.table.pk')}</th
+                >
                 <th scope="col" class="num">{t('tracks.table.speed')}</th>
                 <th scope="col" class="num">{t('tracks.table.gradient')}</th>
-                <th scope="col" class="num">{t('tracks.table.pk')}</th>
+                {#if axisMode === 'route'}<th scope="col" class="num">{t('tracks.table.pk')}</th
+                    >{/if}
                 <th scope="col">{t('tracks.table.object')}</th>
                 <th scope="col">{t('tracks.table.source')}</th>
             </tr>
@@ -102,10 +112,10 @@
                     class={['k-' + row.kind, row.key === selected && 'selected']}
                     aria-current={row.key === selected ? 'true' : undefined}
                 >
-                    <td class="num">{km(row.km)}</td>
+                    <td class="num">{axisMode === 'route' ? km(row.km) : pkLabel(linePk(row))}</td>
                     <td class="num">{row.kmh === null ? '' : formatNumber(row.kmh, lang)}</td>
                     <td class="num">{permille(row.permille)}</td>
-                    <td class="num">{pkLabel(linePk(row))}</td>
+                    {#if axisMode === 'route'}<td class="num">{pkLabel(linePk(row))}</td>{/if}
                     <th scope="row" class="obj">
                         <div class="obj-in">
                             <button
@@ -121,6 +131,7 @@
                                 </span>
                             </button>
                             {#if row.kind === 'op' && row.item.station_slug}
+                                <!-- Sous le nom de la gare : le nom garde toute la largeur de la colonne. -->
                                 <a
                                     class="vff-link sheet"
                                     href="/stations/{encodeURIComponent(row.item.station_slug)}"
@@ -144,7 +155,7 @@
                     </td>
                 </tr>
             {:else}
-                <tr><td colspan="6">{t('tracks.table.none')}</td></tr>
+                <tr><td colspan={axisMode === 'route' ? 6 : 5}>{t('tracks.table.none')}</td></tr>
             {/each}
         </tbody>
     </table>
@@ -175,18 +186,19 @@
         padding: 4px 10px;
         vertical-align: middle;
     }
-    thead th {
+    .route thead th {
         white-space: normal;
         vertical-align: bottom;
     }
     th.obj {
+        width: 100%;
+        min-width: 15rem;
         font-weight: 400;
-        min-width: 17rem;
     }
     .obj-in {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        align-items: flex-start;
     }
     .pick {
         display: flex;
@@ -211,10 +223,10 @@
         outline: var(--vff-focus-width) solid var(--vff-focus);
         outline-offset: 0;
     }
+    /* Aligné sur le libellé, sous le pictogramme et sa marge (22 + 10 + 8 px). */
     .sheet {
-        flex: none;
+        margin: 0 0 4px 40px;
         font-size: var(--vff-fs-xs);
-        white-space: nowrap;
     }
     .label {
         display: flex;
@@ -229,6 +241,7 @@
         color: var(--vff-text-muted);
         font-size: var(--vff-fs-xs);
         line-height: 1.3;
+        overflow-wrap: anywhere;
     }
     tr.selected > * {
         background: var(--vff-bg-accent);

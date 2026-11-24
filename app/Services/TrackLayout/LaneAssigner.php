@@ -22,6 +22,8 @@ namespace App\Services\TrackLayout;
  *   côté le moins chargé à cet endroit. Sur chaque côté, la voie prend la rangée libre la plus proche des voies
  *   principales sur toute sa longueur (marge GAP_M) : deux voies de service ne se chevauchent jamais et une
  *   voie n'en enjambe pas une autre sans raison.
+ * - Les pièces d'une même voie (même source, même numéro, qui se touchent : une voie du RINF coupée à chaque section
+ *   de ligne) partagent une rangée, choisie pour toute leur étendue : un seul « V1BIS » sur une seule rangée.
  * Un numéro de voie n'est jamais inventé : la rangée ne fait qu'ordonner le dessin. Les clés internes
  * `offset_m` et `connects` sont retirées des voies rendues.
  */
@@ -54,19 +56,23 @@ final class LaneAssigner
         /** @var array<int, list<array{0: int, 1: int, 2: ?float}>> $occupied rangée => [début, fin, valeur latérale] */
         $occupied = [];
         $lanes = [];
-        $place = function (int $i, int $lane) use (&$occupied, &$lanes, $tracks, $sign): void {
-            $lanes[$i] = $lane;
-            [$from, $to] = self::range($tracks[$i]);
-            $occupied[$lane][] = [$from, $to, self::lateral($tracks[$i], $sign)];
+        // Une unité (pièces d'une même voie, voir units()) reçoit une seule rangée.
+        $place = function (array $unit, int $lane) use (&$occupied, &$lanes): void {
+            foreach ($unit['pieces'] as $i) {
+                $lanes[$i] = $lane;
+            }
+            $occupied[$lane][] = [$unit['from'], $unit['to'], $unit['lateral']];
         };
         foreach ($main as $i => $lane) {
-            $place($i, $lane);
+            $place(['pieces' => [$i], 'from' => self::range($tracks[$i])[0], 'to' => self::range($tracks[$i])[1],
+                'lateral' => self::lateral($tracks[$i], $sign)], $lane);
         }
 
-        $rest = array_values(array_diff(array_keys($tracks), array_keys($main)));
-        $geometric = array_values(array_filter($rest, fn (int $i): bool => self::lateral($tracks[$i], $sign) !== null && $tracks[$i]['kind'] !== 'crossover'));
-        $plain = array_values(array_filter($rest, fn (int $i): bool => self::lateral($tracks[$i], $sign) === null && $tracks[$i]['kind'] !== 'crossover'));
-        $crossovers = array_values(array_filter($rest, fn (int $i): bool => $tracks[$i]['kind'] === 'crossover'));
+        $rest = array_values(array_filter(array_diff(array_keys($tracks), array_keys($main)), fn (int $i): bool => $tracks[$i]['kind'] !== 'crossover'));
+        $crossovers = array_values(array_filter(array_keys($tracks), fn (int $i): bool => ! isset($main[$i]) && $tracks[$i]['kind'] === 'crossover'));
+        $units = self::units($tracks, $rest, $sign);
+        $geometric = array_values(array_filter($units, fn (array $u): bool => $u['lateral'] !== null));
+        $plain = array_values(array_filter($units, fn (array $u): bool => $u['lateral'] === null));
 
         // Géométrie : voies principales sans numéro de la voie 1 vers la voie 2, puis évitements et voies de
         // service, puis faisceaux et embranchements, les plus proches de l'axe d'abord.
@@ -75,32 +81,31 @@ final class LaneAssigner
             'loop', 'siding' => 1,
             default => 2,
         };
-        usort($geometric, function (int $a, int $b) use ($tracks, $sign, $rank): int {
-            $ta = $tracks[$a];
-            $tb = $tracks[$b];
+        usort($geometric, function (array $a, array $b) use ($tracks, $rank): int {
+            $ta = $tracks[$a['pieces'][0]];
+            $tb = $tracks[$b['pieces'][0]];
             if ($rank($ta) !== $rank($tb)) {
                 return $rank($ta) <=> $rank($tb);
             }
             if ($rank($ta) === 0) {
-                return [self::lateral($tb, $sign), (string) $ta['id']] <=> [self::lateral($ta, $sign), (string) $tb['id']];
+                return [$b['lateral'], (string) $ta['id']] <=> [$a['lateral'], (string) $tb['id']];
             }
 
-            return [abs((float) $ta['offset_m']), (string) $ta['id']] <=> [abs((float) $tb['offset_m']), (string) $tb['id']];
+            return [abs((float) $a['lateral']), (string) $ta['id']] <=> [abs((float) $b['lateral']), (string) $tb['id']];
         });
-        foreach ($geometric as $i) {
-            $place($i, self::lateralLane($tracks[$i], (float) self::lateral($tracks[$i], $sign), $occupied));
+        foreach ($geometric as $u) {
+            $place($u, self::lateralLane(['pk_from_m' => $u['from'], 'pk_to_m' => $u['to']], (float) $u['lateral'], $occupied));
         }
 
-        usort($plain, fn (int $a, int $b): int => [$tracks[$a]['pk_from_m'], $tracks[$a]['pk_to_m'], (string) $tracks[$a]['id']]
-            <=> [$tracks[$b]['pk_from_m'], $tracks[$b]['pk_to_m'], (string) $tracks[$b]['id']]);
-        foreach ($plain as $i) {
-            [$from, $to] = self::range($tracks[$i]);
-            $side = self::side($tracks[$i]) ?? self::lighterSide($occupied, $evenBase, $from, $to);
+        usort($plain, fn (array $a, array $b): int => [$a['from'], $a['to'], (string) $tracks[$a['pieces'][0]]['id']]
+            <=> [$b['from'], $b['to'], (string) $tracks[$b['pieces'][0]]['id']]);
+        foreach ($plain as $u) {
+            $side = self::side($tracks[$u['pieces'][0]]) ?? self::lighterSide($occupied, $evenBase, $u['from'], $u['to']);
             $lane = $side === 'odd' ? -1 : $evenBase;
-            while (self::busy($occupied[$lane] ?? [], $from, $to, self::GAP_M)) {
+            while (self::busy($occupied[$lane] ?? [], $u['from'], $u['to'], self::GAP_M)) {
                 $lane += $side === 'odd' ? -1 : 1;
             }
-            $place($i, $lane);
+            $place($u, $lane);
         }
 
         $ids = [];
@@ -125,6 +130,63 @@ final class LaneAssigner
         }
 
         return $out;
+    }
+
+    /**
+     * Unités à ranger : les pièces d'une même voie (même source, même genre, même numéro, qui se touchent ou se
+     * recouvrent à OVERLAP_M près, comme les voies d'une ligne du RINF coupées à chaque section) en forment une,
+     * rangée d'un bloc ; une voie sans numéro est une unité à elle seule. Valeur latérale : moyenne des pièces qui
+     * en ont une, pondérée par leur longueur.
+     *
+     * @param  list<array<string, mixed>>  $tracks
+     * @param  list<int>  $indices
+     * @return list<array{pieces: list<int>, from: int, to: int, lateral: ?float}>
+     */
+    private static function units(array $tracks, array $indices, int $sign): array
+    {
+        $groups = [];
+        $units = [];
+        foreach ($indices as $i) {
+            $ref = self::normalize((string) ($tracks[$i]['ref'] ?? ''));
+            if ($ref === '') {
+                $units[] = [$i];
+
+                continue;
+            }
+            $groups[($tracks[$i]['source'] ?? '').'|'.$tracks[$i]['kind'].'|'.$ref][] = $i;
+        }
+        foreach ($groups as $members) {
+            usort($members, fn (int $a, int $b): int => self::range($tracks[$a]) <=> self::range($tracks[$b]));
+            $chain = [];
+            $end = null;
+            foreach ($members as $i) {
+                [$from, $to] = self::range($tracks[$i]);
+                if ($chain !== [] && $from > $end + self::OVERLAP_M) {
+                    $units[] = $chain;
+                    $chain = [];
+                }
+                $chain[] = $i;
+                $end = $chain === [$i] ? $to : max($end, $to);
+            }
+            $units[] = $chain;
+        }
+
+        return array_map(function (array $pieces) use ($tracks, $sign): array {
+            $from = min(array_map(fn (int $i): int => self::range($tracks[$i])[0], $pieces));
+            $to = max(array_map(fn (int $i): int => self::range($tracks[$i])[1], $pieces));
+            $sum = 0.0;
+            $weight = 0;
+            foreach ($pieces as $i) {
+                $v = self::lateral($tracks[$i], $sign);
+                if ($v !== null) {
+                    $w = max(1, self::range($tracks[$i])[1] - self::range($tracks[$i])[0]);
+                    $sum += $v * $w;
+                    $weight += $w;
+                }
+            }
+
+            return ['pieces' => $pieces, 'from' => $from, 'to' => $to, 'lateral' => $weight > 0 ? $sum / $weight : null];
+        }, $units);
     }
 
     /** Rangée d'une voie principale (0 voie 1 ou voie unique, 1 voie 2), null pour une autre voie. */

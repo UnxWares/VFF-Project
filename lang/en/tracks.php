@@ -44,6 +44,7 @@ return [
         'travelled' => 'Track travelled',
         'main' => 'Main track',
         'service' => 'Service track',
+        'derived' => 'Inferred connection',
         'switch' => 'Switch',
         'crossing' => 'Crossing',
         'buffer' => 'Buffer stop',
@@ -51,6 +52,7 @@ return [
         'level_crossing' => 'Level crossing',
         'zone' => 'Operational point',
         'note' => 'Top = left of the direction of travel (increasing chainage); open line is compressed, stations and passing loops are stretched.',
+        'merged' => 'In the band, a dotted cell groups stretches too short for the scale (“≈”: mean gradient); the cursor and the table give the exact values.',
     ],
 
     'fold' => [
@@ -153,6 +155,7 @@ return [
             'other' => 'Data missing from chainage :from to chainage :to',
         ],
         'on_track' => 'track :ref',
+        'on_tracks' => 'tracks :refs',
         'up' => 'increasing chainage',
         'down' => 'decreasing chainage',
     ],

@@ -96,6 +96,7 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
             $covered[] = [$from, $to];
             $increasing = (int) $s->pk_end_m >= (int) $s->pk_start_m;
             $max = null;
+            $fastest = [];
             $profile = null;
             foreach ($sectionTracks[$s->uri] ?? [] as $t) {
                 if (strtoupper((string) $t->ref) === 'VLINK') {
@@ -110,7 +111,10 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
                     'source' => 'rinf', 'precision' => 'exact',
                 ];
                 if ($t->max_speed_kmh !== null) {
-                    $max = max($max ?? 0, (int) $t->max_speed_kmh);
+                    $kmh = (int) $t->max_speed_kmh;
+                    $fastest = $max === null || $kmh > $max ? [RinfDataset::shortTrackRef((string) $t->ref)]
+                        : ($kmh === $max ? [...$fastest, RinfDataset::shortTrackRef((string) $t->ref)] : $fastest);
+                    $max = max($max ?? 0, $kmh);
                 }
                 // Profil de la voie qui suit le sens de la section (sinon celle des deux sens).
                 if ($t->gradient_profile !== null && ($profile === null || $t->direction === 'N')) {
@@ -118,7 +122,7 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
                 }
             }
             if ($max !== null) {
-                $speeds[] = ['pk_from_m' => $from, 'pk_to_m' => $to, 'kmh' => $max, 'source' => 'rinf'];
+                $speeds[] = ['pk_from_m' => $from, 'pk_to_m' => $to, 'kmh' => $max, 'tracks' => array_values(array_unique($fastest)), 'source' => 'rinf'];
             }
             foreach ($profile ?? [] as $g) {
                 $a = max($from, (int) $g['pk_from_m']);
