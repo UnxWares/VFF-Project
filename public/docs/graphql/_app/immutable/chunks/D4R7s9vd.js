@@ -285,7 +285,7 @@ type Query {
     "Seconde année, mêmes règles ; elle doit désigner une autre ère que \`era\`."
     compare: Int!
   ): RouteComparison
-  "Un événement de ligne, par son identifiant."
+  "Un événement de ligne, par son identifiant ; nul pour un événement sans source redistribuable."
   lineEvent(
     "Identifiant de l'événement."
     id: ID!
@@ -502,7 +502,8 @@ type Query {
   page par page (25 par défaut, 100 au plus), du plus ancien au plus récent, filtrables par
   ligne, type, source, département et période. Pagination par curseur : lisez
   \`pageInfo { hasNextPage endCursor }\` et repassez \`endCursor\` dans \`after\`. Chaque événement
-  garde sa source, sa citation et la licence de sa source (\`provenance\`).
+  garde sa source, sa citation et la licence de sa source (\`provenance\`). Un événement sans source
+  redistribuable n'y figure pas.
   """
   lineEvents(
     "Filtres facultatifs, combinés (ET)."
@@ -761,7 +762,10 @@ type Line {
   historical_operator: String
   "Présentation de la ligne, en français."
   description: String
-  "Autres noms de la ligne, anciens ou usuels."
+  """
+  Autres noms de la ligne, anciens ou usuels (noms successifs, sections nommées, titre de l'article Wikipédia),
+  comme \`sheet.line.alt_names\`. Un nom tiré d'une source à usage non commercial n'est pas servi.
+  """
   alt_names: [String!]
   """
   Tronçons de la ligne : ceux d'une ère avec \`era\` (dans l'ordre des points kilométriques, comme
@@ -772,7 +776,7 @@ type Line {
     "Année de l'ère (décennie de 1830 à 2030). Par défaut : toutes les ères."
     era: Int
   ): [LineSegment!]!
-  "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur \`event_date\`)."
+  "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur \`event_date\`), sans les événements dont aucune source n'est redistribuable."
   events: [LineEvent!]!
   "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus), sans la preuve : voir \`material_links\`."
   materials: [Material!]!
@@ -1358,7 +1362,10 @@ type LineSegment {
   voltage_v: Int
   "Vitesse maximale autorisée, en km/h. Nul si inconnue."
   max_speed_kmh: Int
-  "Écartement des rails en millimètres : \`1435\` voie normale, \`1000\` voie métrique, \`600\` voie étroite… Nul si inconnu."
+  """
+  Écartement des rails en millimètres : \`1435\` voie normale, \`1000\` voie métrique, \`600\` voie étroite… Nul si inconnu,
+  ou s'il n'est donné que par une source à usage non commercial.
+  """
   gauge_mm: Int
   "Vrai si la portion est exploitée par une association à cette ère (train touristique, vélorail, musée)."
   is_heritage: Boolean!
@@ -1393,7 +1400,7 @@ type LineSegment {
   electrification_source: String
   "Source de la vitesse maximale."
   max_speed_source: String
-  "Classe d'écartement : \`standard\`, \`metre\`, \`narrow\`…"
+  "Classe d'écartement : \`standard\`, \`metre\`, \`narrow\`… Nulle comme \`gauge_mm\`."
   gauge_class: String
   "Reconversion de l'emprise après dépose : \`greenway\` (voie verte), \`road\`, \`path\`, \`urban\`, \`other\`."
   reuse: String
@@ -1874,13 +1881,13 @@ type Station {
   city: String
   "Code du département (INSEE, ex. \`35\`, \`2A\`)."
   department_code: String
-  "Date d'ouverture (\`AAAA-MM-JJ\`) ; quand seule l'année est connue, jour et mois valent 01."
+  "Date d'ouverture (\`AAAA-MM-JJ\`) ; quand seule l'année est connue, jour et mois valent 01. Nulle quand aucune source redistribuable ne la donne."
   opened_at: Date
-  "Précision de \`opened_at\` : \`day\`, \`month\`, \`year\`, \`range\` (ouverture déduite des lignes et bornée par la carte : \`opened_at\` n'est alors que la borne haute, jamais un jour sûr)."
+  "Précision de \`opened_at\` : \`day\`, \`month\`, \`year\`, \`range\` (ouverture déduite des lignes et bornée par la carte : \`opened_at\` n'est alors que la borne haute, jamais un jour sûr) ; nulle avec \`opened_at\`."
   opened_precision: String
   "Gare ouverte après cette année (précision \`range\` : entre \`opened_after\` + 1 et l'année de \`opened_at\`), nulle sinon."
   opened_after: Int
-  "Date de fermeture (\`AAAA-MM-JJ\`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
+  "Date de fermeture (\`AAAA-MM-JJ\`), nulle si la gare est ouverte, si la date est inconnue ou si aucune source redistribuable ne la donne ; quand seule l'année est connue, jour et mois valent 01."
   closed_at: Date
   "Présentation de la gare, en français."
   description: String
@@ -1888,7 +1895,7 @@ type Station {
   lat: Float
   "Longitude WGS 84, en degrés décimaux."
   lng: Float
-  "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
+  "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement ; sans les événements dont aucune source n'est redistribuable, ni les dates déduites de tels événements."
   events: [StationEvent!]!
   """
   Fiche complète de la gare, comme la page \`/stations/{slug}\` et \`GET /api/v1/stations/{station}\` :
