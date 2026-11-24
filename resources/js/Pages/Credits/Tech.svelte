@@ -459,6 +459,12 @@
         justify-content: space-between;
         gap: var(--vff-space-1) var(--vff-space-3);
     }
+    /* Une licence au nom long (« Conditions de réutilisation de la BnF ») passe à la ligne au lieu de
+       dépasser de la page à 320 px. */
+    .head :global(.vff-badge) {
+        max-width: 100%;
+        white-space: normal;
+    }
     .name {
         display: inline-flex;
         align-items: center;

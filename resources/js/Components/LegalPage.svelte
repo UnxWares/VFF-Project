@@ -42,14 +42,18 @@
     const wide = $derived(wideQuery.current);
     let narrowOpen = $state(false);
 
-    /** Tableaux du texte : défilables au clavier et nommés par leur section. */
+    /**
+     * Tableaux du texte : défilables au clavier et nommés d'après leur section, avec « Tableau : »
+     * devant, pour que leur nom reste distinct de celui de la section elle-même (repères uniques).
+     */
     function labelTables(node) {
         const apply = () => {
             for (const wrap of node.querySelectorAll('.table-wrap')) {
                 wrap.tabIndex = 0;
                 wrap.setAttribute('role', 'region');
                 const title = wrap.closest('section')?.querySelector('h2')?.textContent;
-                if (title) wrap.setAttribute('aria-label', title);
+                if (title)
+                    wrap.setAttribute('aria-label', String($i18n.t('common.table_of', { title })));
             }
         };
         apply();

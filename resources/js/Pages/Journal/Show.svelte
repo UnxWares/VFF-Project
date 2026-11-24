@@ -290,11 +290,13 @@
         line-height: 0;
     }
     /* Cible de 24 px au moins (rembourrage), presque sans écarter le chiffre du mot qui précède
-       (marges négatives). */
+       (marges négatives). Souligné : l'appel se distingue du texte voisin autrement que par la couleur
+       (2,63:1 seulement, RGAA 10.6). */
     .journal-prose :global(.footnote-ref) {
         padding: 4px 9px;
         margin: -4px -7px;
-        text-decoration: none;
+        text-decoration: underline;
+        text-underline-offset: 3px;
         font-variant-numeric: tabular-nums;
     }
     .journal-prose :global(sup[id]),

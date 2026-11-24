@@ -277,7 +277,12 @@ body {
         gap: 8px;
     }
     .vff-docs-menu-button {
+        gap: 0;
         padding: 0 10px;
+    }
+    /* « Documentations » (français) + l'icône ne tenaient pas : le mot suffit, le bouton garde son nom. */
+    .vff-docs-menu-button svg {
+        display: none;
     }
 }
 
