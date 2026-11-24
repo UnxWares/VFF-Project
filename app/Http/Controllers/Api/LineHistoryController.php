@@ -44,6 +44,8 @@ class LineHistoryController extends Controller
      * `source_url` le document consulté : citez-les en réutilisant la donnée.
      * Les événements d'un fournisseur à `open_licence: false` (voir `/sources`)
      * ne sont pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers `source_url`.
+     * Un événement dont aucune source ne permet la rediffusion hors du site n'est pas servi (même règle que
+     * `GET /api/v1/events`).
      *
      * **`status_by_era`** : pour chaque ère (instantané au 31/12 de l'année,
      * 2030 = aujourd'hui) où la ligne a des tronçons, le statut et le trafic
@@ -71,7 +73,8 @@ class LineHistoryController extends Controller
     {
         // Lecture brute (toBase) : un type d'événement ajouté en base avant
         // l'enum PHP ne doit pas faire planter l'endpoint (ValueError du cast).
-        $events = $line->events()->toBase()
+        // Jamais un événement sans source redistribuable (RedistributableDates, portée du modèle).
+        $events = $line->events()->redistributable()->toBase()
             ->orderBy('event_date')
             ->get(['id', 'type', 'event_date', 'date_precision', 'description',
                 'section_from', 'section_to', 'source', 'source_url']);

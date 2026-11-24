@@ -228,7 +228,8 @@ Renvoie `line` :
   `velorail`, `service_track`, `construction`, `closed` voie en place, `dismantled`, `razed`) ;
 - `length` : `trace_km` (tracé VFF à son plus grand développement, toutes portions comprises),
   `in_service_today_km`, `sncf_km` (formes généralisées SNCF, souvent un peu plus courtes) ;
-- `stats_era` (ère des chiffres qui suivent), `max_speed_kmh`, `gauge_mm` ;
+- `stats_era` (ère des chiffres qui suivent), `max_speed_kmh`, `gauge_mm` (écartement dominant, sans celui que seule une
+  source à usage non commercial donne) ;
 - `electrification` : `state` (`none`, `marginal` moins de 5 %, `partial`, `full` 95 % et plus),
   `state_label`, `km`, `pct`, `voltages` (`voltage_v`, `km`) ;
 - `signalling` : `block_systems_km` (cantonnement : `BAL`, `BAPR-VB`, `CT-VU`, `TVM-430`,
@@ -1278,7 +1279,8 @@ accidents utilisent l'année exacte (`year`).
 Renvoie `point`, `year`, `era` (`year`, `is_current`, `snapshot`), puis :
 
 - `lines`, la plus proche d'abord : `slug`, `name`, `code`, `distance_m`, `pk_m` (PK estimé au droit du point, `null`
-  sans PK), `status` à l'ère, `traffic`, `heritage`, `electrified`, `voltage_v`, `max_speed_kmh`, `gauge_mm`,
+  sans PK), `status` à l'ère, `traffic`, `heritage`, `electrified`, `voltage_v`, `max_speed_kmh`, `gauge_mm` (nul quand seule
+  une source à usage non commercial le donne),
   `geometry_withheld`, `signalling_in_force` (mises en service datées en vigueur au 31/12 de l'année, faits sûrs
   seulement, forme compacte de `signalling_history`), `materials` (séries dont une période de circulation datée couvre
   l'année : `period`, `certainty` = `dated_period`, `open_end` ou `open_start`, `source`, `source_url` ; une borne

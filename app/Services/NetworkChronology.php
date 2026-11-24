@@ -6,6 +6,7 @@ use App\Mcp\Support\NonCommercialSources;
 use App\Models\Accident;
 use App\Support\EventText;
 use App\Support\FrenchDepartments;
+use App\Support\RedistributableDates;
 use App\Support\SourceRights;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,8 @@ use Illuminate\Support\Facades\DB;
  * toute la ligne seulement si c'est le seul fait de ce type pour la ligne (ouverte ou fermée d'un coup).
  *
  * Un fait n'est détaillé que si au moins une de ses sources est publiable (isPublishable) ; les autres sont
- * comptés (`hidden`) sans date, ligne ni lien.
+ * comptés (`hidden`) sans date, ligne ni lien. Un événement de ligne sans source redistribuable hors du site
+ * (RedistributableDates) n'est pas lu du tout : la chronologie est la même pour le site, l'API et le MCP.
  */
 final class NetworkChronology
 {
@@ -439,6 +441,8 @@ final class NetworkChronology
             ->where(fn ($q) => $q->whereNull('e.source')->orWhereNotIn('e.source', self::EXCLUDED_SOURCES))
             // Année seule d'archeoferroviaire : tirée du nom d'un tracé, pas une date (même règle que NetworkFigures).
             ->whereRaw("NOT (COALESCE(e.source, '') = 'archeoferroviaire' AND e.date_precision = 'year')")
+            // Chronologie servie aussi par l'API et le MCP : un fait sans source redistribuable n'y est pas même compté.
+            ->whereRaw(app(RedistributableDates::class)->lineEventKept('e'))
             ->orderBy('e.id')
             ->get(['e.id', 'e.line_id', 'e.type', 'e.event_date', 'e.date_precision', 'e.confidence', 'e.source', 'e.source_url',
                 'e.section_from', 'e.section_to', 'e.section_length_m', 'l.slug', 'l.name', 'l.length_official_m']);

@@ -176,7 +176,7 @@ final class LineSheet
                 'confidence' => $e->confidence,
             ])->values();
 
-        $stats = app(LineStats::class)->forEra($line, $latestSegmentIds, $latestEraId, $events->count());
+        $stats = app(LineStats::class)->forEra($line, $latestSegmentIds, $latestEraId, $events->count(), offSite: $rule !== null);
         // Compteur de l'en-tête = la liste des gares (toutes, fermées comprises), et parmi
         // elles celles ouvertes aujourd'hui.
         $stats['station_count'] = $stations->count();
@@ -264,8 +264,9 @@ final class LineSheet
                 'id' => $line->id,
                 'slug' => $line->slug,
                 'name' => $line->name,
-                // Autres noms, avec leur source (cf. historicalNames) ; `alt_names` = les noms seuls.
-                'alt_names' => array_column($names = $this->historicalNames($line), 'name'),
+                // Autres noms, avec leur source (cf. historicalNames) ; `alt_names` = les noms seuls. Hors du site,
+                // sans les noms tirés d'une source non commerciale (RedistributableDates::lineNames).
+                'alt_names' => array_column($names = $rule === null ? $this->historicalNames($line) : $rule->lineNames($this->historicalNames($line)), 'name'),
                 'names' => $names,
                 'wikidata' => is_array($line->alt_names) ? ($line->alt_names['wikidata'] ?? null) : null,
                 'code' => $line->code,
@@ -777,6 +778,17 @@ final class LineSheet
         unset($d);
 
         return $decades;
+    }
+
+    /**
+     * Autres noms de la ligne servis hors du site (GraphQL `Line.alt_names`) : historicalNames sans les noms tirés
+     * d'une source non commerciale (RedistributableDates::lineNames), les noms seuls.
+     *
+     * @return list<string>
+     */
+    public function otherNames(Line $line): array
+    {
+        return array_column(app(RedistributableDates::class)->lineNames($this->historicalNames($line)), 'name');
     }
 
     /**

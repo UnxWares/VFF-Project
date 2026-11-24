@@ -52,7 +52,7 @@ final class LineTraceExport
         return $line->segments()->where('era_id', $era->id)
             ->select(['id', 'pk_start_m', 'pk_end_m', 'length_meters', 'status', 'traffic_type', 'is_heritage', 'heritage_kind',
                 'electrified', 'voltage_v', 'electrified_year', 'electrification_source', 'max_speed_kmh', 'max_speed_source',
-                'gauge_mm', 'gauge_class', 'signalling', 'train_protection', 'operator', 'dismantled_at', 'reuse', 'source'])
+                'gauge_mm', 'gauge_class', 'gauge_source', 'signalling', 'train_protection', 'operator', 'dismantled_at', 'reuse', 'source'])
             ->when($withGeometry, fn ($q) => $q->selectRaw('ST_AsGeoJSON(geom, 6) AS geojson'))
             ->orderByRaw('pk_start_m NULLS LAST, id')
             ->get();

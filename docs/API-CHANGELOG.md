@@ -17,6 +17,30 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
   ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal.
 
+### À vérifier dans votre client
+
+- Faits sans source redistribuable, suite du 23/11 (REST, GraphQL, MCP) : aucun fait, date, extrait ni lien d'une source dont
+  la réutilisation hors de VFF n'est pas permise n'est plus servi ; seul son crédit reste (`archeo_url` et `sources` de la fiche
+  d'une ligne, `GET /api/v1/sources`, `provenance` et `withheld` des tronçons). Aucun champ retiré : des valeurs deviennent
+  nulles ou des éléments de liste disparaissent.
+  - Histoire d'un événement (`GET /api/v1/lines/{line}/stories/{event}`) : `sources` ne liste plus un tel événement, `event`
+    devient la première source servie du fait (301 vers son adresse si besoin), et l'histoire répond 404 quand l'événement
+    demandé n'est pas servi (comme `GET /api/v1/events/{id}`) ou qu'aucune source du fait ne l'est (comme GraphQL
+    `LineEvent.story` et le MCP `line_stories`). `url` de `GET /api/v1/lines/{line}/stories` pointe vers l'événement servi.
+  - `GET /api/v1/lines/{line}/history` : `events` suit `GET /api/v1/events` (un tel événement n'y figure plus).
+  - Histoire de l'électrification (`GET /api/v1/lines/{line}/electrification-history`, GraphQL
+    `Line.electrification_history`, MCP `line_electrification_history`) : un événement qui ne cite qu'une telle source n'y
+    figure plus.
+  - Chronologie du réseau (`GET /api/v1/chronology`, `/chronology/{decade}`, MCP `network_chronology`) : un tel fait n'est
+    plus compté dans `hidden`.
+  - Autres noms d'une ligne (`names` de `GET /api/v1/lines/{line}`, GraphQL `sheet.line.names` et `alt_names`) : sans les
+    noms tirés d'une telle source. GraphQL `Line.alt_names`, qui échouait (la colonne est un objet de provenance), renvoie
+    désormais la liste des autres noms, comme `sheet.line.alt_names`.
+  - Écartement lu dans une telle source : `gauge_mm` et `gauge_class` sont nuls dans `GET /api/v1/lines/{line}/segments`,
+    `/geojson`, `GET /api/v1/eras/{year}/lines.geojson`, GraphQL `LineSegment`, `GET /api/v1/what-was-here` et le MCP
+    `what_was_here` ; l'écartement dominant d'une ligne (`key_figures.gauge_mm`, MCP `get_line`) ne le compte plus. Le site
+    garde ces écartements.
+
 ## 23/11/2026
 
 ### À vérifier dans votre client

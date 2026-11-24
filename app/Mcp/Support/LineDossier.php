@@ -51,7 +51,7 @@ final class LineDossier
         // Événements servis (sans ceux d'une source non commerciale, LineEvents) : le compte est celui de la liste.
         $eventRows = $this->events->query($line->id)->get();
         $eventCount = $eventRows->count();
-        $stats = $this->stats->forEra($line, $segmentIds, $era?->id, $eventCount);
+        $stats = $this->stats->forEra($line, $segmentIds, $era?->id, $eventCount, offSite: true);
 
         $phases = LinePhases::forLine($line);
         $lengthM = LineSheet::lineLengthM($phases);

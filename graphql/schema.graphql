@@ -103,8 +103,11 @@ type Line {
     "Présentation de la ligne, en français."
     description: String
 
-    "Autres noms de la ligne, anciens ou usuels."
-    alt_names: [String!]
+    """
+    Autres noms de la ligne, anciens ou usuels (noms successifs, sections nommées, titre de l'article Wikipédia),
+    comme `sheet.line.alt_names`. Un nom tiré d'une source à usage non commercial n'est pas servi.
+    """
+    alt_names: [String!] @field(resolver: "App\\GraphQL\\Resolvers\\LineAltNamesField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Tronçons de la ligne : ceux d'une ère avec `era` (dans l'ordre des points kilométriques, comme
@@ -789,8 +792,11 @@ type LineSegment {
     "Vitesse maximale autorisée, en km/h. Nul si inconnue."
     max_speed_kmh: Int
 
-    "Écartement des rails en millimètres : `1435` voie normale, `1000` voie métrique, `600` voie étroite… Nul si inconnu."
-    gauge_mm: Int
+    """
+    Écartement des rails en millimètres : `1435` voie normale, `1000` voie métrique, `600` voie étroite… Nul si inconnu,
+    ou s'il n'est donné que par une source à usage non commercial.
+    """
+    gauge_mm: Int @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@gaugeMm")
 
     "Vrai si la portion est exploitée par une association à cette ère (train touristique, vélorail, musée)."
     is_heritage: Boolean!
@@ -838,8 +844,8 @@ type LineSegment {
     "Source de la vitesse maximale."
     max_speed_source: String
 
-    "Classe d'écartement : `standard`, `metre`, `narrow`…"
-    gauge_class: String
+    "Classe d'écartement : `standard`, `metre`, `narrow`… Nulle comme `gauge_mm`."
+    gauge_class: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@gaugeClass")
 
     "Reconversion de l'emprise après dépose : `greenway` (voie verte), `road`, `path`, `urban`, `other`."
     reuse: String

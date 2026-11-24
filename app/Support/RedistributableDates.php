@@ -223,6 +223,35 @@ final class RedistributableDates
     }
 
     /**
+     * Vrai si l'écartement d'un tronçon (line_segments.gauge_mm et gauge_class) est servi hors du site : pas quand
+     * sa provenance (`gauge_source`, registre `line_segments.gauge_source`) est une source non commerciale.
+     */
+    public function servesGauge(?string $gaugeSource): bool
+    {
+        return ! $this->nonCommercial->excludes('line_segments.gauge_source', $gaugeSource);
+    }
+
+    /** Condition SQL « l'écartement du tronçon (alias de line_segments) est servi hors du site » (servesGauge). */
+    public function gaugeKept(string $alias = 'line_segments'): string
+    {
+        return $this->nonCommercial->sqlKept('line_segments.gauge_source', "{$alias}.gauge_source", null);
+    }
+
+    /**
+     * Autres noms d'une ligne (LineSheet::historicalNames : `name`, `kind`, `source`, `url`…) servis hors du site :
+     * jamais un nom tiré d'une source non commerciale, ni par sa provenance (`lines.name_source`), ni par son lien.
+     *
+     * @template T of array{source: ?string, url: ?string}
+     *
+     * @param  list<T>  $names
+     * @return list<T>
+     */
+    public function lineNames(array $names): array
+    {
+        return array_values(array_filter($names, fn (array $n): bool => ! $this->nonCommercial->excludes('lines.name_source', $n['source'], $n['url'])));
+    }
+
+    /**
      * Histoires d'une ligne (EventStories::available) servies hors du site : pour chacune, l'événement qui la porte
      * et ses sources servies (le premier d'entre eux quand l'événement de l'histoire est écarté) ; une histoire dont
      * aucun événement n'est servi est retirée.
@@ -251,10 +280,19 @@ final class RedistributableDates
 
     /**
      * Une histoire (EventStories::story) servie hors du site : ses sources sans source redistribuable sont retirées,
-     * l'événement de l'histoire devient la première source servie s'il l'était ; null s'il n'en reste aucune.
+     * l'événement de l'histoire devient la première source servie s'il ne l'est pas ; null s'il n'en reste aucune.
+     * Les autres clés (fenêtre, images, documents, gares) sont rendues telles quelles : la forme est celle
+     * d'EventStories::story(). La documentation REST (Scramble) la déduit de cette méthode quand le contrôleur
+     * reçoit la classe par son constructeur ; appelée par `app(...)`, la classe n'est pas résolue, la réponse
+     * entière devient indéterminée et les champs imbriqués de l'histoire (`line`, `window`, `stations`)
+     * sortiraient du contrat.
      *
-     * @param  array<string, mixed>  $story
-     * @return array<string, mixed>|null
+     * @param  array{event: array<string, mixed>, sources: list<array<string, mixed>>, line: array{slug: string, code: ?string, name: string},
+     *     window: array{years: int, from: int, to: int}, images: list<array<string, mixed>>, images_total: int,
+     *     documents: list<array<string, mixed>>, stations: list<array{name: string, slug: string}>}  $story
+     * @return array{event: array<string, mixed>, sources: list<array<string, mixed>>, line: array{slug: string, code: ?string, name: string},
+     *     window: array{years: int, from: int, to: int}, images: list<array<string, mixed>>, images_total: int,
+     *     documents: list<array<string, mixed>>, stations: list<array{name: string, slug: string}>}|null
      */
     public function story(array $story): ?array
     {
@@ -273,7 +311,7 @@ final class RedistributableDates
     /**
      * Identifiants des sources servies d'une histoire (EventStories::story), dans leur ordre.
      *
-     * @param  array<string, mixed>  $story
+     * @param  array{sources: list<array<string, mixed>>}  $story
      * @return list<int>
      */
     public function storySourceIds(array $story): array

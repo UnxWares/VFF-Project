@@ -5,6 +5,7 @@ namespace App\Services\Traction;
 use App\Models\Line;
 use App\Services\LineStations;
 use App\Services\Signalling\SignallingSectionLocator;
+use App\Support\RedistributableDates;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -184,8 +185,10 @@ final class LineElectrificationHistory
      */
     public function history(Line $line, bool $withExcerpt = true): array
     {
+        // Servi seulement hors du site (REST, GraphQL, MCP) : jamais un événement sans source redistribuable.
         $rows = DB::table('line_events')->where('line_id', $line->id)->where('type', 'electrification')
-            ->whereIn('source', self::PROVIDERS)->orderBy('event_date')->orderBy('id')
+            ->whereIn('source', self::PROVIDERS)->whereRaw(app(RedistributableDates::class)->lineEventKept('line_events'))
+            ->orderBy('event_date')->orderBy('id')
             ->get(['event_date', 'date_precision', 'description', 'source', 'source_quote', 'source_url', 'confidence',
                 'section_from', 'section_to', 'section_pk_start_m', 'section_pk_end_m', 'section_resolution']);
         $out = [];

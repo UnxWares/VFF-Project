@@ -18,7 +18,7 @@ use Illuminate\Http\RedirectResponse;
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineStoryController extends Controller
 {
-    public function __construct(private readonly EventStories $stories) {}
+    public function __construct(private readonly EventStories $stories, private readonly RedistributableDates $rule) {}
 
     /**
      * Histoires d'une ligne : événements qui en ont une.
@@ -75,13 +75,13 @@ class LineStoryController extends Controller
     {
         $items = [];
         // Jamais un événement sans source redistribuable, ni comme événement d'une histoire, ni parmi ses sources.
-        foreach (app(RedistributableDates::class)->stories($this->stories->available($line, true)) as $id => $served) {
+        foreach ($this->rule->stories($this->stories->available($line, true)) as $served) {
             $items[] = [
                 'event' => $this->eventSummary($served['event']),
                 'source_event_ids' => $served['event_ids'],
                 'images' => $served['images'],
                 'documents' => $served['documents'],
-                'url' => route('lines.stories.show', ['line' => $line->slug, 'event' => $id]),
+                'url' => route('lines.stories.show', ['line' => $line->slug, 'event' => $served['event']->id]),
             ];
         }
 
@@ -128,6 +128,9 @@ class LineStoryController extends Controller
      *
      * Un fait rapporté par plusieurs sources n'a qu'une histoire, à l'adresse de l'événement de la source la plus
      * sûre : demandée par l'identifiant d'une autre source, l'histoire répond 301 vers cette adresse (`Location`).
+     * Un événement dont la source ne permet pas la rediffusion hors du site n'est ni servi (404, comme
+     * `GET /api/v1/events/{event}`) ni cité dans `sources` ; l'histoire d'un fait que seules de telles sources
+     * rapportent n'est pas servie (404).
      *
      * **Droits** : affichez chaque image avec son auteur, sa licence (et son lien) et sa source, comme le fait le
      * site ; citez les sources de l'événement (`provenance` de chacune).
@@ -182,7 +185,7 @@ class LineStoryController extends Controller
         'url' => 'https://vff-project.org/lines/rfn-340000/stories/12793',
     ]])]
     #[ApiResponse(301, "Événement d'une autre source d'un fait qui a déjà son histoire : l'en-tête `Location` donne l'adresse de l'histoire (identifiant de l'événement de la source la plus sûre).")]
-    #[ApiResponse(404, "Ligne inconnue, événement d'une autre ligne, ou événement sans histoire (contenu sous le seuil, type sans histoire).", examples: [
+    #[ApiResponse(404, "Ligne inconnue, événement d'une autre ligne ou non servi hors du site, ou événement sans histoire (contenu sous le seuil, type sans histoire, aucune source rediffusable).", examples: [
         ErrorExamples::LINE_NOT_FOUND,
         ['message' => 'This event has no story: fewer than 3 dated images and documents (2 images at least) within 5 years.'],
     ])]
@@ -190,7 +193,14 @@ class LineStoryController extends Controller
     public function show(Line $line, int $event): JsonResponse|RedirectResponse
     {
         $model = LineEvent::query()->whereKey($event)->where('line_id', $line->id)->first();
+        // Un événement sans source redistribuable n'est pas trouvé par son identifiant hors du site (comme
+        // GET /api/v1/events/{event}) ; dans l'histoire, ses pareils sont retirés de `sources` et l'événement de
+        // l'histoire devient la première source servie (RedistributableDates::story).
+        if ($model !== null && ! $this->rule->servesLineEvent($model->source, $model->source_url)) {
+            $model = null;
+        }
         $story = $model === null ? null : $this->stories->story($line, $model, true);
+        $story = $story === null ? null : $this->rule->story($story);
         if ($story === null) {
             return response()->json(['message' => $model === null
                 ? 'No event '.$event.' on line '.$line->slug.'.'
