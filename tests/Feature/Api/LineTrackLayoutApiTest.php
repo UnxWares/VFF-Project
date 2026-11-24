@@ -199,30 +199,36 @@ class LineTrackLayoutApiTest extends TestCase
     public function test_graphql_and_mcp_serve_the_same_content(): void
     {
         $this->seedRinf();
-        $rest = $this->getJson('/api/v1/lines/rfn-579000/track-layout?from_pk_m=17000&to_pk_m=18000&kinds=tracks,operational_points,speeds')->assertOk()->json();
-        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { track_layout(from_pk_m: 17000, to_pk_m: 18000, kinds: [TRACKS, OPERATIONAL_POINTS, SPEEDS]) {
+        $this->app->tag([FakeOsmSource::class], TrackLayout::TAG);
+        $rest = $this->getJson('/api/v1/lines/rfn-579000/track-layout?from_pk_m=17000&to_pk_m=18000')->assertOk()->json();
+        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { track_layout(from_pk_m: 17000, to_pk_m: 18000) {
             line { code slug name } pk { start_m end_m start_label end_label }
             sources { key label licence dataset fetched_at url attribution licence_url }
             operational_points { id name kind pk_m uopid station_slug rinf_type source precision }
-            tracks { id ref rinf_ref rinf_id kind pk_from_m pk_to_m lane op_id length_m electrified platform direction max_speed_kmh source precision }
-            switches { id } signals { id } crossings { id }
+            tracks { id ref rinf_ref rinf_id kind pk_from_m pk_to_m lane op_id station_slug length_m electrified platform direction max_speed_kmh source precision }
+            switches { id ref pk_m kind from_track to_track facing source precision }
+            signals { id ref pk_m kind form track direction source precision }
+            crossings { id pk_m kind ref use tracks source precision }
+            buffer_stops { id pk_m track source precision }
+            milestones { id pk_m label source precision }
             strip { speeds { pk_from_m pk_to_m kmh source } gradients { pk_from_m pk_to_m permille source precision } }
             coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
 
-        $this->assertSame($rest['tracks'], $gql['tracks']);
-        $this->assertSame($rest['operational_points'], $gql['operational_points']);
-        $this->assertSame($rest['strip'], $gql['strip']);
-        $this->assertSame($rest['coverage'], $gql['coverage']);
-        $this->assertSame($rest['sources'], $gql['sources']);
+        foreach (['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage'] as $key) {
+            $this->assertSame($rest[$key], $gql[$key], $key);
+        }
+        $this->assertSame([['id' => 'osm:node:20', 'pk_m' => 17950, 'track' => 'osm:way:2', 'source' => 'osm', 'precision' => 'derived']], $rest['buffer_stops']);
+        $this->assertSame('17.5', $rest['milestones'][0]['label']);
 
         $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
             ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_track_layout',
-                'arguments' => ['line' => '579000', 'from_pk_m' => 17000, 'to_pk_m' => 18000, 'kinds' => ['tracks', 'operational_points', 'speeds']]]])
+                'arguments' => ['line' => '579000', 'from_pk_m' => 17000, 'to_pk_m' => 18000]]])
             ->assertOk()->json('result');
         $this->assertFalse((bool) ($result['isError'] ?? false));
         $mcp = json_decode((string) $result['content'][0]['text'], true);
         $this->assertSame($rest['tracks'], $mcp['tracks']);
         $this->assertSame($rest['coverage'], $mcp['coverage']);
+        $this->assertSame($rest['milestones'], $mcp['milestones']);
         $this->assertContains('rinf', array_column((array) $mcp['attribution']['sources'], 'provider'));
         $this->assertStringContainsString("Agence de l'Union européenne pour les chemins de fer", (string) json_encode($mcp['attribution'], JSON_UNESCAPED_UNICODE));
         $this->assertStringContainsString('European Union Agency for Railways', $mcp['sources'][0]['attribution']);
@@ -294,6 +300,8 @@ final class FakeOsmSource implements TrackLayoutSource
             switches: [$switch('osm:node:10', 17550, self::$citedTrack), $switch('osm:node:11', 17560)],
             speeds: [['pk_from_m' => 17000, 'pk_to_m' => 19000, 'kmh' => 100, 'source' => 'osm']],
             covered: ['tracks' => [[17919, 19000]], 'switches' => [[17000, 19000]]],
+            bufferStops: [['id' => 'osm:node:20', 'pk_m' => 17950, 'track' => 'osm:way:2', 'source' => 'osm', 'precision' => 'derived']],
+            milestones: [['id' => 'osm:node:30', 'pk_m' => 17500, 'label' => '17.5', 'source' => 'osm', 'precision' => 'derived']],
         );
     }
 }

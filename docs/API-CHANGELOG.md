@@ -26,7 +26,11 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
   ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal. Même contenu en
   GraphQL (`Line.track_layout(from_pk_m, to_pk_m, kinds)`, types `TrackLayout…`, énumération `TrackLayoutKind`) et en MCP
-  (outil `line_track_layout`, avec le bloc d'attribution) ; fournisseur `rinf` ajouté à `sources_and_licences`.
+  (outil `line_track_layout`, avec le bloc d'attribution) ; fournisseur `rinf` ajouté à `sources_and_licences`. Chaque objet
+  a tous les champs de sa famille (nuls si la source ne les donne pas) ; une source dont une table manque est ignorée (200).
+  GraphQL et MCP servent aussi `buffer_stops` et `milestones` (types `TrackLayoutBufferStop`, `TrackLayoutMilestone`,
+  valeurs `BUFFER_STOPS`, `MILESTONES` de `TrackLayoutKind`), `form` des signaux, `use`, `tracks` et `precision` des
+  traversées, `station_slug` des voies.
 - Schéma des voies, suite : `buffer_stops` (heurtoirs : `id`, `pk_m`, `track`, `source`, `precision`) et `milestones`
   (bornes kilométriques : `id`, `pk_m`, `label` tel qu'écrit sur la borne, `source`, `precision`), familles demandables
   par `kinds` ; voies, aiguillages, signaux, traversées, heurtoirs et bornes d'OpenStreetMap (`osm`, ODbL, « ©

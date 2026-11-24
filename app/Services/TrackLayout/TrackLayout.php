@@ -70,13 +70,13 @@ final class TrackLayout
     public const FIELDS = [
         'sources' => ['key', 'label', 'licence', 'dataset', 'fetched_at', 'url', 'attribution', 'licence_url'],
         'operational_points' => ['id', 'name', 'kind', 'pk_m', 'uopid', 'station_slug', 'rinf_type', 'source', 'precision'],
-        'tracks' => ['id', 'ref', 'rinf_ref', 'rinf_id', 'kind', 'pk_from_m', 'pk_to_m', 'lane', 'op_id', 'length_m', 'electrified',
-            'platform', 'direction', 'max_speed_kmh', 'source', 'precision'],
+        'tracks' => ['id', 'ref', 'rinf_ref', 'rinf_id', 'kind', 'pk_from_m', 'pk_to_m', 'lane', 'op_id', 'station_slug', 'length_m',
+            'electrified', 'platform', 'direction', 'max_speed_kmh', 'source', 'precision'],
         'switches' => ['id', 'ref', 'pk_m', 'kind', 'from_track', 'to_track', 'facing', 'source', 'precision'],
-        'signals' => ['id', 'ref', 'pk_m', 'kind', 'track', 'direction', 'source', 'precision'],
-        'crossings' => ['id', 'pk_m', 'kind', 'ref', 'source'],
+        'signals' => ['id', 'ref', 'pk_m', 'kind', 'form', 'track', 'direction', 'source', 'precision'],
+        'crossings' => ['id', 'pk_m', 'kind', 'ref', 'use', 'tracks', 'source', 'precision'],
         'buffer_stops' => ['id', 'pk_m', 'track', 'source', 'precision'],
-        'milestones' => ['id', 'pk_m', 'ref', 'source', 'precision'],
+        'milestones' => ['id', 'pk_m', 'label', 'source', 'precision'],
     ];
 
     /** Clés de travail des sources, retirées de la réponse. */

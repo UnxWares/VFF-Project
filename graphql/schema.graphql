@@ -4230,6 +4230,10 @@ enum TrackLayoutKind {
     SIGNALS @enum(value: "signals")
     "Passages à niveau et traversées."
     CROSSINGS @enum(value: "crossings")
+    "Heurtoirs."
+    BUFFER_STOPS @enum(value: "buffer_stops")
+    "Bornes kilométriques."
+    MILESTONES @enum(value: "milestones")
     "Bande des vitesses."
     SPEEDS @enum(value: "speeds")
     "Bande des déclivités."
@@ -4254,6 +4258,10 @@ type TrackLayout {
     signals: [TrackLayoutSignal!]!
     "Passages à niveau et traversées de voies."
     crossings: [TrackLayoutCrossing!]!
+    "Heurtoirs (bouts de voie), avec la voie qu'ils ferment."
+    buffer_stops: [TrackLayoutBufferStop!]!
+    "Bornes kilométriques (poteaux), avec leur inscription."
+    milestones: [TrackLayoutMilestone!]!
     "Bande des vitesses et des déclivités."
     strip: TrackLayoutStrip!
     "Couverture de la portion servie par source et portions sans donnée."
@@ -4344,12 +4352,14 @@ type TrackLayoutTrack {
     lane: Int!
     "Point d'exploitation de la voie."
     op_id: String
+    "Gare de VFF de la voie (OpenStreetMap)."
+    station_slug: String
     "Longueur déclarée, en mètres."
     length_m: Int
     "Voie électrifiée (nul : non dit)."
     electrified: Boolean
-    "Voie bordée d'un quai."
-    platform: Boolean!
+    "Voie bordée d'un quai (nul : non dit)."
+    platform: Boolean
     "Sens normal : `up` (PK croissants), `down`, `both`."
     direction: String
     "Vitesse maximale déclarée, en km/h."
@@ -4368,8 +4378,8 @@ type TrackLayoutSwitch {
     ref: String
     "PK en mètres."
     pk_m: Int!
-    "`simple`, `single_slip`, `double_slip`, `three_way` ou `diamond`."
-    kind: String!
+    "`simple`, `single_slip`, `double_slip`, `three_way` ou `diamond` ; nul quand la source ne dit pas le type d'appareil."
+    kind: String
     "Voie d'où part l'aiguillage (identifiant de `tracks`)."
     from_track: String
     "Voie où mène l'aiguillage."
@@ -4392,6 +4402,8 @@ type TrackLayoutSignal {
     pk_m: Int!
     "Sorte."
     kind: String!
+    "Forme du signal (OpenStreetMap : `light`, `semaphore`…)."
+    form: String
     "Voie du signal (identifiant de `tracks`)."
     track: String
     "Sens : `up` (PK croissants), `down` ou nul."
@@ -4412,8 +4424,42 @@ type TrackLayoutCrossing {
     kind: String!
     "Référence (numéro, libellé)."
     ref: String
+    "Passage à niveau routier (`road`) ou piéton (`pedestrian`)."
+    use: String
+    "Voies qui se croisent (traversée de voies), identifiants de `tracks`."
+    tracks: [String!]
     "Provenance : `rinf`, `osm` ou `vff`."
     source: String!
+    "`exact`, `derived` ou `approximate`."
+    precision: String
+}
+
+"Heurtoir d'un schéma des voies."
+type TrackLayoutBufferStop {
+    "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+    id: String!
+    "PK en mètres."
+    pk_m: Int!
+    "Voie fermée par le heurtoir (identifiant de `tracks`)."
+    track: String
+    "Provenance : `rinf`, `osm` ou `vff`."
+    source: String!
+    "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+    precision: String!
+}
+
+"Borne kilométrique d'un schéma des voies."
+type TrackLayoutMilestone {
+    "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+    id: String!
+    "PK en mètres."
+    pk_m: Int!
+    "Inscription de la borne, telle qu'écrite."
+    label: String
+    "Provenance : `rinf`, `osm` ou `vff`."
+    source: String!
+    "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+    precision: String!
 }
 
 "Bande d'un schéma des voies."

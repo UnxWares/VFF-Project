@@ -1014,19 +1014,22 @@ RINF.
 |---|---|---|---|
 | `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
 | `from_pk_m`, `to_pk_m` | entier | non | Portion, PK en mètres (par défaut toute la ligne ; sur une longue ligne, demander une portion). |
-| `kinds` | liste | non | Familles : `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `speeds`, `gradients`. |
+| `kinds` | liste | non | Familles : `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `speeds`, `gradients`. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
 Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de lecture, `attribution`), `operational_points[]`
 (`uopid`, `station_slug`, `kind`), `tracks[]` (`ref` courte : `V1`, `V2`, `VU` pour la voie unique ; `kind` : `running`,
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
-voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]`, `crossings[]`, `strip.speeds[]`, `strip.gradients[]` (‰
+voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`form`), `crossings[]` (`use` : `road` ou
+`pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
+inscription), `strip.speeds[]`, `strip.gradients[]` (‰
 dans le sens des PK croissants), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), le bloc d'attribution et `vff_url`.
 `precision` vaut `exact`, `derived` (calculé par VFF) ou `approximate` (une voie de gare du RINF n'a pas de PK propre : elle
 est centrée sur le PK de la gare) : le dire. SNCF Réseau ne déclare au RINF ni aiguillage ni signal : sans OpenStreetMap,
 `switches` et `signals` sont vides et `coverage.missing` le signale ; ce n'est pas une absence sur le terrain. Une ligne non
-décrite renvoie des listes vides. Raccourcissement : listes `tracks`, `operational_points`, `switches`, `signals`,
-`crossings`, `strip.speeds`, `strip.gradients`, `coverage.missing` (`truncated`). Mention à reproduire : « RINF data ©
+décrite renvoie des listes vides ; une source dont une table manque est ignorée. Raccourcissement : listes `tracks`,
+`operational_points`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `strip.speeds`, `strip.gradients`,
+`coverage.missing` (`truncated`). Mention à reproduire : « RINF data ©
 European Union Agency for Railways » (EUPL 1.2), « © contributeurs OpenStreetMap » (ODbL), SNCF Réseau (ODbL).
 
 ```json

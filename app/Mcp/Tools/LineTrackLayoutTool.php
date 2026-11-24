@@ -18,7 +18,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Schéma des voies d'une ligne aujourd'hui, à la manière d'un « routebook » : voies principales numérotées, voies de gare, d'évitement et de service, liaisons, aiguillages, traversées, signaux et points d'exploitation dans l'ordre des points kilométriques (PK, en mètres), bande des vitesses et des déclivités ; même contenu que l'API REST GET /api/v1/lines/{line}/track-layout. Réseau d'aujourd'hui seulement.
 Sources par ordre de préférence, champ `source` de chaque objet : `rinf` (RINF, registre de l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, données déclarées par SNCF Réseau), `osm` (OpenStreetMap, là où le RINF ne dit rien), `vff` (PK des gares, vitesses et passages à niveau de SNCF Réseau, déclivités du profil en long de VFF). `precision` : `exact` (position déclarée), `derived` (calculée par VFF), `approximate` (placée à peu près : une voie de gare du RINF n'a pas de PK propre et est centrée sur le PK de la gare). Dire la précision quand elle n'est pas `exact`.
-Réponse : `tracks[]` (ref courte : V1, V2, VU = voie unique ; kind : running, siding, loop, yard, crossover, spur ; lane : rangée du schéma, 0 voie 1 ou voie unique, 1 voie 2) ; `operational_points[]` (uopid, station_slug) ; `switches[]`, `signals[]` (SNCF Réseau n'en déclare aucun au RINF : sans OpenStreetMap, listes vides, ce n'est pas une absence sur le terrain) ; `strip.speeds[]` (km/h), `strip.gradients[]` (‰ dans le sens des PK croissants) ; `coverage` (total_m, rinf_m, osm_m, missing[] : portions sans donnée par famille, à signaler). Une ligne non décrite renvoie des listes vides, pas une erreur.
+Réponse : `tracks[]` (ref courte : V1, V2, VU = voie unique ; kind : running, siding, loop, yard, crossover, spur ; lane : rangée du schéma, 0 voie 1 ou voie unique, 1 voie 2) ; `operational_points[]` (uopid, station_slug) ; `switches[]`, `signals[]` (SNCF Réseau n'en déclare aucun au RINF : sans OpenStreetMap, listes vides, ce n'est pas une absence sur le terrain) ; `buffer_stops[]` (heurtoirs, voie fermée) et `milestones[]` (bornes kilométriques, `label` : inscription), d'OpenStreetMap ; `strip.speeds[]` (km/h), `strip.gradients[]` (‰ dans le sens des PK croissants) ; `coverage` (total_m, rinf_m, osm_m, missing[] : portions sans donnée par famille, à signaler). Une ligne non décrite renvoie des listes vides, pas une erreur.
 Licences (`sources[]`, bloc d'attribution) : RINF © Agence de l'Union européenne pour les chemins de fer, dump officiel sous EUPL 1.2, mention « RINF data © European Union Agency for Railways » à reproduire ; OpenStreetMap ODbL ; SNCF Réseau ODbL ; IGN Licence Ouverte 2.0.
 Exemples : {"line": "rfn-579000"} ; {"line": "570000", "from_pk_m": 17000, "to_pk_m": 18000, "kinds": ["tracks", "operational_points"], "lang": "en"}.
 TXT)]
@@ -36,7 +36,7 @@ class LineTrackLayoutTool extends VffTool
             'line' => ['required', 'string', 'min:1', 'max:100'],
             'from_pk_m' => ['sometimes', 'nullable', 'integer', 'between:-100000,5000000'],
             'to_pk_m' => ['sometimes', 'nullable', 'integer', 'between:-100000,5000000'],
-            'kinds' => ['sometimes', 'array', 'max:7'],
+            'kinds' => ['sometimes', 'array', 'max:9'],
             'kinds.*' => ['string', 'in:'.implode(',', TrackLayout::KINDS)],
         ];
     }
@@ -50,8 +50,8 @@ class LineTrackLayoutTool extends VffTool
                 ->description('Début de la portion, PK en mètres (ex. 17000 pour le PK 17+000). Par défaut : début de la ligne.'),
             'to_pk_m' => $schema->integer()->min(-100000)->max(5000000)
                 ->description('Fin de la portion, PK en mètres. Par défaut : fin de la ligne. Sur une longue ligne, demander une portion.'),
-            'kinds' => $schema->array()->items($schema->string()->enum(TrackLayout::KINDS))->max(7)
-                ->description('Familles à servir : operational_points, tracks, switches, signals, crossings, speeds, gradients. Par défaut : toutes.'),
+            'kinds' => $schema->array()->items($schema->string()->enum(TrackLayout::KINDS))->max(9)
+                ->description('Familles à servir : operational_points, tracks, switches, signals, crossings, buffer_stops, milestones, speeds, gradients. Par défaut : toutes.'),
         ];
     }
 
@@ -72,7 +72,7 @@ class LineTrackLayoutTool extends VffTool
             $providers,
             $lang,
             self::url('/lines/'.$line->slug),
-            ['tracks', 'operational_points', 'switches', 'signals', 'crossings', 'strip.speeds', 'strip.gradients', 'coverage.missing'],
+            ['tracks', 'operational_points', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip.speeds', 'strip.gradients', 'coverage.missing'],
         );
     }
 }

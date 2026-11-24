@@ -22,8 +22,9 @@ class LineTrackLayoutController extends Controller
      *
      * Toutes les voies de la ligne aujourd'hui, à la manière d'un « routebook » : voies principales numérotées
      * (voie 1, voie 2, voie unique), voies de gare, d'évitement et de service, liaisons, aiguillages, traversées,
-     * signaux et points d'exploitation, dans l'ordre des points kilométriques (PK), avec une bande des vitesses
-     * et des déclivités. Réseau d'aujourd'hui seulement (ère courante) : aucune voie n'est inventée pour le passé.
+     * signaux, heurtoirs (`buffer_stops`), bornes kilométriques (`milestones`, inscription dans `label`) et points
+     * d'exploitation, dans l'ordre des points kilométriques (PK), avec une bande des vitesses et des déclivités.
+     * Réseau d'aujourd'hui seulement (ère courante) : aucune voie n'est inventée pour le passé.
      *
      * **Sources**, par ordre de préférence (`source` de chaque objet, fiche dans `sources[]`) : `rinf`, le RINF
      * (registre de l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, données déclarées
@@ -47,7 +48,8 @@ class LineTrackLayoutController extends Controller
      *
      * **Paramètres** : `from_pk`, `to_pk` (portion, en kilomètres : `120`, `120,5` ou `120+500` ; ou en mètres
      * par `from_pk_m`, `to_pk_m`) ; `kinds`, familles à servir séparées par des virgules (`operational_points`,
-     * `tracks`, `switches`, `signals`, `crossings`, `speeds`, `gradients` ; par défaut toutes). Une ligne sans
+     * `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `speeds`, `gradients` ; par défaut
+     * toutes). Une ligne sans
      * donnée renvoie 200, des listes vides et `coverage`.
      *
      * **Licence** : RINF, © Agence de l'Union européenne pour les chemins de fer, dump officiel sous EUPL 1.2 ;
@@ -59,10 +61,12 @@ class LineTrackLayoutController extends Controller
      *     pk: array{start_m: ?int, end_m: ?int, start_label: ?string, end_label: ?string},
      *     sources: array<array{key: string, label: string, licence: string, dataset: ?string, fetched_at: ?string, url: ?string, attribution: ?string, licence_url: ?string}>,
      *     operational_points: array<array{id: string, name: string, kind: string, pk_m: int, uopid: ?string, station_slug: ?string, rinf_type: ?int, source: string, precision: string}>,
-     *     tracks: array<array{id: string, ref: ?string, rinf_ref: ?string, kind: string, pk_from_m: int, pk_to_m: int, lane: int, op_id: ?string, length_m: ?int, electrified: ?bool, platform: bool, direction: ?string, max_speed_kmh: ?int, source: string, precision: string}>,
-     *     switches: array<array{id: string, ref: ?string, pk_m: int, kind: string, from_track: ?string, to_track: ?string, facing: ?string, source: string, precision: string}>,
-     *     signals: array<array{id: string, ref: ?string, pk_m: int, kind: string, track: ?string, direction: ?string, source: string, precision: string}>,
-     *     crossings: array<array{id: string, pk_m: int, kind: string, ref: ?string, source: string}>,
+     *     tracks: array<array{id: string, ref: ?string, rinf_ref: ?string, rinf_id: ?string, kind: string, pk_from_m: int, pk_to_m: int, lane: int, op_id: ?string, station_slug: ?string, length_m: ?int, electrified: ?bool, platform: ?bool, direction: ?string, max_speed_kmh: ?int, source: string, precision: string}>,
+     *     switches: array<array{id: string, ref: ?string, pk_m: int, kind: ?string, from_track: ?string, to_track: ?string, facing: ?string, source: string, precision: string}>,
+     *     signals: array<array{id: string, ref: ?string, pk_m: int, kind: string, form: ?string, track: ?string, direction: ?string, source: string, precision: string}>,
+     *     crossings: array<array{id: string, pk_m: int, kind: string, ref: ?string, use: ?string, tracks: ?array<string>, source: string, precision: ?string}>,
+     *     buffer_stops: array<array{id: string, pk_m: int, track: ?string, source: string, precision: string}>,
+     *     milestones: array<array{id: string, pk_m: int, label: ?string, source: string, precision: string}>,
      *     strip: array{
      *         speeds: array<array{pk_from_m: int, pk_to_m: int, kmh: int, source: string}>,
      *         gradients: array<array{pk_from_m: int, pk_to_m: int, permille: float, source: string, precision: string}>
@@ -75,7 +79,7 @@ class LineTrackLayoutController extends Controller
     #[QueryParameter('to_pk', 'Fin de la portion, PK en kilomètres, même notation. Par défaut : fin de la ligne.', type: 'string', example: '18+000')]
     #[QueryParameter('from_pk_m', 'Début de la portion, PK en mètres (au lieu de `from_pk`).', type: 'int', example: 17000)]
     #[QueryParameter('to_pk_m', 'Fin de la portion, PK en mètres (au lieu de `to_pk`).', type: 'int', example: 18000)]
-    #[QueryParameter('kinds', 'Familles à servir, séparées par des virgules : `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `speeds`, `gradients`. Par défaut : toutes.', type: 'string', example: 'tracks,operational_points')]
+    #[QueryParameter('kinds', 'Familles à servir, séparées par des virgules : `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `speeds`, `gradients`. Par défaut : toutes.', type: 'string', example: 'tracks,operational_points')]
     #[ApiResponse(200, 'Schéma des voies de la ligne (listes vides et couverture si aucune source ne la décrit).', examples: [[
         'line' => ['code' => '579000', 'slug' => 'rfn-579000', 'name' => 'Ligne de Beillant à Angoulême'],
         'pk' => ['start_m' => 17095, 'end_m' => 17917, 'start_label' => '17+095', 'end_label' => '17+917'],
@@ -96,6 +100,8 @@ class LineTrackLayoutController extends Controller
         'switches' => [],
         'signals' => [],
         'crossings' => [],
+        'buffer_stops' => [],
+        'milestones' => [],
         'strip' => [
             'speeds' => [['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'source' => 'rinf']],
             'gradients' => [],
