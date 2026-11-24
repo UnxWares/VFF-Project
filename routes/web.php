@@ -44,6 +44,7 @@ use App\Http\Controllers\PreservedMaterialController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RailProjectController;
+use App\Http\Controllers\RoutebookController;
 use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
@@ -122,6 +123,7 @@ Route::get('/chronology', [ChronologyController::class, 'index'])->name('network
 Route::get('/on-this-day/{monthDay?}', [OnThisDayController::class, 'index'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('network.on-this-day');
 // Autour de moi : lignes et gares autour de la position (arrondie dans le navigateur) ou d'une commune, sans carte lourde.
 Route::get('/nearby', [NearbyController::class, 'index'])->name('nearby');
+Route::get('/routebook', [RoutebookController::class, 'show'])->middleware('throttle:public-api')->name('routebook');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 // Frise du matériel roulant : avant la fiche, dont l'adresse accepterait « timeline » comme identifiant.
 Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');

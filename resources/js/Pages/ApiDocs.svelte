@@ -216,6 +216,7 @@
         'get_station',
         'network_at_era',
         'historical_route',
+        'routebook',
         'list_lines',
         'list_stations',
         'media',

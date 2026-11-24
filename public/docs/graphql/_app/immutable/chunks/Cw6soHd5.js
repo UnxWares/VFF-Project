@@ -269,6 +269,18 @@ type Query {
     era: Int
   ): Route
   """
+  Livret de parcours entre deux gares sur le réseau d'aujourd'hui (ex. Rennes - Saint-Malo) : les lignes
+  traversées dans le sens de marche, avec leurs PK et le schéma des voies de chaque portion. Renvoie
+  \`null\` si une gare est inconnue ou ambiguë, ou si aucun chemin n'existe : l'API REST
+  \`GET /api/v1/routebook\` en donne le motif (code \`error\`) et les gares candidates.
+  """
+  routebook(
+    "Gare de départ : slug (ex. \`rennes\`), nom exact ou nom de ville."
+    from: String!
+    "Gare d'arrivée, mêmes formes que \`from\`."
+    to: String!
+  ): Routebook
+  """
   Un même trajet à deux époques (ex. Angoulême - Limoges en 1930 et aujourd'hui) : l'itinéraire
   de chacune, ou la raison de son absence, et les différences (longueur, lignes qui ne sont plus
   empruntées ou nouvelles, trajet devenu impossible). Renvoie \`null\` si une gare est inconnue ou
@@ -4679,6 +4691,108 @@ type RouteEnd {
   slug: String!
   "Nom de la gare."
   name: String!
+}
+
+
+"Un bout d'une portion du livret de parcours : une gare, ou un changement de ligne en pleine voie."
+type RoutebookEnd {
+  "\`station\` (gare) ou \`junction\` (changement de ligne en pleine voie)."
+  kind: String!
+  "Slug de la gare (nul pour un changement de ligne en pleine voie)."
+  slug: String
+  "Nom de la gare (nul pour un changement de ligne en pleine voie)."
+  name: String
+}
+
+
+"Une ligne du parcours, appelée portion : la ligne traversée entre deux bouts, dans le sens de marche."
+type RoutebookLeg {
+  "Rang de la portion dans le parcours (préfixe des identifiants de ses objets)."
+  index: Int!
+  "Code SNCF Réseau de la ligne, à 6 chiffres (nul hors du réseau ferré national)."
+  line_code: String
+  "Slug de la ligne."
+  line_slug: String!
+  "Nom de la ligne."
+  line_name: String!
+  "Début de la portion."
+  from: RoutebookEnd!
+  "Fin de la portion."
+  to: RoutebookEnd!
+  "Longueur parcourue sur la ligne, en mètres."
+  length_m: Int!
+  "Kilomètres parcourus depuis le départ au début de la portion."
+  route_from_km: Float!
+  "Kilomètres parcourus depuis le départ à la fin de la portion."
+  route_to_km: Float!
+  "PK de la ligne au début de la portion, en mètres (nul s'il est inconnu)."
+  pk_from_m: Int
+  "PK de la ligne à la fin de la portion, en mètres (nul s'il est inconnu)."
+  pk_to_m: Int
+  """
+  Précision des PK des deux bouts : \`exact\` (PK sourcé d'une gare), \`derived\` (PK projeté ou lu sur la
+  forme SNCF de la ligne), \`approximate\` (interpolé entre deux gares), nul si un PK manque.
+  """
+  pk_precision: String
+  "Sens de marche sur la ligne : \`up\` (PK croissants), \`down\` (décroissants), nul si les PK manquent."
+  direction: String
+  "Vrai si la portion a des voies ou des aiguillages détaillés."
+  has_detail: Boolean!
+}
+
+
+"Un changement de ligne sur le parcours."
+type RoutebookLineChange {
+  "Kilomètres parcourus depuis le départ."
+  route_km: Float!
+  "Slug de la ligne quittée."
+  from_line: String
+  "Slug de la ligne prise."
+  to_line: String
+  "Lieu du changement : une gare, ou la pleine voie."
+  at: RoutebookEnd!
+}
+
+
+"""
+Livret de parcours entre deux gares, sur le réseau d'aujourd'hui : les lignes traversées dans le sens
+de marche et le schéma des voies de chaque portion (même contenu que \`GET /api/v1/routebook\`). Les
+objets du schéma ont la forme de \`GET /api/v1/lines/{line}/track-layout\`, avec \`leg\`, \`line_code\`,
+\`line_slug\` et \`route_km\` en plus ; ils sont rendus en JSON, triés par kilomètre parcouru.
+"""
+type Routebook {
+  "Gare de départ."
+  from: RouteEnd!
+  "Gare d'arrivée."
+  to: RouteEnd!
+  "Année de l'ère dont le réseau a servi au calcul (2030 = réseau actuel)."
+  era_year: Int!
+  "Longueur du parcours, en mètres."
+  distance_m: Int!
+  "Longueur du parcours, en kilomètres (une décimale)."
+  distance_km: Float!
+  "Nombre d'objets du livret (points d'exploitation, voies, aiguillages, signaux, traversées)."
+  objects: Int!
+  "Lignes traversées, dans l'ordre."
+  legs: [RoutebookLeg!]!
+  "Changements de ligne, dans l'ordre."
+  line_changes: [RoutebookLineChange!]!
+  "Sources des objets (clé, nom, licence, lien)."
+  sources: JSON!
+  "Points d'exploitation (gares, haltes, bifurcations…)."
+  operational_points: JSON!
+  "Voies (principales, d'évitement, de service), avec leur rangée \`lane\` dans le schéma."
+  tracks: JSON!
+  "Aiguillages et traversées-jonctions."
+  switches: JSON!
+  "Signaux."
+  signals: JSON!
+  "Passages à niveau et traversées de voies."
+  crossings: JSON!
+  "Bande du schéma : vitesses (\`speeds\`) et déclivités dans le sens de marche (\`gradients\`)."
+  strip: JSON!
+  "Couverture : longueur totale, mètres de voies décrits par le RINF, OpenStreetMap et VFF, portions sans données (\`missing\`)."
+  coverage: JSON!
 }
 
 

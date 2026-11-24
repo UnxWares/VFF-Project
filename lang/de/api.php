@@ -297,6 +297,7 @@ return [
             'get_station' => 'Eintrag eines Bahnhofs: Daten, Status in jedem Jahrzehnt, bediente Strecken und Quellen.',
             'network_at_era' => 'Zustand des Netzes zu einer Epoche: Kilometer nach Zustand und Verkehr, Bahnhöfe nach Status.',
             'historical_route' => 'Route zwischen zwei Bahnhöfen im Netz einer Epoche.',
+            'routebook' => 'Heutiges Streckenbuch zwischen zwei Bahnhöfen: Strecken, Kilometerpunkte und Gleisplan in Fahrtrichtung.',
             'list_lines' => 'Verzeichnis der Strecken, gefiltert nach Netz, Zustand, Verkehr, Département oder Epoche.',
             'list_stations' => 'Verzeichnis der Bahnhöfe, gefiltert nach Status, Département oder Epoche.',
             'media' => 'Fotos, Postkarten und Pläne einer Strecke oder eines Bahnhofs, mit ihren Rechten.',

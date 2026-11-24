@@ -33,7 +33,10 @@
      * `full` : page plein écran (/lines/{slug}/voies), tableau à droite quand la place le permet ; sinon (fiche de
      * la ligne) le tableau passe sous le dessin.
      *
-     * @type {{ layout: any, slug: string, lineName: string, full?: boolean }}
+     * `slug` nul : livret de parcours (page /routebook, plusieurs lignes bout à bout sur l'axe des km parcourus), sans
+     * onglet « Carte ».
+     *
+     * @type {{ layout: any, slug: string|null, lineName: string, full?: boolean }}
      */
     let { layout, slug, lineName, full = false } = $props();
 
@@ -48,7 +51,12 @@
     const detailed = $derived(hasTracks(data));
 
     let tab = $state(/** @type {'map'|'schema'|'band'} */ ('schema'));
-    const TABS = /** @type {const} */ (['map', 'schema', 'band']);
+    // Livret de parcours (sans `slug` : plusieurs lignes bout à bout) : pas d'onglet « Carte » d'une ligne.
+    const TABS = $derived(
+        /** @type {Array<'map'|'schema'|'band'>} */ (
+            slug ? ['map', 'schema', 'band'] : ['schema', 'band']
+        ),
+    );
     let zoom = $state(1);
     let printing = $state(false);
     /** @type {string|null} */

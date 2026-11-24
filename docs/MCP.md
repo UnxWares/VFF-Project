@@ -132,6 +132,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies et dates de desserte, sources. |
 | `network_at_era` | État du réseau à une époque (km par état et par trafic, gares par statut). |
 | `historical_route` | Itinéraire entre deux gares sur le réseau d'une époque, ou le même trajet comparé à deux époques. |
+| `routebook` | Livret de parcours d'aujourd'hui entre deux gares : lignes traversées dans le sens de marche, PK, schéma des voies, provenance. |
 | `sources_and_licences` | Fournisseurs de données et licences. |
 | `network_events` | Événements de toutes les lignes (département, type, période), paginés. |
 | `media` | Photos, cartes postales, plans d'une ligne, d'une gare, d'une série de matériel ou d'un événement, avec leurs droits. |
@@ -425,6 +426,38 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 
 ```json
 {"from": "angouleme", "to": "limoges-benedictins", "year": 1930, "compare_year": 2026}
+```
+
+### `routebook` : livret de parcours entre deux gares
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `from` | chaîne, 1 à 200 caractères | oui | Gare de départ : slug (de préférence), nom exact ou nom de ville. |
+| `to` | chaîne, 1 à 200 caractères | oui | Gare d'arrivée, mêmes formes. |
+| `kinds` | liste parmi `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `strip` | non | Objets à joindre (par défaut `operational_points`, `switches`, `strip`). |
+| `lang` | `fr`, `en`, `de` | non | Langue. |
+
+Le plus court chemin sur le réseau d'aujourd'hui (comme `historical_route` sans année), puis, ligne
+par ligne dans le sens de marche, le schéma des voies de chaque portion parcourue (comme
+`GET /api/v1/lines/{line}/track-layout`). Départ et arrivée au centre de leur point d'exploitation
+(PK de la gare sur sa ligne). Renvoie `from`, `to`, `era_year`, `distance_km`, `objects` (nombre
+d'objets du livret), `legs` (`code`, `slug`, `name`, `from` et `to` : nom de la gare ou `junction`
+pour un changement de ligne en pleine voie, `pk_from_m`, `pk_to_m`, `direction` : `up` à PK
+croissants ou `down`, `pk_precision` : `exact`, `derived` ou `approximate`, `route_from_km`,
+`route_to_km`, `has_detail`), `line_changes`, `coverage` (mètres décrits par le RINF, OpenStreetMap
+et VFF, `missing` : portions sans données en km parcourus, `what` = une famille absente ou `all`),
+`sources`, puis les objets demandés, triés par kilomètre parcouru (`route_km`, ou `route_from_km` et
+`route_to_km`), avec `line_code`, `line_slug`, le PK de leur ligne et leur provenance (`source`,
+`precision`). Un signal porte `travel` (`same` ou `opposite` au sens de marche), un aiguillage
+`travel_facing` (pris en pointe) ; les déclivités `permille` sont dans le sens de marche
+(`line_permille` dans le sens des PK). Listes raccourcies par la fin si la réponse est trop longue
+(`truncated`). `vff_url` ouvre la page du livret. Même calcul que `GET /api/v1/routebook`.
+
+Erreurs : `graph_not_built`, `station_not_found`, `ambiguous_station` (avec `candidates`),
+`same_station`, `station_not_in_network`, `no_path`.
+
+```json
+{"from": "rennes", "to": "st-malo", "kinds": ["operational_points", "switches"]}
 ```
 
 ### `sources_and_licences` : sources et licences
@@ -1830,6 +1863,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Combien de kilomètres de voies ferrées en France en 1930, et aujourd'hui ? » | `network_at_era {"year": 1930}` et `network_at_era {"year": 2026}` |
 | « Comment aller de Rennes à Brest en train en 1930 ? » | `historical_route {"from": "rennes", "to": "brest", "year": 1930}` |
 | « Pouvait-on aller de Limoges à Angoulême en 1990 ? Et aujourd'hui ? » | `historical_route` avec `year` 1990 et `compare_year` 2026 : `differences.outcome` répond (`both`, `lost`…) |
+| « Quelles lignes et quels PK entre Rennes et Saint-Malo ? » | `routebook {"from": "rennes", "to": "st-malo"}` : `legs` dans le sens de marche |
 | « How long was the French network in 1950? » (en anglais) | `network_at_era {"year": 1950, "lang": "en"}` |
 | « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false`, à reprendre avec sa mention (les faits à usage non commercial ne sont jamais servis) |
 | « Quelles lignes du Finistère ont fermé aux voyageurs dans les années 1930 ? » | `network_events {"department": "29", "type": "closure_passenger", "from": "1930", "to": "1939"}` |

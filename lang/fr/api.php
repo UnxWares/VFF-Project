@@ -298,6 +298,7 @@ return [
             'get_station' => 'Fiche d’une gare : dates, statut à chaque décennie, lignes desservies et sources.',
             'network_at_era' => 'État du réseau à une époque : kilomètres par état et par trafic, gares par statut.',
             'historical_route' => 'Itinéraire entre deux gares sur le réseau d’une époque.',
+            'routebook' => 'Livret de parcours d’aujourd’hui entre deux gares : lignes, PK et schéma des voies dans le sens de marche.',
             'list_lines' => 'Annuaire des lignes, filtré par réseau, état, trafic, département ou époque.',
             'list_stations' => 'Annuaire des gares, filtré par statut, département ou époque.',
             'media' => 'Photos, cartes postales et plans d’une ligne ou d’une gare, avec leurs droits.',

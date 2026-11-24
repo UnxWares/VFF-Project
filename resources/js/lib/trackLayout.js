@@ -560,6 +560,16 @@ export function routeRows(data) {
     }));
 }
 
+/**
+ * PK de ligne d'une ligne du tableau. Sur un livret de parcours (lib/routebook.js, asLayout), l'axe est le kilomètre
+ * parcouru et chaque objet garde le PK de sa propre ligne (`line_pk_m`, `line_pk_from_m`) : c'est lui qu'on affiche.
+ *
+ * @param {{ pk_m: number, item?: any }} row
+ */
+export function linePk(row) {
+    return row.item?.line_pk_m ?? row.item?.line_pk_from_m ?? row.pk_m;
+}
+
 /** Index de la ligne du tableau la plus proche d'un PK (la première à égalité), -1 sans ligne. */
 export function nearestRow(rows, pk) {
     if (rows.length === 0) return -1;
@@ -679,7 +689,8 @@ const MISSING_FAMILIES = new Set(['tracks', 'switches', 'signals', 'speeds', 'gr
 export function missingText(m, t) {
     const what = MISSING_FAMILIES.has(m.what) ? m.what : 'other';
     return t(`tracks.row.missing.${what}`, {
-        from: pkLabel(m.pk_from_m),
-        to: pkLabel(m.pk_to_m),
+        // Livret de parcours : PK de la ligne de la portion (lib/routebook.js), pas les mètres parcourus de l'axe.
+        from: pkLabel(m.line_pk_from_m ?? m.pk_from_m),
+        to: pkLabel(m.line_pk_to_m ?? m.pk_to_m),
     });
 }

@@ -297,6 +297,7 @@ return [
             'get_station' => 'Entry for a station: dates, status in each decade, lines served and sources.',
             'network_at_era' => 'State of the network at a given time: kilometres by state and traffic, stations by status.',
             'historical_route' => 'Route between two stations on the network of a given time.',
+            'routebook' => 'Today’s route book between two stations: lines, kilometre points and track layout in the running direction.',
             'list_lines' => 'Directory of lines, filtered by network, state, traffic, département or period.',
             'list_stations' => 'Directory of stations, filtered by status, département or period.',
             'media' => 'Photos, postcards and plans of a line or station, with their rights.',

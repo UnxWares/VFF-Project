@@ -1,6 +1,6 @@
 <script>
     import { formatNumber, NBSP } from '$lib/typo.js';
-    import { formatPermille, pkLabel, rowTitle } from '$lib/trackLayout.js';
+    import { formatPermille, linePk, pkLabel, rowTitle } from '$lib/trackLayout.js';
     import TrackPicto from '$components/Lines/TrackPicto.svelte';
 
     /**
@@ -94,7 +94,7 @@
                     <td class="num">{km(row.km)}</td>
                     <td class="num">{row.kmh === null ? '' : formatNumber(row.kmh, lang)}</td>
                     <td class="num">{permille(row.permille)}</td>
-                    <td class="num">{pkLabel(row.pk_m)}</td>
+                    <td class="num">{pkLabel(linePk(row))}</td>
                     <th scope="row" class="obj">
                         <button
                             type="button"

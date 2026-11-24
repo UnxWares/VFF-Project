@@ -27,6 +27,7 @@
         STATION_STATUS_ICON,
     } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
+    import { routebookHref } from '$lib/routebook.js';
 
     /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). Gares
      * voisines, nombre d'images et fréquentation arrivent juste après le premier affichage (props différées,
@@ -307,6 +308,14 @@
                             href="/departments/{station.department_code}"
                             >{t('departments.commune_link', { name: department_name })}</a
                         >{/if}
+                </p>
+            {/if}
+            {#if station.status === 'active' || station.status === 'no_commercial'}
+                <!-- Livret de parcours d'aujourd'hui depuis cette gare (page /routebook, arrivée à choisir). -->
+                <p class="routebook-link">
+                    <a class="vff-link" href={routebookHref(station.slug, '')}
+                        >{$i18n.t('routebook.from_station')}</a
+                    >
                 </p>
             {/if}
             {#if altNames.length}
@@ -665,6 +674,11 @@
         color: var(--vff-text);
         font-size: 12px;
         line-height: 1;
+    }
+    .routebook-link {
+        margin: 10px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .territory {
         display: flex;

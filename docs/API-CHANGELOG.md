@@ -9,6 +9,15 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Livret de parcours entre deux gares (REST `GET /api/v1/routebook?from=&to=`, GraphQL `routebook(from:, to:)`, outil MCP
+  `routebook`) : le plus court chemin sur le réseau d'aujourd'hui (comme `GET /api/v1/route`), puis le schéma des voies de
+  chaque ligne traversée, mis bout à bout dans le sens de marche. `legs` : lignes traversées dans l'ordre, avec les PK de leurs
+  deux bouts (gare, ou changement de ligne en pleine voie), le sens (`up`, `down`) et la précision des PK ; `line_changes` ;
+  objets au format de `track-layout` avec `leg`, `line_code`, `line_slug` et `route_km` (ou `route_from_km`, `route_to_km`),
+  `route_lane` pour les voies, `travel` pour les signaux, `travel_facing` pour les aiguillages, déclivités dans le sens de
+  marche (`permille`, et `line_permille`) ; `coverage` en kilomètres parcourus (`what` = `all` pour une portion sans aucun
+  schéma). Départ et arrivée au centre de la gare (son PK sur la ligne). Erreurs de `GET /api/v1/route`. GraphQL rend les
+  objets en JSON.
 - Schéma des voies d'une ligne (REST `GET /api/v1/lines/{line}/track-layout`) : voies principales numérotées, voies de gare,
   d'évitement et de service, liaisons, aiguillages, traversées, signaux et points d'exploitation dans l'ordre des PK, avec une
   bande des vitesses et des déclivités et la couverture par source (`coverage`). Sources par ordre de préférence : RINF de
