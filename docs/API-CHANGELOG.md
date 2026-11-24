@@ -5,6 +5,22 @@ Les entrées sont datées, la plus récente en premier. Un champ n'est retiré q
 spécification OpenAPI, `@deprecated` dans le schéma GraphQL) et annoncé ici. Un test (`ApiContractTest`) compare l'API à un instantané
 versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un paramètre ou une valeur disparaît sans cette annonce.
 
+## 25/11/2026
+
+### Ajouts
+
+- Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, MCP `line_track_layout`) :
+  `counts`, nombre d'objets de chaque famille sur la portion servie (`operational_points`, `tracks`, `switches`, `signals`,
+  `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`
+  (110 Ko au lieu de 3,9 Mo pour Paris - Marseille) dit ainsi ce qu'une longue ligne a avant d'en lire les objets par
+  portions (`from_pk_m`, `to_pk_m`) ; GraphQL : type `TrackLayoutCounts`.
+
+### Corrections
+
+- Schéma des voies : une voie d'OpenStreetMap dont l'étendue en PK dépasse deux fois sa longueur plus 2 km (calage du PK
+  rompu : 496 voies de 40 lignes à l'import du 24/11/2026, dont une voie de 602 m placée du PK 1+516 au PK 523+044 de
+  Paris - Marseille) n'est plus servie.
+
 ## 24/11/2026
 
 ### Ajouts

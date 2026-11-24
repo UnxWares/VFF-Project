@@ -305,6 +305,262 @@ export function laneRows(tracks) {
     return { lanes, row, count: lanes.length };
 }
 
+/** Voies repliées en un groupe par point d'exploitation : faisceaux, voies de service, embranchements. */
+export const FOLD_KINDS = SERVICE_KINDS;
+
+/** En dessous de ce nombre de voies de service, un point d'exploitation les montre telles quelles. */
+export const FOLD_MIN = 3;
+
+/** Rangées au plus de chaque côté des voies principales avant de replier aussi les autres voies d'une zone. */
+export const ROW_BUDGET = 10;
+
+/** Épaisseur (rangées) d'un côté une fois resserré (compactLanes). */
+function sideDepth(tracks) {
+    let depth = 0;
+    for (const lane of compactLanes(tracks).values()) {
+        depth = Math.max(depth, lane < 0 ? -lane : lane - 1);
+    }
+    return depth;
+}
+
+/** Index de la zone de l'axe qui contient un PK, -1 hors des zones. */
+export function zoneIndexAt(zones, pk) {
+    let lo = 0;
+    let hi = zones.length - 1;
+    while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (pk < zones[mid].from_m) hi = mid - 1;
+        else if (pk > zones[mid].to_m) lo = mid + 1;
+        else return mid;
+    }
+    return -1;
+}
+
+/**
+ * Clé stable d'une zone, pour se souvenir qu'on l'a dépliée : son premier point d'exploitation (gare d'abord), sinon
+ * son début arrondi à l'hectomètre.
+ */
+export function zoneKey(zone, opsById) {
+    const ops = zone.ops.map((id) => opsById.get(id)).filter(Boolean);
+    const op = ops.find((o) => o.kind === 'station') ?? ops[0];
+    return op ? `op:${op.id}` : `pk:${Math.round(zone.from_m / 100)}`;
+}
+
+/**
+ * Rangées resserrées : de chaque côté des voies principales (rangées 0 et 1), chaque voie prend la rangée la plus
+ * proche de la voie principale qui la laisse au-delà de toutes les voies qu'elle chevauche et que le serveur a rangées
+ * plus près (ordre latéral du serveur gardé deux à deux). Une grande gare dont le serveur étale les voies sur les
+ * rangées -57 à 21 ne garde que l'épaisseur qu'elle a vraiment à chaque endroit.
+ *
+ * @param {Array<any>} tracks voies sans les liaisons
+ * @returns {Map<string, number>} nouvelle rangée par identifiant de voie (les voies des rangées 0 et 1 n'y sont pas)
+ */
+export function compactLanes(tracks) {
+    const out = new Map();
+    for (const side of [-1, 1]) {
+        // Les plus proches des voies principales d'abord ; à rangée égale, par PK.
+        const own = tracks
+            .filter((t) => (side < 0 ? t.lane < 0 : t.lane > 1))
+            .sort((a, b) => Math.abs(a.lane) - Math.abs(b.lane) || a.pk_from_m - b.pk_from_m);
+        /** @type {Array<{ from: number, to: number, depth: number }>} */
+        const placed = [];
+        for (const t of own) {
+            let depth = 0;
+            for (const p of placed) {
+                if (p.from < t.pk_to_m && t.pk_from_m < p.to && p.depth >= depth)
+                    depth = p.depth + 1;
+            }
+            placed.push({ from: t.pk_from_m, to: t.pk_to_m, depth });
+            out.set(t.id, side < 0 ? -1 - depth : 2 + depth);
+        }
+    }
+    return out;
+}
+
+/**
+ * Vue repliée du schéma : à chaque point d'exploitation (zone dilatée de l'axe) qui a au moins FOLD_MIN voies de
+ * faisceau, de service ou d'embranchement, ces voies (et les liaisons qui y mènent) deviennent un groupe dessiné
+ * comme une seule rangée (« 23 voies de service »), de leur côté des voies principales ; les aiguillages qui y
+ * mènent pointent vers le groupe, ceux qui restent dedans, leurs signaux et leurs heurtoirs ne sont pas dessinés (le
+ * tableau de parcours les garde tous). Les zones dont la clé est dans `expanded` restent dépliées. Puis les rangées
+ * sont resserrées (compactLanes).
+ *
+ * @param {ReturnType<typeof normalize>} data
+ * @param {Array<{ from_m: number, to_m: number, ops: string[] }>} zones zones de l'axe (buildAxis)
+ * @param {Set<string>} [expanded] clés des zones dépliées (zoneKey)
+ * @returns {{ data: ReturnType<typeof normalize>, groups: Array<{ id: string, key: string, zone: number,
+ *   op: any, side: -1|1, count: number, pk_from_m: number, pk_to_m: number, lane: number, expanded: boolean }> }}
+ */
+export function foldLayout(data, zones, expanded = new Set()) {
+    const opsById = new Map(data.operational_points.map((o) => [o.id, o]));
+    const zoneOf = (t) => zoneIndexAt(zones, (t.pk_from_m + t.pk_to_m) / 2);
+    const inZone = (t, z) => t.pk_from_m >= zones[z].from_m - 1 && t.pk_to_m <= zones[z].to_m + 1;
+
+    // Voies voisines par les aiguillages (pour les liaisons).
+    /** @type {Map<string, Set<string>>} */
+    const near = new Map();
+    const link = (a, b) => {
+        if (!a || !b || a === b) return;
+        if (!near.has(a)) near.set(a, new Set());
+        near.get(a).add(b);
+    };
+    for (const sw of data.switches) {
+        link(sw.from_track, sw.to_track);
+        link(sw.to_track, sw.from_track);
+    }
+
+    /** @type {Map<number, any[]>} voies de chaque zone (sans les liaisons) */
+    const byZone = new Map();
+    for (const t of data.tracks) {
+        if (t.kind === 'crossover') continue;
+        const z = zoneOf(t);
+        if (z < 0 || !inZone(t, z)) continue;
+        if (!byZone.has(z)) byZone.set(z, []);
+        byZone.get(z).push(t);
+    }
+    const isMain = (t) => t.lane === 0 || t.lane === 1;
+    // Côté d'une voie : au-dessus (rangées négatives) ou au-dessous ; une voie non principale posée sur les rangées 0
+    // ou 1 compte au-dessous.
+    const onSide = (t, side) =>
+        side < 0 ? t.lane < 0 : t.lane > 1 || (t.lane >= 0 && t.kind !== 'running');
+
+    /** @type {Map<string, { zone: number, side: -1|1 }>} voie repliée -> son groupe */
+    const folded = new Map();
+    /** @type {Array<any>} */
+    const groups = [];
+    for (const [z, list] of byZone) {
+        const key = zoneKey(zones[z], opsById);
+        const open = expanded.has(key);
+        const zoneOps = zones[z].ops.map((id) => opsById.get(id)).filter(Boolean);
+        const op = zoneOps.find((o) => o.kind === 'station') ?? zoneOps[0] ?? null;
+        // Voies qui touchent la zone (celles qui la traversent restent toujours dessinées).
+        const around = data.tracks.filter(
+            (t) =>
+                t.kind !== 'crossover' &&
+                t.pk_from_m < zones[z].to_m &&
+                t.pk_to_m > zones[z].from_m,
+        );
+        for (const side of /** @type {const} */ ([-1, 1])) {
+            const mine = list.filter((t) => onSide(t, side));
+            // Par étapes, tant que le côté dépasse ROW_BUDGET rangées : voies de service, puis autres voies
+            // principales, puis voies de gare (une très grande gare n'en garde que ses voies 1 et 2).
+            const stages = [
+                mine.filter((t) => FOLD_KINDS.has(t.kind)),
+                mine.filter((t) => t.kind === 'running' && !isMain(t)),
+                mine.filter((t) => !FOLD_KINDS.has(t.kind) && t.kind !== 'running'),
+            ];
+            let chosen = stages[0].length >= FOLD_MIN ? stages[0] : [];
+            for (const more of stages.slice(1)) {
+                const hidden = new Set(chosen.map((t) => t.id));
+                const rest = around.filter((t) => !hidden.has(t.id) && onSide(t, side));
+                if (sideDepth(rest) <= ROW_BUDGET) break;
+                chosen = [...chosen, ...more];
+            }
+            if (chosen.length === 0) continue;
+            groups.push({
+                id: `fold:${key}:${side}`,
+                key,
+                zone: z,
+                op,
+                side,
+                count: chosen.length,
+                service: chosen.every((t) => FOLD_KINDS.has(t.kind)),
+                pk_from_m: Math.min(...chosen.map((t) => t.pk_from_m)),
+                pk_to_m: Math.max(...chosen.map((t) => t.pk_to_m)),
+                lane: 0,
+                expanded: open,
+            });
+            if (!open) for (const t of chosen) folded.set(t.id, { zone: z, side });
+        }
+    }
+    // Liaisons qui mènent à une voie repliée de leur zone : repliées avec elle.
+    for (const t of data.tracks) {
+        if (t.kind !== 'crossover') continue;
+        for (const other of near.get(t.id) ?? []) {
+            const f = folded.get(other);
+            if (f && zoneOf(t) === f.zone) {
+                folded.set(t.id, f);
+                break;
+            }
+        }
+    }
+
+    const visible = data.tracks.filter((t) => !folded.has(t.id));
+    const lanes = compactLanes(visible.filter((t) => t.kind !== 'crossover'));
+    const laneOf = (t) => lanes.get(t.id) ?? t.lane;
+    const shown = visible
+        .filter((t) => t.kind !== 'crossover')
+        .map((t) => ({ ...t, lane: laneOf(t) }));
+
+    const closed = groups.filter((g) => !g.expanded);
+    for (const g of closed) {
+        const here = shown
+            .filter((t) => t.pk_from_m < g.pk_to_m && t.pk_to_m > g.pk_from_m)
+            .map((t) => t.lane);
+        g.lane = g.side < 0 ? Math.min(0, ...here) - 1 : Math.max(1, ...here) + 1;
+    }
+    for (const g of groups.filter((x) => x.expanded)) g.lane = g.side;
+
+    const groupOf = (id) => {
+        const f = folded.get(id);
+        return f ? closed.find((g) => g.zone === f.zone && g.side === f.side) : null;
+    };
+    const mapTrack = (id) => (id == null ? id : (groupOf(id)?.id ?? id));
+    const shownById = new Map(shown.map((t) => [t.id, t]));
+    // Liaison gardée : rangée la plus basse des voies qu'elle relie (comme le serveur), sinon la sienne resserrée.
+    const crossovers = visible
+        .filter((t) => t.kind === 'crossover')
+        .map((t) => {
+            const linked = [...(near.get(t.id) ?? [])]
+                .map((id) => shownById.get(id)?.lane)
+                .filter((l) => l !== undefined);
+            return { ...t, lane: linked.length ? Math.min(...linked) : laneOf(t) };
+        });
+    const groupTracks = closed.map((g) => ({
+        id: g.id,
+        ref: null,
+        kind: 'group',
+        pk_from_m: g.pk_from_m,
+        pk_to_m: g.pk_to_m,
+        lane: g.lane,
+        count: g.count,
+        source: null,
+        precision: null,
+    }));
+
+    // Aiguillage dans le groupe (ses deux voies repliées, ou la seule connue) : pas dessiné.
+    const inside = (sw) =>
+        folded.has(sw.from_track) && (sw.to_track == null || folded.has(sw.to_track))
+            ? mapTrack(sw.from_track) === mapTrack(sw.to_track ?? sw.from_track)
+            : false;
+    const switches = data.switches
+        .filter((sw) => !inside(sw))
+        .map((sw) => {
+            const from = mapTrack(sw.from_track);
+            const to = mapTrack(sw.to_track);
+            // L'aiguillage est dessiné sur la voie qui reste visible, et pointe vers le groupe.
+            return folded.has(sw.from_track) && to != null && !folded.has(sw.to_track)
+                ? { ...sw, from_track: to, to_track: from }
+                : { ...sw, from_track: from, to_track: to };
+        });
+    return {
+        data: {
+            ...data,
+            tracks: [...shown, ...crossovers, ...groupTracks].sort(
+                (a, b) => a.pk_from_m - b.pk_from_m || a.lane - b.lane,
+            ),
+            switches,
+            signals: data.signals.filter((s) => !folded.has(s.track)),
+            buffer_stops: data.buffer_stops.filter((b) => !folded.has(b.track)),
+            // Traversée de voies entre voies repliées : dans le groupe.
+            crossings: data.crossings.filter(
+                (c) => !(c.tracks?.length && c.tracks.every((id) => folded.has(id))),
+            ),
+        },
+        groups,
+    };
+}
+
 /** Extrémité d'une voie la plus proche d'un PK : 'start', 'end', ou null si le PK est loin des deux. */
 export function nearEnd(track, pk) {
     const len = Math.max(1, track.pk_to_m - track.pk_from_m);
@@ -320,7 +576,10 @@ export function nearEnd(track, pk) {
  * l'aiguillage) et sa voie mère. Un aiguillage dont aucune des deux voies ne s'arrête là est la moitié d'une
  * communication entre deux voies qui continuent : il reçoit sa propre diagonale (`stubs`).
  *
- * @returns {{ ends: Map<string, { start: any, end: any }>, stubs: Array<{ sw: any, from: any, to: any }> }}
+ * Un aiguillage qui mène à un groupe replié (foldLayout) donne un court départ (`short`) vers la bande du groupe.
+ *
+ * @returns {{ ends: Map<string, { start: any, end: any }>,
+ *   stubs: Array<{ sw: any, from: any, to: any, short?: boolean }> }}
  */
 export function connections(data) {
     const byId = new Map(data.tracks.map((t) => [t.id, t]));
@@ -331,6 +590,12 @@ export function connections(data) {
         const a = byId.get(sw.from_track);
         const b = byId.get(sw.to_track);
         if (!a || !b) continue;
+        // Vers un groupe replié : un court départ de la voie dessinée, pas une diagonale jusqu'à la bande.
+        if (a.kind === 'group' || b.kind === 'group') {
+            const [from, to] = a.kind === 'group' ? [b, a] : [a, b];
+            if (from.kind !== 'group') stubs.push({ sw, from, to, short: true });
+            continue;
+        }
         const bEnd = nearEnd(b, sw.pk_m);
         const aEnd = nearEnd(a, sw.pk_m);
         if (bEnd && !ends.get(b.id)[bEnd]) {
@@ -405,10 +670,16 @@ export function trackPaths(data, x, y) {
     for (const s of stubs) {
         const xs = x(s.sw.pk_m);
         const y0 = y(s.from.lane);
-        const y1 = y(s.to.lane);
+        const full = y(s.to.lane);
+        // Départ vers un groupe replié : une demi-rangée dans sa direction.
+        const y1 = s.short ? y0 + Math.sign(full - y0) * (ROW_H / 2) : full;
         const dir = s.sw.facing === 'down' ? -1 : 1;
         out.push({
-            track: { id: `stub-${s.sw.id}`, kind: 'crossover', source: s.sw.source },
+            track: {
+                id: `stub-${s.sw.id}`,
+                kind: s.short ? 'siding' : 'crossover',
+                source: s.sw.source,
+            },
             points: [
                 [xs, y0],
                 [xs + dir * (Math.abs(y1 - y0) / ROW_H) * DIAG, y1],
@@ -570,6 +841,18 @@ export function linePk(row) {
     return row.item?.line_pk_m ?? row.item?.line_pk_from_m ?? row.pk_m;
 }
 
+/**
+ * Graduation de l'axe : PK de la ligne (« 17+500 ») ; sur un livret de parcours (`route`), kilomètres parcourus
+ * depuis le départ (« 17,5 »), l'axe n'étant pas un PK.
+ *
+ * @param {number} m mètres sur l'axe
+ * @param {'line'|'route'} [mode]
+ */
+export function axisLabel(m, mode = 'line', lang = 'fr') {
+    if (mode !== 'route') return pkLabel(m);
+    return formatNumber(Math.max(0, m) / 1000, lang, { maximumFractionDigits: 1 });
+}
+
 /** Index de la ligne du tableau la plus proche d'un PK (la première à égalité), -1 sans ligne. */
 export function nearestRow(rows, pk) {
     if (rows.length === 0) return -1;
@@ -620,9 +903,145 @@ export function coverageShare(coverage, key) {
     return total > 0 ? Math.min(1, (coverage[`${key}_m`] ?? 0) / total) : 0;
 }
 
-/** Adresse de l'API du schéma des voies d'une ligne. */
-export function layoutUrl(slug) {
-    return `/api/v1/lines/${encodeURIComponent(slug)}/track-layout`;
+/**
+ * Adresse de l'API du schéma des voies d'une ligne, avec ses paramètres facultatifs (`from_pk_m`, `to_pk_m`, `kinds`).
+ *
+ * @param {string} slug
+ * @param {{ from_pk_m?: number, to_pk_m?: number, kinds?: string[] }} [params]
+ */
+export function layoutUrl(slug, params = {}) {
+    const qs = new URLSearchParams();
+    if (Number.isFinite(params.from_pk_m))
+        qs.set('from_pk_m', String(Math.floor(params.from_pk_m)));
+    if (Number.isFinite(params.to_pk_m)) qs.set('to_pk_m', String(Math.ceil(params.to_pk_m)));
+    if (params.kinds?.length) qs.set('kinds', params.kinds.join(','));
+    const q = qs.toString();
+    return `/api/v1/lines/${encodeURIComponent(slug)}/track-layout${q ? `?${q}` : ''}`;
+}
+
+/** Familles d'une portion lue au fil du défilement (les points d'exploitation viennent de l'aperçu). */
+export const DETAIL_KINDS = [
+    'tracks',
+    'switches',
+    'signals',
+    'crossings',
+    'buffer_stops',
+    'milestones',
+    'speeds',
+    'gradients',
+];
+
+/** Longueur visée d'une portion lue au fil du défilement (m). */
+export const CHUNK_M = 10000;
+
+/** Au-delà de ce nombre d'objets (voies, aiguillages, signaux…), la ligne est lue par portions. */
+export const FULL_LIMIT = 1500;
+
+/** Nombre de portions lues au plus pour une vue : au-delà (ligne entière ajustée), le schéma attend un zoom. */
+export const MAX_CHUNKS = 8;
+
+/** Objets dessinés d'après `counts` (aperçu) : tout sauf les points d'exploitation. */
+export function objectCount(counts) {
+    if (!counts) return 0;
+    return Object.entries(counts)
+        .filter(([k]) => k !== 'operational_points')
+        .reduce((sum, [, n]) => sum + (Number(n) || 0), 0);
+}
+
+/**
+ * Portions de lecture d'une longue ligne : tous les `size` mètres environ, chaque coupure posée au milieu du plus
+ * grand intervalle entre deux points d'exploitation voisins (à un quart de portion près) pour ne pas couper une gare
+ * en deux : les voies d'une gare arrivent d'un bloc et leurs rangées restent celles d'une même réponse.
+ *
+ * @param {number} start
+ * @param {number} end
+ * @param {number[]} opPks PK des points d'exploitation, triés
+ * @returns {Array<[number, number]>}
+ */
+export function chunkBounds(start, end, opPks = [], size = CHUNK_M) {
+    if (!(end > start)) return [[start, end]];
+    const cuts = [];
+    for (let at = start + size; at < end - size / 2; at += size) {
+        let best = at;
+        let gap = -1;
+        for (let i = 1; i < opPks.length; i++) {
+            const a = opPks[i - 1];
+            const b = opPks[i];
+            const mid = (a + b) / 2;
+            if (Math.abs(mid - at) <= size / 4 && b - a > gap) {
+                gap = b - a;
+                best = Math.round(mid);
+            }
+        }
+        if (best > (cuts.at(-1) ?? start) && best < end) cuts.push(best);
+    }
+    const edges = [start, ...cuts, end];
+    return edges.slice(1).map((b, i) => /** @type {[number, number]} */ ([edges[i], b]));
+}
+
+/** Portions qui touchent [from, to], de la plus proche du milieu à la plus éloignée. */
+export function chunksFor(bounds, from, to) {
+    const mid = (from + to) / 2;
+    return bounds
+        .map((b, i) => ({ i, d: b[1] < mid ? mid - b[1] : b[0] > mid ? b[0] - mid : 0, b }))
+        .filter(({ b }) => b[1] >= from && b[0] <= to)
+        .sort((p, q) => p.d - q.d)
+        .map(({ i }) => i);
+}
+
+/** Tranches de bande (vitesses, déclivités) triées, recollées à la coupure de deux portions. */
+export function joinRanges(ranges, same) {
+    const out = [];
+    for (const r of ranges.slice().sort((a, b) => a.pk_from_m - b.pk_from_m)) {
+        const last = out.at(-1);
+        if (last && r.pk_from_m <= last.pk_to_m && same(last, r)) {
+            last.pk_to_m = Math.max(last.pk_to_m, r.pk_to_m);
+        } else {
+            out.push({ ...r });
+        }
+    }
+    return out;
+}
+
+/**
+ * Réponse unique faite de l'aperçu (étendue, sources, points d'exploitation, couverture, `counts`) et des portions
+ * déjà lues : un objet lu dans deux portions (voie à cheval sur une coupure) n'est gardé qu'une fois, la première.
+ *
+ * @param {any} overview réponse `kinds=operational_points`
+ * @param {any[]} parts réponses des portions (DETAIL_KINDS)
+ */
+export function mergeLayouts(overview, parts) {
+    const unique = (family) => {
+        const seen = new Set();
+        const out = [];
+        for (const p of parts) {
+            for (const o of p?.[family] ?? []) {
+                const id = o.id ?? `${o.pk_m}`;
+                if (seen.has(id)) continue;
+                seen.add(id);
+                out.push(o);
+            }
+        }
+        return out;
+    };
+    const strip = (key) => parts.flatMap((p) => p?.strip?.[key] ?? []);
+    const sameSource = (a, b) => a.source === b.source && a.precision === b.precision;
+    return {
+        ...overview,
+        tracks: unique('tracks'),
+        switches: unique('switches'),
+        signals: unique('signals'),
+        crossings: unique('crossings'),
+        buffer_stops: unique('buffer_stops'),
+        milestones: unique('milestones'),
+        strip: {
+            speeds: joinRanges(strip('speeds'), (a, b) => a.kmh === b.kmh && sameSource(a, b)),
+            gradients: joinRanges(
+                strip('gradients'),
+                (a, b) => a.permille === b.permille && sameSource(a, b),
+            ),
+        },
+    };
 }
 
 /**
@@ -631,20 +1050,14 @@ export function layoutUrl(slug) {
  *
  * @param {string} slug
  * @param {typeof fetch} [fetchImpl]
+ * @param {{ from_pk_m?: number, to_pk_m?: number, kinds?: string[] }} [params]
  */
-export async function fetchTrackLayout(slug, fetchImpl = fetch) {
-    const res = await fetchImpl(layoutUrl(slug), { headers: { Accept: 'application/json' } });
+export async function fetchTrackLayout(slug, fetchImpl = fetch, params = {}) {
+    const res = await fetchImpl(layoutUrl(slug, params), {
+        headers: { Accept: 'application/json' },
+    });
     if (!res.ok) throw new Error(String(res.status));
     return res.json();
-}
-
-/** Résumé de la section repliée : points d'exploitation, aiguillages, signaux. */
-export function layoutSummary(data) {
-    return {
-        ops: data.operational_points.length,
-        switches: data.switches.length,
-        signals: data.signals.length,
-    };
 }
 
 /** Déclivité signée : « +2,5 », « -10,5 », « 0 ». */
@@ -680,6 +1093,30 @@ export function rowTitle(row, t, lang = 'fr') {
         default:
             return t(`tracks.row.${row.kind}`);
     }
+}
+
+/**
+ * Manques de la couverture résumés par famille, dans l'ordre des familles : longueur totale (m), nombre de portions,
+ * et `all` quand la famille manque sur (presque) toute la longueur servie. Le bandeau au-dessus du tableau le dit en
+ * une phrase courte plutôt qu'une ligne par portion.
+ *
+ * @param {Array<{ pk_from_m: number, pk_to_m: number, what: string }>} missing
+ * @param {number} total longueur servie (m)
+ * @returns {Array<{ what: string, metres: number, count: number, all: boolean }>}
+ */
+export function gapSummary(missing, total) {
+    const order = [...MISSING_FAMILIES, 'other'];
+    /** @type {Record<string, { what: string, metres: number, count: number, all: boolean }>} */
+    const by = {};
+    for (const m of missing) {
+        const what = MISSING_FAMILIES.has(m.what) ? m.what : 'other';
+        by[what] ??= { what, metres: 0, count: 0, all: false };
+        by[what].metres += Math.max(0, m.pk_to_m - m.pk_from_m);
+        by[what].count += 1;
+    }
+    return order
+        .filter((w) => by[w])
+        .map((w) => ({ ...by[w], all: total > 0 && by[w].metres >= 0.95 * total }));
 }
 
 /** Familles dont un manque de la couverture a sa phrase (tracks.row.missing.*). */

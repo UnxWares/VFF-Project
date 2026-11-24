@@ -4,9 +4,10 @@
         CROSSING_SWITCHES,
         ROW_H,
         SERVICE_KINDS,
+        axisLabel,
         centerScroll,
         formatPermille,
-        opExtents,
+        laneRows,
         pathD,
         pkLabel,
         placeBoxes,
@@ -23,20 +24,29 @@
      * défile horizontalement : zones grisées et noms des points d'exploitation, voies par rangées, diagonales des
      * aiguillages, traversées, heurtoirs, signaux, passages à niveau, puis la bande des PK, vitesses et
      * déclivités. Le dessin est décoratif pour les lecteurs d'écran : le tableau de parcours donne les mêmes
-     * objets (la région le dit). Seule la partie proche de la fenêtre est dessinée, sauf à l'impression.
+     * objets (la région le dit). Seule la partie proche de la fenêtre est dessinée, sauf à l'impression ; les
+     * rangées sont celles des voies de cette partie (une grande gare n'épaissit pas toute la ligne).
+     *
+     * `data` est la vue repliée (foldLayout) : un groupe de voies de service (`kind: 'group'`) est une bande avec
+     * un bouton qui le déplie (`ontoggle`). `onview` reçoit les PK visibles (lecture par portions des longues lignes).
+     * `axisMode` : `line` (PK de la ligne) ou `route` (livret de parcours : kilomètres parcourus, sens de marche).
      *
      * @type {{
-     *   data: any, axis: any, lanes: { lanes: number[], row: (lane: number) => number, count: number },
-     *   rows: Array<any>, zoom: number, mode?: 'schema'|'band', selectedPk?: number|null, printing?: boolean,
-     *   label: string, helpId: string, lang: string, t: (key: string, options?: object) => string,
-     *   onpick: (index: number) => void, onkey?: (event: KeyboardEvent) => void,
+     *   data: any, axis: any, rows: Array<any>, zoom: number, mode?: 'schema'|'band',
+     *   axisMode?: 'line'|'route', selectedPk?: number|null, printing?: boolean, label: string, helpId: string,
+     *   lang: string, t: (key: string, options?: object) => string, onpick: (index: number) => void,
+     *   onkey?: (event: KeyboardEvent) => void, groups?: Array<any>, ontoggle?: (group: any) => void,
+     *   onview?: (from: number, to: number, center: number) => void,
      * }}
      */
     let {
         data,
         axis,
-        lanes,
         rows,
+        axisMode = 'line',
+        groups = [],
+        ontoggle = () => {},
+        onview = () => {},
         zoom,
         mode = 'schema',
         selectedPk = null,
@@ -68,55 +78,197 @@
     // Au moins la largeur du cadre : les noms des bouts de ligne ont la place d'être écrits.
     const width = $derived(Math.max(Math.ceil(axis.width * zoom + PAD_L + PAD_R), view - 2));
 
-    // Partie dessinée : la fenêtre et une fenêtre de chaque côté (tout à l'impression).
-    const lo = $derived(printing ? -Infinity : scroll - Math.max(view, 400));
-    const hi = $derived(printing ? Infinity : scroll + 2 * Math.max(view, 400));
+    // Partie dessinée : la fenêtre et une fenêtre de chaque côté (tout à l'impression), recalculée par demi-fenêtre
+    // de défilement seulement.
+    const span = $derived(Math.max(view, 400));
+    const lo = $derived(printing ? -Infinity : Math.floor(scroll / (span / 2)) * (span / 2) - span);
+    const hi = $derived(printing ? Infinity : lo + 3.5 * span);
     const near = (x) => x >= lo && x <= hi;
     const nearSpan = (a, b) => b >= lo && a <= hi;
+    const pkLo = $derived(lo === -Infinity ? -Infinity : axis.pk((lo - PAD_L) / zoom));
+    const pkHi = $derived(hi === Infinity ? Infinity : axis.pk((hi - PAD_L) / zoom));
 
-    // Noms des points d'exploitation, sur trois rangées au plus au-dessus des zones.
+    // Voies de la partie dessinée ; les rangées sont celles des voies visibles (recalculées par demi-fenêtre de
+    // défilement : la fenêtre est toujours dans [base, base + 1,5 fenêtre]), pour qu'une grande gare voisine
+    // n'épaississe pas le dessin.
+    const winTracks = $derived(
+        data.tracks.filter((tr) => tr.pk_to_m >= pkLo && tr.pk_from_m <= pkHi),
+    );
+    const rowLo = $derived(
+        printing
+            ? -Infinity
+            : axis.pk((Math.floor(scroll / (span / 2)) * (span / 2) - PAD_L) / zoom),
+    );
+    const rowHi = $derived(
+        printing
+            ? Infinity
+            : axis.pk((Math.floor(scroll / (span / 2)) * (span / 2) + 1.5 * span - PAD_L) / zoom),
+    );
+    const lanes = $derived(
+        laneRows(winTracks.filter((tr) => tr.pk_to_m >= rowLo && tr.pk_from_m <= rowHi)),
+    );
+    const winData = $derived({
+        ...data,
+        tracks: winTracks,
+        switches: data.switches.filter((sw) => sw.pk_m >= pkLo && sw.pk_m <= pkHi),
+    });
+
+    // PK visibles (avec une demi-fenêtre de marge) pour la lecture par portions.
+    $effect(() => {
+        if (!view) return;
+        const a = axis.pk((scroll - view / 2 - PAD_L) / zoom);
+        const b = axis.pk((scroll + 1.5 * view - PAD_L) / zoom);
+        onview(a, b, axis.pk((scroll + view / 2 - PAD_L) / zoom));
+    });
+
+    // Noms des points d'exploitation, sur deux étages au plus au-dessus des zones : gares et haltes toujours,
+    // bifurcations et évitements à partir de 150 %, faisceaux et autres points mineurs à partir de 300 % ; un nom
+    // reste entier dans la partie visible du cadre (ramené au bord plutôt que coupé).
+    const NAME_ZOOM = { 0: 0, 1: 1.5, 2: 3 };
+    const nameRank = (op) =>
+        op.kind === 'station' || op.kind === 'halt'
+            ? 0
+            : op.kind === 'junction' || op.kind === 'passing_loop' || op.kind === 'border'
+              ? 1
+              : 2;
     const names = $derived.by(() => {
-        const ops = data.operational_points;
-        const rowsOf = stackLabels(
-            ops.map((op) => ({
-                x: X(op.pk_m),
-                w: textWidth(op.name, 16) + 14,
-                rank: op.kind === 'station' ? 0 : op.kind === 'junction' ? 1 : 2,
-            })),
-            { maxRows: 3, gap: 10 },
+        const left = printing ? 0 : scroll + PAD_L - 8;
+        const right = printing ? width : scroll + (view || width);
+        const ops = data.operational_points.filter(
+            (op) =>
+                (printing || zoom >= NAME_ZOOM[nameRank(op)]) &&
+                X(op.pk_m) >= left - 200 &&
+                X(op.pk_m) <= right + 200,
         );
-        // Le nom reste dans le dessin : centré sur son point, ramené au bord quand il déborderait.
-        return ops.map((op, i) => {
+        const placed = ops.map((op) => {
             const half = (textWidth(op.name, 16) + 4) / 2;
             const at = X(op.pk_m);
             return {
                 op,
                 at,
-                x: Math.min(width - 6 - half, Math.max(10 + half, at)),
-                row: rowsOf[i],
+                half,
+                x: Math.min(right - 8 - half, Math.max(left + 8 + half, at)),
             };
         });
+        const rowsOf = stackLabels(
+            placed.map((n) => ({ x: n.x, w: 2 * n.half + 10, rank: nameRank(n.op) })),
+            { maxRows: 2, gap: 12 },
+        );
+        return placed.map((n, i) => ({ ...n, row: rowsOf[i] }));
+    });
+    // Fond gris de chaque zone dilatée : il épouse les voies dessinées (de la première à la dernière voie locale, de
+    // la rangée la plus haute à la plus basse), pas toute la hauteur du dessin.
+    const zoneBoxes = $derived.by(() => {
+        if (!schema) return [];
+        const out = [];
+        for (const z of axis.zones) {
+            if (!nearSpan(X(z.from_m), X(z.to_m))) continue;
+            const here = winTracks.filter(
+                (tr) => tr.kind !== 'crossover' && tr.pk_to_m > z.from_m && tr.pk_from_m < z.to_m,
+            );
+            const local = here.filter(
+                (tr) => tr.pk_from_m >= z.from_m - 1 && tr.pk_to_m <= z.to_m + 1,
+            );
+            const pks = z.ops
+                .map((id) => data.operational_points.find((o) => o.id === id)?.pk_m)
+                .filter((pk) => pk !== undefined);
+            const from = Math.max(
+                z.from_m,
+                Math.min(...local.map((tr) => tr.pk_from_m), ...pks.map((pk) => pk - 60)) - 40,
+            );
+            const to = Math.min(
+                z.to_m,
+                Math.max(...local.map((tr) => tr.pk_to_m), ...pks.map((pk) => pk + 60)) + 40,
+            );
+            if (!(to > from)) continue;
+            const ys = (here.length ? here : [{ lane: 0 }]).map((tr) => Y(tr.lane));
+            out.push({
+                key: `${z.from_m}`,
+                x: X(from),
+                w: Math.max(8, X(to) - X(from)),
+                y0: Math.min(...ys) - ROW_H / 2 + 2,
+                y1: Math.max(...ys) + ROW_H / 2 - 2,
+            });
+        }
+        return out;
+    });
+    // Un bouton par zone, sous ses voies (les deux côtés d'une zone se replient ensemble).
+    const openGroups = $derived.by(() => {
+        if (!schema) return [];
+        /** @type {Record<string, { g: any, count: number, from: number, to: number }>} */
+        const byKey = {};
+        for (const g of groups) {
+            if (!g.expanded) continue;
+            const o = byKey[g.key];
+            byKey[g.key] = {
+                g,
+                count: (o?.count ?? 0) + g.count,
+                from: Math.min(o?.from ?? Infinity, g.pk_from_m),
+                to: Math.max(o?.to ?? -Infinity, g.pk_to_m),
+            };
+        }
+        return Object.values(byKey)
+            .map((o) => ({ ...o, x: X((o.from + o.to) / 2) }))
+            .filter((o) => near(o.x));
     });
     const nameRows = $derived(Math.max(1, ...names.map((n) => n.row + 1)));
     const TOP = $derived(10 + nameRows * NAME_ROW + 12);
     const Y = (lane) => TOP + lanes.row(lane) * ROW_H + ROW_H / 2;
     const tracksH = $derived(schema ? lanes.count * ROW_H : OBJECT_ROW);
-    const stripTop = $derived(TOP + tracksH + 14);
+    // Sous les voies, la place des boutons « Replier » des zones dépliées.
+    const FOLD_ROW = 40;
+    const stripTop = $derived(TOP + tracksH + (openGroups.length ? FOLD_ROW : 14));
     const height = $derived(stripTop + 3 * STRIP_ROW + 8);
 
-    const extents = $derived(opExtents(data));
     const zoneStarts = $derived(
         axis.pieces.filter((p) => p.kind === 'zone').map((p) => PAD_L + p.x0 * zoom),
     );
 
-    const paths = $derived(schema ? trackPaths(data, X, Y) : []);
+    const paths = $derived(
+        schema ? trackPaths(winData, X, Y).filter((p) => p.track.kind !== 'group') : [],
+    );
+    // Groupes repliés : une bande par groupe, et son bouton (HTML, au clavier) qui le déplie.
+    const bands = $derived(
+        schema
+            ? winTracks
+                  .filter((tr) => tr.kind === 'group')
+                  .map((tr) => {
+                      const g = groups.find((x) => x.id === tr.id);
+                      const x0 = X(tr.pk_from_m);
+                      const x1 = Math.max(X(tr.pk_to_m), x0 + 12);
+                      // Bouton au milieu de la partie visible de la bande (jamais coupé par le bord du cadre).
+                      const text = t(g?.service ? 'tracks.fold.count' : 'tracks.fold.all', {
+                          count: g?.count ?? 0,
+                      });
+                      const half = textWidth(text, 14) / 2 + 14;
+                      const va = Math.max(x0, scroll + PAD_L);
+                      const vb = Math.min(x1, scroll + view - 8);
+                      const mid = (x0 + x1) / 2;
+                      let at = mid;
+                      if (vb - va >= 2 * half) at = Math.min(vb - half, Math.max(va + half, mid));
+                      else if (vb > va)
+                          at = Math.max(
+                              scroll + half + 4,
+                              Math.min(scroll + view - half - 4, (va + vb) / 2),
+                          );
+                      return { tr, g, x0, x1, y: Y(tr.lane), at, text };
+                  })
+                  .filter((b) => b.g && nearSpan(b.x0, b.x1))
+            : [],
+    );
+    // Groupes dépliés de la partie dessinée : un bouton pour les replier, au-dessus de leur zone.
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
     const laneOf = (trackId) => tracksById.get(trackId)?.lane ?? 0;
 
     /** Voies présentes à un PK : rangées haute et basse (passages à niveau, traversées). */
     function spanAt(pk) {
-        const here = data.tracks.filter(
-            (tr) => tr.kind !== 'crossover' && tr.pk_from_m <= pk && tr.pk_to_m >= pk,
+        // Voies dessinées seulement : un passage à niveau ne traverse pas la bande d'un groupe replié.
+        const here = winTracks.filter(
+            (tr) =>
+                tr.kind !== 'crossover' &&
+                tr.kind !== 'group' &&
+                tr.pk_from_m <= pk &&
+                tr.pk_to_m >= pk,
         );
         if (here.length === 0) return [Y(0), Y(0)];
         const ys = here.map((tr) => Y(tr.lane));
@@ -139,10 +291,12 @@
                       const x = X(sw.pk_m);
                       const ya = Y(laneOf(sw.from_track));
                       const yb = Y(laneOf(sw.to_track));
+                      // Vers un groupe replié : sur la voie dessinée, jamais à mi-chemin de la bande.
+                      const toGroup = tracksById.get(sw.to_track)?.kind === 'group';
                       const cross = CROSSING_SWITCHES.has(sw.kind);
-                      return { sw, x, y: cross ? (ya + yb) / 2 : ya, cross };
+                      return { sw, x, y: cross && !toGroup ? (ya + yb) / 2 : ya, cross };
                   })
-                  .filter((m) => near(m.x))
+                  .filter((m) => near(m.x) && tracksById.get(m.sw.from_track)?.kind !== 'group')
             : [],
     );
     const signalMarks = $derived(
@@ -155,11 +309,17 @@
                   .filter((m) => near(m.x))
             : [],
     );
+    // Traversées piétonnes des quais (zones dilatées des gares) : dans le tableau seulement, elles cacheraient les voies.
+    const inZone = (pk) => axis.zones.some((z) => pk >= z.from_m && pk <= z.to_m);
     const crossingMarks = $derived(
         data.crossings
+            .filter((c) => !(c.use === 'pedestrian' && inZone(c.pk_m)))
             .map((c) => {
                 const [y0, y1] = schema ? spanAt(c.pk_m) : [TOP + 20, TOP + 20];
-                return { c, x: X(c.pk_m), y0, y1 };
+                // Traversée de voies : sur la voie qu'elle croise quand on la connaît.
+                const on = (c.tracks ?? []).find((id) => tracksById.has(id));
+                const yc = schema && on ? Y(laneOf(on)) : y0;
+                return { c, x: X(c.pk_m), y0: c.kind === 'level_crossing' ? y0 : yc, y1 };
             })
             .filter((m) => near(m.x)),
     );
@@ -254,7 +414,7 @@
         // Texte centré sur son trait, sans passer sous les en-têtes de la bande (64 px à gauche).
         const items = cands
             .map((c) => {
-                const text = pkLabel(c.pk);
+                const text = axisLabel(c.pk, axisMode, lang);
                 const half = textWidth(text, 14) / 2;
                 const x = X(c.pk);
                 return {
@@ -300,7 +460,10 @@
         const v = valueAt(data.strip.speeds, cursorPk);
         const g = valueAt(data.strip.gradients, cursorPk);
         return {
-            pk: t('tracks.cursor_pk', { pk: pkLabel(Math.round(cursorPk)) }),
+            pk:
+                axisMode === 'route'
+                    ? t('tracks.route.cursor', { km: axisLabel(cursorPk, axisMode, lang) })
+                    : t('tracks.cursor_pk', { pk: pkLabel(Math.round(cursorPk)) }),
             speed: v ? `${formatNumber(v.kmh, lang)} km/h` : null,
             gradient: g ? `${permille(g.permille)} ‰` : null,
         };
@@ -325,6 +488,12 @@
         const left = centerScroll(X(pk), frame.clientWidth, frame.scrollWidth);
         const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
         frame.scrollTo({ left, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+    }
+
+    /** Amène un PK au bord gauche de la fenêtre, juste après les en-têtes de la bande (ouverture de la page). */
+    export function startAt(pk) {
+        if (!frame) return;
+        frame.scrollLeft = Math.max(0, X(pk) - PAD_L - 40);
     }
 
     /** PK au milieu de la fenêtre (pour garder le même endroit en changeant le zoom). */
@@ -364,28 +533,21 @@
             {onclick}
         >
             <!-- Zones des points d'exploitation et leurs noms. -->
-            {#each data.operational_points as op (op.id)}
-                {@const e = extents.get(op.id)}
-                {#if e && nearSpan(X(e.from_m), X(e.to_m))}
-                    <rect
-                        class="zone"
-                        x={X(e.from_m)}
-                        y={TOP - 6}
-                        width={Math.max(6, X(e.to_m) - X(e.from_m))}
-                        height={tracksH + 12}
-                        rx="8"
-                    />
-                {/if}
+            {#each zoneBoxes as z (z.key)}
+                <rect class="zone" x={z.x} y={z.y0} width={z.w} height={z.y1 - z.y0} rx="8" />
             {/each}
             {#each names as n (n.op.id)}
                 {#if n.row >= 0 && near(n.x)}
-                    <line
-                        class="name-tick"
-                        x1={n.at}
-                        x2={n.at}
-                        y1={10 + (n.row + 1) * NAME_ROW + 2}
-                        y2={TOP - 6}
-                    />
+                    <!-- Le trait descend du nom à son point, quand le nom n'a pas été ramené loin de lui. -->
+                    {#if Math.abs(n.at - n.x) <= n.half}
+                        <line
+                            class="name-tick"
+                            x1={n.at}
+                            x2={n.at}
+                            y1={10 + (n.row + 1) * NAME_ROW + 2}
+                            y2={TOP - 6}
+                        />
+                    {/if}
                     <text
                         class={['op-name', n.op.kind, n.op.precision === 'approximate' && 'approx']}
                         x={n.x}
@@ -408,6 +570,16 @@
                             d={pathD(p.points)}
                         />
                     {/if}
+                {/each}
+                {#each bands as b (b.tr.id)}
+                    <rect
+                        class="group"
+                        x={b.x0}
+                        y={b.y - 11}
+                        width={b.x1 - b.x0}
+                        height="22"
+                        rx="11"
+                    />
                 {/each}
                 {#each bufferMarks as m (m.b.id ?? m.b.pk_m)}
                     <line class="buffer" x1={m.x} x2={m.x} y1={m.y - 8} y2={m.y + 8} />
@@ -433,7 +605,7 @@
 
             {#each crossingMarks as m (m.c.id)}
                 {#if m.c.kind === 'level_crossing'}
-                    <g class="pn">
+                    <g class={['pn', m.c.use === 'pedestrian' && 'foot']}>
                         <line x1={m.x - 3} x2={m.x - 3} y1={m.y0 - 10} y2={m.y1 + 10} />
                         <line x1={m.x + 3} x2={m.x + 3} y1={m.y0 - 10} y2={m.y1 + 10} />
                     </g>
@@ -512,6 +684,34 @@
                 <line class="cursor" x1={cursor} x2={cursor} y1="0" y2={height} />
             {/if}
         </svg>
+        {#each bands as b (b.tr.id)}
+            <button
+                type="button"
+                class="fold"
+                style:left="{b.at}px"
+                style:top="{b.y}px"
+                aria-expanded="false"
+                aria-label={t('tracks.fold.expand', {
+                    count: b.g.count,
+                    name: b.g.op?.name ?? axisLabel(b.g.pk_from_m, axisMode, lang),
+                })}
+                onclick={() => ontoggle(b.g)}>{b.text}</button
+            >
+        {/each}
+        {#each openGroups as o (o.g.key)}
+            <button
+                type="button"
+                class="fold open"
+                style:left="{o.x}px"
+                style:top="{TOP + tracksH + FOLD_ROW / 2 - 2}px"
+                aria-expanded="true"
+                aria-label={t('tracks.fold.collapse', {
+                    count: o.count,
+                    name: o.g.op?.name ?? axisLabel(o.from, axisMode, lang),
+                })}
+                onclick={() => ontoggle(o.g)}>{t('tracks.fold.fold')}</button
+            >
+        {/each}
         {#if reading && cursor !== null}
             <div
                 class={['reading', cursor > scroll + view - 200 && 'left']}
@@ -526,7 +726,9 @@
     </div>
     <!-- En-têtes de la bande, fixes pendant le défilement. -->
     <div class="heads" aria-hidden="true" style:--strip-top="{stripTop}px">
-        <span style:--row="0">{t('tracks.strip.pk')}</span>
+        <span style:--row="0"
+            >{t(axisMode === 'route' ? 'tracks.route.strip' : 'tracks.strip.pk')}</span
+        >
         <span style:--row="1">{t('tracks.strip.speed')}</span>
         <span style:--row="2">{t('tracks.strip.gradient')}</span>
         {#if !schema}<span class="objects" style:--top="{TOP + 8}px"
@@ -604,6 +806,40 @@
     .track.approx {
         stroke-dasharray: 2 5;
     }
+    .group {
+        fill: var(--tl-zone);
+        stroke: var(--vff-text-muted);
+        stroke-width: 1.5;
+        stroke-dasharray: 6 4;
+    }
+    .fold {
+        position: absolute;
+        z-index: 1;
+        min-height: 26px;
+        padding: 1px 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-pill);
+        background: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.5;
+        white-space: nowrap;
+        cursor: pointer;
+        transform: translate(-50%, -50%);
+    }
+    .fold:hover {
+        border-color: var(--vff-accent-strong);
+    }
+    .fold:focus-visible {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 1px;
+    }
+    .fold.open {
+        color: var(--vff-text-muted);
+        font-weight: 500;
+    }
     .switch {
         fill: var(--vff-bg-elevated);
         stroke: var(--vff-text);
@@ -628,6 +864,11 @@
     .pn line {
         stroke: var(--vff-text-muted);
         stroke-width: 1.8;
+    }
+    /* Traversée piétonne (souvent sur les quais d'une gare) : plus discrète qu'un passage à niveau routier. */
+    .pn.foot line {
+        stroke-width: 1;
+        stroke-dasharray: 2 3;
     }
     .axis {
         stroke: var(--vff-text);
@@ -741,7 +982,8 @@
         }
         .heads,
         .reading,
-        .cursor {
+        .cursor,
+        .fold {
             display: none;
         }
     }

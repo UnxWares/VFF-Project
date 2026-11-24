@@ -54,6 +54,9 @@ final class TrackLayout
     /** Familles que l'on peut demander (`kinds`). */
     public const KINDS = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'speeds', 'gradients'];
 
+    /** Familles comptées dans `counts`. */
+    public const COUNTED = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'];
+
     /** Familles dont les trous sont listés dans `coverage.missing`. */
     public const COVERAGE_FAMILIES = ['tracks', 'switches', 'signals', 'speeds', 'gradients'];
 
@@ -181,7 +184,9 @@ final class TrackLayout
 
         $in = fn (int $a, int $b): bool => $start === null || $end === null || ($a <= $end && $b >= $start);
         $points = array_values(array_filter($merged['operational_points'], fn (array $o): bool => $o['pk_m'] !== null && $in((int) $o['pk_m'], (int) $o['pk_m'])));
-        $tracks = LaneAssigner::assign(array_values(array_filter($merged['tracks'], fn (array $t): bool => $in((int) $t['pk_from_m'], (int) $t['pk_to_m']))));
+        $tracks = array_values(array_filter($merged['tracks'], fn (array $t): bool => $in((int) $t['pk_from_m'], (int) $t['pk_to_m'])));
+        // Les rangées ne servent qu'aux voies : une réponse sans voies (aperçu d'une longue ligne) s'en passe.
+        $tracks = in_array('tracks', $kinds, true) ? LaneAssigner::assign($tracks) : array_map(fn (array $t): array => ['lane' => 0] + $t, $tracks);
         $pointFilter = fn (array $list): array => self::sortByPk(array_values(array_filter($list, fn (array $o): bool => $in((int) $o['pk_m'], (int) $o['pk_m']))));
         $rangeFilter = fn (array $list): array => self::sortRanges(self::clipTo(array_values(array_filter($list, fn (array $r): bool => $in((int) $r['pk_from_m'], (int) $r['pk_to_m']))), $start, $end));
 
@@ -202,6 +207,12 @@ final class TrackLayout
             'strip' => ['speeds' => $rangeFilter($merged['speeds']), 'gradients' => $rangeFilter($merged['gradients'])],
             'coverage' => self::coverage($start, $end, $covered, $coveredBy),
         ];
+        // Nombre d'objets de chaque famille sur la portion servie, quelles que soient les familles demandées : un aperçu
+        // (`kinds=operational_points`) dit ce que la ligne a sans le transférer.
+        $out['counts'] = [];
+        foreach (self::COUNTED as $family) {
+            $out['counts'][$family] = count($out[$family]);
+        }
         foreach (['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'] as $family) {
             if (! in_array($family, $kinds, true)) {
                 $out[$family] = [];
@@ -375,28 +386,62 @@ final class TrackLayout
      */
     private static function newPunctual(array $kept, array $covered, array $items): array
     {
+        // Objets rangés par cases de DEDUPE_M mètres : un doublon ne peut être que dans la case du PK ou ses deux voisines
+        // (4 430 aiguillages sur Paris - Marseille : la comparaison de tous avec tous coûtait près d'une seconde).
+        $keptCells = self::cells($kept);
+        $outCells = [];
         $out = [];
         foreach ($items as $o) {
             $pk = (int) $o['pk_m'];
             if (self::overlapsAny($covered, $pk, $pk)) {
                 continue;
             }
-            foreach ($kept as $k) {
+            foreach (self::neighbours($keptCells, $pk) as $k) {
                 if (abs((int) $k['pk_m'] - $pk) <= self::DEDUPE_M && (($k['ref'] ?? null) === null || ($o['ref'] ?? null) === null || $k['ref'] === $o['ref'])) {
                     continue 2;
                 }
             }
             // Within one source, two objects are distinct (the switches of a ladder, the signals of a gantry lie a
             // few metres apart): only the same reference at the same place is a duplicate.
-            foreach ($out as $k) {
+            foreach (self::neighbours($outCells, $pk) as $k) {
                 if (abs((int) $k['pk_m'] - $pk) <= self::DEDUPE_M && ($o['ref'] ?? null) !== null && ($k['ref'] ?? null) === $o['ref']) {
                     continue 2;
                 }
             }
             $out[] = $o;
+            $outCells[(int) floor($pk / self::DEDUPE_M)][] = $o;
         }
 
         return $out;
+    }
+
+    /**
+     * Objets ponctuels rangés par case de DEDUPE_M mètres de PK.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return array<int, list<array<string, mixed>>>
+     */
+    private static function cells(array $items): array
+    {
+        $cells = [];
+        foreach ($items as $o) {
+            $cells[(int) floor((int) $o['pk_m'] / self::DEDUPE_M)][] = $o;
+        }
+
+        return $cells;
+    }
+
+    /**
+     * Objets de la case d'un PK et des deux cases voisines.
+     *
+     * @param  array<int, list<array<string, mixed>>>  $cells
+     * @return list<array<string, mixed>>
+     */
+    private static function neighbours(array $cells, int $pk): array
+    {
+        $c = (int) floor($pk / self::DEDUPE_M);
+
+        return [...$cells[$c - 1] ?? [], ...$cells[$c] ?? [], ...$cells[$c + 1] ?? []];
     }
 
     /**

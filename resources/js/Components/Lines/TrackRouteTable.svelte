@@ -7,14 +7,17 @@
      * Tableau de parcours du schéma des voies : un objet par ligne, trié par PK (km parcourus, vitesse,
      * déclivité, PK de ligne, objet, provenance). C'est l'alternative textuelle du schéma : chaque objet dessiné
      * y figure. Le bouton de l'objet centre le schéma sur lui ; un clic dans le schéma choisit la ligne la plus
-     * proche, que le tableau fait défiler dans son propre cadre (jamais la page).
+     * proche, que le tableau fait défiler dans son propre cadre (jamais la page). Un point d'exploitation rattaché à
+     * une gare de VFF (`station_slug`) a un lien vers sa fiche.
+     *
+     * `axisMode` : `route` sur un livret de parcours (sens des signaux dit par rapport au sens de marche).
      *
      * @type {{
      *   rows: Array<any>, selected?: string|null, lang: string, t: (key: string, options?: object) => string,
-     *   onselect: (row: any) => void, tracksById: Map<string, any>,
+     *   onselect: (row: any) => void, tracksById: Map<string, any>, axisMode?: 'line'|'route',
      * }}
      */
-    let { rows, selected = null, lang, t, onselect, tracksById } = $props();
+    let { rows, selected = null, lang, t, onselect, tracksById, axisMode = 'line' } = $props();
 
     /** @type {HTMLDivElement|undefined} */
     let wrap = $state();
@@ -40,7 +43,13 @@
             if (ref) parts.push(t('tracks.row.on_track', { ref }));
         }
         if (row.kind === 'signal' && (it.direction === 'up' || it.direction === 'down')) {
-            parts.push(t(`tracks.row.${it.direction}`));
+            parts.push(
+                t(
+                    axisMode === 'route'
+                        ? `tracks.route.${it.direction}`
+                        : `tracks.row.${it.direction}`,
+                ),
+            );
         }
         return parts.join(' · ');
     }
@@ -73,7 +82,9 @@
     aria-label={t('tracks.table.region')}
 >
     <table class="vff-table">
-        <caption>{t('tracks.table.caption')}</caption>
+        <caption
+            >{t(axisMode === 'route' ? 'tracks.route.caption' : 'tracks.table.caption')}</caption
+        >
         <thead>
             <tr>
                 <th scope="col" class="num">{t('tracks.table.km')}</th>
@@ -96,18 +107,29 @@
                     <td class="num">{permille(row.permille)}</td>
                     <td class="num">{pkLabel(linePk(row))}</td>
                     <th scope="row" class="obj">
-                        <button
-                            type="button"
-                            class="pick"
-                            onclick={() => onselect(row)}
-                            aria-describedby="tl-center-help"
-                        >
-                            <TrackPicto kind={PICTO[row.kind] ?? row.kind} />
-                            <span class="label">
-                                <span class="name">{rowTitle(row, t, lang)}</span>
-                                {#if detail(row)}<span class="detail">{detail(row)}</span>{/if}
-                            </span>
-                        </button>
+                        <div class="obj-in">
+                            <button
+                                type="button"
+                                class="pick"
+                                onclick={() => onselect(row)}
+                                aria-describedby="tl-center-help"
+                            >
+                                <TrackPicto kind={PICTO[row.kind] ?? row.kind} />
+                                <span class="label">
+                                    <span class="name">{rowTitle(row, t, lang)}</span>
+                                    {#if detail(row)}<span class="detail">{detail(row)}</span>{/if}
+                                </span>
+                            </button>
+                            {#if row.kind === 'op' && row.item.station_slug}
+                                <a
+                                    class="vff-link sheet"
+                                    href="/stations/{encodeURIComponent(row.item.station_slug)}"
+                                    aria-label={t('tracks.table.station_label', {
+                                        name: row.item.name,
+                                    })}>{t('tracks.table.station')}</a
+                                >
+                            {/if}
+                        </div>
                     </th>
                     <td class="src">
                         <span class={['badge', 'b-' + row.prov.key]} title={sourceText(row.prov)}
@@ -150,7 +172,7 @@
         box-shadow: inset 0 -1px 0 var(--vff-border);
     }
     .route :is(th, td) {
-        padding: 8px 10px;
+        padding: 4px 10px;
         vertical-align: middle;
     }
     thead th {
@@ -159,15 +181,20 @@
     }
     th.obj {
         font-weight: 400;
-        min-width: 11rem;
+        min-width: 17rem;
+    }
+    .obj-in {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     .pick {
         display: flex;
         align-items: center;
         gap: 10px;
         width: 100%;
-        min-height: 44px;
-        margin: -4px 0;
+        min-height: 40px;
+        margin: -2px 0;
         padding: 4px 8px;
         border: 0;
         border-radius: var(--vff-radius-sm);
@@ -184,17 +211,24 @@
         outline: var(--vff-focus-width) solid var(--vff-focus);
         outline-offset: 0;
     }
+    .sheet {
+        flex: none;
+        font-size: var(--vff-fs-xs);
+        white-space: nowrap;
+    }
     .label {
         display: flex;
         flex-direction: column;
         min-width: 0;
     }
-    .k-op .name {
+    .name {
         font-weight: 700;
+        line-height: 1.3;
     }
     .detail {
         color: var(--vff-text-muted);
         font-size: var(--vff-fs-xs);
+        line-height: 1.3;
     }
     tr.selected > * {
         background: var(--vff-bg-accent);

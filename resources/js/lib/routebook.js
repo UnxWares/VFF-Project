@@ -64,6 +64,8 @@ export function asLayout(book) {
             direction: travelSense(s.direction, direction.get(s.leg)),
         })),
         crossings: (book.crossings ?? []).map(point),
+        buffer_stops: (book.buffer_stops ?? []).map(point),
+        milestones: (book.milestones ?? []).map(point),
         strip: {
             speeds: (book.strip?.speeds ?? []).map(range),
             gradients: (book.strip?.gradients ?? []).map(range),

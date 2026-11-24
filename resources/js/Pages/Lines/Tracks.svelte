@@ -1,11 +1,12 @@
 <script>
+    import { untrack } from 'svelte';
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import TrackLayout from '$components/Lines/TrackLayout.svelte';
     import { i18n } from '$lib/i18n.js';
     import { breadcrumbSchema } from '$lib/structuredData.js';
-    import { fetchTrackLayout, hasTracks, normalize } from '$lib/trackLayout.js';
+    import { TrackLayoutLoader } from '$lib/trackLayoutLoader.svelte.js';
 
     /**
      * Schéma des voies d'une ligne en plein écran (`/lines/{slug}/voies`, LineTrackLayoutPageController) : le
@@ -24,24 +25,23 @@
     // Noms des lignes : en français, quelle que soit la langue de la page.
     const nameLang = $derived(line.name_lang ?? (lang === 'fr' ? undefined : 'fr'));
 
-    let status = $state(/** @type {'loading'|'ready'|'error'} */ ('loading'));
-    /** @type {any} */
-    let layout = $state.raw(null);
-
-    async function load() {
-        status = 'loading';
-        try {
-            layout = await fetchTrackLayout(line.slug);
-            status = 'ready';
-        } catch {
-            status = 'error';
-        }
-    }
+    // Aperçu d'abord (étendue, points d'exploitation, nombre d'objets), puis la ligne entière si elle est courte, ou
+    // par portions au fil du défilement si elle est longue (TrackLayoutLoader).
+    // Un chargeur par ligne (la page peut recevoir une autre ligne sans être recréée).
+    let loader = $state.raw(new TrackLayoutLoader(untrack(() => line.slug)));
+    $effect.pre(() => {
+        const next = line.slug;
+        if (untrack(() => loader.slug) !== next) loader = new TrackLayoutLoader(next);
+    });
+    const status = $derived(loader.status);
+    const load = () => loader.loadOverview();
     $effect(() => {
         load();
     });
 
-    const empty = $derived(status === 'ready' && !hasTracks(normalize(layout)));
+    const empty = $derived(
+        status === 'ready' && loader.overview && (loader.overview.counts?.tracks ?? 0) === 0,
+    );
 </script>
 
 <svelte:head>
@@ -79,7 +79,7 @@
 
         <section class="tracks-page" aria-label={t('tracks.page.title')}>
             <p class="intro">{t('tracks.intro')}</p>
-            {#if status === 'loading'}
+            {#if !loader.overview && status !== 'error'}
                 <p class="state" role="status">{t('tracks.loading')}</p>
             {:else if status === 'error'}
                 <p class="state" role="alert">
@@ -94,7 +94,7 @@
                     <p>{t('tracks.empty_detail')}</p>
                 </div>
             {:else}
-                <TrackLayout {layout} slug={line.slug} lineName={line.name} full />
+                <TrackLayout {loader} slug={line.slug} lineName={line.name} full />
             {/if}
         </section>
     </main>

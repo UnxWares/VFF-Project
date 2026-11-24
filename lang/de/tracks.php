@@ -53,6 +53,34 @@ return [
         'note' => 'Oben = links der Fahrtrichtung (steigende Kilometrierung); die freie Strecke ist gestaucht, Bahnhöfe und Ausweichen sind gedehnt.',
     ],
 
+    'fold' => [
+        'count_one' => 'ein Nebengleis',
+        'count_other' => ':count Nebengleise',
+        'all_one' => 'ein Gleis',
+        'all_other' => ':count Gleise',
+        'expand' => 'Eingeklappte Gleise von :name anzeigen (:count)',
+        'collapse' => 'Gleise von :name einklappen (:count)',
+        'fold' => 'Einklappen',
+        'expand_all' => 'Gleisgruppen anzeigen',
+        'collapse_all' => 'Gleisgruppen einklappen',
+        'note' => 'Gleisgruppen und Nebengleise eines Bahnhofs sind eingeklappt, in einem sehr großen Bahnhof auch seine übrigen Gleise: Klicken Sie, um sie anzuzeigen.',
+    ],
+    'parts' => [
+        'loading' => 'Die Gleise dieses Streckenabschnitts werden geladen…',
+        'too_wide' => 'Die ganze Strecke ist zu sehen: Vergrößern Sie die Ansicht, um die Gleise des gewünschten Abschnitts zu laden.',
+        'failed' => 'Ein Teil der Gleise konnte nicht geladen werden: Verschieben Sie den Plan, um es erneut zu versuchen.',
+    ],
+    'route' => [
+        'strip' => 'km',
+        'cursor' => 'km :km gefahren',
+        'up' => 'Fahrtrichtung',
+        'down' => 'Gegenrichtung',
+        'caption' => 'Fahrtabelle, nach gefahrenen Kilometern sortiert',
+        'note' => 'Oben = links in Fahrtrichtung; die Achse zählt die gefahrenen Kilometer ab dem Start, die Tabelle behält den Streckenkilometer jeder Strecke. Die freie Strecke ist gestaucht, Bahnhöfe und Ausweichen sind gedehnt.',
+        'schema_label' => 'Gleisplan der Fahrt, von km :from bis km :to',
+        'band_label' => 'Band der Fahrt, von km :from bis km :to',
+    ],
+
     'schema_label' => 'Gleisplan, von km :from bis km :to',
     'band_label' => 'Streckenband, von km :from bis km :to',
     'schema_help' => 'Die Fahrtabelle enthält dieselben Objekte. Mit der Tastatur: Pfeiltasten links und rechts für das vorige oder nächste Objekt, Pos1 und Ende für die Enden, + und - zum Zoomen.',
@@ -78,6 +106,9 @@ return [
         'none' => 'Kein Objekt dieser Art auf der Strecke.',
         'filter' => 'Objekte der Tabelle',
         'badges' => 'R = RINF, O = OpenStreetMap, D = von VFF abgeleitet, ≈ angenähert, ! fehlt.',
+        'show' => 'Anzeigen (:shown von :total)',
+        'station' => 'Bahnhofsseite',
+        'station_label' => 'Bahnhofsseite von :name',
     ],
     'kind' => [
         'op' => 'Betriebsstellen',
@@ -142,6 +173,18 @@ return [
 
     'coverage' => 'Beschriebene Gleise: :list, von :total.',
     'coverage_part' => ':source :km',
+    'gaps' => [
+        'all' => ':what auf der ganzen Länge',
+        'part' => ':what auf :km',
+        'what' => [
+            'tracks' => 'Gleise',
+            'switches' => 'Weichen',
+            'signals' => 'Signale',
+            'speeds' => 'Geschwindigkeiten',
+            'gradients' => 'Neigungen',
+            'other' => 'weitere Daten',
+        ],
+    ],
     'coverage_missing' => 'Es fehlen: :list.',
     'sources_title' => 'Datensätze und Lizenzen',
     'fetched' => 'gelesen am :date',

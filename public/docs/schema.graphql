@@ -4945,6 +4945,33 @@ type TrackLayout {
 
   "Couverture de la portion servie par source et portions sans donnée."
   coverage: TrackLayoutCoverage!
+
+  "Nombre d'objets de chaque famille sur la portion servie, quelles que soient les familles demandées (`kinds`)."
+  counts: TrackLayoutCounts!
+}
+
+"Nombre d'objets de chaque famille d'un schéma des voies (aperçu d'une longue ligne sans ses objets)."
+type TrackLayoutCounts {
+  "Points d'exploitation."
+  operational_points: Int!
+
+  "Voies."
+  tracks: Int!
+
+  "Aiguillages."
+  switches: Int!
+
+  "Signaux."
+  signals: Int!
+
+  "Passages à niveau et traversées de voies."
+  crossings: Int!
+
+  "Heurtoirs."
+  buffer_stops: Int!
+
+  "Bornes kilométriques."
+  milestones: Int!
 }
 
 "Ligne d'un schéma des voies."

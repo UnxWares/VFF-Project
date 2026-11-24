@@ -1023,7 +1023,9 @@ Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de
 voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
 inscription), `strip.speeds[]`, `strip.gradients[]` (‰
-dans le sens des PK croissants), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), le bloc d'attribution et `vff_url`.
+dans le sens des PK croissants), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), `counts` (nombre d'objets de chaque
+famille sur la portion, même filtrée par `kinds` : `kinds=operational_points` donne un aperçu léger d'une longue ligne avant
+d'en demander une portion), le bloc d'attribution et `vff_url`.
 `precision` vaut `exact`, `derived` (calculé par VFF) ou `approximate` (une voie de gare du RINF n'a pas de PK propre : elle
 est centrée sur le PK de la gare) : le dire. SNCF Réseau ne déclare au RINF ni aiguillage ni signal : sans OpenStreetMap,
 `switches` et `signals` sont vides et `coverage.missing` le signale ; ce n'est pas une absence sur le terrain. Une ligne non

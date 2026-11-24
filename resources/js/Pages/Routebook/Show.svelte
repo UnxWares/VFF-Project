@@ -298,6 +298,7 @@
                             {layout}
                             slug={null}
                             lineName={`${book.from.name} - ${book.to.name}`}
+                            axisMode="route"
                         />
                     </div>
                 {/if}

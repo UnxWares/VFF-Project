@@ -41,6 +41,10 @@ class LineTrackLayoutController extends Controller
      * numéros impairs, côté voie 1) ou au-dessous (numéros pairs, côté voie 2) de leur voie mère, sans croisement
      * inutile. « up » = sens des PK croissants.
      *
+     * **Nombre d'objets** (`counts`) : par famille, sur la portion servie, quelles que soient les familles demandées.
+     * Un aperçu léger d'une longue ligne (`kinds=operational_points` : étendue, points d'exploitation, couverture et
+     * `counts`) dit ce qu'elle a avant d'en lire les objets par portions (`from_pk_m`, `to_pk_m`).
+     *
      * **Couverture** (`coverage`) : longueur servie (`total_m`), longueur des voies décrites par le RINF
      * (`rinf_m`), par OSM (`osm_m`) et par VFF (`vff_m`), et portions sans donnée par famille (`missing[]`,
      * `what` = `tracks`, `switches`, `signals`, `speeds`, `gradients`). SNCF Réseau ne déclare au RINF ni
@@ -71,7 +75,8 @@ class LineTrackLayoutController extends Controller
      *         speeds: array<array{pk_from_m: int, pk_to_m: int, kmh: int, source: string}>,
      *         gradients: array<array{pk_from_m: int, pk_to_m: int, permille: float, source: string, precision: string}>
      *     },
-     *     coverage: array{total_m: int, rinf_m: int, osm_m: int, vff_m: int, missing: array<array{pk_from_m: int, pk_to_m: int, what: string}>}
+     *     coverage: array{total_m: int, rinf_m: int, osm_m: int, vff_m: int, missing: array<array{pk_from_m: int, pk_to_m: int, what: string}>},
+     *     counts: array{operational_points: int, tracks: int, switches: int, signals: int, crossings: int, buffer_stops: int, milestones: int}
      * }
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-579000')]
@@ -111,6 +116,7 @@ class LineTrackLayoutController extends Controller
             ['pk_from_m' => 17095, 'pk_to_m' => 17917, 'what' => 'signals'],
             ['pk_from_m' => 17095, 'pk_to_m' => 17917, 'what' => 'gradients'],
         ]],
+        'counts' => ['operational_points' => 1, 'tracks' => 2, 'switches' => 0, 'signals' => 0, 'crossings' => 0, 'buffer_stops' => 0, 'milestones' => 0],
     ]])]
     #[ApiResponse(404, 'Ligne inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, 'Paramètre invalide (PK illisible, famille inconnue).')]

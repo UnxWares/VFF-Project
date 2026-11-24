@@ -82,7 +82,8 @@ class LineTrackLayoutApiTest extends TestCase
         $json = $this->getJson('/api/v1/lines/rfn-001000/track-layout')->assertOk()->json();
 
         $this->assertSame(['code' => '001000', 'slug' => 'rfn-001000', 'name' => 'Ligne sans données'], $json['line']);
-        $this->assertSame(['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage'], array_keys($json));
+        $this->assertSame(['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage', 'counts'], array_keys($json));
+        $this->assertSame(array_fill_keys(TrackLayout::COUNTED, 0), $json['counts']);
         $this->assertSame([], $json['sources']);
         $this->assertSame([], $json['tracks']);
         $this->assertSame(['speeds' => [], 'gradients' => []], $json['strip']);
@@ -212,9 +213,10 @@ class LineTrackLayoutApiTest extends TestCase
             buffer_stops { id pk_m track source precision }
             milestones { id pk_m label source precision }
             strip { speeds { pk_from_m pk_to_m kmh source } gradients { pk_from_m pk_to_m permille source precision } }
-            coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
+            coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } }
+            counts { operational_points tracks switches signals crossings buffer_stops milestones } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
 
-        foreach (['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage'] as $key) {
+        foreach (['line', 'pk', 'sources', 'operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip', 'coverage', 'counts'] as $key) {
             $this->assertSame($rest[$key], $gql[$key], $key);
         }
         $this->assertSame([['id' => 'osm:node:20', 'pk_m' => 17950, 'track' => 'osm:way:2', 'source' => 'osm', 'precision' => 'derived']], $rest['buffer_stops']);
@@ -229,6 +231,7 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertSame($rest['tracks'], $mcp['tracks']);
         $this->assertSame($rest['coverage'], $mcp['coverage']);
         $this->assertSame($rest['milestones'], $mcp['milestones']);
+        $this->assertSame($rest['counts'], $mcp['counts']);
         $this->assertContains('rinf', array_column((array) $mcp['attribution']['sources'], 'provider'));
         $this->assertStringContainsString("Agence de l'Union européenne pour les chemins de fer", (string) json_encode($mcp['attribution'], JSON_UNESCAPED_UNICODE));
         $this->assertStringContainsString('European Union Agency for Railways', $mcp['sources'][0]['attribution']);

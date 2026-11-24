@@ -36,6 +36,11 @@ final class OsmTrackLayoutSource implements TrackLayoutSource
 
     public const ATTRIBUTION = '© OpenStreetMap contributors';
 
+    /** A track whose PK span exceeds SPAN_RATIO times its length plus SPAN_SLACK_M has a broken chainage: left out. */
+    public const SPAN_RATIO = 2;
+
+    public const SPAN_SLACK_M = 2000;
+
     /** Gaps between running tracks bridged by the coverage (switch zones, unmapped short ways). */
     public const COVER_GAP_M = 200;
 
@@ -52,6 +57,9 @@ final class OsmTrackLayoutSource implements TrackLayoutSource
         }
         $rows = DB::table('osm_tracks as t')->leftJoin('stations as s', 's.id', '=', 't.station_id')
             ->where('t.line_id', $line->id)->whereNotNull('t.pk_from_m')
+            // Broken chainage (496 tracks on 40 lines at the import of 24/11/2026: a 602 m yard track placed from PK 1+516
+            // to PK 523+044 of Paris - Marseille): left out rather than stretching the layout over the whole line.
+            ->whereRaw('(t.length_m IS NULL OR t.pk_to_m - t.pk_from_m <= GREATEST(? * t.length_m, t.length_m + ?))', [self::SPAN_RATIO, self::SPAN_SLACK_M])
             ->when($fromM !== null, fn ($q) => $q->where('t.pk_to_m', '>=', $fromM))
             ->when($toM !== null, fn ($q) => $q->where('t.pk_from_m', '<=', $toM))
             ->orderBy('t.pk_from_m')->orderBy('t.osm_way_id')->orderBy('t.part')

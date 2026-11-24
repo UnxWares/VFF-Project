@@ -1,5 +1,6 @@
 <script>
-    import { flushSync, tick } from 'svelte';
+    import { flushSync, tick, untrack } from 'svelte';
+    import { SvelteSet } from 'svelte/reactivity';
     import { i18n } from '$lib/i18n.js';
     import { formatLocale, formatNumber, NBSP } from '$lib/typo.js';
     import { cleanUrl, linkLabel } from '$lib/linkLabel.js';
@@ -7,14 +8,15 @@
     import {
         ROW_KINDS,
         ZOOM_STEP,
+        axisLabel,
         buildAxis,
         fitZoom,
+        foldLayout,
+        gapSummary,
         hasTracks,
-        laneRows,
         nearestRow,
         normalize,
         pkLabel,
-        missingText,
         routeRows,
         rowTitle,
     } from '$lib/trackLayout.js';
@@ -33,22 +35,75 @@
      * `full` : page plein écran (/lines/{slug}/voies), tableau à droite quand la place le permet ; sinon (fiche de
      * la ligne) le tableau passe sous le dessin.
      *
-     * `slug` nul : livret de parcours (page /routebook, plusieurs lignes bout à bout sur l'axe des km parcourus), sans
-     * onglet « Carte ».
+     * `axisMode` : `line` (PK de la ligne) ou `route` (livret de parcours, page /routebook : plusieurs lignes bout à
+     * bout sur l'axe des kilomètres parcourus, sens de marche ; sans `slug`, donc sans onglet « Carte »).
      *
-     * @type {{ layout: any, slug: string|null, lineName: string, full?: boolean }}
+     * Données : `layout` (réponse déjà lue) ou `loader` (TrackLayoutLoader : aperçu, puis la ligne entière si elle
+     * est courte, ou par portions au fil du défilement et du zoom si elle est longue).
+     *
+     * Grandes gares : les faisceaux et voies de service d'un point d'exploitation sont repliés en un groupe
+     * (« 23 voies de service ») que l'on déplie sur place (foldLayout).
+     *
+     * @type {{ layout?: any, loader?: import('$lib/trackLayoutLoader.svelte.js').TrackLayoutLoader|null,
+     *   slug: string|null, lineName: string, full?: boolean, axisMode?: 'line'|'route' }}
      */
-    let { layout, slug, lineName, full = false } = $props();
+    let {
+        layout = null,
+        loader = null,
+        slug,
+        lineName,
+        full = false,
+        axisMode = 'line',
+    } = $props();
 
     const t = (k, o) => String($i18n.t(k, o));
     const lang = $derived($i18n.language ?? 'fr');
 
-    const data = $derived(normalize(layout));
+    const raw = $derived(layout ?? loader?.layout ?? null);
+    const data = $derived(normalize(raw));
     const axis = $derived(buildAxis(data));
-    const lanes = $derived(laneRows(data.tracks));
     const allRows = $derived(routeRows(data));
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
-    const detailed = $derived(hasTracks(data));
+    const detailed = $derived(hasTracks(data) || (raw?.counts?.tracks ?? 0) > 0);
+
+    // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
+    const expanded = new SvelteSet();
+    const folded = $derived(foldLayout(data, axis.zones, expanded));
+    const anyClosed = $derived(folded.groups.some((g) => !g.expanded));
+    function toggleGroup(g) {
+        if (expanded.has(g.key)) expanded.delete(g.key);
+        else expanded.add(g.key);
+    }
+    function toggleAll() {
+        const open = anyClosed;
+        expanded.clear();
+        if (open) for (const g of folded.groups) expanded.add(g.key);
+    }
+
+    // Lecture par portions (longues lignes) : la vue dit ses PK, le chargeur lit ce qui manque (après une courte pause
+    // pendant un défilement rapide). Quand des voies arrivent, l'axe change : le PK du milieu reste au milieu.
+    $effect(() => {
+        const l = loader;
+        untrack(() => l?.loadDetail());
+    });
+    let anchor = /** @type {number|null} */ (null);
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    let viewTimer;
+    function onview(from, to, center) {
+        anchor = center;
+        if (!loader?.chunked) return;
+        clearTimeout(viewTimer);
+        viewTimer = setTimeout(() => loader.ensure(from, to), 150);
+    }
+    $effect(() => () => clearTimeout(viewTimer));
+    $effect(() => {
+        axis;
+        untrack(() => {
+            const pk = anchor;
+            if (pk === null || !loader?.chunked) return;
+            tick().then(() => diagram?.centerOn(pk, false));
+        });
+    });
 
     let tab = $state(/** @type {'map'|'schema'|'band'} */ ('schema'));
     // Livret de parcours (sans `slug` : plusieurs lignes bout à bout) : pas d'onglet « Carte » d'une ligne.
@@ -61,13 +116,24 @@
     let printing = $state(false);
     /** @type {string|null} */
     let selected = $state(null);
+    /** Genres décochés au départ dans « Afficher » : bornes kilométriques, heurtoirs, passages à niveau, traversées. */
+    const HIDDEN_KINDS = {
+        milestone: true,
+        buffer_stop: true,
+        level_crossing: true,
+        crossing: true,
+    };
     let announce = $state('');
 
-    // Genres d'objets présents, tous affichés au départ ; le tableau et la navigation au clavier les suivent.
-    const kinds = $derived(ROW_KINDS.filter((k) => allRows.some((r) => r.kind === k)));
+    // Genres d'objets présents, choisis dans le menu « Afficher » ; le tableau et la navigation au clavier les suivent.
+    // Les manques de la couverture ne sont pas des lignes du tableau : un bandeau au-dessus les dit.
+    const kinds = $derived(
+        ROW_KINDS.filter((k) => k !== 'missing' && allRows.some((r) => r.kind === k)),
+    );
     /** @type {Record<string, boolean>} */
-    let hidden = $state({});
-    const rows = $derived(allRows.filter((r) => !hidden[r.kind]));
+    let hidden = $state({ ...HIDDEN_KINDS });
+    const rows = $derived(allRows.filter((r) => r.kind !== 'missing' && !hidden[r.kind]));
+    const shownKinds = $derived(kinds.filter((k) => !hidden[k]).length);
     const selectedRow = $derived(allRows.find((r) => r.key === selected) ?? null);
     const counts = $derived(
         Object.fromEntries(kinds.map((k) => [k, allRows.filter((r) => r.kind === k).length])),
@@ -96,7 +162,11 @@
     const fit = () => setZoom(fitNow());
 
     const describe = (row) =>
-        `${rowTitle(row, t, lang)}, ${t('tracks.cursor_pk', { pk: pkLabel(row.pk_m) })}`;
+        `${rowTitle(row, t, lang)}, ${
+            axisMode === 'route'
+                ? t('tracks.route.cursor', { km: axisLabel(row.pk_m, 'route', lang) })
+                : t('tracks.cursor_pk', { pk: pkLabel(row.pk_m) })
+        }`;
 
     /** Ligne choisie dans le tableau : le dessin se centre sur son PK. */
     function fromTable(row) {
@@ -152,12 +222,17 @@
     }
 
     // Ligne courte : à l'ouverture, le dessin remplit la largeur (jamais en dessous de 100 %).
+    // Une longue ligne s'ouvre sur son premier point d'exploitation (pas sur un début de tracé sans rien).
     let fitted = false;
     $effect(() => {
         if (fitted || !diagram) return;
         fitted = true;
         const f = fitNow();
         if (f > 1) zoom = Math.min(ZOOM_MAX, f);
+        else {
+            const first = untrack(() => data.operational_points[0]?.pk_m);
+            if (first !== undefined) tick().then(() => diagram?.startAt(first));
+        }
     });
 
     // Impression : toute la ligne dans la largeur de la page, puis le zoom d'avant.
@@ -199,25 +274,43 @@
             ? t('tracks.coverage', { list: parts.join(', '), total: km(data.coverage.total_m) })
             : '';
     });
-    const missingSentence = $derived(
-        data.coverage.missing.length
-            ? t('tracks.coverage_missing', {
-                  list: data.coverage.missing
-                      .map((m) => missingText(m, t))
-                      // Après les deux-points, en minuscule (les noms allemands gardent leur capitale).
-                      .map((text) =>
-                          lang === 'de' ? text : text.charAt(0).toLowerCase() + text.slice(1),
-                      )
-                      .join(', '),
-              })
-            : '',
-    );
+    // Bandeau des manques : une famille par élément (« signaux sur toute la longueur, voies sur 2,1 km »).
+    const missingSentence = $derived.by(() => {
+        const gaps = gapSummary(data.coverage.missing, data.coverage.total_m);
+        if (!gaps.length) return '';
+        const list = gaps.map((g) =>
+            t(g.all ? 'tracks.gaps.all' : 'tracks.gaps.part', {
+                what: t(`tracks.gaps.what.${g.what}`),
+                km: km(g.metres),
+            }),
+        );
+        return t('tracks.coverage_missing', { list: list.join(', ') });
+    });
     const dateOf = (iso) => formatEventDate(iso, 'day', formatLocale(lang));
     const label = $derived(
-        t(tab === 'band' ? 'tracks.band_label' : 'tracks.schema_label', {
-            from: pkLabel(data.pk.start_m),
-            to: pkLabel(data.pk.end_m),
-        }),
+        t(
+            axisMode === 'route'
+                ? `tracks.route.${tab === 'band' ? 'band_label' : 'schema_label'}`
+                : tab === 'band'
+                  ? 'tracks.band_label'
+                  : 'tracks.schema_label',
+            {
+                from: axisLabel(data.pk.start_m, axisMode, lang),
+                to: axisLabel(data.pk.end_m, axisMode, lang),
+            },
+        ),
+    );
+    // Lecture par portions : ce qui se passe, en une phrase (rien quand tout est lu).
+    const partState = $derived(
+        !loader?.chunked
+            ? ''
+            : loader.failed
+              ? t('tracks.parts.failed')
+              : loader.tooWide
+                ? t('tracks.parts.too_wide')
+                : loader.loading
+                  ? t('tracks.parts.loading')
+                  : '',
     );
     const LEGEND = [
         'travelled',
@@ -239,169 +332,221 @@
         ({t('common.new_tab')})</span
     >{/snippet}
 
-<div class={['track-layout', full && 'full']}>
-    <div class="bar">
-        <div class="zoom" role="group" aria-label={t('tracks.toolbar')}>
-            <button
-                type="button"
-                class="vff-btn secondary sq"
-                onclick={zoomOut}
-                disabled={tab === 'map'}
-                aria-label={t('tracks.zoom_out')}
-                title={t('tracks.zoom_out')}><span aria-hidden="true">−</span></button
+{#if loader && !raw}
+    <p class="state" role={loader.detail === 'error' ? 'alert' : 'status'}>
+        {#if loader.detail === 'error'}
+            {t('tracks.error')}
+            <button type="button" class="vff-btn secondary" onclick={() => loader.loadDetail()}
+                >{t('tracks.retry')}</button
             >
-            <button
-                type="button"
-                class="vff-btn secondary sq"
-                onclick={zoomIn}
-                disabled={tab === 'map'}
-                aria-label={t('tracks.zoom_in')}
-                title={t('tracks.zoom_in')}><span aria-hidden="true">+</span></button
-            >
-            <button
-                type="button"
-                class="vff-btn secondary"
-                onclick={fit}
-                disabled={tab === 'map'}
-                title={t('tracks.fit_label')}>{t('tracks.fit')}</button
-            >
-            <span class="level" aria-live="polite"
-                >{t('tracks.zoom_level', {
-                    percent: formatNumber(zoom, lang, {
-                        style: 'percent',
-                        maximumFractionDigits: 0,
-                    }),
-                })}</span
-            >
-        </div>
-        <div class="tabs" role="tablist" aria-label={t('tracks.tabs_label')}>
-            {#each TABS as k (k)}
+        {:else}
+            {t('tracks.loading')}
+        {/if}
+    </p>
+{:else}
+    <div class={['track-layout', full && 'full']}>
+        <div class="bar">
+            <div class="zoom" role="group" aria-label={t('tracks.toolbar')}>
                 <button
                     type="button"
-                    role="tab"
-                    id="tl-tab-{k}"
-                    aria-selected={tab === k}
-                    aria-controls="tl-panel"
-                    tabindex={tab === k ? 0 : -1}
-                    class={['tab', tab === k && 'on']}
-                    onclick={() => (tab = k)}
-                    onkeydown={onTabKey}>{t(`tracks.tab.${k}`)}</button
+                    class="vff-btn secondary sq"
+                    onclick={zoomOut}
+                    disabled={tab === 'map'}
+                    aria-label={t('tracks.zoom_out')}
+                    title={t('tracks.zoom_out')}><span aria-hidden="true">−</span></button
                 >
-            {/each}
-        </div>
-        <button type="button" class="vff-btn ghost" onclick={() => print()}
-            >{t('tracks.print')}</button
-        >
-    </div>
-
-    <div class="legend">
-        <p class="vff-sr-only">{t('tracks.legend.title')}</p>
-        <ul>
-            {#each LEGEND as k (k)}
-                <li><TrackPicto kind={k} />{t(`tracks.legend.${legendKey(k)}`)}</li>
-            {/each}
-        </ul>
-        <p class="note">{t('tracks.legend.note')}</p>
-    </div>
-
-    <div class="body">
-        <div class="main" id="tl-panel" role="tabpanel" aria-labelledby="tl-tab-{tab}">
-            {#if tab === 'map'}
-                <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? null} />
-            {:else}
-                {#if tab === 'schema' && !detailed}
-                    <p class="no-schema">{t('tracks.no_schema')}</p>
+                <button
+                    type="button"
+                    class="vff-btn secondary sq"
+                    onclick={zoomIn}
+                    disabled={tab === 'map'}
+                    aria-label={t('tracks.zoom_in')}
+                    title={t('tracks.zoom_in')}><span aria-hidden="true">+</span></button
+                >
+                <button
+                    type="button"
+                    class="vff-btn secondary"
+                    onclick={fit}
+                    disabled={tab === 'map'}
+                    title={t('tracks.fit_label')}>{t('tracks.fit')}</button
+                >
+                <span class="level" aria-live="polite"
+                    >{t('tracks.zoom_level', {
+                        percent: formatNumber(zoom, lang, {
+                            style: 'percent',
+                            maximumFractionDigits: 0,
+                        }),
+                    })}</span
+                >
+            </div>
+            <div class="tabs" role="tablist" aria-label={t('tracks.tabs_label')}>
+                {#each TABS as k (k)}
+                    <button
+                        type="button"
+                        role="tab"
+                        id="tl-tab-{k}"
+                        aria-selected={tab === k}
+                        aria-controls="tl-panel"
+                        tabindex={tab === k ? 0 : -1}
+                        class={['tab', tab === k && 'on']}
+                        onclick={() => (tab = k)}
+                        onkeydown={onTabKey}>{t(`tracks.tab.${k}`)}</button
+                    >
+                {/each}
+            </div>
+            <div class="actions">
+                {#if folded.groups.length}
+                    <button
+                        type="button"
+                        class="vff-btn secondary"
+                        onclick={toggleAll}
+                        disabled={tab !== 'schema'}
+                        >{t(
+                            anyClosed ? 'tracks.fold.expand_all' : 'tracks.fold.collapse_all',
+                        )}</button
+                    >
                 {/if}
-                <TrackDiagram
-                    bind:this={diagram}
-                    {data}
-                    {axis}
-                    {lanes}
-                    {rows}
-                    {zoom}
-                    mode={tab}
-                    selectedPk={selectedRow?.pk_m ?? null}
-                    {printing}
-                    {label}
-                    helpId="tl-help"
-                    {lang}
-                    {t}
-                    onpick={fromDiagram}
-                    {onkey}
-                />
-                <p class="help" id="tl-help">{t('tracks.schema_help')}</p>
-            {/if}
-            <p class="vff-sr-only" aria-live="polite">{announce}</p>
+                <button type="button" class="vff-btn ghost" onclick={() => print()}
+                    >{t('tracks.print')}</button
+                >
+            </div>
         </div>
 
-        <div class="aside">
-            {#if kinds.length > 1}
-                <fieldset class="filters">
-                    <legend class="vff-label">{t('tracks.table.filter')}</legend>
-                    <div class="checks">
-                        {#each kinds as k (k)}
-                            <label class="chip">
-                                <input
-                                    type="checkbox"
-                                    checked={!hidden[k]}
-                                    onchange={(e) => (hidden[k] = !e.currentTarget.checked)}
-                                />
-                                <TrackPicto kind={k} size={18} />
-                                <span>{t(`tracks.kind.${k}`)}</span>
-                                <span class="n">{formatNumber(counts[k], lang)}</span>
-                            </label>
-                        {/each}
-                    </div>
-                </fieldset>
-            {/if}
-            <p class="badges-note">{t('tracks.table.badges')}</p>
-            <TrackRouteTable
-                bind:this={table}
-                {rows}
-                {selected}
-                {lang}
-                {t}
-                {tracksById}
-                onselect={fromTable}
-            />
-        </div>
-    </div>
-
-    <footer class="sources">
-        <p>
-            {t('tracks.today')}
-            {coverageText}
-            {missingSentence}
-        </p>
-        {#if data.sources.length}
-            <h3>{t('tracks.sources_title')}</h3>
+        <div class="legend">
+            <p class="vff-sr-only">{t('tracks.legend.title')}</p>
             <ul>
-                {#each data.sources as s (s.key)}
-                    <li>
-                        <strong>{s.label}</strong>{#if s.dataset}, {s.dataset}{/if}{#if s.fetched_at},
-                            {t('tracks.fetched', {
-                                date: dateOf(s.fetched_at),
-                            })}{/if}{#if s.licence && s.licence_url},
-                            <a
-                                href={cleanUrl(s.licence_url)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                >{t('tracks.licence', { licence: s.licence })}{@render ext()}</a
-                            >{:else if s.licence},
-                            {t('tracks.licence', {
-                                licence: s.licence,
-                            })}{/if}{#if s.attribution}{` (${s.attribution})`}{/if}{#if s.url},
-                            <a href={cleanUrl(s.url)} target="_blank" rel="noopener noreferrer"
-                                >{linkLabel(s.url, 48, lang)}{@render ext()}</a
-                            >{/if}
-                    </li>
+                {#each LEGEND as k (k)}
+                    <li><TrackPicto kind={k} />{t(`tracks.legend.${legendKey(k)}`)}</li>
                 {/each}
             </ul>
-        {/if}
-    </footer>
-</div>
+            <p class="note">
+                {t(axisMode === 'route' ? 'tracks.route.note' : 'tracks.legend.note')}
+                {#if folded.groups.length}{t('tracks.fold.note')}{/if}
+            </p>
+        </div>
+
+        <div class="body">
+            <div class="main" id="tl-panel" role="tabpanel" aria-labelledby="tl-tab-{tab}">
+                {#if tab === 'map'}
+                    <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? null} />
+                {:else}
+                    {#if tab === 'schema' && !detailed}
+                        <p class="no-schema">{t('tracks.no_schema')}</p>
+                    {/if}
+                    <p class="parts" role="status">{partState}</p>
+                    <TrackDiagram
+                        bind:this={diagram}
+                        data={folded.data}
+                        groups={folded.groups}
+                        ontoggle={toggleGroup}
+                        {onview}
+                        {axis}
+                        {axisMode}
+                        {rows}
+                        {zoom}
+                        mode={tab}
+                        selectedPk={selectedRow?.pk_m ?? null}
+                        {printing}
+                        {label}
+                        helpId="tl-help"
+                        {lang}
+                        {t}
+                        onpick={fromDiagram}
+                        {onkey}
+                    />
+                    <p class="help" id="tl-help">{t('tracks.schema_help')}</p>
+                {/if}
+                <p class="vff-sr-only" aria-live="polite">{announce}</p>
+            </div>
+
+            <div class="aside">
+                {#if missingSentence}
+                    <p class="gaps">{missingSentence}</p>
+                {/if}
+                <div class="table-bar">
+                    {#if kinds.length > 1}
+                        <details class="show">
+                            <summary class="vff-btn secondary"
+                                >{t('tracks.table.show', {
+                                    shown: formatNumber(shownKinds, lang),
+                                    total: formatNumber(kinds.length, lang),
+                                })}</summary
+                            >
+                            <fieldset class="filters">
+                                <legend class="vff-sr-only">{t('tracks.table.filter')}</legend>
+                                {#each kinds as k (k)}
+                                    <label class="check">
+                                        <input
+                                            type="checkbox"
+                                            checked={!hidden[k]}
+                                            onchange={(e) => (hidden[k] = !e.currentTarget.checked)}
+                                        />
+                                        <TrackPicto kind={k} size={18} />
+                                        <span>{t(`tracks.kind.${k}`)}</span>
+                                        <span class="n">{formatNumber(counts[k], lang)}</span>
+                                    </label>
+                                {/each}
+                            </fieldset>
+                        </details>
+                    {/if}
+                    <p class="badges-note">{t('tracks.table.badges')}</p>
+                </div>
+                <TrackRouteTable
+                    bind:this={table}
+                    {rows}
+                    {selected}
+                    {lang}
+                    {t}
+                    {tracksById}
+                    {axisMode}
+                    onselect={fromTable}
+                />
+            </div>
+        </div>
+
+        <footer class="sources">
+            <p>
+                {t('tracks.today')}
+                {coverageText}
+            </p>
+            {#if data.sources.length}
+                <h3>{t('tracks.sources_title')}</h3>
+                <ul>
+                    {#each data.sources as s (s.key)}
+                        <li>
+                            <strong>{s.label}</strong>{#if s.dataset}, {s.dataset}{/if}{#if s.fetched_at},
+                                {t('tracks.fetched', {
+                                    date: dateOf(s.fetched_at),
+                                })}{/if}{#if s.licence && s.licence_url},
+                                <a
+                                    href={cleanUrl(s.licence_url)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    >{t('tracks.licence', { licence: s.licence })}{@render ext()}</a
+                                >{:else if s.licence},
+                                {t('tracks.licence', {
+                                    licence: s.licence,
+                                })}{/if}{#if s.attribution}{` (${s.attribution})`}{/if}{#if s.url},
+                                <a href={cleanUrl(s.url)} target="_blank" rel="noopener noreferrer"
+                                    >{linkLabel(s.url, 48, lang)}{@render ext()}</a
+                                >{/if}
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+        </footer>
+    </div>
+{/if}
 
 <style>
+    .state {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-3);
+        margin: 0;
+        color: var(--vff-text-muted);
+    }
     .track-layout {
         --tl-zone: color-mix(in srgb, var(--vff-bg-muted) 75%, transparent);
         --tl-table-h: 28rem;
@@ -418,7 +563,8 @@
         justify-content: space-between;
         gap: var(--vff-space-3) var(--vff-space-5);
     }
-    .zoom {
+    .zoom,
+    .actions {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -485,6 +631,14 @@
         align-items: center;
         gap: 8px;
     }
+    .parts:empty {
+        margin: 0;
+    }
+    .parts {
+        margin: 0 0 var(--vff-space-2);
+        color: var(--vff-text-muted);
+        font-size: var(--vff-fs-sm);
+    }
     .note,
     .help,
     .badges-note,
@@ -512,45 +666,94 @@
         flex-direction: column;
         gap: var(--vff-space-3);
     }
-    .filters {
-        min-width: 0;
+    .gaps {
         margin: 0;
-        padding: 0;
-        border: 0;
+        padding: 8px 14px;
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-sm);
+        background: var(--vff-bg-subtle);
+        color: var(--vff-text-muted);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
-    .filters legend {
-        margin-bottom: 6px;
-        padding: 0;
-    }
-    .checks {
+    .table-bar {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-    }
-    .chip {
-        display: inline-flex;
         align-items: center;
-        gap: 6px;
-        min-height: 40px;
-        padding: 4px 12px 4px 8px;
-        border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-pill);
-        background: var(--vff-bg-elevated);
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        gap: var(--vff-space-2) var(--vff-space-4);
+    }
+    .table-bar .badges-note {
+        margin: 0;
+    }
+    .show {
+        position: relative;
+    }
+    .show summary {
+        list-style: none;
         cursor: pointer;
     }
-    .chip:has(input:focus-visible) {
-        outline: var(--vff-focus-width) solid var(--vff-focus);
-        outline-offset: var(--vff-focus-offset);
+    .show summary::-webkit-details-marker {
+        display: none;
     }
-    .chip input {
+    .show summary::after {
+        content: '';
+        width: 0.45em;
+        height: 0.45em;
+        margin-left: 0.6em;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: translateY(-0.15em) rotate(45deg);
+    }
+    .show[open] summary::after {
+        transform: translateY(0.1em) rotate(-135deg);
+    }
+    .filters {
+        position: absolute;
+        z-index: 3;
+        top: calc(100% + 6px);
+        left: 0;
+        display: grid;
+        gap: 2px;
+        width: max-content;
+        min-width: min(21rem, calc(100vw - 2 * var(--vff-gutter)));
+        max-width: calc(100vw - 2 * var(--vff-gutter));
+        margin: 0;
+        padding: 8px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+    }
+    .show:not([open]) .filters {
+        display: none;
+    }
+    .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 40px;
+        padding: 4px 8px;
+        border-radius: var(--vff-radius-sm);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        cursor: pointer;
+    }
+    .check:hover {
+        background: var(--vff-bg-muted);
+    }
+    .check:has(input:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 0;
+    }
+    .check input {
         width: 18px;
         height: 18px;
         margin: 0;
         accent-color: var(--vff-accent-strong);
     }
-    .chip .n {
+    .check .n {
+        margin-left: auto;
+        padding-left: 12px;
         color: var(--vff-text-muted);
         font-variant-numeric: tabular-nums;
     }
@@ -574,6 +777,8 @@
     .sources ul {
         margin: 0;
         padding-left: 1.2em;
+        /* Jeux de données et adresses longues (graphe de l'ERA) : coupés plutôt que d'élargir la page à 320 px. */
+        overflow-wrap: anywhere;
     }
     .sources strong {
         color: var(--vff-text);

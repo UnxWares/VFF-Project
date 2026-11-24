@@ -53,6 +53,34 @@ return [
         'note' => 'Haut = gauche du sens de marche (PK croissants) ; la pleine ligne est comprimée, les gares et évitements sont dilatés.',
     ],
 
+    'fold' => [
+        'count_one' => 'une voie de service',
+        'count_other' => ':count voies de service',
+        'all_one' => 'une voie',
+        'all_other' => ':count voies',
+        'expand' => 'Déplier les voies repliées de :name (:count)',
+        'collapse' => 'Replier les voies de :name (:count)',
+        'fold' => 'Replier',
+        'expand_all' => 'Déplier les faisceaux',
+        'collapse_all' => 'Replier les faisceaux',
+        'note' => 'Les faisceaux et voies de service d’une gare sont repliés, et dans une très grande gare ses autres voies : un clic les déplie.',
+    ],
+    'parts' => [
+        'loading' => 'Chargement des voies de cette partie de la ligne…',
+        'too_wide' => 'Toute la ligne est à l’écran : zoomez pour charger les voies de la partie qui vous intéresse.',
+        'failed' => 'Une partie des voies n’a pas pu être chargée : faites défiler le schéma pour réessayer.',
+    ],
+    'route' => [
+        'strip' => 'km',
+        'cursor' => 'km :km parcourus',
+        'up' => 'sens de marche',
+        'down' => 'sens inverse',
+        'caption' => 'Tableau de parcours, trié par kilomètre parcouru',
+        'note' => 'Haut = gauche du sens de marche ; l’axe compte les kilomètres parcourus depuis le départ, le tableau garde le PK de chaque ligne. La pleine voie est comprimée, les gares et évitements sont dilatés.',
+        'schema_label' => 'Schéma des voies du parcours, du km :from au km :to',
+        'band_label' => 'Bande du parcours, du km :from au km :to',
+    ],
+
     'schema_label' => 'Schéma des voies, du PK :from au PK :to',
     'band_label' => 'Bande de la ligne, du PK :from au PK :to',
     'schema_help' => 'Le tableau de parcours donne les mêmes objets. Au clavier : flèches gauche et droite pour l’objet précédent ou suivant, Début et Fin pour les extrémités, + et - pour le zoom.',
@@ -78,6 +106,9 @@ return [
         'none' => 'Aucun objet de ce genre sur la ligne.',
         'filter' => 'Objets du tableau',
         'badges' => 'R = RINF, O = OpenStreetMap, D = déduit par VFF, ≈ approché, ! absent.',
+        'show' => 'Afficher (:shown sur :total)',
+        'station' => 'Fiche de la gare',
+        'station_label' => 'Fiche de la gare :name',
     ],
     'kind' => [
         'op' => 'Points d’exploitation',
@@ -142,6 +173,18 @@ return [
 
     'coverage' => 'Voies décrites : :list, sur :total.',
     'coverage_part' => ':source :km',
+    'gaps' => [
+        'all' => ':what sur toute la longueur',
+        'part' => ':what sur :km',
+        'what' => [
+            'tracks' => 'voies',
+            'switches' => 'aiguillages',
+            'signals' => 'signaux',
+            'speeds' => 'vitesses',
+            'gradients' => 'déclivités',
+            'other' => 'autres données',
+        ],
+    ],
     'coverage_missing' => 'Manquent : :list.',
     'sources_title' => 'Jeux de données et licences',
     'fetched' => 'lu le :date',

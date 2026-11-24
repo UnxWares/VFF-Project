@@ -53,6 +53,34 @@ return [
         'note' => 'Top = left of the direction of travel (increasing chainage); open line is compressed, stations and passing loops are stretched.',
     ],
 
+    'fold' => [
+        'count_one' => 'one service track',
+        'count_other' => ':count service tracks',
+        'all_one' => 'one track',
+        'all_other' => ':count tracks',
+        'expand' => 'Show the folded tracks of :name (:count)',
+        'collapse' => 'Fold the tracks of :name (:count)',
+        'fold' => 'Fold',
+        'expand_all' => 'Show the yards',
+        'collapse_all' => 'Fold the yards',
+        'note' => 'The yards and service tracks of a station are folded, and in a very large station its other tracks too: click to show them.',
+    ],
+    'parts' => [
+        'loading' => 'Loading the tracks of this part of the line…',
+        'too_wide' => 'The whole line is on screen: zoom in to load the tracks of the part you want.',
+        'failed' => 'Some tracks could not be loaded: scroll the layout to try again.',
+    ],
+    'route' => [
+        'strip' => 'km',
+        'cursor' => 'km :km travelled',
+        'up' => 'running direction',
+        'down' => 'opposite direction',
+        'caption' => 'Route table, sorted by kilometre travelled',
+        'note' => 'Top = left of the running direction; the axis counts the kilometres travelled from the start, the table keeps the kilometre point of each line. Open line is compressed, stations and loops are stretched.',
+        'schema_label' => 'Track layout of the route, from km :from to km :to',
+        'band_label' => 'Strip of the route, from km :from to km :to',
+    ],
+
     'schema_label' => 'Track layout, from chainage :from to chainage :to',
     'band_label' => 'Line strip, from chainage :from to chainage :to',
     'schema_help' => 'The route table gives the same objects. With the keyboard: left and right arrows for the previous or next object, Home and End for the ends, + and - to zoom.',
@@ -78,6 +106,9 @@ return [
         'none' => 'No object of this kind on the line.',
         'filter' => 'Objects in the table',
         'badges' => 'R = RINF, O = OpenStreetMap, D = derived by VFF, ≈ approximate, ! missing.',
+        'show' => 'Show (:shown of :total)',
+        'station' => 'Station page',
+        'station_label' => 'Station page of :name',
     ],
     'kind' => [
         'op' => 'Operational points',
@@ -142,6 +173,18 @@ return [
 
     'coverage' => 'Tracks described: :list, out of :total.',
     'coverage_part' => ':source :km',
+    'gaps' => [
+        'all' => ':what along the whole length',
+        'part' => ':what over :km',
+        'what' => [
+            'tracks' => 'tracks',
+            'switches' => 'switches',
+            'signals' => 'signals',
+            'speeds' => 'speeds',
+            'gradients' => 'gradients',
+            'other' => 'other data',
+        ],
+    ],
     'coverage_missing' => 'Missing: :list.',
     'sources_title' => 'Datasets and licences',
     'fetched' => 'read on :date',

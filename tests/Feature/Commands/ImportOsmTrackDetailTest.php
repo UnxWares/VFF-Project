@@ -183,4 +183,34 @@ class ImportOsmTrackDetailTest extends TestCase
             }
         }
     }
+
+    public function test_a_track_whose_chainage_is_broken_is_left_out(): void
+    {
+        $this->import();
+        // Calage du PK rompu (vu à l'import du 24/11/2026 sur Paris - Marseille : une voie de 602 m placée sur 521 km).
+        $way = (int) DB::table('osm_tracks')->where('line_id', $this->line->id)->where('kind', 'yard')->value('osm_way_id');
+        DB::table('osm_tracks')->where('osm_way_id', $way)->update(['pk_from_m' => 111000, 'pk_to_m' => 120000, 'length_m' => 300]);
+
+        $json = $this->getJson('/api/v1/lines/rfn-672000/track-layout')->assertOk()->json();
+
+        $this->assertNotContains('osm:way:'.$way, array_column($json['tracks'], 'id'));
+        $this->assertNotSame([], $json['tracks']);
+    }
+
+    public function test_an_overview_counts_the_objects_without_serving_them(): void
+    {
+        $this->import();
+        $full = $this->getJson('/api/v1/lines/rfn-672000/track-layout')->assertOk()->json();
+        $overview = $this->getJson('/api/v1/lines/rfn-672000/track-layout?kinds=operational_points')->assertOk()->json();
+
+        $this->assertSame([], $overview['tracks']);
+        $this->assertSame([], $overview['switches']);
+        $this->assertSame($full['pk'], $overview['pk']);
+        $this->assertSame($full['coverage'], $overview['coverage']);
+        $this->assertSame($full['counts'], $overview['counts']);
+        $this->assertSame(count($full['tracks']), $overview['counts']['tracks']);
+        $this->assertSame(count($full['switches']), $overview['counts']['switches']);
+        $this->assertSame(count($full['buffer_stops']), $overview['counts']['buffer_stops']);
+        $this->assertGreaterThan(0, $overview['counts']['tracks']);
+    }
 }
