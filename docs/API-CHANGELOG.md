@@ -9,6 +9,29 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange.rg_troncon`) :
+  `rg_troncon`, rang du tronçon de SNCF Réseau de la tranche (deux tronçons d'une ligne peuvent avoir des PK communs, deux
+  endroits différents : 330000, 975900) ; null pour une tranche d'une autre source ou écrite avant la réimportation. Le KVB
+  d'un tronçon n'est plus posé sur les tranches de l'autre tronçon aux PK communs (règle seule : aucune tranche ne change
+  avec les jeux de SNCF Réseau du 19/11/2026).
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL, MCP `line_rinf_parameters`) :
+  `electrification`, `radio` et `train_protection` suivent la règle de `max_speed` : comparés tronçon par tronçon
+  (`rg_troncon` rempli) quand les tronçons du RINF correspondent à ceux de SNCF Réseau, sur toute la ligne sinon
+  (`rg_troncon` nul ; 981000 : un tronçon au RINF, deux chez SNCF Réseau, n'a plus de faux « RINF seul » et « SNCF seul »
+  au même endroit). `train_protection` est comparé par tronçon dès que la signalisation de SNCF Réseau a son tronçon
+  (après la réimportation), sinon comme avant. Champs inchangés.
+- Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook.non_passenger_m`, MCP `routebook`) : `non_passenger_m`,
+  mètres parcourus sur des voies sans service voyageurs (fret seul, réseaux militaire ou particulier). Le livret ne prend plus
+  que les voies ouvertes aux voyageurs (0) et ne passe sur ces voies que s'il n'existe aucun autre chemin ; `GET /api/v1/route`
+  garde son mode voyageurs (voies sans voyageurs pénalisées). Un train de parc ou d'attraction sans ligne de VFF (« Petit Train
+  de la Tête d'Or ») n'est plus une gare du graphe : il n'apparaît plus dans les itinéraires (`/route`, livret) après le
+  prochain `vff:build-network-graph`.
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL, MCP `line_rinf_parameters`) :
+  `max_speed` est comparé tronçon par tronçon (`rg_troncon` rempli) quand les tronçons du RINF correspondent à ceux de SNCF
+  Réseau, et `train_protection` lit chaque tronçon du RINF à part quand la ligne en a plusieurs (deux tronçons d'une ligne
+  peuvent avoir des PK communs : 610000, 890000, 330000, 525000, 975900) ; la partie de SNCF Réseau hors de tout tronçon du
+  RINF a alors `rg_troncon` nul. Champs inchangés.
+
 - Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfPlatformSummary`, MCP
   `line_rinf_parameters`) : statut de quai `length_unknown` (même gare, même nom de quai, longueur absente d'une des deux
   sources) et son nombre `platforms.summary.length_unknown` ; GraphQL `LineRinfPlatformSummary.length_unknown`.
@@ -58,6 +81,27 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Corrections
 
+- Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout` et `GET /api/v1/stations/{station}/track-layout`, GraphQL
+  `Line.track_layout` et `Station.track_layout`, MCP `line_track_layout` et `station_track_layout`), sans champ nouveau ni
+  retiré :
+  - une voie d'OpenStreetMap n'est plus écartée sur une portion décrite par le RINF quand un de ses signaux, heurtoirs,
+    aiguillages ou traversées la cite, ou quand elle est une voie d'un point d'exploitation du RINF (même numéro) : elle
+    remplace alors la voie approchée du RINF (`rinf_id`, `rinf_ref`, `op_id`, `platform` vrai si elle longe un quai). À
+    Paris-Nord, les parties à quai des voies 3 à 21 et 30 à 36 sont servies ; plus aucun signal, heurtoir, aiguillage ni
+    traversée ne cite une voie absente de `tracks` (ligne 272000 entière : 89 signaux, 14 heurtoirs et 3 traversées avant ;
+    Paris - Marseille : 28, 19 et 7) ;
+  - un code de voie en lettres est le même avec ou sans le « V » de « Voie » : « DO » d'OpenStreetMap est la voie
+    « VDO de Paris-10 à St-Denis » du RINF et n'est plus servi deux fois ; « 3 » de « Quai V1/V1BIS » (Brétigny) est V1BIS ;
+  - un objet qui citait une voie absorbée par une voie du RINF en plusieurs pièces cite la pièce qui porte son PK (avant :
+    la pièce la plus recouverte, parfois hors de la portion servie) ;
+  - `lane` : les deux voies d'un même quai sont sur des rangées voisines, de part et d'autre de lui, la voie d'un quai
+    partagé avec la voie 1 ou 2 juste au-delà d'elle, et les voies à quai d'une gare dans l'ordre de leurs numéros quand
+    leurs décalages d'OpenStreetMap séparent un quai (Paris-Austerlitz : 3, 4, 5, 6, 7, 14, 15, 17… au lieu de 14, 18,
+    15, 19…) ;
+  - voies d'une gare, `platforms[].track` : la pièce de la voie qui porte le PK de la gare ; un bord de quai trouve sa voie
+    par le nom de son quai (Brétigny « 3 » et « 4 » : V1BIS et V2BIS) et, sur une ligne à voie unique, la seule voie
+    principale du point que le schéma n'a pas sous son nom est la voie unique (Cognac « Quai VD ») ; la position approchée
+    d'un quai s'étend sur les pièces contiguës de sa voie.
 - Schéma des voies : un signal d'OpenStreetMap cartographié sans catégorie (`railway:signal:<catégorie>` absent, 5 332 des
   17 818 signaux importés le 24/11/2026, sur 247 lignes) a pour `kind` `unknown` au lieu de `null` : la spécification REST
   le déclarait non nul et GraphQL `TrackLayoutSignal.kind` (non nul) faisait échouer tout le champ `Line.track_layout` qui

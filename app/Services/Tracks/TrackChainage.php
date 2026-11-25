@@ -15,7 +15,8 @@ use App\Services\Profiles\PkCalibration;
  * the raw abscissa of a trace) and remarkable points of the line (`line_landmarks.php`), both weak, SNCF Reseau
  * level crossings of the line and OpenStreetMap objects that carry the PK of the line they stand on
  * (`railway:position:exact`, milestones), both strong: a weak anchor within SHADOW_M of a strong one along the
- * trace is left out (a station building is not where its PK is read). Each part is calibrated on its own:
+ * trace is left out (a station building is not where its PK is read), unless every strong one near it is then left out
+ * by the calibration (foreign run, spike): the parts are then fitted again with it. Each part is calibrated on its own:
  * the longest run of anchors whose PK grows along the part, in whichever direction keeps more of them, then a
  * spike filter drops an anchor whose two neighbouring intervals both stretch or squeeze the PK beyond
  * SCALE_MIN..SCALE_MAX (one wrong anchor), never a genuine jump of the PK numbering (one interval only).
@@ -384,21 +385,87 @@ final class TrackChainage
             if ($best === null) {
                 continue;
             }
-            [$pi, $seg, $t] = $best;
+            [$pi, $seg, $t, , , $raw] = $best;
             $cum = $this->cumulative[$pi];
-            $located[$pi][] = [$cum[$seg] + ($cum[$seg + 1] - $cum[$seg]) * $t, $a['pk_m'], $a['strong'] ?? false];
+            // Beyond an end of the part, the anchor is placed at that end: its distance along the part is not its own.
+            $beyond = ($seg === 0 && $raw < 0.0) || ($seg === count($cum) - 2 && $raw > 1.0);
+            $located[$pi][] = [$cum[$seg] + ($cum[$seg + 1] - $cum[$seg]) * $t, $a['pk_m'], $a['strong'] ?? false, $beyond];
         }
+        // Every strong anchor shadows the weak ones near it; a weak anchor shadowed only by strong anchors that the
+        // calibration then leaves out (a foreign run, the PK of a neighbouring line, a spike) is taken back and the parts
+        // are fitted again with the strong anchors kept as the only shadows (Séon-St-Henry on 830000, PK 853+219, hidden
+        // by two OpenStreetMap PKs of 710000 that the calibration drops). Not a weak anchor beyond an end of its part
+        // (Carcassonne, 272 m past the end of a part of 676000, would pin the PK of the station on that end).
+        $all = array_map(fn (array $list): array => array_column(array_filter($list, fn (array $a): bool => $a[2]), 0), $located);
+        $first = self::shadowed($located, $all, $all);
+        $perPart = $this->fitRounds($first);
+        $kept = [];
+        foreach ($located as $pi => $list) {
+            $kept[$pi] = array_column(array_filter($list, fn (array $a): bool => $a[2] && $this->keeps($pi, $perPart[$pi] ?? [], $a)), 0);
+        }
+        $second = self::shadowed($located, $all, $kept);
+        if ($second !== $first) {
+            $perPart = $this->fitRounds($second);
+        }
+        $this->inherit($perPart);
+    }
+
+    /**
+     * Anchors [along, PK] of each part, without the weak anchors that lie within SHADOW_M of a shadow: one of $kept for an
+     * anchor on the part, one of $all for an anchor beyond an end of it.
+     *
+     * @param  array<int, list<array{0: float, 1: int, 2: bool, 3: bool}>>  $located  [along, PK, strong, beyond an end] per part
+     * @param  array<int, list<float>>  $all  along of every strong anchor, per part
+     * @param  array<int, list<float>>  $kept  along of the strong anchors that shadow an anchor on the part, per part
+     * @return array<int, list<array{0: float, 1: int}>>
+     */
+    private static function shadowed(array $located, array $all, array $kept): array
+    {
         $perPart = [];
         foreach ($located as $pi => $list) {
-            $strong = array_values(array_filter(array_map(fn (array $a): ?float => $a[2] ? $a[0] : null, $list), fn (?float $d): bool => $d !== null));
-            sort($strong);
-            foreach ($list as [$along, $pk, $isStrong]) {
-                if ($isStrong || ! self::within($strong, $along, self::SHADOW_M)) {
+            $everyStrong = $all[$pi] ?? [];
+            $keptStrong = $kept[$pi] ?? [];
+            sort($everyStrong);
+            sort($keptStrong);
+            foreach ($list as [$along, $pk, $isStrong, $beyond]) {
+                if ($isStrong || ! self::within($beyond ? $everyStrong : $keptStrong, $along, self::SHADOW_M)) {
                     $perPart[$pi][] = [$along, $pk];
                 }
             }
         }
-        // Fit, drop the runs of foreign anchors that the context gives away, fit again until nothing is dropped.
+
+        return $perPart;
+    }
+
+    /**
+     * Whether the calibration of a part uses an anchor [along, PK, strong]: among the anchors it keeps, or, for a part
+     * left without a calibration, among its own anchors still standing (they still give the PK it inherits).
+     *
+     * @param  list<array{0: float, 1: int}>  $own
+     * @param  array{0: float, 1: int, 2: bool, 3: bool}  $anchor
+     */
+    private function keeps(int $pi, array $own, array $anchor): bool
+    {
+        $cal = $this->calibration[$pi] ?? null;
+        $length = $this->cumulative[$pi][count($this->cumulative[$pi]) - 1];
+        $used = $cal === null ? $own : array_map(fn (array $a): array => [$cal['reversed'] ? $length - $a[0] : $a[0], $a[1]], $cal['anchors']);
+        foreach ($used as [$along, $pk]) {
+            if ($pk === $anchor[1] && abs($along - $anchor[0]) < 0.01) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Fit, drop the runs of foreign anchors that the context gives away, fit again until nothing is dropped.
+     *
+     * @param  array<int, list<array{0: float, 1: int}>>  $perPart
+     * @return array<int, list<array{0: float, 1: int}>> the anchors left to each part
+     */
+    private function fitRounds(array $perPart): array
+    {
         $refit = array_keys($this->parts);
         for ($round = 0; $round < self::ROUNDS; $round++) {
             foreach ($refit as $pi) {
@@ -426,7 +493,8 @@ final class TrackChainage
                 break;
             }
         }
-        $this->inherit($perPart);
+
+        return $perPart;
     }
 
     /**

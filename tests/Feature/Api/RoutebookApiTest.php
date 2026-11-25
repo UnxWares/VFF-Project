@@ -179,6 +179,61 @@ class RoutebookApiTest extends TestCase
         $this->assertSame([], array_values(array_filter($book['switches'], fn (array $s): bool => $s['line_code'] === '100000')));
     }
 
+    /**
+     * A park or attraction train without any VFF line (station only "tourist" today, no line: "Petit Train de la Tête
+     * d'Or", snapped onto Collonges-Fontaines - Lyon-Guillotière in the middle of Lille-Flandres - Marseille) is not a
+     * node of the graph; a tourist station on a line of its own stays one.
+     */
+    public function test_a_park_train_without_any_line_is_not_on_the_route(): void
+    {
+        $park = Station::factory()->create(['slug' => 'petit-train', 'name' => 'Petit Train du Parc',
+            'geom' => Point::makeGeodetic(48.0001, 2.05), 'status' => 'tourist']);
+        DB::table('station_eras')->insert(['station_id' => $park->id, 'era_id' => $this->era->id, 'status' => 'tourist',
+            'created_at' => now(), 'updated_at' => now()]);
+        $this->artisan('vff:build-network-graph')->assertSuccessful();
+
+        $this->assertFalse(DB::table('station_edges')->where('from_station_id', $park->id)->orWhere('to_station_id', $park->id)->exists());
+        $this->assertNotContains('petit-train', $this->getJson('/api/v1/route?from=a&to=c')->assertOk()->json('stations.*.slug'));
+        $this->getJson('/api/v1/routebook?from=a&to=c')->assertOk()->assertJsonPath('legs.*.line.code', ['100000'])
+            ->assertJsonPath('legs.0.from.slug', 'a')->assertJsonPath('legs.0.to.slug', 'c');
+
+        // With a line of its own, a tourist station is a station of the network.
+        DB::table('station_lines')->insert(['station_id' => $park->id, 'line_id' => Line::query()->where('code', '100000')->value('id'),
+            'method' => 'sncf_pk', 'pk_m' => 3725, 'pk_source' => 'sncf', 'created_at' => now(), 'updated_at' => now()]);
+        $this->artisan('vff:build-network-graph')->assertSuccessful();
+        $this->assertContains('petit-train', $this->getJson('/api/v1/route?from=a&to=c')->assertOk()->json('stations.*.slug'));
+    }
+
+    /**
+     * The route book keeps to passenger tracks: a short freight-only line (penalised four times by `/route`, still the
+     * cheapest there) is left for the passenger line; a station served only by a freight line is still reached by the
+     * path of `/route`, and `non_passenger_m` says how far.
+     *
+     *   p ── fret ── m ── fret ── q        p, q : passenger line round by the north (about 26 km), m a freight station
+     *                                      q ──── fret ──── f
+     */
+    public function test_the_route_book_keeps_to_passenger_tracks(): void
+    {
+        $round = $this->line('500000', 'Ligne de P à Q par le nord', [[47.0, 2.0], [47.1, 2.0], [47.1, 2.05], [47.0, 2.05]], null);
+        $freight = $this->line('510000', 'Ligne de fret de P à Q', [[47.0, 2.0], [47.0, 2.05]], null);
+        $spur = $this->line('520000', 'Ligne de fret de Q à F', [[47.0, 2.05], [47.0, 2.08]], null);
+        LineSegment::query()->whereIn('line_id', [$freight->id, $spur->id])->update(['traffic_type' => 'freight']);
+        $this->station('p', 47.0, 2.0, [[$round, 0], [$freight, 0]]);
+        $this->station('q', 47.0, 2.05, [[$round, 26000], [$freight, 3800], [$spur, 0]]);
+        $this->station('m', 47.0, 2.025, [[$freight, 1900]]);
+        $this->station('f', 47.0, 2.08, [[$spur, 2300]]);
+        $this->artisan('vff:build-network-graph')->assertSuccessful();
+
+        $this->getJson('/api/v1/route?from=p&to=q')->assertOk()->assertJsonPath('lines.*.line_code', ['510000'])->assertJsonPath('non_passenger_m', fn (int $m): bool => $m > 3000);
+        $book = $this->getJson('/api/v1/routebook?from=p&to=q')->assertOk()
+            ->assertJsonPath('legs.*.line.code', ['500000'])->assertJsonPath('non_passenger_m', 0);
+        $this->assertGreaterThan(25.0, $book->json('distance_km'));
+
+        // F only by freight: the path of `/route` (passenger mode), freight metres said.
+        $toF = $this->getJson('/api/v1/routebook?from=p&to=f')->assertOk()->assertJsonPath('to.slug', 'f');
+        $this->assertGreaterThan(2000, $toF->json('non_passenger_m'));
+    }
+
     public function test_errors_are_those_of_the_route(): void
     {
         $this->getJson('/api/v1/routebook?from=nowhere&to=a')->assertNotFound()->assertJsonPath('error', 'station_not_found');

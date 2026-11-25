@@ -59,7 +59,7 @@ final class SignallingDating
     }
 
     /**
-     * État de plusieurs lignes en une requête.
+     * État de plusieurs lignes en une requête, par identifiant croissant (ordre stable pour les appelants et les tests).
      *
      * @param  list<int>  $lineIds
      * @return array<int, array{status: string, checked_at: string, messages: array{fr: string, en: string, de: string}|null}>
@@ -69,7 +69,7 @@ final class SignallingDating
         if ($lineIds === []) {
             return [];
         }
-        $rows = DB::table('lines as l')->whereIn('l.id', $lineIds)->get([
+        $rows = DB::table('lines as l')->whereIn('l.id', $lineIds)->orderBy('l.id')->get([
             'l.id', 'l.name', 'l.is_lgv',
             DB::raw("exists (select 1 from line_segments s join eras e on e.id = s.era_id and e.is_current
                 where s.line_id = l.id and s.status = 'in_service' and not s.is_heritage) as in_service"),

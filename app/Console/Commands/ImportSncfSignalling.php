@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Source UNIQUE et autoritaire de la signalisation : importe la donnée
@@ -33,7 +34,8 @@ class ImportSncfSignalling extends Command
 {
     protected $signature = 'vff:import-sncf-signalling {--era=}
         {--from-cache : jeux SNCF du cache local s\'il existe (téléchargés et mis en cache sinon) : étape hors ligne de vff:rebuild-history}
-        {--cache-dir= : dossier du cache (défaut : storage/app/sources/sncf-signalling)}';
+        {--cache-dir= : dossier du cache (défaut : storage/app/sources/sncf-signalling)}
+        {--dry-run : calcule et compte sans rien écrire (transaction annulée, carte non recalculée)}';
 
     protected $description = 'Importe la signalisation officielle SNCF Réseau par PK (cantonnement + KVB), source unique.';
 
@@ -51,6 +53,9 @@ class ImportSncfSignalling extends Command
     /** @var array<string,bool> codes LGV (depuis sncf_line_catlig) */
     private array $lgvCodes = [];
 
+    /** Colonne `rg_troncon` présente (migration 2026_12_21_000000 passée) : le tronçon est écrit et le KVB rapproché par tronçon. */
+    private bool $withPart = false;
+
     public function handle(): int
     {
         $eraId = $this->option('era')
@@ -65,6 +70,7 @@ class ImportSncfSignalling extends Command
         }
 
         $this->info("Import SNCF Réseau signalisation par PK (era_id={$eraId})");
+        $this->withPart = Schema::hasColumn('line_signalling', 'rg_troncon');
 
         // LGV depuis la donnée SNCF (plus de liste hardcodée)
         $this->lgvCodes = array_fill_keys(
@@ -94,7 +100,8 @@ class ImportSncfSignalling extends Command
             $this->loadRegimes();
         }
 
-        [$totalCant, $totalKvb] = DB::transaction(function () use ($eraId, $cantonnement, $kvb) {
+        DB::beginTransaction();
+        try {
             DB::table('line_signalling')->where('era_id', $eraId)->delete();
 
             $this->info('  ► [1/2] Cantonnement (mode-de-cantonnement-des-lignes)…');
@@ -108,15 +115,25 @@ class ImportSncfSignalling extends Command
             $totalKvb = $this->importKvb($eraId, $kvb);
             $this->info("    ✓ {$totalKvb} portions KVB rapprochées");
 
-            return [$totalCant, $totalKvb];
-        });
+            $st = DB::selectOne('
+                SELECT COUNT(*) AS total, COUNT(DISTINCT line_id) AS lines,
+                       SUM(CASE WHEN kvb_equipped THEN 1 ELSE 0 END) AS kvb_count
+                FROM line_signalling WHERE era_id = ?
+            ', [$eraId]);
+            $this->info("État final : {$st->total} tranches sur {$st->lines} lignes ({$st->kvb_count} avec KVB)");
+        } catch (\Throwable $e) {
+            DB::rollBack();
 
-        $st = DB::selectOne('
-            SELECT COUNT(*) AS total, COUNT(DISTINCT line_id) AS lines,
-                   SUM(CASE WHEN kvb_equipped THEN 1 ELSE 0 END) AS kvb_count
-            FROM line_signalling WHERE era_id = ?
-        ', [$eraId]);
-        $this->info("État final : {$st->total} tranches sur {$st->lines} lignes ({$st->kvb_count} avec KVB)");
+            throw $e;
+        }
+        if ($this->option('dry-run')) {
+            // À blanc : tout est annulé, la signalisation de l'ère et la carte restent telles quelles.
+            DB::rollBack();
+            $this->info('À blanc : rien écrit.');
+
+            return self::SUCCESS;
+        }
+        DB::commit();
 
         // Calque « Signalisation » de la carte : tracé des tranches recalculé (vue matérialisée).
         $pieces = app(SignallingMap::class)->refresh();
@@ -266,9 +283,10 @@ class ImportSncfSignalling extends Command
                     }
                 }
 
+                $part = self::part($r);
                 foreach ($parts as [$from, $to, $sys, $note]) {
                     $prot = SncfBlockLabels::protection($sys);
-                    $inserts[] = [
+                    $inserts[] = ($this->withPart ? ['rg_troncon' => $part] : []) + [
                         'line_id' => $lineId,
                         'era_id' => $eraId,
                         'pk_start_m' => $from,
@@ -323,9 +341,13 @@ class ImportSncfSignalling extends Command
                 [$pkStart, $pkEnd] = [$pkEnd, $pkStart];
             }
 
+            // Même tronçon seulement : deux tronçons d'une ligne qui partagent des PK sont deux endroits (890000 : le KVB
+            // du tronçon 1, de 8+120 à 152+328, ne vaut pas pour le tronçon 2 de 60+215 à 75+559).
+            $part = self::part($r);
             $rows = DB::table('line_signalling')
                 ->where('era_id', $eraId)
                 ->where('line_id', $lineId)
+                ->when($this->withPart && $part !== null, fn ($q) => $q->where(fn ($q2) => $q2->whereNull('rg_troncon')->orWhere('rg_troncon', $part)))
                 ->where(function ($q) use ($pkStart, $pkEnd) {
                     $q->whereBetween('pk_start_m', [$pkStart, $pkEnd])
                         ->orWhereBetween('pk_end_m', [$pkStart, $pkEnd])
@@ -354,6 +376,18 @@ class ImportSncfSignalling extends Command
         }
 
         return $applied;
+    }
+
+    /**
+     * Rang du tronçon de SNCF Réseau d'un enregistrement (`rg_troncon`), null s'il manque.
+     *
+     * @param  array<string, mixed>  $record
+     */
+    private static function part(array $record): ?int
+    {
+        $rank = $record['rg_troncon'] ?? null;
+
+        return is_numeric($rank) ? (int) $rank : null;
     }
 
     /** "016+953" → 16953 m ; "000-168" → -168 m ; "D+841" → 3841 m (RER C, cf. SncfPk). */

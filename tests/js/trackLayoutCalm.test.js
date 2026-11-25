@@ -18,9 +18,11 @@ import {
     foldLayout,
     normalize,
     objectPks,
+    placeBoxes,
     repeatedPieces,
     routeRows,
     trackPaths,
+    viewCenterTracker,
 } from '$lib/trackLayout.js';
 import TrackDiagram from '$components/Lines/TrackDiagram.svelte';
 
@@ -310,5 +312,46 @@ describe('trackLayout : numéro d’une voie en plusieurs pièces', () => {
         ]);
         expect([...hidden].sort()).toEqual(['f1', 'f3']);
         expect([...continued].sort()).toEqual(['t3b', 'v1b']);
+    });
+});
+
+describe('trackLayout : voies à quai de Paris-Nord et ouverture sur un PK', () => {
+    it('donne à chaque voie en plusieurs pièces sa suite, pour écrire son numéro sur la première pièce assez longue', () => {
+        // Voie 3 de Paris-Nord (OSM, 25/11/2026) : 4 m devant le heurtoir, la partie à quai, la gorge.
+        const { continued, run } = repeatedPieces([
+            track('osm:way:73556237', 'running', 2, -35, -31, { ref: '3' }),
+            track('osm:way:112596568', 'running', 2, -31, 377, { ref: '3' }),
+            track('osm:way:402673032', 'running', 2, 377, 426, { ref: '3' }),
+            track('osm:way:256877274', 'running', 3, -31, 378, { ref: '4' }),
+        ]);
+        expect([...continued].sort()).toEqual(['osm:way:112596568', 'osm:way:402673032']);
+        const runs = ['osm:way:73556237', 'osm:way:112596568', 'osm:way:402673032'].map((id) =>
+            run.get(id),
+        );
+        expect(new Set(runs).size).toBe(1);
+        expect(run.get('osm:way:256877274')).not.toBe(runs[0]);
+    });
+
+    it('n’écrit qu’une des places possibles d’une étiquette', () => {
+        const shown = placeBoxes([
+            { x0: 0, x1: 20, y0: 0, y1: 10, rank: 0 },
+            // Numéro de la voie 4 : sous elle (pris par la voie suivante), sinon après le quai.
+            { x0: 5, x1: 25, y0: 2, y1: 12, rank: 0.5, group: 'ref|4' },
+            { x0: 100, x1: 120, y0: 0, y1: 10, rank: 0.6, group: 'ref|4' },
+            { x0: 200, x1: 220, y0: 0, y1: 10, rank: 0.5, group: 'ref|5' },
+            { x0: 300, x1: 320, y0: 0, y1: 10, rank: 0.6, group: 'ref|5' },
+        ]);
+        expect(shown).toEqual([true, false, true, true, false]);
+    });
+
+    it('ne prend pas pour le milieu de la vue le PK que donne un nouvel axe sous l’ancien défilement', () => {
+        const center = viewCenterTracker();
+        // Ouverture sur ?pk=336560 (Poitiers) : la vue est centrée.
+        expect(center(24828, 1216, () => 336560)).toBe(336560);
+        // Des voies arrivent, l'axe change, le défilement pas encore : aucun nouveau milieu.
+        expect(center(24828, 1216, () => 336120)).toBeNull();
+        // La page recentre : le milieu suit le défilement.
+        expect(center(25246, 1216, () => 336560)).toBe(336560);
+        expect(center(25246, 800, () => 336500)).toBe(336500);
     });
 });

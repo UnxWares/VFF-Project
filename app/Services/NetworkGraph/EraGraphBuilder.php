@@ -27,7 +27,9 @@ use Illuminate\Support\Facades\DB;
  *      défaut sur la voie la plus proche à moins de `attach_fallback_m` : un
  *      nœud par gare, les projections deviennent des coupures des portions ;
  *      les gares FERMÉES à l'ère sont projetées aussi, comme simples nœuds de
- *      passage (comptées dans skipped_count) ;
+ *      passage (comptées dans skipped_count) ; une gare seulement touristique
+ *      à l'ère et sans aucune ligne de VFF (train de parc ou d'attraction, hors
+ *      du réseau ferré) n'est pas projetée ;
  *    - arêtes = morceaux de portions entre deux coupures consécutives ;
  *    - arêtes de longueur nulle (coupures confondues) : leurs nœuds sont
  *      fusionnés, l'arête disparaît (mergeZeroLengthPieces) ;
@@ -230,6 +232,17 @@ final class EraGraphBuilder
                 SELECT DISTINCT station_id, line_id FROM station_lines
                 WHERE (first_year IS NULL OR first_year <= ?) AND (last_year IS NULL OR last_year > ?)
                 SQL, [$year, $year]);
+        }
+        if ($stationsSource === 'station_eras') {
+            // Train d'attraction ou touristique sans ligne de VFF (petit train de parc, « Disneyland Railroad ») : sa voie
+            // n'est pas sur le réseau ferré, la gare n'est pas un nœud (projetée sur la voie la plus proche, elle mettait
+            // « Petit Train de la Tête d'Or » sur Collonges-Fontaines - Lyon-Guillotière, au milieu de Lille - Marseille).
+            DB::statement(<<<'SQL'
+                DELETE FROM g_st st USING station_eras se
+                WHERE se.era_id = ? AND se.station_id = st.station_id AND se.status = 'tourist'
+                  AND NOT EXISTS (SELECT 1 FROM g_stline sl WHERE sl.station_id = st.station_id)
+                  AND NOT EXISTS (SELECT 1 FROM station_lines sl WHERE sl.station_id = st.station_id)
+                SQL, [$eraId]);
         }
         DB::unprepared('CREATE INDEX ON g_st USING gist (p); CREATE INDEX ON g_st (station_id); CREATE INDEX ON g_stline (station_id, line_id); ANALYZE g_st; ANALYZE g_stline');
 

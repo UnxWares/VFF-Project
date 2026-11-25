@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Title('Livret de parcours entre deux gares')]
 #[Description(<<<'TXT'
 Livret de parcours d'aujourd'hui entre deux gares (« quelles lignes, quels PK, quelles voies entre Rennes et Saint-Malo ? ») : le plus court chemin sur le réseau actuel (comme historical_route sans année), puis, ligne par ligne dans le sens de marche, les PK de chaque portion et son schéma des voies (comme line_track_layout), départ et arrivée au centre de leur point d'exploitation.
-Renvoie : distance_km, objects (nombre d'objets), legs (lignes traversées dans l'ordre : code, slug, nom, bouts = gare ou changement de ligne en pleine voie, PK de début et de fin, direction up = PK croissants ou down, pk_precision exact / derived / approximate, km parcourus, has_detail), line_changes, coverage (mètres couverts par le RINF et par OpenStreetMap, portions sans données détaillées), puis les objets demandés par kinds, triés par kilomètre parcouru (route_km) avec leur ligne, leur PK de ligne et leur provenance (source, precision). Une portion sans donnée n'est pas une portion sans voie : la source ne la décrit pas.
+Renvoie : distance_km, non_passenger_m (mètres sur des voies sans service voyageurs, fret seul ou réseaux militaire et particulier : 0, sauf quand aucun chemin n'existe sur les seules voies voyageurs), objects (nombre d'objets), legs (lignes traversées dans l'ordre : code, slug, nom, bouts = gare ou changement de ligne en pleine voie, PK de début et de fin, direction up = PK croissants ou down, pk_precision exact / derived / approximate, km parcourus, has_detail), line_changes, coverage (mètres couverts par le RINF et par OpenStreetMap, portions sans données détaillées), puis les objets demandés par kinds, triés par kilomètre parcouru (route_km) avec leur ligne, leur PK de ligne et leur provenance (source, precision). Une portion sans donnée n'est pas une portion sans voie : la source ne la décrit pas.
 Gares : slug (de préférence, via search), identifiant, nom exact ou nom de ville. Erreurs à code stable : graph_not_built, station_not_found, ambiguous_station (avec `candidates`), same_station, station_not_in_network, no_path.
 Exemple : {"from": "rennes", "to": "st-malo", "kinds": ["operational_points", "switches"]}.
 TXT)]
@@ -76,6 +76,7 @@ class RoutebookTool extends VffTool
             'to' => $book['to'],
             'era_year' => $book['era_year'],
             'distance_km' => $book['distance_km'],
+            'non_passenger_m' => $book['non_passenger_m'],
             'objects' => $book['objects'],
             'legs' => array_map(fn (array $l): array => [
                 'code' => $l['line']['code'], 'slug' => $l['line']['slug'], 'name' => $l['line']['name'],

@@ -61,6 +61,12 @@ final class StationTrackLayout
     /** Seconds a station layout stays in the cache (the sources change at their imports only). */
     public const CACHE_TTL = 3600;
 
+    /**
+     * Version of the rules behind a station layout, in its cache key: an entry made by older rules is not read (2:
+     * platform tracks kept and ordered around their platforms, 25/11/2026).
+     */
+    public const RULES = 2;
+
     public function __construct(private readonly TrackLayout $layout) {}
 
     /**
@@ -75,7 +81,7 @@ final class StationTrackLayout
     {
         // The whole layout is kept once per station and line asked: the light overview of the station sheet and the
         // full page read the same entry.
-        $key = 'station-track-layout:'.TrackLayout::FORMAT.':'.$station->id.':'.($only ?? '*');
+        $key = 'station-track-layout:'.TrackLayout::FORMAT.'.'.self::RULES.':'.$station->id.':'.($only ?? '*');
         $layout = Cache::remember($key, self::CACHE_TTL, fn (): array => $this->build($station, $only));
         if ($kinds !== null) {
             $kinds = array_values(array_intersect(TrackLayout::KINDS, $kinds));
@@ -277,15 +283,22 @@ final class StationTrackLayout
             $rows = DB::table('rinf_platforms as p')->join('rinf_tracks as t', 't.uri', '=', 'p.track_uri')
                 ->whereIn('p.op_uopid', array_map(fn (object $o): string => (string) $o->uopid, $ops))
                 ->orderBy('p.ref')->orderBy('p.uri')
-                ->get(['p.uri', 'p.ref', 'p.length_m', 'p.height_mm', 'p.op_uopid', 'p.dataset', 'p.fetched_at', 't.uri as track_uri', 't.ref as track_ref']);
+                ->get(['p.uri', 'p.ref', 'p.length_m', 'p.height_mm', 'p.op_uopid', 'p.dataset', 'p.fetched_at', 't.uri as track_uri', 't.ref as track_ref',
+                    't.rinf_class']);
+            // Other numbers of a track, from the name of its island platform (« 3 » of « Quai V1/V1BIS » is V1BIS).
+            $aliases = PlatformNames::aliases($rows->map(fn (object $r): array => ['platform' => PlatformNames::key((string) $r->op_uopid, (string) $r->ref),
+                'ref' => (string) $r->ref, 'track' => (string) $r->track_uri, 'number' => TrackLayout::trackNumber(self::platformTrackRef((string) $r->track_ref))])->all());
             foreach ($rows as $r) {
+                $trackRef = self::platformTrackRef((string) $r->track_ref);
                 $edges[] = [
                     'id' => 'rinf:pe:'.substr(md5((string) $r->uri), 0, 12), 'ref' => (string) $r->ref,
-                    'track_ref' => self::platformTrackRef((string) $r->track_ref), 'line_code' => null, 'track' => null,
+                    'track_ref' => $trackRef, 'line_code' => null, 'track' => null,
                     'pk_from_m' => null, 'pk_to_m' => null,
                     'length_m' => $r->length_m === null ? null : (int) $r->length_m, 'height_mm' => $r->height_mm === null ? null : (int) $r->height_mm,
                     'source' => 'rinf', 'pk_source' => null, 'precision' => null,
                     '_rinf_track' => 'rinf:t:'.substr(md5((string) $r->track_uri), 0, 12),
+                    '_numbers' => array_values(array_unique(array_filter([TrackLayout::trackNumber($trackRef), ...$aliases[(string) $r->track_uri] ?? []]))),
+                    '_running' => $r->rinf_class === 'running', '_op' => (string) $r->op_uopid,
                     '_lines' => array_values(array_unique($opLines[(string) $r->op_uopid] ?? [])),
                 ];
             }
@@ -310,7 +323,7 @@ final class StationTrackLayout
                 if (! isset($byLine[$code])) {
                     continue;
                 }
-                $track = self::borderingTrack($byLine[$code], $e['_rinf_track'], $e['track_ref']);
+                $track = self::borderingTrack($byLine[$code], $e['_rinf_track'], $e['_numbers']);
                 if ($track !== null || in_array($code, $e['_lines'], true)) {
                     $e['line_code'] = $code;
                     $e['track'] = $track['id'] ?? null;
@@ -318,10 +331,15 @@ final class StationTrackLayout
                 }
             }
             $e['line_code'] ??= $e['_lines'][0] ?? null;
+        }
+        unset($e);
+        self::singleTrackEdges($edges, $byLine);
+
+        foreach ($edges as &$e) {
             // Kilometre points declared by SNCF Réseau for the same line and track.
             foreach ($sncf as $i => $s) {
                 if (! isset($usedSncf[$i]) && $s->code_ligne === $e['line_code'] && $s->code_voie !== null
-                    && TrackLayout::trackNumber(self::platformTrackRef((string) $s->code_voie)) === TrackLayout::trackNumber($e['track_ref'])
+                    && TrackLayout::sameNumber(TrackLayout::trackNumber(self::platformTrackRef((string) $s->code_voie)), TrackLayout::trackNumber($e['track_ref']))
                     && self::plausible($s, $byLine[(string) $s->code_ligne] ?? null)) {
                     $usedSncf[$i] = true;
                     $e['pk_from_m'] = min((int) $s->pk_start_m, (int) $s->pk_end_m);
@@ -346,7 +364,7 @@ final class StationTrackLayout
                 continue;
             }
             $trackRef = self::platformTrackRef((string) $s->code_voie);
-            $track = $block === null ? null : self::borderingTrack($block, null, $trackRef);
+            $track = $block === null ? null : self::borderingTrack($block, null, [TrackLayout::trackNumber($trackRef)]);
             $edges[] = [
                 'id' => 'sncf:quai:'.$s->id, 'ref' => trim((string) $s->label), 'track_ref' => $trackRef, 'line_code' => (string) $s->code_ligne,
                 'track' => $track['id'] ?? null, 'pk_from_m' => min((int) $s->pk_start_m, (int) $s->pk_end_m), 'pk_to_m' => max((int) $s->pk_start_m, (int) $s->pk_end_m),
@@ -375,45 +393,99 @@ final class StationTrackLayout
 
     /**
      * Drawn track of a line layout that a platform edge borders: the same RINF track (or the track that replaced it),
-     * otherwise the track of the same number nearest the station kilometre point, within PLATFORM_REACH_M; never a
-     * crossover, a yard track or a spur (Paris-Austerlitz has a yard track 3 beside the platform track 3).
+     * otherwise the track of one of its numbers (TrackLayout::sameNumber: « VD » and « D », or the number the name of
+     * its island platform gives it) nearest the station kilometre point, within PLATFORM_REACH_M, the first number
+     * first; never a crossover, a yard track or a spur (Paris-Austerlitz has a yard track 3 beside the platform track 3).
      *
      * @param  array<string, mixed>  $block
+     * @param  list<string>  $numbers  track numbers of the edge, its own first
      * @return array<string, mixed>|null
      */
-    private static function borderingTrack(array $block, ?string $rinfTrack, string $trackRef): ?array
+    private static function borderingTrack(array $block, ?string $rinfTrack, array $numbers): ?array
     {
         $tracks = array_values(array_filter($block['track_layout']['tracks'], fn (array $t): bool => ! in_array($t['kind'], self::NO_PLATFORM_KINDS, true)));
+        $pk = $block['station_pk_m'] ?? intdiv($block['window']['from_m'] + $block['window']['to_m'], 2);
         if ($rinfTrack !== null) {
+            // Several pieces of OpenStreetMap may carry the RINF track (Paris-Nord: a 4 m stub before the buffer stop,
+            // the platform part, the throat): the one at the station kilometre point, otherwise the nearest, the
+            // longest first.
+            $same = array_values(array_filter($tracks, fn (array $t): bool => $t['id'] === $rinfTrack || ($t['rinf_id'] ?? null) === $rinfTrack));
+            usort($same, fn (array $a, array $b): int => [max(0, (int) $a['pk_from_m'] - $pk, $pk - (int) $a['pk_to_m']), (int) $b['pk_to_m'] - (int) $b['pk_from_m']]
+                <=> [max(0, (int) $b['pk_from_m'] - $pk, $pk - (int) $b['pk_to_m']), (int) $a['pk_to_m'] - (int) $a['pk_from_m']]);
+            if ($same !== []) {
+                return $same[0];
+            }
+        }
+        foreach (array_filter($numbers, fn (string $n): bool => $n !== '') as $number) {
+            $best = null;
+            $bestDistance = null;
             foreach ($tracks as $t) {
-                if ($t['id'] === $rinfTrack || ($t['rinf_id'] ?? null) === $rinfTrack) {
-                    return $t;
+                if (! TrackLayout::sameNumber($number, TrackLayout::trackNumber((string) ($t['ref'] ?? '')))) {
+                    continue;
+                }
+                $distance = max(0, (int) $t['pk_from_m'] - $pk, $pk - (int) $t['pk_to_m']);
+                if ($distance <= self::PLATFORM_REACH_M && ($bestDistance === null || $distance < $bestDistance)) {
+                    [$best, $bestDistance] = [$t, $distance];
                 }
             }
-        }
-        $number = TrackLayout::trackNumber($trackRef);
-        if ($number === '') {
-            return null;
-        }
-        $pk = $block['station_pk_m'] ?? intdiv($block['window']['from_m'] + $block['window']['to_m'], 2);
-        $best = null;
-        $bestDistance = null;
-        foreach ($tracks as $t) {
-            if (TrackLayout::trackNumber((string) ($t['ref'] ?? '')) !== $number) {
-                continue;
-            }
-            $distance = max(0, (int) $t['pk_from_m'] - $pk, $pk - (int) $t['pk_to_m']);
-            if ($distance <= self::PLATFORM_REACH_M && ($bestDistance === null || $distance < $bestDistance)) {
-                [$best, $bestDistance] = [$t, $distance];
+            if ($best !== null) {
+                return $best;
             }
         }
 
-        return $best;
+        return null;
+    }
+
+    /**
+     * On a single-track line, the through track of a station bears the station's own name for it: at Cognac the RINF
+     * names « D » (« Quai VD ») the track that the line and OpenStreetMap call the single track (VU, U). A platform
+     * edge of a RINF main track (`running` class) left without a drawn track borders the single track when it is the
+     * only such track of its operational point, the line layout has a single track (number U) at the station and no
+     * other edge of the point borders it already.
+     *
+     * @param  list<array<string, mixed>>  $edges
+     * @param  array<string, array<string, mixed>>  $byLine
+     */
+    private static function singleTrackEdges(array &$edges, array $byLine): void
+    {
+        $left = [];
+        $taken = [];
+        foreach ($edges as $i => $e) {
+            if ($e['track'] === null && $e['_running'] && isset($byLine[(string) $e['line_code']])) {
+                $left[$e['_op'].'|'.$e['line_code']][$e['_rinf_track']][] = $i;
+            } elseif ($e['track'] !== null) {
+                $taken[$e['_op'].'|'.$e['line_code']][$e['track']] = true;
+            }
+        }
+        foreach ($left as $key => $tracks) {
+            if (count($tracks) !== 1) {
+                continue;
+            }
+            $block = $byLine[explode('|', $key)[1]];
+            $pk = (int) ($block['station_pk_m'] ?? intdiv($block['window']['from_m'] + $block['window']['to_m'], 2));
+            $at = fn (array $t): bool => $t['kind'] === 'running' && (int) $t['pk_from_m'] <= $pk && $pk <= (int) $t['pk_to_m'];
+            $number = fn (array $t): string => TrackLayout::trackNumber((string) ($t['ref'] ?? ''));
+            // Pieces of the single track at the station (a RINF track is cut at each section end), the one the station
+            // lies most inside first.
+            $single = array_values(array_filter($block['track_layout']['tracks'], fn (array $t): bool => $at($t) && $number($t) === 'U'));
+            usort($single, fn (array $a, array $b): int => min($pk - (int) $b['pk_from_m'], (int) $b['pk_to_m'] - $pk)
+                <=> min($pk - (int) $a['pk_from_m'], (int) $a['pk_to_m'] - $pk));
+            $double = array_filter($block['track_layout']['tracks'], fn (array $t): bool => $at($t) && in_array($number($t), ['1', '2'], true));
+            $busy = array_filter($single, fn (array $t): bool => isset($taken[$key][$t['id']]));
+            if ($single === [] || $double !== [] || $busy !== []) {
+                continue;
+            }
+            foreach (reset($tracks) as $i) {
+                $edges[$i]['track'] = $single[0]['id'];
+            }
+        }
     }
 
     /**
      * Approximate place of a platform of known length on its track: centred on the station kilometre point, moved
-     * inside the track when it would overhang one of its ends, the whole track when the platform is longer.
+     * inside the track when it would overhang one of its ends, the whole track when the platform is longer. The track
+     * runs on through the pieces of the same reference it touches (a RINF line track is cut at each section end, at
+     * Cognac on the station kilometre point itself).
      *
      * @param  array<string, mixed>  $block
      * @return array{0: int, 1: int}
@@ -433,6 +505,18 @@ final class StationTrackLayout
             return [$from, $from + $length];
         }
         [$a, $b] = [(int) $track['pk_from_m'], (int) $track['pk_to_m']];
+        $same = array_filter($block['track_layout']['tracks'], fn (array $t): bool => $t['ref'] !== null && $t['ref'] === $track['ref']
+            && $t['source'] === $track['source'] && $t['kind'] === $track['kind']);
+        usort($same, fn (array $x, array $y): int => (int) $x['pk_from_m'] <=> (int) $y['pk_from_m']);
+        foreach ([$same, array_reverse($same)] as $k => $list) {
+            foreach ($list as $t) {
+                if ($k === 0 && (int) $t['pk_from_m'] <= $b && (int) $t['pk_to_m'] > $b) {
+                    $b = (int) $t['pk_to_m'];
+                } elseif ($k === 1 && (int) $t['pk_to_m'] >= $a && (int) $t['pk_from_m'] < $a) {
+                    $a = (int) $t['pk_from_m'];
+                }
+            }
+        }
         if ($b - $a <= $length) {
             return [$a, $b];
         }

@@ -25,6 +25,12 @@ class PathfindingService
 {
     public const NON_PASSENGER_FACTOR = 4.0;
 
+    /**
+     * Mode `traffic` interne (livret de parcours) : les sections gare à gare qui empruntent une voie sans service
+     * voyageurs (fret seul, réseaux militaire ou particulier : `non_passenger_m`) sont écartées, pas seulement pénalisées.
+     */
+    public const PASSENGER_ONLY = 'passenger_only';
+
     /** Écart maximal entre les gares d'un même nom de ville (km). */
     private const CITY_SPREAD_KM = 30.0;
 
@@ -89,8 +95,9 @@ class PathfindingService
         }
 
         $heritage = (bool) ($options['heritage'] ?? false);
-        $factor = ($options['traffic'] ?? 'passenger') === 'all' ? 1.0 : self::NON_PASSENGER_FACTOR;
-        $adj = $this->loadAdjacency((int) $era->id, $heritage, $factor);
+        $traffic = $options['traffic'] ?? 'passenger';
+        $factor = $traffic === 'all' ? 1.0 : self::NON_PASSENGER_FACTOR;
+        $adj = $this->loadAdjacency((int) $era->id, $heritage, $factor, $traffic === self::PASSENGER_ONLY);
 
         $origin = $this->resolveEndpoint($from, $adj, 'from', (int) $era->id);
         $destination = $this->resolveEndpoint($to, $adj, 'to', (int) $era->id);
@@ -299,11 +306,11 @@ class PathfindingService
     /**
      * @return array<int, list<array{0:int, 1:float, 2:int}>>
      */
-    private function loadAdjacency(int $eraId, bool $heritage, float $factor): array
+    private function loadAdjacency(int $eraId, bool $heritage, float $factor, bool $passengerOnly = false): array
     {
         $rows = DB::select(
             'SELECT id, from_station_id, to_station_id, length_m, non_passenger_m FROM station_edges
-             WHERE era_id = ?'.($heritage ? '' : ' AND heritage_m = 0'),
+             WHERE era_id = ?'.($heritage ? '' : ' AND heritage_m = 0').($passengerOnly ? ' AND non_passenger_m = 0' : ''),
             [$eraId],
         );
         $adj = [];

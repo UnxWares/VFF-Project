@@ -128,6 +128,30 @@ class RinfParserTest extends TestCase
         $this->assertSame(15457, $matcher->match(['name' => 'Paris-Nord-Souterraine', 'kind' => 'station', 'lat' => 48.8808863, 'lon' => 2.3574005])['station_id'] ?? null);
     }
 
+    /**
+     * A prolonged name matches only a station or a halt (RINF of 25/11/2026: 33 depots, yards, sidings and one junction
+     * named after the nearby station, "Pantin Zone (Poste Z - voies 43, 45 et 47)" 776 m from Pantin, "Le Mans - PVSI",
+     * "Ugine aciers", "Toulouges (Fork)", were given that station). An equal name still matches whatever the kind.
+     */
+    public function test_a_prolonged_name_matches_only_a_station_or_a_halt(): void
+    {
+        $matcher = new RinfStationMatcher([
+            (object) ['id' => 15500, 'slug' => 'pantin', 'name' => 'Pantin', 'lat' => 48.8984, 'lon' => 2.4005],
+            (object) ['id' => 15600, 'slug' => 'le-mans', 'name' => 'Le Mans', 'lat' => 47.9956, 'lon' => 0.1924],
+            (object) ['id' => 15700, 'slug' => 'ugine', 'name' => 'Ugine', 'lat' => 45.7488, 'lon' => 6.4161],
+            (object) ['id' => 15800, 'slug' => 'metz-marchandises', 'name' => 'Metz-Marchandises', 'lat' => 49.0962, 'lon' => 6.1898],
+        ]);
+
+        $this->assertNull($matcher->match(['name' => 'Pantin Zone (Poste Z - voies 43, 45 et 47)', 'kind' => 'other', 'lat' => 48.9020, 'lon' => 2.4100]));
+        $this->assertNull($matcher->match(['name' => 'Le Mans - PVSI', 'kind' => 'other', 'lat' => 47.9970, 'lon' => 0.1950]));
+        $this->assertNull($matcher->match(['name' => 'Ugine aciers', 'kind' => 'siding', 'lat' => 45.7540, 'lon' => 6.4290]));
+        $this->assertNull($matcher->match(['name' => "Pantin\n(Fork)", 'kind' => 'junction', 'lat' => 48.8990, 'lon' => 2.4010]));
+        // Equal name: matched whatever the kind (a freight terminal of VFF has its own sheet).
+        $this->assertSame(15800, $matcher->match(['name' => 'Metz-Marchandises', 'kind' => 'other', 'lat' => 49.0962, 'lon' => 6.1899])['station_id'] ?? null);
+        // A station of a prolonged name still matches.
+        $this->assertSame(15600, $matcher->match(['name' => 'Le Mans-Ville', 'kind' => 'station', 'lat' => 47.9960, 'lon' => 0.1930])['station_id'] ?? null);
+    }
+
     public function test_lanes_ranges_and_track_numbers(): void
     {
         $t = fn (string $id, string $ref, string $kind, int $from, int $to, ?string $op = null): array => ['id' => $id, 'ref' => $ref, 'kind' => $kind,

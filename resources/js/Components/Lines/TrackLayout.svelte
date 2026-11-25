@@ -88,8 +88,22 @@
 
     // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
     const expanded = new SvelteSet();
-    // Page des voies d'une gare : les voies à quai restent dessinées, même dans une très grande gare.
-    const platformTracks = $derived(new Set(platforms.map((p) => p.track).filter(Boolean)));
+    // Page des voies d'une gare : les voies à quai restent dessinées, même dans une très grande gare, avec toutes leurs
+    // pièces (même rangée, même numéro : à Paris-Nord, le bout devant le heurtoir, la partie à quai, la gorge).
+    const platformTracks = $derived.by(() => {
+        const ids = new Set(platforms.map((p) => p.track).filter(Boolean));
+        const same = new Set(
+            data.tracks
+                .filter((tr) => ids.has(tr.id) && tr.ref)
+                .map((tr) => `${tr.lane}|${tr.ref}`),
+        );
+        return new Set([
+            ...ids,
+            ...data.tracks
+                .filter((tr) => tr.ref && same.has(`${tr.lane}|${tr.ref}`))
+                .map((tr) => tr.id),
+        ]);
+    });
     const folded = $derived(foldLayout(data, zonesAxis.zones, expanded, platformTracks));
     const drawnZones = $derived(detailZones(folded.data));
     const dense = $derived(objectPks(folded.data));
@@ -119,7 +133,7 @@
     /** @type {ReturnType<typeof setTimeout>|undefined} */
     let viewTimer;
     function onview(from, to, center) {
-        anchor = center;
+        if (center !== null) anchor = center;
         if (!loader?.chunked) return;
         clearTimeout(viewTimer);
         viewTimer = setTimeout(() => loader.ensure(from, to), 150);

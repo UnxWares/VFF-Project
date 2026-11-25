@@ -9,8 +9,9 @@ namespace App\Services\TrackLayout;
  * - operational_points : {id, name, kind, pk_m, uopid, station_slug, source, precision}
  *   (kind : station, halt, junction, passing_loop, siding, border, other) ;
  * - tracks : {id, ref, kind, pk_from_m, pk_to_m, op_id, length_m, electrified, platform, source, precision}
- *   (kind : running, siding, loop, yard, crossover, spur ; `lane` est calculée par TrackLayout ; clé facultative
- *   `parent_ref` : référence de la voie principale d'où part une voie de service, pour la placer de son côté) ;
+ *   (kind : running, siding, loop, yard, crossover, spur ; `lane` est calculée par TrackLayout ; clés facultatives
+ *   `parent_ref` : référence de la voie principale d'où part une voie de service, pour la placer de son côté,
+ *   `platform_keys` : quais que la voie borde, `aliases` : ses autres numéros, voir RinfTrackLayoutSource) ;
  * - switches : {id, ref, pk_m, kind, from_track, to_track, facing, source, precision}
  *   (kind : simple, single_slip, double_slip, three_way, diamond ; facing : up, down ou null) ;
  * - signals : {id, ref, pk_m, kind, track, direction, source, precision} ;

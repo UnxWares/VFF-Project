@@ -170,8 +170,10 @@ class StationTrackLayoutApiTest extends TestCase
             array_values(array_diff_key($edges['Quai VE'], ['ref' => 1])));
         $e = collect((array) $json['lines'][0]['track_layout']['tracks'])->firstWhere('id', 'osm:way:101');
         $this->assertSame('rinf:t:'.substr(md5('http://data.europa.eu/949/track/t4'), 0, 12), $e['rinf_id']);
-        // Quai VD : sa voie n'est pas dessinée, et le PK 0+000 de SNCF Réseau est loin de la gare : ni voie ni position.
-        $this->assertSame(['D', '579000', null, null, null, 145, 300, 'rinf', null, null],
+        // Quai VD : la voie D du RINF est la voie unique en gare (seule voie principale du point sans voie dessinée, sur
+        // une ligne à voie unique) ; le PK 0+000 de SNCF Réseau est loin de la gare : placé autour du PK de la gare
+        // (17 277, à la coupure des deux sections de la voie unique), à peu près.
+        $this->assertSame(['D', '579000', 'rinf:t:'.substr(md5('http://data.europa.eu/949/track/t1'), 0, 12), 17205, 17350, 145, 300, 'rinf', 'vff', 'approximate'],
             [$edges['Quai VD']['track_ref'], $edges['Quai VD']['line_code'], $edges['Quai VD']['track'], $edges['Quai VD']['pk_from_m'],
                 $edges['Quai VD']['pk_to_m'], $edges['Quai VD']['length_m'], $edges['Quai VD']['height_mm'], $edges['Quai VD']['source'],
                 $edges['Quai VD']['pk_source'], $edges['Quai VD']['precision']]);

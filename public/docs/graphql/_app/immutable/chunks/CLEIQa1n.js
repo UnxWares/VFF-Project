@@ -1080,6 +1080,12 @@ type LineSignallingRange {
   kvb_equipped: Boolean!
   "Remarque sur la tranche, en général la source (ex. « Source : SNCF Open Data, mode-de-cantonnement-des-lignes »)."
   note: String
+  """
+  Rang du tronçon de SNCF Réseau de la tranche (\`rg_troncon\` du jeu mode-de-cantonnement-des-lignes). Deux tronçons
+  d'une ligne peuvent avoir des PK communs : ce sont deux endroits différents (ligne 330000, PK 30+095 à 30+900).
+  Null pour une tranche d'une autre source ou écrite avant que VFF ne garde le tronçon.
+  """
+  rg_troncon: Int
 }
 
 
@@ -4818,7 +4824,7 @@ type LineRinfParameterSummary {
 
 "Portion de PK de mêmes valeurs et de même statut."
 type LineRinfParameterPortion {
-  "Rang du tronçon de SNCF Réseau ; nul pour une comparaison sur toute la ligne (vitesses, signalisation)."
+  "Rang du tronçon de SNCF Réseau ; nul pour une comparaison sur toute la ligne (tronçons des deux sources qui ne se correspondent pas, signalisation sans tronçon)."
   rg_troncon: Int
   "PK de début, en mètres."
   pk_start_m: Int!
@@ -5475,6 +5481,8 @@ type Routebook {
   distance_m: Int!
   "Longueur du parcours, en kilomètres (une décimale)."
   distance_km: Float!
+  "Mètres parcourus sur des voies sans service voyageurs (fret seul, réseaux militaire ou particulier) : 0, sauf quand aucun chemin n'existe sur les seules voies voyageurs."
+  non_passenger_m: Int!
   "Nombre d'objets du livret (points d'exploitation, voies, aiguillages, signaux, traversées)."
   objects: Int!
   "Lignes traversées, dans l'ordre."

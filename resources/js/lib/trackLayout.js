@@ -1044,13 +1044,15 @@ export function stackLabels(items, { maxRows = 1, gap = 8 } = {}) {
 /**
  * Étiquettes sans chevauchement, en deux dimensions : boîtes { x0, y0, x1, y1 } placées par priorité (`rank`, la
  * plus petite d'abord, puis de gauche à droite) ; une boîte qui en touche une déjà placée n'est pas écrite
- * (l'objet reste dans le tableau). Grille de 64 px en abscisse pour ne comparer que les voisines.
+ * (l'objet reste dans le tableau). Grille de 64 px en abscisse pour ne comparer que les voisines. Les boîtes d'un même
+ * `group` sont des places possibles pour une même étiquette : seule la première placée est écrite.
  *
- * @param {Array<{ x0: number, y0: number, x1: number, y1: number, rank?: number }>} boxes
+ * @param {Array<{ x0: number, y0: number, x1: number, y1: number, rank?: number, group?: string }>} boxes
  * @returns {boolean[]} écrite ou non, dans l'ordre reçu
  */
 export function placeBoxes(boxes, gap = 3) {
     const CELL = 64;
+    const done = new Set();
     /** @type {Map<number, Array<{ x0: number, y0: number, x1: number, y1: number }>>} */
     const grid = new Map();
     const shown = new Array(boxes.length).fill(false);
@@ -1058,6 +1060,7 @@ export function placeBoxes(boxes, gap = 3) {
         .map((b, i) => ({ b, i }))
         .sort((p, q) => (p.b.rank ?? 0) - (q.b.rank ?? 0) || p.b.x0 - q.b.x0);
     for (const { b, i } of order) {
+        if (b.group !== undefined && done.has(b.group)) continue;
         const c0 = Math.floor((b.x0 - gap) / CELL);
         const c1 = Math.floor((b.x1 + gap) / CELL);
         let free = true;
@@ -1076,6 +1079,7 @@ export function placeBoxes(boxes, gap = 3) {
         }
         if (!free) continue;
         shown[i] = true;
+        if (b.group !== undefined) done.add(b.group);
         for (let c = c0; c <= c1; c++) {
             if (!grid.has(c)) grid.set(c, []);
             grid.get(c).push(b);
@@ -1104,6 +1108,23 @@ export function refSpots(path, zoneStarts) {
 }
 
 /**
+ * Milieu de la vue pour la page (lecture par portions, `onview`) : le PK du milieu quand le défilement ou la largeur
+ * de la vue ont changé depuis l'appel précédent, null quand seul l'axe a changé (des voies arrivent). Le défilement
+ * d'avant lu sur le nouvel axe donne un autre PK, que la page prenait pour le nouveau milieu : ouverte sur `?pk=`,
+ * une longue ligne recentrait sur lui et la gare partait de 400 px sur le côté (570000, Poitiers, 25/11/2026).
+ *
+ * @returns {(scroll: number, view: number, pk: () => number) => number|null}
+ */
+export function viewCenterTracker() {
+    let last = { scroll: NaN, view: NaN };
+    return (scroll, view, pk) => {
+        const moved = scroll !== last.scroll || view !== last.view;
+        last = { scroll, view };
+        return moved ? pk() : null;
+    };
+}
+
+/**
  * Pièces d'une même voie (même rangée, même numéro, bout à bout à 10 m près : voie d'OpenStreetMap coupée à chaque
  * aiguillage, voie du RINF coupée à chaque section) : son numéro est écrit une fois pour toute la voie.
  *
@@ -1111,9 +1132,11 @@ export function refSpots(path, zoneStarts) {
  *   Paris-Tolbiac) ; elle est dans `hidden` pour les autres ;
  * - voie de pleine ligne : le numéro de son début n'est pas répété au début d'une pièce qui la prolonge (`continued`) ;
  *   l'entrée de chaque zone garde le sien (refSpots).
+ * `run` : la suite de pièces de chaque voie (clé commune), pour que le dessin écrive le numéro au début de la première
+ * pièce assez longue pour lui (Paris-Nord : 4 m devant le heurtoir, puis la partie à quai).
  *
  * @param {Array<{ id: string, ref?: string|null, kind: string, lane: number, pk_from_m: number, pk_to_m: number }>} tracks
- * @returns {{ hidden: Set<string>, continued: Set<string> }}
+ * @returns {{ hidden: Set<string>, continued: Set<string>, run: Map<string, string> }}
  */
 export function repeatedPieces(tracks) {
     /** @type {Map<string, Array<any>>} */
@@ -1126,6 +1149,8 @@ export function repeatedPieces(tracks) {
     }
     const hidden = new Set();
     const continued = new Set();
+    /** @type {Map<string, string>} */
+    const run_ = new Map();
     const len = (t) => t.pk_to_m - t.pk_from_m;
     for (const [key, list] of by) {
         const line = key.startsWith('line|');
@@ -1134,6 +1159,7 @@ export function repeatedPieces(tracks) {
         let run = [];
         let to = -Infinity;
         const flush = () => {
+            for (const t of run) run_.set(t.id, `${key}|${run[0].id}`);
             if (line) {
                 for (const t of run.slice(1)) continued.add(t.id);
             } else {
@@ -1149,7 +1175,7 @@ export function repeatedPieces(tracks) {
         }
         if (run.length) flush();
     }
-    return { hidden, continued };
+    return { hidden, continued, run: run_ };
 }
 
 /** Références d'une voie principale (voie 1, voie 2, voie unique) : la vitesse de la bande est la leur. */

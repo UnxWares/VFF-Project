@@ -443,7 +443,10 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 Le plus court chemin sur le réseau d'aujourd'hui (comme `historical_route` sans année), puis, ligne
 par ligne dans le sens de marche, le schéma des voies de chaque portion parcourue (comme
 `GET /api/v1/lines/{line}/track-layout`). Départ et arrivée au centre de leur point d'exploitation
-(PK de la gare sur sa ligne). Renvoie `from`, `to`, `era_year`, `distance_km`, `objects` (nombre
+(PK de la gare sur sa ligne). Le chemin ne prend que des voies ouvertes aux voyageurs : ni train de parc
+ou d'attraction, ni voie de fret seul ou des réseaux militaire et particulier, sauf quand il n'existe aucun
+autre chemin (`non_passenger_m` donne alors les mètres parcourus sur ces voies, 0 sinon). Renvoie `from`,
+`to`, `era_year`, `distance_km`, `non_passenger_m`, `objects` (nombre
 d'objets du livret), `legs` (`code`, `slug`, `name`, `from` et `to` : nom de la gare ou `junction`
 pour un changement de ligne en pleine voie, `pk_from_m`, `pk_to_m`, `direction` : `up` à PK
 croissants ou `down`, `pk_precision` : `exact`, `derived` ou `approximate`, `route_from_km`,
@@ -1025,7 +1028,7 @@ RINF.
 Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de lecture, `attribution`), `operational_points[]`
 (`uopid`, `station_slug`, `kind`), `tracks[]` (`ref` courte : `V1`, `V2`, `VU` pour la voie unique ; `kind` : `running`,
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
-voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
+voie 1, les deux voies d'un même quai sur des rangées voisines ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
 elle n'est pas dite ; `form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
 inscription), `strip.speeds[]` (`tracks` : voies auxquelles la vitesse s'applique), `strip.gradients[]` (‰
@@ -1064,7 +1067,9 @@ voies), `parameters[]` (`key`, `compared_with` : `sncf` ou null, `summary` en m�
 `disagree_m`, `rinf_only_m`, `vff_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `rinf` et `vff`, chacun avec `key`,
 `values`, `voltage_v`, `frequency_hz`, `speed_kmh`, `tracks`, `source_label`), `platforms` (`summary`, `items[]` : gare, point
 d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_mm`, `vff` avec `label`, `length_m`, PK),
-`sources[]`, le bloc d'attribution et `vff_url`. Règles : la vitesse d'une section du RINF est comparée à la plus forte
+`sources[]`, le bloc d'attribution et `vff_url`. Règles : électrification, vitesse, contrôle de vitesse et radio sont
+comparés tronçon par tronçon (`rg_troncon`, deux tronçons d'une ligne pouvant avoir des PK communs) quand les tronçons des
+deux sources se correspondent, sur toute la ligne sinon (`rg_troncon` nul) ; la vitesse d'une section du RINF est comparée à la plus forte
 vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
 déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
 Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en

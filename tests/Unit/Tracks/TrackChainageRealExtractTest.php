@@ -119,4 +119,40 @@ class TrackChainageRealExtractTest extends TestCase
         $pks = array_values(array_filter($pks, fn (?int $pk): bool => $pk !== null));
         $this->assertGreaterThan(2_000, max($pks) - min($pks));
     }
+
+    /**
+     * Séon-St-Henry on Paris - Marseille (830000, PK 853+219 from SNCF Reseau): two OpenStreetMap PKs of 710000 (710.200,
+     * 710.800) stand on ways of 830000 within 1 km of the station. They shadowed the station, then the calibration dropped
+     * them as foreign, and the station never came back: its place took the PK 853+468, approximate, from a part with
+     * fewer anchors. A weak anchor is now shadowed only by strong anchors the calibration keeps.
+     */
+    public function test_a_station_shadowed_only_by_dropped_foreign_anchors_calibrates_the_line(): void
+    {
+        $fixture = json_decode((string) file_get_contents(__DIR__.'/../../Fixtures/Osm/chainage-830000-seon.json'), true, flags: JSON_THROW_ON_ERROR);
+        $anchors = [];
+        foreach ($fixture['stations'] as $s) {
+            if (in_array($s['pk_source'], TrackNetwork::CALIBRATED, true)) {
+                $anchors[] = ['lon' => $s['lon'], 'lat' => $s['lat'], 'pk_m' => $s['pk_m'], 'max_m' => 500.0];
+            }
+        }
+        foreach ($fixture['osm_anchors'] as $a) {
+            $anchors[] = ['lon' => $a['lon'], 'lat' => $a['lat'], 'pk_m' => $a['pk_m'], 'max_m' => 30.0, 'strong' => true];
+        }
+        $this->assertContains(710200, array_column($fixture['osm_anchors'], 'pk_m'));
+        $chainage = new TrackChainage($fixture['parts'], $anchors);
+
+        $seon = array_column($fixture['stations'], null, 'name')['Séon-St-Henry'];
+        $at = $chainage->locate($seon['lon'], $seon['lat'], 500.0);
+        $this->assertNotNull($at);
+        $this->assertSame('derived', $at['precision']);
+        $this->assertEqualsWithDelta(853_219, $at['pk_m'], 20);
+        // The foreign PKs of 710000 stay out of the calibration.
+        foreach ($fixture['osm_anchors'] as $a) {
+            if ($a['pk_m'] < 800_000) {
+                $here = $chainage->locate($a['lon'], $a['lat'], 30.0);
+                $this->assertNotNull($here);
+                $this->assertGreaterThan(850_000, $here['pk_m']);
+            }
+        }
+    }
 }

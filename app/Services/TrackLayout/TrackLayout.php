@@ -25,23 +25,33 @@ use Illuminate\Support\Facades\Log;
  * RÈGLES DE FUSION (une source plus loin dans l'ordre ne fait que compléter) :
  * - voies (décision du 24/11/2026, avec osm-voies) : sur une portion `tracks` couverte par une source préférée, ses
  *   voies `running` priment et celles d'une source suivante sont écartées ; les autres voies (évitement, service,
- *   faisceau, liaison…) d'une source suivante sont gardées. À un point d'exploitation dont la source préférée n'a
- *   que des voies `approximate` (voies d'une gare du RINF centrées sur son PK), des voies de service exactes ou
- *   déduites d'une source suivante (à OP_ZONE_M près) les remplacent ; une voie remplaçante de même numéro qu'une
- *   seule voie remplacée garde son identifiant et sa référence RINF (`rinf_id`, `rinf_ref`) et le point (`op_id`).
- *   Toute voie citée par un aiguillage gardé (`from_track`, `to_track`) est gardée ;
+ *   faisceau, liaison…) d'une source suivante sont gardées. Une voie `running` d'une source suivante n'est jamais
+ *   écartée quand un de ses objets la cite (aiguillage, signal, heurtoir, traversée) ou quand elle est une voie d'un
+ *   point d'exploitation de la source préférée (même numéro au sens de sameNumber, dans sa zone) : elle longe alors
+ *   un quai ou porte la voie d'une gare (Paris-Nord, 25/11/2026 : les parties à quai des voies 3 à 21 et 30 à 36
+ *   disparaissaient, 89 signaux et 14 heurtoirs citaient une voie absente). À un point d'exploitation dont la source
+ *   préférée n'a que des voies `approximate` (voies d'une gare du RINF centrées sur son PK), des voies de service
+ *   exactes ou déduites d'une source suivante, et les voies de même numéro (à OP_ZONE_M près), les remplacent ; une
+ *   voie remplaçante de même numéro qu'une seule voie remplacée garde son identifiant et sa référence RINF
+ *   (`rinf_id`, `rinf_ref`), le point (`op_id`) et ses quais (`platform`) ;
  * - même voie décrite deux fois (absorbDuplicates) : une voie de ligne exacte du RINF (identifiant officiel, PK de
  *   ses sections) absorbe les voies d'OSM et les voies de gare approchées du RINF de même numéro (« 1bis » et
- *   « V1BIS ») qui la recouvrent sur au moins la moitié de leur longueur, et les voies principales d'OSM sans numéro
+ *   « V1BIS », « DO » et « VDO », ou le nom que lui donne un quai : « 3 » de « Quai V1/V1BIS » à Brétigny) qui la
+ *   recouvrent sur au moins la moitié de leur longueur, et les voies principales d'OSM sans numéro
  *   posées au même endroit (décalage latéral à SAME_PLACE_M près) ; elle prend le décalage latéral d'OSM (ordre
- *   réel des voies) et les aiguillages, signaux, heurtoirs et traversées des voies absorbées la citent ;
+ *   réel des voies), les quais des voies absorbées, et les aiguillages, signaux, heurtoirs et traversées des voies
+ *   absorbées la citent ;
  * - aiguillages, signaux, traversées, heurtoirs, bornes kilométriques : gardés hors des portions couvertes de leur
  *   famille par une source préférée, et sauf doublon d'un objet d'une source préférée (même famille, même
  *   référence au sens de sameRef, « PN 1 » et « 1 », ou référence absente, à DEDUPE_M près) ; dans une même
  *   source, seule la même référence au même endroit fait un doublon ;
  * - points d'exploitation : gardés sauf s'ils doublent un point déjà retenu (même gare de VFF, ou à OP_MERGE_M près) ;
  * - vitesses et déclivités : rognées aux trous de la bande déjà remplie.
- * Puis les rangées des voies (LaneAssigner), le tri par PK, la couverture (`coverage`) et les sources utilisées.
+ * Puis les rangées des voies (LaneAssigner : les voies d'un même quai voisines, de part et d'autre de lui), le tri
+ * par PK, la couverture (`coverage`) et les sources utilisées.
+ *
+ * Clés de travail des voies (retirées de la réponse) : `offset_m` et `connects` (OSM, rangées), `platform_keys`
+ * (quais que la voie borde, « point|quai », RINF) et `aliases` (autres numéros de la voie, tirés du nom d'un quai).
  *
  * Une source dont une table manque (migration pas encore passée) est ignorée : 200 et ce que disent les autres.
  *
@@ -77,6 +87,9 @@ final class TrackLayout
     /** Écart latéral (m) sous lequel deux voies sans numéro au même endroit sont la même voie (entraxe : 4 m au moins). */
     public const SAME_PLACE_M = 1.5;
 
+    /** Taille (m) des cases où sont rangées les zones des points d'exploitation pendant la fusion des voies. */
+    private const ZONE_CELL_M = 1000;
+
     /** Deux points d'exploitation à moins de cette distance (m) : le second double le premier. */
     public const OP_MERGE_M = 150;
 
@@ -94,7 +107,7 @@ final class TrackLayout
     ];
 
     /** Clés de travail des sources, retirées de la réponse. */
-    private const INTERNAL = ['parent_ref', 'offset_m', 'connects'];
+    private const INTERNAL = ['parent_ref', 'offset_m', 'connects', 'platform_keys', 'aliases'];
 
     /** Codes SQLSTATE d'une table ou d'une colonne absente (PostgreSQL : undefined_table, undefined_column). */
     private const MISSING_RELATION = ['42P01', '42703'];
@@ -151,7 +164,7 @@ final class TrackLayout
             foreach (TrackLayoutPart::FAMILIES as $family) {
                 $items = $part->family($family);
                 if ($family === 'tracks') {
-                    [$merged['tracks'], $out] = self::mergeTracks($merged['tracks'], $covered['tracks'], $items);
+                    [$merged['tracks'], $out] = self::mergeTracks($merged['tracks'], $covered['tracks'], $items, self::citedTracks($part));
                     $dropped = [...$dropped, ...$out];
                 } else {
                     $merged[$family] = [...$merged[$family], ...match ($family) {
@@ -169,36 +182,20 @@ final class TrackLayout
             }
         }
 
-        // Une voie citée par un aiguillage gardé reste, même écartée par les règles ci-dessus.
-        $keptIds = array_flip(array_map(fn (array $t): string => (string) $t['id'], $merged['tracks']));
-        $cited = [];
-        foreach ($merged['switches'] as $sw) {
-            foreach (['from_track', 'to_track'] as $k) {
-                if (($sw[$k] ?? null) !== null) {
-                    $cited[(string) $sw[$k]] = true;
-                }
-            }
-        }
-        foreach ($dropped as $t) {
-            if (isset($cited[(string) $t['id']]) && ! isset($keptIds[(string) $t['id']])) {
-                $merged['tracks'][] = $t;
-                $keptIds[(string) $t['id']] = true;
-            }
-        }
-
         // Une même voie décrite deux fois (RINF et OSM, ou voie de gare approchée du RINF sur sa voie de ligne) ne sort
         // qu'une fois ; les objets qui citaient la voie écartée citent la voie gardée.
         // Les voies écartées plus haut y prennent part : leur décalage latéral place la voie gardée, puis elles partent.
+        $keptIds = array_flip(array_map(fn (array $t): string => (string) $t['id'], $merged['tracks']));
         $gone = [];
         foreach ($dropped as $t) {
             if (! isset($keptIds[(string) $t['id']])) {
                 $gone[(string) $t['id']] = $t;
             }
         }
-        [$all, $same] = self::absorbDuplicates([...$merged['tracks'], ...array_values($gone)]);
+        [$all, $same, $at] = self::absorbDuplicates([...$merged['tracks'], ...array_values($gone)]);
         $merged['tracks'] = array_values(array_filter($all, fn (array $t): bool => ! isset($gone[(string) $t['id']])));
         if ($same !== []) {
-            $merged = self::remapTracks($merged, $same);
+            $merged = self::remapTracks($merged, $same, $at);
         }
 
         $extent = self::extent($merged, $covered);
@@ -328,33 +325,84 @@ final class TrackLayout
      * @param  list<array<string, mixed>>  $kept  voies des sources préférées
      * @param  list<array{0: int, 1: int}>  $covered  portions `tracks` couvertes par les sources préférées
      * @param  list<array<string, mixed>>  $items  voies de la source
+     * @param  array<string, true>  $cited  identifiants des voies de la source que ses propres objets citent
      * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>} voies retenues, voies écartées
      */
-    private static function mergeTracks(array $kept, array $covered, array $items): array
+    private static function mergeTracks(array $kept, array $covered, array $items, array $cited = []): array
     {
-        $dropped = [];
-        $new = [];
-        foreach ($items as $t) {
-            if (($t['kind'] ?? null) === 'running' && self::overlapsAny($covered, (int) $t['pk_from_m'], (int) $t['pk_to_m'])) {
-                $dropped[] = $t;
-            } else {
-                $new[] = $t;
-            }
-        }
-
-        // Voies approchées des sources préférées, par point d'exploitation.
+        // Voies approchées des sources préférées, par point d'exploitation : leur zone (à OP_ZONE_M près) et leurs numéros.
         $groups = [];
         foreach ($kept as $i => $t) {
             if (($t['precision'] ?? null) === 'approximate' && ($t['kind'] ?? null) !== 'running' && ($t['op_id'] ?? null) !== null) {
                 $groups[(string) $t['op_id']][] = $i;
             }
         }
+        $zones = [];
+        $byNumber = [];
+        foreach ($groups as $opId => $indices) {
+            $zones[$opId] = [min(array_map(fn (int $i): int => (int) $kept[$i]['pk_from_m'], $indices)) - self::OP_ZONE_M,
+                max(array_map(fn (int $i): int => (int) $kept[$i]['pk_to_m'], $indices)) + self::OP_ZONE_M];
+            foreach ($indices as $i) {
+                foreach (self::numbersOf($kept[$i]) as $number) {
+                    $byNumber[$opId][$number][] = $i;
+                }
+            }
+        }
+        $inZone = fn (array $t, string $opId): bool => (int) $t['pk_from_m'] < $zones[$opId][1] && $zones[$opId][0] < (int) $t['pk_to_m'];
+        // Voies du point de même numéro qu'une voie de la source (« 3 » d'OSM et « Voie 3 de Paris-Nord » du RINF).
+        $sameNumber = function (array $numbers, string $opId) use ($byNumber): array {
+            foreach ($numbers as $number) {
+                if (($found = self::byForms($byNumber[$opId] ?? [], $number)) !== []) {
+                    return array_values(array_unique($found));
+                }
+            }
+
+            return [];
+        };
+
+        // Zones rangées par cases de ZONE_CELL_M mètres : une voie ne se compare qu'aux zones des cases qu'elle touche
+        // (plusieurs centaines de points d'exploitation et quelques milliers de voies sur Paris - Marseille).
+        $cells = [];
+        foreach ($zones as $opId => [$a, $b]) {
+            for ($c = intdiv($a, self::ZONE_CELL_M) - 1; $c <= intdiv($b, self::ZONE_CELL_M) + 1; $c++) {
+                $cells[$c][] = $opId;
+            }
+        }
+        $near = function (array $t) use ($cells, $inZone): array {
+            $ops = [];
+            for ($c = intdiv((int) $t['pk_from_m'], self::ZONE_CELL_M); $c <= intdiv((int) $t['pk_to_m'], self::ZONE_CELL_M); $c++) {
+                foreach ($cells[$c] ?? [] as $opId) {
+                    $ops[$opId] = true;
+                }
+            }
+
+            return array_values(array_filter(array_map('strval', array_keys($ops)), fn (string $opId): bool => $inZone($t, $opId)));
+        };
+
+        $dropped = [];
+        $new = [];
+        $numbers = [];
+        $nearOps = [];
+        foreach ($items as $t) {
+            $ops = $zones === [] ? [] : $near($t);
+            $own = $ops === [] ? [] : self::numbersOf($t);
+            if (($t['kind'] ?? null) === 'running' && self::overlapsAny($covered, (int) $t['pk_from_m'], (int) $t['pk_to_m'])
+                && ! isset($cited[(string) $t['id']])
+                && array_filter($ops, fn (string $op): bool => $sameNumber($own, $op) !== []) === []) {
+                $dropped[] = $t;
+            } else {
+                $new[] = $t;
+                $numbers[] = $own;
+                foreach ($ops as $op) {
+                    $nearOps[$op][] = count($new) - 1;
+                }
+            }
+        }
+
         $remove = [];
         foreach ($groups as $opId => $indices) {
-            $zoneFrom = min(array_map(fn (int $i): int => (int) $kept[$i]['pk_from_m'], $indices)) - self::OP_ZONE_M;
-            $zoneTo = max(array_map(fn (int $i): int => (int) $kept[$i]['pk_to_m'], $indices)) + self::OP_ZONE_M;
-            $replacing = array_keys(array_filter($new, fn (array $t): bool => ($t['kind'] ?? null) !== 'running'
-                && ($t['precision'] ?? null) !== 'approximate' && (int) $t['pk_from_m'] < $zoneTo && $zoneFrom < (int) $t['pk_to_m']));
+            $replacing = array_values(array_filter($nearOps[$opId] ?? [], fn (int $j): bool => (($new[$j]['kind'] ?? null) !== 'running'
+                && ($new[$j]['precision'] ?? null) !== 'approximate') || $sameNumber($numbers[$j], $opId) !== []));
             if ($replacing === []) {
                 continue;
             }
@@ -362,16 +410,18 @@ final class TrackLayout
                 $remove[$i] = true;
                 $dropped[] = $kept[$i];
             }
-            $byNumber = [];
-            foreach ($indices as $i) {
-                $byNumber[self::trackNumber((string) ($kept[$i]['ref'] ?? ''))][] = $i;
-            }
             foreach ($replacing as $j) {
-                $number = self::trackNumber((string) ($new[$j]['ref'] ?? ''));
-                $same = $number === '' ? [] : ($byNumber[$number] ?? []);
+                $same = $sameNumber($numbers[$j], $opId);
                 if (count($same) === 1 && ($kept[$same[0]]['source'] ?? null) === 'rinf') {
-                    $new[$j]['rinf_id'] = $kept[$same[0]]['id'];
-                    $new[$j]['rinf_ref'] = $kept[$same[0]]['rinf_ref'] ?? $kept[$same[0]]['ref'];
+                    $replaced = $kept[$same[0]];
+                    $new[$j]['rinf_id'] = $replaced['id'];
+                    $new[$j]['rinf_ref'] = $replaced['rinf_ref'] ?? $replaced['ref'];
+                    // Le point dont elle est la voie (Paris-Nord-Surface et Paris-Nord ont le même PK).
+                    $new[$j]['op_id'] = $opId;
+                    if (($replaced['platform_keys'] ?? []) !== []) {
+                        $new[$j]['platform_keys'] = array_values(array_unique([...$new[$j]['platform_keys'] ?? [], ...$replaced['platform_keys']]));
+                        $new[$j]['platform'] = true;
+                    }
                 }
                 $new[$j]['op_id'] ??= $opId;
             }
@@ -381,12 +431,108 @@ final class TrackLayout
     }
 
     /**
+     * Identifiants des voies d'une source que ses propres objets citent : aiguillages (`from_track`, `to_track`),
+     * signaux et heurtoirs (`track`), traversées (`tracks`).
+     *
+     * @return array<string, true>
+     */
+    private static function citedTracks(TrackLayoutPart $part): array
+    {
+        $cited = [];
+        foreach ($part->switches as $sw) {
+            foreach ([$sw['from_track'] ?? null, $sw['to_track'] ?? null] as $id) {
+                if ($id !== null) {
+                    $cited[(string) $id] = true;
+                }
+            }
+        }
+        foreach ([...$part->signals, ...$part->bufferStops] as $o) {
+            if (($o['track'] ?? null) !== null) {
+                $cited[(string) $o['track']] = true;
+            }
+        }
+        foreach ($part->crossings as $c) {
+            foreach ((array) ($c['tracks'] ?? []) as $id) {
+                $cited[(string) $id] = true;
+            }
+        }
+
+        return $cited;
+    }
+
+    /**
+     * Numéros d'une voie : celui de sa référence (trackNumber) puis ceux que lui donne le nom d'un quai (`aliases`).
+     *
+     * @param  array<string, mixed>  $track
+     * @return list<string>
+     */
+    public static function numbersOf(array $track): array
+    {
+        $numbers = [self::trackNumber((string) ($track['ref'] ?? '')), ...array_map('strval', (array) ($track['aliases'] ?? []))];
+
+        return array_values(array_unique(array_filter($numbers, fn (string $n): bool => $n !== '')));
+    }
+
+    /**
+     * Formes sous lesquelles une autre source écrit un numéro de voie : lui-même, puis, pour un code en lettres, avec
+     * ou sans le « V » (« Voie ») que le RINF met devant (mesure du 25/11/2026 sur les voies de ligne du RINF sans
+     * voie d'OSM de même numéro : « VDO », « VRO », « VDM », « VRV », « VLC1 », « VM » du RINF sont « DO », « RO »,
+     * « DM », « RV », « LC1 », « M » d'OSM à Paris-Nord ; « RD » du RINF y est « VRD » d'OSM ; « Quai VD » de
+     * Cognac borde la voie « D »). Un numéro qui commence par un chiffre n'a qu'une forme (trackNumber ôte déjà le
+     * « V » de « V3 »).
+     *
+     * @return list<string>
+     */
+    public static function numberForms(string $number): array
+    {
+        if ($number === '') {
+            return [];
+        }
+        $forms = [$number];
+        if (preg_match('/^[A-Z]/', $number) === 1) {
+            $forms[] = 'V'.$number;
+            if (preg_match('/^V[A-Z]/', $number) === 1) {
+                $forms[] = substr($number, 1);
+            }
+        }
+
+        return $forms;
+    }
+
+    /** Deux numéros de voie (trackNumber) qui désignent la même voie (numberForms). */
+    public static function sameNumber(string $a, string $b): bool
+    {
+        return $a !== '' && $b !== '' && in_array($b, self::numberForms($a), true);
+    }
+
+    /**
+     * Entrées d'un index par numéro pour un numéro, sous sa forme exacte d'abord, puis ses autres formes.
+     *
+     * @template T
+     *
+     * @param  array<string, list<T>>  $index
+     * @return list<T>
+     */
+    private static function byForms(array $index, string $number): array
+    {
+        foreach (self::numberForms($number) as $form) {
+            if (isset($index[$form])) {
+                return $index[$form];
+            }
+        }
+
+        return [];
+    }
+
+    /**
      * Une même voie décrite deux fois : voir les règles en tête de classe. Ancres : voies de ligne du RINF (`running`,
      * `exact`, numérotées). Une voie absorbée disparaît ; son décalage latéral (OSM) passe à l'ancre, en moyenne
      * pondérée par le recouvrement, pour que la voie garde sa place réelle parmi ses voisines.
+     * Rend les voies gardées, identifiant absorbé => identifiant gardé, et identifiant absorbé => pièces de la voie gardée
+     * qu'il recouvre [identifiant, début, fin] (une voie du RINF est coupée à chaque section).
      *
      * @param  list<array<string, mixed>>  $tracks
-     * @return array{0: list<array<string, mixed>>, 1: array<string, string>} voies gardées, identifiant absorbé => identifiant gardé
+     * @return array{0: list<array<string, mixed>>, 1: array<string, string>, 2: array<string, list<array{0: string, 1: int, 2: int}>>}
      */
     public static function absorbDuplicates(array $tracks): array
     {
@@ -399,7 +545,7 @@ final class TrackLayout
             }
         }
         if ($anchors === []) {
-            return [$tracks, []];
+            return [$tracks, [], []];
         }
         $overlap = fn (array $a, array $b): int => max(0, min((int) $a['pk_to_m'], (int) $b['pk_to_m']) - max((int) $a['pk_from_m'], (int) $b['pk_from_m']));
         $length = fn (array $t): int => max(1, (int) $t['pk_to_m'] - (int) $t['pk_from_m']);
@@ -409,7 +555,11 @@ final class TrackLayout
         $same = [];
         /** @var array<int, array{0: float, 1: int}> $lateral ancre => [somme pondérée, poids] */
         $lateral = [];
-        $absorb = function (int $i, array $into) use (&$same, &$lateral, $tracks, $overlap, $length): bool {
+        /** @var array<int, list<string>> $keys ancre => quais des voies qu'elle absorbe */
+        $keys = [];
+        /** @var array<int, list<int>> $along voie absorbée => pièces de l'ancre qu'elle recouvre */
+        $along = [];
+        $absorb = function (int $i, array $into) use (&$same, &$lateral, &$keys, &$along, $tracks, $overlap, $length): bool {
             $best = null;
             $shared = 0;
             foreach ($into as $a) {
@@ -423,6 +573,10 @@ final class TrackLayout
                 return false;
             }
             $same[$i] = $best;
+            $along[$i] = array_values(array_filter($into, fn (int $a): bool => $overlap($tracks[$i], $tracks[$a]) > 0));
+            if (($tracks[$i]['platform_keys'] ?? []) !== []) {
+                $keys[$best] = [...$keys[$best] ?? [], ...$tracks[$i]['platform_keys']];
+            }
             if (isset($tracks[$i]['offset_m']) && is_numeric($tracks[$i]['offset_m'])) {
                 foreach ($into as $a) {
                     if (($o = $overlap($tracks[$i], $tracks[$a])) > 0) {
@@ -434,11 +588,15 @@ final class TrackLayout
             return true;
         };
 
-        // Même numéro.
+        // Même numéro (ou une de ses formes, ou le nom que lui donne un quai).
         foreach ($tracks as $i => $t) {
-            $number = self::trackNumber((string) ($t['ref'] ?? ''));
-            if ($number !== '' && ! $isAnchor($t) && $candidate($t) && isset($anchors[$number])) {
-                $absorb($i, $anchors[$number]);
+            if ($isAnchor($t) || ! $candidate($t)) {
+                continue;
+            }
+            foreach (self::numbersOf($t) as $number) {
+                if (($into = self::byForms($anchors, $number)) !== [] && $absorb($i, $into)) {
+                    break;
+                }
             }
         }
         // Décalage latéral des ancres : celui de leurs doublons, sinon la moyenne de leur numéro.
@@ -470,28 +628,50 @@ final class TrackLayout
             }
         }
 
-        $map = [];
-        foreach ($same as $i => $a) {
-            $map[(string) $tracks[$i]['id']] = (string) $tracks[$a]['id'];
+        // Les quais des voies absorbées passent à la voie gardée (rangées : ses voisines de quai).
+        foreach ($keys as $a => $list) {
+            $tracks[$a]['platform_keys'] = array_values(array_unique([...$tracks[$a]['platform_keys'] ?? [], ...$list]));
         }
 
-        return [array_values(array_diff_key($tracks, $same)), $map];
+        $map = [];
+        $at = [];
+        foreach ($same as $i => $a) {
+            $map[(string) $tracks[$i]['id']] = (string) $tracks[$a]['id'];
+            $at[(string) $tracks[$i]['id']] = array_map(fn (int $p): array => [(string) $tracks[$p]['id'], (int) $tracks[$p]['pk_from_m'], (int) $tracks[$p]['pk_to_m']], $along[$i]);
+        }
+
+        return [array_values(array_diff_key($tracks, $same)), $map, $at];
     }
 
     /**
      * Objets qui citent une voie absorbée : ils citent la voie gardée (aiguillages, signaux, heurtoirs, traversées,
-     * voies reliées par une liaison). Un aiguillage dont les deux voies sont devenues la même ne mène plus nulle part.
+     * voies reliées par une liaison), et, quand elle est en plusieurs pièces, la pièce qui porte leur PK (Paris-Nord :
+     * un aiguillage au PK 0+830 de la voie LC1 d'OSM, absorbée par la voie VLC1 du RINF coupée au PK 1+115, citait la
+     * pièce 1+115 à 1+495, hors de la fenêtre de la gare). Un aiguillage dont les deux voies sont devenues la même ne
+     * mène plus nulle part.
      *
      * @param  array<string, list<array<string, mixed>>>  $merged
      * @param  array<string, string>  $map
+     * @param  array<string, list<array{0: string, 1: int, 2: int}>>  $at
      * @return array<string, list<array<string, mixed>>>
      */
-    private static function remapTracks(array $merged, array $map): array
+    private static function remapTracks(array $merged, array $map, array $at = []): array
     {
-        $id = fn (mixed $v): mixed => is_string($v) ? ($map[$v] ?? $v) : $v;
+        $id = function (mixed $v, mixed $pk = null) use ($map, $at): mixed {
+            if (! is_string($v) || ! isset($map[$v])) {
+                return $v;
+            }
+            foreach (is_numeric($pk) ? $at[$v] ?? [] : [] as [$piece, $from, $to]) {
+                if ((int) $pk >= $from && (int) $pk <= $to) {
+                    return $piece;
+                }
+            }
+
+            return $map[$v];
+        };
         foreach ($merged['switches'] as &$sw) {
-            $sw['from_track'] = $id($sw['from_track'] ?? null);
-            $sw['to_track'] = $id($sw['to_track'] ?? null);
+            $sw['from_track'] = $id($sw['from_track'] ?? null, $sw['pk_m'] ?? null);
+            $sw['to_track'] = $id($sw['to_track'] ?? null, $sw['pk_m'] ?? null);
             if ($sw['to_track'] !== null && $sw['to_track'] === $sw['from_track']) {
                 $sw['to_track'] = null;
             }
@@ -499,19 +679,19 @@ final class TrackLayout
         unset($sw);
         foreach (['signals', 'buffer_stops'] as $family) {
             foreach ($merged[$family] as &$o) {
-                $o['track'] = $id($o['track'] ?? null);
+                $o['track'] = $id($o['track'] ?? null, $o['pk_m'] ?? null);
             }
             unset($o);
         }
         foreach ($merged['crossings'] as &$c) {
             if (isset($c['tracks']) && is_array($c['tracks'])) {
-                $c['tracks'] = array_values(array_unique(array_map($id, $c['tracks'])));
+                $c['tracks'] = array_values(array_unique(array_map(fn (mixed $v): mixed => $id($v, $c['pk_m'] ?? null), $c['tracks'])));
             }
         }
         unset($c);
         foreach ($merged['tracks'] as &$t) {
             if (isset($t['connects']) && is_array($t['connects'])) {
-                $t['connects'] = array_values(array_unique(array_map($id, $t['connects'])));
+                $t['connects'] = array_values(array_unique(array_map(fn (mixed $v): mixed => $id($v), $t['connects'])));
             }
         }
         unset($t);

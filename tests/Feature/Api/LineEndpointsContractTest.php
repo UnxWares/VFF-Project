@@ -152,9 +152,9 @@ class LineEndpointsContractTest extends TestCase
             ->assertOk()
             ->assertJsonPath('ranges', [
                 ['pk_start_m' => 0, 'pk_end_m' => 17_250, 'pk_start_label' => '0+000', 'pk_end_label' => '17+250',
-                    'length_m' => 17_250, 'signalling' => 'BAL', 'signalling_systems' => ['BAL'], 'train_protection' => ['KVB'], 'kvb_equipped' => true, 'source_label' => null, 'note' => null],
+                    'length_m' => 17_250, 'signalling' => 'BAL', 'signalling_systems' => ['BAL'], 'train_protection' => ['KVB'], 'kvb_equipped' => true, 'source_label' => null, 'note' => null, 'rg_troncon' => null],
                 ['pk_start_m' => 17_250, 'pk_end_m' => 20_040, 'pk_start_label' => '17+250', 'pk_end_label' => '20+040',
-                    'length_m' => 2_790, 'signalling' => 'BAPR', 'signalling_systems' => ['BAPR'], 'train_protection' => [], 'kvb_equipped' => false, 'source_label' => null, 'note' => 'Voie unique'],
+                    'length_m' => 2_790, 'signalling' => 'BAPR', 'signalling_systems' => ['BAPR'], 'train_protection' => [], 'kvb_equipped' => false, 'source_label' => null, 'note' => 'Voie unique', 'rg_troncon' => null],
             ]);
     }
 

@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\DB;
  *   section dont le profil donne la même valeur sur la portion).
  * - Points d'exploitation aux extrémités des sections, PK exact ; leurs voies (voies de gare, voies de service,
  *   liaisons) n'ont pas de PK dans le RINF français : centrées sur le PK du point, sur leur longueur déclarée
- *   (quai, voie de service), position `approximate`.
+ *   (quai, voie de service), position `approximate`. Clés de travail de ces voies (retirées de la réponse) : les
+ *   quais qu'elles bordent (`platform_keys`, PlatformNames::key) et les autres numéros que leur donne le nom d'un
+ *   quai central (`aliases`, PlatformNames::aliases : « 3 » de « Quai V1/V1BIS » est V1BIS à Brétigny).
  * - Aiguillages et signaux : SNCF Réseau n'en déclare pas au RINF (aucun era:Switch ni era:Signal dans son
  *   graphe, mesure du 24/11/2026) ; les familles `switches` et `signals` ne sont donc jamais couvertes ici.
  */
@@ -141,9 +143,20 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
             }
         }
 
-        // Voies des points d'exploitation : centrées sur le PK du point, position approchée.
+        // Voies des points d'exploitation : centrées sur le PK du point, position approchée. Clés de travail : les quais
+        // que la voie borde (`platform_keys`, rangées voisines de part et d'autre d'un quai) et les autres numéros que
+        // lui donne le nom d'un quai (`aliases`, PlatformNames).
         $platforms = DB::table('rinf_platforms')->whereIn('op_uopid', array_keys($opPk))->get()->groupBy('track_uri');
-        foreach (DB::table('rinf_tracks')->whereIn('op_uopid', array_keys($opPk))->orderBy('uri')->get() as $t) {
+        $opTracks = DB::table('rinf_tracks')->whereIn('op_uopid', array_keys($opPk))->orderBy('uri')->get();
+        $edges = [];
+        foreach ($opTracks as $t) {
+            foreach ($platforms[$t->uri] ?? [] as $p) {
+                $edges[] = ['platform' => PlatformNames::key((string) $t->op_uopid, (string) $p->ref), 'ref' => (string) $p->ref,
+                    'track' => (string) $t->uri, 'number' => TrackLayout::trackNumber(RinfDataset::shortTrackRef((string) $t->ref))];
+            }
+        }
+        $aliases = PlatformNames::aliases($edges);
+        foreach ($opTracks as $t) {
             $pk = $opPk[$t->op_uopid];
             $kind = RinfDataset::opTrackKind((string) $t->rinf_class, (string) $t->ref, $opKinds[$t->op_uopid] ?? null);
             $own = $platforms[$t->uri] ?? collect();
@@ -156,6 +169,8 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
                 'electrified' => $t->electrified === null ? null : (bool) $t->electrified, 'platform' => $own->isNotEmpty(),
                 'direction' => null, 'max_speed_kmh' => $t->max_speed_kmh === null ? null : (int) $t->max_speed_kmh,
                 'source' => 'rinf', 'precision' => 'approximate',
+                'platform_keys' => array_values(array_unique($own->map(fn (object $p): string => PlatformNames::key((string) $t->op_uopid, (string) $p->ref))->all())),
+                'aliases' => $aliases[(string) $t->uri] ?? [],
             ];
         }
 

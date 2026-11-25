@@ -105,11 +105,12 @@ class TrackLayoutDuplicatesTest extends TestCase
 
         // Only the RINF line tracks and the yard remain.
         $this->assertSame(['o:yard', 'r:v1', 'r:v1bis-a', 'r:v1bis-b', 'r:v1ter-a', 'r:v1ter-b', 'r:v2'], $tracks->keys()->sort()->values()->all());
-        // What cited an absorbed track cites the kept one; a switch whose two tracks became one leads nowhere.
+        // What cited an absorbed track cites the kept one, the piece that carries its PK (V1BIS is cut at 500); a switch
+        // whose two tracks became one leads nowhere.
         $switches = collect((array) $json['switches'])->keyBy('id');
         $this->assertSame(['r:v1', 'r:v1bis-a'], [$switches['o:sw1']['from_track'], $switches['o:sw1']['to_track']]);
         $this->assertSame(['r:v1bis-a', 'o:yard'], [$switches['o:sw2']['from_track'], $switches['o:sw2']['to_track']]);
-        $this->assertSame(['r:v1bis-a', null], [$switches['o:sw3']['from_track'], $switches['o:sw3']['to_track']]);
+        $this->assertSame(['r:v1bis-b', null], [$switches['o:sw3']['from_track'], $switches['o:sw3']['to_track']]);
         $this->assertSame('r:v1bis-a', $json['signals'][0]['track']);
     }
 

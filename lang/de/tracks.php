@@ -252,6 +252,8 @@ return [
             'cm' => ':value cm',
             'approx' => 'ungefähr platziert',
             'unplaced' => 'nicht gezeichnet',
+            'unplaced_tracks_one' => 'Gleis :tracks nicht gezeichnet',
+            'unplaced_tracks_other' => 'Gleise :tracks nicht gezeichnet',
             'on_tracks_one' => 'Gleis :tracks',
             'on_tracks_other' => 'Gleise :tracks',
             'on_line' => 'Strecke :line',
