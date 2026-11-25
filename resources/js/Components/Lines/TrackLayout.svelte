@@ -9,12 +9,15 @@
         AXIS,
         ROW_KINDS,
         ZOOM_STEP,
+        axisFromZones,
         axisLabel,
         buildAxis,
-        fitZoom,
+        detailZones,
+        fitZoomFor,
         foldLayout,
         gapSummary,
         hasTracks,
+        lineOverview,
         nearestRow,
         normalize,
         objectPks,
@@ -63,8 +66,9 @@
 
     const raw = $derived(layout ?? loader?.layout ?? null);
     const data = $derived(normalize(raw));
-    // Axe en deux temps : les zones (pour replier les faisceaux), puis l'axe dessiné, dilaté là où les aiguillages et
-    // traversées encore dessinés sont serrés (gorges de gare).
+    // Axe en deux temps : les zones de toutes les voies (pour replier les faisceaux), puis l'axe dessiné, dont les zones
+    // ne viennent que des voies encore dessinées (une gare repliée reprend la largeur de ses voies visibles), dilaté là
+    // où les aiguillages et traversées dessinés sont serrés (gorges de gare), 14 px à l'écran quel que soit le zoom.
     const zonesAxis = $derived(buildAxis(data));
     const allRows = $derived(routeRows(data));
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
@@ -73,8 +77,14 @@
     // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
     const expanded = new SvelteSet();
     const folded = $derived(foldLayout(data, zonesAxis.zones, expanded));
-    const axis = $derived(buildAxis(data, AXIS, objectPks(folded.data)));
+    const drawnZones = $derived(detailZones(folded.data));
+    const dense = $derived(objectPks(folded.data));
+    const axisAt = (z) => axisFromZones(drawnZones, data.pk, AXIS, dense, z);
     const anyClosed = $derived(folded.groups.some((g) => !g.expanded));
+    // Toute une longue ligne à l'écran (rien n'est lu à cette échelle) : le dessin ne garde que la ligne et ses points
+    // d'exploitation ; les voies déjà lues d'une partie, illisibles en quelques pixels, reviennent au zoom.
+    const overview = $derived(Boolean(loader?.chunked && loader.tooWide));
+    const drawn = $derived(overview ? lineOverview(folded.data) : folded.data);
     function toggleGroup(g) {
         if (expanded.has(g.key)) expanded.delete(g.key);
         else expanded.add(g.key);
@@ -101,8 +111,11 @@
         viewTimer = setTimeout(() => loader.ensure(from, to), 150);
     }
     $effect(() => () => clearTimeout(viewTimer));
+    // Des voies arrivent (zones ou gorges changées) : le PK du milieu reste au milieu. Un changement de zoom recentre
+    // de lui-même (setZoom).
     $effect(() => {
-        axis;
+        drawnZones;
+        dense;
         untrack(() => {
             const pk = anchor;
             if (pk === null || !loader?.chunked) return;
@@ -118,6 +131,7 @@
         ),
     );
     let zoom = $state(1);
+    const axis = $derived(axisAt(zoom));
     let printing = $state(false);
     /** @type {string|null} */
     let selected = $state(null);
@@ -153,7 +167,7 @@
     const zoomMin = () => Math.min(0.5, fitNow());
     function fitNow() {
         const view = diagram?.viewWidth() ?? 0;
-        return fitZoom(axis.width, view, 58);
+        return fitZoomFor((z) => axisAt(z).width, view, 58);
     }
 
     async function setZoom(next) {
@@ -443,8 +457,8 @@
                     <p class="parts" role="status">{partState}</p>
                     <TrackDiagram
                         bind:this={diagram}
-                        data={folded.data}
-                        groups={folded.groups}
+                        data={drawn}
+                        groups={overview ? [] : folded.groups}
                         ontoggle={toggleGroup}
                         {onview}
                         {axis}

@@ -1,6 +1,7 @@
 <script>
     import { formatNumber, NBSP } from '$lib/typo.js';
     import {
+        BAND_H,
         CROSSING_SWITCHES,
         ROW_H,
         SERVICE_KINDS,
@@ -17,6 +18,7 @@
         pkLabel,
         placeBoxes,
         refSpots,
+        repeatedPieces,
         rowAtX,
         plainPieceAt,
         stackLabels,
@@ -68,6 +70,9 @@
 
     /** Marges horizontales : à gauche, la place des en-têtes de la bande. */
     const PAD_L = 76;
+    /** Taille (px) des noms des points d'exploitation et du texte d'interface du cadre (boutons, en-têtes). */
+    const NAME_FS = 17;
+    const UI_FS = 17;
     const PAD_R = 40;
     const NAME_ROW = 24;
     const STRIP_ROW = 30;
@@ -148,7 +153,7 @@
                 X(op.pk_m) <= right + 200,
         );
         const placed = ops.map((op) => {
-            const half = (textWidth(op.name, 16) + 4) / 2;
+            const half = (textWidth(op.name, NAME_FS) + 4) / 2;
             const at = X(op.pk_m);
             return {
                 op,
@@ -158,7 +163,7 @@
             };
         });
         const rowsOf = stackLabels(
-            placed.map((n) => ({ x: n.x, w: 2 * n.half + 10, rank: nameRank(n.op) })),
+            placed.map((n) => ({ x: n.x, w: 2 * n.half + 10, rank: nameRank(n.op), order: n.at })),
             { maxRows: 2, gap: 12 },
         );
         return placed.map((n, i) => ({ ...n, row: rowsOf[i] }));
@@ -256,7 +261,7 @@
                       const text = t(g?.service ? 'tracks.fold.count' : 'tracks.fold.all', {
                           count: g?.count ?? 0,
                       });
-                      const half = textWidth(text, 14) / 2 + 14;
+                      const half = textWidth(text, UI_FS) / 2 + 14;
                       const va = Math.max(x0, scroll + PAD_L);
                       const vb = Math.min(x1, scroll + view - 8);
                       const mid = (x0 + x1) / 2;
@@ -384,14 +389,15 @@
     const labels = $derived.by(() => {
         if (!schema) return [];
         const out = [];
-        // Pièce qui prolonge une pièce de même numéro sur la même rangée (voie du RINF coupée à chaque section) : son
-        // numéro n'est pas répété à son début.
-        const endsAt = new Set(winTracks.map((tr) => `${tr.lane}|${tr.ref}|${tr.pk_to_m}`));
+        // Voie en plusieurs pièces (voie du RINF coupée à chaque section, voie d'OpenStreetMap à chaque aiguillage) :
+        // son numéro une seule fois, sur la plus longue pièce d'une voie de gare, au seul début d'une voie de ligne.
+        const pieces = repeatedPieces(winTracks);
         for (const p of paths) {
-            if (!p.label || !nearSpan(p.label.a, p.label.b)) continue;
+            if (!p.label || !nearSpan(p.label.a, p.label.b) || pieces.hidden.has(p.track.id))
+                continue;
             const w = textWidth(p.track.ref, 14) + 4;
             if (p.label.b - p.label.a < w + 10) continue;
-            const goesOn = endsAt.has(`${p.track.lane}|${p.track.ref}|${p.track.pk_from_m}`);
+            const goesOn = pieces.continued.has(p.track.id);
             for (const spot of refSpots(p, zoneStarts)) {
                 if (!near(spot.x)) continue;
                 if (goesOn && spot.x === p.label.a + 8) continue;
@@ -683,10 +689,10 @@
                     <rect
                         class="group"
                         x={b.x0}
-                        y={b.y - 11}
+                        y={b.y - BAND_H / 2}
                         width={b.x1 - b.x0}
-                        height="22"
-                        rx="11"
+                        height={BAND_H}
+                        rx={BAND_H / 2}
                     />
                 {/each}
                 {#each bufferMarks as m (m.b.id ?? m.b.pk_m)}
@@ -887,7 +893,7 @@
         stroke-width: 1;
     }
     .op-name {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 600;
         fill: var(--vff-text);
         paint-order: stroke;
@@ -937,14 +943,14 @@
     .fold {
         position: absolute;
         z-index: 1;
-        min-height: 26px;
-        padding: 1px 12px;
+        min-height: 28px;
+        padding: 0 12px;
         border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-pill);
         background: var(--vff-bg-elevated);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
-        font-size: 14px;
+        font-size: 17px;
         font-weight: 600;
         line-height: 1.5;
         white-space: nowrap;
@@ -1090,9 +1096,9 @@
     .heads span {
         position: absolute;
         left: 10px;
-        top: calc(var(--strip-top) + var(--row) * 30px + 6px);
+        top: calc(var(--strip-top) + var(--row) * 30px + 4px);
         font-family: var(--vff-font-heading);
-        font-size: 14px;
+        font-size: 17px;
         font-weight: 600;
         color: var(--vff-text-muted);
     }
