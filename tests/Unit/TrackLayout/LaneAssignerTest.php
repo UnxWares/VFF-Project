@@ -80,6 +80,62 @@ class LaneAssignerTest extends TestCase
         $this->assertSame(['vu' => 0, 'north' => -1, 'south' => 1], $lanes);
     }
 
+    /**
+     * Paris-Austerlitz, line 570000 (OpenStreetMap ways and their offsets on the reference trace, RINF platforms of the
+     * point FR0000004909, read on 25/11/2026): the offsets give 14, 18, 15, 19, 20, 17, 21 (the underground RER tracks
+     * lie under the surface tracks); the tracks of one platform are neighbours and the platforms follow their numbers.
+     */
+    public function test_the_tracks_of_one_platform_are_neighbours_in_the_order_of_their_numbers(): void
+    {
+        $key = fn (string $platform): array => ['platform_keys' => ['FR0000004909|'.$platform]];
+        $lanes = self::lanes([
+            self::track('v1', 'running', 'V1', 0, 860, 101.4),
+            self::track('v2', 'running', 'V2', 0, 860, 91.8),
+            self::track('osm:way:24156181', 'running', '14', 130, 661, 12.6, $key('quai14/15')),
+            self::track('osm:way:256454048', 'running', '15', 131, 601, 1.6, $key('quai14/15')),
+            self::track('osm:way:152337196', 'running', '17', 131, 640, -12.9, $key('quai16/17')),
+            self::track('osm:way:24156364', 'running', '18', 131, 680, 12.3, $key('quai18/19')),
+            self::track('osm:way:256454080', 'running', '19', 131, 641, 1.4, $key('quai18/19')),
+            self::track('osm:way:152337201', 'running', '20', 131, 641, -2.5, $key('quai20/21')),
+            self::track('osm:way:152337203', 'running', '21', 132, 684, -13.3, $key('quai20/21')),
+            // Underground track 3S of the RER, without a platform here.
+            self::track('osm:way:638180762', 'running', '3S', 45, 458, 9.2),
+        ]);
+        $order = ['osm:way:24156181', 'osm:way:256454048', 'osm:way:152337196', 'osm:way:24156364', 'osm:way:256454080', 'osm:way:152337201', 'osm:way:152337203'];
+        $platform = array_map(fn (string $id): int => $lanes[$id], $order);
+
+        // 14 15 | 17 | 18 19 | 20 21, on consecutive rows below track 2.
+        $this->assertSame(range($platform[0], $platform[0] + 6), $platform);
+        $this->assertGreaterThan(1, $platform[0]);
+        $this->assertNotContains($lanes['osm:way:638180762'], $platform);
+    }
+
+    /**
+     * Poitiers, line 570000 (OpenStreetMap ways and offsets, RINF platforms of the point FR0000004178, 25/11/2026): Z
+     * lies between tracks 1 and 2 by its offset, the long loop 88745606 between 6 and 8 by its mean offset; quai 2
+     * borders Z and track 1, quai 3 track 2 and 4, quai 4 tracks 6 and 8. Track 1 and 2 keep their rows: Z goes just
+     * beyond track 1, 4 just beyond track 2, and nothing runs between 6 and 8.
+     */
+    public function test_a_platform_shared_with_a_main_track_and_a_platform_never_runs_along_a_track_through_another(): void
+    {
+        $key = fn (string $platform): array => ['platform_keys' => ['FR0000004178|'.$platform]];
+        $lanes = self::lanes([
+            self::track('v1', 'running', 'V1', 336100, 336830, -1.1, $key('quai2')),
+            self::track('v2', 'running', 'V2', 336196, 336561, -15.0, $key('quai3')),
+            self::track('osm:way:336888126', 'loop', null, 335985, 336815, 4.0),
+            self::track('osm:way:399330597', 'loop', 'Z', 336100, 336814, -9.7, $key('quai2')),
+            self::track('osm:way:304521483', 'loop', '4', 336181, 336784, -21.9, $key('quai3')),
+            self::track('osm:way:88745529', 'loop', '6', 336197, 336746, -28.6, $key('quai4')),
+            self::track('osm:way:88745606', 'loop', null, 335983, 337162, -34.1),
+            self::track('osm:way:88745585', 'loop', '8', 336126, 336704, -35.5, $key('quai4')),
+        ]);
+
+        $this->assertSame([-1, 0, 1, 2], [$lanes['osm:way:399330597'], $lanes['v1'], $lanes['v2'], $lanes['osm:way:304521483']]);
+        $this->assertSame(1, abs($lanes['osm:way:88745529'] - $lanes['osm:way:88745585']));
+        $this->assertNotContains($lanes['osm:way:88745606'], range(min($lanes['osm:way:88745529'], $lanes['osm:way:88745585']), max($lanes['osm:way:88745529'], $lanes['osm:way:88745585'])));
+        $this->assertArrayNotHasKey('platform_keys', LaneAssigner::assign([self::track('a', 'loop', '3', 0, 10, null, $key('quai3'))])[0]);
+    }
+
     public function test_without_offsets_track_numbers_decide(): void
     {
         $lanes = self::lanes([

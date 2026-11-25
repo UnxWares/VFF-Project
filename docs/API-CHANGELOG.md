@@ -70,6 +70,27 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Corrections
 
+- Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout` et `GET /api/v1/stations/{station}/track-layout`, GraphQL
+  `Line.track_layout` et `Station.track_layout`, MCP `line_track_layout` et `station_track_layout`), sans champ nouveau ni
+  retiré :
+  - une voie d'OpenStreetMap n'est plus écartée sur une portion décrite par le RINF quand un de ses signaux, heurtoirs,
+    aiguillages ou traversées la cite, ou quand elle est une voie d'un point d'exploitation du RINF (même numéro) : elle
+    remplace alors la voie approchée du RINF (`rinf_id`, `rinf_ref`, `op_id`, `platform` vrai si elle longe un quai). À
+    Paris-Nord, les parties à quai des voies 3 à 21 et 30 à 36 sont servies ; plus aucun signal, heurtoir, aiguillage ni
+    traversée ne cite une voie absente de `tracks` (ligne 272000 entière : 89 signaux, 14 heurtoirs et 3 traversées avant ;
+    Paris - Marseille : 28, 19 et 7) ;
+  - un code de voie en lettres est le même avec ou sans le « V » de « Voie » : « DO » d'OpenStreetMap est la voie
+    « VDO de Paris-10 à St-Denis » du RINF et n'est plus servi deux fois ; « 3 » de « Quai V1/V1BIS » (Brétigny) est V1BIS ;
+  - un objet qui citait une voie absorbée par une voie du RINF en plusieurs pièces cite la pièce qui porte son PK (avant :
+    la pièce la plus recouverte, parfois hors de la portion servie) ;
+  - `lane` : les deux voies d'un même quai sont sur des rangées voisines, de part et d'autre de lui, la voie d'un quai
+    partagé avec la voie 1 ou 2 juste au-delà d'elle, et les voies à quai d'une gare dans l'ordre de leurs numéros quand
+    leurs décalages d'OpenStreetMap séparent un quai (Paris-Austerlitz : 3, 4, 5, 6, 7, 14, 15, 17… au lieu de 14, 18,
+    15, 19…) ;
+  - voies d'une gare, `platforms[].track` : la pièce de la voie qui porte le PK de la gare ; un bord de quai trouve sa voie
+    par le nom de son quai (Brétigny « 3 » et « 4 » : V1BIS et V2BIS) et, sur une ligne à voie unique, la seule voie
+    principale du point que le schéma n'a pas sous son nom est la voie unique (Cognac « Quai VD ») ; la position approchée
+    d'un quai s'étend sur les pièces contiguës de sa voie.
 - Schéma des voies : un signal d'OpenStreetMap cartographié sans catégorie (`railway:signal:<catégorie>` absent, 5 332 des
   17 818 signaux importés le 24/11/2026, sur 247 lignes) a pour `kind` `unknown` au lieu de `null` : la spécification REST
   le déclarait non nul et GraphQL `TrackLayoutSignal.kind` (non nul) faisait échouer tout le champ `Line.track_layout` qui

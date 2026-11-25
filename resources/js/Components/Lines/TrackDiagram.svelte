@@ -19,6 +19,7 @@
         placeBoxes,
         refSpots,
         repeatedPieces,
+        viewCenterTracker,
         rowAtX,
         plainPieceAt,
         stackLabels,
@@ -38,7 +39,8 @@
      * rangées sont celles des voies de cette partie (une grande gare n'épaissit pas toute la ligne).
      *
      * `data` est la vue repliée (foldLayout) : un groupe de voies de service (`kind: 'group'`) est une bande avec
-     * un bouton qui le déplie (`ontoggle`). `onview` reçoit les PK visibles (lecture par portions des longues lignes).
+     * un bouton qui le déplie (`ontoggle`). `onview` reçoit les PK visibles (lecture par portions des longues lignes)
+     * et celui du milieu quand la vue a bougé (null sinon).
      * `axisMode` : `line` (PK de la ligne) ou `route` (livret de parcours : kilomètres parcourus, sens de marche).
      * `platforms` : bords de quai d'une gare (page des voies d'une gare, lib/stationTracks.js) : un quai central entre
      * deux voies voisines est dessiné entre elles, un bord seul le long de sa voie.
@@ -48,7 +50,7 @@
      *   axisMode?: 'line'|'route', selectedPk?: number|null, printing?: boolean, label: string, helpId: string,
      *   lang: string, t: (key: string, options?: object) => string, onpick: (index: number) => void,
      *   onkey?: (event: KeyboardEvent) => void, groups?: Array<any>, ontoggle?: (group: any) => void,
-     *   onview?: (from: number, to: number, center: number) => void, platforms?: Array<any>,
+     *   onview?: (from: number, to: number, center: number|null) => void, platforms?: Array<any>,
      * }}
      */
     let {
@@ -129,12 +131,18 @@
         switches: data.switches.filter((sw) => sw.pk_m >= pkLo && sw.pk_m <= pkHi),
     });
 
-    // PK visibles (avec une demi-fenêtre de marge) pour la lecture par portions.
+    // PK visibles (avec une demi-fenêtre de marge) pour la lecture par portions, et celui du milieu quand la vue a bougé
+    // (viewCenterTracker).
+    const centerOfView = viewCenterTracker();
     $effect(() => {
         if (!view) return;
         const a = axis.pk((scroll - view / 2 - PAD_L) / zoom);
         const b = axis.pk((scroll + 1.5 * view - PAD_L) / zoom);
-        onview(a, b, axis.pk((scroll + view / 2 - PAD_L) / zoom));
+        onview(
+            a,
+            b,
+            centerOfView(scroll, view, () => axis.pk((scroll + view / 2 - PAD_L) / zoom)),
+        );
     });
 
     // Noms des points d'exploitation, sur deux étages au plus au-dessus des zones : gares et haltes toujours,
@@ -440,24 +448,109 @@
         // Voie en plusieurs pièces (voie du RINF coupée à chaque section, voie d'OpenStreetMap à chaque aiguillage) :
         // son numéro une seule fois, sur la plus longue pièce d'une voie de gare, au seul début d'une voie de ligne.
         const pieces = repeatedPieces(winTracks);
+        const fits = (p) => p.label && p.label.b - p.label.a >= textWidth(p.track.ref, 14) + 14;
+        // Première pièce de chaque voie où son numéro tient : elle l'écrit à son début, même si elle en prolonge une autre.
+        const first = new Map(
+            [...paths]
+                .filter((p) => pieces.run.has(p.track.id) && fits(p))
+                .sort((x, y) => y.track.pk_from_m - x.track.pk_from_m)
+                .map((p) => [pieces.run.get(p.track.id), p.track.id]),
+        );
         for (const p of paths) {
             if (!p.label || !nearSpan(p.label.a, p.label.b) || pieces.hidden.has(p.track.id))
                 continue;
             const w = textWidth(p.track.ref, 14) + 4;
-            if (p.label.b - p.label.a < w + 10) continue;
-            const goesOn = pieces.continued.has(p.track.id);
+            if (!fits(p)) continue;
+            const goesOn =
+                pieces.continued.has(p.track.id) &&
+                first.get(pieces.run.get(p.track.id)) !== p.track.id;
             for (const spot of refSpots(p, zoneStarts)) {
                 if (!near(spot.x)) continue;
                 if (goesOn && spot.x === p.label.a + 8) continue;
                 const x0 = spot.anchor === 'middle' ? spot.x - w / 2 : spot.x;
-                out.push({
-                    text: p.track.ref,
-                    cls: 'ref',
-                    x: spot.x,
-                    y: p.label.y - 7,
-                    anchor: spot.anchor,
-                    box: { x0, x1: x0 + w, y0: p.label.y - 19, y1: p.label.y - 4, rank: 0 },
-                });
+                const over = (a, b, y0, y1) =>
+                    platformMarks.filter((m) => m.x0 < b && a < m.x1 && m.y0 < y1 && y0 < m.y1);
+                const covering = over(x0, x0 + w, p.label.y - 19, p.label.y - 4);
+                const group = `ref|${p.track.id}|${spot.x}`;
+                if (covering.length === 0) {
+                    out.push({
+                        text: p.track.ref,
+                        cls: 'ref',
+                        x: spot.x,
+                        y: p.label.y - 7,
+                        anchor: spot.anchor,
+                        box: {
+                            x0,
+                            x1: x0 + w,
+                            y0: p.label.y - 19,
+                            y1: p.label.y - 4,
+                            rank: 0,
+                            group,
+                        },
+                    });
+                    // Début d'une voie pris (aiguillage au bord de la fenêtre à Brétigny) : un peu plus loin.
+                    const xs = x0 + w + 30;
+                    if (spot.anchor === 'start' && xs + w <= p.label.b - 4) {
+                        out.push({
+                            text: p.track.ref,
+                            cls: 'ref',
+                            x: xs,
+                            y: p.label.y - 7,
+                            anchor: 'start',
+                            box: {
+                                x0: xs,
+                                x1: xs + w,
+                                y0: p.label.y - 19,
+                                y1: p.label.y - 4,
+                                rank: 0.4,
+                                group,
+                            },
+                        });
+                    }
+                    continue;
+                }
+                // Un quai au-dessus de la voie (voie du bas d'un quai central) : le numéro passe sous sa voie, un peu à
+                // droite (le début de la voie suivante garde la place de son propre numéro), sinon juste après le quai,
+                // une seule fois, après les numéros des autres voies.
+                const xb = x0 + textWidth('00', 14) + 18;
+                if (
+                    xb + w <= p.label.b - 4 &&
+                    over(xb, xb + w, p.label.y + 4, p.label.y + 19).length === 0
+                ) {
+                    out.push({
+                        text: p.track.ref,
+                        cls: 'ref',
+                        x: xb,
+                        y: p.label.y + 17,
+                        anchor: 'start',
+                        box: {
+                            x0: xb,
+                            x1: xb + w,
+                            y0: p.label.y + 5,
+                            y1: p.label.y + 20,
+                            rank: 0.5,
+                            group,
+                        },
+                    });
+                }
+                const xa = Math.max(...covering.map((m) => m.x1)) + 6;
+                if (xa + w <= p.label.b - 4) {
+                    out.push({
+                        text: p.track.ref,
+                        cls: 'ref',
+                        x: xa,
+                        y: p.label.y - 7,
+                        anchor: 'start',
+                        box: {
+                            x0: xa,
+                            x1: xa + w,
+                            y0: p.label.y - 19,
+                            y1: p.label.y - 4,
+                            rank: 0.6,
+                            group,
+                        },
+                    });
+                }
             }
         }
         for (const m of signalMarks) {

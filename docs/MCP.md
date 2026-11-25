@@ -1028,7 +1028,7 @@ RINF.
 Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de lecture, `attribution`), `operational_points[]`
 (`uopid`, `station_slug`, `kind`), `tracks[]` (`ref` courte : `V1`, `V2`, `VU` pour la voie unique ; `kind` : `running`,
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
-voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
+voie 1, les deux voies d'un même quai sur des rangées voisines ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
 elle n'est pas dite ; `form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
 inscription), `strip.speeds[]` (`tracks` : voies auxquelles la vitesse s'applique), `strip.gradients[]` (‰

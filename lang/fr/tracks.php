@@ -252,6 +252,8 @@ return [
             'cm' => ':value cm',
             'approx' => 'placé à peu près',
             'unplaced' => 'non dessiné',
+            'unplaced_tracks_one' => 'voie :tracks non dessinée',
+            'unplaced_tracks_other' => 'voies :tracks non dessinées',
             'on_tracks_one' => 'voie :tracks',
             'on_tracks_other' => 'voies :tracks',
             'on_line' => 'ligne :line',

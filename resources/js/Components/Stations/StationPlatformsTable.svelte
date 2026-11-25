@@ -37,13 +37,23 @@
                 t('tracks.station.platforms.cm', { value: formatNumber(heightCm(h), lang) }),
             )
             .join(', ');
-    /** Remarque sur la position : placé à peu près, ou pas dans le schéma. */
+    /**
+     * Remarque sur la position : placé à peu près, pas dans le schéma, ou une de ses voies absente du schéma (le quai
+     * n'est alors dessiné que le long de l'autre).
+     */
     const remark = (g) =>
-        g.approx
-            ? t('tracks.station.platforms.approx')
-            : drawing && !g.placed
-              ? t('tracks.station.platforms.unplaced')
-              : '';
+        [
+            g.approx ? t('tracks.station.platforms.approx') : '',
+            drawing && !g.placed ? t('tracks.station.platforms.unplaced') : '',
+            drawing && g.placed && g.missing.length
+                ? t('tracks.station.platforms.unplaced_tracks', {
+                      count: g.missing.length,
+                      tracks: g.missing.join(', '),
+                  })
+                : '',
+        ]
+            .filter(Boolean)
+            .join(', ');
 </script>
 
 <div class="platforms">

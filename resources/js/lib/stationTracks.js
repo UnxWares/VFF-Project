@@ -47,7 +47,9 @@ const natural = (a, b) =>
  * @param {Array<any>} platforms bords de quai de la réponse
  * @returns {Array<{ key: string, ref: string, line_code: string|null, tracks: string[], length_m: number|null,
  *   heights_mm: number[], sources: string[], pk_from_m: number|null, pk_to_m: number|null, approx: boolean,
- *   placed: boolean }>} `placed` : un bord au moins a une voie dessinée et des PK (le quai est dans le schéma)
+ *   placed: boolean, missing: string[] }>} `placed` : un bord au moins a une voie dessinée et des PK (le quai est dans
+ *   le schéma) ; `missing` : voies du quai qu'aucun de ses bords ne trouve dans le schéma (Paris-Austerlitz : la voie
+ *   16 du « Quai 16/17 », absente d'OpenStreetMap), dites telles quelles plutôt que tues
  */
 export function platformGroups(platforms = []) {
     /** @type {Map<string, any>} */
@@ -66,6 +68,8 @@ export function platformGroups(platforms = []) {
             pk_to_m: null,
             approx: false,
             placed: false,
+            missing: [],
+            drawn: [],
         };
         if (p.track_ref && !g.tracks.includes(p.track_ref)) g.tracks.push(p.track_ref);
         if (p.length_m != null) g.length_m = Math.max(g.length_m ?? 0, p.length_m);
@@ -81,11 +85,14 @@ export function platformGroups(platforms = []) {
         }
         if (p.precision === 'approximate') g.approx = true;
         if (p.track != null && p.pk_from_m != null) g.placed = true;
+        if (p.track_ref) (p.track != null ? g.drawn : g.missing).push(p.track_ref);
         groups.set(key, g);
     }
     for (const g of groups.values()) {
         g.tracks.sort(natural);
         g.heights_mm.sort((a, b) => a - b);
+        g.missing = [...new Set(g.missing)].filter((r) => !g.drawn.includes(r)).sort(natural);
+        delete g.drawn;
     }
     return [...groups.values()].sort(
         (a, b) => natural(a.line_code, b.line_code) || natural(a.ref, b.ref),

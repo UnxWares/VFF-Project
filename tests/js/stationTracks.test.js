@@ -52,6 +52,7 @@ describe('stationTracks : quais', () => {
             ['Quai 4', ['6', '8'], 390, [300]],
         ]);
         expect(groups.every((g) => g.placed && !g.approx)).toBe(true);
+        expect(groups.every((g) => g.missing.length === 0)).toBe(true);
         expect(groups[1].sources).toEqual(['rinf', 'sncf']);
         expect(heightCm(580)).toBe(58);
         expect(linePlatforms(poitiers, '570000')).toHaveLength(8);
@@ -102,6 +103,81 @@ describe('stationTracks : quais', () => {
         expect(body).toContain('tracks.station.platforms.cm {"value":"58"}');
         expect(body).toMatch(/<caption[^>]*>tracks\.station\.platforms\.caption<\/caption>/);
         expect(body).not.toContain('tracks.station.platforms.line');
+        expect(body).not.toContain('tracks.station.platforms.unplaced');
+    });
+
+    it('dit la voie d’un quai que le schéma n’a pas (Paris-Austerlitz, « Quai 16/17 » : voie 16 absente d’OSM)', () => {
+        // Bords du RINF de Paris-Austerlitz tels que l'API les sert le 25/11/2026.
+        const platforms = [
+            {
+                id: 'rinf:pe:a',
+                ref: 'Quai 16/17',
+                track_ref: '16',
+                line_code: '570000',
+                track: null,
+                pk_from_m: null,
+                pk_to_m: null,
+                length_m: 410,
+                height_mm: 550,
+                source: 'rinf',
+                pk_source: null,
+                precision: null,
+            },
+            {
+                id: 'rinf:pe:b',
+                ref: 'Quai 16/17',
+                track_ref: '17',
+                line_code: '570000',
+                track: 'osm:way:152337196',
+                pk_from_m: 131,
+                pk_to_m: 550,
+                length_m: 419,
+                height_mm: 550,
+                source: 'rinf',
+                pk_source: 'vff',
+                precision: 'approximate',
+            },
+            {
+                id: 'rinf:pe:c',
+                ref: 'Quai 18/19',
+                track_ref: '18',
+                line_code: '570000',
+                track: 'osm:way:24156364',
+                pk_from_m: 131,
+                pk_to_m: 600,
+                length_m: 469,
+                height_mm: 550,
+                source: 'rinf',
+                pk_source: 'vff',
+                precision: 'approximate',
+            },
+            {
+                id: 'rinf:pe:d',
+                ref: 'Quai 18/19',
+                track_ref: '19',
+                line_code: '570000',
+                track: 'osm:way:256454080',
+                pk_from_m: 131,
+                pk_to_m: 641,
+                length_m: 546,
+                height_mm: 550,
+                source: 'rinf',
+                pk_source: 'vff',
+                precision: 'approximate',
+            },
+        ];
+        const groups = platformGroups(platforms);
+        expect(groups.map((g) => [g.ref, g.placed, g.missing])).toEqual([
+            ['Quai 16/17', true, ['16']],
+            ['Quai 18/19', true, []],
+        ]);
+        const { body } = render(StationPlatformsTable, {
+            props: { platforms, lang: 'fr', t, drawing: true },
+        });
+        expect(body).toContain(
+            'tracks.station.platforms.unplaced_tracks {"count":1,"tracks":"16"}',
+        );
+        expect(body.match(/unplaced_tracks/g)).toHaveLength(2);
     });
 });
 
