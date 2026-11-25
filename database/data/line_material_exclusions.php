@@ -23,6 +23,13 @@
  */
 return [
     [
+        'line' => 'hors-rfn-rer-a-nanterre-vincennes',
+        'material' => 'Q1461088', // Z 5300
+        'quote' => 'la caténaire de la section centrale de la ligne C entre Paris-Austerlitz et Champ de Mars',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Z_5300&oldid=236187024',
+        'reason' => 'phrase de travaux (remplacement de la caténaire de la section centrale de la ligne C du RER dans les années 1990), pas un service, et sur la ligne C, pas la ligne A (relecture du 25/11/2026, soir-2411/materiel-releve-2511.md)',
+    ],
+    [
         'line' => '908000',
         'material' => 'Q751355', // BB 9300
         'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=239909508',
