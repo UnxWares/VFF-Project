@@ -164,6 +164,35 @@ class StationLineExclusionsTest extends TestCase
         }
     }
 
+    /**
+     * Real case (liste-des-gares of SNCF Open Data, 19/11/2026): the record « Grasse » (UIC 87757724) is placed at
+     * Marseille-Saint-Charles on line 930000 at PK 0+025; the versioned file keeps that record off lines 930000 and 830000
+     * (where it was the end of the line), while the real gare de Grasse stays on the line of Cannes-la Bocca to Grasse.
+     */
+    public function test_the_versioned_file_keeps_the_grasse_record_at_marseille_off_its_lines(): void
+    {
+        $this->app->instance(StationLineExclusions::class, new StationLineExclusions);
+        $vintimille = $this->rfnLine('930000', 'Ligne de Marseille-St-Charles à Vintimille (frontière)', ['slug' => 'rfn-930000']);
+        $this->track($vintimille, $this->current, [[43.30275, 5.38063], [43.29600, 5.40000]]);
+        $plm = $this->rfnLine('830000', 'Ligne de Paris-Lyon à Marseille-St-Charles', ['slug' => 'rfn-830000']);
+        $this->track($plm, $this->current, [[43.32000, 5.37000], [43.30280, 5.38050]]);
+        $grasseLine = $this->rfnLine('944000', 'Ligne de Cannes-la Bocca à Grasse', ['slug' => 'rfn-944000']);
+        $this->track($grasseLine, $this->current, [[43.54000, 6.96000], [43.65332, 6.92552]]);
+
+        $marseille = $this->station('grasse', 'Grasse', 43.3027541, 5.3806291, ['uic_code' => '87757724']);
+        $this->source('sncf', '87757724', 'Grasse', 43.3027541, 5.3806291, $marseille->id, ['lines' => [['fret' => false, 'pk_m' => 25, 'voyageurs' => true, 'code_ligne' => '930000', 'rg_troncon' => 1]], 'commune' => 'MARSEILLE']);
+        $grasse = $this->station('grasse-06', 'Grasse', 43.653317, 6.925524, ['uic_code' => '87757724']);
+        DB::table('stations')->where('id', $grasse->id)->update(['position_source' => 'osm']);
+        $this->source('osm', 'n206149230', 'Grasse', 43.653317, 6.925524, $grasse->id);
+
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+
+        $links = $this->links();
+        $this->assertArrayNotHasKey('grasse@rfn-930000', $links);
+        $this->assertArrayNotHasKey('grasse@rfn-830000', $links);
+        $this->assertSame('segment', $links['grasse-06@rfn-944000'] ?? null);
+    }
+
     /** Entrées invalides, en double ou introuvables : signalées, ignorées, rien d'autre retiré. */
     public function test_invalid_duplicate_and_unknown_exclusions_are_reported_and_ignored(): void
     {

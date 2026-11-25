@@ -113,4 +113,14 @@ return [
     // lien « segment » avec la ligne de Lison à Lamballe (PK 161,969, projeté à 66 m) est faux. Décision du 23/11/2026.
     ['station' => 'saint-samson', 'line' => 'rfn-415000', 'reason' => 'arrêt de la ligne de Dinan à Dinard-Saint-Énogat (PK 4,207) ; la ligne de Lison à Lamballe passe à 66 m sans l\'y desservir (La Hisse est une autre gare)',
         'source_url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode('Ligne_de_Dinan_à_Dinard-Saint-Énogat').'&oldid=238645019', 'reviewed_at' => '2026-11-23'],
+
+    // Liste des gares de SNCF Open Data : l'enregistrement « Grasse » (UIC 87757724, ligne 930000, PK 0+025, commune de Marseille)
+    // porte les coordonnées de Marseille-Saint-Charles ; la gare de Grasse (même UIC, Alpes-Maritimes) est une autre fiche, sur la ligne
+    // de Cannes-la-Bocca à Grasse. La fiche venue de cet enregistrement est écartée (gares_corrections.php, « kind » excluded) mais
+    // restait rattachée à la 930000 (PK 0+025, méthode sncf_pk) et à la 830000 (PK 861+738, méthode junction, bout de la ligne à
+    // Marseille-Saint-Charles), d'où une « Grasse » à Marseille dans le calage des PK et les gares de ces lignes.
+    ['station' => 'grasse', 'line' => 'rfn-930000', 'reason' => 'enregistrement « Grasse » de la liste des gares SNCF placé à Marseille-Saint-Charles (PK 0+025, commune de Marseille) : la gare de Grasse est sur la ligne de Cannes-la-Bocca à Grasse, à 132 km',
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87757724', 'reviewed_at' => '2026-11-25'],
+    ['station' => 'grasse', 'line' => 'rfn-830000', 'reason' => 'même enregistrement « Grasse » placé à Marseille-Saint-Charles, rattaché comme bout de la ligne de Paris-Lyon à Marseille-Saint-Charles : aucune gare de Grasse sur cette ligne',
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87757724', 'reviewed_at' => '2026-11-25'],
 ];
