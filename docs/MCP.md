@@ -239,8 +239,8 @@ Renvoie `line` :
 - `signalling` : `block_systems_km` (cantonnement : `BAL`, `BAPR-VB`, `CT-VU`, `TVM-430`,
   `ETCS_L2`…, avec km ; une tranche où l'ETCS niveau 2 et la TVM sont installés ensemble, comme
   sur la LGV Est, la LGV Bretagne - Pays de la Loire ou la LGV SEA, compte pour chacun des deux),
-  `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source` (`sncf`, SNCF Réseau
-  Open Data) ; `history` : mises en service datées lues dans l'article Wikipédia de la ligne (voir
+  `train_protection_km` (contrôle de vitesse, ex. `KVB`, compté entre les PK du KVB seulement), `kvb`,
+  `source` (`sncf`, SNCF Réseau Open Data) ; `history` : mises en service datées lues dans l'article Wikipédia de la ligne (voir
   ci-dessous), liste vide si l'article n'en date aucune ;
 - `facts` : faits encyclopédiques (`key`, valeur `km`/`kmh`/`mm`/`n`/`year`/`list`, `source`
   `vff`/`sncf`/`wikidata`, `item` quand l'élément Wikidata ne décrit qu'une partie de la ligne,
@@ -1093,8 +1093,10 @@ le schéma des voies de la ligne (`line_track_layout`, mêmes sources et mêmes 
 ses voies propres (voies de service d'OpenStreetMap rattachées à la gare, voies du point d'exploitation au RINF sur leur
 longueur déclarée) et son PK, élargies de 200 m de chaque côté, entre 500 m et 2 500 m du PK. Une ligne fermée du passé
 n'a pas de bloc. Les bords de quai : longueur utile et hauteur au-dessus du rail du RINF, PK de la « Liste des quais » de
-SNCF Réseau pour la même ligne et la même voie (`pk_source` `sncf`, `precision` `exact`), sinon placés autour du PK de la
-gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur voie n'est pas dessinée.
+SNCF Réseau pour la même ligne et la même voie, le quai de même nom d'abord (`pk_source` `sncf`, `precision` `exact`),
+sinon placés autour du PK de la gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur
+voie n'est pas dessinée. Une voie que le RINF et SNCF Réseau nomment autrement sur un quai de même nom est la même voie
+(Lyon-Part-Dieu : A du RINF est V2BIS) ; un quai est rangé sous la ligne qui dessine sa voie.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|

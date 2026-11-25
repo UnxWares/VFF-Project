@@ -63,9 +63,10 @@ final class StationTrackLayout
 
     /**
      * Version of the rules behind a station layout, in its cache key: an entry made by older rules is not read (2:
-     * platform tracks kept and ordered around their platforms, 25/11/2026).
+     * platform tracks kept and ordered around their platforms, 25/11/2026; 3: platform tracks numbered otherwise by SNCF
+     * Réseau, edges on the line that draws their RINF track, kilometre points of the platform of the same name, 25/11/2026).
      */
-    public const RULES = 2;
+    public const RULES = 3;
 
     public function __construct(private readonly TrackLayout $layout) {}
 
@@ -279,6 +280,9 @@ final class StationTrackLayout
     {
         $edges = [];
         $sources = [];
+        $sncf = Schema::hasTable('station_platforms') ? DB::table('station_platforms')->where('station_id', $stationId)
+            ->where('source', StationPlatforms::SOURCE)->orderBy('code_ligne')->orderBy('code_voie')->orderBy('id')
+            ->get(['id', 'code_ligne', 'code_voie', 'label', 'length_m', 'pk_start_m', 'pk_end_m', 'dataset_modified'])->all() : [];
         if ($ops !== []) {
             $rows = DB::table('rinf_platforms as p')->join('rinf_tracks as t', 't.uri', '=', 'p.track_uri')
                 ->whereIn('p.op_uopid', array_map(fn (object $o): string => (string) $o->uopid, $ops))
@@ -288,6 +292,18 @@ final class StationTrackLayout
             // Other numbers of a track, from the name of its island platform (« 3 » of « Quai V1/V1BIS » is V1BIS).
             $aliases = PlatformNames::aliases($rows->map(fn (object $r): array => ['platform' => PlatformNames::key((string) $r->op_uopid, (string) $r->ref),
                 'ref' => (string) $r->ref, 'track' => (string) $r->track_uri, 'number' => TrackLayout::trackNumber(self::platformTrackRef((string) $r->track_ref))])->all());
+            // Other numbers from SNCF Réseau's platform of the same name on a line (« A » of « Quai A/B » is V2BIS on 893000
+            // at Lyon-Part-Dieu): valid on that line only (a « Quai 2 » of another line through the station may border
+            // other tracks).
+            $rinfEdges = $rows->map(fn (object $r): array => ['ref' => (string) $r->ref, 'track' => (string) $r->track_uri,
+                'number' => TrackLayout::trackNumber(self::platformTrackRef((string) $r->track_ref))])->all();
+            $across = [];
+            foreach (collect($sncf)->filter(fn (object $s): bool => $s->code_voie !== null)->groupBy('code_ligne') as $code => $lineRows) {
+                foreach (PlatformNames::acrossSources($rinfEdges, $lineRows->map(fn (object $s): array => ['ref' => (string) $s->label,
+                    'number' => TrackLayout::trackNumber(self::platformTrackRef((string) $s->code_voie))])->values()->all()) as $uri => $numbers) {
+                    $across[$uri][(string) $code] = $numbers;
+                }
+            }
             foreach ($rows as $r) {
                 $trackRef = self::platformTrackRef((string) $r->track_ref);
                 $edges[] = [
@@ -298,6 +314,7 @@ final class StationTrackLayout
                     'source' => 'rinf', 'pk_source' => null, 'precision' => null,
                     '_rinf_track' => 'rinf:t:'.substr(md5((string) $r->track_uri), 0, 12),
                     '_numbers' => array_values(array_unique(array_filter([TrackLayout::trackNumber($trackRef), ...$aliases[(string) $r->track_uri] ?? []]))),
+                    '_across' => $across[(string) $r->track_uri] ?? [],
                     '_running' => $r->rinf_class === 'running', '_op' => (string) $r->op_uopid,
                     '_lines' => array_values(array_unique($opLines[(string) $r->op_uopid] ?? [])),
                 ];
@@ -308,46 +325,78 @@ final class StationTrackLayout
             }
         }
 
-        $sncf = Schema::hasTable('station_platforms') ? DB::table('station_platforms')->where('station_id', $stationId)
-            ->where('source', StationPlatforms::SOURCE)->orderBy('code_ligne')->orderBy('code_voie')->orderBy('id')
-            ->get(['id', 'code_ligne', 'code_voie', 'label', 'length_m', 'pk_start_m', 'pk_end_m', 'dataset_modified'])->all() : [];
-
         $byLine = [];
         foreach ($blocks as $b) {
             $byLine[(string) $b['line']['code']] = $b;
         }
         $usedSncf = [];
+        $label = fn (string $ref): string => mb_strtolower((string) preg_replace('/\s+/u', '', $ref));
+        $sncfNumber = fn (object $s): string => TrackLayout::trackNumber(self::platformTrackRef((string) $s->code_voie));
         foreach ($edges as &$e) {
             // Line of the edge: one of the lines of its operational point's sections, where a drawn track borders it.
+            $numbers = fn (string $code): array => [...$e['_numbers'], ...$e['_across'][$code] ?? []];
             foreach ([...$e['_lines'], ...array_keys($byLine)] as $code) {
                 if (! isset($byLine[$code])) {
                     continue;
                 }
-                $track = self::borderingTrack($byLine[$code], $e['_rinf_track'], $e['_numbers']);
+                $track = self::borderingTrack($byLine[$code], $e['_rinf_track'], $numbers((string) $code));
                 if ($track !== null || in_array($code, $e['_lines'], true)) {
-                    $e['line_code'] = $code;
+                    $e['line_code'] = (string) $code;
                     $e['track'] = $track['id'] ?? null;
                     break;
                 }
             }
             $e['line_code'] ??= $e['_lines'][0] ?? null;
+            // No drawn track there: the line where SNCF Réseau lists the same platform and track, if a drawn track borders
+            // it on that line (Bordeaux-St-Jean: the RINF puts track A of « Quai 1 » under the point's 570000 section,
+            // SNCF Réseau and OpenStreetMap on 655000).
+            if ($e['track'] === null) {
+                $sncfLines = array_values(array_unique(array_map(fn (object $s): string => (string) $s->code_ligne, array_filter($sncf,
+                    fn (object $s): bool => $s->code_voie !== null && $label((string) $s->label) === $label($e['ref'])
+                        && array_any($numbers((string) $s->code_ligne), fn (string $n): bool => TrackLayout::sameNumber($sncfNumber($s), $n))
+                        && self::plausible($s, $byLine[(string) $s->code_ligne] ?? null)))));
+                if (count($sncfLines) === 1 && $sncfLines[0] !== $e['line_code'] && isset($byLine[$sncfLines[0]])
+                    && ($track = self::borderingTrack($byLine[$sncfLines[0]], $e['_rinf_track'], $numbers($sncfLines[0]))) !== null) {
+                    $e['line_code'] = $sncfLines[0];
+                    $e['track'] = $track['id'];
+                }
+            }
+            // Still none: another line where OpenStreetMap draws its RINF track (the RINF track's identifier carried by
+            // the track that replaced it: tracks B and C of « Quai B/C » at Bordeaux-St-Jean, on 655000).
+            if ($e['track'] === null) {
+                foreach ($byLine as $code => $block) {
+                    $replaced = array_values(array_filter($block['track_layout']['tracks'], fn (array $t): bool => ($t['rinf_id'] ?? null) === $e['_rinf_track']
+                        && $t['id'] !== $e['_rinf_track'] && ! in_array($t['kind'], self::NO_PLATFORM_KINDS, true)));
+                    if ($replaced !== [] && ($track = self::borderingTrack($block, $e['_rinf_track'], [])) !== null) {
+                        $e['line_code'] = (string) $code;
+                        $e['track'] = $track['id'];
+                        break;
+                    }
+                }
+            }
         }
         unset($e);
         self::singleTrackEdges($edges, $byLine);
 
         foreach ($edges as &$e) {
-            // Kilometre points declared by SNCF Réseau for the same line and track.
-            foreach ($sncf as $i => $s) {
-                if (! isset($usedSncf[$i]) && $s->code_ligne === $e['line_code'] && $s->code_voie !== null
-                    && TrackLayout::sameNumber(TrackLayout::trackNumber(self::platformTrackRef((string) $s->code_voie)), TrackLayout::trackNumber($e['track_ref']))
-                    && self::plausible($s, $byLine[(string) $s->code_ligne] ?? null)) {
-                    $usedSncf[$i] = true;
-                    $e['pk_from_m'] = min((int) $s->pk_start_m, (int) $s->pk_end_m);
-                    $e['pk_to_m'] = max((int) $s->pk_start_m, (int) $s->pk_end_m);
-                    $e['pk_source'] = 'sncf';
-                    $e['precision'] = 'exact';
-                    break;
-                }
+            // Kilometre points declared by SNCF Réseau for the same line and track, on the platform of the same name first
+            // (at Lyon-Part-Dieu track B borders « Quai A/B », 449 m, and « Quai B/C », 433 m); the other numbers of the
+            // track (names of platforms) only on the platform of the same name.
+            $own = TrackLayout::trackNumber($e['track_ref']);
+            $others = [...$e['_numbers'] ?? [], ...$e['_across'][(string) $e['line_code']] ?? []];
+            $candidates = array_filter($sncf, fn (object $s, int $i): bool => ! isset($usedSncf[$i]) && $s->code_ligne === $e['line_code'] && $s->code_voie !== null
+                && (TrackLayout::sameNumber($sncfNumber($s), $own)
+                    || ($label((string) $s->label) === $label($e['ref']) && array_any($others, fn (string $n): bool => TrackLayout::sameNumber($sncfNumber($s), $n))))
+                && self::plausible($s, $byLine[(string) $s->code_ligne] ?? null), ARRAY_FILTER_USE_BOTH);
+            uksort($candidates, fn (int $a, int $b): int => [$label((string) $sncf[$a]->label) !== $label($e['ref']), $a]
+                <=> [$label((string) $sncf[$b]->label) !== $label($e['ref']), $b]);
+            foreach ($candidates as $i => $s) {
+                $usedSncf[$i] = true;
+                $e['pk_from_m'] = min((int) $s->pk_start_m, (int) $s->pk_end_m);
+                $e['pk_to_m'] = max((int) $s->pk_start_m, (int) $s->pk_end_m);
+                $e['pk_source'] = 'sncf';
+                $e['precision'] = 'exact';
+                break;
             }
             if ($e['pk_from_m'] === null && $e['track'] !== null && $e['length_m'] !== null && isset($byLine[(string) $e['line_code']])) {
                 [$e['pk_from_m'], $e['pk_to_m']] = self::around($byLine[(string) $e['line_code']], $e['track'], $e['length_m']);

@@ -87,6 +87,21 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Corrections
 
+- Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange`, calque de la carte) :
+  après la prochaine réimportation (`vff:import-sncf-signalling`), une tranche que le KVB ne couvre qu'en partie est coupée aux
+  PK du KVB : un morceau avec `kvb_equipped` vrai et `KVB` dans `train_protection`, le reste sans (avant, toute la tranche était
+  dite équipée dès qu'une portion KVB la touchait ; 975900, tronçon 1 : BAL de 9+906 à 12+985, KVB de 10+380 seulement). Une
+  tranche qui ne touche le KVB qu'à une borne n'est plus équipée. Avec les jeux du 19/11/2026 : 1 533 tranches deviennent 1 665
+  (103 coupées), 20 762 km dits équipés KVB deviennent 18 517 km ; la note des morceaux le dit. Champs inchangés.
+- Plan des voies d'une gare (REST `GET /api/v1/stations/{station}/track-layout`, GraphQL `Station.track_layout`, MCP
+  `station_track_layout`) : un quai du RINF dont la voie porte un autre nom chez SNCF Réseau (quai de même nom dans la « Liste
+  des quais ») borde cette voie (Lyon-Part-Dieu : A est V2BIS, D est V1BIS, F est V2) ; un quai est rangé sous la ligne qui
+  dessine sa voie (Bordeaux-St-Jean : voies A, B et C sur la 655000) ; les PK de SNCF Réseau d'un quai sont ceux du quai de
+  même nom (la voie B de Lyon-Part-Dieu borde « Quai A/B » et « Quai B/C »). Un bord de quai connu des deux sources n'est plus
+  servi deux fois (Lyon-Part-Dieu : 22 bords au lieu de 27). Le plan de sept gares dont le seul quai longe la voie unique
+  (Beauvoisin, Le Cailar, Aimargues, St-Laurent-d'Aigouze, Chirac, Le Soler, Villefranche - Vernet-les-Bains) répondait 500 : il répond. Champs
+  inchangés.
+
 - Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout` et `GET /api/v1/stations/{station}/track-layout`, GraphQL
   `Line.track_layout` et `Station.track_layout`, MCP `line_track_layout` et `station_track_layout`), sans champ nouveau ni
   retiré :
