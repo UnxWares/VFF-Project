@@ -75,6 +75,28 @@ final class LineSpeeds
     }
 
     /**
+     * Tranches de vitesse de l'ère par tronçon de SNCF Réseau (rang `sncf_rank`, 1 à défaut), réunies dans chaque
+     * tronçon seulement : deux tronçons d'une ligne peuvent avoir des PK communs (deux endroits différents).
+     *
+     * @return array<int, list<array{pk_start_m: int, pk_end_m: int, max_speed_kmh: int}>> rang => tranches
+     */
+    public function rangesByPart(int $lineId, int $eraId): array
+    {
+        if (! self::available()) {
+            return [];
+        }
+        $byPart = [];
+        foreach (DB::table('line_speed_ranges')->where('line_id', $lineId)->where('era_id', $eraId)
+            ->orderBy('pk_start_m')->orderBy('pk_end_m')->get(['pk_start_m', 'pk_end_m', 'max_speed_kmh', 'sncf_rank']) as $r) {
+            $byPart[(int) ($r->sncf_rank ?? 1)][] = ['from' => (int) $r->pk_start_m, 'to' => (int) $r->pk_end_m, 'kmh' => (int) $r->max_speed_kmh];
+        }
+        ksort($byPart);
+
+        return array_map(fn (array $rows): array => array_map(fn (array $r): array => ['pk_start_m' => $r['from'], 'pk_end_m' => $r['to'],
+            'max_speed_kmh' => $r['kmh']], self::merge($rows)), $byPart);
+    }
+
+    /**
      * Tranches voisines de même vitesse réunies (entrée triée par PK de début).
      *
      * @param  list<array{from: int, to: int, kmh: int}>  $rows

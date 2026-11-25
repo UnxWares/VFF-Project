@@ -153,6 +153,47 @@ class RinfParametersComparisonTest extends TestCase
     }
 
     /**
+     * Two parts of a line sharing PKs are two places (RINF "610000-1" Puy-Imbert - Limoges-Montjovis at 100 km/h and
+     * "610000-2" from 402+256, SNCF Réseau rank 1 at 60 km/h there: the two parts were merged, the highest speed of each
+     * side compared, and the disagreement hidden). Speeds are compared part by part when the parts of both sources match;
+     * the protection of each RINF part is compared alone, never merged with the other part at the same PK.
+     */
+    public function test_two_parts_sharing_pks_are_compared_part_by_part(): void
+    {
+        $this->import();
+        $this->seedSncf();
+        $now = now();
+        // Second part of the line on the PKs of the Cognac section of part 1 (17+277 to 17+917): 60 km/h, Crocodile only;
+        // SNCF Réseau rank 2 at 60 km/h from 17+277 to 44+427.
+        $section = (array) DB::table('rinf_sections')->where('line_code', '579000')->where('pk_start_m', 17277)->first();
+        $uri = $section['uri'].'-part2';
+        DB::table('rinf_sections')->insert(['uri' => $uri, 'national_line' => '579000-2'] + array_diff_key($section, ['id' => 1, 'uri' => 1, 'national_line' => 1]));
+        foreach (DB::table('rinf_tracks')->where('section_uri', $section['uri'])->get() as $i => $t) {
+            DB::table('rinf_tracks')->insert(['uri' => $t->uri.'-part2', 'section_uri' => $uri, 'max_speed_kmh' => 60, 'train_protection' => '["Crocodile"]', 'etcs_level' => null]
+                + array_diff_key((array) $t, ['id' => 1, 'uri' => 1, 'section_uri' => 1, 'max_speed_kmh' => 1, 'train_protection' => 1, 'etcs_level' => 1]));
+        }
+        DB::table('line_speed_ranges')->insert(['line_id' => $this->line->id, 'era_id' => $this->era->id, 'pk_start_m' => 17277, 'pk_end_m' => 44427,
+            'max_speed_kmh' => 60, 'sncf_rank' => 2, 'source' => 'sncf', 'created_at' => $now, 'updated_at' => $now]);
+        DB::table('line_speed_ranges')->where('line_id', $this->line->id)->whereNull('sncf_rank')->update(['sncf_rank' => 1]);
+        foreach ([[1, -252, 64667], [2, 17277, 44427]] as [$part, $a, $b]) {
+            DB::table('sncf_line_geometries')->insert(['code_ligne' => '579000', 'rg_troncon' => $part, 'libelle' => 'Exploitée', 'pk_debut_m' => $a, 'pk_fin_m' => $b,
+                'geom' => DB::raw("ST_GeomFromText('LINESTRING(-0.4 45.7, -0.2 45.65)', 4326)"), 'created_at' => $now, 'updated_at' => $now]);
+        }
+
+        $params = array_column($this->getJson('/api/v1/lines/rfn-579000/rinf-parameters')->assertOk()->json('parameters'), null, 'key');
+        $speeds = array_map(fn (array $p): array => [$p['rg_troncon'], $p['pk_start_m'], $p['pk_end_m'], $p['status'], $p['rinf']['key'] ?? null, $p['vff']['key'] ?? null],
+            $params['max_speed']['portions']);
+        $this->assertContains([1, 17277, 44427, 'disagree', '140', '130'], $speeds);
+        $this->assertContains([2, 17277, 17917, 'agree', '60', '60'], $speeds);
+        $this->assertContains([2, 17917, 44427, 'vff_only', null, '60'], $speeds);
+
+        $protection = array_map(fn (array $p): array => [$p['rg_troncon'], $p['pk_start_m'], $p['pk_end_m'], $p['status'], $p['rinf']['key'] ?? null],
+            $params['train_protection']['portions']);
+        $this->assertSame([[1, -235, 64667, 'agree', 'KVB'], [2, 17277, 17917, 'disagree', 'none'], [null, -252, -235, 'vff_only', null]], $protection);
+        // SNCF Réseau outside every RINF part (-252 to -235) is served once, without a part.
+    }
+
+    /**
      * A platform of the same station and name whose length one source does not give is not counted in agreement: no
      * comparison was made (25/11/2026: 77 of the 317 RINF platforms without a length were matched and counted agreeing).
      */

@@ -77,10 +77,25 @@ final class RinfParameterComparison
     private const VALUE = ['key' => '', 'values' => [], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => null, 'tracks' => [], '_labels' => []];
 
     /**
-     * Paramètres comparés tronçon par tronçon (rang du tronçon de SNCF Réseau = suffixe de la ligne nationale du RINF,
-     * « 890000-2 » : deux tronçons d'une ligne peuvent avoir des PK communs) ; les autres le sont sur toute la ligne.
+     * Les paramètres sont comparés tronçon par tronçon (rang du tronçon de SNCF Réseau = suffixe de la ligne nationale du
+     * RINF, « 890000-2 » : deux tronçons d'une ligne peuvent avoir des PK communs, deux endroits différents ; l'autre
+     * source donne aussi le tronçon, vitesses : `line_speed_ranges.sncf_rank`), sauf RINF_BY_PART. Ceux de BY_ALIGNED_PART
+     * le sont seulement quand les tronçons des deux sources se correspondent (PK de chaque tronçon du RINF compris dans
+     * ceux du tronçon de même rang de SNCF Réseau, à PART_ALIGN_M m près) ; sinon sur toute la ligne (981000 : un seul tronçon au RINF, de 0+000 à 5+266, deux chez SNCF Réseau, 0+000 à 2+547 et
+     * 2+547 à 5+266).
      */
-    private const BY_PART = ['electrification', 'radio', 'gauging', 'load_capability', 'track_gauge'];
+    private const BY_ALIGNED_PART = ['max_speed'];
+
+    /** Écart toléré (m) entre les bouts d'un tronçon du RINF et ceux du tronçon de même rang de SNCF Réseau. */
+    public const PART_ALIGN_M = 500;
+
+    /**
+     * Paramètres que l'autre source ne tient pas par tronçon (signalisation : `line_signalling` n'a pas le rang) : le RINF
+     * est lu tronçon par tronçon (jamais deux tronçons réunis au même PK), chacun confronté à l'autre source sur les PK
+     * qu'il couvre ; le reste de l'autre source est servi à part (`rg_troncon` nul). Une ligne d'un seul tronçon au RINF
+     * est comparée comme avant, sur toute la ligne.
+     */
+    private const RINF_BY_PART = ['train_protection'];
 
     private static ?bool $ready = null;
 
@@ -152,22 +167,30 @@ final class RinfParameterComparison
         $parameters = [];
         foreach (self::PARAMETERS as $p) {
             $gap = $p === 'electrification' && $describes ? ['key' => 'none'] + self::VALUE : null;
-            if (! in_array($p, self::BY_PART, true)) {
-                // Vitesses et signalisation : VFF les tient par ligne, tous tronçons confondus.
-                $lists = [$rinf[$p], $vff[$p]];
-                if ($p === 'max_speed') {
-                    $lists = [$rinf[$p], $this->sectionSpeeds($sections, $vff[$p]), $vff[$p]];
-                }
+            $rinfParts = array_values(array_unique(array_column($rinf[$p], 'part')));
+            if (in_array($p, self::RINF_BY_PART, true)) {
+                $parameters[] = self::parameter($p, $this->compareRinfByPart($p, $rinf[$p], $vff[$p], $rinfParts, $gap));
+
+                continue;
+            }
+            if (in_array($p, self::BY_ALIGNED_PART, true) && ! $this->partsAlign($code, $rinf[$p])) {
+                // Vitesses : plus forte vitesse de SNCF Réseau dans chaque section du RINF, la vitesse telle quelle ailleurs.
+                $lists = [$rinf[$p], $this->sectionSpeeds($sections, $vff[$p]), $vff[$p]];
                 $parameters[] = self::parameter($p, array_map(fn (array $x): array => ['rg_troncon' => null] + $x, $this->compare($p, $lists, $gap)));
 
                 continue;
             }
-            $parts = array_values(array_unique([...array_column($rinf[$p], 'part'), ...array_column($vff[$p] ?? [], 'part')]));
+            $parts = array_values(array_unique([...$rinfParts, ...array_column($vff[$p] ?? [], 'part')]));
             sort($parts);
             $portions = [];
             foreach ($parts as $part) {
                 $of = fn (array $items): array => array_values(array_filter($items, fn (array $i): bool => $i['part'] === $part));
-                foreach ($this->compare($p, [$of($rinf[$p]), $of($vff[$p] ?? [])], $gap) as $x) {
+                $lists = [$of($rinf[$p]), $of($vff[$p] ?? [])];
+                if ($p === 'max_speed') {
+                    // Plus forte vitesse de SNCF Réseau dans chaque section du RINF du tronçon, la vitesse telle quelle ailleurs.
+                    $lists = [$lists[0], $this->sectionSpeeds(array_filter($sections, fn (array $s): bool => $s['rg_troncon'] === $part), $lists[1]), $lists[1]];
+                }
+                foreach ($this->compare($p, $lists, $gap) as $x) {
                     $portions[] = ['rg_troncon' => $part] + $x;
                 }
             }
@@ -299,9 +322,11 @@ final class RinfParameterComparison
                 'frequency_hz' => $e->frequency_hz === null ? null : (float) $e->frequency_hz, '_labels' => [(string) $e->elect]] + self::VALUE];
         }
         if ($eraId !== null) {
-            foreach ($this->speeds->ranges((int) $line->id, $eraId) as $s) {
-                $out['max_speed'][] = ['a' => $s['pk_start_m'], 'b' => $s['pk_end_m'], 'v' => ['key' => (string) $s['max_speed_kmh'],
-                    'values' => [(string) $s['max_speed_kmh']], 'speed_kmh' => $s['max_speed_kmh']] + self::VALUE];
+            foreach ($this->speeds->rangesByPart((int) $line->id, $eraId) as $part => $ranges) {
+                foreach ($ranges as $s) {
+                    $out['max_speed'][] = ['a' => $s['pk_start_m'], 'b' => $s['pk_end_m'], 'part' => $part, 'v' => ['key' => (string) $s['max_speed_kmh'],
+                        'values' => [(string) $s['max_speed_kmh']], 'speed_kmh' => $s['max_speed_kmh']] + self::VALUE];
+                }
             }
             foreach ($this->signalling->forLine((int) $line->id, $eraId) as $s) {
                 $compared = RinfParameters::comparedFromVff($s['train_protection'], $s['signalling_systems']);
@@ -318,6 +343,132 @@ final class RinfParameterComparison
         }
 
         return array_map(fn (array $items): array => array_values(array_filter($items, fn (array $i): bool => $i['b'] > $i['a'])), $out);
+    }
+
+    /**
+     * Comparaison d'un paramètre que l'autre source ne tient pas par tronçon (RINF_BY_PART) : chaque tronçon du RINF
+     * contre l'autre source rognée aux PK qu'il couvre, puis l'autre source hors de tout tronçon du RINF (`vff_only`,
+     * `rg_troncon` nul). Un seul tronçon au RINF : comparaison sur toute la ligne, comme les autres.
+     *
+     * @param  list<array{a: int, b: int, v: array<string, mixed>, part: int}>  $rinf
+     * @param  list<array{a: int, b: int, v: array<string, mixed>}>  $vff
+     * @param  list<int>  $parts
+     * @param  array<string, mixed>|null  $gap
+     * @return list<array<string, mixed>>
+     */
+    private function compareRinfByPart(string $parameter, array $rinf, array $vff, array $parts, ?array $gap): array
+    {
+        if (count($parts) <= 1) {
+            return array_map(fn (array $x): array => ['rg_troncon' => null] + $x, $this->compare($parameter, [$rinf, $vff], $gap));
+        }
+        sort($parts);
+        $portions = [];
+        foreach ($parts as $part) {
+            $mine = array_values(array_filter($rinf, fn (array $i): bool => $i['part'] === $part));
+            foreach ($this->compare($parameter, [$mine, self::clip($vff, self::cover($mine))], $gap) as $x) {
+                $portions[] = ['rg_troncon' => $part] + $x;
+            }
+        }
+        foreach ($this->compare($parameter, [[], self::clip($vff, self::cover($rinf), true)], $gap) as $x) {
+            $portions[] = ['rg_troncon' => null] + $x;
+        }
+
+        return $portions;
+    }
+
+    /**
+     * Les tronçons du RINF de la ligne correspondent à ceux de SNCF Réseau (formes de la ligne, `rg_troncon`) : les PK de
+     * chaque tronçon du RINF sont dans ceux du tronçon de même rang, à PART_ALIGN_M près.
+     *
+     * @param  list<array{a: int, b: int, part: int}>  $rinf
+     */
+    private function partsAlign(string $code, array $rinf): bool
+    {
+        if ($rinf === []) {
+            return true;
+        }
+        $sncf = [];
+        foreach (DB::table('sncf_line_geometries')->where('code_ligne', $code)->whereNotNull('pk_debut_m')->whereNotNull('pk_fin_m')
+            ->get(['rg_troncon', 'pk_debut_m', 'pk_fin_m']) as $g) {
+            $part = (int) ($g->rg_troncon ?? 1);
+            $a = (int) min($g->pk_debut_m, $g->pk_fin_m);
+            $b = (int) max($g->pk_debut_m, $g->pk_fin_m);
+            $sncf[$part] = isset($sncf[$part]) ? [min($sncf[$part][0], $a), max($sncf[$part][1], $b)] : [$a, $b];
+        }
+        $envelopes = [];
+        foreach ($rinf as $i) {
+            $envelopes[$i['part']] = isset($envelopes[$i['part']]) ? [min($envelopes[$i['part']][0], $i['a']), max($envelopes[$i['part']][1], $i['b'])] : [$i['a'], $i['b']];
+        }
+        foreach ($envelopes as $part => [$a, $b]) {
+            if (! isset($sncf[$part]) || $a < $sncf[$part][0] - self::PART_ALIGN_M || $b > $sncf[$part][1] + self::PART_ALIGN_M) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Intervalles de PK couverts par des portions, réunis et triés.
+     *
+     * @param  list<array{a: int, b: int}>  $items
+     * @return list<array{0: int, 1: int}>
+     */
+    private static function cover(array $items): array
+    {
+        usort($items, fn (array $x, array $y): int => [$x['a'], $x['b']] <=> [$y['a'], $y['b']]);
+        $out = [];
+        foreach ($items as $i) {
+            $last = array_key_last($out);
+            if ($last !== null && $i['a'] <= $out[$last][1]) {
+                $out[$last][1] = max($out[$last][1], $i['b']);
+
+                continue;
+            }
+            $out[] = [$i['a'], $i['b']];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Portions rognées aux intervalles donnés (ou, `$outside`, à ce qui n'est dans aucun).
+     *
+     * @template T of array{a: int, b: int}
+     *
+     * @param  list<T>  $items
+     * @param  list<array{0: int, 1: int}>  $cover  intervalles réunis et triés (cover())
+     * @return list<T>
+     */
+    private static function clip(array $items, array $cover, bool $outside = false): array
+    {
+        $out = [];
+        foreach ($items as $i) {
+            $pieces = [];
+            $from = $i['a'];
+            foreach ($cover as [$a, $b]) {
+                if ($b <= $i['a'] || $a >= $i['b']) {
+                    continue;
+                }
+                if ($outside && $a > $from) {
+                    $pieces[] = [$from, $a];
+                }
+                if (! $outside) {
+                    $pieces[] = [max($a, $i['a']), min($b, $i['b'])];
+                }
+                $from = max($from, $b);
+            }
+            if ($outside && $from < $i['b']) {
+                $pieces[] = [$from, $i['b']];
+            }
+            foreach ($pieces as [$a, $b]) {
+                if ($b > $a) {
+                    $out[] = ['a' => $a, 'b' => $b] + $i;
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**

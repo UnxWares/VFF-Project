@@ -15,6 +15,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   garde son mode voyageurs (voies sans voyageurs pénalisées). Un train de parc ou d'attraction sans ligne de VFF (« Petit Train
   de la Tête d'Or ») n'est plus une gare du graphe : il n'apparaît plus dans les itinéraires (`/route`, livret) après le
   prochain `vff:build-network-graph`.
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL, MCP `line_rinf_parameters`) :
+  `max_speed` est comparé tronçon par tronçon (`rg_troncon` rempli) quand les tronçons du RINF correspondent à ceux de SNCF
+  Réseau, et `train_protection` lit chaque tronçon du RINF à part quand la ligne en a plusieurs (deux tronçons d'une ligne
+  peuvent avoir des PK communs : 610000, 890000, 330000, 525000, 975900) ; la partie de SNCF Réseau hors de tout tronçon du
+  RINF a alors `rg_troncon` nul. Champs inchangés.
+
 - Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfPlatformSummary`, MCP
   `line_rinf_parameters`) : statut de quai `length_unknown` (même gare, même nom de quai, longueur absente d'une des deux
   sources) et son nombre `platforms.summary.length_unknown` ; GraphQL `LineRinfPlatformSummary.length_unknown`.
