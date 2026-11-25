@@ -1985,6 +1985,19 @@ type Station {
   """
   heritage: StationHeritage
   """
+  Voies de la gare aujourd'hui, comme \`GET /api/v1/stations/{station}/track-layout\` : pour chaque ligne qui passe par
+  la gare et dont les voies sont décrites autour d'elle, le schéma des voies de la ligne (\`TrackLayout\`, mêmes règles
+  que \`Line.track_layout\`) sur une fenêtre autour de la gare ; les bords de quai de la gare avec leur longueur et leur
+  hauteur (RINF) et leurs PK (« Liste des quais » de SNCF Réseau). Provenance et précision sur chaque objet. \`lines\`
+  vide si aucune source ne décrit les voies de la gare. Reprenez la mention \`attribution\` de chaque source.
+  """
+  track_layout(
+    "Une seule ligne : slug ou code SNCF Réseau à 6 chiffres. Par défaut : toutes les lignes de la gare."
+    line: String
+    "Familles du schéma de chaque ligne. Par défaut : toutes."
+    kinds: [TrackLayoutKind!]
+  ): StationTrackLayout!
+  """
   Médias (photos, cartes postales, plans…) rattachés à la gare, page par page (20 par défaut,
   100 au plus), dans l'ordre de leurs identifiants. Chaque média porte ses droits.
   """
@@ -4213,6 +4226,119 @@ type TrackLayout {
 }
 
 
+"Voies d'une gare (\`Station.track_layout\`), même contenu que \`GET /api/v1/stations/{station}/track-layout\`."
+type StationTrackLayout {
+  "La gare."
+  station: StationTrackLayoutStation!
+  "Points d'exploitation du RINF rattachés à la gare."
+  operational_points: [StationTrackLayoutPoint!]!
+  "Une entrée par ligne dont les voies sont décrites autour de la gare, la ligne qui a le plus de voies d'abord."
+  lines: [StationTrackLayoutLine!]!
+  "Bords de quai de la gare (un par voie bordée), par ligne puis par quai."
+  platforms: [StationTrackPlatform!]!
+  "Sources des schémas et des quais, avec licence et mention à reproduire."
+  sources: [TrackLayoutSource!]!
+  "Nombre de lignes, d'objets (somme des fenêtres) et de bords de quai."
+  counts: StationTrackLayoutCounts!
+}
+
+
+"Gare d'un plan des voies."
+type StationTrackLayoutStation {
+  "Identifiant (slug) de la gare."
+  slug: String!
+  "Nom de la gare."
+  name: String!
+  "Code UIC."
+  uic_code: String
+}
+
+
+"Point d'exploitation du RINF rattaché à une gare."
+type StationTrackLayoutPoint {
+  "Identifiant unique du point d'exploitation (UOPID)."
+  uopid: String!
+  "Nom au RINF."
+  name: String!
+  "Provenance : \`rinf\`."
+  source: String!
+}
+
+
+"Schéma des voies d'une ligne autour d'une gare."
+type StationTrackLayoutLine {
+  "La ligne."
+  line: TrackLayoutLine!
+  "PK de la gare sur la ligne, en mètres."
+  station_pk_m: Int
+  "PK de la gare, notation \`km+mmm\`."
+  station_pk_label: String
+  "Provenance du PK de la gare (\`sncf\`, \`projected\`, \`rinf\`…)."
+  station_pk_source: String
+  "Fenêtre lue autour de la gare, PK en mètres de la ligne."
+  window: StationTrackLayoutWindow!
+  "Schéma des voies de la ligne sur la fenêtre (même type que \`Line.track_layout\`)."
+  track_layout: TrackLayout!
+}
+
+
+"Fenêtre d'un schéma des voies autour d'une gare, PK en mètres."
+type StationTrackLayoutWindow {
+  "Début, PK en mètres."
+  from_m: Int!
+  "Fin, PK en mètres."
+  to_m: Int!
+}
+
+
+"Bord de quai d'une gare : un quai le long d'une voie (un quai central entre deux voies en a deux)."
+type StationTrackPlatform {
+  "Identifiant stable, préfixé par la source (\`rinf:pe:\`, \`sncf:quai:\`)."
+  id: String!
+  "Nom du quai (« Quai 2 », « Quai VE »)."
+  ref: String!
+  "Référence courte de la voie bordée (\`V1\`, \`Z\`, \`43\`)."
+  track_ref: String!
+  "Code de la ligne de la voie, nul s'il n'est pas connu."
+  line_code: String
+  "Identifiant de la voie bordée dans le schéma de sa ligne (\`StationTrackLayoutLine.track_layout.tracks\`), nul si elle n'y est pas trouvée."
+  track: String
+  "Début, PK en mètres de la ligne (nul : position inconnue)."
+  pk_from_m: Int
+  "Fin, PK en mètres de la ligne."
+  pk_to_m: Int
+  "Longueur utile déclarée, en mètres (RINF ; à défaut, SNCF Réseau)."
+  length_m: Int
+  "Hauteur au-dessus du rail, en millimètres (RINF)."
+  height_mm: Int
+  "Provenance du bord de quai : \`rinf\` ou \`sncf\`."
+  source: String!
+  "Provenance des PK : \`sncf\` (« Liste des quais »), \`vff\` (placé autour du PK de la gare), nul sans position."
+  pk_source: String
+  "\`exact\` (PK déclarés), \`approximate\` (placé à peu près), nul sans position."
+  precision: String
+}
+
+
+"Nombre d'objets du plan des voies d'une gare."
+type StationTrackLayoutCounts {
+  "Lignes servies."
+  lines: Int!
+  "Voies."
+  tracks: Int!
+  "Aiguillages."
+  switches: Int!
+  "Signaux."
+  signals: Int!
+  "Passages à niveau et traversées de voies."
+  crossings: Int!
+  "Heurtoirs."
+  buffer_stops: Int!
+  "Bords de quai."
+  platforms: Int!
+}
+
+
 "Nombre d'objets de chaque famille d'un schéma des voies (aperçu d'une longue ligne sans ses objets)."
 type TrackLayoutCounts {
   "Points d'exploitation."
@@ -4370,7 +4496,7 @@ type TrackLayoutSignal {
   ref: String
   "PK en mètres."
   pk_m: Int!
-  "Sorte."
+  "Catégorie (OpenStreetMap : \`main\`, \`distant\`, \`speed_limit\`…), \`unknown\` quand la source ne la dit pas."
   kind: String!
   "Forme du signal (OpenStreetMap : \`light\`, \`semaphore\`…)."
   form: String
@@ -5365,6 +5491,10 @@ type Routebook {
   signals: JSON!
   "Passages à niveau et traversées de voies."
   crossings: JSON!
+  "Heurtoirs (bouts de voie), avec la voie qu'ils ferment (\`track\`)."
+  buffer_stops: JSON!
+  "Bornes kilométriques (poteaux), avec leur inscription (\`label\`)."
+  milestones: JSON!
   "Bande du schéma : vitesses (\`speeds\`) et déclivités dans le sens de marche (\`gradients\`)."
   strip: JSON!
   "Couverture : longueur totale, mètres de voies décrits par le RINF, OpenStreetMap et VFF, portions sans données (\`missing\`)."
