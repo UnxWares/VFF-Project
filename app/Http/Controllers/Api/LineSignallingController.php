@@ -69,7 +69,11 @@ class LineSignallingController extends Controller
      *   au cantonnement (`KVB`, `KVBP`, `TVM-300`, `TVM-430`, `ERTMS_L1`,
      *   `ERTMS_L2`). Le KVB est un contrôle de vitesse, pas un mode de
      *   cantonnement ;
-     * - `kvb_equipped` : raccourci, la tranche est équipée du KVB ou du KVBP.
+     * - `kvb_equipped` : raccourci, la tranche est équipée du KVB ou du KVBP ;
+     * - `rg_troncon` : rang du tronçon de SNCF Réseau (`rg_troncon` du jeu). Deux tronçons d'une
+     *   ligne peuvent avoir des PK communs : ce sont deux endroits différents (ligne 330000, PK
+     *   30+095 à 30+900), et le KVB de l'un ne vaut pas pour l'autre. Null pour une tranche d'une
+     *   autre source ou écrite avant que VFF ne garde le tronçon.
      *
      * PK en mètres (`pk_start_m`, `pk_end_m`, `length_m`) et en notation
      * ferroviaire `km+mmm` (`pk_start_label`, `pk_end_label`), dans la
@@ -84,7 +88,7 @@ class LineSignallingController extends Controller
      *         pk_start_label: string, pk_end_label: string,
      *         length_m: int, signalling: string, signalling_systems: array<string>,
      *         train_protection: array<string>, kvb_equipped: bool,
-     *         source_label: ?string, note: ?string
+     *         source_label: ?string, note: ?string, rg_troncon: ?int
      *     }>
      * }
      */
@@ -97,7 +101,7 @@ class LineSignallingController extends Controller
             'pk_start_m' => 420110, 'pk_end_m' => 436505, 'pk_start_label' => '420+110', 'pk_end_label' => '436+505',
             'length_m' => 16395, 'signalling' => 'BAPR', 'signalling_systems' => ['BAPR'], 'train_protection' => ['KVB'], 'kvb_equipped' => true,
             'source_label' => 'Block automatique à permissivité restreinte de double voie',
-            'note' => 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes',
+            'note' => 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes', 'rg_troncon' => 1,
         ]],
     ]])]
     #[ApiResponse(404, 'Ligne ou ère inconnue.')]

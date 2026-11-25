@@ -77,23 +77,26 @@ final class RinfParameterComparison
     private const VALUE = ['key' => '', 'values' => [], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => null, 'tracks' => [], '_labels' => []];
 
     /**
-     * Les paramètres sont comparés tronçon par tronçon (rang du tronçon de SNCF Réseau = suffixe de la ligne nationale du
-     * RINF, « 890000-2 » : deux tronçons d'une ligne peuvent avoir des PK communs, deux endroits différents ; l'autre
-     * source donne aussi le tronçon, vitesses : `line_speed_ranges.sncf_rank`), sauf RINF_BY_PART. Ceux de BY_ALIGNED_PART
-     * le sont seulement quand les tronçons des deux sources se correspondent (PK de chaque tronçon du RINF compris dans
-     * ceux du tronçon de même rang de SNCF Réseau, à PART_ALIGN_M m près) ; sinon sur toute la ligne (981000 : un seul tronçon au RINF, de 0+000 à 5+266, deux chez SNCF Réseau, 0+000 à 2+547 et
-     * 2+547 à 5+266).
+     * Les paramètres confrontés à l'autre source sont comparés tronçon par tronçon (rang du tronçon de SNCF Réseau =
+     * suffixe de la ligne nationale du RINF, « 890000-2 » : deux tronçons d'une ligne peuvent avoir des PK communs, deux
+     * endroits différents ; l'autre source donne aussi le tronçon : `sncf_line_electrification.rg_troncon`,
+     * `line_speed_ranges.sncf_rank`, `line_signalling.rg_troncon`, `line_radio_portions.rg_troncon`) quand les tronçons
+     * des deux sources se correspondent (PK de chaque tronçon du RINF compris dans ceux du tronçon de même rang de SNCF
+     * Réseau, à PART_ALIGN_M m près) ; sinon sur toute la ligne (981000 : un seul tronçon au RINF, de 0+000 à 5+266, deux
+     * chez SNCF Réseau, 0+000 à 2+547 et 2+547 à 5+266 ; par rang, le même endroit sortait « RINF seul » et « SNCF seul »).
+     * Signalisation : voir RINF_BY_PART pour les deux autres cas.
      */
-    private const BY_ALIGNED_PART = ['max_speed'];
+    private const BY_ALIGNED_PART = ['electrification', 'max_speed', 'train_protection', 'radio'];
 
     /** Écart toléré (m) entre les bouts d'un tronçon du RINF et ceux du tronçon de même rang de SNCF Réseau. */
     public const PART_ALIGN_M = 500;
 
     /**
-     * Paramètres que l'autre source ne tient pas par tronçon (signalisation : `line_signalling` n'a pas le rang) : le RINF
-     * est lu tronçon par tronçon (jamais deux tronçons réunis au même PK), chacun confronté à l'autre source sur les PK
-     * qu'il couvre ; le reste de l'autre source est servi à part (`rg_troncon` nul). Une ligne d'un seul tronçon au RINF
-     * est comparée comme avant, sur toute la ligne.
+     * Paramètres dont l'autre source peut manquer du tronçon (signalisation : `line_signalling.rg_troncon` nul avant la
+     * réimportation, ou pour une tranche d'une autre source) ou dont les tronçons ne se correspondent pas : le RINF est lu
+     * tronçon par tronçon (jamais deux tronçons réunis au même PK), chacun confronté à l'autre source sur les PK qu'il
+     * couvre ; le reste de l'autre source est servi à part (`rg_troncon` nul). Une ligne d'un seul tronçon au RINF est
+     * comparée sur toute la ligne.
      */
     private const RINF_BY_PART = ['train_protection'];
 
@@ -168,14 +171,15 @@ final class RinfParameterComparison
         foreach (self::PARAMETERS as $p) {
             $gap = $p === 'electrification' && $describes ? ['key' => 'none'] + self::VALUE : null;
             $rinfParts = array_values(array_unique(array_column($rinf[$p], 'part')));
-            if (in_array($p, self::RINF_BY_PART, true)) {
+            $aligned = ! in_array($p, self::BY_ALIGNED_PART, true) || $this->partsAlign($code, $rinf[$p]);
+            if (in_array($p, self::RINF_BY_PART, true) && (! $aligned || ! self::allWithPart($vff[$p]))) {
                 $parameters[] = self::parameter($p, $this->compareRinfByPart($p, $rinf[$p], $vff[$p], $rinfParts, $gap));
 
                 continue;
             }
-            if (in_array($p, self::BY_ALIGNED_PART, true) && ! $this->partsAlign($code, $rinf[$p])) {
+            if (! $aligned) {
                 // Vitesses : plus forte vitesse de SNCF Réseau dans chaque section du RINF, la vitesse telle quelle ailleurs.
-                $lists = [$rinf[$p], $this->sectionSpeeds($sections, $vff[$p]), $vff[$p]];
+                $lists = $p === 'max_speed' ? [$rinf[$p], $this->sectionSpeeds($sections, $vff[$p]), $vff[$p]] : [$rinf[$p], $vff[$p]];
                 $parameters[] = self::parameter($p, array_map(fn (array $x): array => ['rg_troncon' => null] + $x, $this->compare($p, $lists, $gap)));
 
                 continue;
@@ -309,7 +313,7 @@ final class RinfParameterComparison
     /**
      * Portions de l'autre source, par paramètre (ère courante pour les vitesses et la signalisation).
      *
-     * @return array<string, list<array{a: int, b: int, v: array<string, mixed>, part?: int}>>
+     * @return array<string, list<array{a: int, b: int, v: array<string, mixed>, part?: ?int}>>
      */
     private function vffItems(Line $line, ?int $eraId): array
     {
@@ -330,7 +334,7 @@ final class RinfParameterComparison
             }
             foreach ($this->signalling->forLine((int) $line->id, $eraId) as $s) {
                 $compared = RinfParameters::comparedFromVff($s['train_protection'], $s['signalling_systems']);
-                $out['train_protection'][] = ['a' => min($s['pk_start_m'], $s['pk_end_m']), 'b' => max($s['pk_start_m'], $s['pk_end_m']), 'v' => [
+                $out['train_protection'][] = ['a' => min($s['pk_start_m'], $s['pk_end_m']), 'b' => max($s['pk_start_m'], $s['pk_end_m']), 'part' => $s['rg_troncon'], 'v' => [
                     'key' => $compared === [] ? 'none' : implode('+', $compared), '_compared' => $compared,
                     'values' => RinfParameters::sortProtection(array_values(array_unique([...$s['signalling_systems'], ...$s['train_protection']]))),
                     '_labels' => $s['source_label'] === null ? [] : [(string) $s['source_label']]] + self::VALUE];
@@ -374,6 +378,16 @@ final class RinfParameterComparison
         }
 
         return $portions;
+    }
+
+    /**
+     * Chaque portion de l'autre source porte son tronçon (signalisation : `line_signalling.rg_troncon` rempli).
+     *
+     * @param  list<array{a: int, b: int, v: array<string, mixed>, part?: ?int}>  $items
+     */
+    private static function allWithPart(array $items): bool
+    {
+        return array_all($items, fn (array $i): bool => ($i['part'] ?? null) !== null);
     }
 
     /**

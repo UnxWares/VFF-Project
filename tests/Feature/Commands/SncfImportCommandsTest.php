@@ -445,6 +445,36 @@ class SncfImportCommandsTest extends TestCase
         );
     }
 
+    /**
+     * Two parts of a line sharing PKs are two places (330000, records of SNCF Réseau of 19/11/2026: part 1 BAPR from
+     * 30+214 to 30+900, part 2 BAPR from 30+095 to 67+637): the part is kept, served, and the KVB of one part is only laid on
+     * the ranges of that part (here the KVB of part 2 alone, from 30+095 to 119+044).
+     */
+    public function test_signalling_import_keeps_the_part_and_lays_the_kvb_on_its_own_part(): void
+    {
+        $this->serve('mode-de-cantonnement-des-lignes', ['results' => [
+            ['code_ligne' => '330000', 'libelle' => 'Block automatique à permissivité restreinte de double voie', 'rg_troncon' => 1, 'pkd' => '030+214', 'pkf' => '030+900'],
+            ['code_ligne' => '330000', 'libelle' => 'Block automatique à permissivité restreinte de double voie', 'rg_troncon' => 2, 'pkd' => '030+095', 'pkf' => '067+637'],
+        ]]);
+        $this->serve('lignes-equipees-de-kvb', ['results' => [
+            ['code_ligne' => '330000', 'rg_troncon' => 2, 'pkd' => '030+095', 'pkf' => '119+044'],
+        ]]);
+        $line = $this->rfnLine('330000', 'Ligne de St-Denis à Dieppe');
+
+        // À blanc : mêmes comptes, rien d'écrit.
+        $this->artisan('vff:import-sncf-signalling', ['--dry-run' => true])
+            ->expectsOutputToContain('État final : 2 tranches sur 1 lignes (1 avec KVB)')->expectsOutputToContain('À blanc : rien écrit.')->assertSuccessful();
+        $this->assertSame(0, DB::table('line_signalling')->count());
+
+        $this->artisan('vff:import-sncf-signalling')->expectsOutputToContain('✓ 1 portions KVB rapprochées')->assertSuccessful();
+
+        $ranges = DB::table('line_signalling')->where('line_id', $line->id)->orderBy('rg_troncon')->get(['rg_troncon', 'pk_start_m', 'pk_end_m', 'kvb_equipped']);
+        $this->assertSame([[1, 30_214, 30_900, false], [2, 30_095, 67_637, true]],
+            $ranges->map(fn ($r) => [$r->rg_troncon, $r->pk_start_m, $r->pk_end_m, $r->kvb_equipped])->all());
+        $served = $this->getJson("/api/v1/lines/{$line->slug}/signalling")->assertOk()->json('ranges');
+        $this->assertSame([[2, ['KVB']], [1, []]], array_map(fn (array $r): array => [$r['rg_troncon'], $r['train_protection']], $served));
+    }
+
     public function test_signalling_import_keeps_existing_ranges_when_a_dataset_is_down(): void
     {
         $this->fakeSignalling();

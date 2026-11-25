@@ -1067,7 +1067,9 @@ voies), `parameters[]` (`key`, `compared_with` : `sncf` ou null, `summary` en m�
 `disagree_m`, `rinf_only_m`, `vff_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `rinf` et `vff`, chacun avec `key`,
 `values`, `voltage_v`, `frequency_hz`, `speed_kmh`, `tracks`, `source_label`), `platforms` (`summary`, `items[]` : gare, point
 d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_mm`, `vff` avec `label`, `length_m`, PK),
-`sources[]`, le bloc d'attribution et `vff_url`. Règles : la vitesse d'une section du RINF est comparée à la plus forte
+`sources[]`, le bloc d'attribution et `vff_url`. Règles : électrification, vitesse, contrôle de vitesse et radio sont
+comparés tronçon par tronçon (`rg_troncon`, deux tronçons d'une ligne pouvant avoir des PK communs) quand les tronçons des
+deux sources se correspondent, sur toute la ligne sinon (`rg_troncon` nul) ; la vitesse d'une section du RINF est comparée à la plus forte
 vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
 déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
 Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en

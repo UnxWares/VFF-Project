@@ -9,6 +9,16 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange.rg_troncon`) :
+  `rg_troncon`, rang du tronçon de SNCF Réseau de la tranche (deux tronçons d'une ligne peuvent avoir des PK communs, deux
+  endroits différents : 330000, 975900) ; null pour une tranche d'une autre source ou écrite avant la réimportation. Le KVB
+  d'un tronçon n'est plus posé sur les tranches de l'autre tronçon aux PK communs (890000, tronçon 2 de 60+215 à 75+559).
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL, MCP `line_rinf_parameters`) :
+  `electrification`, `radio` et `train_protection` suivent la règle de `max_speed` : comparés tronçon par tronçon
+  (`rg_troncon` rempli) quand les tronçons du RINF correspondent à ceux de SNCF Réseau, sur toute la ligne sinon
+  (`rg_troncon` nul ; 981000 : un tronçon au RINF, deux chez SNCF Réseau, n'a plus de faux « RINF seul » et « SNCF seul »
+  au même endroit). `train_protection` est comparé par tronçon dès que la signalisation de SNCF Réseau a son tronçon
+  (après la réimportation), sinon comme avant. Champs inchangés.
 - Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook.non_passenger_m`, MCP `routebook`) : `non_passenger_m`,
   mètres parcourus sur des voies sans service voyageurs (fret seul, réseaux militaire ou particulier). Le livret ne prend plus
   que les voies ouvertes aux voyageurs (0) et ne passe sur ces voies que s'il n'existe aucun autre chemin ; `GET /api/v1/route`

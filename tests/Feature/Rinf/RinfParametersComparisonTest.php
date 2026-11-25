@@ -103,7 +103,7 @@ class RinfParametersComparisonTest extends TestCase
         // Électrification : le RINF dit « aucune » partout ; SNCF Réseau 1 500 V de 30 à 40 km, aucune ailleurs.
         $e = $params['electrification'];
         $this->assertSame(['sncf', 10000], [$e['compared_with'], $e['summary']['disagree_m']]);
-        $this->assertSame([1, 30000, 40000, 'disagree', 'none', '1500V-DC', 1500, 0.0, '1500 volts continu'], [
+        $this->assertSame([null, 30000, 40000, 'disagree', 'none', '1500V-DC', 1500, 0.0, '1500 volts continu'], [
             $e['portions'][1]['rg_troncon'], $e['portions'][1]['pk_start_m'], $e['portions'][1]['pk_end_m'], $e['portions'][1]['status'],
             $e['portions'][1]['rinf']['key'], $e['portions'][1]['vff']['key'], $e['portions'][1]['vff']['voltage_v'], (float) $e['portions'][1]['vff']['frequency_hz'],
             $e['portions'][1]['vff']['source_label']]);
@@ -191,6 +191,74 @@ class RinfParametersComparisonTest extends TestCase
             $params['train_protection']['portions']);
         $this->assertSame([[1, -235, 64667, 'agree', 'KVB'], [2, 17277, 17917, 'disagree', 'none'], [null, -252, -235, 'vff_only', null]], $protection);
         // SNCF Réseau outside every RINF part (-252 to -235) is served once, without a part.
+    }
+
+    /**
+     * The signalling of SNCF Réseau keeps its part (line_signalling.rg_troncon): the protection is then compared part by
+     * part, like the speeds (part 2 without KVB is no longer compared with the KVB of part 1 at the same PKs).
+     */
+    public function test_the_protection_is_compared_part_by_part_when_the_signalling_has_its_part(): void
+    {
+        $this->import();
+        $this->seedSncf();
+        $this->addSecondPart();
+        $now = now();
+        DB::table('line_signalling')->where('line_id', $this->line->id)->update(['rg_troncon' => 1]);
+        DB::table('line_signalling')->insert(['line_id' => $this->line->id, 'era_id' => $this->era->id, 'pk_start_m' => 17277, 'pk_end_m' => 44427, 'rg_troncon' => 2,
+            'signalling' => 'BAL', 'signalling_systems' => '["BAL"]', 'train_protection' => null, 'kvb_equipped' => false,
+            'source_label' => 'Block automatique lumineux', 'created_at' => $now, 'updated_at' => $now]);
+
+        $params = array_column($this->getJson('/api/v1/lines/rfn-579000/rinf-parameters')->assertOk()->json('parameters'), null, 'key');
+        $protection = array_map(fn (array $p): array => [$p['rg_troncon'], $p['pk_start_m'], $p['pk_end_m'], $p['status'], $p['rinf']['key'] ?? null, $p['vff']['key'] ?? null],
+            $params['train_protection']['portions']);
+        $this->assertSame([[1, -252, -235, 'vff_only', null, 'KVB'], [1, -235, 64667, 'agree', 'KVB', 'KVB'],
+            [2, 17277, 17917, 'agree', 'none', 'none'], [2, 17917, 44427, 'vff_only', null, 'none']], $protection);
+        $this->assertSame([1, 2], array_values(array_unique(array_column(
+            $this->getJson('/api/v1/lines/rfn-579000/signalling')->assertOk()->json('ranges'), 'rg_troncon'))));
+    }
+
+    /**
+     * Electrification and radio follow the rule of the speeds: part by part only when the parts of both sources match,
+     * over the whole line otherwise (981000: one RINF part, two parts at SNCF Réseau; compared by rank, the same place was
+     * "RINF only" on one part and "SNCF only" on the other).
+     */
+    public function test_electrification_and_radio_are_compared_over_the_whole_line_when_the_parts_do_not_match(): void
+    {
+        $this->import();
+        $this->seedSncf();
+        $now = now();
+        // SNCF Réseau cuts the line in two parts at 30+000; the RINF has a single part over the whole line.
+        foreach ([[1, -252, 30000], [2, 30000, 64667]] as [$part, $a, $b]) {
+            DB::table('sncf_line_geometries')->insert(['code_ligne' => '579000', 'rg_troncon' => $part, 'libelle' => 'Exploitée', 'pk_debut_m' => $a, 'pk_fin_m' => $b,
+                'geom' => DB::raw("ST_GeomFromText('LINESTRING(-0.4 45.7, -0.2 45.65)', 4326)"), 'created_at' => $now, 'updated_at' => $now]);
+        }
+        DB::table('sncf_line_electrification')->where('code_ligne', '579000')->update(['rg_troncon' => 2]);
+        DB::table('line_radio_portions')->where('line_id', $this->line->id)->where('system', 'gsm-r')->update(['rg_troncon' => 2]);
+
+        $params = array_column($this->getJson('/api/v1/lines/rfn-579000/rinf-parameters')->assertOk()->json('parameters'), null, 'key');
+        $rows = fn (string $key): array => array_map(fn (array $p): array => [$p['rg_troncon'], $p['pk_start_m'], $p['pk_end_m'], $p['status']], $params[$key]['portions']);
+        $this->assertSame([[null, -235, 30000, 'agree'], [null, 30000, 40000, 'disagree'], [null, 40000, 64667, 'agree']], $rows('electrification'));
+        $this->assertSame([[null, -252, -235, 'vff_only'], [null, -235, 63732, 'agree'], [null, 63732, 64667, 'agree']], $rows('radio'));
+        foreach (['electrification', 'radio'] as $key) {
+            $this->assertSame(0, $params[$key]['summary']['rinf_only_m'], $key);
+        }
+    }
+
+    /** Second RINF part of the line on the PKs of the Cognac section of part 1 (17+277 to 17+917): 60 km/h, Crocodile only. */
+    private function addSecondPart(): void
+    {
+        $now = now();
+        $section = (array) DB::table('rinf_sections')->where('line_code', '579000')->where('pk_start_m', 17277)->first();
+        $uri = $section['uri'].'-part2';
+        DB::table('rinf_sections')->insert(['uri' => $uri, 'national_line' => '579000-2'] + array_diff_key($section, ['id' => 1, 'uri' => 1, 'national_line' => 1]));
+        foreach (DB::table('rinf_tracks')->where('section_uri', $section['uri'])->get() as $t) {
+            DB::table('rinf_tracks')->insert(['uri' => $t->uri.'-part2', 'section_uri' => $uri, 'max_speed_kmh' => 60, 'train_protection' => '["Crocodile"]', 'etcs_level' => null]
+                + array_diff_key((array) $t, ['id' => 1, 'uri' => 1, 'section_uri' => 1, 'max_speed_kmh' => 1, 'train_protection' => 1, 'etcs_level' => 1]));
+        }
+        foreach ([[1, -252, 64667], [2, 17277, 44427]] as [$part, $a, $b]) {
+            DB::table('sncf_line_geometries')->insert(['code_ligne' => '579000', 'rg_troncon' => $part, 'libelle' => 'Exploitée', 'pk_debut_m' => $a, 'pk_fin_m' => $b,
+                'geom' => DB::raw("ST_GeomFromText('LINESTRING(-0.4 45.7, -0.2 45.65)', 4326)"), 'created_at' => $now, 'updated_at' => $now]);
+        }
     }
 
     /**

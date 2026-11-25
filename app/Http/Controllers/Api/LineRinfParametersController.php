@@ -45,7 +45,9 @@ class LineRinfParametersController extends Controller
      * `tracks` (voies du RINF d'où vient la valeur : voies principales 1, 2 et unique seules quand la section en a)
      * et `source_label` (libellé de l'autre source tel quel). `rg_troncon` : rang du tronçon de la ligne chez SNCF
      * Réseau (suffixe « -2 » de la ligne nationale du RINF ; deux tronçons peuvent avoir des PK communs), nul pour
-     * une comparaison faite sur toute la ligne (vitesses, signalisation). `summary` : longueurs en mètres par statut,
+     * une comparaison faite sur toute la ligne (électrification, vitesses, signalisation, radio, quand les tronçons
+     * des deux sources ne se correspondent pas ; signalisation aussi tant que la tranche de SNCF Réseau n'a pas son
+     * tronçon). `summary` : longueurs en mètres par statut,
      * et longueurs décrites par chaque source.
      *
      * **Sections** (`sections[]`) : sections du RINF de la ligne (URI, ligne nationale, PK, points d'exploitation
