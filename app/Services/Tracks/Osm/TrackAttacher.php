@@ -20,7 +20,9 @@ use App\Services\Tracks\TrackGeometry;
  *     of the large stations).
  * Stretches shorter than MIN_PIECE_M are dropped.
  *
- * Each piece gets its PK range and its median lateral offset on the chainage of the line, the station of the
+ * Each piece is placed as a whole on the chainage of the line (TrackChainage::chain: the portion of the trace that
+ * keeps the PK continuous along the track, not the nearest one sample by sample) and cut where the PK still jumps
+ * (a change of numbering under the track); it gets its PK range and its median lateral offset, the station of the
  * line it serves (nearest within STATION_M), and a kind (OsmTrackTags::kind; a siding connected at both ends,
  * through other sidings joined end to end, is a loop). Nodes on the pieces become switches (the track they sit
  * on and the track they lead to, facing up or down), diamond crossings, buffer stops, level crossings,
@@ -50,6 +52,9 @@ final class TrackAttacher
 
     /** A signal mapped beside the track (not as a node of the way) is read on the nearest way within this distance. */
     public const SIGNAL_SNAP_M = 8.0;
+
+    /** Beyond the length of track between two samples, a PK jump larger than this cuts the piece (change of numbering). */
+    public const JUMP_SLACK_M = 200.0;
 
     /** Length along a way at which a branch of a switch is measured. */
     private const BRANCH_M = 15.0;
@@ -151,9 +156,11 @@ final class TrackAttacher
                 if ($wanted !== null && ! isset($wanted[$this->lines[$li]->id])) {
                     continue;
                 }
-                $piece = $this->piece($li, $wayId, $way, $dense, $from, $to, $how);
-                if ($piece !== null) {
-                    $pieces[] = $piece;
+                foreach ($this->placed($li, $dense, $from, $to) as [$a, $b, $places]) {
+                    $piece = $this->piece($li, $wayId, $way, $dense, $a, $b, $how, $places);
+                    if ($piece !== null) {
+                        $pieces[] = $piece;
+                    }
                 }
             }
         }
@@ -177,7 +184,7 @@ final class TrackAttacher
         }
         $this->snapped($pieces, $nodes);
         foreach ($pieces as &$piece) {
-            unset($piece['node_ids'], $piece['line_index']);
+            unset($piece['node_ids'], $piece['node_pks'], $piece['line_index']);
         }
 
         return ['tracks' => $pieces, 'nodes' => array_values($nodes)];
@@ -348,21 +355,62 @@ final class TrackAttacher
     }
 
     /**
+     * Places of the samples of a stretch on the chainage of the line, the track followed as a whole (TrackChainage::chain),
+     * and the stretch cut where the PK still jumps between two samples (a change of the PK numbering under the
+     * track): [first sample, last sample, places by sample].
+     *
+     * @param  array{0: list<float>, 1: list<int>}  $dense
+     * @return list<array{0: int, 1: int, 2: array<int, array{pk_m: ?int, precision: ?string, offset_m: float}|null>}>
+     */
+    private function placed(int $li, array $dense, int $from, int $to): array
+    {
+        [$c] = $dense;
+        $chain = $this->lines[$li]->chainage->chain(array_slice($c, 2 * $from, 2 * ($to - $from + 1)), self::STATION_M + self::CODED_M);
+        $places = [];
+        foreach ($chain as $k => $at) {
+            $places[$from + $k] = $at;
+        }
+        $out = [];
+        $start = $from;
+        $prev = null;
+        for ($i = $from; $i <= $to; $i++) {
+            $pk = $places[$i]['pk_m'] ?? null;
+            if ($pk === null) {
+                continue;
+            }
+            if ($prev !== null) {
+                $step = TrackGeometry::metres($c[2 * $prev], $c[2 * $prev + 1], $c[2 * $i], $c[2 * $i + 1]);
+                if (abs($pk - (int) $places[$prev]['pk_m']) > 1.5 * $step + self::JUMP_SLACK_M) {
+                    $out[] = [$start, $i - 1, $places];
+                    $start = $i;
+                }
+            }
+            $prev = $i;
+        }
+        $out[] = [$start, $to, $places];
+
+        return $out;
+    }
+
+    /**
      * One attached piece of a way: geometry, PK range, offset, kind and the nodes it holds.
      *
      * @param  array{tags: array<string, string>, nodes: list<int>, coords: list<float>}  $way
      * @param  array{0: list<float>, 1: list<int>}  $dense
+     * @param  array<int, array{pk_m: ?int, precision: ?string, offset_m: float}|null>  $places  by sample
      * @return array<string, mixed>|null
      */
-    private function piece(int $li, int $wayId, array $way, array $dense, int $from, int $to, string $how): ?array
+    private function piece(int $li, int $wayId, array $way, array $dense, int $from, int $to, string $how, array $places): ?array
     {
         [$c, $index] = $dense;
         // Geometry: the vertices of the way inside the stretch, between its two cut points.
         $coords = [$c[2 * $from], $c[2 * $from + 1]];
         $nodeIds = [];
+        $nodePks = [];
         foreach ($index as $k => $di) {
             if ($di >= $from && $di <= $to) {
                 $nodeIds[$way['nodes'][$k]] = [$c[2 * $di], $c[2 * $di + 1]];
+                $nodePks[$way['nodes'][$k]] = isset($places[$di]['pk_m']) ? [$places[$di]['pk_m'], $places[$di]['precision']] : null;
                 if ($di > $from && $di < $to) {
                     $coords[] = $c[2 * $di];
                     $coords[] = $c[2 * $di + 1];
@@ -381,7 +429,7 @@ final class TrackAttacher
         $offsets = [];
         $approximate = false;
         for ($i = $from; $i <= $to; $i++) {
-            $at = $line->chainage->locate($c[2 * $i], $c[2 * $i + 1], self::STATION_M + self::CODED_M);
+            $at = $places[$i] ?? null;
             if ($at === null || $at['pk_m'] === null) {
                 $approximate = true;
 
@@ -430,6 +478,7 @@ final class TrackAttacher
             'coords' => $coords,
             'tags' => $tags,
             'node_ids' => $nodeIds,
+            'node_pks' => $nodePks,
         ];
     }
 
@@ -516,13 +565,21 @@ final class TrackAttacher
             return null;
         }
         $line = $this->lines[$piece['line_index']];
-        $at = $line->chainage->locate($lon, $lat, self::STATION_M + self::CODED_M);
-        $pk = $at['pk_m'] ?? null;
-        $precision = $at['precision'] ?? null;
+        if (array_key_exists($nodeId, $piece['node_pks']) && $segment === null) {
+            // A node of the track: the PK the track gives it there.
+            [$pk, $precision] = $piece['node_pks'][$nodeId] ?? [null, null];
+        } else {
+            $near = $piece['pk_from_m'] === null ? null : intdiv($piece['pk_from_m'] + $piece['pk_to_m'], 2);
+            $at = $line->chainage->locate($lon, $lat, self::STATION_M + self::CODED_M, $near);
+            $pk = $at['pk_m'] ?? null;
+            $precision = $at['precision'] ?? null;
+        }
         $osmPk = OsmTrackTags::position($tags['railway:position:exact'] ?? ($kind === 'milestone' ? $tags['railway:position'] ?? null : null));
         $codes = $segment === null ? $this->nodeCodes($nodeId) : $this->osm->wayCodes($piece['osm_way_id']);
         $onLine = $line->code !== null && in_array($line->code, $codes, true);
-        if ($osmPk !== null && $onLine && ($pk === null || abs($osmPk - $pk) <= self::EXACT_AGREE_M)) {
+        // Without a PK of its own to compare, the PK carried by the node is taken only on ways of this line alone
+        // (on a way shared by two lines, it may be the PK of the other one).
+        if ($osmPk !== null && $onLine && ($pk === null ? $codes === [$line->code] : abs($osmPk - $pk) <= self::EXACT_AGREE_M)) {
             $pk = $osmPk;
             $precision = 'exact';
         }
@@ -540,7 +597,7 @@ final class TrackAttacher
             [$from, $to] = $this->crossingWays($nodeId, $lon, $lat) + [$from, null];
         } elseif ($kind === 'signal') {
             [$subtype, $detail, $ref] = OsmTrackTags::signal($tags);
-            $direction = $this->signalDirection($piece, $nodeId, $tags['railway:signal:direction'] ?? null, $line, $segment);
+            $direction = $this->signalDirection($piece, $nodeId, $tags['railway:signal:direction'] ?? null, $line, $segment, $pk);
         } elseif ($kind === 'level_crossing' || $kind === 'crossing') {
             $subtype = $kind === 'crossing' ? 'pedestrian' : 'road';
         } elseif ($kind === 'milestone') {
@@ -635,7 +692,7 @@ final class TrackAttacher
         $to = $b[$diverging][0] !== $from ? $b[$diverging][0] : ($b[$through][0] !== $from ? $b[$through][0] : null);
         $facing = null;
         if ($pk !== null) {
-            $toePk = $line->chainage->locate($b[$toe][2][0], $b[$toe][2][1], self::STATION_M + self::CODED_M)['pk_m'] ?? null;
+            $toePk = $line->chainage->locate($b[$toe][2][0], $b[$toe][2][1], self::STATION_M + self::CODED_M, $pk)['pk_m'] ?? null;
             if ($toePk !== null && abs($toePk - $pk) >= 3) {
                 $facing = $toePk < $pk ? 'up' : 'down';
             }
@@ -656,7 +713,7 @@ final class TrackAttacher
      *
      * @param  array<string, mixed>  $piece
      */
-    private function signalDirection(array $piece, int $nodeId, ?string $tag, TrackLine $line, ?int $segment): ?string
+    private function signalDirection(array $piece, int $nodeId, ?string $tag, TrackLine $line, ?int $segment, ?int $pk): ?string
     {
         if ($tag !== 'forward' && $tag !== 'backward') {
             return null;
@@ -676,8 +733,8 @@ final class TrackAttacher
             $ahead = TrackGeometry::along($c, $k, 1, self::BRANCH_M);
         }
         $max = self::STATION_M + self::CODED_M;
-        $a = $line->chainage->locate($behind[0], $behind[1], $max)['pk_m'] ?? null;
-        $b = $line->chainage->locate($ahead[0], $ahead[1], $max)['pk_m'] ?? null;
+        $a = $line->chainage->locate($behind[0], $behind[1], $max, $pk)['pk_m'] ?? null;
+        $b = $line->chainage->locate($ahead[0], $ahead[1], $max, $pk)['pk_m'] ?? null;
         if ($a === null || $b === null || $a === $b) {
             return null;
         }

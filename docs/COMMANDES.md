@@ -434,7 +434,7 @@ Rattachement : une voie qui porte le code d'une ligne (`ref`, `ref:FR:SNCF_Resea
 cette ligne seule ; les autres voies vont à la ligne dont le tracé de référence passe à moins de 30 m (voies principales
 parallèles seulement, lignes à moins de 8 m de la plus proche comprises) ou, pour les voies de service, à moins de 600 m
 d'une gare de la ligne. PK : tracé de référence de l'ère courante calé sur les PK sourcés (gares, passages à niveau de
-SNCF Réseau, PK portés par OSM, `TrackChainage`) ; un nœud qui porte le PK de sa ligne le garde (`exact`). Toute la France :
+SNCF Réseau, PK portés par OSM, `TrackChainage`) ; une suite d'ancres d'une autre numérotation (aiguillages d'un faisceau numérotés depuis leur propre origine, gare d'une autre ligne) est écartée quand le PK de part et d'autre s'accorde, un changement de numérotation n'est jamais interpolé (PK nul au milieu de l'intervalle), chaque voie est placée d'un seul tenant sur la portion du tracé qui garde son PK continu (tracé qui revient sur lui-même, hélice de Tende) et coupée là où le PK saute encore ; un nœud qui porte le PK de sa ligne le garde (`exact`). Toute la France :
 environ 90 s et 1,7 Go de mémoire, à lancer par `agents-commun/lourd.sh`.
 
 ### `vff:build-line-references`

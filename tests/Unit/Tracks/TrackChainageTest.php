@@ -131,4 +131,61 @@ class TrackChainageTest extends TestCase
         $this->assertNull($chainage->locate($lon, $lat)['pk_m']);
         $this->assertEqualsWithDelta(0.0, $chainage->locate($lon, $lat)['distance_m'], 0.5);
     }
+
+    public function test_a_change_of_numbering_is_never_interpolated(): void
+    {
+        // PK 488,522 then 492,775 1.2 km further (Saintes on 500000): the PK of each side near it, none between.
+        $chainage = new TrackChainage([self::line(0, 10_000)], [self::anchor(0, 487_000), self::anchor(2_000, 489_000), self::anchor(3_200, 493_200), self::anchor(8_000, 498_000)]);
+        [$lon, $lat] = self::at(2_200);
+        $this->assertSame(489_200, $chainage->locate($lon, $lat)['pk_m']);
+        $this->assertSame('approximate', $chainage->locate($lon, $lat)['precision']);
+        [$lon, $lat] = self::at(3_100);
+        $this->assertSame(493_100, $chainage->locate($lon, $lat)['pk_m']);
+        [$lon, $lat] = self::at(2_600);
+        $this->assertNull($chainage->locate($lon, $lat)['pk_m']);
+        $this->assertTrue(TrackChainage::isBreak([2_000.0, 489_000], [3_200.0, 493_200]));
+        $this->assertFalse(TrackChainage::isBreak([0.0, 487_000], [2_000.0, 489_000]));
+    }
+
+    public function test_a_run_of_anchors_of_another_numbering_is_dropped_when_both_sides_agree(): void
+    {
+        // Four OpenStreetMap PKs of a yard numbered from its own origin (1,500 to 2,400) in the middle of the line.
+        $anchors = [self::anchor(0, 520_000), self::anchor(2_000, 522_000)];
+        foreach ([3_000, 3_300, 3_600, 3_900] as $i => $m) {
+            $anchors[] = self::anchor($m, 1_500 + 300 * $i, true);
+        }
+        $anchors[] = self::anchor(6_000, 526_000);
+        $anchors[] = self::anchor(9_000, 529_000);
+        $chainage = new TrackChainage([self::line(0, 10_000)], $anchors);
+        [$lon, $lat] = self::at(3_500);
+
+        $this->assertSame(523_500, $chainage->locate($lon, $lat)['pk_m']);
+        $this->assertSame(4, $chainage->anchorCount());
+    }
+
+    public function test_a_track_follows_one_branch_of_a_trace_folding_back(): void
+    {
+        // A hairpin: east 0 to 3 km, back west 120 m further north. A track along the north branch, 60 m from
+        // both: sample by sample the nearest branch alternates, the chain keeps to one.
+        $north = [];
+        for ($m = 3_000; $m >= 0; $m -= 500) {
+            [$lon, $lat] = self::at($m, 120.0);
+            array_push($north, $lon, $lat);
+        }
+        $trace = [...self::line(0, 3_000), ...$north];
+        $chainage = new TrackChainage([$trace], [self::anchor(0, 0), self::anchor(3_000, 3_000), self::anchor(500, 5_620, false, 120.0)]);
+        $points = [];
+        foreach ([1_000, 1_025, 1_050, 1_075, 1_100] as $i => $m) {
+            [$lon, $lat] = self::at($m, $i % 2 === 0 ? 59.0 : 61.0);
+            array_push($points, $lon, $lat);
+        }
+        $nearest = [];
+        for ($i = 0; $i < 5; $i++) {
+            $nearest[] = $chainage->locate($points[2 * $i], $points[2 * $i + 1], 100.0)['pk_m'];
+        }
+        $this->assertGreaterThan(2_000, max($nearest) - min($nearest));
+
+        $pks = array_map(fn (?array $at): ?int => $at['pk_m'] ?? null, $chainage->chain($points, 100.0));
+        $this->assertLessThanOrEqual(150, max($pks) - min($pks));
+    }
 }
