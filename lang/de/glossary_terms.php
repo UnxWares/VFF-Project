@@ -56,6 +56,14 @@ return [
         'name' => 'Schmalspur',
         'definition' => 'Gleis, dessen Spurweite kleiner ist als die Normalspur von 1.435 mm (Meterspur, 600 mm usw.).',
     ],
+    'gabarit' => [
+        'name' => 'Lademaß',
+        'definition' => 'Umriss in Breite und Höhe, den ein Fahrzeug mit seiner Ladung nicht überschreiten darf, um auf einer Strecke zu fahren, ohne Bahnsteige, Tunnel, Brücken oder die Oberleitung zu berühren. Eine Strecke lässt ein oder mehrere Lademaße zu, die mit einem Code bezeichnet werden (GA, GB, GC…): Je größer das Lademaß, desto höher dürfen Wagen und Container sein.',
+    ],
+    'categorie-de-charge' => [
+        'name' => 'Streckenklasse',
+        'definition' => 'Einteilung einer Strecke nach der Last, die Gleis und Brücken tragen, festgelegt in der europäischen Norm EN 15528: Der Buchstabe gibt die Radsatzlast an (A 16 t, B 18 t, C 20 t, D 22,5 t, E 25 t), die Ziffer die Last je Meter Zug (1: 5 t, 2: 6,4 t, 3: 7,2 t, 4: 8 t, 5: 8,8 t). Eine Strecke der Klasse D4 lässt also 22,5 t je Radsatz und 8 t je Meter zu.',
+    ],
     'cremaillere' => [
         'name' => 'Zahnradbahn',
         'definition' => 'Zahnstange zwischen den Fahrschienen, in die ein Zahnrad des Fahrzeugs eingreift. Damit lassen sich Steigungen überwinden, die allein durch Haftreibung nicht zu bewältigen wären.',
@@ -207,6 +215,15 @@ return [
         'full' => 'Contrôle de vitesse par balises (Geschwindigkeitskontrolle durch Balisen)',
         'definition' => 'Französisches punktförmiges Zugbeeinflussungssystem: Balisen im Gleis übermitteln dem Zug die Signalinformationen, und der Zug bremst selbsttätig, wenn er die zulässige Geschwindigkeit überschreitet. Es ist kein Blocksystem und nicht mit der deutschen Linienzugbeeinflussung (LZB) gleichzusetzen.',
     ],
+    'crocodile' => [
+        'name' => 'Krokodil',
+        'definition' => 'Etwa zwei Meter lange Metallschiene zwischen den Schienen kurz vor einem Signal: Eine Bürste unter dem Triebfahrzeug streift darüber und meldet über elektrischen Kontakt in den Führerstand, ob das Signal offen oder geschlossen ist. Es ist die Signalwiederholung der französischen konventionellen Strecken, in den 1920er-Jahren allgemein eingeführt; sie kann den Zug anhalten, wenn der Triebfahrzeugführer auf ein geschlossenes Signal nicht reagiert.',
+    ],
+    'daat' => [
+        'name' => 'DAAT',
+        'full' => 'Dispositif d’arrêt automatique des trains (selbsttätige Zughalteeinrichtung)',
+        'definition' => 'Sicherheitseinrichtung, die einen Zug selbsttätig anhält, wenn er ein geschlossenes Haltsignal (Carré oder Sémaphore) überfährt, über ein am Signal liegendes Krokodil. Sie ist keine Geschwindigkeitsüberwachung: Sie wirkt nur beim Vorbeifahren am Signal.',
+    ],
     'signalisation-en-cabine' => [
         'name' => 'Führerstandssignalisierung',
         'definition' => 'Signalisierung, deren Angaben direkt im Führerstand ankommen, statt an Signalen neben dem Gleis abgelesen zu werden. Bei hoher Geschwindigkeit ist sie unverzichtbar.',
@@ -351,6 +368,11 @@ return [
     'entreprise-ferroviaire' => [
         'name' => 'Eisenbahnverkehrsunternehmen',
         'definition' => 'Unternehmen, das Personen- oder Güterzüge auf dem von einem Infrastrukturbetreiber verwalteten Netz fahren lässt.',
+    ],
+    'rinf' => [
+        'name' => 'RINF',
+        'full' => 'Register der Eisenbahninfrastruktur',
+        'definition' => 'Europäisches Register der Eisenbahnagentur der Europäischen Union (ERA): Jeder Infrastrukturbetreiber trägt dort die Merkmale seiner Strecken und Gleise ein (Elektrifizierung, Geschwindigkeit, Zugbeeinflussung, Lademaß, zulässige Last, Bahnsteige…), damit ein Eisenbahnverkehrsunternehmen prüfen kann, ob ein Zug dort fahren darf. Die Enzyklopädie zeigt es neben den offenen Daten von SNCF Réseau, ohne sie zu ersetzen.',
     ],
     'rfn' => [
         'name' => 'RFN',

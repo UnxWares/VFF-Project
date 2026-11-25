@@ -56,6 +56,14 @@ return [
         'name' => 'Voie étroite',
         'definition' => 'Voie dont l’écartement est inférieur à l’écartement standard de 1 435 mm (métrique, 600 mm…).',
     ],
+    'gabarit' => [
+        'name' => 'Gabarit',
+        'definition' => 'Contour, en largeur et en hauteur, que ne doivent pas dépasser un véhicule et son chargement pour circuler sur une ligne sans toucher les quais, les tunnels, les ponts ni la caténaire. Une ligne admet un ou plusieurs gabarits, désignés par un code (GA, GB, GC…) : plus le gabarit est grand, plus les wagons et les conteneurs peuvent être hauts.',
+    ],
+    'categorie-de-charge' => [
+        'name' => 'Catégorie de charge',
+        'definition' => 'Classement d’une ligne selon la charge que ses voies et ses ponts supportent, défini par la norme européenne EN 15528 : la lettre donne la charge par essieu (A 16 t, B 18 t, C 20 t, D 22,5 t, E 25 t), le chiffre la charge par mètre de train (1 : 5 t, 2 : 6,4 t, 3 : 7,2 t, 4 : 8 t, 5 : 8,8 t). Une ligne de catégorie D4 admet ainsi 22,5 t par essieu et 8 t par mètre.',
+    ],
     'cremaillere' => [
         'name' => 'Crémaillère',
         'definition' => 'Rail denté posé entre les rails de roulement, dans lequel s’engrène une roue dentée du train. Il permet de gravir des pentes que l’adhérence seule ne permettrait pas.',
@@ -207,6 +215,15 @@ return [
         'full' => 'Contrôle de vitesse par balises',
         'definition' => 'Système français de contrôle de vitesse : des balises posées dans la voie transmettent au train les informations des signaux, et le train freine seul s’il dépasse la vitesse permise. Ce n’est pas un mode de cantonnement.',
     ],
+    'crocodile' => [
+        'name' => 'Crocodile',
+        'definition' => 'Patin métallique d’environ deux mètres posé entre les rails juste avant un signal : une brosse fixée sous l’engin moteur y frotte au passage et transmet en cabine, par contact électrique, si le signal est ouvert ou fermé. C’est la répétition des signaux des lignes classiques françaises, généralisée dans les années 1920 ; elle peut arrêter le train si le conducteur ne réagit pas à un signal fermé.',
+    ],
+    'daat' => [
+        'name' => 'DAAT',
+        'full' => 'Dispositif d’arrêt automatique des trains',
+        'definition' => 'Dispositif de sécurité qui arrête de lui-même un train franchissant un signal d’arrêt fermé (carré ou sémaphore), au moyen d’un crocodile placé au signal. Ce n’est pas un contrôle de vitesse : il n’agit qu’au passage du signal.',
+    ],
     'signalisation-en-cabine' => [
         'name' => 'Signalisation en cabine',
         'definition' => 'Signalisation dont les indications arrivent directement dans la cabine de conduite, au lieu d’être lues sur des signaux le long de la voie. Elle est indispensable à grande vitesse.',
@@ -351,6 +368,11 @@ return [
     'entreprise-ferroviaire' => [
         'name' => 'Entreprise ferroviaire',
         'definition' => 'Entreprise qui fait circuler des trains, de voyageurs ou de marchandises, sur le réseau géré par un gestionnaire d’infrastructure.',
+    ],
+    'rinf' => [
+        'name' => 'RINF',
+        'full' => 'Registre de l’infrastructure',
+        'definition' => 'Registre européen tenu par l’Agence de l’Union européenne pour les chemins de fer (ERA) : chaque gestionnaire d’infrastructure y déclare les caractéristiques de ses lignes et de ses voies (électrification, vitesse, contrôle de vitesse, gabarit, charge admise, quais…), pour qu’une entreprise ferroviaire vérifie qu’un train peut y circuler. L’encyclopédie le montre à côté des données ouvertes de SNCF Réseau, sans les remplacer.',
     ],
     'rfn' => [
         'name' => 'RFN',

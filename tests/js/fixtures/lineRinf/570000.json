@@ -1,0 +1,2382 @@
+{
+ "line": {
+  "slug": "rfn-570000",
+  "code": "570000",
+  "name": "Ligne de Paris-Austerlitz à Bordeaux-St-Jean"
+ },
+ "sections": [
+  {
+   "uri": "http://data.europa.eu/949/sectionOfLine/570000-1_FR0000004909_FR0000006583",
+   "national_line": "570000-1",
+   "rg_troncon": 1,
+   "pk_start_m": 0,
+   "pk_end_m": 860,
+   "pk_start_label": "0+000",
+   "pk_end_label": "0+860",
+   "length_m": 860,
+   "from": {
+    "uopid": "FR0000004909",
+    "name": "Paris-Austerlitz"
+   },
+   "to": {
+    "uopid": "FR0000006583",
+    "name": "UPM Ivry- Masséna (Technicentre PRG)"
+   },
+   "tracks": [
+    "8",
+    "MVI de Paris-Austerlitz",
+    "ST",
+    "V1",
+    "V1TER",
+    "V2",
+    "V2BIS",
+    "V2TER"
+   ]
+  },
+  {
+   "uri": "http://data.europa.eu/949/sectionOfLine/570000-1_FR0000002669_FRZZY0000101",
+   "national_line": "570000-1",
+   "rg_troncon": 1,
+   "pk_start_m": 0,
+   "pk_end_m": 1363,
+   "pk_start_label": "0+000",
+   "pk_end_label": "1+363",
+   "length_m": 1363,
+   "from": {
+    "uopid": "FR0000002669",
+    "name": "Paris-Austerlitz Banlieue"
+   },
+   "to": {
+    "uopid": "FRZZY0000101",
+    "name": "Bif 175 V 290 S"
+   },
+   "tracks": [
+    "V1S",
+    "V2S"
+   ]
+  }
+ ],
+ "parameters": [
+  {
+   "key": "electrification",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 579272,
+    "agree_m": 579272,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "1500 volts continu"
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "1500 volts continu"
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 583844,
+     "pk_start_label": "237+600",
+     "pk_end_label": "583+844",
+     "length_m": 346244,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "1500V-DC",
+      "values": [
+       "overhead"
+      ],
+      "voltage_v": 1500,
+      "frequency_hz": 0,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "1500 volts continu"
+     }
+    }
+   ]
+  },
+  {
+   "key": "max_speed",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 579272,
+    "agree_m": 539999,
+    "disagree_m": 39273,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 860,
+     "pk_start_label": "0+000",
+     "pk_end_label": "0+860",
+     "length_m": 860,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "60",
+      "values": [
+       "60",
+       "30"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 60,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "90",
+      "values": [
+       "90"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 90,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 860,
+     "pk_end_m": 1750,
+     "pk_start_label": "0+860",
+     "pk_end_label": "1+750",
+     "length_m": 890,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "90",
+      "values": [
+       "90",
+       "60"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 90,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "90",
+      "values": [
+       "90"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 90,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 1750,
+     "pk_end_m": 28047,
+     "pk_start_label": "1+750",
+     "pk_end_label": "28+047",
+     "length_m": 26297,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "140",
+      "values": [
+       "140",
+       "130",
+       "90"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 140,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "140",
+      "values": [
+       "140",
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 140,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 28047,
+     "pk_end_m": 30930,
+     "pk_start_label": "28+047",
+     "pk_end_label": "30+930",
+     "length_m": 2883,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "130",
+      "values": [
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "130",
+      "values": [
+       "130",
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 30930,
+     "pk_end_m": 31336,
+     "pk_start_label": "30+930",
+     "pk_end_label": "31+336",
+     "length_m": 406,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "100",
+      "values": [
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 100,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "100",
+      "values": [
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 100,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 31336,
+     "pk_end_m": 31508,
+     "pk_start_label": "31+336",
+     "pk_end_label": "31+508",
+     "length_m": 172,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "120",
+      "values": [
+       "120",
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 120,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "120",
+      "values": [
+       "120"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 120,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 31508,
+     "pk_end_m": 32025,
+     "pk_start_label": "31+508",
+     "pk_end_label": "32+025",
+     "length_m": 517,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "100",
+      "values": [
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 100,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "120",
+      "values": [
+       "120",
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 120,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 32025,
+     "pk_end_m": 33800,
+     "pk_start_label": "32+025",
+     "pk_end_label": "33+800",
+     "length_m": 1775,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "100",
+      "values": [
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 100,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "100",
+      "values": [
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 100,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 33800,
+     "pk_end_m": 33900,
+     "pk_start_label": "33+800",
+     "pk_end_label": "33+900",
+     "length_m": 100,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "130",
+      "values": [
+       "130",
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "130",
+      "values": [
+       "130",
+       "100"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 33900,
+     "pk_end_m": 55863,
+     "pk_start_label": "33+900",
+     "pk_end_label": "55+863",
+     "length_m": 21963,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "150",
+      "values": [
+       "150",
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "150",
+      "values": [
+       "150",
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 55863,
+     "pk_end_m": 56500,
+     "pk_start_label": "55+863",
+     "pk_end_label": "56+500",
+     "length_m": 637,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 56500,
+     "pk_end_m": 116210,
+     "pk_start_label": "56+500",
+     "pk_end_label": "116+210",
+     "length_m": 59710,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 116210,
+     "pk_end_m": 118830,
+     "pk_start_label": "116+210",
+     "pk_end_label": "118+830",
+     "length_m": 2620,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160",
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 118830,
+     "pk_end_m": 118881,
+     "pk_start_label": "118+830",
+     "pk_end_label": "118+881",
+     "length_m": 51,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 118881,
+     "pk_end_m": 120355,
+     "pk_start_label": "118+881",
+     "pk_end_label": "120+355",
+     "length_m": 1474,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 179810,
+     "pk_start_label": "122+352",
+     "pk_end_label": "179+810",
+     "length_m": 57458,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 179810,
+     "pk_end_m": 180167,
+     "pk_start_label": "179+810",
+     "pk_end_label": "180+167",
+     "length_m": 357,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 180167,
+     "pk_end_m": 224563,
+     "pk_start_label": "180+167",
+     "pk_end_label": "224+563",
+     "length_m": 44396,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200",
+       "160",
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 224563,
+     "pk_end_m": 233020,
+     "pk_start_label": "224+563",
+     "pk_end_label": "233+020",
+     "length_m": 8457,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 233020,
+     "pk_end_m": 235025,
+     "pk_start_label": "233+020",
+     "pk_end_label": "235+025",
+     "length_m": 2005,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 240489,
+     "pk_start_label": "237+600",
+     "pk_end_label": "240+489",
+     "length_m": 2889,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 240489,
+     "pk_end_m": 308208,
+     "pk_start_label": "240+489",
+     "pk_end_label": "308+208",
+     "length_m": 67719,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220",
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "220",
+      "values": [
+       "220",
+       "200",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 308208,
+     "pk_end_m": 333326,
+     "pk_start_label": "308+208",
+     "pk_end_label": "333+326",
+     "length_m": 25118,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 333326,
+     "pk_end_m": 336560,
+     "pk_start_label": "333+326",
+     "pk_end_label": "336+560",
+     "length_m": 3234,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 336560,
+     "pk_end_m": 340765,
+     "pk_start_label": "336+560",
+     "pk_end_label": "340+765",
+     "length_m": 4205,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "150",
+      "values": [
+       "150"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 150,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 340765,
+     "pk_end_m": 348240,
+     "pk_start_label": "340+765",
+     "pk_end_label": "348+240",
+     "length_m": 7475,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 348240,
+     "pk_end_m": 355980,
+     "pk_start_label": "348+240",
+     "pk_end_label": "355+980",
+     "length_m": 7740,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "190",
+      "values": [
+       "190"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 190,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "190",
+      "values": [
+       "190",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 190,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 355980,
+     "pk_end_m": 401876,
+     "pk_start_label": "355+980",
+     "pk_end_label": "401+876",
+     "length_m": 45896,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "220",
+      "values": [
+       "220",
+       "200",
+       "190"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 401876,
+     "pk_end_m": 402903,
+     "pk_start_label": "401+876",
+     "pk_end_label": "402+903",
+     "length_m": 1027,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 402903,
+     "pk_end_m": 418190,
+     "pk_start_label": "402+903",
+     "pk_end_label": "418+190",
+     "length_m": 15287,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220",
+       "210"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "210",
+      "values": [
+       "210",
+       "200",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 210,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 418190,
+     "pk_end_m": 427564,
+     "pk_start_label": "418+190",
+     "pk_end_label": "427+564",
+     "length_m": 9374,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "210",
+      "values": [
+       "210"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 210,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "210",
+      "values": [
+       "210",
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 210,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 427564,
+     "pk_end_m": 448064,
+     "pk_start_label": "427+564",
+     "pk_end_label": "448+064",
+     "length_m": 20500,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "200",
+      "values": [
+       "200"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "200",
+      "values": [
+       "200",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 200,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 448064,
+     "pk_end_m": 449384,
+     "pk_start_label": "448+064",
+     "pk_end_label": "449+384",
+     "length_m": 1320,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 449384,
+     "pk_end_m": 449759,
+     "pk_start_label": "449+384",
+     "pk_end_label": "449+759",
+     "length_m": 375,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "190",
+      "values": [
+       "190",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 190,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 449759,
+     "pk_end_m": 470695,
+     "pk_start_label": "449+759",
+     "pk_end_label": "470+695",
+     "length_m": 20936,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "190",
+      "values": [
+       "190"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 190,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "190",
+      "values": [
+       "190",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 190,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 470695,
+     "pk_end_m": 471154,
+     "pk_start_label": "470+695",
+     "pk_end_label": "471+154",
+     "length_m": 459,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 471154,
+     "pk_end_m": 539433,
+     "pk_start_label": "471+154",
+     "pk_end_label": "539+433",
+     "length_m": 68279,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "220",
+      "values": [
+       "220",
+       "210",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 539433,
+     "pk_end_m": 546540,
+     "pk_start_label": "539+433",
+     "pk_end_label": "546+540",
+     "length_m": 7107,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "210",
+      "values": [
+       "210"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 210,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "210",
+      "values": [
+       "210",
+       "200",
+       "180"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 210,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 546540,
+     "pk_end_m": 547763,
+     "pk_start_label": "546+540",
+     "pk_end_label": "547+763",
+     "length_m": 1223,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "180",
+      "values": [
+       "180",
+       "160",
+       "120"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 180,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "180",
+      "values": [
+       "180"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 180,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 547763,
+     "pk_end_m": 568420,
+     "pk_start_label": "547+763",
+     "pk_end_label": "568+420",
+     "length_m": 20657,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "220",
+      "values": [
+       "220"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "220",
+      "values": [
+       "220",
+       "200",
+       "180",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 220,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 568420,
+     "pk_end_m": 571091,
+     "pk_start_label": "568+420",
+     "pk_end_label": "571+091",
+     "length_m": 2671,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "180",
+      "values": [
+       "180",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 180,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "180",
+      "values": [
+       "180"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 180,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 571091,
+     "pk_end_m": 571614,
+     "pk_start_label": "571+091",
+     "pk_end_label": "571+614",
+     "length_m": 523,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "180",
+      "values": [
+       "180",
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 180,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 571614,
+     "pk_end_m": 578442,
+     "pk_start_label": "571+614",
+     "pk_end_label": "578+442",
+     "length_m": 6828,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "160",
+      "values": [
+       "160"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 578442,
+     "pk_end_m": 583844,
+     "pk_start_label": "578+442",
+     "pk_end_label": "583+844",
+     "length_m": 5402,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "160",
+      "values": [
+       "160",
+       "120"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 160,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "120",
+      "values": [
+       "120"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 120,
+      "tracks": [],
+      "source_label": null
+     }
+    }
+   ]
+  },
+  {
+   "key": "train_protection",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 579272,
+    "agree_m": 579272,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "KVBP",
+       "Crocodile"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "BAL"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Block automatique lumineux"
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "Crocodile"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "BAL"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Block automatique lumineux"
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 583844,
+     "pk_start_label": "237+600",
+     "pk_end_label": "583+844",
+     "length_m": 346244,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "DAAT",
+       "Crocodile"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "BAL"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Block automatique lumineux"
+     }
+    }
+   ]
+  },
+  {
+   "key": "radio",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 579272,
+    "agree_m": 579272,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "gsm-r",
+      "values": [
+       "Baseline 1"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "gsm-r",
+      "values": [
+       "gsm-r"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "GSMR (Global System for Mobile Raywails)"
+     }
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "gsm-r",
+      "values": [
+       "Baseline 1"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "gsm-r",
+      "values": [
+       "gsm-r"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "GSMR (Global System for Mobile Raywails)"
+     }
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 583844,
+     "pk_start_label": "237+600",
+     "pk_end_label": "583+844",
+     "length_m": 346244,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "gsm-r",
+      "values": [
+       "Baseline 1"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "gsm-r",
+      "values": [
+       "gsm-r"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "GSMR (Global System for Mobile Raywails)"
+     }
+    }
+   ]
+  },
+  {
+   "key": "gauging",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 579272,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "GB1+FR-3.3+GI2",
+      "values": [
+       "GB1",
+       "FR-3.3",
+       "GI2"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "GB1+FR-3.3+GI2",
+      "values": [
+       "GB1",
+       "FR-3.3",
+       "GI2"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 336560,
+     "pk_start_label": "237+600",
+     "pk_end_label": "336+560",
+     "length_m": 98960,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "GB1+FR-3.3+GI2",
+      "values": [
+       "GB1",
+       "FR-3.3",
+       "GI2"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 336560,
+     "pk_end_m": 583844,
+     "pk_start_label": "336+560",
+     "pk_end_label": "583+844",
+     "length_m": 247284,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "GB+FR-3.3+GI2",
+      "values": [
+       "GB",
+       "FR-3.3",
+       "GI2"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  },
+  {
+   "key": "load_capability",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 579272,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "D4",
+      "values": [
+       "5"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "D4",
+      "values": [
+       "5"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 583844,
+     "pk_start_label": "237+600",
+     "pk_end_label": "583+844",
+     "length_m": 346244,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "D4",
+      "values": [
+       "5",
+       "4-"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  },
+  {
+   "key": "track_gauge",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 579272,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 579272,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 0,
+     "pk_end_m": 120355,
+     "pk_start_label": "0+000",
+     "pk_end_label": "120+355",
+     "length_m": 120355,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1435",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V1S",
+       "V2",
+       "V2S"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 2,
+     "pk_start_m": 122352,
+     "pk_end_m": 235025,
+     "pk_start_label": "122+352",
+     "pk_end_label": "235+025",
+     "length_m": 112673,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1435",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    },
+    {
+     "rg_troncon": 3,
+     "pk_start_m": 237600,
+     "pk_end_m": 583844,
+     "pk_start_label": "237+600",
+     "pk_end_label": "583+844",
+     "length_m": 346244,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1435",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  }
+ ],
+ "platforms": {
+  "summary": {
+   "rinf": 298,
+   "vff": 213,
+   "agree": 125,
+   "disagree": 53,
+   "rinf_only": 120,
+   "vff_only": 35,
+   "tolerance_m": 5,
+   "length_unknown": 0
+  },
+  "items": []
+ },
+ "sources": [
+  {
+   "key": "rinf",
+   "label": "RINF (ERA)",
+   "licence": "EUPL 1.2 (ERA Knowledge Graph dump v11.0, 31/10/2026); ERA copyright notice: reproduction authorised, source acknowledged",
+   "dataset": "http://data.europa.eu/949/graph/0087 (https://graph.data.era.europa.eu/repositories/rinf-plus)",
+   "fetched_at": "2026-11-24",
+   "url": "https://graph.data.era.europa.eu/",
+   "attribution": "RINF data © European Union Agency for Railways (ERA Knowledge Graph), modified by VFF",
+   "licence_url": "https://zenodo.org/records/16413403/latest"
+  },
+  {
+   "key": "sncf",
+   "label": "SNCF Réseau",
+   "licence": "ODbL 1.0",
+   "dataset": "liste-des-lignes-electrifiees, vitesse-maximale-nominale-sur-ligne, mode-de-cantonnement-des-lignes, lignes-equipees-de-kvb, lignes-equipees-de-liaison-radio-sol-train, liste-des-quais",
+   "fetched_at": null,
+   "url": "https://ressources.data.sncf.com/",
+   "attribution": "Données SNCF Réseau (SNCF Open Data), sous licence ODbL 1.0 : mention « SNCF Réseau » et partage à l'identique des bases dérivées diffusées.",
+   "licence_url": "https://opendatacommons.org/licenses/odbl/1-0/"
+  }
+ ]
+}

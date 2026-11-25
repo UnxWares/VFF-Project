@@ -56,6 +56,14 @@ return [
         'name' => 'Narrow gauge',
         'definition' => 'Track whose gauge is smaller than the standard 1,435 mm (metre gauge, 600 mm and so on).',
     ],
+    'gabarit' => [
+        'name' => 'Loading gauge',
+        'definition' => 'The outline, in width and height, that a vehicle and its load must not exceed to run on a line without touching platforms, tunnels, bridges or the overhead line. A line accepts one or more gauges, named by a code (GA, GB, GC…): the larger the gauge, the taller the wagons and containers may be.',
+    ],
+    'categorie-de-charge' => [
+        'name' => 'Line load category',
+        'definition' => 'Classification of a line by the load its track and bridges can carry, set by the European standard EN 15528: the letter gives the load per axle (A 16 t, B 18 t, C 20 t, D 22.5 t, E 25 t), the figure the load per metre of train (1: 5 t, 2: 6.4 t, 3: 7.2 t, 4: 8 t, 5: 8.8 t). A category D4 line thus accepts 22.5 t per axle and 8 t per metre.',
+    ],
     'cremaillere' => [
         'name' => 'Rack railway',
         'definition' => 'A toothed rail laid between the running rails, in which a cogwheel of the train meshes. It makes it possible to climb gradients that adhesion alone could not manage.',
@@ -207,6 +215,15 @@ return [
         'full' => 'Contrôle de vitesse par balises (speed control by beacons)',
         'definition' => 'A French speed supervision system: beacons in the track send signal information to the train, which brakes by itself if it exceeds the permitted speed. It is not a block system.',
     ],
+    'crocodile' => [
+        'name' => 'Crocodile',
+        'definition' => 'A metal ramp about two metres long laid between the rails just before a signal: a brush under the traction unit rubs on it and, through electrical contact, tells the cab whether the signal is open or closed. It is the signal repetition of French classic lines, generalised in the 1920s; it can stop the train if the driver does not react to a closed signal.',
+    ],
+    'daat' => [
+        'name' => 'DAAT',
+        'full' => 'Dispositif d’arrêt automatique des trains (automatic train stop device)',
+        'definition' => 'A safety device that stops by itself a train passing a closed stop signal (carré or sémaphore), through a crocodile placed at the signal. It is not speed supervision: it only acts when the signal is passed.',
+    ],
     'signalisation-en-cabine' => [
         'name' => 'In-cab signalling',
         'definition' => 'Signalling whose indications reach the driver’s cab directly instead of being read from signals beside the track. It is essential at high speed.',
@@ -351,6 +368,11 @@ return [
     'entreprise-ferroviaire' => [
         'name' => 'Railway undertaking',
         'definition' => 'A company that runs trains, of passengers or goods, on the network run by an infrastructure manager.',
+    ],
+    'rinf' => [
+        'name' => 'RINF',
+        'full' => 'Register of Infrastructure',
+        'definition' => 'European register kept by the European Union Agency for Railways (ERA): each infrastructure manager declares in it the characteristics of its lines and tracks (electrification, speed, speed supervision, loading gauge, permitted load, platforms…), so that a railway undertaking can check that a train may run on them. The encyclopaedia shows it next to SNCF Réseau’s open data, without replacing them.',
     ],
     'rfn' => [
         'name' => 'RFN',

@@ -1,0 +1,526 @@
+{
+ "line": {
+  "slug": "rfn-611000",
+  "code": "611000",
+  "name": "Ligne de Limoges-Bénédictins à Périgueux"
+ },
+ "sections": [
+  {
+   "uri": "http://data.europa.eu/949/sectionOfLine/611000-1_FR0000000930_FR0000002524",
+   "national_line": "611000-1",
+   "rg_troncon": 1,
+   "pk_start_m": 402752,
+   "pk_end_m": 409376,
+   "pk_start_label": "402+752",
+   "pk_end_label": "409+376",
+   "length_m": 6624,
+   "from": {
+    "uopid": "FR0000000930",
+    "name": "Bif de Périgueux (Limoges)"
+   },
+   "to": {
+    "uopid": "FR0000002524",
+    "name": "L'Aiguille"
+   },
+   "tracks": [
+    "V1",
+    "V2"
+   ]
+  },
+  {
+   "uri": "http://data.europa.eu/949/sectionOfLine/611000-1_FR0000002524_FR0000005561",
+   "national_line": "611000-1",
+   "rg_troncon": 1,
+   "pk_start_m": 409376,
+   "pk_end_m": 420262,
+   "pk_start_label": "409+376",
+   "pk_end_label": "420+262",
+   "length_m": 10886,
+   "from": {
+    "uopid": "FR0000002524",
+    "name": "L'Aiguille"
+   },
+   "to": {
+    "uopid": "FR0000005561",
+    "name": "Faisceau FPS"
+   },
+   "tracks": [
+    "V1",
+    "V2"
+   ]
+  }
+ ],
+ "parameters": [
+  {
+   "key": "electrification",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 96494,
+    "agree_m": 96494,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 499246,
+     "pk_start_label": "402+752",
+     "pk_end_label": "499+246",
+     "length_m": 96494,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "none",
+      "values": [
+       "none"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "none",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": null
+     }
+    }
+   ]
+  },
+  {
+   "key": "max_speed",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 96494,
+    "agree_m": 96494,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 439105,
+     "pk_start_label": "402+752",
+     "pk_end_label": "439+105",
+     "length_m": 36353,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "110",
+      "values": [
+       "110"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 110,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "110",
+      "values": [
+       "110"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 110,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 439105,
+     "pk_end_m": 491159,
+     "pk_start_label": "439+105",
+     "pk_end_label": "491+159",
+     "length_m": 52054,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "140",
+      "values": [
+       "140"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 140,
+      "tracks": [
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "140",
+      "values": [
+       "140",
+       "110"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 140,
+      "tracks": [],
+      "source_label": null
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 491159,
+     "pk_end_m": 499246,
+     "pk_start_label": "491+159",
+     "pk_end_label": "499+246",
+     "length_m": 8087,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "130",
+      "values": [
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "130",
+      "values": [
+       "130"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": 130,
+      "tracks": [],
+      "source_label": null
+     }
+    }
+   ]
+  },
+  {
+   "key": "train_protection",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 96494,
+    "agree_m": 45726,
+    "disagree_m": 50768,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 448478,
+     "pk_start_label": "402+752",
+     "pk_end_label": "448+478",
+     "length_m": 45726,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "DAAT",
+       "Crocodile"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "BAL",
+       "BAPR",
+       "BMVU"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Block automatique lumineux ; Block automatique à permissivité restreinte de double voie ; Block manuel de voie unique de type SNCF"
+     }
+    },
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 448478,
+     "pk_end_m": 499246,
+     "pk_start_label": "448+478",
+     "pk_end_label": "499+246",
+     "length_m": 50768,
+     "status": "disagree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "none",
+      "values": [
+       "DAAT",
+       "Crocodile"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "KVB",
+      "values": [
+       "KVB",
+       "BMVU"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Block manuel de voie unique de type SNCF"
+     }
+    }
+   ]
+  },
+  {
+   "key": "radio",
+   "compared_with": "sncf",
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 96494,
+    "agree_m": 96494,
+    "disagree_m": 0,
+    "rinf_only_m": 0,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 499246,
+     "pk_start_label": "402+752",
+     "pk_end_label": "499+246",
+     "length_m": 96494,
+     "status": "agree",
+     "kvb_only": false,
+     "rinf": {
+      "key": "none",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": {
+      "key": "none",
+      "values": [
+       "rst-data",
+       "gsm-gfu"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [],
+      "source_label": "Avec transmission de données ; Global System for Mobil- Groupe Fermé d'utilisateurs"
+     }
+    }
+   ]
+  },
+  {
+   "key": "gauging",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 96494,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 499246,
+     "pk_start_label": "402+752",
+     "pk_end_label": "499+246",
+     "length_m": 96494,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "GA+G1+GI2",
+      "values": [
+       "GA",
+       "G1",
+       "GI2"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  },
+  {
+   "key": "load_capability",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 96494,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 499246,
+     "pk_start_label": "402+752",
+     "pk_end_label": "499+246",
+     "length_m": 96494,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "D4",
+      "values": [
+       "4-",
+       "4+",
+       "5"
+      ],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  },
+  {
+   "key": "track_gauge",
+   "compared_with": null,
+   "summary": {
+    "rinf_m": 96494,
+    "vff_m": 0,
+    "agree_m": 0,
+    "disagree_m": 0,
+    "rinf_only_m": 96494,
+    "vff_only_m": 0,
+    "kvb_only_m": 0
+   },
+   "portions": [
+    {
+     "rg_troncon": 1,
+     "pk_start_m": 402752,
+     "pk_end_m": 499246,
+     "pk_start_label": "402+752",
+     "pk_end_label": "499+246",
+     "length_m": 96494,
+     "status": "rinf_only",
+     "kvb_only": false,
+     "rinf": {
+      "key": "1435",
+      "values": [],
+      "voltage_v": null,
+      "frequency_hz": null,
+      "speed_kmh": null,
+      "tracks": [
+       "V1",
+       "V2",
+       "VU"
+      ],
+      "source_label": null
+     },
+     "vff": null
+    }
+   ]
+  }
+ ],
+ "platforms": {
+  "summary": {
+   "rinf": 17,
+   "vff": 13,
+   "agree": 7,
+   "disagree": 1,
+   "rinf_only": 9,
+   "vff_only": 5,
+   "tolerance_m": 5,
+   "length_unknown": 0
+  },
+  "items": []
+ },
+ "sources": [
+  {
+   "key": "rinf",
+   "label": "RINF (ERA)",
+   "licence": "EUPL 1.2 (ERA Knowledge Graph dump v11.0, 31/10/2026); ERA copyright notice: reproduction authorised, source acknowledged",
+   "dataset": "http://data.europa.eu/949/graph/0087 (https://graph.data.era.europa.eu/repositories/rinf-plus)",
+   "fetched_at": "2026-11-24",
+   "url": "https://graph.data.era.europa.eu/",
+   "attribution": "RINF data © European Union Agency for Railways (ERA Knowledge Graph), modified by VFF",
+   "licence_url": "https://zenodo.org/records/16413403/latest"
+  },
+  {
+   "key": "sncf",
+   "label": "SNCF Réseau",
+   "licence": "ODbL 1.0",
+   "dataset": "liste-des-lignes-electrifiees, vitesse-maximale-nominale-sur-ligne, mode-de-cantonnement-des-lignes, lignes-equipees-de-kvb, lignes-equipees-de-liaison-radio-sol-train, liste-des-quais",
+   "fetched_at": null,
+   "url": "https://ressources.data.sncf.com/",
+   "attribution": "Données SNCF Réseau (SNCF Open Data), sous licence ODbL 1.0 : mention « SNCF Réseau » et partage à l'identique des bases dérivées diffusées.",
+   "licence_url": "https://opendatacommons.org/licenses/odbl/1-0/"
+  }
+ ]
+}

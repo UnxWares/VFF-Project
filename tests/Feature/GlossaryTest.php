@@ -72,11 +72,13 @@ class GlossaryTest extends TestCase
             'bifurcation', 'bifurcation-lgv', 'gare-de-bifurcation', 'raccordement', 'circuit-de-voie', 'voie-partagee', 'embarcadere',
             'declassement', 'depose', 'desaffectation', 'fermeture-voyageurs', 'fermeture-fret', 'suspension-de-service', 'autorail',
             'element-automoteur', 'rame-a-turbine-a-gaz', 'bimode', 'famille-et-version', 'serie', 'materiel-preserve', 'profil-en-long',
-            'declivite', 'pk', 'voie-unique', 'double-voie', 'electrification-1500', 'electrification-25000', 'halte'];
+            'declivite', 'pk', 'voie-unique', 'double-voie', 'electrification-1500', 'electrification-25000', 'halte',
+            // Section « Registre de l'infrastructure (RINF) » de la fiche ligne (LineRinf.svelte).
+            'rinf', 'gabarit', 'categorie-de-charge', 'crocodile', 'daat', 'gsm-r', 'etcs'];
         foreach ($needed as $slug) {
             $this->assertArrayHasKey($slug, $registry, "{$slug} manque au glossaire");
         }
-        foreach (['tvm-300', 'tvm-430', 'ertms-niveau-1', 'ertms-niveau-2', 'bifurcation-lgv', 'embarcadere', 'materiel-preserve'] as $slug) {
+        foreach (['tvm-300', 'tvm-430', 'ertms-niveau-1', 'ertms-niveau-2', 'bifurcation-lgv', 'embarcadere', 'materiel-preserve', 'rinf'] as $slug) {
             $this->assertArrayHasKey('example', $registry[$slug], "{$slug} : exemple");
         }
     }
