@@ -20,8 +20,9 @@ use Illuminate\Support\Facades\Schema;
  * - Switches: tagged ones (type from `railway:switch`) and untagged nodes where three track ends or more meet
  *   (type null): the track the switch stands on (toe side) and the track it leads to when it belongs to this line,
  *   the facing direction (up: trains running towards increasing PKs meet the switch points first).
- * - Signals (category `kind`, form `form`, number, track, direction), level crossings (road or pedestrian),
- *   diamond crossings (`railway_crossing`), buffer stops (track) and milestones (`label` as written on the post).
+ * - Signals (category `kind`, `unknown` when OpenStreetMap does not say it, form `form`, number, track,
+ *   direction), level crossings (road or pedestrian), diamond crossings (`railway_crossing`), buffer stops (track)
+ *   and milestones (`label` as written on the post).
  *   PK `exact` when the node carries the PK of this line in OSM (`railway:position:exact`, a milestone whose
  *   number agrees with the chainage).
  * - Coverage: `tracks` and `switches` over the PK ranges of the running tracks (gaps under COVER_GAP_M bridged):
@@ -43,6 +44,12 @@ final class OsmTrackLayoutSource implements TrackLayoutSource
 
     /** Gaps between running tracks bridged by the coverage (switch zones, unmapped short ways). */
     public const COVER_GAP_M = 200;
+
+    /**
+     * Category of a signal that OpenStreetMap maps without any `railway:signal:<category>` tag (5,332 of the 17,818
+     * signals of the import of 24/11/2026): the contract and GraphQL `TrackLayoutSignal.kind` are never null.
+     */
+    public const UNKNOWN_SIGNAL_KIND = 'unknown';
 
     public function key(): string
     {
@@ -112,7 +119,7 @@ final class OsmTrackLayoutSource implements TrackLayoutSource
                     $switchWays[(int) $n->osm_node_id] = array_values(array_filter([$way, $toWay]));
                     break;
                 case 'signal':
-                    $signals[] = ['id' => $id, 'ref' => $n->ref, 'pk_m' => $pk, 'kind' => $n->subtype, 'form' => $n->detail,
+                    $signals[] = ['id' => $id, 'ref' => $n->ref, 'pk_m' => $pk, 'kind' => $n->subtype ?? self::UNKNOWN_SIGNAL_KIND, 'form' => $n->detail,
                         'track' => $track($way, $pk), 'direction' => $n->direction, 'source' => 'osm', 'precision' => $precision];
                     break;
                 case 'buffer_stop':

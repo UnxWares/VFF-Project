@@ -22,7 +22,8 @@ class LineTrackLayoutController extends Controller
      *
      * Toutes les voies de la ligne aujourd'hui, à la manière d'un « routebook » : voies principales numérotées
      * (voie 1, voie 2, voie unique), voies de gare, d'évitement et de service, liaisons, aiguillages, traversées,
-     * signaux, heurtoirs (`buffer_stops`), bornes kilométriques (`milestones`, inscription dans `label`) et points
+     * signaux (`kind` : catégorie d'OpenStreetMap, `main`, `distant`…, `unknown` quand elle n'est pas dite),
+     * heurtoirs (`buffer_stops`), bornes kilométriques (`milestones`, inscription dans `label`) et points
      * d'exploitation, dans l'ordre des points kilométriques (PK), avec une bande des vitesses et des déclivités.
      * Réseau d'aujourd'hui seulement (ère courante) : aucune voie n'est inventée pour le passé.
      *

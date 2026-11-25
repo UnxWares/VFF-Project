@@ -29,7 +29,7 @@ TXT)]
 class RoutebookTool extends VffTool
 {
     /** Listes d'objets que l'on peut demander (`kinds`). */
-    public const KINDS = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'strip'];
+    public const KINDS = ['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones', 'strip'];
 
     /** Listes renvoyées par défaut : les plus utiles à la lecture d'un parcours. */
     public const DEFAULT_KINDS = ['operational_points', 'switches', 'strip'];
@@ -44,7 +44,7 @@ class RoutebookTool extends VffTool
         return [
             'from' => ['required', 'string', 'min:1', 'max:200'],
             'to' => ['required', 'string', 'min:1', 'max:200'],
-            'kinds' => ['sometimes', 'array', 'max:6'],
+            'kinds' => ['sometimes', 'array', 'max:'.count(self::KINDS)],
             'kinds.*' => ['string', 'in:'.implode(',', self::KINDS)],
         ];
     }
@@ -57,7 +57,7 @@ class RoutebookTool extends VffTool
             'to' => $schema->string()->min(1)->max(200)->required()
                 ->description('Gare d\'arrivée, mêmes formes que from (ex. "st-malo").'),
             'kinds' => $schema->array()->items($schema->string()->enum(self::KINDS))
-                ->description('Objets à joindre : operational_points, tracks, switches, signals, crossings, strip (vitesses et déclivités). Par défaut : operational_points, switches, strip.'),
+                ->description('Objets à joindre : operational_points, tracks, switches, signals, crossings, buffer_stops (heurtoirs), milestones (bornes kilométriques), strip (vitesses et déclivités). Par défaut : operational_points, switches, strip.'),
         ];
     }
 
@@ -93,8 +93,15 @@ class RoutebookTool extends VffTool
             $payload[$kind] = $book[$kind];
             $lists = [...$lists, ...($kind === 'strip' ? ['strip.speeds', 'strip.gradients'] : [$kind])];
         }
+        // Fournisseurs du registre des droits derrière chaque source, comme line_track_layout : la source `vff` sert les
+        // vitesses et passages à niveau de SNCF Réseau (ODbL) et les déclivités du profil en long de l'IGN (Licence
+        // Ouverte 2.0), à créditer tous deux.
         $known = $this->attribution->providerKeys();
-        $providers = array_values(array_filter(array_column($book['sources'], 'key'), fn (string $k): bool => in_array($k, $known, true)));
+        $providers = [];
+        foreach (array_column($book['sources'], 'key') as $key) {
+            $providers = [...$providers, ...(LineTrackLayoutTool::PROVIDERS[$key] ?? [$key])];
+        }
+        $providers = array_values(array_unique(array_filter($providers, fn (string $k): bool => in_array($k, $known, true))));
 
         return $this->respond($payload, $providers, $lang,
             self::url('/routebook?'.http_build_query(['from' => $book['from']['slug'], 'to' => $book['to']['slug']])),

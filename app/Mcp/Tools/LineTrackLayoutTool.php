@@ -27,8 +27,8 @@ TXT)]
 #[IsOpenWorld(false)]
 class LineTrackLayoutTool extends VffTool
 {
-    /** Fournisseurs du registre des droits derrière chaque clé de source du schéma. */
-    private const PROVIDERS = ['rinf' => ['rinf'], 'osm' => ['osm'], 'vff' => ['sncf', 'ign']];
+    /** Fournisseurs du registre des droits derrière chaque clé de source du schéma (repris par l'outil routebook). */
+    public const PROVIDERS = ['rinf' => ['rinf'], 'osm' => ['osm'], 'vff' => ['sncf', 'ign']];
 
     protected function rules(): array
     {

@@ -9,6 +9,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook`, MCP `routebook`) : `buffer_stops` (heurtoirs, avec
+  la voie qu'ils ferment) et `milestones` (bornes kilométriques, avec leur inscription), comme le schéma des voies, placés
+  au kilomètre parcouru (`route_km`) ; GraphQL `Routebook.buffer_stops` et `Routebook.milestones`, MCP `kinds` :
+  `buffer_stops`, `milestones` (pas servis par défaut). `objects` les compte toujours à part (inchangé).
 - Paramètres RINF d'une ligne, comparés (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `Line.rinf_parameters`,
   MCP `line_rinf_parameters`) : ce que le RINF déclare pour chaque voie de chaque section, par PK, côte à côte avec l'autre
   source de VFF (SNCF Réseau) et l'accord ou le désaccord des deux, sans rien remplacer. `parameters[]` : `electrification`
@@ -36,6 +40,19 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   naturel (`V1`, `V2`, `V1S`), et non plus dans l'ordre de lecture de la base.
 
 ### Corrections
+
+- Schéma des voies : un signal d'OpenStreetMap cartographié sans catégorie (`railway:signal:<catégorie>` absent, 5 332 des
+  17 818 signaux importés le 24/11/2026, sur 247 lignes) a pour `kind` `unknown` au lieu de `null` : la spécification REST
+  le déclarait non nul et GraphQL `TrackLayoutSignal.kind` (non nul) faisait échouer tout le champ `Line.track_layout` qui
+  le sélectionnait sur ces lignes (Paris - Marseille, Paris - Lille, Paris - Bordeaux…).
+- Schéma des voies : la source `vff` donne sa mention à reproduire (`sources[].attribution`, nulle jusqu'ici) : données de
+  SNCF Réseau (ODbL : vitesses, passages à niveau, PK des gares) et altitudes de l'IGN (Licence Ouverte 2.0) du profil en long.
+- Livret de parcours : toutes les références sont préfixées du rang de la portion comme les objets qu'elles citent
+  (`tracks[].op_id`, `crossings[].tracks`, `buffer_stops[].track`) ; la voie d'une gare de changement de ligne cite le point
+  d'exploitation gardé (celui de la portion précédente). Jusqu'ici, `op_id` et les voies d'une traversée gardaient
+  l'identifiant de leur ligne et ne désignaient aucun objet du livret (842 et 96 sur Lille-Flandres - Marseille-St-Charles).
+- MCP `routebook` : le bloc d'attribution crédite SNCF Réseau et l'IGN quand la source `vff` sert des vitesses, des passages
+  à niveau ou des déclivités, comme `line_track_layout`.
 
 - Schéma des voies : une voie d'OpenStreetMap dont l'étendue en PK dépasse deux fois sa longueur plus 2 km (calage du PK
   rompu : 496 voies de 40 lignes à l'import du 24/11/2026, dont une voie de 602 m placée du PK 1+516 au PK 523+044 de

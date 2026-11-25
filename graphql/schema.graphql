@@ -4429,7 +4429,7 @@ type TrackLayoutSignal {
     ref: String
     "PK en mètres."
     pk_m: Int!
-    "Sorte."
+    "Catégorie (OpenStreetMap : `main`, `distant`, `speed_limit`…), `unknown` quand la source ne la dit pas."
     kind: String!
     "Forme du signal (OpenStreetMap : `light`, `semaphore`…)."
     form: String
@@ -5562,6 +5562,12 @@ type Routebook {
 
     "Passages à niveau et traversées de voies."
     crossings: JSON!
+
+    "Heurtoirs (bouts de voie), avec la voie qu'ils ferment (`track`)."
+    buffer_stops: JSON!
+
+    "Bornes kilométriques (poteaux), avec leur inscription (`label`)."
+    milestones: JSON!
 
     "Bande du schéma : vitesses (`speeds`) et déclivités dans le sens de marche (`gradients`)."
     strip: JSON!

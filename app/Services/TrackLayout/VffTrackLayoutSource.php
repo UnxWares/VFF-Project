@@ -28,6 +28,13 @@ final class VffTrackLayoutSource implements TrackLayoutSource
     /** Longueur (m) des fenêtres de calcul des déclivités sur le profil en long. */
     public const GRADE_WINDOW_M = 1000;
 
+    /**
+     * Mention à reproduire (`sources[].attribution`, comme celles du RINF et d'OpenStreetMap) : les vitesses, les passages
+     * à niveau et les PK des gares viennent de SNCF Réseau (ODbL), les altitudes du profil en long de l'IGN (Licence
+     * Ouverte 2.0), deux licences qui demandent de citer la source.
+     */
+    public const ATTRIBUTION = 'Voies Ferrées de France (vff-project.org), d\'après SNCF Réseau (SNCF Open Data, ODbL 1.0) et IGN (Licence Ouverte 2.0)';
+
     public function __construct(
         private readonly LineStations $stations,
         private readonly LineSpeeds $speeds,
@@ -77,7 +84,7 @@ final class VffTrackLayoutSource implements TrackLayoutSource
         return $part->isEmpty() ? $part : new TrackLayoutPart(
             source: ['key' => 'vff', 'label' => 'VFF', 'licence' => 'ODbL 1.0 (SNCF Réseau : vitesses, passages à niveau, PK des gares) ; Licence Ouverte 2.0 (IGN : altitudes du profil en long)',
                 'dataset' => 'Gares de la ligne, vitesses maximales (ère courante), profil en long, passages à niveau', 'fetched_at' => null,
-                'url' => url('/lines/'.$line->slug)],
+                'url' => url('/lines/'.$line->slug), 'attribution' => self::ATTRIBUTION],
             operationalPoints: $points, speeds: $speeds, gradients: $gradients, crossings: $crossings,
         );
     }

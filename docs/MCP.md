@@ -436,7 +436,7 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 |---|---|---|---|
 | `from` | chaîne, 1 à 200 caractères | oui | Gare de départ : slug (de préférence), nom exact ou nom de ville. |
 | `to` | chaîne, 1 à 200 caractères | oui | Gare d'arrivée, mêmes formes. |
-| `kinds` | liste parmi `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `strip` | non | Objets à joindre (par défaut `operational_points`, `switches`, `strip`). |
+| `kinds` | liste parmi `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `strip` | non | Objets à joindre (par défaut `operational_points`, `switches`, `strip`). |
 | `lang` | `fr`, `en`, `de` | non | Langue. |
 
 Le plus court chemin sur le réseau d'aujourd'hui (comme `historical_route` sans année), puis, ligne
@@ -450,10 +450,13 @@ croissants ou `down`, `pk_precision` : `exact`, `derived` ou `approximate`, `rou
 et VFF, `missing` : portions sans données en km parcourus, `what` = une famille absente ou `all`),
 `sources`, puis les objets demandés, triés par kilomètre parcouru (`route_km`, ou `route_from_km` et
 `route_to_km`), avec `line_code`, `line_slug`, le PK de leur ligne et leur provenance (`source`,
-`precision`). Un signal porte `travel` (`same` ou `opposite` au sens de marche), un aiguillage
-`travel_facing` (pris en pointe) ; les déclivités `permille` sont dans le sens de marche
+`precision`) ; identifiants préfixés du rang de la portion, références comprises (`from_track`,
+`to_track`, `track`, `tracks` d'une traversée, `op_id` d'une voie). Un signal porte `travel` (`same`
+ou `opposite` au sens de marche), un aiguillage `travel_facing` (pris en pointe) ; les déclivités `permille` sont dans le sens de marche
 (`line_permille` dans le sens des PK). Listes raccourcies par la fin si la réponse est trop longue
-(`truncated`). `vff_url` ouvre la page du livret. Même calcul que `GET /api/v1/routebook`.
+(`truncated`). `vff_url` ouvre la page du livret. Même calcul que `GET /api/v1/routebook`. Le bloc
+d'attribution crédite les fournisseurs de chaque source (`vff` : SNCF Réseau et IGN), comme
+`line_track_layout`.
 
 Erreurs : `graph_not_built`, `station_not_found`, `ambiguous_station` (avec `candidates`),
 `same_station`, `station_not_in_network`, `no_path`.
@@ -1021,7 +1024,8 @@ RINF.
 Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de lecture, `attribution`), `operational_points[]`
 (`uopid`, `station_slug`, `kind`), `tracks[]` (`ref` courte : `V1`, `V2`, `VU` pour la voie unique ; `kind` : `running`,
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
-voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`form`), `crossings[]` (`use` : `road` ou
+voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
+elle n'est pas dite ; `form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
 inscription), `strip.speeds[]` (`tracks` : voies auxquelles la vitesse s'applique), `strip.gradients[]` (‰
 dans le sens des PK croissants, `tracks` : voies auxquelles la déclivité s'applique), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), `counts` (nombre d'objets de chaque

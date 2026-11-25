@@ -11,13 +11,16 @@ namespace App\Services\Routebook;
  *   - `leg` (rang du morceau), `line_code` et `line_slug` (sa ligne) ;
  *   - `route_km` (point) ou `route_from_km` / `route_to_km` (étendue, dans l'ordre de marche) : kilomètres parcourus
  *     depuis le départ, au centre du point d'exploitation de départ (RouteLegs::routeMetres) ;
- *   - un identifiant préfixé du rang du morceau (`2:sw-14`), unique sur tout le parcours, références comprises.
+ *   - un identifiant préfixé du rang du morceau (`2:sw-14`), unique sur tout le parcours, références comprises (voies
+ *     d'un aiguillage, d'un signal, d'un heurtoir ou d'une traversée, point d'exploitation `op_id` d'une voie : celui de
+ *     la portion précédente pour la gare de changement de ligne, listée une fois).
  * Voies : `route_lane` est la rangée dans le sens de marche (la rangée `lane` du contrat, retournée sur un morceau
  * parcouru à PK décroissants, pour garder en haut la gauche du sens de marche).
  * Sens de marche : `travel` = `same` quand un signal vaut pour le sens de marche, `opposite` sinon ; un aiguillage
  * est `travel_facing` quand il est pris en pointe. Les déclivités sont données dans le sens de marche (`permille`,
  * positive en rampe) avec la valeur de la ligne (`line_permille`, sens des PK croissants).
- * Les listes sont triées par kilomètre parcouru. Un objet hors de la portion parcourue est écarté ; une étendue est
+ * Les listes sont triées par kilomètre parcouru. Un objet hors de la portion parcourue est écarté (sauf le point
+ * d'exploitation de la gare d'un bout, placé au bout : endStationPoints) ; une étendue est
  * coupée à ses bornes. Couverture : mètres décrits par chaque source (`rinf_m`, `osm_m`, `vff_m`, voies) et portions
  * manquantes (`missing`) en kilomètres parcourus : `what` = une famille d'objets absente (`tracks`, `switches`…), ou
  * `all` quand la portion n'est décrite par aucune source (aucun objet, ou PK inconnus).
@@ -25,21 +28,23 @@ namespace App\Services\Routebook;
 final class RoutebookAssembler
 {
     /** Kinds d'objets ponctuels du contrat. */
-    private const POINT_LISTS = ['operational_points', 'switches', 'signals', 'crossings'];
+    private const POINT_LISTS = ['operational_points', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'];
 
     /**
      * @param  list<array{index: int, line: array{code: ?string, slug: string, name: string}, direction: ?string,
-     *     pk_from_m: ?int, pk_to_m: ?int, route_from_m: int, route_to_m: int}>  $legs
+     *     pk_from_m: ?int, pk_to_m: ?int, route_from_m: int, route_to_m: int,
+     *     from?: array{kind: string, slug: ?string, name: ?string}, to?: array{kind: string, slug: ?string, name: ?string}}>  $legs
      * @param  array<int, array<string, mixed>|null>  $layouts  rang du morceau => portion (null : PK inconnus, pas de schéma)
      * @return array{sources: list<array<string, mixed>>, operational_points: list<array<string, mixed>>, tracks: list<array<string, mixed>>,
      *     switches: list<array<string, mixed>>, signals: list<array<string, mixed>>, crossings: list<array<string, mixed>>,
+     *     buffer_stops: list<array<string, mixed>>, milestones: list<array<string, mixed>>,
      *     strip: array{speeds: list<array<string, mixed>>, gradients: list<array<string, mixed>>},
      *     coverage: array{total_m: int, rinf_m: int, osm_m: int, vff_m: int, missing: list<array<string, mixed>>}}
      */
     public static function assemble(array $legs, array $layouts): array
     {
         $out = ['sources' => [], 'operational_points' => [], 'tracks' => [], 'switches' => [], 'signals' => [],
-            'crossings' => [], 'strip' => ['speeds' => [], 'gradients' => []]];
+            'crossings' => [], 'buffer_stops' => [], 'milestones' => [], 'strip' => ['speeds' => [], 'gradients' => []]];
         $coverage = ['total_m' => 0, 'rinf_m' => 0, 'osm_m' => 0, 'vff_m' => 0, 'missing' => []];
         $sources = [];
 
@@ -61,19 +66,27 @@ final class RoutebookAssembler
             $route = fn (int $pk): int => RouteLegs::routeMetres($pk, $pkFrom, $pkTo, $leg['route_from_m'], $leg['route_to_m']);
             $tag = fn (array $o): array => ['leg' => $leg['index'], 'line_code' => $leg['line']['code'], 'line_slug' => $leg['line']['slug']] + $o;
             $id = fn (?string $ref): ?string => $ref === null ? null : $leg['index'].':'.$ref;
+            $ends = self::endStationPoints($leg, $layout['operational_points'] ?? []);
 
             foreach (self::POINT_LISTS as $list) {
                 foreach ($layout[$list] ?? [] as $o) {
-                    if (! RouteLegs::covers((int) $o['pk_m'], $pkFrom, $pkTo)) {
+                    $end = $list === 'operational_points' ? ($ends[(string) $o['id']] ?? null) : null;
+                    if ($end === null && ! RouteLegs::covers((int) $o['pk_m'], $pkFrom, $pkTo)) {
                         continue;
                     }
                     $o['id'] = $id((string) $o['id']);
-                    $o['route_km'] = self::km($route((int) $o['pk_m']));
+                    $o['route_km'] = self::km($end ?? $route((int) $o['pk_m']));
                     if ($list === 'switches') {
                         $o['from_track'] = $id($o['from_track'] ?? null);
                         $o['to_track'] = $id($o['to_track'] ?? null);
                         $o['travel_facing'] = in_array($o['facing'] ?? null, ['up', 'down'], true) && $leg['direction'] !== null
                             ? $o['facing'] === $leg['direction'] : null;
+                    }
+                    if ($list === 'buffer_stops') {
+                        $o['track'] = $id($o['track'] ?? null);
+                    }
+                    if ($list === 'crossings' && is_array($o['tracks'] ?? null)) {
+                        $o['tracks'] = array_values(array_filter(array_map(fn (mixed $t): ?string => is_string($t) ? $id($t) : null, $o['tracks'])));
                     }
                     if ($list === 'signals') {
                         $o['track'] = $id($o['track'] ?? null);
@@ -92,6 +105,7 @@ final class RoutebookAssembler
                     continue;
                 }
                 $t['id'] = $id((string) $t['id']);
+                $t['op_id'] = $id($t['op_id'] ?? null);
                 [$t['pk_from_m'], $t['pk_to_m']] = $range;
                 $t['length_m'] = $range[1] - $range[0];
                 $t['route_lane'] = $leg['direction'] === 'down' ? $mirror - (int) ($t['lane'] ?? 0) : (int) ($t['lane'] ?? 0);
@@ -138,7 +152,14 @@ final class RoutebookAssembler
         foreach (self::POINT_LISTS as $list) {
             usort($out[$list], $byRoute);
         }
-        $out['operational_points'] = self::dedupeOperationalPoints($out['operational_points']);
+        [$out['operational_points'], $sameOp] = self::dedupeOperationalPoints($out['operational_points']);
+        // Les voies de la gare de changement de ligne citent le point gardé (celui de la portion précédente).
+        foreach ($out['tracks'] as &$t) {
+            if (isset($t['op_id'], $sameOp[$t['op_id']])) {
+                $t['op_id'] = $sameOp[$t['op_id']];
+            }
+        }
+        unset($t);
         usort($out['tracks'], $byRange);
         usort($out['strip']['speeds'], $byRange);
         usort($out['strip']['gradients'], $byRange);
@@ -173,27 +194,60 @@ final class RoutebookAssembler
     }
 
     /**
+     * Gares des bouts d'une portion dont le point d'exploitation est hors de la portion parcourue : le départ et l'arrivée
+     * sont au PK de rattachement de la gare à sa ligne (`station_lines`), que le point d'exploitation de la source ne
+     * suit pas toujours (Lille-Flandres : gare au PK 0+654 de 289000, point du RINF au PK 0+021 ; Marseille-St-Charles,
+     * Paris-Montparnasse, 25/11/2026). Le point de la gare (même `station_slug`, le plus proche du bout) est alors gardé
+     * au kilomètre parcouru du bout, pour que le livret nomme toujours ses gares ; rien n'est ajouté quand un point de
+     * la gare est dans la portion.
+     *
+     * @param  array<string, mixed>  $leg
+     * @param  list<array<string, mixed>>  $points
+     * @return array<string, int> identifiant du point => mètres parcourus du bout
+     */
+    private static function endStationPoints(array $leg, array $points): array
+    {
+        $out = [];
+        foreach (['from' => [$leg['pk_from_m'], $leg['route_from_m']], 'to' => [$leg['pk_to_m'], $leg['route_to_m']]] as $side => [$pk, $routeM]) {
+            $slug = ($leg[$side]['kind'] ?? null) === 'station' ? ($leg[$side]['slug'] ?? null) : null;
+            if ($slug === null) {
+                continue;
+            }
+            $same = array_values(array_filter($points, fn (array $o): bool => ($o['station_slug'] ?? null) === $slug));
+            if ($same === [] || array_filter($same, fn (array $o): bool => RouteLegs::covers((int) $o['pk_m'], (int) $leg['pk_from_m'], (int) $leg['pk_to_m'])) !== []) {
+                continue;
+            }
+            usort($same, fn (array $a, array $b): int => abs((int) $a['pk_m'] - (int) $pk) <=> abs((int) $b['pk_m'] - (int) $pk));
+            $out[(string) $same[0]['id']] = (int) $routeM;
+        }
+
+        return $out;
+    }
+
+    /**
      * Une gare de changement de ligne figure dans les deux portions (fin de l'une, début de l'autre) : elle n'est
      * gardée qu'une fois, avec les lignes des deux côtés (`lines`).
      *
      * @param  list<array<string, mixed>>  $points  triés par kilomètre parcouru
-     * @return list<array<string, mixed>>
+     * @return array{0: list<array<string, mixed>>, 1: array<string, string>} points gardés, identifiant écarté => identifiant gardé
      */
     private static function dedupeOperationalPoints(array $points): array
     {
         $out = [];
+        $same = [];
         foreach ($points as $p) {
             $last = count($out) - 1;
             if ($last >= 0 && ($p['station_slug'] ?? null) !== null && ($out[$last]['station_slug'] ?? null) === $p['station_slug']
                 && $out[$last]['leg'] !== $p['leg'] && abs($out[$last]['route_km'] - $p['route_km']) <= 1.0) {
                 $out[$last]['lines'] = array_values(array_unique([...($out[$last]['lines'] ?? [$out[$last]['line_slug']]), $p['line_slug']]));
+                $same[(string) $p['id']] = (string) $out[$last]['id'];
 
                 continue;
             }
             $out[] = $p;
         }
 
-        return $out;
+        return [$out, $same];
     }
 
     /**

@@ -231,6 +231,88 @@ class RoutebookApiTest extends TestCase
         $this->assertStringEndsWith('/routebook?from=a&to=d', $data['vff_url']);
     }
 
+    /**
+     * Every reference of the routebook names an object of the routebook (review of 25/11/2026: on Lille-Flandres -
+     * Marseille-St-Charles, 842 `op_id` of tracks and 96 `tracks` of crossings kept the identifiers of their line while
+     * the objects they cite were prefixed by their leg), and the buffer stops and milestones of the track layout reach
+     * the routebook, which the page already draws.
+     */
+    public function test_every_reference_names_an_object_of_the_routebook_with_buffer_stops_and_milestones(): void
+    {
+        $this->app->instance(TrackLayout::class, new TrackLayout([new ReferencesSource('rinf'), new FakeSource('osm')]));
+
+        $book = $this->getJson('/api/v1/routebook?from=d&to=a')->assertOk()->json();
+
+        $tracks = array_column($book['tracks'], 'id');
+        $points = array_column($book['operational_points'], 'id');
+        // Station b ends leg 0 and starts leg 1: listed once, as the point of leg 0, which its tracks of leg 1 cite.
+        $this->assertSame(['0:op-b', '1:op-a'], array_values(array_filter($points, fn (string $id): bool => in_array($id, ['0:op-b', '1:op-b', '1:op-a'], true))));
+        $this->assertSame('0:op-b', collect((array) $book['tracks'])->firstWhere('id', '1:t-2')['op_id']);
+        foreach ($book['tracks'] as $t) {
+            $this->assertTrue($t['op_id'] === null || in_array($t['op_id'], $points, true), (string) $t['op_id']);
+        }
+        $diamond = collect((array) $book['crossings'])->firstWhere('id', '1:x-1');
+        $this->assertSame(['1:t-1', '1:t-2'], $diamond['tracks']);
+        $this->assertSame([['1:bs-1', '1:t-2', 6800]], array_map(fn (array $b): array => [$b['id'], $b['track'], $b['pk_m']], $book['buffer_stops']));
+        $this->assertSame([['1:km-5', '5', 5000]], array_map(fn (array $m): array => [$m['id'], $m['label'], $m['pk_m']], $book['milestones']));
+        foreach ([...$book['buffer_stops'], ...$book['milestones']] as $o) {
+            $this->assertSame([1, 'rfn-100000'], [$o['leg'], $o['line_slug']]);
+            $this->assertArrayHasKey('route_km', $o);
+        }
+        foreach ([...array_column($book['buffer_stops'], 'track'), ...$diamond['tracks']] as $id) {
+            $this->assertContains($id, $tracks);
+        }
+        // The other objects of the routebook keep their count (`objects`).
+        $this->assertSame(count($book['operational_points']) + count($book['tracks']) + count($book['switches'])
+            + count($book['signals']) + count($book['crossings']), $book['objects']);
+
+        $this->graphQL('{ routebook(from: "d", to: "a") { buffer_stops milestones } }')
+            ->assertJsonPath('data.routebook.buffer_stops.0.track', '1:t-2')
+            ->assertJsonPath('data.routebook.milestones.0.label', '5');
+    }
+
+    /**
+     * The departure and the arrival are always named: the point of the station is kept at the end of its leg when the
+     * source places it beyond the PK of the station on its line (Lille-Flandres on 289000: station PK 0+654, RINF point
+     * PK 0+021, missing from the routebook to Marseille-St-Charles on 25/11/2026); another point beyond the leg stays out.
+     */
+    public function test_the_point_of_an_end_station_placed_beyond_the_leg_is_kept_at_the_end(): void
+    {
+        $this->app->instance(TrackLayout::class, new TrackLayout([new ReferencesSource('rinf', -300), new FakeSource('osm')]));
+
+        $book = $this->getJson('/api/v1/routebook?from=d&to=a')->assertOk()->json();
+
+        $a = collect((array) $book['operational_points'])->firstWhere('station_slug', 'a');
+        $this->assertSame(['1:op-a', -300, round($book['distance_m'] / 1000, 3)], [$a['id'], $a['pk_m'], $a['route_km']]);
+        $this->assertSame('1:op-a', $book['operational_points'][count($book['operational_points']) - 1]['id']);
+        $this->assertNotContains('1:op-j', array_column($book['operational_points'], 'id'));
+    }
+
+    /**
+     * The `vff` source of the track layout serves SNCF Réseau speeds and level crossings (ODbL) and gradients computed on
+     * IGN altitudes (Licence Ouverte 2.0): the MCP routebook credits both, as line_track_layout does (on Ajaccio - Bastia,
+     * 25/11/2026, its gradients came with no IGN mention).
+     */
+    public function test_the_mcp_routebook_credits_the_providers_behind_the_vff_source(): void
+    {
+        $this->app->instance(TrackLayout::class, new TrackLayout([new ReferencesSource('rinf'), new ReferencesSource('vff')]));
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call',
+                'params' => ['name' => 'routebook', 'arguments' => ['from' => 'd', 'to' => 'a', 'kinds' => ['strip', 'buffer_stops', 'milestones']]]])
+            ->assertOk()->json('result');
+        $this->assertFalse($result['isError']);
+        $data = json_decode($result['content'][0]['text'], true);
+
+        $this->assertContains('vff', array_column($data['strip']['gradients'], 'source'));
+        $providers = array_column((array) $data['attribution']['sources'], 'provider');
+        $this->assertContains('ign', $providers);
+        $this->assertContains('sncf', $providers);
+        $this->assertContains('rinf', $providers);
+        $this->assertSame(['1:bs-1'], array_column($data['buffer_stops'], 'id'));
+        $this->assertSame(['1:km-5'], array_column($data['milestones'], 'id'));
+    }
+
     public function test_page_shows_the_routebook_and_the_form_alone_without_stations(): void
     {
         $this->get('/routebook?from=a&to=d')->assertOk()->assertInertia(fn ($page) => $page
@@ -295,6 +377,52 @@ final class FakeSource implements TrackLayoutSource
                 switches: [['id' => 'sw-2', 'ref' => null, 'pk_m' => 60000, 'kind' => 'simple', 'from_track' => null, 'to_track' => null, 'facing' => null, 'source' => 'osm', 'precision' => 'derived']],
                 crossings: [['id' => 'pn-1', 'pk_m' => 65000, 'kind' => 'level_crossing', 'ref' => 'PN 12', 'source' => 'osm']],
                 covered: ['tracks' => [[50000, 72200]], 'switches' => [[50000, 72200]]],
+            );
+        }
+
+        return TrackLayoutPart::empty();
+    }
+}
+
+/**
+ * Track layout source of the reference test: on 100000 (key `rinf`), the points of a and b, track 1 and siding 2 of
+ * station b, a diamond crossing of both, the buffer stop of siding 2 and milestone 5; on 200000 (key `vff`), a
+ * gradient of the long profile.
+ */
+final class ReferencesSource implements TrackLayoutSource
+{
+    /** @param  int  $stationAPk  PK of the point of station a (0: the PK of the station on its line) */
+    public function __construct(private readonly string $key, private readonly int $stationAPk = 0) {}
+
+    public function key(): string
+    {
+        return $this->key;
+    }
+
+    public function part(Line $line, ?int $fromM = null, ?int $toM = null): TrackLayoutPart
+    {
+        if ($this->key === 'rinf' && $line->code === '100000') {
+            return new TrackLayoutPart(
+                source: ['key' => 'rinf', 'label' => 'RINF (ERA)', 'licence' => 'EUPL 1.2', 'dataset' => null, 'fetched_at' => null, 'url' => null],
+                operationalPoints: [
+                    ['id' => 'op-a', 'name' => 'Gare A', 'kind' => 'station', 'pk_m' => $this->stationAPk, 'uopid' => null, 'station_slug' => 'a', 'source' => 'rinf', 'precision' => 'exact'],
+                    ['id' => 'op-b', 'name' => 'Gare B', 'kind' => 'station', 'pk_m' => 7450, 'uopid' => null, 'station_slug' => 'b', 'source' => 'rinf', 'precision' => 'exact'],
+                    ['id' => 'op-j', 'name' => 'Bif', 'kind' => 'junction', 'pk_m' => -200, 'uopid' => null, 'station_slug' => null, 'source' => 'rinf', 'precision' => 'exact'],
+                ],
+                tracks: [
+                    ['id' => 't-1', 'ref' => '1', 'kind' => 'running', 'pk_from_m' => 0, 'pk_to_m' => 14900, 'op_id' => null, 'length_m' => 14900, 'source' => 'rinf', 'precision' => 'exact'],
+                    ['id' => 't-2', 'ref' => '2', 'kind' => 'siding', 'pk_from_m' => 6800, 'pk_to_m' => 7900, 'op_id' => 'op-b', 'length_m' => 1100, 'source' => 'rinf', 'precision' => 'exact'],
+                ],
+                crossings: [['id' => 'x-1', 'pk_m' => 7000, 'kind' => 'railway_crossing', 'ref' => null, 'tracks' => ['t-1', 't-2'], 'source' => 'rinf', 'precision' => 'exact']],
+                covered: array_fill_keys(['tracks', 'switches', 'signals', 'crossings', 'operational_points'], [[0, 14900]]),
+                bufferStops: [['id' => 'bs-1', 'pk_m' => 6800, 'track' => 't-2', 'source' => 'rinf', 'precision' => 'exact']],
+                milestones: [['id' => 'km-5', 'pk_m' => 5000, 'label' => '5', 'source' => 'rinf', 'precision' => 'exact']],
+            );
+        }
+        if ($this->key === 'vff' && $line->code === '200000') {
+            return new TrackLayoutPart(
+                source: ['key' => 'vff', 'label' => 'VFF', 'licence' => 'ODbL 1.0', 'dataset' => null, 'fetched_at' => null, 'url' => null],
+                gradients: [['pk_from_m' => 50000, 'pk_to_m' => 72200, 'permille' => 3.0, 'source' => 'vff', 'precision' => 'derived']],
             );
         }
 

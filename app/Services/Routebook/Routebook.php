@@ -23,9 +23,15 @@ use Illuminate\Support\Facades\DB;
 final class Routebook
 {
     /** Version du contenu : à changer quand la forme de la réponse ou le calcul change (clé du cache). */
-    public const FORMAT = 1;
+    public const FORMAT = 2;
 
     public const CACHE_TTL = 3600;
+
+    /**
+     * Écart (m) cherché entre le PK de rattachement d'une gare de bout de portion et le point d'exploitation de la source
+     * qui la nomme (Lille-Flandres : PK 0+654 de 289000 pour la gare, 0+021 pour le point du RINF).
+     */
+    public const END_POINT_SEARCH_M = 2000;
 
     public function __construct(
         private readonly PathfindingService $pathfinding,
@@ -142,6 +148,10 @@ final class Routebook
                 'direction' => $direction,
             ];
             $layouts[$i] = $direction !== null ? $this->layouts->forLine($line, $pkFrom['pk_m'], $pkTo['pk_m']) : null;
+            if ($layouts[$i] !== null && $layouts[$i]['operational_points'] !== []) {
+                $layouts[$i]['operational_points'] = [...$layouts[$i]['operational_points'],
+                    ...$this->endStationPoints($line, $layouts[$i]['operational_points'], [[$legs[count($legs) - 1]['from'], $pkFrom['pk_m']], [$legs[count($legs) - 1]['to'], $pkTo['pk_m']]])];
+            }
         }
 
         $book = RoutebookAssembler::assemble($legs, $layouts);
@@ -168,6 +178,36 @@ final class Routebook
             ...$book,
             'graph' => ['built_at' => $build->built_at],
         ];
+    }
+
+    /**
+     * Points d'exploitation des gares de départ et d'arrivée d'une portion que son schéma n'a pas, parce que la source
+     * les place hors de la portion (au-delà du PK de rattachement de la gare, END_POINT_SEARCH_M au plus) : lus à part,
+     * pour que RoutebookAssembler les place au bout de la portion. Rien n'est lu quand le schéma a déjà un point de la gare.
+     *
+     * @param  list<array<string, mixed>>  $points  points d'exploitation du schéma de la portion
+     * @param  list<array{0: array{kind: string, slug: ?string, name: ?string}, 1: int}>  $ends  bout (gare ou bifurcation) et son PK
+     * @return list<array<string, mixed>>
+     */
+    private function endStationPoints(Line $line, array $points, array $ends): array
+    {
+        $known = array_flip(array_filter(array_map(fn (array $o): ?string => $o['station_slug'] ?? null, $points)));
+        $out = [];
+        foreach ($ends as [$end, $pk]) {
+            $slug = $end['kind'] === 'station' ? $end['slug'] : null;
+            if ($slug === null || isset($known[$slug])) {
+                continue;
+            }
+            $around = $this->layouts->forLine($line, $pk - self::END_POINT_SEARCH_M, $pk + self::END_POINT_SEARCH_M, ['operational_points']);
+            foreach ($around['operational_points'] as $o) {
+                if (($o['station_slug'] ?? null) === $slug) {
+                    $out[] = $o;
+                    $known[$slug] = true;
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**
