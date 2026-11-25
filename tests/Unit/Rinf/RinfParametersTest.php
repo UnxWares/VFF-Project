@@ -105,4 +105,23 @@ class RinfParametersTest extends TestCase
         $this->assertNull(RinfParameters::protectionLabel('http://data.europa.eu/949/concepts/other-protection-control-warning/100'));
         $this->assertSame(['ETCS L2', 'TVM 430', 'KVB', 'Crocodile', 'ATC vR'], RinfParameters::sortProtection(['Crocodile', 'ATC vR', 'KVB', 'TVM 430', 'ETCS L2']));
     }
+
+    /**
+     * Keys of the real portions of 752000 (LGV Sud-Est, 25/11/2026): the RINF adds the KVB to the TVM or the ETCS, SNCF
+     * Réseau's KVB dataset does not; only a difference of the KVB alone where one side has cab signalling is flagged.
+     */
+    public function test_a_difference_of_the_kvb_alone_on_cab_signalled_tracks(): void
+    {
+        $this->assertTrue(RinfParameters::differsOnlyByKvb('KVB+TVM 430', 'TVM 430'));
+        $this->assertTrue(RinfParameters::differsOnlyByKvb('TVM 300', 'KVB+TVM 300'));
+        $this->assertTrue(RinfParameters::differsOnlyByKvb('ETCS L2+KVB', 'ETCS L2'));
+        // ETCS level 2 declared by the RINF alone: a real difference.
+        $this->assertFalse(RinfParameters::differsOnlyByKvb('ETCS L2+KVB+TVM 300', 'TVM 300'));
+        // No cab signalling on either side (end of the LGV on a classic line, BAL without KVB at SNCF Réseau).
+        $this->assertFalse(RinfParameters::differsOnlyByKvb('KVB', 'none'));
+        $this->assertFalse(RinfParameters::differsOnlyByKvb('none', 'KVB'));
+        // Same keys: no difference at all.
+        $this->assertFalse(RinfParameters::differsOnlyByKvb('KVB+TVM 430', 'KVB+TVM 430'));
+        $this->assertFalse(RinfParameters::differsOnlyByKvb('TVM 430', 'TVM 300'));
+    }
 }

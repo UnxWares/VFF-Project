@@ -123,6 +123,11 @@ class CompareRinfParameters extends Command
                 ($total[$key]['agree_m'] ?? 0) + ($total[$key]['disagree_m'] ?? 0) > 0
                     ? number_format(100 * ($total[$key]['agree_m'] ?? 0) / (($total[$key]['agree_m'] ?? 0) + ($total[$key]['disagree_m'] ?? 0)), 1, ',', ' ').' %' : '-',
             ], RinfParameterComparison::PARAMETERS));
+        $tp = $total['train_protection'] ?? [];
+        if (($tp['agree_m'] ?? 0) + ($tp['disagree_m'] ?? 0) > 0) {
+            $this->line(sprintf('Contrôle de vitesse : %s km de désaccords dus au seul KVB sur une portion à TVM ou ETCS (kvb_only, non comptés par la fiche ligne) ; accord sans eux : %s %%.',
+                $km($tp['kvb_only_m'] ?? 0), number_format(100 * (($tp['agree_m'] ?? 0) + ($tp['kvb_only_m'] ?? 0)) / (($tp['agree_m'] ?? 0) + ($tp['disagree_m'] ?? 0)), 1, ',', ' ')));
+        }
         $this->line(sprintf('Quais : RINF %d, SNCF Réseau %d ; d\'accord (longueur à %d m près) %d, en désaccord %d, longueur absente d\'un côté %d, RINF seul %d, SNCF seul %d.',
             $platforms['rinf'], $platforms['vff'], RinfParameterComparison::PLATFORM_TOLERANCE_M, $platforms['agree'], $platforms['disagree'],
             $platforms[RinfParameterComparison::PLATFORM_LENGTH_UNKNOWN], $platforms['rinf_only'], $platforms['vff_only']));

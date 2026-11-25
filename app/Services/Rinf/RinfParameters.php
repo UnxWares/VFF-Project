@@ -88,6 +88,27 @@ final class RinfParameters
      */
     public const COMPARED_PROTECTION = ['ETCS L1', 'ETCS L2', 'KVB', 'TVM 300', 'TVM 430'];
 
+    /** Systèmes comparés de signalisation en cabine (TVM, ETCS). */
+    public const CAB_PROTECTION = ['ETCS L1', 'ETCS L2', 'TVM 300', 'TVM 430'];
+
+    /**
+     * Les deux clés comparées du contrôle de vitesse (`KVB+TVM 430`, `TVM 430`, `none`) ne diffèrent que par le KVB, sur
+     * une portion où l'une des deux a la TVM ou l'ETCS. Le RINF déclare le KVB sur les voies de LGV, le jeu des lignes
+     * équipées de KVB de SNCF Réseau ne l'y met pas (2 337 km le 25/11/2026) : décision du 25/11/2026, l'écart est montré
+     * tel que déclaré mais n'est pas compté comme un désaccord (accord du contrôle de vitesse sur la France : 92,0 % de la
+     * longueur comparable au lieu de 85,1 %).
+     */
+    public static function differsOnlyByKvb(string $a, string $b): bool
+    {
+        $split = fn (string $key): array => array_values(array_filter(explode('+', $key), fn (string $s): bool => $s !== '' && $s !== 'none'));
+        [$x, $y] = [$split($a), $split($b)];
+        if (self::compared($x) === self::compared($y) || array_intersect([...$x, ...$y], self::CAB_PROTECTION) === []) {
+            return false;
+        }
+
+        return self::compared(array_values(array_diff($x, ['KVB']))) === self::compared(array_values(array_diff($y, ['KVB'])));
+    }
+
     /**
      * Voie principale d'une section : voie 1, voie 2 ou voie unique (« Voie V1 de Paris-12 à Marseille-01 »,
      * « Voie 1 LGV SEA », « Voie UNIQUE de … », « 1 »), à l'exclusion des voies bis, ter ou quater, des voies numérotées

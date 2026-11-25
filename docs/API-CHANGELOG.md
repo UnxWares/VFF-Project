@@ -9,6 +9,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfParameterPortion.kvb_only`
+  et `LineRinfParameterSummary.kvb_only_m`, MCP `line_rinf_parameters`) : `kvb_only`, vrai pour une portion `disagree` de
+  `train_protection` dont les deux valeurs ne diffèrent que par le KVB, là où l'une a la TVM ou l'ETCS (le RINF déclare le
+  KVB sur les voies de LGV, le jeu KVB de SNCF Réseau non : 1 831 km sur la France) ; `summary.kvb_only_m`, sa longueur (comprise dans
+  `disagree_m`, 0 pour les autres paramètres). Statuts inchangés. La fiche ligne (section « Registre de l'infrastructure »)
+  ne compte pas cet écart comme un désaccord : accord du contrôle de vitesse sur la France 92,0 % au lieu de 85,1 %.
 - Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange.rg_troncon`) :
   `rg_troncon`, rang du tronçon de SNCF Réseau de la tranche (deux tronçons d'une ligne peuvent avoir des PK communs, deux
   endroits différents : 330000, 975900) ; null pour une tranche d'une autre source ou écrite avant la réimportation. Le KVB
