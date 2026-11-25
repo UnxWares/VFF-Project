@@ -135,7 +135,8 @@ class ImportRinf extends Command
         $meta = fn (array $row, string $graph): array => $row + ['dataset' => $dataset($graph), 'fetched_at' => $fetchedAt, 'created_at' => now(), 'updated_at' => now()];
         $graphOf = fn (?string $uopid): string => $uopid !== null && isset($ops[$uopid]) ? (string) $ops[$uopid]['dataset'] : '0087';
 
-        DB::transaction(function () use ($line, $sections, $tracks, $ops, $opTracks, $platforms, $meta, $graphOf): void {
+        $opRows = $ops;
+        DB::transaction(function () use ($line, $sections, $tracks, $ops, &$opRows, $opTracks, $platforms, $meta, $graphOf): void {
             if ($line === null) {
                 DB::table('rinf_platforms')->delete();
                 DB::table('rinf_tracks')->delete();
@@ -145,11 +146,25 @@ class ImportRinf extends Command
                 $old = DB::table('rinf_sections')->where('line_code', $line)->pluck('uri')->all();
                 DB::table('rinf_tracks')->whereIn('section_uri', $old)->delete();
                 DB::table('rinf_sections')->where('line_code', $line)->delete();
-                DB::table('rinf_platforms')->whereIn('op_uopid', array_keys($ops))->delete();
-                DB::table('rinf_tracks')->whereIn('op_uopid', array_keys($ops))->delete();
-                DB::table('rinf_operational_points')->whereIn('uopid', array_keys($ops))->delete();
+                // Un point d'exploitation peut être décrit par deux graphes (27 points, Nîmes-Pont du Gard sur 810000 au
+                // graphe de SNCF Réseau et sur 834000 à celui d'Occitanie) : la portée d'une ligne ne lit que les voies et
+                // quais de son graphe ; seuls ceux-là sont remplacés, ceux de l'autre graphe restent. La fiche du point
+                // garde la version de SNCF Réseau, comme l'import de la France entière.
+                foreach (array_chunk(array_keys($platforms), 500) as $uris) {
+                    DB::table('rinf_platforms')->whereIn('uri', $uris)->delete();
+                }
+                foreach (array_chunk(array_keys($opTracks), 500) as $uris) {
+                    DB::table('rinf_tracks')->whereIn('uri', $uris)->delete();
+                }
+                $existing = DB::table('rinf_operational_points')->whereIn('uopid', array_keys($ops))->pluck('dataset', 'uopid')->all();
+                foreach ($existing as $uopid => $dataset) {
+                    if (str_contains((string) $dataset, '/graph/0087 ') && (string) $ops[$uopid]['dataset'] !== '0087') {
+                        unset($opRows[$uopid]);
+                    }
+                }
+                DB::table('rinf_operational_points')->whereIn('uopid', array_keys($opRows))->delete();
             }
-            foreach (array_chunk(array_values($ops), 500) as $chunk) {
+            foreach (array_chunk(array_values($opRows), 500) as $chunk) {
                 DB::table('rinf_operational_points')->insert(array_map(fn (array $o): array => $meta(array_diff_key($o, ['dataset' => 1]), (string) $o['dataset']), $chunk));
             }
             foreach (array_chunk(array_values($sections), 500) as $chunk) {

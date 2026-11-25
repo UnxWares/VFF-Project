@@ -5,10 +5,12 @@ namespace Tests\Feature\Rinf;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\Rinf\RinfDataset;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -93,12 +95,53 @@ class ImportRinfTest extends TestCase
         $this->assertSame(1, DB::table('rinf_sections')->where('line_code', '500000')->count());
     }
 
+    /**
+     * A point described by two graphs (27 points on 24/11/2026: Nîmes-Pont du Gard, 810000 in the graph of SNCF Réseau
+     * and 834000 in the graph of Occitanie): a line import replaces only the tracks and platforms of its own graph and
+     * keeps the point of SNCF Réseau, like the import of the whole of France.
+     */
+    public function test_a_line_import_keeps_what_another_graph_describes_at_a_shared_point(): void
+    {
+        $other = ['dataset' => 'http://data.europa.eu/949/graph/60Z7 ('.RinfDataset::ENDPOINT.')', 'fetched_at' => '2026-11-24 20:00:00'];
+        DB::table('rinf_tracks')->insert(['uri' => 'http://data.europa.eu/949/track/autre-graphe', 'parent' => 'op', 'op_uopid' => 'FR0000003513',
+            'rinf_class' => 'running', 'ref' => 'Voie 9 de Cognac'] + $other);
+        DB::table('rinf_platforms')->insert(['uri' => 'http://data.europa.eu/949/platformEdge/autre-graphe', 'track_uri' => 'http://data.europa.eu/949/track/autre-graphe',
+            'op_uopid' => 'FR0000003513', 'ref' => 'Quai 9', 'length_m' => 200] + $other);
+
+        $this->assertSame(0, $this->import());
+
+        $this->assertSame('Voie 9 de Cognac', DB::table('rinf_tracks')->where('uri', 'http://data.europa.eu/949/track/autre-graphe')->value('ref'));
+        $this->assertSame('Quai 9', DB::table('rinf_platforms')->where('uri', 'http://data.europa.eu/949/platformEdge/autre-graphe')->value('ref'));
+        $this->assertSame(530, DB::table('rinf_tracks')->where('op_uopid', 'FR0000003513')->where('ref', '4 - COGNAC')->value('length_m'));
+
+        // The same line read from a cache where Cognac comes from another graph: the point of SNCF Réseau stays.
+        $dir = sys_get_temp_dir().'/vff-rinf-test-'.bin2hex(random_bytes(6));
+        $this->beforeApplicationDestroyed(fn () => File::deleteDirectory($dir));
+        File::copyDirectory(base_path('tests/Fixtures/rinf/line-579000'), $dir.'/line-579000');
+        $ops = json_decode((string) file_get_contents($dir.'/line-579000/operational-points-000.json'), true);
+        foreach ($ops['results']['bindings'] as &$row) {
+            if ($row['uopid']['value'] === 'FR0000003513') {
+                $row['g']['value'] = 'http://data.europa.eu/949/graph/60Z7';
+                $row['name']['value'] = 'Cognac (Occitanie)';
+            }
+        }
+        unset($row);
+        file_put_contents($dir.'/line-579000/operational-points-000.json', json_encode($ops));
+        $this->assertSame(0, $this->artisan('vff:import-rinf', ['--offline' => true, '--line' => '579000', '--cache-dir' => $dir])->run());
+
+        $cognac = DB::table('rinf_operational_points')->where('uopid', 'FR0000003513')->first(['name', 'dataset']);
+        $this->assertSame('Cognac', $cognac->name);
+        $this->assertStringContainsString('/graph/0087 ', $cognac->dataset);
+    }
+
     public function test_offline_without_cache_fails_without_network(): void
     {
         $this->artisan('vff:import-rinf', ['--offline' => true, '--line' => '123456', '--cache-dir' => base_path('tests/Fixtures/rinf')])
             ->expectsOutputToContain('absente du cache')
             ->assertFailed();
         $this->artisan('vff:import-rinf', ['--offline' => true, '--line' => 'abc', '--cache-dir' => base_path('tests/Fixtures/rinf')])->assertExitCode(2);
+        // A code of five digits read the sections of 579000 by prefix, then deleted nothing and failed on the track URIs.
+        $this->artisan('vff:import-rinf', ['--offline' => true, '--line' => '57900', '--cache-dir' => base_path('tests/Fixtures/rinf')])->assertExitCode(2);
     }
 
     public function test_the_layout_of_the_real_extract(): void

@@ -22,8 +22,11 @@ final class RinfQueries
 
     public function __construct(private readonly ?string $lineCode = null)
     {
-        if ($lineCode !== null && preg_match('/^[0-9]{3,6}$/', $lineCode) !== 1) {
-            throw new InvalidArgumentException('Code de ligne attendu : 3 à 6 chiffres (ex. 579000).');
+        // Six chiffres : la portée (préfixe de la ligne nationale) et la suppression avant écriture (`line_code` égal)
+        // doivent désigner la même ligne ; « 57900 » lisait les sections de 579000 puis ne supprimait rien et
+        // échouait sur l'unicité des voies.
+        if ($lineCode !== null && preg_match('/^[0-9]{6}$/', $lineCode) !== 1) {
+            throw new InvalidArgumentException('Code de ligne attendu : 6 chiffres (ex. 579000).');
         }
     }
 
