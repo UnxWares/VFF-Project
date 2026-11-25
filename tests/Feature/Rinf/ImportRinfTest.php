@@ -134,6 +134,6 @@ class ImportRinfTest extends TestCase
             }
         }
         $this->assertSame(64902, $json['coverage']['rinf_m']);
-        $this->assertSame(['pk_from_m' => -235, 'pk_to_m' => -31, 'kmh' => 110, 'source' => 'rinf'], $json['strip']['speeds'][0]);
+        $this->assertSame(['pk_from_m' => -235, 'pk_to_m' => -31, 'kmh' => 110, 'tracks' => ['V1', 'V2'], 'source' => 'rinf'], $json['strip']['speeds'][0]);
     }
 }
