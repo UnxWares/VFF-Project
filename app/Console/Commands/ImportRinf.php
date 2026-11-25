@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\Rinf\RinfClient;
 use App\Services\Rinf\RinfDataset;
+use App\Services\Rinf\RinfParameters;
 use App\Services\Rinf\RinfParser;
 use App\Services\Rinf\RinfQueries;
 use App\Services\Rinf\RinfStationMatcher;
@@ -15,9 +16,11 @@ use RuntimeException;
 /**
  * Import du RINF français (registre de l'infrastructure de l'ERA) depuis le point SPARQL public du graphe de
  * connaissances de l'ERA (RinfDataset, RinfQueries) : points d'exploitation, sections de ligne et leurs PK, voies,
- * voies de service, liaisons et quais. Source du schéma des voies (`GET /api/v1/lines/{line}/track-layout`).
+ * voies de service, liaisons et quais, et paramètres déclarés des voies des sections (électrification, contrôle de
+ * vitesse, ETCS, GSM-R, gabarits, charge, écartement : RinfParameters). Source du schéma des voies
+ * (`GET /api/v1/lines/{line}/track-layout`) et des paramètres comparés (`GET /api/v1/lines/{line}/rinf-parameters`).
  *
- * Lecture : six requêtes paginées (une trentaine de pages pour la France), une toutes les 5 s, User-Agent du
+ * Lecture : sept requêtes paginées (32 pages pour la France), une toutes les 5 s, User-Agent du
  * projet, réponses gardées dans storage/app/data/rinf/<portée>/ (dossier `.nobackup`) ; --offline n'utilise que ce
  * cache, --refresh le relit. Rattachement : sections aux lignes de VFF par le code de ligne (= `lines.code`),
  * points d'exploitation aux gares par le nom et la distance (RinfStationMatcher). Lectures seules sur les tables
@@ -38,7 +41,7 @@ class ImportRinf extends Command
         {--cache-dir= : dossier du cache (défaut : storage/app/data/rinf)}
         {--csv= : rapport par ligne de VFF, au format CSV}';
 
-    protected $description = 'Importe le RINF français (ERA) : points d\'exploitation, sections, voies, voies de service et quais';
+    protected $description = 'Importe le RINF français (ERA) : points d\'exploitation, sections, voies et leurs paramètres, voies de service et quais';
 
     /** Taille des pages de résultats SPARQL. */
     public const PAGE = 5000;
@@ -64,6 +67,7 @@ class ImportRinf extends Command
             $ops = RinfParser::operationalPoints($client->selectAll('operational-points', $queries->operationalPoints(), self::PAGE));
             $opTracks = RinfParser::opTracks($client->selectAll('op-tracks', $queries->opTracks(), self::PAGE));
             $platforms = RinfParser::platforms($client->selectAll('platforms', $queries->platforms(), self::PAGE));
+            $parameters = RinfParser::trackParameters($client->selectAll('track-parameters', $queries->trackParameters(), self::PAGE));
         } catch (RuntimeException $e) {
             $this->error($e->getMessage());
 
@@ -86,6 +90,20 @@ class ImportRinf extends Command
             };
             $segments = RinfParser::gradientSegments($profile, (int) $s['pk_start_m'], (int) $s['pk_end_m'], $runsUp);
             $tracks[$uri]['gradient_profile'] = $segments === [] ? null : json_encode($segments);
+        }
+
+        // Paramètres des voies des sections (électrification, protection, ETCS, GSM-R, gabarits, charge, écartement) ;
+        // colonnes nulles pour les voies des points d'exploitation (mêmes colonnes pour toutes les lignes insérées).
+        $none = array_fill_keys(RinfParameters::COLUMNS, null);
+        foreach ($tracks as $uri => $t) {
+            $p = ($parameters[$uri] ?? []) + $none;
+            foreach (RinfParameters::JSON_COLUMNS as $c) {
+                $p[$c] = $p[$c] === null ? null : json_encode($p[$c], JSON_UNESCAPED_UNICODE);
+            }
+            $tracks[$uri] = $t + $p;
+        }
+        foreach ($opTracks as $uri => $t) {
+            $opTracks[$uri] = $t + $none;
         }
 
         // Rattachements : lignes par code, gares par nom et distance (lectures seules).
@@ -195,6 +213,15 @@ class ImportRinf extends Command
         $this->line(sprintf('Voies des sections : %d (hors liaisons VLINK : %d ; vitesse déclarée : %d ; profil de déclivités : %d ; ligne de contact dite : %d)',
             count($tracks), count($mainTracks), $count($mainTracks, fn ($t) => $t['max_speed_kmh'] !== null),
             $count($mainTracks, fn ($t) => $t['gradient_profile'] !== null), $count($mainTracks, fn ($t) => $t['electrified'] !== null)));
+        $said = fn (string $c): int => $count($mainTracks, fn ($t) => $t[$c] !== null);
+        $this->line(sprintf('Paramètres déclarés des voies des sections (hors VLINK) : ligne de contact %d (électrifiées %d, tension dite %d), '
+            .'contrôle de vitesse et protection %d (aucun : %d), ETCS %d (niveau 1 ou 2 : %d), GSM-R %d (oui : %d), gabarits %d, '
+            .'catégorie de charge %d, classe nationale %d, écartement %d',
+            $said('contact_line'), $count($mainTracks, fn ($t) => in_array($t['contact_line'], ['overhead', 'third_rail', 'fourth_rail'], true)), $said('voltage_v'),
+            $said('train_protection'), $count($mainTracks, fn ($t) => $t['train_protection'] === '[]'),
+            $said('etcs_level'), $count($mainTracks, fn ($t) => in_array($t['etcs_level'], ['1', '2'], true)),
+            $said('gsm_r'), $count($mainTracks, fn ($t) => $t['gsm_r'] === true),
+            $said('gauging_profiles'), $said('load_category'), $said('national_load_class'), $said('track_gauge_mm')));
         $this->line(sprintf('Voies des points d\'exploitation : %d voies de gare, %d voies de service dont %d liaisons',
             $count($opTracks, fn ($t) => $t['rinf_class'] === 'running'), $count($opTracks, fn ($t) => $t['rinf_class'] === 'siding'),
             $count($opTracks, fn ($t) => preg_match('/^liaison\b/iu', (string) $t['ref']) === 1)));

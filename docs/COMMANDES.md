@@ -312,9 +312,11 @@ déclarées par SNCF Réseau et six autres gestionnaires) depuis le point SPARQL
 (`https://graph.data.era.europa.eu/repositories/rinf-plus`, sans compte ni clé) : points d'exploitation
 (`rinf_operational_points`, UOPID, type, position, gare de VFF rattachée par le nom et la distance), sections de ligne et
 leurs PK (`rinf_sections`, code de ligne = `lines.code`), voies des sections et des points d'exploitation, voies de service
-et liaisons (`rinf_tracks`, sens, vitesse, profil de déclivités déclaré), quais (`rinf_platforms`). Six requêtes paginées,
-une toutes les 5 s, User-Agent du projet, budget de 80 requêtes (une trentaine pour la France) ; réponses gardées dans
-`storage/app/data/rinf/<portée>/` (dossier `.nobackup`, 84 Mo pour la France). Seules les tables `rinf_*` sont écrites, dans
+et liaisons (`rinf_tracks`, sens, vitesse, profil de déclivités déclaré ; pour les voies des sections, paramètres déclarés :
+ligne de contact, tension et fréquence, contrôle de vitesse et protection hérités, niveau ETCS, GSM-R, gabarits, catégorie de
+charge EN 15528 et classe nationale, écartement), quais (`rinf_platforms`). Sept requêtes paginées, une toutes les 5 s,
+User-Agent du projet, budget de 80 requêtes (32 pour la France) ; réponses gardées dans `storage/app/data/rinf/<portée>/`
+(dossier `.nobackup`, 121 Mo pour la France). Seules les tables `rinf_*` sont écrites, dans
 une transaction : toutes remplacées, ou seulement la ligne demandée. Source du schéma des voies
 (`GET /api/v1/lines/{line}/track-layout`). SNCF Réseau n'y déclare ni aiguillage ni signal. Licence : EUPL 1.2 (dump officiel),
 mention « RINF data © European Union Agency for Railways ».

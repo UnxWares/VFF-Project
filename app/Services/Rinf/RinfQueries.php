@@ -73,6 +73,32 @@ final class RinfQueries
 } } ORDER BY ?t ?cls';
     }
 
+    /**
+     * Paramètres déclarés des voies des sections, une ligne par voie : système d'alimentation et type de ligne de
+     * contact, contrôle de vitesse hérité et autres systèmes de protection (regroupés « |»), niveau ETCS, version
+     * GSM-R, gabarits (regroupés), catégorie de charge EN 15528 et classe nationale, écartement, et les paramètres
+     * que le gestionnaire déclare sans objet (era:notApplicable : « aucun », distinct de « non dit »). Mesure du
+     * 25/11/2026 (sept graphes français) : chacun rempli sur 97 à 100 % des 23 818 voies hors liaisons.
+     */
+    public function trackParameters(): string
+    {
+        return self::PREFIXES.'SELECT ?t (SAMPLE(?ess) AS ?energy) (SAMPLE(?clt) AS ?contact) (SAMPLE(?eo) AS ?etcs) (SAMPLE(?el) AS ?etcsLevel)
+  (GROUP_CONCAT(DISTINCT STR(?tp); separator="|") AS ?protection) (GROUP_CONCAT(DISTINCT STR(?otp); separator="|") AS ?otherProtection)
+  (SAMPLE(?gv) AS ?gsmr) (GROUP_CONCAT(DISTINCT STR(?gp); separator="|") AS ?gauging) (SAMPLE(?lcc) AS ?loadCategory)
+  (SAMPLE(?nlc) AS ?nationalLoad) (SAMPLE(?wg) AS ?gauge) (GROUP_CONCAT(DISTINCT STR(?na); separator="|") AS ?notApplicable)
+WHERE { '.$this->graphs().' GRAPH ?g {
+  ?sol a era:SectionOfLine ; era:inCountry '.self::FRA.' ; era:hasPart ?t . '.$this->solScope().'
+  ?t a era:RunningTrack .
+  OPTIONAL { ?t era:contactLineSystem ?cl . OPTIONAL { ?cl era:energySupplySystem ?ess } OPTIONAL { ?cl era:contactLineSystemType ?clt } }
+  OPTIONAL { ?t era:protectionLegacySystem ?tp } OPTIONAL { ?t era:otherTrainProtection ?otp }
+  OPTIONAL { ?t era:etcs ?eo . OPTIONAL { ?eo era:etcsLevelType ?el } }
+  OPTIONAL { ?t era:gsmRVersion ?gv } OPTIONAL { ?t era:gaugingProfile ?gp }
+  OPTIONAL { ?t era:trackLoadCapability/era:loadCapabilityLineCategory ?lcc } OPTIONAL { ?t era:nationalLoadCapability ?nlc }
+  OPTIONAL { ?t era:wheelSetGauge ?wg }
+  OPTIONAL { ?t era:notApplicable ?na . FILTER(?na IN (era:protectionLegacySystem, era:gsmRVersion, era:etcs, era:gaugingProfile, era:contactLineSystem, era:trackLoadCapability, era:wheelSetGauge)) }
+} } GROUP BY ?t ORDER BY ?t';
+    }
+
     /** Profil de déclivités déclaré des voies des sections, regroupé par voie (« +04.0(+18.300)|+02.2 »). */
     public function gradients(): string
     {
