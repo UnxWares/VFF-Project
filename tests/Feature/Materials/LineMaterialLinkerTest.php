@@ -131,6 +131,43 @@ class LineMaterialLinkerTest extends TestCase
         $this->assertSame('low', $shared['confidence'], 'article qui décrit plusieurs lignes');
     }
 
+    /**
+     * Import du 25/11/2026 : le lien 830000 × X 4200 a gagné des relations sans date (« Marseille - Cerbère »,
+     * « Marseille - Port-de-Bouc - Cavaillon - Avignon-Centre »), et la sixième preuve, « Nîmes - Avignon (de 1982 à
+     * 1985) », est tombée des cinq gardées : vff:import-material-periods ne lit les périodes que dans les preuves
+     * gardées et allait retirer celle de 1982 à 1985. Une preuve datée passe avant les preuves sans date.
+     */
+    public function test_a_dated_relation_beyond_the_five_kept_proofs_takes_the_place_of_an_undated_one(): void
+    {
+        $url = 'https://fr.wikipedia.org/w/index.php?title=X_4200&oldid=240776671';
+        $relation = fn (string $label, int $era, ?array $period = null): array => array_filter([
+            'url' => $url, 'kind' => 'wikipedia_material_article', 'quote' => $label, 'revid' => 240776671,
+            'route' => ['kind' => 'relation', 'label' => $label, 'era_year' => $era], 'period' => $period,
+            'article' => 'X 4200', 'section' => 'Services effectués > Lignes parcourues',
+        ], fn ($v): bool => $v !== null);
+        $years = fn (string $from, ?string $to): array => ['from' => ['date' => $from, 'precision' => 'year'], 'to' => $to === null ? null : ['date' => $to, 'precision' => 'year'], 'confidence' => 'medium'];
+        $evidence = [
+            $relation('Marseille-Saint-Charles - Nîmes - Alès - Clermont-Ferrand - Mont-Dore', 1950, $years('1959-05-31', null)),
+            $relation('Marseille - Cerbère', 1970),
+            $relation('Marseille-Saint-Charles - Nîmes - Alès - Clermont-Ferrand - Mont-Dore', 1950, $years('1959-01-01', '1978-01-01')),
+            $relation('Marseille - Nîmes - Cerbère', 1950),
+            $relation('Marseille - Port-de-Bouc - Cavaillon - Avignon-Centre', 1970),
+            $relation('Avignon - Nîmes', 1970),
+            $relation('Nîmes - Avignon', 1980, $years('1982-01-01', '1985-01-01')),
+        ];
+
+        $kept = LineMaterialLinker::attributes($evidence)['evidence'];
+
+        $this->assertCount(5, $kept);
+        $this->assertContains($evidence[6], $kept, 'la période de 1982 à 1985 reste lisible');
+        $this->assertNotContains($evidence[4], $kept, 'elle prend la place de la dernière preuve sans date');
+        $this->assertSame([$evidence[0], $evidence[1], $evidence[2], $evidence[3], $evidence[6]], $kept, 'ordre gardé, première preuve inchangée');
+
+        // Cinq preuves datées : rien à remplacer, la sixième reste de côté.
+        $allDated = array_fill(0, 5, $evidence[6]);
+        $this->assertSame($allDated, LineMaterialLinker::attributes([...$allDated, $evidence[0]])['evidence']);
+    }
+
     public function test_a_train_cited_as_the_replacement_of_another_is_not_a_direct_source(): void
     {
         // Épinal à Bussang : « Ce train a été remplacé par le TGV » parle du train Corail, pas du TGV.
