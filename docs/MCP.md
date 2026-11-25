@@ -153,6 +153,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_infrastructure` | Nombre de voies et liaison radio sol-train (GSM-R…) d'une ligne par portion de PK, aujourd'hui : SNCF Réseau, ODbL. |
 | `line_track_layout` | Schéma des voies d'une ligne aujourd'hui (voies numérotées, voies de service, liaisons, aiguillages, signaux, points d'exploitation, vitesses, déclivités) : RINF de l'ERA (EUPL 1.2), OpenStreetMap (ODbL), VFF. |
 | `line_rinf_parameters` | Paramètres RINF d'une ligne par PK (électrification, vitesse, contrôle de vitesse et ETCS, GSM-R, gabarits, charge, écartement, quais), côte à côte avec SNCF Réseau : accord ou désaccord (RINF EUPL 1.2, SNCF Réseau ODbL). |
+| `station_track_layout` | Voies d'une gare aujourd'hui, ligne par ligne (schéma de chaque ligne autour de la gare), et ses quais avec leur longueur et leur hauteur : RINF de l'ERA (EUPL 1.2), OpenStreetMap (ODbL), SNCF Réseau (ODbL). |
 | `line_structures` | Tunnels, viaducs et grands ponts d'une ligne par PK, lignes déposées comprises : longueur, dates, protection, image (IGN BD TOPO, Wikidata). |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
@@ -1074,6 +1075,39 @@ Mention à reproduire : « RINF data © European Union Agency for Railways » (E
 {"line": "566000", "parameters": ["max_speed", "train_protection"], "disagreements_only": true}
 ```
 
+### `station_track_layout` : voies d'une gare
+
+Même contenu que `GET /api/v1/stations/{station}/track-layout` (service `StationTrackLayout`). Réseau d'aujourd'hui
+seulement. Pour chaque ligne qui passe par la gare et dont les voies sont décrites autour d'elle (PK de la gare sur la
+ligne, section du RINF qui finit à un point d'exploitation de la gare, ou voies d'OpenStreetMap rattachées à la gare),
+le schéma des voies de la ligne (`line_track_layout`, mêmes sources et mêmes règles) sur une fenêtre autour de la gare :
+ses voies propres (voies de service d'OpenStreetMap rattachées à la gare, voies du point d'exploitation au RINF sur leur
+longueur déclarée) et son PK, élargies de 200 m de chaque côté, entre 500 m et 2 500 m du PK. Une ligne fermée du passé
+n'a pas de bloc. Les bords de quai : longueur utile et hauteur au-dessus du rail du RINF, PK de la « Liste des quais » de
+SNCF Réseau pour la même ligne et la même voie (`pk_source` `sncf`, `precision` `exact`), sinon placés autour du PK de la
+gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur voie n'est pas dessinée.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `line` | slug ou code | non | Une seule ligne (slug, ou code SNCF Réseau à 6 chiffres). |
+| `kinds` | liste | non | Familles du schéma de chaque ligne, comme pour `line_track_layout`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `station`, `operational_points[]` (UOPID du RINF rattachés à la gare), `lines[]` (`line`, `station_pk_m`,
+`station_pk_label`, `station_pk_source`, `window` en PK de la ligne, `track_layout` au format de `line_track_layout`),
+`platforms[]` (un bord de quai par voie bordée, un quai central en a deux : `ref`, `track_ref`, `line_code`, `track` =
+identifiant de la voie dans le schéma de sa ligne, `pk_from_m`, `pk_to_m`, `length_m`, `height_mm`, `source`, `pk_source`,
+`precision`), `sources[]`, `counts` (lignes, voies, aiguillages, signaux, traversées, heurtoirs, bords de quai), le bloc
+d'attribution et `vff_url` (page `/stations/{slug}/voies`). Dire la précision quand elle n'est pas `exact`. Une gare sans
+voie décrite renvoie `lines` vide (et ses quais s'ils sont connus). Raccourcissement : `platforms` et les listes de chaque
+schéma de ligne (`truncated`). Mentions à reproduire : « RINF data © European Union Agency for Railways » (EUPL 1.2),
+« © contributeurs OpenStreetMap » (ODbL), « Quais : SNCF Réseau, jeu « Liste des quais » » (ODbL).
+
+```json
+{"station": "poitiers"}
+```
+
 ### `line_greenways` : voies vertes d'une ancienne ligne
 
 Même contenu que `GET /api/v1/lines/{line}/greenways` (service `LineGreenways`). Voies vertes et chemins cyclables
@@ -1957,6 +1991,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « La ligne de Beillant à Angoulême est-elle à voie unique, et équipée du GSM-R ? » | `line_infrastructure {"line": "rfn-579000"}` : `tracks.summary`, `radio.systems` ; citer « SNCF Réseau » |
 | « Le RINF et SNCF Réseau disent-ils la même vitesse sur la LGV SEA ? » | `line_rinf_parameters {"line": "566000", "parameters": ["max_speed"], "disagreements_only": true}` : donner les deux valeurs et leur source ; citer « RINF data © European Union Agency for Railways » et « SNCF Réseau » |
 | « Combien de voies et de voies de service à Cognac ? » | `line_track_layout {"line": "rfn-579000", "from_pk_m": 16500, "to_pk_m": 18000}` : `tracks` (kind, ref, precision) ; citer « RINF data © European Union Agency for Railways » |
+| « Combien de quais à Poitiers, et de quelle hauteur ? » | `station_track_layout {"station": "poitiers", "kinds": ["operational_points"]}` : `platforms` (ref, track_ref, length_m, height_mm) ; citer le RINF et SNCF Réseau |
 | « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |

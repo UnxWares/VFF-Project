@@ -65,6 +65,7 @@ use App\Mcp\Tools\StationEventsTool;
 use App\Mcp\Tools\StationHeritageTool;
 use App\Mcp\Tools\StationSheetTool;
 use App\Mcp\Tools\StationTimetableTool;
+use App\Mcp\Tools\StationTrackLayoutTool;
 use App\Mcp\Tools\TouristRailwaysTool;
 use App\Mcp\Tools\WhatWasHereTool;
 use Laravel\Mcp\Server;
@@ -139,6 +140,7 @@ class VffServer extends Server
         LineInfrastructureTool::class,
         LineTrackLayoutTool::class,
         LineRinfParametersTool::class,
+        StationTrackLayoutTool::class,
         LineStructuresTool::class,
         LineArchivesTool::class,
         LineArchiveRecordsTool::class,

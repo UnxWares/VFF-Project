@@ -27,6 +27,7 @@
         trackPaths,
         valueAt,
     } from '$lib/trackLayout.js';
+    import { platformShapes } from '$lib/stationTracks.js';
 
     /**
      * Dessin du schéma des voies (onglet « Schéma ») ou de la bande seule (onglet « Bande »), dans un cadre qui
@@ -39,13 +40,15 @@
      * `data` est la vue repliée (foldLayout) : un groupe de voies de service (`kind: 'group'`) est une bande avec
      * un bouton qui le déplie (`ontoggle`). `onview` reçoit les PK visibles (lecture par portions des longues lignes).
      * `axisMode` : `line` (PK de la ligne) ou `route` (livret de parcours : kilomètres parcourus, sens de marche).
+     * `platforms` : bords de quai d'une gare (page des voies d'une gare, lib/stationTracks.js) : un quai central entre
+     * deux voies voisines est dessiné entre elles, un bord seul le long de sa voie.
      *
      * @type {{
      *   data: any, axis: any, rows: Array<any>, zoom: number, mode?: 'schema'|'band',
      *   axisMode?: 'line'|'route', selectedPk?: number|null, printing?: boolean, label: string, helpId: string,
      *   lang: string, t: (key: string, options?: object) => string, onpick: (index: number) => void,
      *   onkey?: (event: KeyboardEvent) => void, groups?: Array<any>, ontoggle?: (group: any) => void,
-     *   onview?: (from: number, to: number, center: number) => void,
+     *   onview?: (from: number, to: number, center: number) => void, platforms?: Array<any>,
      * }}
      */
     let {
@@ -66,6 +69,7 @@
         t,
         onpick,
         onkey,
+        platforms = [],
     } = $props();
 
     /** Marges horizontales : à gauche, la place des en-têtes de la bande. */
@@ -272,6 +276,13 @@
                               scroll + half + 4,
                               Math.min(scroll + view - half - 4, (va + vb) / 2),
                           );
+                      // Bande hors de la fenêtre (gare centrée à 320 px) : son bouton reste dehors, jamais à moitié
+                      // coupé par le bord du cadre.
+                      else if (!printing && view)
+                          at =
+                              x1 <= va
+                                  ? Math.min(mid, scroll - half)
+                                  : Math.max(mid, scroll + view + half);
                       // Le bouton est dans la rangée réservée au-delà de la bande (marge de la zone).
                       return {
                           tr,
@@ -290,6 +301,43 @@
     // Groupes dépliés de la partie dessinée : un bouton pour les replier, au-dessus de leur zone.
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
     const laneOf = (trackId) => tracksById.get(trackId)?.lane ?? 0;
+
+    // Quais (page des voies d'une gare) : seulement le long des voies dessinées de la partie visible.
+    const yRow = (row) => TOP + row * ROW_H + ROW_H / 2;
+    const platformMarks = $derived.by(() => {
+        if (!schema || platforms.length === 0) return [];
+        const rowOf = (id) => {
+            const tr = tracksById.get(id);
+            if (
+                !tr ||
+                tr.kind === 'group' ||
+                tr.kind === 'crossover' ||
+                !lanes.lanes.includes(tr.lane)
+            )
+                return null;
+            return lanes.row(tr.lane);
+        };
+        const has = (lane) => lanes.lanes.includes(lane);
+        const pivot =
+            has(0) && has(1)
+                ? (lanes.row(0) + lanes.row(1)) / 2
+                : has(0)
+                  ? lanes.row(0) + 0.5
+                  : 0.5;
+        return platformShapes(platforms, rowOf, pivot)
+            .map((sh) => {
+                const x0 = X(sh.from_m);
+                const x1 = Math.max(X(sh.to_m), x0 + 4);
+                const [y0, y1] =
+                    sh.side === 'between'
+                        ? [yRow(sh.row - 0.5) + 7, yRow(sh.row + 0.5) - 7]
+                        : sh.side === 'above'
+                          ? [yRow(sh.row) - 13, yRow(sh.row) - 5]
+                          : [yRow(sh.row) + 5, yRow(sh.row) + 13];
+                return { ...sh, x0, x1, y0, y1 };
+            })
+            .filter((m) => nearSpan(m.x0, m.x1));
+    });
 
     /** Voies présentes à un PK : rangées haute et basse (passages à niveau, traversées). */
     function spanAt(pk) {
@@ -672,6 +720,17 @@
             {/each}
 
             {#if schema}
+                <!-- Quais, sous les voies. -->
+                {#each platformMarks as m (m.key)}
+                    <rect
+                        class={['platform', m.approx && 'approx']}
+                        x={m.x0}
+                        y={m.y0}
+                        width={m.x1 - m.x0}
+                        height={m.y1 - m.y0}
+                        rx="3"
+                    />
+                {/each}
                 <!-- Voies : la voie parcourue en orange, les voies de service en pointillé. -->
                 {#each paths as p (p.track.id)}
                     {#if nearSpan(p.points[0][0], p.points.at(-1)[0])}
@@ -1001,6 +1060,15 @@
     .axis {
         stroke: var(--vff-text);
         stroke-width: 2.4;
+    }
+    /* Quai : un aplat discret sous les voies ; placé à peu près (sans PK déclaré), en pointillé. */
+    .platform {
+        fill: var(--tl-platform);
+        stroke: var(--tl-platform-edge);
+        stroke-width: 1;
+    }
+    .platform.approx {
+        stroke-dasharray: 3 3;
     }
     .ref,
     .sig-ref,

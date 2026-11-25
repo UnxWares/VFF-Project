@@ -49,8 +49,16 @@
      * Grandes gares : les faisceaux et voies de service d'un point d'exploitation sont repliés en un groupe
      * (« 23 voies de service ») que l'on déplie sur place (foldLayout).
      *
+     * Page des voies d'une gare (/stations/{slug}/voies) : `platforms` (bords de quai de la ligne, dessinés sous les
+     * voies), `stationSlug` (la gare de la page : pas de lien vers elle-même dans le tableau), `startPk` (le dessin
+     * s'ouvre centré sur ce PK quand la portion ne tient pas dans la largeur, comme la page d'une ligne ouverte depuis
+     * une gare ; la carte montre ce PK tant qu'aucun objet n'est choisi). `children` : contenu posé entre le
+     * tableau et le pied des sources (le tableau des quais d'une gare).
+     *
      * @type {{ layout?: any, loader?: import('$lib/trackLayoutLoader.svelte.js').TrackLayoutLoader|null,
-     *   slug: string|null, lineName: string, full?: boolean, axisMode?: 'line'|'route' }}
+     *   slug: string|null, lineName: string, full?: boolean, axisMode?: 'line'|'route',
+     *   platforms?: Array<any>, stationSlug?: string|null, startPk?: number|null,
+     *   children?: import('svelte').Snippet }}
      */
     let {
         layout = null,
@@ -59,6 +67,10 @@
         lineName,
         full = false,
         axisMode = 'line',
+        platforms = [],
+        stationSlug = null,
+        startPk = null,
+        children,
     } = $props();
 
     const t = (k, o) => String($i18n.t(k, o));
@@ -76,7 +88,9 @@
 
     // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
     const expanded = new SvelteSet();
-    const folded = $derived(foldLayout(data, zonesAxis.zones, expanded));
+    // Page des voies d'une gare : les voies à quai restent dessinées, même dans une très grande gare.
+    const platformTracks = $derived(new Set(platforms.map((p) => p.track).filter(Boolean)));
+    const folded = $derived(foldLayout(data, zonesAxis.zones, expanded, platformTracks));
     const drawnZones = $derived(detailZones(folded.data));
     const dense = $derived(objectPks(folded.data));
     const axisAt = (z) => axisFromZones(drawnZones, data.pk, AXIS, dense, z);
@@ -241,12 +255,19 @@
     }
 
     // Ligne courte : à l'ouverture, le dessin remplit la largeur (jamais en dessous de 100 %).
-    // Une longue ligne s'ouvre sur son premier point d'exploitation (pas sur un début de tracé sans rien).
+    // Une longue ligne s'ouvre sur son premier point d'exploitation (pas sur un début de tracé sans rien), ou sur le
+    // PK demandé (`startPk` : lien depuis la page des voies d'une gare), au zoom 100 %.
     let fitted = false;
     $effect(() => {
         if (fitted || !diagram) return;
         fitted = true;
+        const at = untrack(() => startPk);
         const f = fitNow();
+        if (at !== null && Number.isFinite(at) && f <= 1) {
+            anchor = at;
+            tick().then(() => diagram?.centerOn(at, false));
+            return;
+        }
         if (f > 1) zoom = Math.min(ZOOM_MAX, f);
         else {
             const first = untrack(() => data.operational_points[0]?.pk_m);
@@ -331,18 +352,19 @@
                   ? t('tracks.parts.loading')
                   : '',
     );
-    const LEGEND = [
+    const LEGEND = $derived([
         'travelled',
         'main',
         'service',
         'derived',
+        ...(platforms.length ? ['platform'] : []),
         'switch',
         'crossing',
         'buffer_stop',
         'signal',
         'level_crossing',
         'zone',
-    ];
+    ]);
     const legendKey = (k) => (k === 'buffer_stop' ? 'buffer' : k);
 </script>
 
@@ -449,7 +471,7 @@
         <div class="body">
             <div class="main" id="tl-panel" role="tabpanel" aria-labelledby="tl-tab-{tab}">
                 {#if tab === 'map'}
-                    <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? null} />
+                    <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? startPk ?? null} />
                 {:else}
                     {#if tab === 'schema' && !detailed}
                         <p class="no-schema">{t('tracks.no_schema')}</p>
@@ -474,6 +496,7 @@
                         {t}
                         onpick={fromDiagram}
                         {onkey}
+                        {platforms}
                     />
                     <p class="help" id="tl-help">{t('tracks.schema_help')}</p>
                 {/if}
@@ -520,10 +543,13 @@
                     {t}
                     {tracksById}
                     {axisMode}
+                    {stationSlug}
                     onselect={fromTable}
                 />
             </div>
         </div>
+
+        {@render children?.()}
 
         <footer class="sources">
             <p>
@@ -570,6 +596,8 @@
     }
     .track-layout {
         --tl-zone: color-mix(in srgb, var(--vff-bg-muted) 75%, transparent);
+        --tl-platform: color-mix(in srgb, var(--vff-text) 16%, var(--vff-bg-elevated));
+        --tl-platform-edge: color-mix(in srgb, var(--vff-text) 45%, transparent);
         --tl-table-h: 28rem;
         display: flex;
         flex-direction: column;

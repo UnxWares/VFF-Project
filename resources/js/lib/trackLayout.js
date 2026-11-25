@@ -499,16 +499,18 @@ export function compactLanes(tracks) {
  * faisceau, de service ou d'embranchement, ces voies (et les liaisons qui y mènent) deviennent un groupe dessiné
  * comme une seule rangée (« 23 voies de service »), de leur côté des voies principales ; les aiguillages qui y
  * mènent pointent vers le groupe, ceux qui restent dedans, leurs signaux et leurs heurtoirs ne sont pas dessinés (le
- * tableau de parcours les garde tous). Les zones dont la clé est dans `expanded` restent dépliées. Puis les rangées
- * sont resserrées (compactLanes).
+ * tableau de parcours les garde tous). Les zones dont la clé est dans `expanded` restent dépliées. Les voies de
+ * `keep` ne sont jamais repliées (page des voies d'une gare : les voies à quai). Puis les rangées sont resserrées
+ * (compactLanes).
  *
  * @param {ReturnType<typeof normalize>} data
  * @param {Array<{ from_m: number, to_m: number, ops: string[] }>} zones zones de l'axe (buildAxis)
  * @param {Set<string>} [expanded] clés des zones dépliées (zoneKey)
+ * @param {Set<string>} [keep] identifiants des voies toujours dessinées
  * @returns {{ data: ReturnType<typeof normalize>, groups: Array<{ id: string, key: string, zone: number,
  *   op: any, side: -1|1, count: number, pk_from_m: number, pk_to_m: number, lane: number, expanded: boolean }> }}
  */
-export function foldLayout(data, zones, expanded = new Set()) {
+export function foldLayout(data, zones, expanded = new Set(), keep = new Set()) {
     const opsById = new Map(data.operational_points.map((o) => [o.id, o]));
     const zoneOf = (t) => zoneIndexAt(zones, (t.pk_from_m + t.pk_to_m) / 2);
     const inZone = (t, z) => t.pk_from_m >= zones[z].from_m - 1 && t.pk_to_m <= zones[z].to_m + 1;
@@ -558,7 +560,7 @@ export function foldLayout(data, zones, expanded = new Set()) {
                 t.pk_to_m > zones[z].from_m,
         );
         for (const side of /** @type {const} */ ([-1, 1])) {
-            const mine = list.filter((t) => onSide(t, side));
+            const mine = list.filter((t) => onSide(t, side) && !keep.has(t.id));
             // Par étapes, tant que le côté dépasse ROW_BUDGET rangées : voies de service, puis autres voies
             // principales, puis voies de gare (une très grande gare n'en garde que ses voies 1 et 2).
             const stages = [

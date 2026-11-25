@@ -244,18 +244,35 @@ final class TrackLayout
         foreach (self::COUNTED as $family) {
             $out['counts'][$family] = count($out[$family]);
         }
+
+        return self::onlyKinds($out, $kinds);
+    }
+
+    /**
+     * Réponse réduite aux familles demandées : les autres listes sont vidées, `counts` et `coverage` restent (un aperçu
+     * dit ce que la portion a sans le transférer).
+     *
+     * @param  array<string, mixed>  $layout  réponse de forLine
+     * @param  list<string>|null  $kinds  familles à servir (null : toutes)
+     * @return array<string, mixed>
+     */
+    public static function onlyKinds(array $layout, ?array $kinds): array
+    {
+        if ($kinds === null) {
+            return $layout;
+        }
         foreach (['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'] as $family) {
             if (! in_array($family, $kinds, true)) {
-                $out[$family] = [];
+                $layout[$family] = [];
             }
         }
         foreach (['speeds', 'gradients'] as $family) {
             if (! in_array($family, $kinds, true)) {
-                $out['strip'][$family] = [];
+                $layout['strip'][$family] = [];
             }
         }
 
-        return $out;
+        return $layout;
     }
 
     /**

@@ -143,6 +143,14 @@ class PageQueryBudgetTest extends TestCase
         $this->assertSame(1, $count('GROUP BY p HAVING count(*) <> 2'), 'requête des terminus');
     }
 
+    public function test_station_track_layout_page_reads_only_the_station(): void
+    {
+        // Page des voies d'une gare (25/11) : l'identité de la gare seulement, le plan est lu par l'API à l'affichage.
+        $queries = $this->queriesOf('/stations/'.$this->origin->slug.'/voies');
+
+        $this->assertLessThanOrEqual(1, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+    }
+
     public function test_station_sheet_stays_within_its_query_budget(): void
     {
         $queries = $this->queriesOf('/stations/'.$this->origin->slug);

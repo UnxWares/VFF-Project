@@ -8,7 +8,8 @@
      * déclivité, PK de ligne, objet, provenance). C'est l'alternative textuelle du schéma : chaque objet dessiné
      * y figure. Le bouton de l'objet centre le schéma sur lui ; un clic dans le schéma choisit la ligne la plus
      * proche, que le tableau fait défiler dans son propre cadre (jamais la page). Un point d'exploitation rattaché à
-     * une gare de VFF (`station_slug`) a un lien vers sa fiche.
+     * une gare de VFF (`station_slug`) a un lien vers sa fiche et vers ses voies (/stations/{slug}/voies), sauf la
+     * gare de la page (`stationSlug`, page des voies d'une gare).
      *
      * `axisMode` : `route` sur un livret de parcours (sens des signaux dit par rapport au sens de marche, colonne des
      * kilomètres parcourus : plusieurs lignes bout à bout). Sur une ligne, le PK de ligne suffit : la colonne des
@@ -17,9 +18,19 @@
      * @type {{
      *   rows: Array<any>, selected?: string|null, lang: string, t: (key: string, options?: object) => string,
      *   onselect: (row: any) => void, tracksById: Map<string, any>, axisMode?: 'line'|'route',
+     *   stationSlug?: string|null,
      * }}
      */
-    let { rows, selected = null, lang, t, onselect, tracksById, axisMode = 'line' } = $props();
+    let {
+        rows,
+        selected = null,
+        lang,
+        t,
+        onselect,
+        tracksById,
+        axisMode = 'line',
+        stationSlug = null,
+    } = $props();
 
     /** @type {HTMLDivElement|undefined} */
     let wrap = $state();
@@ -131,15 +142,26 @@
                                     {#if detail(row)}<span class="detail">{detail(row)}</span>{/if}
                                 </span>
                             </button>
-                            {#if row.kind === 'op' && row.item.station_slug}
+                            {#if row.kind === 'op' && row.item.station_slug && row.item.station_slug !== stationSlug}
                                 <!-- Sous le nom de la gare : le nom garde toute la largeur de la colonne. -->
-                                <a
-                                    class="vff-link sheet"
-                                    href="/stations/{encodeURIComponent(row.item.station_slug)}"
-                                    aria-label={t('tracks.table.station_label', {
-                                        name: row.item.name,
-                                    })}>{t('tracks.table.station')}</a
-                                >
+                                <span class="sheet">
+                                    <a
+                                        class="vff-link"
+                                        href="/stations/{encodeURIComponent(row.item.station_slug)}"
+                                        aria-label={t('tracks.table.station_label', {
+                                            name: row.item.name,
+                                        })}>{t('tracks.table.station')}</a
+                                    >
+                                    <a
+                                        class="vff-link"
+                                        href="/stations/{encodeURIComponent(
+                                            row.item.station_slug,
+                                        )}/voies"
+                                        aria-label={t('tracks.table.station_tracks_label', {
+                                            name: row.item.name,
+                                        })}>{t('tracks.table.station_tracks')}</a
+                                    >
+                                </span>
                             {/if}
                         </div>
                     </th>
@@ -226,6 +248,9 @@
     }
     /* Aligné sur le libellé, sous le pictogramme et sa marge (22 + 10 + 8 px). */
     .sheet {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 16px;
         margin: 0 0 4px 40px;
         font-size: var(--vff-fs-xs);
     }

@@ -540,6 +540,7 @@ return [
         'eras' => 'Jahrzehnte',
         'history' => 'Chronik',
         'lines' => 'Strecken',
+        'tracks' => 'Gleise',
         'location' => 'Lage',
         'sources' => 'Quellen',
         'gallery' => 'Fotos',

@@ -58,6 +58,7 @@ use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StationHeritageController;
 use App\Http\Controllers\Api\StationTimetableController;
+use App\Http\Controllers\Api\StationTrackLayoutController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
 use App\Http\Controllers\Api\TouristRailwayController;
@@ -154,6 +155,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations/{station:slug}/heritage', [StationHeritageController::class, 'index'])->name('api.stations.heritage');
     // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.
     Route::get('/v1/stations/{station:slug}/audit', [StationAuditController::class, 'show'])->name('api.stations.audit');
+    // Voies de la gare, ligne par ligne, et ses quais (RINF de l'ERA, OSM, SNCF Réseau) : App\Services\TrackLayout\StationTrackLayout.
+    Route::get('/v1/stations/{station:slug}/track-layout', [StationTrackLayoutController::class, 'show'])->name('api.stations.track-layout');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
     Route::get('/v1/sources/{provider}', [SourceController::class, 'show'])->where('provider', '[a-z0-9_-]{1,64}')->name('api.sources.show');
     // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).

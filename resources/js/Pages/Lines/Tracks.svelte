@@ -12,11 +12,12 @@
      * Schéma des voies d'une ligne en plein écran (`/lines/{slug}/voies`, LineTrackLayoutPageController) : le
      * dessin sur toute la largeur, le tableau de parcours à droite quand la place le permet. Les données sont
      * lues par l'API (GET /api/v1/lines/{line}/track-layout), comme la section de la fiche : la page elle-même ne
-     * porte que l'identité de la ligne.
+     * porte que l'identité de la ligne. `start_pk` (`?pk=`, mètres) : le schéma s'ouvre centré sur ce PK (lien
+     * « Schéma de toute la ligne » de la page des voies d'une gare).
      *
-     * @type {{ line: { slug: string, code: string|null, name: string, name_lang?: string|null } }}
+     * @type {{ line: { slug: string, code: string|null, name: string, name_lang?: string|null }, start_pk?: number|null }}
      */
-    let { line } = $props();
+    let { line, start_pk = null } = $props();
 
     const t = (k, o) => String($i18n.t(k, o));
     const lang = $derived($i18n.language ?? 'fr');
@@ -94,7 +95,13 @@
                     <p>{t('tracks.empty_detail')}</p>
                 </div>
             {:else}
-                <TrackLayout {loader} slug={line.slug} lineName={line.name} full />
+                <TrackLayout
+                    {loader}
+                    slug={line.slug}
+                    lineName={line.name}
+                    startPk={start_pk}
+                    full
+                />
             {/if}
         </section>
     </main>

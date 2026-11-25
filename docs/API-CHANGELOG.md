@@ -25,6 +25,20 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   `LineRinfParameterValue`, `LineRinfPlatforms`, `LineRinfPlatformSummary`, `LineRinfPlatform`, `LineRinfPlatformStation`,
   `LineRinfPlatformRinf`, `LineRinfPlatformSncf`. Mesure du 25/11/2026 sur la France : électrification d'accord sur 99,7 % de
   la longueur comparable, vitesse 92,9 %, contrôle de vitesse 85,1 %, GSM-R 97,8 %.
+- Voies d'une gare (REST `GET /api/v1/stations/{station}/track-layout`, GraphQL `Station.track_layout`, MCP
+  `station_track_layout`) : pour chaque ligne qui passe par la gare et dont les voies sont décrites autour d'elle, le
+  schéma des voies de la ligne (même contrat et mêmes règles que `GET /api/v1/lines/{line}/track-layout`) sur une fenêtre
+  autour de la gare (`lines[].window`, `station_pk_m`, `station_pk_source`, `track_layout`), la ligne qui a le plus de voies
+  d'abord ; les bords de quai de la gare (`platforms[]` : `ref`, `track_ref`, `line_code`, `track` = voie bordée dans le
+  schéma, `length_m` et `height_mm` du RINF, `pk_from_m` et `pk_to_m` de la « Liste des quais » de SNCF Réseau ou placés
+  autour du PK de la gare, `source`, `pk_source`, `precision`) ; `operational_points[]` (UOPID du RINF rattachés à la gare),
+  `sources[]`, `counts`. Paramètres `line` (une ligne) et `kinds` (comme pour une ligne). GraphQL : types
+  `StationTrackLayout`, `StationTrackLayoutStation`, `StationTrackLayoutPoint`, `StationTrackLayoutLine`,
+  `StationTrackLayoutWindow`, `StationTrackPlatform`, `StationTrackLayoutCounts`. Paris-Austerlitz : lignes 570000 et
+  984000, 11 quais ; Poitiers : 8 bords de quai (4 quais centraux), hauteurs de 30 à 58 cm.
+- Page `/lines/{line}/voies` : `?pk=` (mètres) ouvre le schéma sur ce PK (lien « Schéma de toute la ligne » des voies
+  d'une gare).
+
 - Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, MCP `line_track_layout`) :
   `counts`, nombre d'objets de chaque famille sur la portion servie (`operational_points`, `tracks`, `switches`, `signals`,
   `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`
