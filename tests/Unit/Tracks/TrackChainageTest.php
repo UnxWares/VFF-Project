@@ -122,6 +122,34 @@ class TrackChainageTest extends TestCase
         $this->assertSame('approximate', $at['precision']);
     }
 
+    /**
+     * A part whose own anchor breaks with the PK of the part it touches keeps its anchor and takes only the direction
+     * of the PK from the touched part (a helix, a loop between them): the direction comes from the way the PK grows into
+     * the part, never from the sign of the break (review of 25/11/2026: a break of 70 km read backwards).
+     */
+    public function test_a_part_keeping_its_anchor_takes_the_direction_of_the_touched_part(): void
+    {
+        // A branch leaving the east end of the main part north-eastwards (1,118 m of branch every 1,000 m north), its own
+        // anchor 1,677 m along at PK 50,000.
+        $branch = [];
+        for ($m = 0; $m <= 2_000; $m += 500) {
+            [$lon, $lat] = self::at(10_000 + $m / 2, $m);
+            $branch[] = $lon;
+            $branch[] = $lat;
+        }
+        [$lon, $lat] = self::at(10_750, 1_500);
+        $own = ['lon' => $lon, 'lat' => $lat, 'pk_m' => 50_000, 'max_m' => 30.0, 'strong' => true];
+        foreach ([[110_000, 120_000, 50_000 - 1_118], [130_000, 120_000, 50_000 + 1_118]] as [$west, $east, $expected]) {
+            // PK growing eastward into the branch (110,000 to 120,000), then westward (130,000 to 120,000).
+            $chainage = new TrackChainage([self::line(0, 10_000), $branch], [self::anchor(0, $west, true), self::anchor(10_000, $east, true), $own]);
+            [$lon, $lat] = self::at(10_250, 500);
+            $at = $chainage->locate($lon, $lat);
+
+            $this->assertSame(1, $at['part']);
+            $this->assertEqualsWithDelta($expected, $at['pk_m'], 2, "main part from {$west} to {$east}");
+        }
+    }
+
     public function test_no_anchor_no_pk(): void
     {
         $chainage = new TrackChainage([self::line(0, 10_000)], [self::anchor(5_000, 5_000)]);

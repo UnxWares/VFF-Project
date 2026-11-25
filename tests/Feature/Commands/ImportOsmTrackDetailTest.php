@@ -127,6 +127,42 @@ class ImportOsmTrackDetailTest extends TestCase
         $this->assertGreaterThan(0, DB::table('osm_track_nodes')->where('kind', 'buffer_stop')->count());
     }
 
+    /**
+     * A PK carried by the switch in OpenStreetMap (railway:position:exact, kept when it agrees with the chainage within
+     * 300 m) never turns its facing direction: the toe is compared with the chainage PK of the node, located the same
+     * way (import of 24/11/2026: about 280 of the 10,048 `exact` switches faced the wrong way once the two PKs differed
+     * by more than the 15 m of the toe point).
+     */
+    public function test_a_pk_carried_by_a_switch_does_not_turn_its_facing_direction(): void
+    {
+        $this->sandboxStorage();
+        $this->import();
+        // West switch of the station (points towards decreasing PKs) and east switch (towards increasing PKs).
+        $switches = ['n61104087 v7 dV c0 t2022-06-03T06:39:56Z i0 u Trailway=switch,' => 61104087,
+            'n765053750 v3 dV c0 t2022-06-03T06:39:56Z i0 u Trailway=switch,' => 765053750];
+        $before = DB::table('osm_track_nodes')->whereIn('osm_node_id', $switches)->get(['osm_node_id', 'pk_m', 'direction'])->keyBy('osm_node_id');
+        $this->assertSame(['up', 'down'], [$before[61104087]->direction, $before[765053750]->direction]);
+
+        foreach ([50, -50] as $offset) {
+            // The running track shared with another line (ref=672000;672998, a code VFF does not know): the PKs carried
+            // by its nodes are not anchors of the chainage (a way of two lines may carry the PK of the other one), but a PK
+            // that agrees with the chainage within 300 m is still taken as the exact PK of the switch.
+            $opl = str_replace('ref=672000,', 'ref=672000;672998,', $this->fixture('Osm/track-detail-luzenac.opl'));
+            foreach ($switches as $line => $node) {
+                $opl = str_replace($line, $line.'railway:position:exact='.number_format(((int) $before[$node]->pk_m + $offset) / 1000, 3, '.', '').',', $opl);
+            }
+            $file = storage_path('app/track-detail-luzenac-pk-'.($offset > 0 ? 'plus' : 'minus').'.opl');
+            file_put_contents($file, $opl);
+            $this->assertSame(0, $this->artisan('vff:import-osm-track-detail', ['--file' => $file])->run());
+
+            foreach ($switches as $node) {
+                $sw = DB::table('osm_track_nodes')->where('osm_node_id', $node)->first();
+                $this->assertSame([(int) $before[$node]->pk_m + $offset, 'exact'], [(int) $sw->pk_m, $sw->pk_precision]);
+                $this->assertSame($before[$node]->direction, $sw->direction, "switch {$node}, OSM PK {$offset} m from the chainage");
+            }
+        }
+    }
+
     public function test_reimport_replaces_the_rows_of_the_line(): void
     {
         $this->import();
