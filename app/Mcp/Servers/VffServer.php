@@ -28,6 +28,7 @@ use App\Mcp\Tools\LineGreenwaysTool;
 use App\Mcp\Tools\LineInfrastructureTool;
 use App\Mcp\Tools\LineMaterialsTool;
 use App\Mcp\Tools\LineProfileTool;
+use App\Mcp\Tools\LineRinfParametersTool;
 use App\Mcp\Tools\LineSheetTool;
 use App\Mcp\Tools\LineSpeedsTool;
 use App\Mcp\Tools\LineStopsTool;
@@ -137,6 +138,7 @@ class VffServer extends Server
         LineGreenwaysTool::class,
         LineInfrastructureTool::class,
         LineTrackLayoutTool::class,
+        LineRinfParametersTool::class,
         LineStructuresTool::class,
         LineArchivesTool::class,
         LineArchiveRecordsTool::class,

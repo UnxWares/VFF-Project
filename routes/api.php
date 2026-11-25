@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
+use App\Http\Controllers\Api\LineRinfParametersController;
 use App\Http\Controllers\Api\LineSchematicController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineSpeedController;
@@ -183,6 +184,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
     // Schéma des voies (voies, aiguillages, signaux, points d'exploitation ; RINF de l'ERA, OSM, VFF) : App\Services\TrackLayout\TrackLayout.
     Route::get('/v1/lines/{line:slug}/track-layout', [LineTrackLayoutController::class, 'show'])->name('api.lines.track-layout');
+    // Paramètres du RINF (électrification, vitesse, contrôle de vitesse, GSM-R, gabarits, charge, quais) comparés aux autres sources : App\Services\Rinf\RinfParameterComparison.
+    Route::get('/v1/lines/{line:slug}/rinf-parameters', [LineRinfParametersController::class, 'show'])->name('api.lines.rinf-parameters');
     // Schéma de ligne par PK (gares, bifurcations, PN, ouvrages, voies, courant, signalisation, vitesse) : App\Services\Lines\LineSchematic.
     Route::get('/v1/lines/{line:slug}/schematic', [LineSchematicController::class, 'show'])->name('api.lines.schematic');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');

@@ -9,6 +9,18 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Paramètres RINF d'une ligne, comparés (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `Line.rinf_parameters`,
+  MCP `line_rinf_parameters`) : ce que le RINF déclare pour chaque voie de chaque section, par PK, côte à côte avec l'autre
+  source de VFF (SNCF Réseau) et l'accord ou le désaccord des deux, sans rien remplacer. `parameters[]` : `electrification`
+  (`25000V-50Hz`, `1500V-DC`, `none`), `max_speed`, `train_protection` (KVB, TVM 300, TVM 430, ETCS L1, ETCS L2 confrontés ;
+  tous les systèmes déclarés dans `values`), `radio` (`gsm-r`), `gauging`, `load_capability`, `track_gauge` (les trois derniers
+  sans autre source) ; chaque portion porte `status` (`agree`, `disagree`, `rinf_only`, `vff_only`), `rinf`, `vff` et
+  `rg_troncon` ; `summary` en mètres par statut. `platforms` : quais du RINF (longueur, hauteur) rapprochés des quais de SNCF
+  Réseau gare par gare. `sections[]` : sections du RINF. GraphQL : types `LineRinfParameters`, `LineRinfSection`,
+  `LineRinfOperationalPoint`, `LineRinfParameter`, `LineRinfParameterSummary`, `LineRinfParameterPortion`,
+  `LineRinfParameterValue`, `LineRinfPlatforms`, `LineRinfPlatformSummary`, `LineRinfPlatform`, `LineRinfPlatformStation`,
+  `LineRinfPlatformRinf`, `LineRinfPlatformSncf`. Mesure du 25/11/2026 sur la France : électrification d'accord sur 99,7 % de
+  la longueur comparable, vitesse 92,9 %, contrôle de vitesse 85,1 %, GSM-R 97,8 %.
 - Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, MCP `line_track_layout`) :
   `counts`, nombre d'objets de chaque famille sur la portion servie (`operational_points`, `tracks`, `switches`, `signals`,
   `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`

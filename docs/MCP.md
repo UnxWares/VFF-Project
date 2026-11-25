@@ -152,6 +152,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_infrastructure` | Nombre de voies et liaison radio sol-train (GSM-R…) d'une ligne par portion de PK, aujourd'hui : SNCF Réseau, ODbL. |
 | `line_track_layout` | Schéma des voies d'une ligne aujourd'hui (voies numérotées, voies de service, liaisons, aiguillages, signaux, points d'exploitation, vitesses, déclivités) : RINF de l'ERA (EUPL 1.2), OpenStreetMap (ODbL), VFF. |
+| `line_rinf_parameters` | Paramètres RINF d'une ligne par PK (électrification, vitesse, contrôle de vitesse et ETCS, GSM-R, gabarits, charge, écartement, quais), côte à côte avec SNCF Réseau : accord ou désaccord (RINF EUPL 1.2, SNCF Réseau ODbL). |
 | `line_structures` | Tunnels, viaducs et grands ponts d'une ligne par PK, lignes déposées comprises : longueur, dates, protection, image (IGN BD TOPO, Wikidata). |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
@@ -1038,6 +1039,37 @@ European Union Agency for Railways » (EUPL 1.2), « © contributeurs OpenStreet
 {"line": "rfn-579000", "from_pk_m": 17000, "to_pk_m": 18000}
 ```
 
+### `line_rinf_parameters` : paramètres RINF d'une ligne, comparés
+
+Même contenu que `GET /api/v1/lines/{line}/rinf-parameters` (service `RinfParameterComparison`). Ce que le RINF (registre de
+l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, déclaré par SNCF Réseau et les autres
+gestionnaires, lu par `vff:import-rinf`) déclare pour chaque voie de chaque section de la ligne, par PK, côte à côte avec
+l'autre source de VFF (SNCF Réseau) et l'accord ou le désaccord des deux. Aucune donnée n'est remplacée : quand les sources
+diffèrent, donner les deux valeurs et leur source, sans trancher. Réseau d'aujourd'hui.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `parameters` | liste | non | Paramètres : `electrification`, `max_speed`, `train_protection`, `radio`, `gauging`, `load_capability`, `track_gauge` (par défaut tous). |
+| `disagreements_only` | booléen | non | Ne garder que les portions et les quais en désaccord (`summary` reste complet). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `sections[]` (sections du RINF : `national_line`, `rg_troncon`, PK, points d'exploitation `from` et `to`,
+voies), `parameters[]` (`key`, `compared_with` : `sncf` ou null, `summary` en mètres : `rinf_m`, `vff_m`, `agree_m`,
+`disagree_m`, `rinf_only_m`, `vff_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `rinf` et `vff`, chacun avec `key`,
+`values`, `voltage_v`, `frequency_hz`, `speed_kmh`, `tracks`, `source_label`), `platforms` (`summary`, `items[]` : gare, point
+d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_mm`, `vff` avec `label`, `length_m`, PK),
+`sources[]`, le bloc d'attribution et `vff_url`. Règles : la vitesse d'une section du RINF est comparée à la plus forte
+vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
+déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
+Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en
+a ; quais d'accord à 5 m près. Raccourcissement : `sections`, `platforms.items`, `parameters.N.portions` (`truncated`).
+Mention à reproduire : « RINF data © European Union Agency for Railways » (EUPL 1.2), SNCF Réseau (ODbL).
+
+```json
+{"line": "566000", "parameters": ["max_speed", "train_protection"], "disagreements_only": true}
+```
+
 ### `line_greenways` : voies vertes d'une ancienne ligne
 
 Même contenu que `GET /api/v1/lines/{line}/greenways` (service `LineGreenways`). Voies vertes et chemins cyclables
@@ -1919,6 +1951,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
 | « La ligne de Beillant à Angoulême est-elle à voie unique, et équipée du GSM-R ? » | `line_infrastructure {"line": "rfn-579000"}` : `tracks.summary`, `radio.systems` ; citer « SNCF Réseau » |
+| « Le RINF et SNCF Réseau disent-ils la même vitesse sur la LGV SEA ? » | `line_rinf_parameters {"line": "566000", "parameters": ["max_speed"], "disagreements_only": true}` : donner les deux valeurs et leur source ; citer « RINF data © European Union Agency for Railways » et « SNCF Réseau » |
 | « Combien de voies et de voies de service à Cognac ? » | `line_track_layout {"line": "rfn-579000", "from_pk_m": 16500, "to_pk_m": 18000}` : `tracks` (kind, ref, precision) ; citer « RINF data © European Union Agency for Railways » |
 | « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |

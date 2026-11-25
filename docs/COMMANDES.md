@@ -330,6 +330,21 @@ mention « RINF data © European Union Agency for Railways ».
 | `--cache-dir=` | Dossier du cache (défaut `storage/app/data/rinf`). |
 | `--csv=` | Rapport par code de ligne (sections, km, voies, points, gares). |
 
+### `vff:compare-rinf-parameters`
+
+Compare, ligne par ligne et par PK, les paramètres déclarés au RINF (`vff:import-rinf`) à l'autre source de VFF, sans rien
+remplacer (`App\Services\Rinf\RinfParameterComparison`, même calcul que `GET /api/v1/lines/{line}/rinf-parameters`) :
+électrification (jeu des lignes électrifiées de SNCF Réseau), vitesse maximale (vitesses de SNCF Réseau, plus forte vitesse sur
+chaque section du RINF), contrôle de vitesse (signalisation de SNCF Réseau : KVB, TVM, ETCS), GSM-R (radio sol-train de SNCF
+Réseau), quais (quais de SNCF Réseau, même gare et même nom, longueur à 5 m près). Affiche les kilomètres d'accord, de
+désaccord et d'absence de chaque côté, le contrôle de vitesse système par système et les plus longs désaccords. Lecture
+seule.
+
+| Option | Effet |
+|:-|:-|
+| `--line=` | Une seule ligne (code à 6 chiffres). |
+| `--csv=` | Une ligne par portion comparée (paramètre, tronçon, PK, statut, valeurs des deux côtés) ; quais dans `<nom>-quais.csv`. |
+
 ### `vff:import-station-timetables`
 
 Calcule la desserte d'un jour ouvrable type des gares et des lignes d'après les horaires ouverts : GTFS SNCF (TER, Intercités, TGV INOUI,
