@@ -239,8 +239,8 @@ Renvoie `line` :
 - `signalling` : `block_systems_km` (cantonnement : `BAL`, `BAPR-VB`, `CT-VU`, `TVM-430`,
   `ETCS_L2`…, avec km ; une tranche où l'ETCS niveau 2 et la TVM sont installés ensemble, comme
   sur la LGV Est, la LGV Bretagne - Pays de la Loire ou la LGV SEA, compte pour chacun des deux),
-  `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source` (`sncf`, SNCF Réseau
-  Open Data) ; `history` : mises en service datées lues dans l'article Wikipédia de la ligne (voir
+  `train_protection_km` (contrôle de vitesse, ex. `KVB`, compté entre les PK du KVB seulement), `kvb`,
+  `source` (`sncf`, SNCF Réseau Open Data) ; `history` : mises en service datées lues dans l'article Wikipédia de la ligne (voir
   ci-dessous), liste vide si l'article n'en date aucune ;
 - `facts` : faits encyclopédiques (`key`, valeur `km`/`kmh`/`mm`/`n`/`year`/`list`, `source`
   `vff`/`sncf`/`wikidata`, `item` quand l'élément Wikidata ne décrit qu'une partie de la ligne,
@@ -1064,14 +1064,17 @@ diffèrent, donner les deux valeurs et leur source, sans trancher. Réseau d'auj
 
 Renvoie `line`, `sections[]` (sections du RINF : `national_line`, `rg_troncon`, PK, points d'exploitation `from` et `to`,
 voies), `parameters[]` (`key`, `compared_with` : `sncf` ou null, `summary` en mètres : `rinf_m`, `vff_m`, `agree_m`,
-`disagree_m`, `rinf_only_m`, `vff_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `rinf` et `vff`, chacun avec `key`,
+`disagree_m`, `rinf_only_m`, `vff_only_m`, `kvb_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `kvb_only`, `rinf` et
+`vff`, chacun avec `key`,
 `values`, `voltage_v`, `frequency_hz`, `speed_kmh`, `tracks`, `source_label`), `platforms` (`summary`, `items[]` : gare, point
 d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_mm`, `vff` avec `label`, `length_m`, PK),
 `sources[]`, le bloc d'attribution et `vff_url`. Règles : électrification, vitesse, contrôle de vitesse et radio sont
 comparés tronçon par tronçon (`rg_troncon`, deux tronçons d'une ligne pouvant avoir des PK communs) quand les tronçons des
 deux sources se correspondent, sur toute la ligne sinon (`rg_troncon` nul) ; la vitesse d'une section du RINF est comparée à la plus forte
 vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
-déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
+déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non : un désaccord dû au seul KVB sur une portion
+à TVM ou ETCS porte `kvb_only` vrai et sa longueur est dans `summary.kvb_only_m` ; la fiche ligne ne le compte pas comme
+un désaccord, le dire ainsi) ; une portion d'une ligne décrite par SNCF
 Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en
 a (« Voie 1 BIS », « Voie 2 ter », « Voie 1 SP de … » n'en sont pas) ; quais d'accord à 5 m près, `length_unknown` quand une
 des deux sources ne donne pas la longueur. Raccourcissement : `sections`, `platforms.items`, `parameters.N.portions` (`truncated`).
@@ -1090,8 +1093,10 @@ le schéma des voies de la ligne (`line_track_layout`, mêmes sources et mêmes 
 ses voies propres (voies de service d'OpenStreetMap rattachées à la gare, voies du point d'exploitation au RINF sur leur
 longueur déclarée) et son PK, élargies de 200 m de chaque côté, entre 500 m et 2 500 m du PK. Une ligne fermée du passé
 n'a pas de bloc. Les bords de quai : longueur utile et hauteur au-dessus du rail du RINF, PK de la « Liste des quais » de
-SNCF Réseau pour la même ligne et la même voie (`pk_source` `sncf`, `precision` `exact`), sinon placés autour du PK de la
-gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur voie n'est pas dessinée.
+SNCF Réseau pour la même ligne et la même voie, le quai de même nom d'abord (`pk_source` `sncf`, `precision` `exact`),
+sinon placés autour du PK de la gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur
+voie n'est pas dessinée. Une voie que le RINF et SNCF Réseau nomment autrement sur un quai de même nom est la même voie
+(Lyon-Part-Dieu : A du RINF est V2BIS) ; un quai est rangé sous la ligne qui dessine sa voie.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|

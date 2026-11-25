@@ -32,7 +32,10 @@ class LineRinfParametersController extends Controller
      * - `train_protection` : contrôle de vitesse et protection hérités, niveau ETCS ; autre source : signalisation de
      *   SNCF Réseau (`GET /lines/{line}/signalling`). `key` ne retient que les systèmes que les deux savent nommer
      *   (`KVB`, le KVBP compté comme KVB, `TVM 300`, `TVM 430`, `ETCS L1`, `ETCS L2`, joints par « + », `none` sans
-     *   aucun) ; `values` donne tous les systèmes déclarés (Crocodile, DAAT, KCVB, KCVP…) ;
+     *   aucun) ; `values` donne tous les systèmes déclarés (Crocodile, DAAT, KCVB, KCVP…). Une portion `disagree` dont
+     *   les deux clés ne diffèrent que par le KVB, là où l'une a la TVM ou l'ETCS, porte `kvb_only` vrai : le RINF
+     *   déclare le KVB sur les voies de LGV, le jeu KVB de SNCF Réseau non ; la fiche ligne de VFF ne compte pas cet écart
+     *   comme un désaccord (`summary.kvb_only_m`, compris dans `disagree_m`) ;
      * - `radio` : `gsm-r` ou `none` ; autre source : radio sol-train de SNCF Réseau ;
      * - `gauging` (gabarits : `GB1`, `FR-3.3`, `GI2`…), `load_capability` (catégorie de ligne EN 15528 dans `key`,
      *   classe nationale du gestionnaire telle quelle dans `values`), `track_gauge` (écartement en mm) : sans autre
@@ -47,8 +50,8 @@ class LineRinfParametersController extends Controller
      * Réseau (suffixe « -2 » de la ligne nationale du RINF ; deux tronçons peuvent avoir des PK communs), nul pour
      * une comparaison faite sur toute la ligne (électrification, vitesses, signalisation, radio, quand les tronçons
      * des deux sources ne se correspondent pas ; signalisation aussi tant que la tranche de SNCF Réseau n'a pas son
-     * tronçon). `summary` : longueurs en mètres par statut,
-     * et longueurs décrites par chaque source.
+     * tronçon). `kvb_only` : vrai pour un désaccord de `train_protection` dû au seul KVB sur une portion à TVM ou ETCS,
+     * faux sinon. `summary` : longueurs en mètres par statut, longueurs décrites par chaque source et `kvb_only_m`.
      *
      * **Sections** (`sections[]`) : sections du RINF de la ligne (URI, ligne nationale, PK, points d'exploitation
      * de début et de fin, voies). **Quais** (`platforms`) : bords de quai du RINF (longueur, hauteur) des points
@@ -66,8 +69,8 @@ class LineRinfParametersController extends Controller
      *     sections: array<array{uri: string, national_line: string, rg_troncon: int, pk_start_m: int, pk_end_m: int, pk_start_label: string, pk_end_label: string, length_m: int,
      *         from: array{uopid: string, name: ?string}, to: array{uopid: string, name: ?string}, tracks: array<string>}>,
      *     parameters: array<array{key: string, compared_with: ?string,
-     *         summary: array{rinf_m: int, vff_m: int, agree_m: int, disagree_m: int, rinf_only_m: int, vff_only_m: int},
-     *         portions: array<array{rg_troncon: ?int, pk_start_m: int, pk_end_m: int, pk_start_label: string, pk_end_label: string, length_m: int, status: string,
+     *         summary: array{rinf_m: int, vff_m: int, agree_m: int, disagree_m: int, rinf_only_m: int, vff_only_m: int, kvb_only_m: int},
+     *         portions: array<array{rg_troncon: ?int, pk_start_m: int, pk_end_m: int, pk_start_label: string, pk_end_label: string, length_m: int, status: string, kvb_only: bool,
      *             rinf: ?array{key: string, values: array<string>, voltage_v: ?int, frequency_hz: ?float, speed_kmh: ?int, tracks: array<string>, source_label: ?string},
      *             vff: ?array{key: string, values: array<string>, voltage_v: ?int, frequency_hz: ?float, speed_kmh: ?int, tracks: array<string>, source_label: ?string}}>}>,
      *     platforms: array{
@@ -88,17 +91,17 @@ class LineRinfParametersController extends Controller
         ]],
         'parameters' => [[
             'key' => 'max_speed', 'compared_with' => 'sncf',
-            'summary' => ['rinf_m' => 64902, 'vff_m' => 62866, 'agree_m' => 62866, 'disagree_m' => 0, 'rinf_only_m' => 2036, 'vff_only_m' => 0],
+            'summary' => ['rinf_m' => 64902, 'vff_m' => 62866, 'agree_m' => 62866, 'disagree_m' => 0, 'rinf_only_m' => 2036, 'vff_only_m' => 0, 'kvb_only_m' => 0],
             'portions' => [[
-                'rg_troncon' => null, 'pk_start_m' => 17277, 'pk_end_m' => 44427, 'pk_start_label' => '17+277', 'pk_end_label' => '44+427', 'length_m' => 27150, 'status' => 'agree',
+                'rg_troncon' => null, 'pk_start_m' => 17277, 'pk_end_m' => 44427, 'pk_start_label' => '17+277', 'pk_end_label' => '44+427', 'length_m' => 27150, 'status' => 'agree', 'kvb_only' => false,
                 'rinf' => ['key' => '140', 'values' => ['140'], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => 140, 'tracks' => ['VU'], 'source_label' => null],
                 'vff' => ['key' => '140', 'values' => ['140', '110'], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => 140, 'tracks' => [], 'source_label' => null],
             ]],
         ], [
             'key' => 'train_protection', 'compared_with' => 'sncf',
-            'summary' => ['rinf_m' => 64902, 'vff_m' => 64919, 'agree_m' => 64902, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 17],
+            'summary' => ['rinf_m' => 64902, 'vff_m' => 64919, 'agree_m' => 64902, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 17, 'kvb_only_m' => 0],
             'portions' => [[
-                'rg_troncon' => null, 'pk_start_m' => -235, 'pk_end_m' => 64667, 'pk_start_label' => '-0+235', 'pk_end_label' => '64+667', 'length_m' => 64902, 'status' => 'agree',
+                'rg_troncon' => null, 'pk_start_m' => -235, 'pk_end_m' => 64667, 'pk_start_label' => '-0+235', 'pk_end_label' => '64+667', 'length_m' => 64902, 'status' => 'agree', 'kvb_only' => false,
                 'rinf' => ['key' => 'KVB', 'values' => ['KVB', 'DAAT', 'Crocodile'], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => null, 'tracks' => ['E', 'V1', 'V2', 'VU'], 'source_label' => null],
                 'vff' => ['key' => 'KVB', 'values' => ['KVB', 'BAL', 'BAPR-VB'], 'voltage_v' => null, 'frequency_hz' => null, 'speed_kmh' => null, 'tracks' => [], 'source_label' => 'Block automatique lumineux'],
             ]],

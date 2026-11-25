@@ -58,4 +58,49 @@ class PlatformNamesTest extends TestCase
 
         $this->assertSame(['track/bc31541c57' => ['1BIS'], 'track/2600ffa5c4' => ['2BIS']], $aliases);
     }
+
+    public function test_a_platform_of_the_same_name_in_both_sources_gives_the_rinf_track_the_sncf_number(): void
+    {
+        // Lyon-Part-Dieu (FR0000003887): RINF platform edges and SNCF Réseau's « Liste des quais » (2020-05-26, ODbL).
+        $rinf = fn (string $platform, string $track, string $number): array => ['ref' => $platform, 'track' => $track, 'number' => $number];
+        $sncf = fn (string $platform, string $code): array => ['ref' => $platform, 'number' => TrackLayout::trackNumber($code)];
+        $aliases = PlatformNames::acrossSources([
+            $rinf('Quai A/B', 'track/507fbe6191', 'A'), $rinf('Quai A/B', 'track/c4ed9dd537', 'B'),
+            $rinf('Quai B/C', 'track/c4ed9dd537', 'B'), $rinf('Quai B/C', 'track/e7603240e5', 'C'),
+            $rinf('Quai C/D', 'track/3b93843cd7', 'D'), $rinf('Quai C/D', 'track/e7603240e5', 'C'),
+            $rinf('Quai D/E', 'track/3b93843cd7', 'D'), $rinf('Quai D/E', 'track/2ac2ca7218', 'E'),
+            $rinf('Quai E/F', 'track/e9025c5db6', 'F'), $rinf('Quai E/F', 'track/2ac2ca7218', 'E'),
+            $rinf('Quai F/G', 'track/e9025c5db6', 'F'), $rinf('Quai F/G', 'track/3418973734', 'G'),
+            $rinf('Quai J/K', 'track/ffc6f42418', 'K'), $rinf('Quai J/K', 'track/ed800b98c7', 'J'),
+        ], [
+            $sncf('Quai A/B', 'V2BIS'), $sncf('Quai A/B', 'B'), $sncf('Quai B/C', 'B'), $sncf('Quai B/C', 'C'),
+            $sncf('Quai C/D', 'C'), $sncf('Quai C/D', 'V1BIS'), $sncf('Quai D/E', 'V1BIS'), $sncf('Quai D/E', 'E'),
+            $sncf('Quai E/F', 'E'), $sncf('Quai E/F', 'V2'),
+            // « Quai F/G » lists V2 alone, SNCF Réseau has no « Quai J/K »: no alias from them.
+            $sncf('Quai F/G', 'V2'),
+        ]);
+
+        $this->assertSame(['track/507fbe6191' => ['2BIS'], 'track/3b93843cd7' => ['1BIS'], 'track/e9025c5db6' => ['2']], $aliases);
+    }
+
+    public function test_no_alias_without_one_shared_track_or_with_two_answers(): void
+    {
+        $rinf = fn (string $platform, string $track, string $number): array => ['ref' => $platform, 'track' => $track, 'number' => $number];
+        $sncf = fn (string $platform, string $number): array => ['ref' => $platform, 'number' => $number];
+        // Bordeaux-St-Jean « Quai 1 »: three RINF tracks (1 of 570000, 1 of 655000, A), more SNCF Réseau numbers: nothing.
+        $this->assertSame([], PlatformNames::acrossSources(
+            [$rinf('Quai 1', 't/1a', '1'), $rinf('Quai 1', 't/1b', '1'), $rinf('Quai 1', 't/a', 'A')],
+            [$sncf('Quai 1', '1'), $sncf('Quai 1', '2'), $sncf('Quai 1', 'A')],
+        ));
+        // No track in common (both differ): no guess; both the same: nothing to learn.
+        $this->assertSame([], PlatformNames::acrossSources([$rinf('Quai 3/4', 't/3', '3'), $rinf('Quai 3/4', 't/4', '4')],
+            [$sncf('Quai 3/4', '13'), $sncf('Quai 3/4', '14')]));
+        $this->assertSame([], PlatformNames::acrossSources([$rinf('Quai 3/4', 't/3', '3'), $rinf('Quai 3/4', 't/4', '4')],
+            [$sncf('Quai 3/4', '3'), $sncf('Quai 3/4', '4')]));
+        // One track given two numbers by two platforms: none.
+        $this->assertSame([], PlatformNames::acrossSources(
+            [$rinf('Quai A/B', 't/a', 'A'), $rinf('Quai A/B', 't/b', 'B'), $rinf('Quai Z/A', 't/z', 'Z'), $rinf('Quai Z/A', 't/a', 'A')],
+            [$sncf('Quai A/B', '2BIS'), $sncf('Quai A/B', 'B'), $sncf('Quai Z/A', 'Z'), $sncf('Quai Z/A', '1')],
+        ));
+    }
 }

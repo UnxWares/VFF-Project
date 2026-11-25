@@ -359,21 +359,25 @@ class SncfImportCommandsTest extends TestCase
 
         $this->artisan('vff:import-sncf-signalling')
             ->expectsOutputToContain('✓ 4 tranches insérées')
-            ->expectsOutputToContain('✓ 1 portions KVB rapprochées')
-            ->expectsOutputToContain('État final : 4 tranches sur 2 lignes (1 avec KVB)')
+            ->expectsOutputToContain('✓ 1 tranches équipées KVB (1 découpées aux PK du KVB)')
+            ->expectsOutputToContain('État final : 6 tranches sur 2 lignes (1 avec KVB)')
             ->assertSuccessful();
 
         $ranges = DB::table('line_signalling')->orderBy('line_id')->orderBy('pk_start_m')
             ->get(['line_id', 'pk_start_m', 'pk_end_m', 'signalling', 'train_protection', 'kvb_equipped', 'note']);
-        $this->assertSame([$classic->id, 0, 10_000, 'BAL', ['KVB'], true], [$ranges[0]->line_id, $ranges[0]->pk_start_m, $ranges[0]->pk_end_m, $ranges[0]->signalling, json_decode($ranges[0]->train_protection, true), $ranges[0]->kvb_equipped]);
+        // BAL de 0+000 à 10+000, KVB de 2+000 à 4+000 seulement : la tranche est coupée aux PK du KVB.
+        $this->assertSame(
+            [[$classic->id, 0, 2_000, 'BAL', null, false], [$classic->id, 2_000, 4_000, 'BAL', ['KVB'], true], [$classic->id, 4_000, 10_000, 'BAL', null, false]],
+            $ranges->take(3)->map(fn ($r) => [$r->line_id, $r->pk_start_m, $r->pk_end_m, $r->signalling, json_decode((string) $r->train_protection, true), $r->kvb_equipped])->all());
         // PK inversés dans la source : remis dans l'ordre.
-        $this->assertSame([10_000, 17_250, 'BMVU', null, false], [$ranges[1]->pk_start_m, $ranges[1]->pk_end_m, $ranges[1]->signalling, $ranges[1]->train_protection, $ranges[1]->kvb_equipped]);
+        $this->assertSame([10_000, 17_250, 'BMVU', null, false], [$ranges[3]->pk_start_m, $ranges[3]->pk_end_m, $ranges[3]->signalling, $ranges[3]->train_protection, $ranges[3]->kvb_equipped]);
         // « Sans cantonnement » : une valeur à part, pas un trou ; ni protection ni KVB.
-        $this->assertSame([17_250, 18_000, 'NONE', null, false], [$ranges[2]->pk_start_m, $ranges[2]->pk_end_m, $ranges[2]->signalling, $ranges[2]->train_protection, $ranges[2]->kvb_equipped]);
+        $this->assertSame([17_250, 18_000, 'NONE', null, false], [$ranges[4]->pk_start_m, $ranges[4]->pk_end_m, $ranges[4]->signalling, $ranges[4]->train_protection, $ranges[4]->kvb_equipped]);
         $this->assertSame(['NONE'], json_decode((string) DB::table('line_signalling')->where('signalling', 'NONE')->value('signalling_systems'), true));
         // LGV : cabine TVM (protection intégrée), jamais de KVB.
-        $this->assertSame([$lgv->id, 'TVM-430', ['TVM-430'], false], [$ranges[3]->line_id, $ranges[3]->signalling, json_decode($ranges[3]->train_protection, true), $ranges[3]->kvb_equipped]);
-        $this->assertSame('Source : SNCF Open Data, mode-de-cantonnement-des-lignes', $ranges[0]->note);
+        $this->assertSame([$lgv->id, 'TVM-430', ['TVM-430'], false], [$ranges[5]->line_id, $ranges[5]->signalling, json_decode($ranges[5]->train_protection, true), $ranges[5]->kvb_equipped]);
+        $this->assertSame('Source : SNCF Open Data, mode-de-cantonnement-des-lignes ; découpée aux PK du KVB (SNCF Open Data, lignes-equipees-de-kvb)', $ranges[0]->note);
+        $this->assertSame('Source : SNCF Open Data, mode-de-cantonnement-des-lignes', $ranges[3]->note);
 
         $snapshot = $this->snapshot(['line_signalling'], except: ['id']);
         $this->artisan('vff:import-sncf-signalling')->assertSuccessful();
@@ -466,13 +470,40 @@ class SncfImportCommandsTest extends TestCase
             ->expectsOutputToContain('État final : 2 tranches sur 1 lignes (1 avec KVB)')->expectsOutputToContain('À blanc : rien écrit.')->assertSuccessful();
         $this->assertSame(0, DB::table('line_signalling')->count());
 
-        $this->artisan('vff:import-sncf-signalling')->expectsOutputToContain('✓ 1 portions KVB rapprochées')->assertSuccessful();
+        $this->artisan('vff:import-sncf-signalling')->expectsOutputToContain('✓ 1 tranches équipées KVB (0 découpées aux PK du KVB)')->assertSuccessful();
 
         $ranges = DB::table('line_signalling')->where('line_id', $line->id)->orderBy('rg_troncon')->get(['rg_troncon', 'pk_start_m', 'pk_end_m', 'kvb_equipped']);
         $this->assertSame([[1, 30_214, 30_900, false], [2, 30_095, 67_637, true]],
             $ranges->map(fn ($r) => [$r->rg_troncon, $r->pk_start_m, $r->pk_end_m, $r->kvb_equipped])->all());
         $served = $this->getJson("/api/v1/lines/{$line->slug}/signalling")->assertOk()->json('ranges');
         $this->assertSame([[2, ['KVB']], [1, []]], array_map(fn (array $r): array => [$r['rg_troncon'], $r['train_protection']], $served));
+    }
+
+    /**
+     * The KVB is laid between its own PKs, not over the whole block range it touches (975900, records of SNCF Réseau of
+     * 19/11/2026: part 1 BAL from 9+906 to 12+985 with KVB from 10+380 to 12+985 only; part 2 BAL from 12+000 to 14+594
+     * fully equipped). Before, part 1 was said equipped from 9+906.
+     */
+    public function test_signalling_import_cuts_a_range_at_the_pk_of_its_kvb(): void
+    {
+        $this->serve('mode-de-cantonnement-des-lignes', ['results' => [
+            ['code_ligne' => '975900', 'libelle' => 'Block automatique lumineux', 'rg_troncon' => 1, 'pkd' => '009+906', 'pkf' => '012+985'],
+            ['code_ligne' => '975900', 'libelle' => 'Block automatique lumineux', 'rg_troncon' => 2, 'pkd' => '012+000', 'pkf' => '014+594'],
+        ]]);
+        $this->serve('lignes-equipees-de-kvb', ['results' => [
+            ['code_ligne' => '975900', 'rg_troncon' => 1, 'pkd' => '010+380', 'pkf' => '012+985'],
+            ['code_ligne' => '975900', 'rg_troncon' => 2, 'pkd' => '012+000', 'pkf' => '014+594'],
+        ]]);
+        $line = $this->rfnLine('975900', 'Ligne de Lyon-Perrache à Lyon-Guillotière');
+
+        $this->artisan('vff:import-sncf-signalling')
+            ->expectsOutputToContain('✓ 2 tranches équipées KVB (1 découpées aux PK du KVB)')
+            ->expectsOutputToContain('État final : 3 tranches sur 1 lignes (2 avec KVB)')->assertSuccessful();
+
+        $ranges = DB::table('line_signalling')->where('line_id', $line->id)->orderBy('rg_troncon')->orderBy('pk_start_m')
+            ->get(['rg_troncon', 'pk_start_m', 'pk_end_m', 'signalling', 'train_protection', 'kvb_equipped']);
+        $this->assertSame([[1, 9_906, 10_380, 'BAL', null, false], [1, 10_380, 12_985, 'BAL', ['KVB'], true], [2, 12_000, 14_594, 'BAL', ['KVB'], true]],
+            $ranges->map(fn ($r) => [$r->rg_troncon, $r->pk_start_m, $r->pk_end_m, $r->signalling, json_decode((string) $r->train_protection, true), $r->kvb_equipped])->all());
     }
 
     public function test_signalling_import_keeps_existing_ranges_when_a_dataset_is_down(): void

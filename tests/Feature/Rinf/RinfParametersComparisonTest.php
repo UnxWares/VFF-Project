@@ -122,7 +122,8 @@ class RinfParametersComparisonTest extends TestCase
         $this->assertSame([['vff_only', null, 'KVB'], ['agree', 'KVB', 'KVB']], array_map(fn (array $p): array => [$p['status'], $p['rinf']['key'] ?? null, $p['vff']['key']], $t['portions']));
         $this->assertSame(['KVB', 'DAAT', 'Crocodile'], $t['portions'][1]['rinf']['values']);
         $this->assertSame(['KVB', 'BAL'], $t['portions'][1]['vff']['values']);
-        $this->assertSame(['rinf_m' => 64902, 'vff_m' => 64919, 'agree_m' => 64902, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 17], $t['summary']);
+        $this->assertSame(['rinf_m' => 64902, 'vff_m' => 64919, 'agree_m' => 64902, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 17, 'kvb_only_m' => 0], $t['summary']);
+        $this->assertSame([false, false], array_column($t['portions'], 'kvb_only'));
 
         // Radio : GSM-R des deux côtés au bout de la ligne, aucun ailleurs.
         $this->assertSame([['vff_only', null, 'none'], ['agree', 'none', 'none'], ['agree', 'gsm-r', 'gsm-r']],
@@ -244,6 +245,47 @@ class RinfParametersComparisonTest extends TestCase
         }
     }
 
+    /**
+     * The RINF declares the KVB on high-speed tracks, SNCF Réseau's KVB dataset does not (752000, 25/11/2026: "TVM 430,
+     * KVB, Crocodile" against TVM 430). Where one side has TVM or ETCS, a difference of the KVB alone stays `disagree` but is
+     * flagged `kvb_only` and summed in `kvb_only_m`; another difference on the same kind of portion (ETCS level 2 declared
+     * by the RINF only) or a KVB difference without cab signalling is not.
+     */
+    public function test_a_kvb_difference_on_a_cab_signalled_portion_is_flagged(): void
+    {
+        $this->import();
+        $this->seedSncf();
+        $now = now();
+        // RINF: TVM 430 + KVB + Crocodile on Cognac - Sireuil (17+277 to 44+427), ETCS level 2 + TVM 300 + KVB just after.
+        DB::table('rinf_tracks')->whereIn('section_uri', DB::table('rinf_sections')->where('line_code', '579000')->where('pk_start_m', '>=', 17277)
+            ->where('pk_end_m', '<=', 44427)->pluck('uri'))->update(['train_protection' => '["TVM 430","KVB","Crocodile"]', 'etcs_level' => 'none']);
+        DB::table('rinf_tracks')->whereIn('section_uri', DB::table('rinf_sections')->where('line_code', '579000')->where('pk_start_m', 44427)->pluck('uri'))
+            ->update(['train_protection' => '["TVM 300","KVB"]', 'etcs_level' => '2']);
+        // SNCF Réseau: TVM 430 without KVB from 17+277 to 44+427, TVM 300 without KVB after, BAL with KVB elsewhere.
+        DB::table('line_signalling')->where('line_id', $this->line->id)->delete();
+        $end = (int) DB::table('rinf_sections')->where('line_code', '579000')->where('pk_start_m', 44427)->value('pk_end_m');
+        foreach ([[-252, 17277, 'BAL', '["KVB"]'], [17277, 44427, 'TVM-430', null], [44427, $end, 'TVM-300', null], [$end, 64667, 'BAL', null]] as [$a, $b, $sig, $kvb]) {
+            DB::table('line_signalling')->insert(['line_id' => $this->line->id, 'era_id' => $this->era->id, 'pk_start_m' => $a, 'pk_end_m' => $b,
+                'signalling' => $sig, 'signalling_systems' => json_encode([$sig]), 'train_protection' => $kvb, 'kvb_equipped' => $kvb !== null,
+                'source_label' => $sig, 'created_at' => $now, 'updated_at' => $now]);
+        }
+
+        $t = array_column($this->getJson('/api/v1/lines/rfn-579000/rinf-parameters')->assertOk()->json('parameters'), null, 'key')['train_protection'];
+        $rows = array_map(fn (array $p): array => [$p['pk_start_m'], $p['pk_end_m'], $p['status'], $p['kvb_only'], $p['rinf']['key'] ?? null, $p['vff']['key'] ?? null], $t['portions']);
+        $this->assertContains([17277, 44427, 'disagree', true, 'KVB+TVM 430', 'TVM 430'], $rows);
+        $this->assertContains([44427, $end, 'disagree', false, 'ETCS L2+KVB+TVM 300', 'TVM 300'], $rows);
+        // After the cab-signalled portions: KVB declared by the RINF, BAL without KVB at SNCF Réseau: an ordinary disagreement.
+        $this->assertContains([$end, 64667, 'disagree', false, 'KVB', 'none'], $rows);
+        $this->assertSame(['TVM 430', 'KVB', 'Crocodile'], collect((array) $t['portions'])->firstWhere('kvb_only', true)['rinf']['values']);
+        $this->assertSame(44427 - 17277, $t['summary']['kvb_only_m']);
+        $this->assertGreaterThan($t['summary']['kvb_only_m'], $t['summary']['disagree_m']);
+
+        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { rinf_parameters { parameters { key summary { kvb_only_m } portions { kvb_only } } } } }'])
+            ->assertOk()->assertJsonMissingPath('errors')->json('data.line.rinf_parameters.parameters');
+        $this->assertSame([44427 - 17277, 1], [$gql[2]['summary']['kvb_only_m'], count(array_filter(array_column($gql[2]['portions'], 'kvb_only')))]);
+        $this->assertSame([0], array_values(array_unique(array_column(array_column(array_filter($gql, fn (array $p): bool => $p['key'] !== 'train_protection'), 'summary'), 'kvb_only_m'))));
+    }
+
     /** Second RINF part of the line on the PKs of the Cognac section of part 1 (17+277 to 17+917): 60 km/h, Crocodile only. */
     private function addSecondPart(): void
     {
@@ -291,8 +333,8 @@ class RinfParametersComparisonTest extends TestCase
         $value = '{ key values voltage_v frequency_hz speed_kmh tracks source_label }';
         $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { rinf_parameters {
             sections { uri national_line rg_troncon pk_start_m pk_end_m pk_start_label pk_end_label length_m from { uopid name } to { uopid name } tracks }
-            parameters { key compared_with summary { rinf_m vff_m agree_m disagree_m rinf_only_m vff_only_m }
-                portions { rg_troncon pk_start_m pk_end_m pk_start_label pk_end_label length_m status rinf '.$value.' vff '.$value.' } }
+            parameters { key compared_with summary { rinf_m vff_m agree_m disagree_m rinf_only_m vff_only_m kvb_only_m }
+                portions { rg_troncon pk_start_m pk_end_m pk_start_label pk_end_label length_m status kvb_only rinf '.$value.' vff '.$value.' } }
             platforms { summary { rinf vff agree disagree rinf_only vff_only tolerance_m length_unknown }
                 items { pk_m station { slug name } operational_point { uopid name } ref track status rinf { length_m height_mm } vff { label length_m pk_start_m pk_end_m } } }
             sources { key label licence dataset fetched_at url attribution licence_url } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.rinf_parameters');

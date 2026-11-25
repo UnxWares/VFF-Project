@@ -5703,6 +5703,12 @@ type LineRinfParameterSummary {
 
   "Longueur décrite par l'autre source seule."
   vff_only_m: Int!
+
+  """
+  Part de `disagree_m` où les deux valeurs de `train_protection` ne diffèrent que par le KVB, sur une portion à TVM ou
+  ETCS (`kvb_only`) : la fiche ligne de VFF ne la compte pas comme un désaccord. 0 pour les autres paramètres.
+  """
+  kvb_only_m: Int!
 }
 
 "Portion de PK de mêmes valeurs et de même statut."
@@ -5727,6 +5733,13 @@ type LineRinfParameterPortion {
 
   "`agree`, `disagree`, `rinf_only` (seul le RINF dit quelque chose) ou `vff_only` (seule l'autre source)."
   status: String!
+
+  """
+  Vrai pour une portion `disagree` de `train_protection` dont les deux valeurs ne diffèrent que par le KVB, là où l'une
+  a la TVM ou l'ETCS : le RINF déclare le KVB sur les voies de LGV, le jeu KVB de SNCF Réseau non. Montré, pas compté
+  comme un désaccord par la fiche ligne de VFF. Faux sinon.
+  """
+  kvb_only: Boolean!
 
   "Valeur du RINF, nulle s'il ne dit rien."
   rinf: LineRinfParameterValue

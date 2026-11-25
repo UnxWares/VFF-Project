@@ -582,6 +582,7 @@ return [
         'profile' => 'Höhenprofil',
         'speeds' => 'Geschwindigkeiten',
         'electrification' => 'Elektrifizierung',
+        'rinf' => 'Register (RINF)',
         'level-crossings' => 'Bahnübergänge',
         'greenways' => 'Bahntrassenradweg',
         'structures' => 'Kunstbauten',

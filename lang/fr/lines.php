@@ -583,6 +583,7 @@ return [
         'profile' => 'Profil en long',
         'speeds' => 'Vitesses',
         'electrification' => 'Électrification',
+        'rinf' => 'Registre (RINF)',
         'level-crossings' => 'Passages à niveau',
         'greenways' => 'Voie verte',
         'structures' => 'Ouvrages d’art',

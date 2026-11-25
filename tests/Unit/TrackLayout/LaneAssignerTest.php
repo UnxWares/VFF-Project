@@ -136,6 +136,21 @@ class LaneAssignerTest extends TestCase
         $this->assertArrayNotHasKey('platform_keys', LaneAssigner::assign([self::track('a', 'loop', '3', 0, 10, null, $key('quai3'))])[0]);
     }
 
+    /**
+     * Chirac, line 722000 (RINF point FR0000004201, 25/11/2026): the only platform track is the single track itself
+     * (« Voie UNIQUE de Béziers à Neussargues-Moissac », « Quai » of 80 m), with nothing beyond it to place. The
+     * layout used to divide by zero (the mean row of an empty run of tracks): seven stations answered 500.
+     */
+    public function test_a_platform_along_the_single_track_alone_keeps_the_rows(): void
+    {
+        $lanes = self::lanes([
+            self::track('rinf:t:vu', 'running', 'U', 0, 9_000, null, ['platform_keys' => ['FR0000004201|quai']]),
+            self::track('loop', 'loop', null, 4_000, 4_500, -4.5),
+        ]);
+
+        $this->assertSame(['rinf:t:vu' => 0, 'loop' => 1], $lanes);
+    }
+
     public function test_without_offsets_track_numbers_decide(): void
     {
         $lanes = self::lanes([

@@ -33,6 +33,7 @@
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import LineElectrification from '$components/Lines/LineElectrification.svelte';
+    import LineRinf from '$components/Lines/LineRinf.svelte';
     import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
     import LineSchematic from '$components/Lines/LineSchematic.svelte';
@@ -228,6 +229,7 @@
         'profile',
         'speeds',
         'electrification',
+        'rinf',
         'structures',
         'level-crossings',
         'greenways',
@@ -1482,6 +1484,11 @@
 
         {#if electrification_history && (electrification_history.ranges.length || electrification_history.history.length)}
             <LineElectrification electrification={electrification_history} />
+        {/if}
+
+        <!-- Registre de l'infrastructure (RINF) : lu à la demande (API dédiée), absent quand le registre ne décrit pas la ligne. -->
+        {#if line.code}
+            <LineRinf slug={line.slug} />
         {/if}
 
         {#if structures.items.length}

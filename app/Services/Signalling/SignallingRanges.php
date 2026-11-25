@@ -4,7 +4,6 @@ namespace App\Services\Signalling;
 
 use App\Services\LineStations;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Tranches de signalisation d'une ligne à une ère (`line_signalling`), dans l'ordre des points
@@ -13,13 +12,10 @@ use Illuminate\Support\Facades\Schema;
  * `signalling` est le code principal ; `signalling_systems` liste tous les systèmes de cantonnement
  * installés sur la tranche (deux sur les LGV en ETCS niveau 2 et TVM). Une tranche écrite avant
  * cette colonne (liste vide) reçoit la liste de son seul code. `rg_troncon` : rang du tronçon de SNCF Réseau (deux
- * tronçons d'une ligne peuvent partager des PK), null pour une tranche d'une autre source, écrite avant la colonne ou
- * quand la colonne n'existe pas encore (migration pas passée).
+ * tronçons d'une ligne peuvent partager des PK), null pour une tranche d'une autre source ou écrite avant la colonne.
  */
 final class SignallingRanges
 {
-    private static ?bool $withPart = null;
-
     /**
      * @param  bool  $withoutBlockSystems  retire du contrôle de vitesse les systèmes déjà nommés comme
      *                                     cantonnement (la TVM est les deux : une seule mention sur la fiche)
@@ -36,8 +32,7 @@ final class SignallingRanges
             ->where('era_id', $eraId)
             ->orderBy('pk_start_m')
             ->orderBy('id')
-            ->get(['pk_start_m', 'pk_end_m', 'signalling', 'signalling_systems', 'train_protection', 'kvb_equipped', 'source_label', 'note',
-                ...(self::withPart() ? ['rg_troncon'] : [])])
+            ->get(['pk_start_m', 'pk_end_m', 'signalling', 'signalling_systems', 'train_protection', 'kvb_equipped', 'source_label', 'note', 'rg_troncon'])
             ->all();
 
         return array_map(function (object $r) use ($withoutBlockSystems): array {
@@ -59,19 +54,9 @@ final class SignallingRanges
                 'kvb_equipped' => (bool) $r->kvb_equipped,
                 'source_label' => $r->source_label,
                 'note' => $r->note,
-                'rg_troncon' => isset($r->rg_troncon) ? (int) $r->rg_troncon : null,
+                'rg_troncon' => $r->rg_troncon !== null ? (int) $r->rg_troncon : null,
             ];
         }, $rows);
-    }
-
-    /** Colonne `rg_troncon` présente ; un constat négatif est refait (migration passée pendant que le processus tourne). */
-    private static function withPart(): bool
-    {
-        if (self::$withPart !== true) {
-            self::$withPart = Schema::hasColumn('line_signalling', 'rg_troncon') ?: null;
-        }
-
-        return self::$withPart === true;
     }
 
     /**

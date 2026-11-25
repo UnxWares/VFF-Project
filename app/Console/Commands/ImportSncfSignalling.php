@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Signalling\KvbPieces;
 use App\Services\Signalling\SignallingMap;
 use App\Services\Signalling\SignallingRegimeRules;
 use App\Services\Signalling\SncfBlockLabels;
@@ -27,7 +28,8 @@ use Illuminate\Support\Facades\Schema;
  *     (« ETCS 2/TVM 300 ») garde ses deux systèmes (SncfBlockLabels, `signalling_systems`) ;
  *   - les LGV sont identifiées via sncf_line_catlig (pas de liste codée) ;
  *   - la protection est DÉRIVÉE du cantonnement : TVM/ETCS = cabine (pas de KVB) ;
- *     KVB n'est ajouté que sur les lignes classiques (Phase 2), jamais sur LGV.
+ *     KVB n'est ajouté que sur les lignes classiques (Phase 2), jamais sur LGV, et seulement
+ *     entre ses PK : une tranche couverte en partie est coupée aux PK du KVB (KvbPieces).
  *   - plus aucune curation ETCS hardcodée : l'ETCS est dans le dataset SNCF.
  */
 class ImportSncfSignalling extends Command
@@ -112,8 +114,8 @@ class ImportSncfSignalling extends Command
             }
 
             $this->info('  ► [2/2] KVB (lignes-equipees-de-kvb, hors LGV)…');
-            $totalKvb = $this->importKvb($eraId, $kvb);
-            $this->info("    ✓ {$totalKvb} portions KVB rapprochées");
+            [$totalKvb, $split] = $this->importKvb($eraId, $kvb);
+            $this->info("    ✓ {$totalKvb} tranches équipées KVB ({$split} découpées aux PK du KVB)");
 
             $st = DB::selectOne('
                 SELECT COUNT(*) AS total, COUNT(DISTINCT line_id) AS lines,
@@ -311,11 +313,19 @@ class ImportSncfSignalling extends Command
         return $inserted;
     }
 
-    /** @param  list<array<string, mixed>>  $records */
-    private function importKvb(int $eraId, array $records): int
+    /**
+     * KVB du jeu `lignes-equipees-de-kvb` posé sur les tranches de cantonnement de sa ligne et de son tronçon, hors LGV et
+     * hors cabine. Une tranche que le KVB ne couvre qu'en partie est coupée aux PK du KVB (KvbPieces) : le morceau couvert
+     * porte le KVB, le reste non (avant, toute la tranche le portait dès qu'une portion la touchait).
+     *
+     * @param  list<array<string, mixed>>  $records
+     * @return array{0: int, 1: int} tranches équipées KVB écrites, tranches découpées
+     */
+    private function importKvb(int $eraId, array $records): array
     {
-        $applied = 0;
         $lineIdCache = [];
+        /** @var array<int, list<array{part: ?int, from: int, to: int}>> $portions */
+        $portions = [];
 
         foreach ($records as $r) {
             $code = $r['code_ligne'] ?? null;
@@ -337,45 +347,61 @@ class ImportSncfSignalling extends Command
             if ($pkStart === null || $pkEnd === null) {
                 continue;
             }
-            if ($pkStart > $pkEnd) {
-                [$pkStart, $pkEnd] = [$pkEnd, $pkStart];
-            }
+            $portions[$lineId][] = ['part' => self::part($r), 'from' => min($pkStart, $pkEnd), 'to' => max($pkStart, $pkEnd)];
+        }
 
-            // Même tronçon seulement : deux tronçons d'une ligne qui partagent des PK sont deux endroits (890000 : le KVB
-            // du tronçon 1, de 8+120 à 152+328, ne vaut pas pour le tronçon 2 de 60+215 à 75+559).
-            $part = self::part($r);
-            $rows = DB::table('line_signalling')
-                ->where('era_id', $eraId)
-                ->where('line_id', $lineId)
-                ->when($this->withPart && $part !== null, fn ($q) => $q->where(fn ($q2) => $q2->whereNull('rg_troncon')->orWhere('rg_troncon', $part)))
-                ->where(function ($q) use ($pkStart, $pkEnd) {
-                    $q->whereBetween('pk_start_m', [$pkStart, $pkEnd])
-                        ->orWhereBetween('pk_end_m', [$pkStart, $pkEnd])
-                        ->orWhere(function ($q2) use ($pkStart, $pkEnd) {
-                            $q2->where('pk_start_m', '<=', $pkStart)->where('pk_end_m', '>=', $pkEnd);
-                        });
-                })
-                ->get(['id', 'train_protection', 'signalling']);
-
+        $equipped = 0;
+        $split = 0;
+        foreach ($portions as $lineId => $list) {
+            $rows = DB::table('line_signalling')->where('era_id', $eraId)->where('line_id', $lineId)->orderBy('id')->get();
             foreach ($rows as $row) {
                 // Ne pas ajouter KVB sur une tranche en cabine (TVM/ETCS).
                 if (SncfBlockLabels::isCab((string) $row->signalling)) {
                     continue;
                 }
-                $prot = $row->train_protection ? json_decode($row->train_protection, true) : [];
+                // Même tronçon seulement : deux tronçons d'une ligne qui partagent des PK sont deux endroits (890000 : le
+                // KVB du tronçon 1, de 8+120 à 152+328, ne vaut pas pour le tronçon 2 de 60+215 à 75+559).
+                $rowPart = $this->withPart && $row->rg_troncon !== null ? (int) $row->rg_troncon : null;
+                $own = [];
+                foreach ($list as $p) {
+                    if ($rowPart === null || $p['part'] === null || $p['part'] === $rowPart) {
+                        $own[] = [$p['from'], $p['to']];
+                    }
+                }
+                $pieces = KvbPieces::split((int) $row->pk_start_m, (int) $row->pk_end_m, $own);
+                if ($pieces === []) {
+                    continue;
+                }
+
+                $prot = $row->train_protection ? json_decode((string) $row->train_protection, true) : [];
                 if (! in_array('KVB', $prot, true)) {
                     $prot[] = 'KVB';
                 }
-                DB::table('line_signalling')->where('id', $row->id)->update([
-                    'train_protection' => json_encode($prot),
-                    'kvb_equipped' => true,
-                    'updated_at' => now(),
-                ]);
-                $applied++;
+                $cut = count($pieces) > 1;
+                $split += $cut ? 1 : 0;
+                $note = $cut ? trim(((string) $row->note).' ; découpée aux PK du KVB (SNCF Open Data, lignes-equipees-de-kvb)', ' ;') : $row->note;
+                foreach ($pieces as $i => $piece) {
+                    $values = [
+                        'pk_start_m' => $piece['from'],
+                        'pk_end_m' => $piece['to'],
+                        'train_protection' => $piece['kvb'] ? json_encode($prot) : $row->train_protection,
+                        'kvb_equipped' => $piece['kvb'],
+                        'note' => $note,
+                        'updated_at' => now(),
+                    ];
+                    if ($i === 0) {
+                        DB::table('line_signalling')->where('id', $row->id)->update($values);
+                    } else {
+                        $copy = (array) $row;
+                        unset($copy['id']);
+                        DB::table('line_signalling')->insert(array_merge($copy, $values, ['created_at' => now()]));
+                    }
+                    $equipped += $piece['kvb'] ? 1 : 0;
+                }
             }
         }
 
-        return $applied;
+        return [$equipped, $split];
     }
 
     /**

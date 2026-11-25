@@ -26,7 +26,10 @@ use Illuminate\Support\Facades\DB;
  * - `train_protection` : contrôle de vitesse et protection hérités, niveau ETCS ; signalisation de SNCF Réseau
  *   (line_signalling, ère courante). Seuls les systèmes que les deux savent nommer sont confrontés
  *   (RinfParameters::COMPARED_PROTECTION : KVB, KVBP compté comme KVB, TVM 300, TVM 430, ETCS niveau 1 et 2) ;
- *   le Crocodile, le DAAT, le KCVB ou le KCVP restent servis dans `values` du RINF ;
+ *   le Crocodile, le DAAT, le KCVB ou le KCVP restent servis dans `values` du RINF. Un désaccord dû au seul KVB sur une
+ *   portion à TVM ou ETCS (le RINF déclare le KVB sur les voies de LGV, le jeu KVB de SNCF Réseau non) garde son statut
+ *   `disagree` et porte `kvb_only` (RinfParameters::differsOnlyByKvb) ; `summary.kvb_only_m` en donne la longueur, que la
+ *   fiche ligne ne compte pas comme un désaccord ;
  * - `radio` : GSM-R ; jeu des lignes équipées de radio sol-train de SNCF Réseau (line_radio_portions) ;
  * - `gauging`, `load_capability`, `track_gauge` : gabarits, catégorie de charge EN 15528 et classe nationale,
  *   écartement : VFF n'en a pas d'autre source (`compared_with` nul, portions `rinf_only`).
@@ -580,6 +583,8 @@ final class RinfParameterComparison
             'pk_start_m' => $p['pk_start_m'], 'pk_end_m' => $p['pk_end_m'],
             'pk_start_label' => (string) LineStations::pkLabel($p['pk_start_m']), 'pk_end_label' => (string) LineStations::pkLabel($p['pk_end_m']),
             'length_m' => $p['pk_end_m'] - $p['pk_start_m'], 'status' => $p['status'],
+            'kvb_only' => $parameter === 'train_protection' && $p['status'] === 'disagree'
+                && RinfParameters::differsOnlyByKvb((string) $p['rinf']['key'], (string) $p['vff']['key']),
             'rinf' => self::shape($p['rinf']), 'vff' => self::shape($p['vff']),
         ], $out);
     }
@@ -665,11 +670,12 @@ final class RinfParameterComparison
      */
     private static function parameter(string $key, array $portions): array
     {
-        $summary = ['rinf_m' => 0, 'vff_m' => 0, 'agree_m' => 0, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 0];
+        $summary = ['rinf_m' => 0, 'vff_m' => 0, 'agree_m' => 0, 'disagree_m' => 0, 'rinf_only_m' => 0, 'vff_only_m' => 0, 'kvb_only_m' => 0];
         foreach ($portions as $p) {
             $summary[$p['status'].'_m'] += $p['length_m'];
             $summary['rinf_m'] += $p['rinf'] !== null ? $p['length_m'] : 0;
             $summary['vff_m'] += $p['vff'] !== null ? $p['length_m'] : 0;
+            $summary['kvb_only_m'] += $p['kvb_only'] ? $p['length_m'] : 0;
         }
 
         return ['key' => $key, 'compared_with' => self::COMPARED_WITH[$key], 'summary' => $summary, 'portions' => $portions];

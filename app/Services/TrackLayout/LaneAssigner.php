@@ -208,6 +208,9 @@ final class LaneAssigner
                 [$up, $down] = $first === 0 ? [$before, $after] : [$after, $before];
             } elseif ($before !== [] && $after !== []) {
                 [$up, $down] = $mean($before) <= $mean($after) ? [$before, $after] : [$after, $before];
+            } elseif ($before === [] && $after === []) {
+                // Seule voie à quai, une voie principale (Chirac : le quai longe la voie unique) : rien à ranger au-delà.
+                [$up, $down] = [[], []];
             } else {
                 // Au-delà de la voie 2, au-delà de la voie 1 ; d'un côté ou de l'autre de la voie unique.
                 $part = $before ?: $after;

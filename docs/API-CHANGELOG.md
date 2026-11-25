@@ -9,6 +9,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfParameterPortion.kvb_only`
+  et `LineRinfParameterSummary.kvb_only_m`, MCP `line_rinf_parameters`) : `kvb_only`, vrai pour une portion `disagree` de
+  `train_protection` dont les deux valeurs ne diffèrent que par le KVB, là où l'une a la TVM ou l'ETCS (le RINF déclare le
+  KVB sur les voies de LGV, le jeu KVB de SNCF Réseau non : 1 831 km sur la France) ; `summary.kvb_only_m`, sa longueur (comprise dans
+  `disagree_m`, 0 pour les autres paramètres). Statuts inchangés. La fiche ligne (section « Registre de l'infrastructure »)
+  ne compte pas cet écart comme un désaccord : accord du contrôle de vitesse sur la France 92,0 % au lieu de 85,1 %.
 - Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange.rg_troncon`) :
   `rg_troncon`, rang du tronçon de SNCF Réseau de la tranche (deux tronçons d'une ligne peuvent avoir des PK communs, deux
   endroits différents : 330000, 975900) ; null pour une tranche d'une autre source ou écrite avant la réimportation. Le KVB
@@ -80,6 +86,21 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   naturel (`V1`, `V2`, `V1S`), et non plus dans l'ordre de lecture de la base.
 
 ### Corrections
+
+- Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange`, calque de la carte) :
+  après la prochaine réimportation (`vff:import-sncf-signalling`), une tranche que le KVB ne couvre qu'en partie est coupée aux
+  PK du KVB : un morceau avec `kvb_equipped` vrai et `KVB` dans `train_protection`, le reste sans (avant, toute la tranche était
+  dite équipée dès qu'une portion KVB la touchait ; 975900, tronçon 1 : BAL de 9+906 à 12+985, KVB de 10+380 seulement). Une
+  tranche qui ne touche le KVB qu'à une borne n'est plus équipée. Avec les jeux du 19/11/2026 : 1 533 tranches deviennent 1 665
+  (103 coupées), 20 762 km dits équipés KVB deviennent 18 517 km ; la note des morceaux le dit. Champs inchangés.
+- Plan des voies d'une gare (REST `GET /api/v1/stations/{station}/track-layout`, GraphQL `Station.track_layout`, MCP
+  `station_track_layout`) : un quai du RINF dont la voie porte un autre nom chez SNCF Réseau (quai de même nom dans la « Liste
+  des quais ») borde cette voie (Lyon-Part-Dieu : A est V2BIS, D est V1BIS, F est V2) ; un quai est rangé sous la ligne qui
+  dessine sa voie (Bordeaux-St-Jean : voies A, B et C sur la 655000) ; les PK de SNCF Réseau d'un quai sont ceux du quai de
+  même nom (la voie B de Lyon-Part-Dieu borde « Quai A/B » et « Quai B/C »). Un bord de quai connu des deux sources n'est plus
+  servi deux fois (Lyon-Part-Dieu : 22 bords au lieu de 27). Le plan de sept gares dont le seul quai longe la voie unique
+  (Beauvoisin, Le Cailar, Aimargues, St-Laurent-d'Aigouze, Chirac, Le Soler, Villefranche - Vernet-les-Bains) répondait 500 : il répond. Champs
+  inchangés.
 
 - Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout` et `GET /api/v1/stations/{station}/track-layout`, GraphQL
   `Line.track_layout` et `Station.track_layout`, MCP `line_track_layout` et `station_track_layout`), sans champ nouveau ni

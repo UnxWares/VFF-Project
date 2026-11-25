@@ -582,6 +582,7 @@ return [
         'profile' => 'Gradient profile',
         'speeds' => 'Speeds',
         'electrification' => 'Electrification',
+        'rinf' => 'Register (RINF)',
         'level-crossings' => 'Level crossings',
         'greenways' => 'Greenway',
         'structures' => 'Structures',
