@@ -5475,6 +5475,8 @@ type Routebook {
   distance_m: Int!
   "Longueur du parcours, en kilomètres (une décimale)."
   distance_km: Float!
+  "Mètres parcourus sur des voies sans service voyageurs (fret seul, réseaux militaire ou particulier) : 0, sauf quand aucun chemin n'existe sur les seules voies voyageurs."
+  non_passenger_m: Int!
   "Nombre d'objets du livret (points d'exploitation, voies, aiguillages, signaux, traversées)."
   objects: Int!
   "Lignes traversées, dans l'ordre."
