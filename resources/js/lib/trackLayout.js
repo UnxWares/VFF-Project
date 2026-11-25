@@ -590,15 +590,31 @@ export function foldLayout(data, zones, expanded = new Set()) {
             if (!open) for (const t of chosen) folded.set(t.id, { zone: z, side });
         }
     }
-    // Liaisons qui mènent à une voie repliée de leur zone : repliées avec elle.
-    for (const t of data.tracks) {
-        if (t.kind !== 'crossover') continue;
-        for (const other of near.get(t.id) ?? []) {
-            const f = folded.get(other);
-            if (f && zoneOf(t) === f.zone) {
-                folded.set(t.id, f);
-                break;
+    // Liaisons qui mènent à une voie repliée de leur zone, directement ou par d'autres liaisons (J0006C puis J0007 à
+    // Paris-Austerlitz) : repliées avec elle.
+    const links = data.tracks.filter((t) => t.kind === 'crossover');
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const t of links) {
+            if (folded.has(t.id)) continue;
+            for (const other of near.get(t.id) ?? []) {
+                const f = folded.get(other);
+                if (f && zoneOf(t) === f.zone) {
+                    folded.set(t.id, f);
+                    changed = true;
+                    break;
+                }
             }
+        }
+    }
+    // Liaison qu'aucun aiguillage ne cite, du côté d'un groupe replié de sa zone : dans le groupe (sinon elle resterait
+    // seule sur sa rangée du serveur, au-delà de la bande).
+    for (const t of links) {
+        if (folded.has(t.id) || near.has(t.id)) continue;
+        const side = t.lane < 0 ? -1 : t.lane > 1 ? 1 : 0;
+        const z = zoneOf(t);
+        if (side && groups.some((g) => g.zone === z && g.side === side && !g.expanded)) {
+            folded.set(t.id, { zone: z, side });
         }
     }
 

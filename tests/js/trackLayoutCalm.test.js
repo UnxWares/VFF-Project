@@ -109,6 +109,29 @@ describe('trackLayout : un départ par bout de groupe replié', () => {
     });
 });
 
+describe('trackLayout : liaisons d’un groupe replié', () => {
+    it('replie une chaîne de liaisons qui mène au faisceau, et une liaison sans aiguillage de son côté', () => {
+        const base = depotStation();
+        const data = normalize({
+            ...base,
+            tracks: [
+                ...base.tracks,
+                track('x1', 'crossover', 5, 9900, 9950),
+                track('x2', 'crossover', 6, 9950, 10000),
+                // Sans aiguillage connu, rangée du serveur au-delà du faisceau (J0006B à Paris-Austerlitz).
+                track('x3', 'crossover', 11, 9640, 9690),
+                // Au-dessus des voies principales, où rien n'est replié : reste dessinée.
+                track('x4', 'crossover', -3, 9640, 9690),
+            ],
+            switches: [...base.switches, sw('xa', 9900, 'y2', 'x1'), sw('xb', 9950, 'x1', 'x2')],
+        });
+        const { data: view } = foldLayout(data, buildAxis(data).zones);
+        const ids = view.tracks.map((t) => t.id);
+        for (const id of ['x1', 'x2', 'x3']) expect(ids).not.toContain(id);
+        expect(ids).toContain('x4');
+    });
+});
+
 describe('trackLayout : largeur d’une gare repliée', () => {
     it('ne dilate l’axe que sur les voies dessinées, pas sur la bande du faisceau replié', () => {
         const data = depotStation();
