@@ -49,6 +49,7 @@ use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\StationTrackLayoutPageController;
 use App\Http\Controllers\TouristRailwayController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
@@ -81,6 +82,16 @@ Route::get('/lines/{line:slug}/voies', [LineTrackLayoutPageController::class, 's
 Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])
     ->where('event', '[0-9]{1,18}')->name('lines.stories.show');
 Route::get('/stations', [StationController::class, 'index'])->name('stations.index');
+// Voies d'une gare (état actuel) : schéma des voies de chaque ligne autour de la gare et quais (API track-layout).
+Route::get('/stations/{station:slug}/voies', [StationTrackLayoutPageController::class, 'show'])
+    ->name('stations.tracks')
+    ->missing(function (Request $request) {
+        $old = $request->route('station');
+        if (is_string($old) && ($canon = Station::redirectSlugFor($old)) !== null) {
+            return redirect()->route('stations.tracks', $canon, 301);
+        }
+        abort(404);
+    });
 Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     ->name('stations.show')
     // Ancien slug (osm-<id>-…, fiche fusionnée dans une autre) → redirection 301 permanente vers le slug canonique.

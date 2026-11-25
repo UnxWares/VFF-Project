@@ -17,7 +17,8 @@ namespace App\Services\TrackLayout;
  * - crossings : {id, pk_m, kind, ref, source} (kind : level_crossing, railway_crossing) ;
  * - buffer_stops : {id, pk_m, track, source, precision} (heurtoirs) ;
  * - milestones : {id, pk_m, label, source, precision} (bornes kilométriques, `label` tel qu'écrit sur la borne) ;
- * - speeds : {pk_from_m, pk_to_m, kmh, source} ; gradients : {pk_from_m, pk_to_m, permille, source, precision}.
+ * - speeds : {pk_from_m, pk_to_m, kmh, tracks?, source} ; gradients : {pk_from_m, pk_to_m, permille, tracks?, source,
+ *   precision} (`tracks` : références courtes des voies concernées, quand la source les dit).
  *
  * `precision` : exact (position déclarée par la source), derived (calculée par VFF à partir de la source),
  * approximate (placée à peu près : voie d'une gare centrée sur le PK de la gare, par exemple). « up » = sens

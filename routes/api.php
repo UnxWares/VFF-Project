@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
+use App\Http\Controllers\Api\LineRinfParametersController;
 use App\Http\Controllers\Api\LineSchematicController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineSpeedController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StationHeritageController;
 use App\Http\Controllers\Api\StationTimetableController;
+use App\Http\Controllers\Api\StationTrackLayoutController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TerritoryController;
 use App\Http\Controllers\Api\TouristRailwayController;
@@ -153,6 +155,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations/{station:slug}/heritage', [StationHeritageController::class, 'index'])->name('api.stations.heritage');
     // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.
     Route::get('/v1/stations/{station:slug}/audit', [StationAuditController::class, 'show'])->name('api.stations.audit');
+    // Voies de la gare, ligne par ligne, et ses quais (RINF de l'ERA, OSM, SNCF Réseau) : App\Services\TrackLayout\StationTrackLayout.
+    Route::get('/v1/stations/{station:slug}/track-layout', [StationTrackLayoutController::class, 'show'])->name('api.stations.track-layout');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
     Route::get('/v1/sources/{provider}', [SourceController::class, 'show'])->where('provider', '[a-z0-9_-]{1,64}')->name('api.sources.show');
     // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).
@@ -183,6 +187,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
     // Schéma des voies (voies, aiguillages, signaux, points d'exploitation ; RINF de l'ERA, OSM, VFF) : App\Services\TrackLayout\TrackLayout.
     Route::get('/v1/lines/{line:slug}/track-layout', [LineTrackLayoutController::class, 'show'])->name('api.lines.track-layout');
+    // Paramètres du RINF (électrification, vitesse, contrôle de vitesse, GSM-R, gabarits, charge, quais) comparés aux autres sources : App\Services\Rinf\RinfParameterComparison.
+    Route::get('/v1/lines/{line:slug}/rinf-parameters', [LineRinfParametersController::class, 'show'])->name('api.lines.rinf-parameters');
     // Schéma de ligne par PK (gares, bifurcations, PN, ouvrages, voies, courant, signalisation, vitesse) : App\Services\Lines\LineSchematic.
     Route::get('/v1/lines/{line:slug}/schematic', [LineSchematicController::class, 'show'])->name('api.lines.schematic');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');

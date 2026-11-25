@@ -615,6 +615,15 @@ class ConsolidateStations extends Command
         if (str_contains(" {$b} ", " {$a} ") || str_contains(" {$a} ", " {$b} ")) {
             return 0.9;
         }
+        // Mêmes mots dans un autre ordre (« Grignan - Chamaret » et « Chamaret-Grignan ») : la même gare à courte
+        // distance (≤ 600 m), sans lever les garde-fous des UIC et Q-id différents (0,9).
+        $ta = explode(' ', $a);
+        $tb = explode(' ', $b);
+        sort($ta);
+        sort($tb);
+        if ($ta === $tb) {
+            return 0.85;
+        }
         similar_text($a, $b, $pct);
 
         return $pct / 100;
@@ -691,7 +700,9 @@ class ConsolidateStations extends Command
                 $sid = (int) $forced;
             } elseif ($ids) {
                 $counts = array_count_values($ids);
-                arsort($counts);
+                // À égalité, la fiche la plus ancienne (plus petit id) : un doublon créé à tort puis rapproché de la gare
+                // existante disparaît, pas la gare existante (Grignan - Chamaret 24778 et Chamaret-Grignan 23325).
+                uksort($counts, fn ($a, $b) => [$counts[$b], $a] <=> [$counts[$a], $b]);
                 // Gare connue des seules listes par ligne : l'ancienne gare d'un membre n'est reprise que si son nom
                 // ET son slug concordent (un placement corrigé ne donne pas à « Puisieux » l'id et le slug de
                 // « faubourg-de-guise », gare créée sous ce nom par un placement faux puis renommée).
@@ -709,9 +720,14 @@ class ConsolidateStations extends Command
                 }
             }
             $s['id'] = $sid;
-            if ($sid) {
+            if ($sid && ! (self::isGenericSlug((string) $existing[$sid]) && ! self::isGenericSlug(Str::slug($s['name']) ?: 'gare'))) {
                 $keptIds[$sid] = true;
             } else {
+                if ($sid) {
+                    // Gare existante au slug générique qui a maintenant un vrai nom : nouveau slug, l'ancien redirige.
+                    $keptIds[$sid] = true;
+                    $s['old_slug'] = $existing[$sid];
+                }
                 $base = Str::slug($s['name']) ?: 'gare';
                 $slug = $base;
                 if (isset($usedSlugs[$slug])) {
@@ -741,6 +757,12 @@ class ConsolidateStations extends Command
 
         // Gares orphelines (plus aucune source) : supprimées.
         $orphans = array_diff(array_keys($existing), array_keys($keptIds));
+        // Gare orpheline dont les objets sources ont rejoint une gare conservée (doublon rapproché) : fondue dans la gare
+        // qui a reçu le plus de ses objets, comme une fusion (StationMerger) : médias, contributions, signalements,
+        // événements hors sources, bibliographie, patrimoine, quais et anciennes adresses passent à cette gare, et son
+        // adresse redirige vers elle. Supprimée sans cela, la fiche emportait ces données (clés étrangères en cascade,
+        // médias et contributions sans clé laissés vers un id disparu).
+        $this->mergeJoinedOrphans($merger, $built, $orphans, $existing);
         foreach (array_chunk($orphans, 1000) as $chunk) {
             DB::table('stations')->whereIn('id', $chunk)->delete();
         }
@@ -772,8 +794,13 @@ class ConsolidateStations extends Command
             $row['updated_at'] = $now;
             $geom = DB::raw(sprintf('ST_SetSRID(ST_MakePoint(%.7F, %.7F), 4326)', $s['lon'], $s['lat']));
             if ($s['id']) {
-                DB::table('stations')->where('id', $s['id'])->update($row + ['geom' => $geom]);
+                DB::table('stations')->where('id', $s['id'])->update($row + ['geom' => $geom] + (isset($s['old_slug']) ? ['slug' => $s['slug']] : []));
                 $sid = $s['id'];
+                if (isset($s['old_slug'])) {
+                    DB::table('station_redirects')->upsert([['old_slug' => $s['old_slug'], 'station_id' => $sid, 'created_at' => $now, 'updated_at' => $now]],
+                        ['old_slug'], ['station_id', 'updated_at']);
+                    $this->line(sprintf('  gare %d : slug générique %s remplacé par %s', $sid, $s['old_slug'], $s['slug']));
+                }
             } else {
                 $sid = DB::table('stations')->insertGetId($row + ['slug' => $s['slug'], 'geom' => $geom, 'created_at' => $now]);
             }
@@ -806,7 +833,8 @@ class ConsolidateStations extends Command
         // Événements issus des sources (les événements déduits sont gérés par vff:build-station-eras).
         // Les fermetures lues par vff:import-station-closures (articles Wikipédia,
         // qualificatifs Wikidata, notes OSM) sont conservées : elles ne viennent pas
-        // de station_sources. Une gare supprimée (orpheline) les perd par cascade.
+        // de station_sources. Une gare supprimée (orpheline) les perd par cascade, sauf un doublon rejoint par ses
+        // sources, fondu avant (mergeJoinedOrphans).
         // Corrections sourcées (gares_corrections.php) : gardées aussi, réappliquées par vff:build-station-eras.
         DB::table('station_events')->where('is_inferred', false)
             ->whereNotIn('source', [...ImportStationClosures::SOURCES, StationTimeline::CORRECTION])->delete();
@@ -862,7 +890,10 @@ class ConsolidateStations extends Command
         }
 
         // Nom.
-        $nameRec = $sncf ?? $sncfV ?? ($osmActive[0] ?? $osmPos ?? $wd ?? ($ohm[0] ?? $members[0]));
+        // Un nom générique (« Ancienne gare », « Gare », « Halte » : nom normalisé vide) ne l'emporte jamais sur le
+        // vrai nom d'une autre source (OSM w495279440 « Ancienne gare » et Wikidata Q106726094 « Saint-Geniès »).
+        $nameRec = self::firstNamed([$sncf, $sncfV, ...$osmActive, $osmPos, $wd, ...$ohm, ...$members])
+            ?? $sncf ?? $sncfV ?? ($osmActive[0] ?? $osmPos ?? $wd ?? ($ohm[0] ?? $members[0]));
         $name = $nameRec->name;
         if ($nameRec->source === 'wikidata' || ($nameRec->source !== 'sncf' && preg_match('/^(Ancienne )?(gare|halte)\b/iu', $name))) {
             $name = $this->stripPrefix($name);
@@ -874,7 +905,7 @@ class ConsolidateStations extends Command
                 continue; // nom du bâtiment (commerce, association…), pas de la gare
             }
             $n = $m->source === 'wikidata' || preg_match('/^(Ancienne )?(gare|halte)\b/iu', (string) $m->name) ? $this->stripPrefix((string) $m->name) : $m->name;
-            if ($n && StationNames::normalize($n) !== StationNames::normalize($name)) {
+            if ($n && StationNames::normalize($n) !== null && StationNames::normalize($n) !== StationNames::normalize($name)) {
                 $alt[StationNames::normalize($n)] ??= ['name' => $n, 'source' => $m->source]
                     + ($m->source === 'ohm' && ($m->opened_on || $m->closed_on) ? ['from' => substr((string) $m->opened_on, 0, 4) ?: null, 'to' => substr((string) $m->closed_on, 0, 4) ?: null] : []);
             }
@@ -1132,6 +1163,75 @@ class ConsolidateStations extends Command
 
         return ($t['usage'] ?? null) === 'tourism' || ($t['tourism'] ?? null) === 'yes'
             || ($t['railway:preserved'] ?? null) === 'yes';
+    }
+
+    /**
+     * Gares orphelines dont des objets sources ont rejoint une gare conservée (doublon rapproché, Grignan - Chamaret
+     * 24778 et Chamaret-Grignan 23325) : chacune est fondue (StationMerger) dans la gare conservée qui a reçu le plus de
+     * ses objets, la plus ancienne à égalité, avant sa suppression. Les fiches déjà fondues par l'action « merge »
+     * (`absorbed_ids`) ne le sont pas deux fois.
+     *
+     * @param  array<int, array<string, mixed>>  $built  gare construite par groupe (`id` : fiche conservée, null : nouvelle)
+     * @param  array<int, int>  $orphans  fiches existantes qu'aucun groupe ne garde
+     * @param  array<int, string>  $existing  slug de chaque fiche existante
+     */
+    private function mergeJoinedOrphans(StationMerger $merger, array $built, array $orphans, array $existing): void
+    {
+        $orphanSet = array_flip($orphans);
+        $absorbed = [];
+        /** @var array<int, array<int, int>> $joined fiche orpheline => [fiche conservée => objets reçus] */
+        $joined = [];
+        foreach ($built as $cid => $s) {
+            if (! $s['id']) {
+                continue;
+            }
+            foreach ($this->clusters[$cid]['absorbed_ids'] ?? [] as $a) {
+                $absorbed[(int) $a] = true;
+            }
+            foreach ($this->clusters[$cid]['members'] as $m) {
+                $old = $this->recs[$m]->station_id;
+                if ($old !== null && isset($orphanSet[(int) $old])) {
+                    $joined[(int) $old][(int) $s['id']] = ($joined[(int) $old][(int) $s['id']] ?? 0) + 1;
+                }
+            }
+        }
+        foreach ($joined as $orphan => $targets) {
+            if (isset($absorbed[$orphan])) {
+                continue;
+            }
+            uksort($targets, fn (int $a, int $b): int => [$targets[$b], $a] <=> [$targets[$a], $b]);
+            $kept = (int) array_key_first($targets);
+            $moved = array_filter($merger->merge($orphan, $kept));
+            $this->line(sprintf('  fiche %d (%s) rejointe par ses sources, fondue dans %d : %s', $orphan, $existing[$orphan] ?? '?', $kept,
+                $moved === [] ? 'rien à reprendre' : implode(', ', array_map(fn ($k, $v) => "{$k} {$v}", array_keys($moved), $moved))));
+        }
+    }
+
+    /**
+     * Premier objet dont le nom n'est pas générique (nom normalisé non vide), dans l'ordre de priorité donné.
+     *
+     * @param  list<?object>  $candidates
+     */
+    private static function firstNamed(array $candidates): ?object
+    {
+        foreach ($candidates as $r) {
+            if ($r !== null && StationNames::normalize((string) $r->name) !== null) {
+                return $r;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Slug tiré d'un nom générique (« ancienne-gare », « gare-24 », « halte-2 ») : la gare le quitte dès qu'elle a un
+     * vrai nom, et l'ancienne adresse redirige.
+     */
+    public static function isGenericSlug(string $slug): bool
+    {
+        $base = preg_replace('/(-(\d{2,3}|2[ab]))?(-\d+)?$/', '', $slug);
+
+        return $base !== '' && StationNames::normalize(str_replace('-', ' ', (string) $base)) === null;
     }
 
     private function stripPrefix(string $name): string

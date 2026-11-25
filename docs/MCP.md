@@ -152,6 +152,8 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_infrastructure` | Nombre de voies et liaison radio sol-train (GSM-R…) d'une ligne par portion de PK, aujourd'hui : SNCF Réseau, ODbL. |
 | `line_track_layout` | Schéma des voies d'une ligne aujourd'hui (voies numérotées, voies de service, liaisons, aiguillages, signaux, points d'exploitation, vitesses, déclivités) : RINF de l'ERA (EUPL 1.2), OpenStreetMap (ODbL), VFF. |
+| `line_rinf_parameters` | Paramètres RINF d'une ligne par PK (électrification, vitesse, contrôle de vitesse et ETCS, GSM-R, gabarits, charge, écartement, quais), côte à côte avec SNCF Réseau : accord ou désaccord (RINF EUPL 1.2, SNCF Réseau ODbL). |
+| `station_track_layout` | Voies d'une gare aujourd'hui, ligne par ligne (schéma de chaque ligne autour de la gare), et ses quais avec leur longueur et leur hauteur : RINF de l'ERA (EUPL 1.2), OpenStreetMap (ODbL), SNCF Réseau (ODbL). |
 | `line_structures` | Tunnels, viaducs et grands ponts d'une ligne par PK, lignes déposées comprises : longueur, dates, protection, image (IGN BD TOPO, Wikidata). |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_archive_records` | Notices des fonds d'archives (Archives SNCF : dossiers, photographies, films) dont le titre désigne une ligne : titre, type, cote, classement, date et précision, lien vers archives.sncf.com, score de rattachement. |
@@ -435,7 +437,7 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 |---|---|---|---|
 | `from` | chaîne, 1 à 200 caractères | oui | Gare de départ : slug (de préférence), nom exact ou nom de ville. |
 | `to` | chaîne, 1 à 200 caractères | oui | Gare d'arrivée, mêmes formes. |
-| `kinds` | liste parmi `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `strip` | non | Objets à joindre (par défaut `operational_points`, `switches`, `strip`). |
+| `kinds` | liste parmi `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `strip` | non | Objets à joindre (par défaut `operational_points`, `switches`, `strip`). |
 | `lang` | `fr`, `en`, `de` | non | Langue. |
 
 Le plus court chemin sur le réseau d'aujourd'hui (comme `historical_route` sans année), puis, ligne
@@ -449,10 +451,13 @@ croissants ou `down`, `pk_precision` : `exact`, `derived` ou `approximate`, `rou
 et VFF, `missing` : portions sans données en km parcourus, `what` = une famille absente ou `all`),
 `sources`, puis les objets demandés, triés par kilomètre parcouru (`route_km`, ou `route_from_km` et
 `route_to_km`), avec `line_code`, `line_slug`, le PK de leur ligne et leur provenance (`source`,
-`precision`). Un signal porte `travel` (`same` ou `opposite` au sens de marche), un aiguillage
-`travel_facing` (pris en pointe) ; les déclivités `permille` sont dans le sens de marche
+`precision`) ; identifiants préfixés du rang de la portion, références comprises (`from_track`,
+`to_track`, `track`, `tracks` d'une traversée, `op_id` d'une voie). Un signal porte `travel` (`same`
+ou `opposite` au sens de marche), un aiguillage `travel_facing` (pris en pointe) ; les déclivités `permille` sont dans le sens de marche
 (`line_permille` dans le sens des PK). Listes raccourcies par la fin si la réponse est trop longue
-(`truncated`). `vff_url` ouvre la page du livret. Même calcul que `GET /api/v1/routebook`.
+(`truncated`). `vff_url` ouvre la page du livret. Même calcul que `GET /api/v1/routebook`. Le bloc
+d'attribution crédite les fournisseurs de chaque source (`vff` : SNCF Réseau et IGN), comme
+`line_track_layout`.
 
 Erreurs : `graph_not_built`, `station_not_found`, `ambiguous_station` (avec `candidates`),
 `same_station`, `station_not_in_network`, `no_path`.
@@ -1020,10 +1025,11 @@ RINF.
 Renvoie `line`, `pk` (étendue servie), `sources[]` (clé, licence, jeu, date de lecture, `attribution`), `operational_points[]`
 (`uopid`, `station_slug`, `kind`), `tracks[]` (`ref` courte : `V1`, `V2`, `VU` pour la voie unique ; `kind` : `running`,
 `siding`, `loop`, `yard`, `crossover`, `spur` ; `lane`, rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté
-voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`form`), `crossings[]` (`use` : `road` ou
+voie 1 ; `direction`, `max_speed_kmh`), `switches[]`, `signals[]` (`kind` : catégorie d'OpenStreetMap, `unknown` quand
+elle n'est pas dite ; `form`), `crossings[]` (`use` : `road` ou
 `pedestrian`), `buffer_stops[]` (heurtoirs, `track` : voie fermée), `milestones[]` (bornes kilométriques, `label` :
 inscription), `strip.speeds[]` (`tracks` : voies auxquelles la vitesse s'applique), `strip.gradients[]` (‰
-dans le sens des PK croissants), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), `counts` (nombre d'objets de chaque
+dans le sens des PK croissants, `tracks` : voies auxquelles la déclivité s'applique), `coverage` (`total_m`, `rinf_m`, `osm_m`, `missing[]`), `counts` (nombre d'objets de chaque
 famille sur la portion, même filtrée par `kinds` : `kinds=operational_points` donne un aperçu léger d'une longue ligne avant
 d'en demander une portion), le bloc d'attribution et `vff_url`.
 `precision` vaut `exact`, `derived` (calculé par VFF) ou `approximate` (une voie de gare du RINF n'a pas de PK propre : elle
@@ -1036,6 +1042,71 @@ European Union Agency for Railways » (EUPL 1.2), « © contributeurs OpenStreet
 
 ```json
 {"line": "rfn-579000", "from_pk_m": 17000, "to_pk_m": 18000}
+```
+
+### `line_rinf_parameters` : paramètres RINF d'une ligne, comparés
+
+Même contenu que `GET /api/v1/lines/{line}/rinf-parameters` (service `RinfParameterComparison`). Ce que le RINF (registre de
+l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, déclaré par SNCF Réseau et les autres
+gestionnaires, lu par `vff:import-rinf`) déclare pour chaque voie de chaque section de la ligne, par PK, côte à côte avec
+l'autre source de VFF (SNCF Réseau) et l'accord ou le désaccord des deux. Aucune donnée n'est remplacée : quand les sources
+diffèrent, donner les deux valeurs et leur source, sans trancher. Réseau d'aujourd'hui.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `parameters` | liste | non | Paramètres : `electrification`, `max_speed`, `train_protection`, `radio`, `gauging`, `load_capability`, `track_gauge` (par défaut tous). |
+| `disagreements_only` | booléen | non | Ne garder que les portions et les quais en désaccord (`summary` reste complet). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `sections[]` (sections du RINF : `national_line`, `rg_troncon`, PK, points d'exploitation `from` et `to`,
+voies), `parameters[]` (`key`, `compared_with` : `sncf` ou null, `summary` en mètres : `rinf_m`, `vff_m`, `agree_m`,
+`disagree_m`, `rinf_only_m`, `vff_only_m` ; `portions[]` : `rg_troncon`, PK, `status`, `rinf` et `vff`, chacun avec `key`,
+`values`, `voltage_v`, `frequency_hz`, `speed_kmh`, `tracks`, `source_label`), `platforms` (`summary`, `items[]` : gare, point
+d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_mm`, `vff` avec `label`, `length_m`, PK),
+`sources[]`, le bloc d'attribution et `vff_url`. Règles : la vitesse d'une section du RINF est comparée à la plus forte
+vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
+déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
+Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en
+a (« Voie 1 BIS », « Voie 2 ter », « Voie 1 SP de … » n'en sont pas) ; quais d'accord à 5 m près, `length_unknown` quand une
+des deux sources ne donne pas la longueur. Raccourcissement : `sections`, `platforms.items`, `parameters.N.portions` (`truncated`).
+Mention à reproduire : « RINF data © European Union Agency for Railways » (EUPL 1.2), SNCF Réseau (ODbL).
+
+```json
+{"line": "566000", "parameters": ["max_speed", "train_protection"], "disagreements_only": true}
+```
+
+### `station_track_layout` : voies d'une gare
+
+Même contenu que `GET /api/v1/stations/{station}/track-layout` (service `StationTrackLayout`). Réseau d'aujourd'hui
+seulement. Pour chaque ligne qui passe par la gare et dont les voies sont décrites autour d'elle (PK de la gare sur la
+ligne, section du RINF qui finit à un point d'exploitation de la gare, ou voies d'OpenStreetMap rattachées à la gare),
+le schéma des voies de la ligne (`line_track_layout`, mêmes sources et mêmes règles) sur une fenêtre autour de la gare :
+ses voies propres (voies de service d'OpenStreetMap rattachées à la gare, voies du point d'exploitation au RINF sur leur
+longueur déclarée) et son PK, élargies de 200 m de chaque côté, entre 500 m et 2 500 m du PK. Une ligne fermée du passé
+n'a pas de bloc. Les bords de quai : longueur utile et hauteur au-dessus du rail du RINF, PK de la « Liste des quais » de
+SNCF Réseau pour la même ligne et la même voie (`pk_source` `sncf`, `precision` `exact`), sinon placés autour du PK de la
+gare sur leur voie (`pk_source` `vff`, `precision` `approximate`) ou sans PK quand leur voie n'est pas dessinée.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `station` | slug | oui | Gare (slug renvoyé par `search`). |
+| `line` | slug ou code | non | Une seule ligne (slug, ou code SNCF Réseau à 6 chiffres). |
+| `kinds` | liste | non | Familles du schéma de chaque ligne, comme pour `line_track_layout`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `station`, `operational_points[]` (UOPID du RINF rattachés à la gare), `lines[]` (`line`, `station_pk_m`,
+`station_pk_label`, `station_pk_source`, `window` en PK de la ligne, `track_layout` au format de `line_track_layout`),
+`platforms[]` (un bord de quai par voie bordée, un quai central en a deux : `ref`, `track_ref`, `line_code`, `track` =
+identifiant de la voie dans le schéma de sa ligne, `pk_from_m`, `pk_to_m`, `length_m`, `height_mm`, `source`, `pk_source`,
+`precision`), `sources[]`, `counts` (lignes, voies, aiguillages, signaux, traversées, heurtoirs, bords de quai), le bloc
+d'attribution et `vff_url` (page `/stations/{slug}/voies`). Dire la précision quand elle n'est pas `exact`. Une gare sans
+voie décrite renvoie `lines` vide (et ses quais s'ils sont connus). Raccourcissement : `platforms` et les listes de chaque
+schéma de ligne (`truncated`). Mentions à reproduire : « RINF data © European Union Agency for Railways » (EUPL 1.2),
+« © contributeurs OpenStreetMap » (ODbL), « Quais : SNCF Réseau, jeu « Liste des quais » » (ODbL).
+
+```json
+{"station": "poitiers"}
 ```
 
 ### `line_greenways` : voies vertes d'une ancienne ligne
@@ -1919,7 +1990,9 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
 | « La ligne de Beillant à Angoulême est-elle à voie unique, et équipée du GSM-R ? » | `line_infrastructure {"line": "rfn-579000"}` : `tracks.summary`, `radio.systems` ; citer « SNCF Réseau » |
+| « Le RINF et SNCF Réseau disent-ils la même vitesse sur la LGV SEA ? » | `line_rinf_parameters {"line": "566000", "parameters": ["max_speed"], "disagreements_only": true}` : donner les deux valeurs et leur source ; citer « RINF data © European Union Agency for Railways » et « SNCF Réseau » |
 | « Combien de voies et de voies de service à Cognac ? » | `line_track_layout {"line": "rfn-579000", "from_pk_m": 16500, "to_pk_m": 18000}` : `tracks` (kind, ref, precision) ; citer « RINF data © European Union Agency for Railways » |
+| « Combien de quais à Poitiers, et de quelle hauteur ? » | `station_track_layout {"station": "poitiers", "kinds": ["operational_points"]}` : `platforms` (ref, track_ref, length_m, height_mm) ; citer le RINF et SNCF Réseau |
 | « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Les archives de la SNCF ont-elles des photos de la ligne du Mans à Mézidon ? » | `line_archive_records {"line": "rfn-430000", "type": "image"}` : donner `url` et la mention « SNCF, Service Archives Documentation » (ODbL) |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |

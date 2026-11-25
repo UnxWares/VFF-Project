@@ -1,0 +1,1121 @@
+{
+  "head" : {
+    "vars" : [
+      "t",
+      "energy",
+      "contact",
+      "etcs",
+      "etcsLevel",
+      "protection",
+      "otherProtection",
+      "gsmr",
+      "gauging",
+      "loadCategory",
+      "nationalLoad",
+      "gauge",
+      "notApplicable"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/02c9daac9e"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/85fd1d5700"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/08b7491249"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/dde357dee5"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/13735464ce"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/3a15385bb3"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gsmr" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/gsmr-versions/50"
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : ""
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/1e5f9da784"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/9882aa624d"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2213a3fa8d"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/dabe021b92"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gsmr" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/gsmr-versions/50"
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : ""
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/283c4168bc"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/3200c597e8"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/28494ce088"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/0ac1f5b797"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/3d554602a4"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/0abd82c5d5"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/53e0a47d1e"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/4e86dbf1ac"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/62571e73b0"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/ea1a1cb91d"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/685bae6db9"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : ""
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/6ca6eb0e7e"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/bc187bc2f2"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/785050dd35"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/c756093eac"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7a1ae5b320"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/f438dc9878"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7d8bd3548d"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/668d0c1268"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/7db14a6725"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/dbfef7b978"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/802ed8a1b2"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/4c56689ef4"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/8445c89474"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/11f298763b"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07|http://data.europa.eu/949/concepts/train-protection-legacy-systems/30"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/9e288fa827"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : ""
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/a6931a2f9d"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/adbad93a4e"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/b3d58f2f08"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/e7650ed484"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/cf6a363211"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/8d7f7f0350"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/e0d7446104"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/46e2b6dc99"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/f2fa4b1ae8"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/4b4ea27075"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/f69e983154"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/cde6cd5eda"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12|http://data.europa.eu/949/concepts/train-protection-legacy-systems/07"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "5"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/fdd6985c0e"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/0b54bd293f"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/10|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4-"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      },
+      {
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/fe36fac425"
+        },
+        "contact" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/contact-line-systems/40"
+        },
+        "etcs" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/trackside/etcs/eb24f253c0"
+        },
+        "protection" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/train-protection-legacy-systems/12"
+        },
+        "otherProtection" : {
+          "type" : "literal",
+          "value" : ""
+        },
+        "gauging" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/concepts/gaugings/20|http://data.europa.eu/949/concepts/gaugings/350|http://data.europa.eu/949/concepts/gaugings/120"
+        },
+        "loadCategory" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/load-capability-line-categories/90"
+        },
+        "nationalLoad" : {
+          "type" : "literal",
+          "value" : "4+"
+        },
+        "gauge" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/concepts/nominal-track-gauges/30"
+        },
+        "notApplicable" : {
+          "type" : "literal",
+          "value" : "http://data.europa.eu/949/gsmRVersion"
+        }
+      }
+    ]
+  }
+}

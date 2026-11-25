@@ -22,7 +22,8 @@ class LineTrackLayoutController extends Controller
      *
      * Toutes les voies de la ligne aujourd'hui, à la manière d'un « routebook » : voies principales numérotées
      * (voie 1, voie 2, voie unique), voies de gare, d'évitement et de service, liaisons, aiguillages, traversées,
-     * signaux, heurtoirs (`buffer_stops`), bornes kilométriques (`milestones`, inscription dans `label`) et points
+     * signaux (`kind` : catégorie d'OpenStreetMap, `main`, `distant`…, `unknown` quand elle n'est pas dite),
+     * heurtoirs (`buffer_stops`), bornes kilométriques (`milestones`, inscription dans `label`) et points
      * d'exploitation, dans l'ordre des points kilométriques (PK), avec une bande des vitesses et des déclivités.
      * Réseau d'aujourd'hui seulement (ère courante) : aucune voie n'est inventée pour le passé.
      *
@@ -40,6 +41,10 @@ class LineTrackLayoutController extends Controller
      * 0 pour la voie 1 ou la voie unique, 1 pour la voie 2, puis les autres voies au-dessus (rangées négatives,
      * numéros impairs, côté voie 1) ou au-dessous (numéros pairs, côté voie 2) de leur voie mère, sans croisement
      * inutile. « up » = sens des PK croissants.
+     *
+     * **Bande** (`strip`) : vitesses (`speeds`, km/h) et déclivités (`gradients`, ‰ dans le sens des PK croissants),
+     * avec les voies auxquelles chacune s'applique (`tracks`, références courtes, null quand la source ne le dit pas) :
+     * deux sections parallèles d'une ligne (Paris-Austerlitz : V1 et V2, V1S et V2S) ont chacune les leurs au même PK.
      *
      * **Nombre d'objets** (`counts`) : par famille, sur la portion servie, quelles que soient les familles demandées.
      * Un aperçu léger d'une longue ligne (`kinds=operational_points` : étendue, points d'exploitation, couverture et
@@ -72,8 +77,8 @@ class LineTrackLayoutController extends Controller
      *     buffer_stops: array<array{id: string, pk_m: int, track: ?string, source: string, precision: string}>,
      *     milestones: array<array{id: string, pk_m: int, label: ?string, source: string, precision: string}>,
      *     strip: array{
-     *         speeds: array<array{pk_from_m: int, pk_to_m: int, kmh: int, source: string}>,
-     *         gradients: array<array{pk_from_m: int, pk_to_m: int, permille: float, source: string, precision: string}>
+     *         speeds: array<array{pk_from_m: int, pk_to_m: int, kmh: int, tracks: ?array<string>, source: string}>,
+     *         gradients: array<array{pk_from_m: int, pk_to_m: int, permille: float, tracks: ?array<string>, source: string, precision: string}>
      *     },
      *     coverage: array{total_m: int, rinf_m: int, osm_m: int, vff_m: int, missing: array<array{pk_from_m: int, pk_to_m: int, what: string}>},
      *     counts: array{operational_points: int, tracks: int, switches: int, signals: int, crossings: int, buffer_stops: int, milestones: int}
@@ -108,7 +113,7 @@ class LineTrackLayoutController extends Controller
         'buffer_stops' => [],
         'milestones' => [],
         'strip' => [
-            'speeds' => [['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'source' => 'rinf']],
+            'speeds' => [['pk_from_m' => 17277, 'pk_to_m' => 17917, 'kmh' => 140, 'tracks' => ['VU'], 'source' => 'rinf']],
             'gradients' => [],
         ],
         'coverage' => ['total_m' => 822, 'rinf_m' => 822, 'osm_m' => 0, 'vff_m' => 0, 'missing' => [

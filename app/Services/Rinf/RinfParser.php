@@ -198,6 +198,74 @@ final class RinfParser
     }
 
     /**
+     * Paramètres déclarés des voies des sections (RinfQueries::trackParameters), par URI de voie, en colonnes de
+     * rinf_tracks (RinfParameters::COLUMNS). Trois états par paramètre : une valeur, « aucun » quand le gestionnaire
+     * le déclare sans objet (era:notApplicable, ou le concept « None » : liste vide, `none`, faux) et null quand
+     * rien n'est dit.
+     *
+     * @param  list<array<string, array{type: string, value: string}>>  $rows
+     * @return array<string, array<string, mixed>>
+     */
+    public static function trackParameters(array $rows): array
+    {
+        $out = [];
+        foreach ($rows as $r) {
+            $t = self::v($r, 't');
+            if ($t === null) {
+                continue;
+            }
+            $na = array_map(fn (string $p): string => (string) preg_replace('~^http://data\.europa\.eu/949/~', '', $p), self::list($r, 'notApplicable'));
+            $energy = self::conceptId(self::v($r, 'energy'));
+            $supply = $energy !== null ? (RinfParameters::ENERGY_SUPPLY[$energy] ?? null) : null;
+            $contact = RinfParameters::CONTACT_LINES[self::code(self::v($r, 'contact')) ?? -1] ?? (in_array('contactLineSystem', $na, true) ? 'none' : null);
+
+            $protection = null;
+            $codes = [...self::list($r, 'protection'), ...self::list($r, 'otherProtection')];
+            if ($codes !== [] || in_array('protectionLegacySystem', $na, true)) {
+                $labels = [];
+                foreach ($codes as $concept) {
+                    $label = RinfParameters::protectionLabel($concept);
+                    if ($label !== null && ! in_array($label, $labels, true)) {
+                        $labels[] = $label;
+                    }
+                }
+                $protection = RinfParameters::sortProtection($labels);
+            }
+
+            $level = self::code(self::v($r, 'etcsLevel'));
+            $etcs = match (true) {
+                $level !== null => RinfParameters::ETCS_LEVELS[$level] ?? null,
+                self::v($r, 'etcs') !== null || in_array('etcs', $na, true) => 'none',
+                default => null,
+            };
+
+            $gsmr = self::conceptId(self::v($r, 'gsmr'));
+            $gauging = self::list($r, 'gauging');
+            $loadCategory = self::code(self::v($r, 'loadCategory'));
+            $gauge = self::code(self::v($r, 'gauge'));
+            $national = trim((string) self::v($r, 'nationalLoad'));
+
+            $out[$t] = [
+                'contact_line' => $contact,
+                'energy_supply' => $supply !== null ? $energy : null,
+                'voltage_v' => $supply[0] ?? null,
+                'frequency_hz' => $supply[1] ?? null,
+                'train_protection' => $protection,
+                'etcs_level' => $etcs,
+                'gsm_r' => $gsmr !== null ? true : (in_array('gsmRVersion', $na, true) ? false : null),
+                'gsm_r_version' => $gsmr !== null ? (RinfParameters::GSMR_VERSIONS[$gsmr] ?? 'gsmr-versions/'.$gsmr) : null,
+                'gauging_profiles' => $gauging === [] ? null : RinfParameters::sortGaugings(array_values(array_unique(array_filter(array_map(
+                    fn (string $c): ?string => RinfParameters::GAUGINGS[self::code($c) ?? -1] ?? null, $gauging))))),
+                'load_category' => $loadCategory !== null ? (RinfParameters::LOAD_CATEGORIES[$loadCategory] ?? null) : null,
+                'national_load_class' => $national === '' ? null : mb_substr($national, 0, 20),
+                'track_gauge_mm' => $gauge !== null ? (RinfParameters::TRACK_GAUGES[$gauge] ?? null) : null,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Profils de déclivités déclarés, par URI de voie (« +04.0(+18.300)|+02.2 »).
      *
      * @param  list<array<string, array{type: string, value: string}>>  $rows
@@ -298,6 +366,27 @@ final class RinfParser
         }
 
         return (int) $m[1];
+    }
+
+    /** Identifiant d'un concept (« …/concepts/energy-supply-systems/AC10 » : AC10), null hors du vocabulaire de l'ERA. */
+    private static function conceptId(?string $concept): ?string
+    {
+        if ($concept === null || ! str_starts_with($concept, self::CONCEPT) || preg_match('~/([^/]+)$~', $concept, $m) !== 1) {
+            return null;
+        }
+
+        return $m[1];
+    }
+
+    /**
+     * Valeurs regroupées par GROUP_CONCAT (« a|b »), sans vide.
+     *
+     * @param  array<string, array{type: string, value: string}>  $r
+     * @return list<string>
+     */
+    private static function list(array $r, string $key): array
+    {
+        return array_values(array_filter(explode('|', (string) self::v($r, $key)), fn (string $s): bool => trim($s) !== ''));
     }
 
     /** @param  array<string, array{type: string, value: string}>  $r */

@@ -48,7 +48,8 @@ final class OsmTrackTags
             $raw = $m[1].$m[2];
         }
 
-        return preg_replace_callback('/bis$/i', fn (): string => 'bis', $raw) ?? $raw;
+        // « 2 bis » and « 2BIS » are « 2bis » (a space before the suffix made the track number read as « 2 »).
+        return preg_replace_callback('/\s*(bis|ter)$/i', fn (array $m): string => strtolower($m[1]) === 'bis' ? 'bis' : $m[1], $raw) ?? $raw;
     }
 
     /** PK in metres from an OSM position (« 546.707 », « 22 », « 22+500 », « 12,3 »); null otherwise (miles, text). */

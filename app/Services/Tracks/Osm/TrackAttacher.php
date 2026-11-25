@@ -574,6 +574,10 @@ final class TrackAttacher
             $pk = $at['pk_m'] ?? null;
             $precision = $at['precision'] ?? null;
         }
+        // PK of the chainage at the node, kept for the direction of a switch: its toe is located on the same chainage, and
+        // comparing it with a PK carried by OpenStreetMap (up to EXACT_AGREE_M away) turned the facing direction of
+        // about 280 switches whenever the two PKs differ by more than the 15 m of the toe point.
+        $calibrated = $pk;
         $osmPk = OsmTrackTags::position($tags['railway:position:exact'] ?? ($kind === 'milestone' ? $tags['railway:position'] ?? null : null));
         $codes = $segment === null ? $this->nodeCodes($nodeId) : $this->osm->wayCodes($piece['osm_way_id']);
         $onLine = $line->code !== null && in_array($line->code, $codes, true);
@@ -592,7 +596,7 @@ final class TrackAttacher
         $direction = null;
         if ($kind === 'switch') {
             $subtype = $tags === [] ? null : OsmTrackTags::switchKind($tags);
-            [$from, $to, $direction] = $this->switchTopology($nodeId, $lon, $lat, $line, $pk);
+            [$from, $to, $direction] = $this->switchTopology($nodeId, $lon, $lat, $line, $calibrated);
         } elseif ($kind === 'railway_crossing') {
             [$from, $to] = $this->crossingWays($nodeId, $lon, $lat) + [$from, null];
         } elseif ($kind === 'signal') {
@@ -664,7 +668,8 @@ final class TrackAttacher
 
     /**
      * Track a switch stands on (its toe side), track it leads to, and the direction of the trains that face
-     * it (up: towards increasing PKs). Not a three-branch switch: the two tracks that cross, no facing.
+     * it (up: towards increasing PKs). Not a three-branch switch: the two tracks that cross, no facing. `$pk` is the PK of
+     * the node on the chainage (never the PK carried by OpenStreetMap): the toe point is compared with it.
      *
      * @return array{0: ?int, 1: ?int, 2: ?string}
      */

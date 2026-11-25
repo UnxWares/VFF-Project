@@ -9,12 +9,15 @@
         AXIS,
         ROW_KINDS,
         ZOOM_STEP,
+        axisFromZones,
         axisLabel,
         buildAxis,
-        fitZoom,
+        detailZones,
+        fitZoomFor,
         foldLayout,
         gapSummary,
         hasTracks,
+        lineOverview,
         nearestRow,
         normalize,
         objectPks,
@@ -46,8 +49,16 @@
      * Grandes gares : les faisceaux et voies de service d'un point d'exploitation sont repliés en un groupe
      * (« 23 voies de service ») que l'on déplie sur place (foldLayout).
      *
+     * Page des voies d'une gare (/stations/{slug}/voies) : `platforms` (bords de quai de la ligne, dessinés sous les
+     * voies), `stationSlug` (la gare de la page : pas de lien vers elle-même dans le tableau), `startPk` (le dessin
+     * s'ouvre centré sur ce PK quand la portion ne tient pas dans la largeur, comme la page d'une ligne ouverte depuis
+     * une gare ; la carte montre ce PK tant qu'aucun objet n'est choisi). `children` : contenu posé entre le
+     * tableau et le pied des sources (le tableau des quais d'une gare).
+     *
      * @type {{ layout?: any, loader?: import('$lib/trackLayoutLoader.svelte.js').TrackLayoutLoader|null,
-     *   slug: string|null, lineName: string, full?: boolean, axisMode?: 'line'|'route' }}
+     *   slug: string|null, lineName: string, full?: boolean, axisMode?: 'line'|'route',
+     *   platforms?: Array<any>, stationSlug?: string|null, startPk?: number|null,
+     *   children?: import('svelte').Snippet }}
      */
     let {
         layout = null,
@@ -56,6 +67,10 @@
         lineName,
         full = false,
         axisMode = 'line',
+        platforms = [],
+        stationSlug = null,
+        startPk = null,
+        children,
     } = $props();
 
     const t = (k, o) => String($i18n.t(k, o));
@@ -63,8 +78,9 @@
 
     const raw = $derived(layout ?? loader?.layout ?? null);
     const data = $derived(normalize(raw));
-    // Axe en deux temps : les zones (pour replier les faisceaux), puis l'axe dessiné, dilaté là où les aiguillages et
-    // traversées encore dessinés sont serrés (gorges de gare).
+    // Axe en deux temps : les zones de toutes les voies (pour replier les faisceaux), puis l'axe dessiné, dont les zones
+    // ne viennent que des voies encore dessinées (une gare repliée reprend la largeur de ses voies visibles), dilaté là
+    // où les aiguillages et traversées dessinés sont serrés (gorges de gare), 14 px à l'écran quel que soit le zoom.
     const zonesAxis = $derived(buildAxis(data));
     const allRows = $derived(routeRows(data));
     const tracksById = $derived(new Map(data.tracks.map((tr) => [tr.id, tr])));
@@ -72,9 +88,17 @@
 
     // Faisceaux et voies de service repliés par point d'exploitation ; `expanded` : zones dépliées.
     const expanded = new SvelteSet();
-    const folded = $derived(foldLayout(data, zonesAxis.zones, expanded));
-    const axis = $derived(buildAxis(data, AXIS, objectPks(folded.data)));
+    // Page des voies d'une gare : les voies à quai restent dessinées, même dans une très grande gare.
+    const platformTracks = $derived(new Set(platforms.map((p) => p.track).filter(Boolean)));
+    const folded = $derived(foldLayout(data, zonesAxis.zones, expanded, platformTracks));
+    const drawnZones = $derived(detailZones(folded.data));
+    const dense = $derived(objectPks(folded.data));
+    const axisAt = (z) => axisFromZones(drawnZones, data.pk, AXIS, dense, z);
     const anyClosed = $derived(folded.groups.some((g) => !g.expanded));
+    // Toute une longue ligne à l'écran (rien n'est lu à cette échelle) : le dessin ne garde que la ligne et ses points
+    // d'exploitation ; les voies déjà lues d'une partie, illisibles en quelques pixels, reviennent au zoom.
+    const overview = $derived(Boolean(loader?.chunked && loader.tooWide));
+    const drawn = $derived(overview ? lineOverview(folded.data) : folded.data);
     function toggleGroup(g) {
         if (expanded.has(g.key)) expanded.delete(g.key);
         else expanded.add(g.key);
@@ -101,8 +125,11 @@
         viewTimer = setTimeout(() => loader.ensure(from, to), 150);
     }
     $effect(() => () => clearTimeout(viewTimer));
+    // Des voies arrivent (zones ou gorges changées) : le PK du milieu reste au milieu. Un changement de zoom recentre
+    // de lui-même (setZoom).
     $effect(() => {
-        axis;
+        drawnZones;
+        dense;
         untrack(() => {
             const pk = anchor;
             if (pk === null || !loader?.chunked) return;
@@ -118,6 +145,7 @@
         ),
     );
     let zoom = $state(1);
+    const axis = $derived(axisAt(zoom));
     let printing = $state(false);
     /** @type {string|null} */
     let selected = $state(null);
@@ -153,7 +181,7 @@
     const zoomMin = () => Math.min(0.5, fitNow());
     function fitNow() {
         const view = diagram?.viewWidth() ?? 0;
-        return fitZoom(axis.width, view, 58);
+        return fitZoomFor((z) => axisAt(z).width, view, 58);
     }
 
     async function setZoom(next) {
@@ -227,12 +255,19 @@
     }
 
     // Ligne courte : à l'ouverture, le dessin remplit la largeur (jamais en dessous de 100 %).
-    // Une longue ligne s'ouvre sur son premier point d'exploitation (pas sur un début de tracé sans rien).
+    // Une longue ligne s'ouvre sur son premier point d'exploitation (pas sur un début de tracé sans rien), ou sur le
+    // PK demandé (`startPk` : lien depuis la page des voies d'une gare), au zoom 100 %.
     let fitted = false;
     $effect(() => {
         if (fitted || !diagram) return;
         fitted = true;
+        const at = untrack(() => startPk);
         const f = fitNow();
+        if (at !== null && Number.isFinite(at) && f <= 1) {
+            anchor = at;
+            tick().then(() => diagram?.centerOn(at, false));
+            return;
+        }
         if (f > 1) zoom = Math.min(ZOOM_MAX, f);
         else {
             const first = untrack(() => data.operational_points[0]?.pk_m);
@@ -317,18 +352,19 @@
                   ? t('tracks.parts.loading')
                   : '',
     );
-    const LEGEND = [
+    const LEGEND = $derived([
         'travelled',
         'main',
         'service',
         'derived',
+        ...(platforms.length ? ['platform'] : []),
         'switch',
         'crossing',
         'buffer_stop',
         'signal',
         'level_crossing',
         'zone',
-    ];
+    ]);
     const legendKey = (k) => (k === 'buffer_stop' ? 'buffer' : k);
 </script>
 
@@ -435,7 +471,7 @@
         <div class="body">
             <div class="main" id="tl-panel" role="tabpanel" aria-labelledby="tl-tab-{tab}">
                 {#if tab === 'map'}
-                    <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? null} />
+                    <TrackLayoutMap {slug} {lineName} pk={selectedRow?.pk_m ?? startPk ?? null} />
                 {:else}
                     {#if tab === 'schema' && !detailed}
                         <p class="no-schema">{t('tracks.no_schema')}</p>
@@ -443,8 +479,8 @@
                     <p class="parts" role="status">{partState}</p>
                     <TrackDiagram
                         bind:this={diagram}
-                        data={folded.data}
-                        groups={folded.groups}
+                        data={drawn}
+                        groups={overview ? [] : folded.groups}
                         ontoggle={toggleGroup}
                         {onview}
                         {axis}
@@ -460,6 +496,7 @@
                         {t}
                         onpick={fromDiagram}
                         {onkey}
+                        {platforms}
                     />
                     <p class="help" id="tl-help">{t('tracks.schema_help')}</p>
                 {/if}
@@ -506,10 +543,13 @@
                     {t}
                     {tracksById}
                     {axisMode}
+                    {stationSlug}
                     onselect={fromTable}
                 />
             </div>
         </div>
+
+        {@render children?.()}
 
         <footer class="sources">
             <p>
@@ -556,6 +596,8 @@
     }
     .track-layout {
         --tl-zone: color-mix(in srgb, var(--vff-bg-muted) 75%, transparent);
+        --tl-platform: color-mix(in srgb, var(--vff-text) 16%, var(--vff-bg-elevated));
+        --tl-platform-edge: color-mix(in srgb, var(--vff-text) 45%, transparent);
         --tl-table-h: 28rem;
         display: flex;
         flex-direction: column;

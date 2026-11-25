@@ -230,9 +230,12 @@ final class TrackLayout
             'crossings' => self::shape('crossings', $pointFilter($merged['crossings'])),
             'buffer_stops' => self::shape('buffer_stops', $pointFilter($merged['buffer_stops'])),
             'milestones' => self::shape('milestones', $pointFilter($merged['milestones'])),
-            // `tracks` : voies auxquelles la vitesse s'applique (références courtes), null quand la source ne le dit pas.
+            // `tracks` : voies auxquelles la vitesse ou la déclivité s'applique (références courtes), null quand la source
+            // ne le dit pas.
             'strip' => ['speeds' => array_map(fn (array $r): array => ['pk_from_m' => $r['pk_from_m'], 'pk_to_m' => $r['pk_to_m'], 'kmh' => $r['kmh'],
-                'tracks' => $r['tracks'] ?? null, 'source' => $r['source']], $rangeFilter($merged['speeds'])), 'gradients' => $rangeFilter($merged['gradients'])],
+                'tracks' => $r['tracks'] ?? null, 'source' => $r['source']], $rangeFilter($merged['speeds'])),
+                'gradients' => array_map(fn (array $r): array => ['pk_from_m' => $r['pk_from_m'], 'pk_to_m' => $r['pk_to_m'], 'permille' => $r['permille'],
+                    'tracks' => $r['tracks'] ?? null, 'source' => $r['source'], 'precision' => $r['precision'] ?? null], $rangeFilter($merged['gradients']))],
             'coverage' => self::coverage($start, $end, $covered, $coveredBy),
         ];
         // Nombre d'objets de chaque famille sur la portion servie, quelles que soient les familles demandées : un aperçu
@@ -241,18 +244,35 @@ final class TrackLayout
         foreach (self::COUNTED as $family) {
             $out['counts'][$family] = count($out[$family]);
         }
+
+        return self::onlyKinds($out, $kinds);
+    }
+
+    /**
+     * Réponse réduite aux familles demandées : les autres listes sont vidées, `counts` et `coverage` restent (un aperçu
+     * dit ce que la portion a sans le transférer).
+     *
+     * @param  array<string, mixed>  $layout  réponse de forLine
+     * @param  list<string>|null  $kinds  familles à servir (null : toutes)
+     * @return array<string, mixed>
+     */
+    public static function onlyKinds(array $layout, ?array $kinds): array
+    {
+        if ($kinds === null) {
+            return $layout;
+        }
         foreach (['operational_points', 'tracks', 'switches', 'signals', 'crossings', 'buffer_stops', 'milestones'] as $family) {
             if (! in_array($family, $kinds, true)) {
-                $out[$family] = [];
+                $layout[$family] = [];
             }
         }
         foreach (['speeds', 'gradients'] as $family) {
             if (! in_array($family, $kinds, true)) {
-                $out['strip'][$family] = [];
+                $layout['strip'][$family] = [];
             }
         }
 
-        return $out;
+        return $layout;
     }
 
     /**
@@ -501,14 +521,14 @@ final class TrackLayout
 
     /**
      * Numéro d'une voie pour rapprocher deux sources : premier mot de la référence, sans « Voie » ni « V » devant un
-     * chiffre (« 3 - COGNAC », « V3 » et « 3 » : « 3 » ; « E de Cognac » : « E » ; « VU » et « U » : « U »), « » sans
-     * référence.
+     * chiffre (« 3 - COGNAC », « V3 » et « 3 » : « 3 » ; « E de Cognac » : « E » ; « VU » et « U » : « U » ; « 2 bis » et
+     * « V2BIS » : « 2BIS », jamais « 2 », la voie 2 elle-même), « » sans référence.
      */
     public static function trackNumber(string $ref): string
     {
         $ref = strtoupper(trim((string) preg_replace('/^\s*voie\s+/iu', '', $ref)));
-        if (preg_match('/^V?(\d+[A-Z]?(?:BIS|TER)?)\b/', $ref, $m) === 1) {
-            return $m[1];
+        if (preg_match('/^V?(\d+[A-Z]?)(?:\s?(BIS|TER|QUATER))?\b/', $ref, $m) === 1) {
+            return $m[1].($m[2] ?? '');
         }
         $word = preg_match('/^([A-Z0-9]+)\b/', $ref, $m) === 1 ? $m[1] : '';
 

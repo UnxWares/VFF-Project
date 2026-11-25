@@ -138,7 +138,11 @@ describe('schéma des voies (rendu serveur)', () => {
         expect(body).toMatch(
             /<a[^>]*href="\/stations\/cognac"[^>]*aria-label="tracks.table.station_label:Cognac"[^>]*>tracks.table.station<\/a>/,
         );
-        expect([...body.matchAll(/href="\/stations\//g)]).toHaveLength(1);
+        // Et vers ses voies (/stations/{slug}/voies) ; le faisceau sans gare n'a aucun lien.
+        expect(body).toMatch(
+            /<a[^>]*href="\/stations\/cognac\/voies"[^>]*aria-label="tracks.table.station_tracks_label:Cognac"[^>]*>tracks.table.station_tracks<\/a>/,
+        );
+        expect([...body.matchAll(/href="\/stations\//g)]).toHaveLength(2);
     });
 
     it('dit le sens de marche et non les PK sur un livret de parcours', () => {

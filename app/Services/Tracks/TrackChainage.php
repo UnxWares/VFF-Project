@@ -891,10 +891,11 @@ final class TrackChainage
                 $fit = self::fit([...$own, ...array_map(fn (array $t): array => [$t[0], $t[1]], $touches)], $length);
                 if ($fit !== null && $own !== [] && self::runs($fit['anchors']) !== [$fit['anchors']]) {
                     // The PK of a touching part breaks with the anchor of the part (a helix or a loop between them):
-                    // the part keeps its anchor and only takes the direction of the PK from the touching part.
+                    // the part keeps its anchor and only takes the direction of the PK from the touching part, the way
+                    // its PK grows into the part (the sign of the break says nothing about it).
                     [$a0, $p0] = $own[0];
-                    [$ta, $tp] = $touches[0];
-                    $up = ($ta - $a0) * ($tp - $p0) >= 0.0;
+                    [$ta, , $growsInto] = $touches[0];
+                    $up = ($ta === 0.0) === $growsInto;
                     $d0 = $up ? $a0 : $length - $a0;
                     $fit = ['reversed' => ! $up, 'anchors' => [[$d0, $p0], [$d0 + 1000.0, $p0 + 1000]], 'inherited' => true];
                 }

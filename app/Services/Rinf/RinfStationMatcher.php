@@ -9,7 +9,9 @@ use App\Support\Search\SearchText;
  * VFF, SearchText::key, « St-Michel-sur-Charente » = « Saint-Michel-sur-Charente ») et la distance.
  *
  * - `name_distance` : même nom (clé ou cœur de clé égaux, ou l'un commence l'autre mot pour mot : « Les Aubrais »
- *   et « Les Aubrais-Orléans ») à NAME_RADIUS_M au plus ; la plus proche l'emporte ;
+ *   et « Les Aubrais-Orléans ») à NAME_RADIUS_M au plus ; un nom égal l'emporte sur un nom prolongé (« Châteaubriant »
+ *   et « Châteaubriant Tram-Train », deux gares à 50 m l'une de l'autre, « Paris-Nord-Surface » et « Paris-Nord »),
+ *   puis la plus proche ;
  * - `name` : point sans position, nom égal à celui d'une seule gare de VFF ;
  * - `distance` : point de type gare ou halte sans nom reconnu, gare la plus proche à DISTANCE_RADIUS_M au plus.
  * Les bifurcations, faisceaux, installations terminales et changements techniques ne sont rattachés que par le nom.
@@ -57,18 +59,25 @@ final class RinfStationMatcher
 
             return count($same) === 1 ? ['station_id' => $this->stations[$same[0]]['id'], 'station_match' => 'name', 'station_distance_m' => null] : null;
         }
-        $best = null;
+        $same = null;
+        $prolonged = null;
         $nearest = null;
         foreach ($this->around($op['lat'], $op['lon']) as $i) {
             $s = $this->stations[$i];
             $d = self::distance($op['lat'], $op['lon'], $s['lat'], $s['lon']);
-            if ($d <= self::NAME_RADIUS_M && self::sameName($key, $s['key'], $s['core']) && ($best === null || $d < $best[1])) {
-                $best = [$i, $d];
+            if ($d <= self::NAME_RADIUS_M && self::sameName($key, $s['key'], $s['core'])) {
+                // Nom égal (clé ou cœur de clé) avant nom prolongé mot pour mot.
+                if (self::equalName($key, $s['key'], $s['core'])) {
+                    $same = $same === null || $d < $same[1] ? [$i, $d] : $same;
+                } else {
+                    $prolonged = $prolonged === null || $d < $prolonged[1] ? [$i, $d] : $prolonged;
+                }
             }
             if ($d <= self::DISTANCE_RADIUS_M && ($nearest === null || $d < $nearest[1])) {
                 $nearest = [$i, $d];
             }
         }
+        $best = $same ?? $prolonged;
         if ($best !== null) {
             return ['station_id' => $this->stations[$best[0]]['id'], 'station_match' => 'name_distance', 'station_distance_m' => (int) round($best[1])];
         }
@@ -77,6 +86,17 @@ final class RinfStationMatcher
         }
 
         return null;
+    }
+
+    /** Noms égaux au sens strict : clés égales, ou cœurs de clé égaux. */
+    public static function equalName(string $a, string $b, ?string $bCore = null): bool
+    {
+        if ($a === '' || $b === '') {
+            return false;
+        }
+        $aCore = SearchText::core($a);
+
+        return $a === $b || ($aCore !== '' && $aCore === ($bCore ?? SearchText::core($b)));
     }
 
     /** Noms égaux pour le rattachement : clés ou cœurs égaux, ou l'un commence l'autre mot pour mot. */

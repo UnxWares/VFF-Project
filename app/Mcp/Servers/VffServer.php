@@ -28,6 +28,7 @@ use App\Mcp\Tools\LineGreenwaysTool;
 use App\Mcp\Tools\LineInfrastructureTool;
 use App\Mcp\Tools\LineMaterialsTool;
 use App\Mcp\Tools\LineProfileTool;
+use App\Mcp\Tools\LineRinfParametersTool;
 use App\Mcp\Tools\LineSheetTool;
 use App\Mcp\Tools\LineSpeedsTool;
 use App\Mcp\Tools\LineStopsTool;
@@ -64,6 +65,7 @@ use App\Mcp\Tools\StationEventsTool;
 use App\Mcp\Tools\StationHeritageTool;
 use App\Mcp\Tools\StationSheetTool;
 use App\Mcp\Tools\StationTimetableTool;
+use App\Mcp\Tools\StationTrackLayoutTool;
 use App\Mcp\Tools\TouristRailwaysTool;
 use App\Mcp\Tools\WhatWasHereTool;
 use Laravel\Mcp\Server;
@@ -137,6 +139,8 @@ class VffServer extends Server
         LineGreenwaysTool::class,
         LineInfrastructureTool::class,
         LineTrackLayoutTool::class,
+        LineRinfParametersTool::class,
+        StationTrackLayoutTool::class,
         LineStructuresTool::class,
         LineArchivesTool::class,
         LineArchiveRecordsTool::class,

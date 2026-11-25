@@ -540,6 +540,7 @@ return [
         'eras' => 'Decades',
         'history' => 'Chronology',
         'lines' => 'Lines',
+        'tracks' => 'Tracks',
         'location' => 'Location',
         'sources' => 'Sources',
         'gallery' => 'Photos',

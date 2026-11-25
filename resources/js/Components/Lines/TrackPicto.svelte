@@ -13,6 +13,9 @@
     {#if kind === 'op' || kind === 'zone'}
         <rect class="zone" x="2" y="5" width="18" height="12" rx="3" />
         <line class="main" x1="0" y1="11" x2="22" y2="11" />
+    {:else if kind === 'platform'}
+        <line class="main" x1="1" y1="7" x2="21" y2="7" />
+        <rect class="platform" x="2" y="11" width="18" height="7" rx="2" />
     {:else if kind === 'travelled'}
         <line class="travelled" x1="1" y1="11" x2="21" y2="11" />
     {:else if kind === 'main'}
@@ -65,6 +68,11 @@
     .zone {
         fill: var(--tl-zone, var(--vff-bg-muted));
         stroke: var(--vff-border-strong);
+    }
+    .platform {
+        fill: var(--tl-platform, var(--vff-bg-muted));
+        stroke: var(--tl-platform-edge, var(--vff-border-strong));
+        stroke-width: 1;
     }
     .main,
     .stroke,

@@ -15,6 +15,7 @@
     import StationAccessibility from '$components/Stations/StationAccessibility.svelte';
     import StationAttendance from '$components/Stations/StationAttendance.svelte';
     import StationTimetable from '$components/Stations/StationTimetable.svelte';
+    import StationTracks from '$components/Stations/StationTracks.svelte';
     import StationChronology from '$components/Stations/StationChronology.svelte';
     import StationHeritage from '$components/Stations/StationHeritage.svelte';
     import FurtherReading from '$components/Sheet/FurtherReading.svelte';
@@ -68,6 +69,7 @@
         'eras',
         'history',
         'lines',
+        'tracks',
         'timetable',
         'accessibility',
         'attendance',
@@ -419,6 +421,9 @@
                 <EmptyState icon="bi-bezier2" title={$i18n.t('stations.lines.none')} />
             {/if}
         </SheetSection>
+
+        <!-- Voies et quais de la gare : lus à la demande (API track-layout), absents quand rien n'est décrit. -->
+        <StationTracks slug={station.slug} name={station.name} />
 
         <StationTimetable slug={station.slug} name={station.name} />
 

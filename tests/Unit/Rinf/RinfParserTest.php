@@ -106,6 +106,28 @@ class RinfParserTest extends TestCase
         $this->assertSame('distance', $matcher->match(['name' => 'Autre nom', 'kind' => 'station', 'lat' => 45.6448, 'lon' => 0.1102])['station_match'] ?? null);
     }
 
+    /**
+     * A same name wins over a prolonged one, whatever the distance (RINF of 24/11/2026: "Châteaubriant" went to the VFF
+     * station "Châteaubriant Tram-Train" 36 m away and "Châteaubriant Tram-Train" to "Châteaubriant" 11 m away;
+     * "Paris-Nord-Surface" and "Paris-Nord-Souterraine" to "Paris-Nord", at the same place as the stations of their name).
+     */
+    public function test_a_same_name_wins_over_a_prolonged_name(): void
+    {
+        $matcher = new RinfStationMatcher([
+            (object) ['id' => 16488, 'slug' => 'chateaubriant', 'name' => 'Châteaubriant', 'lat' => 47.7170119, 'lon' => -1.3713991],
+            (object) ['id' => 16950, 'slug' => 'chateaubriant-tram-train', 'name' => 'Châteaubriant Tram-Train', 'lat' => 47.7174844, 'lon' => -1.3712729],
+            (object) ['id' => 15457, 'slug' => 'paris-nord', 'name' => 'Paris-Nord', 'lat' => 48.8810532, 'lon' => 2.3566222],
+            (object) ['id' => 15460, 'slug' => 'paris-nord-surface', 'name' => 'Paris-Nord-Surface', 'lat' => 48.8810532, 'lon' => 2.3566222],
+        ]);
+
+        $this->assertSame(16488, $matcher->match(['name' => 'Châteaubriant', 'kind' => 'station', 'lat' => 47.717219, 'lon' => -1.3710086])['station_id'] ?? null);
+        $this->assertSame(16950, $matcher->match(['name' => 'Châteaubriant Tram-Train', 'kind' => 'station', 'lat' => 47.7171065, 'lon' => -1.3713739])['station_id'] ?? null);
+        $this->assertSame(15460, $matcher->match(['name' => 'Paris-Nord-Surface', 'kind' => 'station', 'lat' => 48.8808863, 'lon' => 2.3574005])['station_id'] ?? null);
+        $this->assertSame(15457, $matcher->match(['name' => 'Paris-Nord', 'kind' => 'station', 'lat' => 48.8808863, 'lon' => 2.3574005])['station_id'] ?? null);
+        // Without a station of the same name, the prolonged name still matches.
+        $this->assertSame(15457, $matcher->match(['name' => 'Paris-Nord-Souterraine', 'kind' => 'station', 'lat' => 48.8808863, 'lon' => 2.3574005])['station_id'] ?? null);
+    }
+
     public function test_lanes_ranges_and_track_numbers(): void
     {
         $t = fn (string $id, string $ref, string $kind, int $from, int $to, ?string $op = null): array => ['id' => $id, 'ref' => $ref, 'kind' => $kind,

@@ -66,6 +66,9 @@ class OsmTrackExtractTest extends TestCase
         $this->assertSame('1', OsmTrackTags::trackRef(['railway:track_ref' => 'V1']));
         $this->assertSame('U', OsmTrackTags::trackRef(['railway:track_ref' => 'UNIQUE']));
         $this->assertSame('2bis', OsmTrackTags::trackRef(['railway:track_ref' => '2BIS']));
+        // « 2 bis » (11 tracks of the import of 24/11/2026) is the same number written with a space.
+        $this->assertSame('2bis', OsmTrackTags::trackRef(['railway:track_ref' => '2 bis']));
+        $this->assertSame('7ter', OsmTrackTags::trackRef(['railway:track_ref' => '7 ter']));
         $this->assertSame('A', OsmTrackTags::trackRef(['railway:track_ref' => 'A']));
         // A line code put in the track number by mistake, or no number: null.
         $this->assertNull(OsmTrackTags::trackRef(['railway:track_ref' => '570000']));

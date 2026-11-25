@@ -28,10 +28,19 @@ export const AXIS = {
     trackPad: 120,
     // Deux zones plus proches que cet écart (m) n'en font qu'une.
     mergeGap: 400,
-    // Écart minimal (px, au zoom 100 %) entre deux aiguillages ou traversées d'une zone : une gorge de gare dense est
-    // dilatée localement plutôt que d'empiler ses objets.
+    // Écart minimal (px à l'écran, quel que soit le zoom) entre deux aiguillages ou traversées d'une zone : une gorge de
+    // gare dense est dilatée localement plutôt que d'empiler ses objets.
     minObjectPx: 14,
+    // En dessous de ce zoom (vue d'ensemble), l'écart garanti diminue avec le zoom : une ligne entière tient alors dans
+    // la fenêtre au lieu d'être tenue large par ses gorges.
+    stretchZoomMin: 0.4,
 };
+
+/** Voies du dessin replié qui ne sont pas des voies (foldLayout) : bande d'un groupe et rangée de son bouton. */
+const BAND_KINDS = new Set(['group', 'group-label']);
+
+/** Hauteur (px) de la bande d'un groupe replié. */
+export const BAND_H = 22;
 
 /** Hauteur d'une rangée de voies, longueur horizontale d'une diagonale par rangée franchie (px). */
 export const ROW_H = 34;
@@ -196,12 +205,16 @@ export function opExtents(data, opts = AXIS) {
  * Zones dilatées de l'axe : étendues des points d'exploitation, voies locales sans point d'exploitation
  * et aiguillages isolés, fusionnées quand elles se touchent, bornées à l'étendue de la ligne.
  *
+ * Sur la vue repliée (foldLayout), seules les voies et les aiguillages dessinés comptent : la bande d'un groupe replié
+ * ne dilate rien, une gare repliée garde la largeur de ses voies visibles (Paris-Austerlitz, Brétigny).
+ *
  * @returns {Array<{ from_m: number, to_m: number, ops: string[] }>}
  */
 export function detailZones(data, opts = AXIS) {
     const extents = opExtents(data, opts);
     const intervals = [...extents].map(([id, e]) => ({ ...e, ops: [id] }));
     for (const t of data.tracks) {
+        if (BAND_KINDS.has(t.kind)) continue;
         if (isLocal(t) && (t.op_id == null || !extents.has(t.op_id))) {
             intervals.push({
                 from_m: t.pk_from_m - opts.trackPad,
@@ -243,21 +256,36 @@ export function objectPks(data) {
  * Axe des PK : morceaux linéaires, dilatés dans les zones, comprimés en pleine ligne (largeur proportionnelle
  * à la longueur, bornée). `x(pk)` et `pk(x)` sont réciproques ; hors de l'étendue, ramenés au bord.
  *
- * `dense` (objectPks) : dans une zone, deux objets voisins gardent au moins `minObjectPx` pixels entre eux (au zoom
- * 100 %) : l'intervalle qui les sépare est élargi, le reste de la zone garde son échelle. Une zone est alors faite de
- * plusieurs morceaux (`zone` : son index, `first` : son premier morceau).
+ * `dense` (objectPks) : dans une zone, deux objets voisins gardent au moins `minObjectPx` pixels entre eux À L'ÉCRAN,
+ * au zoom `zoom` (l'abscisse à l'écran est `x(pk) × zoom`) : l'intervalle qui les sépare est élargi, le reste de la zone
+ * garde son échelle. Une zone est alors faite de plusieurs morceaux (`zone` : son index, `first` : son premier
+ * morceau). Sous `stretchZoomMin`, l'écart est celui de ce zoom-là, réduit d'autant.
  *
  * @param {ReturnType<typeof normalize>} data
  * @param {typeof AXIS} [opts]
  * @param {number[]} [dense] PK triés des objets à séparer
+ * @param {number} [zoom]
+ */
+export function buildAxis(data, opts = AXIS, dense = [], zoom = 1) {
+    return axisFromZones(detailZones(data, opts), data.pk, opts, dense, zoom);
+}
+
+/**
+ * Axe des PK à partir de zones déjà calculées (detailZones) : seul ce calcul dépend du zoom, il est rejoué à chaque
+ * zoom et par « Ajuster » (fitZoomFor) sans recalculer les zones.
+ *
+ * @param {Array<{ from_m: number, to_m: number, ops: string[] }>} zones
+ * @param {{ start_m: number, end_m: number }} extent étendue de la ligne (`data.pk`)
+ * @param {typeof AXIS} [opts]
+ * @param {number[]} [dense]
+ * @param {number} [zoom]
  * @returns {{ pieces: Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain',
  *   zone?: number, first?: boolean }>,
  *   zones: Array<{ from_m: number, to_m: number, ops: string[] }>, width: number,
  *   x: (pk: number) => number, pk: (x: number) => number }}
  */
-export function buildAxis(data, opts = AXIS, dense = []) {
-    const { start_m, end_m } = data.pk;
-    const zones = detailZones(data, opts);
+export function axisFromZones(zones, extent, opts = AXIS, dense = [], zoom = 1) {
+    const { start_m, end_m } = extent;
     /** @type {Array<{ from_m: number, to_m: number, x0: number, x1: number, kind: 'zone'|'plain', zone?: number, first?: boolean }>} */
     const pieces = [];
     let x = 0;
@@ -268,7 +296,9 @@ export function buildAxis(data, opts = AXIS, dense = []) {
         pieces.push({ from_m: from, to_m: to, x0: x, x1: x + w, kind: 'plain' });
         x += w;
     };
-    const minGap = (opts.minObjectPx ?? 0) / opts.zoneScale;
+    // Écart à garder sur l'axe (avant zoom) pour en avoir `minObjectPx` à l'écran.
+    const minPx = (opts.minObjectPx ?? 0) / Math.max(zoom, opts.stretchZoomMin ?? 0, 1e-6);
+    const minGap = minPx / opts.zoneScale;
     let d = 0;
     zones.forEach((z, zi) => {
         plain(at, z.from_m);
@@ -285,7 +315,7 @@ export function buildAxis(data, opts = AXIS, dense = []) {
             if (b <= a) continue;
             const between = i > 0 && i + 2 < marks.length;
             const natural = (b - a) * opts.zoneScale;
-            const w = between && b - a < minGap ? Math.max(natural, opts.minObjectPx) : natural;
+            const w = between && b - a < minGap ? Math.max(natural, minPx) : natural;
             // Morceaux contigus à l'échelle de la zone : un seul.
             if (w === natural && open && !openStretched) {
                 open.to_m = b;
@@ -469,16 +499,18 @@ export function compactLanes(tracks) {
  * faisceau, de service ou d'embranchement, ces voies (et les liaisons qui y mènent) deviennent un groupe dessiné
  * comme une seule rangée (« 23 voies de service »), de leur côté des voies principales ; les aiguillages qui y
  * mènent pointent vers le groupe, ceux qui restent dedans, leurs signaux et leurs heurtoirs ne sont pas dessinés (le
- * tableau de parcours les garde tous). Les zones dont la clé est dans `expanded` restent dépliées. Puis les rangées
- * sont resserrées (compactLanes).
+ * tableau de parcours les garde tous). Les zones dont la clé est dans `expanded` restent dépliées. Les voies de
+ * `keep` ne sont jamais repliées (page des voies d'une gare : les voies à quai). Puis les rangées sont resserrées
+ * (compactLanes).
  *
  * @param {ReturnType<typeof normalize>} data
  * @param {Array<{ from_m: number, to_m: number, ops: string[] }>} zones zones de l'axe (buildAxis)
  * @param {Set<string>} [expanded] clés des zones dépliées (zoneKey)
+ * @param {Set<string>} [keep] identifiants des voies toujours dessinées
  * @returns {{ data: ReturnType<typeof normalize>, groups: Array<{ id: string, key: string, zone: number,
  *   op: any, side: -1|1, count: number, pk_from_m: number, pk_to_m: number, lane: number, expanded: boolean }> }}
  */
-export function foldLayout(data, zones, expanded = new Set()) {
+export function foldLayout(data, zones, expanded = new Set(), keep = new Set()) {
     const opsById = new Map(data.operational_points.map((o) => [o.id, o]));
     const zoneOf = (t) => zoneIndexAt(zones, (t.pk_from_m + t.pk_to_m) / 2);
     const inZone = (t, z) => t.pk_from_m >= zones[z].from_m - 1 && t.pk_to_m <= zones[z].to_m + 1;
@@ -528,7 +560,7 @@ export function foldLayout(data, zones, expanded = new Set()) {
                 t.pk_to_m > zones[z].from_m,
         );
         for (const side of /** @type {const} */ ([-1, 1])) {
-            const mine = list.filter((t) => onSide(t, side));
+            const mine = list.filter((t) => onSide(t, side) && !keep.has(t.id));
             // Par étapes, tant que le côté dépasse ROW_BUDGET rangées : voies de service, puis autres voies
             // principales, puis voies de gare (une très grande gare n'en garde que ses voies 1 et 2).
             const stages = [
@@ -560,15 +592,31 @@ export function foldLayout(data, zones, expanded = new Set()) {
             if (!open) for (const t of chosen) folded.set(t.id, { zone: z, side });
         }
     }
-    // Liaisons qui mènent à une voie repliée de leur zone : repliées avec elle.
-    for (const t of data.tracks) {
-        if (t.kind !== 'crossover') continue;
-        for (const other of near.get(t.id) ?? []) {
-            const f = folded.get(other);
-            if (f && zoneOf(t) === f.zone) {
-                folded.set(t.id, f);
-                break;
+    // Liaisons qui mènent à une voie repliée de leur zone, directement ou par d'autres liaisons (J0006C puis J0007 à
+    // Paris-Austerlitz) : repliées avec elle.
+    const links = data.tracks.filter((t) => t.kind === 'crossover');
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const t of links) {
+            if (folded.has(t.id)) continue;
+            for (const other of near.get(t.id) ?? []) {
+                const f = folded.get(other);
+                if (f && zoneOf(t) === f.zone) {
+                    folded.set(t.id, f);
+                    changed = true;
+                    break;
+                }
             }
+        }
+    }
+    // Liaison qu'aucun aiguillage ne cite, du côté d'un groupe replié de sa zone : dans le groupe (sinon elle resterait
+    // seule sur sa rangée du serveur, au-delà de la bande).
+    for (const t of links) {
+        if (folded.has(t.id) || near.has(t.id)) continue;
+        const side = t.lane < 0 ? -1 : t.lane > 1 ? 1 : 0;
+        const z = zoneOf(t);
+        if (side && groups.some((g) => g.zone === z && g.side === side && !g.expanded)) {
+            folded.set(t.id, { zone: z, side });
         }
     }
 
@@ -634,7 +682,7 @@ export function foldLayout(data, zones, expanded = new Set()) {
         folded.has(sw.from_track) && (sw.to_track == null || folded.has(sw.to_track))
             ? mapTrack(sw.from_track) === mapTrack(sw.to_track ?? sw.from_track)
             : false;
-    const switches = data.switches
+    const mapped = data.switches
         .filter((sw) => !inside(sw))
         .map((sw) => {
             const from = mapTrack(sw.from_track);
@@ -644,6 +692,7 @@ export function foldLayout(data, zones, expanded = new Set()) {
                 ? { ...sw, from_track: to, to_track: from }
                 : { ...sw, from_track: from, to_track: to };
         });
+    const switches = oneDeparturePerEnd(mapped, closed, [...shown, ...crossovers]);
     return {
         data: {
             ...data,
@@ -659,6 +708,68 @@ export function foldLayout(data, zones, expanded = new Set()) {
             ),
         },
         groups,
+    };
+}
+
+/**
+ * Un seul départ vers un groupe replié à chaque bout du groupe : parmi les aiguillages qui mènent d'une voie dessinée à
+ * la bande d'un groupe, on garde celui de la moitié d'entrée (PK avant le milieu du groupe) et celui de la moitié de
+ * sortie qui partent de la voie la plus proche de la bande (à égalité, le plus près du bout du groupe). Les autres ne
+ * sont pas dessinés, comme ceux du groupe : le tableau de parcours les garde tous. Paris-Austerlitz : 48 petits départs
+ * en pointillé deviennent 5.
+ *
+ * @param {Array<any>} switches aiguillages de la vue repliée (`to_track` : identifiant du groupe s'il y mène)
+ * @param {Array<{ id: string, lane: number, pk_from_m: number, pk_to_m: number }>} closed groupes repliés
+ * @param {Array<{ id: string, lane: number }>} drawn voies dessinées (rangées resserrées)
+ */
+function oneDeparturePerEnd(switches, closed, drawn) {
+    const groupById = new Map(closed.map((g) => [g.id, g]));
+    const laneOf = new Map(drawn.map((t) => [t.id, t.lane]));
+    /** @type {Map<string, { sw: any, rows: number, toEnd: number }>} */
+    const best = new Map();
+    for (const sw of switches) {
+        const g = groupById.get(sw.to_track);
+        if (!g || groupById.has(sw.from_track)) continue;
+        const atStart = sw.pk_m < (g.pk_from_m + g.pk_to_m) / 2;
+        const key = `${g.id}|${atStart ? 'start' : 'end'}`;
+        const rows = Math.abs((laneOf.get(sw.from_track) ?? 0) - g.lane);
+        const toEnd = atStart ? sw.pk_m - g.pk_from_m : g.pk_to_m - sw.pk_m;
+        const cur = best.get(key);
+        if (!cur || rows < cur.rows || (rows === cur.rows && toEnd < cur.toEnd)) {
+            best.set(key, { sw, rows, toEnd });
+        }
+    }
+    const kept = new Set([...best.values()].map((b) => b.sw));
+    return switches.filter((sw) => !groupById.has(sw.to_track) || kept.has(sw));
+}
+
+/**
+ * Vue d'ensemble d'une longue ligne entière à l'écran : la ligne d'un bout à l'autre et ses points d'exploitation, sans
+ * voies, aiguillages, signaux ni groupes (quelques pixels par gare : rien n'y serait lisible). Les bandes de vitesse et
+ * de déclivité restent.
+ *
+ * @param {ReturnType<typeof normalize>} data
+ */
+export function lineOverview(data) {
+    return {
+        ...data,
+        tracks: [
+            {
+                id: 'overview',
+                ref: null,
+                kind: 'running',
+                lane: 0,
+                pk_from_m: data.pk.start_m,
+                pk_to_m: data.pk.end_m,
+                source: null,
+                precision: null,
+            },
+        ],
+        switches: [],
+        signals: [],
+        crossings: [],
+        buffer_stops: [],
+        milestones: [],
     };
 }
 
@@ -863,8 +974,14 @@ export function trackPaths(data, x, y) {
         const xs = x(s.sw.pk_m);
         const y0 = y(s.from.lane);
         const full = y(s.to.lane);
-        // Départ vers un groupe replié : une demi-rangée dans sa direction.
-        const y1 = s.short ? y0 + Math.sign(full - y0) * (ROW_H / 2) : full;
+        // Départ vers un groupe replié : jusqu'au bord de sa bande quand elle est sur la rangée voisine, sinon une
+        // demi-rangée dans sa direction (il ne traverse pas les voies d'entre les deux).
+        const toward = Math.sign(full - y0);
+        const y1 = !s.short
+            ? full
+            : Math.abs(full - y0) <= ROW_H
+              ? full - toward * (BAND_H / 2)
+              : y0 + toward * (ROW_H / 2);
         const dir = s.sw.facing === 'down' ? -1 : 1;
         out.push({
             track: {
@@ -891,17 +1008,22 @@ const round = (n) => Math.round(n * 10) / 10;
 
 /**
  * Étiquettes sans chevauchement : chaque élément (abscisse `x`, largeur `w`, priorité `rank`, la plus petite
- * d'abord) reçoit la première rangée libre, jusqu'à `maxRows` ; au-delà il n'est pas étiqueté (-1). L'élément
- * reste lisible dans le tableau.
+ * d'abord, puis dans l'ordre de `order`, à défaut de `x`) reçoit la première rangée libre, jusqu'à `maxRows` ; au-delà
+ * il n'est pas étiqueté (-1). L'élément reste lisible dans le tableau. Un nom ramené au bord du cadre garde son rang
+ * d'origine (`order` : abscisse de son point) : le nom le plus court n'y passe pas devant la gare d'origine.
  *
- * @param {Array<{ x: number, w: number, rank?: number }>} items
+ * @param {Array<{ x: number, w: number, rank?: number, order?: number }>} items
  * @param {{ maxRows?: number, gap?: number }} [opts]
  * @returns {number[]} rangée de chaque élément, dans l'ordre reçu
  */
 export function stackLabels(items, { maxRows = 1, gap = 8 } = {}) {
     const order = items
         .map((it, i) => ({ it, i }))
-        .sort((p, q) => (p.it.rank ?? 0) - (q.it.rank ?? 0) || p.it.x - q.it.x);
+        .sort(
+            (p, q) =>
+                (p.it.rank ?? 0) - (q.it.rank ?? 0) ||
+                (p.it.order ?? p.it.x) - (q.it.order ?? q.it.x),
+        );
     /** @type {Array<Array<[number, number]>>} */
     const rows = Array.from({ length: maxRows }, () => []);
     const placed = new Array(items.length).fill(-1);
@@ -979,6 +1101,55 @@ export function refSpots(path, zoneStarts) {
         if (z > a + 40 && z < b - 40) spots.push({ x: z + 8, anchor: 'start' });
     }
     return spots;
+}
+
+/**
+ * Pièces d'une même voie (même rangée, même numéro, bout à bout à 10 m près : voie d'OpenStreetMap coupée à chaque
+ * aiguillage, voie du RINF coupée à chaque section) : son numéro est écrit une fois pour toute la voie.
+ *
+ * - voie de gare ou de service : seule la plus longue pièce porte le numéro (« F F F » sur trois pièces à
+ *   Paris-Tolbiac) ; elle est dans `hidden` pour les autres ;
+ * - voie de pleine ligne : le numéro de son début n'est pas répété au début d'une pièce qui la prolonge (`continued`) ;
+ *   l'entrée de chaque zone garde le sien (refSpots).
+ *
+ * @param {Array<{ id: string, ref?: string|null, kind: string, lane: number, pk_from_m: number, pk_to_m: number }>} tracks
+ * @returns {{ hidden: Set<string>, continued: Set<string> }}
+ */
+export function repeatedPieces(tracks) {
+    /** @type {Map<string, Array<any>>} */
+    const by = new Map();
+    for (const t of tracks) {
+        if (!t.ref || t.kind === 'crossover' || BAND_KINDS.has(t.kind)) continue;
+        const key = `${t.kind === 'running' ? 'line' : 'local'}|${t.lane}|${t.ref}`;
+        if (!by.has(key)) by.set(key, []);
+        by.get(key).push(t);
+    }
+    const hidden = new Set();
+    const continued = new Set();
+    const len = (t) => t.pk_to_m - t.pk_from_m;
+    for (const [key, list] of by) {
+        const line = key.startsWith('line|');
+        list.sort((a, b) => a.pk_from_m - b.pk_from_m);
+        /** @type {Array<any>} */
+        let run = [];
+        let to = -Infinity;
+        const flush = () => {
+            if (line) {
+                for (const t of run.slice(1)) continued.add(t.id);
+            } else {
+                const keep = run.reduce((a, b) => (len(b) > len(a) ? b : a), run[0]);
+                for (const t of run) if (t !== keep) hidden.add(t.id);
+            }
+            run = [];
+        };
+        for (const t of list) {
+            if (run.length && t.pk_from_m > to + 10) flush();
+            to = run.length ? Math.max(to, t.pk_to_m) : t.pk_to_m;
+            run.push(t);
+        }
+        if (run.length) flush();
+    }
+    return { hidden, continued };
 }
 
 /** Références d'une voie principale (voie 1, voie 2, voie unique) : la vitesse de la bande est la leur. */
@@ -1179,21 +1350,57 @@ export function routeRows(data) {
     const order = (k) => ROW_KINDS.indexOf(k);
     kept.sort((a, b) => a.pk_m - b.pk_m || order(a.kind) - order(b.kind));
     const start = data.pk.start_m;
-    // Plusieurs vitesses au même PK (sections parallèles d'une ligne) : chacune dit à quelles voies elle s'applique.
-    const speedsAt = new Map();
-    for (const r of kept) {
-        if (r.kind === 'speed') speedsAt.set(r.pk_m, (speedsAt.get(r.pk_m) ?? 0) + 1);
-    }
+    // Vitesses ou déclivités qui se recouvrent (sections parallèles d'une ligne : V1 et V2, V1S et V2S) : chacune dit à
+    // quelles voies elle s'applique.
+    const parallel = new Set([
+        ...overlapping(data.strip.speeds),
+        ...overlapping(data.strip.gradients),
+    ]);
+    // Vitesse et déclivité d'une ligne : celles de la bande (voies principales d'abord, flattenRanges), et pour une ligne
+    // de vitesse ou de déclivité, la sienne (celle d'une voie V1S n'est pas remplacée par celle de la voie 1).
+    const speedBand = flattenRanges(data.strip.speeds);
+    const gradientBand = flattenRanges(data.strip.gradients);
     return kept.map((r) => ({
         ...r,
         km: (r.pk_m - start) / 1000,
-        kmh: valueAt(data.strip.speeds, r.pk_m)?.kmh ?? null,
-        permille: valueAt(data.strip.gradients, r.pk_m)?.permille ?? null,
+        kmh: r.kind === 'speed' ? r.item.kmh : (valueAt(speedBand, r.pk_m)?.kmh ?? null),
+        permille:
+            r.kind === 'gradient'
+                ? r.item.permille
+                : (valueAt(gradientBand, r.pk_m)?.permille ?? null),
         prov: provenance(r.item),
-        ...(r.kind === 'speed' && speedsAt.get(r.pk_m) > 1 && r.item.tracks?.length
+        ...((r.kind === 'speed' || r.kind === 'gradient') &&
+        parallel.has(r.item) &&
+        r.item.tracks?.length
             ? { tracks: r.item.tracks }
             : {}),
     }));
+}
+
+/**
+ * Tranches (vitesses ou déclivités) qui en recouvrent une autre sur une longueur non nulle : balayage par PK de début,
+ * la fin la plus lointaine des précédentes et le début de la suivante suffisent.
+ *
+ * @template {{ pk_from_m: number, pk_to_m: number }} T
+ * @param {T[]} ranges
+ * @returns {Set<T>}
+ */
+export function overlapping(ranges) {
+    const sorted = ranges.slice().sort((a, b) => a.pk_from_m - b.pk_from_m);
+    const out = new Set();
+    let reach = -Infinity;
+    for (let i = 0; i < sorted.length; i++) {
+        const r = sorted[i];
+        const next = sorted[i + 1];
+        if (
+            reach > r.pk_from_m ||
+            (next && next.pk_from_m < r.pk_to_m && r.pk_to_m > r.pk_from_m)
+        ) {
+            out.add(r);
+        }
+        reach = Math.max(reach, r.pk_to_m);
+    }
+    return out;
 }
 
 /**
@@ -1257,6 +1464,31 @@ export function rowAtX(axis, zoom, pad, rows, px) {
 export function fitZoom(axisWidth, view, pad, min = 0.02, max = 4) {
     if (axisWidth <= 0 || view <= 2 * pad) return 1;
     return Math.min(max, Math.max(min, (view - 2 * pad) / axisWidth));
+}
+
+/**
+ * « Ajuster » quand la largeur de l'axe dépend du zoom (gorges dilatées à 14 px à l'écran, axisFromZones) : le plus
+ * grand zoom de [min, max] auquel toute la ligne tient dans `view`. La largeur à l'écran, `zoom × widthAt(zoom)`, croît
+ * avec le zoom : une dichotomie suffit.
+ *
+ * @param {(zoom: number) => number} widthAt largeur de l'axe (avant zoom) à ce zoom
+ * @param {number} view
+ * @param {number} pad
+ */
+export function fitZoomFor(widthAt, view, pad, min = 0.02, max = 4) {
+    const room = view - 2 * pad;
+    if (room <= 0 || widthAt(1) <= 0) return 1;
+    const fits = (z) => z * widthAt(z) <= room;
+    if (!fits(min)) return min;
+    if (fits(max)) return max;
+    let lo = min;
+    let hi = max;
+    for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        if (fits(mid)) lo = mid;
+        else hi = mid;
+    }
+    return lo;
 }
 
 /** Pas de zoom des boutons « - » et « + ». */

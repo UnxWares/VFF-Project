@@ -40,6 +40,8 @@ class RoutebookController extends Controller
         'switches' => [],
         'signals' => [],
         'crossings' => [],
+        'buffer_stops' => [],
+        'milestones' => [],
         'strip' => ['speeds' => [], 'gradients' => []],
         'coverage' => ['total_m' => 80493, 'rinf_m' => 0, 'osm_m' => 0, 'vff_m' => 0, 'missing' => [[
             'leg' => 1, 'line_code' => '441000', 'line_slug' => 'rfn-441000',
@@ -66,10 +68,11 @@ class RoutebookController extends Controller
      *   `approximate` (interpolé entre deux gares) ; `route_from_km`, `route_to_km` : kilomètres parcourus depuis
      *   le départ ; `has_detail` : la portion a des voies ou des aiguillages détaillés.
      * - `line_changes[]` : changements de ligne, au kilomètre parcouru, à une gare ou en pleine voie.
-     * - `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `strip` : mêmes objets que
-     *   `track-layout`, avec la provenance de chacun (`source`, `precision`), plus `leg`, `line_code`,
-     *   `line_slug` et `route_km` (ou `route_from_km` et `route_to_km` pour une étendue) ; identifiants préfixés
-     *   du rang de la portion. Un signal porte `travel` (`same` : il vaut pour le sens de marche, `opposite`),
+     * - `operational_points`, `tracks`, `switches`, `signals`, `crossings`, `buffer_stops`, `milestones`, `strip` :
+     *   mêmes objets que `track-layout`, avec la provenance de chacun (`source`, `precision`), plus `leg`,
+     *   `line_code`, `line_slug` et `route_km` (ou `route_from_km` et `route_to_km` pour une étendue) ;
+     *   identifiants préfixés du rang de la portion, références comprises (`from_track`, `to_track`, `track`,
+     *   `tracks` d'une traversée, `op_id` d'une voie). Un signal porte `travel` (`same` : il vaut pour le sens de marche, `opposite`),
      *   un aiguillage `travel_facing` (pris en pointe). Déclivités `permille` dans le sens de marche (positive
      *   en rampe), `line_permille` dans le sens des PK. Listes triées par kilomètre parcouru.
      * - `coverage` : longueur totale, mètres de voies décrits par le RINF, OpenStreetMap et VFF, et `missing[]` :
@@ -100,6 +103,8 @@ class RoutebookController extends Controller
      *     switches: array<array<string, mixed>>,
      *     signals: array<array<string, mixed>>,
      *     crossings: array<array<string, mixed>>,
+     *     buffer_stops: array<array<string, mixed>>,
+     *     milestones: array<array<string, mixed>>,
      *     strip: array{speeds: array<array<string, mixed>>, gradients: array<array<string, mixed>>},
      *     coverage: array{total_m: int, rinf_m: int, osm_m: int, vff_m: int, missing: array<array{leg: int, line_code: ?string, line_slug: string, route_from_km: float, route_to_km: float, what: string}>},
      *     graph: array{built_at: string}

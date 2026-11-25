@@ -9,6 +9,39 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfPlatformSummary`, MCP
+  `line_rinf_parameters`) : statut de quai `length_unknown` (même gare, même nom de quai, longueur absente d'une des deux
+  sources) et son nombre `platforms.summary.length_unknown` ; GraphQL `LineRinfPlatformSummary.length_unknown`.
+- Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook`, MCP `routebook`) : `buffer_stops` (heurtoirs, avec
+  la voie qu'ils ferment) et `milestones` (bornes kilométriques, avec leur inscription), comme le schéma des voies, placés
+  au kilomètre parcouru (`route_km`) ; GraphQL `Routebook.buffer_stops` et `Routebook.milestones`, MCP `kinds` :
+  `buffer_stops`, `milestones` (pas servis par défaut). `objects` les compte toujours à part (inchangé).
+- Paramètres RINF d'une ligne, comparés (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `Line.rinf_parameters`,
+  MCP `line_rinf_parameters`) : ce que le RINF déclare pour chaque voie de chaque section, par PK, côte à côte avec l'autre
+  source de VFF (SNCF Réseau) et l'accord ou le désaccord des deux, sans rien remplacer. `parameters[]` : `electrification`
+  (`25000V-50Hz`, `1500V-DC`, `none`), `max_speed`, `train_protection` (KVB, TVM 300, TVM 430, ETCS L1, ETCS L2 confrontés ;
+  tous les systèmes déclarés dans `values`), `radio` (`gsm-r`), `gauging`, `load_capability`, `track_gauge` (les trois derniers
+  sans autre source) ; chaque portion porte `status` (`agree`, `disagree`, `rinf_only`, `vff_only`), `rinf`, `vff` et
+  `rg_troncon` ; `summary` en mètres par statut. `platforms` : quais du RINF (longueur, hauteur) rapprochés des quais de SNCF
+  Réseau gare par gare. `sections[]` : sections du RINF. GraphQL : types `LineRinfParameters`, `LineRinfSection`,
+  `LineRinfOperationalPoint`, `LineRinfParameter`, `LineRinfParameterSummary`, `LineRinfParameterPortion`,
+  `LineRinfParameterValue`, `LineRinfPlatforms`, `LineRinfPlatformSummary`, `LineRinfPlatform`, `LineRinfPlatformStation`,
+  `LineRinfPlatformRinf`, `LineRinfPlatformSncf`. Mesure du 25/11/2026 sur la France : électrification d'accord sur 99,7 % de
+  la longueur comparable, vitesse 92,9 %, contrôle de vitesse 85,1 %, GSM-R 97,8 %.
+- Voies d'une gare (REST `GET /api/v1/stations/{station}/track-layout`, GraphQL `Station.track_layout`, MCP
+  `station_track_layout`) : pour chaque ligne qui passe par la gare et dont les voies sont décrites autour d'elle, le
+  schéma des voies de la ligne (même contrat et mêmes règles que `GET /api/v1/lines/{line}/track-layout`) sur une fenêtre
+  autour de la gare (`lines[].window`, `station_pk_m`, `station_pk_source`, `track_layout`), la ligne qui a le plus de voies
+  d'abord ; les bords de quai de la gare (`platforms[]` : `ref`, `track_ref`, `line_code`, `track` = voie bordée dans le
+  schéma, `length_m` et `height_mm` du RINF, `pk_from_m` et `pk_to_m` de la « Liste des quais » de SNCF Réseau ou placés
+  autour du PK de la gare, `source`, `pk_source`, `precision`) ; `operational_points[]` (UOPID du RINF rattachés à la gare),
+  `sources[]`, `counts`. Paramètres `line` (une ligne) et `kinds` (comme pour une ligne). GraphQL : types
+  `StationTrackLayout`, `StationTrackLayoutStation`, `StationTrackLayoutPoint`, `StationTrackLayoutLine`,
+  `StationTrackLayoutWindow`, `StationTrackPlatform`, `StationTrackLayoutCounts`. Paris-Austerlitz : lignes 570000 et
+  984000, 11 quais ; Poitiers : 8 bords de quai (4 quais centraux), hauteurs de 30 à 58 cm.
+- Page `/lines/{line}/voies` : `?pk=` (mètres) ouvre le schéma sur ce PK (lien « Schéma de toute la ligne » des voies
+  d'une gare).
+
 - Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, MCP `line_track_layout`) :
   `counts`, nombre d'objets de chaque famille sur la portion servie (`operational_points`, `tracks`, `switches`, `signals`,
   `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`
@@ -17,8 +50,32 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 - Schéma des voies : `strip.speeds[].tracks`, voies auxquelles la vitesse s'applique (références courtes : `V1`, `V2`,
   `V1S`…), `null` quand la source ne le dit pas. Deux sections parallèles d'une même ligne au RINF ont chacune leur vitesse
   au même PK (Paris-Austerlitz : 90 km/h sur `V1`, `V2`, 60 km/h sur `V1S`, `V2S`) ; GraphQL `TrackLayoutSpeed.tracks`.
+- Schéma des voies : `strip.gradients[].tracks`, voies auxquelles la déclivité s'applique, `null` quand la source ne le dit
+  pas : les voies de la section dont le profil déclaré au RINF donne cette valeur sur toute la portion (Paris-Austerlitz,
+  PK 0 à 0+357 : -1,4 ‰ sur `V1`, `V2` et 0 ‰ sur `V1S`, `V2S`) ; GraphQL `TrackLayoutGradient.tracks`. La spécification
+  REST décrit désormais aussi `strip.speeds[].tracks`. Les voies d'une vitesse ou d'une déclivité sont rangées dans l'ordre
+  naturel (`V1`, `V2`, `V1S`), et non plus dans l'ordre de lecture de la base.
 
 ### Corrections
+
+- Schéma des voies : un signal d'OpenStreetMap cartographié sans catégorie (`railway:signal:<catégorie>` absent, 5 332 des
+  17 818 signaux importés le 24/11/2026, sur 247 lignes) a pour `kind` `unknown` au lieu de `null` : la spécification REST
+  le déclarait non nul et GraphQL `TrackLayoutSignal.kind` (non nul) faisait échouer tout le champ `Line.track_layout` qui
+  le sélectionnait sur ces lignes (Paris - Marseille, Paris - Lille, Paris - Bordeaux…).
+- Schéma des voies : la source `vff` donne sa mention à reproduire (`sources[].attribution`, nulle jusqu'ici) : données de
+  SNCF Réseau (ODbL : vitesses, passages à niveau, PK des gares) et altitudes de l'IGN (Licence Ouverte 2.0) du profil en long.
+- Livret de parcours : toutes les références sont préfixées du rang de la portion comme les objets qu'elles citent
+  (`tracks[].op_id`, `crossings[].tracks`, `buffer_stops[].track`) ; la voie d'une gare de changement de ligne cite le point
+  d'exploitation gardé (celui de la portion précédente). Jusqu'ici, `op_id` et les voies d'une traversée gardaient
+  l'identifiant de leur ligne et ne désignaient aucun objet du livret (842 et 96 sur Lille-Flandres - Marseille-St-Charles).
+- Paramètres RINF d'une ligne : un quai rapproché dont une des deux longueurs manque n'est plus compté d'accord (`agree`)
+  mais `length_unknown` (77 quais sur la France le 25/11/2026). Les voies « Voie 1 BIS LAON », « Voie 2 QUATER », « Voie 2
+  ter », « Voie 1 SP de … », « Voie 1 RV de … », « Voie unique VMA de … » ne sont plus prises pour la voie 1, 2 ou unique de
+  leur section (une vingtaine de voies : le Crocodile de « Voie 1 BIS LAON » s'ajoutait au contrôle de vitesse de 261000).
+- Schéma des voies : une voie bis ou ter écrite avec une espace (« 2 bis » d'OpenStreetMap) n'est plus prise pour la voie 2
+  elle-même : elle n'est plus absorbée par la voie 2 du RINF qu'elle longe.
+- MCP `routebook` : le bloc d'attribution crédite SNCF Réseau et l'IGN quand la source `vff` sert des vitesses, des passages
+  à niveau ou des déclivités, comme `line_track_layout`.
 
 - Schéma des voies : une voie d'OpenStreetMap dont l'étendue en PK dépasse deux fois sa longueur plus 2 km (calage du PK
   rompu : 496 voies de 40 lignes à l'import du 24/11/2026, dont une voie de 602 m placée du PK 1+516 au PK 523+044 de
