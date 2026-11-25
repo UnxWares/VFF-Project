@@ -11,16 +11,21 @@ use App\Support\Search\SearchText;
  * - `name_distance` : même nom (clé ou cœur de clé égaux, ou l'un commence l'autre mot pour mot : « Les Aubrais »
  *   et « Les Aubrais-Orléans ») à NAME_RADIUS_M au plus ; un nom égal l'emporte sur un nom prolongé (« Châteaubriant »
  *   et « Châteaubriant Tram-Train », deux gares à 50 m l'une de l'autre, « Paris-Nord-Surface » et « Paris-Nord »),
- *   puis la plus proche ;
+ *   puis la plus proche ; le nom prolongé ne vaut que pour un point de type gare ou halte : un poste, un faisceau, une
+ *   base travaux, une installation terminale ou une bifurcation qui porte le nom de la gare voisine (« Pantin Zone
+ *   (Poste Z) », « Le Mans - PVSI », « Ugine aciers ») n'est pas cette gare ;
  * - `name` : point sans position, nom égal à celui d'une seule gare de VFF ;
  * - `distance` : point de type gare ou halte sans nom reconnu, gare la plus proche à DISTANCE_RADIUS_M au plus.
- * Les bifurcations, faisceaux, installations terminales et changements techniques ne sont rattachés que par le nom.
+ * Les bifurcations, faisceaux, installations terminales et changements techniques ne sont rattachés que par un nom égal.
  */
 final class RinfStationMatcher
 {
     public const NAME_RADIUS_M = 3000;
 
     public const DISTANCE_RADIUS_M = 150;
+
+    /** Sortes de points (RinfDataset::opKind) qui sont des gares : seules à se rattacher par un nom prolongé ou la distance. */
+    private const STATION_KINDS = ['station', 'halt'];
 
     /** Taille d'une case de la grille de recherche, en degrés (environ 5,5 km en latitude). */
     private const CELL = 0.05;
@@ -59,6 +64,7 @@ final class RinfStationMatcher
 
             return count($same) === 1 ? ['station_id' => $this->stations[$same[0]]['id'], 'station_match' => 'name', 'station_distance_m' => null] : null;
         }
+        $isStation = in_array($op['kind'], self::STATION_KINDS, true);
         $same = null;
         $prolonged = null;
         $nearest = null;
@@ -69,7 +75,7 @@ final class RinfStationMatcher
                 // Nom égal (clé ou cœur de clé) avant nom prolongé mot pour mot.
                 if (self::equalName($key, $s['key'], $s['core'])) {
                     $same = $same === null || $d < $same[1] ? [$i, $d] : $same;
-                } else {
+                } elseif ($isStation) {
                     $prolonged = $prolonged === null || $d < $prolonged[1] ? [$i, $d] : $prolonged;
                 }
             }
@@ -81,7 +87,7 @@ final class RinfStationMatcher
         if ($best !== null) {
             return ['station_id' => $this->stations[$best[0]]['id'], 'station_match' => 'name_distance', 'station_distance_m' => (int) round($best[1])];
         }
-        if ($nearest !== null && in_array($op['kind'], ['station', 'halt'], true)) {
+        if ($nearest !== null && $isStation) {
             return ['station_id' => $this->stations[$nearest[0]]['id'], 'station_match' => 'distance', 'station_distance_m' => (int) round($nearest[1])];
         }
 
