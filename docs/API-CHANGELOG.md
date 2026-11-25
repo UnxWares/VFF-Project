@@ -65,6 +65,8 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   (`tracks[].op_id`, `crossings[].tracks`, `buffer_stops[].track`) ; la voie d'une gare de changement de ligne cite le point
   d'exploitation gardé (celui de la portion précédente). Jusqu'ici, `op_id` et les voies d'une traversée gardaient
   l'identifiant de leur ligne et ne désignaient aucun objet du livret (842 et 96 sur Lille-Flandres - Marseille-St-Charles).
+- Schéma des voies : une voie bis ou ter écrite avec une espace (« 2 bis » d'OpenStreetMap) n'est plus prise pour la voie 2
+  elle-même : elle n'est plus absorbée par la voie 2 du RINF qu'elle longe.
 - MCP `routebook` : le bloc d'attribution crédite SNCF Réseau et l'IGN quand la source `vff` sert des vitesses, des passages
   à niveau ou des déclivités, comme `line_track_layout`.
 

@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\TrackLayout\OsmTrackLayoutSource;
+use App\Services\TrackLayout\TrackLayout;
 use App\Services\TrackLayout\VffTrackLayoutSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -56,6 +57,24 @@ class TrackLayoutContractValuesTest extends TestCase
         $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-830000") { track_layout(kinds: [SIGNALS]) { signals { id kind form track direction } } } }'])
             ->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout.signals');
         $this->assertSame(['unknown', 'main'], array_column($gql, 'kind'));
+    }
+
+    /**
+     * A bis or ter track written with a space (« 2 bis » in OpenStreetMap, « Voie 1 BIS LAON » at the RINF) keeps its
+     * suffix in its number: it was read as track 2 itself, and an OpenStreetMap « 2 bis » running beside the RINF line
+     * track 2 was absorbed into it and vanished from the layout.
+     */
+    public function test_a_spaced_bis_track_is_not_its_main_track(): void
+    {
+        $this->assertSame(['2BIS', '2BIS', '1BIS', '7TER', '2', '3', '1A'],
+            array_map(TrackLayout::trackNumber(...), ['2 bis', 'V2BIS', 'Voie 1 BIS LAON de Longueau', '7 ter', 'Voie V2 de Paris', '3 - COGNAC', '1A']));
+
+        $track = fn (string $id, string $source, string $ref, int $from, int $to, ?float $offset = null): array => ['id' => $id, 'ref' => $ref, 'kind' => 'running',
+            'pk_from_m' => $from, 'pk_to_m' => $to, 'source' => $source, 'precision' => $source === 'rinf' ? 'exact' : 'derived', 'offset_m' => $offset];
+        [$kept, $same] = TrackLayout::absorbDuplicates([$track('r:v2', 'rinf', 'V2', 0, 1000), $track('o:2', 'osm', '2', 0, 1000, -2.0), $track('o:2bis', 'osm', '2 bis', 100, 900, -6.5)]);
+
+        $this->assertSame(['r:v2', 'o:2bis'], array_column($kept, 'id'));
+        $this->assertSame(['o:2' => 'r:v2'], $same);
     }
 
     public function test_the_vff_source_names_what_to_credit(): void

@@ -521,14 +521,14 @@ final class TrackLayout
 
     /**
      * Numéro d'une voie pour rapprocher deux sources : premier mot de la référence, sans « Voie » ni « V » devant un
-     * chiffre (« 3 - COGNAC », « V3 » et « 3 » : « 3 » ; « E de Cognac » : « E » ; « VU » et « U » : « U »), « » sans
-     * référence.
+     * chiffre (« 3 - COGNAC », « V3 » et « 3 » : « 3 » ; « E de Cognac » : « E » ; « VU » et « U » : « U » ; « 2 bis » et
+     * « V2BIS » : « 2BIS », jamais « 2 », la voie 2 elle-même), « » sans référence.
      */
     public static function trackNumber(string $ref): string
     {
         $ref = strtoupper(trim((string) preg_replace('/^\s*voie\s+/iu', '', $ref)));
-        if (preg_match('/^V?(\d+[A-Z]?(?:BIS|TER)?)\b/', $ref, $m) === 1) {
-            return $m[1];
+        if (preg_match('/^V?(\d+[A-Z]?)(?:\s?(BIS|TER|QUATER))?\b/', $ref, $m) === 1) {
+            return $m[1].($m[2] ?? '');
         }
         $word = preg_match('/^([A-Z0-9]+)\b/', $ref, $m) === 1 ? $m[1] : '';
 
