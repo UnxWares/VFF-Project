@@ -37,7 +37,8 @@
             parts.push(t(`tracks.op.${it.kind}`, { defaultValue: t('tracks.op.other') }));
             if (it.uopid) parts.push(it.uopid);
         }
-        if (row.kind === 'speed' && row.tracks) {
+        // Vitesse ou déclivité d'une section parallèle à une autre : ses voies.
+        if ((row.kind === 'speed' || row.kind === 'gradient') && row.tracks) {
             parts.push(
                 row.tracks.length === 1
                     ? t('tracks.row.on_track', { ref: row.tracks[0] })
@@ -259,13 +260,13 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 26px;
-        height: 26px;
+        min-width: 28px;
+        height: 28px;
         padding: 0 6px;
         border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-pill);
         font-family: var(--vff-font-heading);
-        font-size: 14px;
+        font-size: var(--vff-fs-xs);
         font-weight: 700;
         line-height: 1;
     }

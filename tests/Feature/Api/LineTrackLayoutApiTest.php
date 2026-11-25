@@ -212,7 +212,7 @@ class LineTrackLayoutApiTest extends TestCase
             crossings { id pk_m kind ref use tracks source precision }
             buffer_stops { id pk_m track source precision }
             milestones { id pk_m label source precision }
-            strip { speeds { pk_from_m pk_to_m kmh tracks source } gradients { pk_from_m pk_to_m permille source precision } }
+            strip { speeds { pk_from_m pk_to_m kmh tracks source } gradients { pk_from_m pk_to_m permille tracks source precision } }
             coverage { total_m rinf_m osm_m vff_m missing { pk_from_m pk_to_m what } }
             counts { operational_points tracks switches signals crossings buffer_stops milestones } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout');
 
@@ -235,6 +235,59 @@ class LineTrackLayoutApiTest extends TestCase
         $this->assertContains('rinf', array_column((array) $mcp['attribution']['sources'], 'provider'));
         $this->assertStringContainsString("Agence de l'Union européenne pour les chemins de fer", (string) json_encode($mcp['attribution'], JSON_UNESCAPED_UNICODE));
         $this->assertStringContainsString('European Union Agency for Railways', $mcp['sources'][0]['attribution']);
+    }
+
+    /**
+     * Deux sections parallèles d'une même ligne (Paris-Austerlitz au RINF, profils lus le 25/11/2026) : la section des
+     * voies V1 et V2 (PK 0 à 0+860) et celle des voies V1S et V2S (PK 0 à 1+363, rampe de Tolbiac). Chaque déclivité
+     * dit les voies dont le profil déclaré donne cette valeur sur toute la portion, en REST, GraphQL et MCP.
+     */
+    public function test_each_rinf_gradient_names_the_tracks_whose_profile_it_is(): void
+    {
+        $meta = ['dataset' => 'http://data.europa.eu/949/graph/0087', 'fetched_at' => '2026-11-25 00:00:00'];
+        $sections = ['main' => [0, 860], 'south' => [0, 1363]];
+        foreach ($sections as $id => [$from, $to]) {
+            DB::table('rinf_sections')->insert(['uri' => 'http://data.europa.eu/949/sectionOfLine/'.$id, 'national_line' => '579000-1', 'line_code' => '579000',
+                'line_id' => $this->line->id, 'op_start_uopid' => 'FR0000002669', 'op_end_uopid' => 'FR000000'.$id, 'pk_start_m' => $from, 'pk_end_m' => $to,
+                'length_m' => $to - $from, 'nature' => 'regular'] + $meta);
+        }
+        $profile = fn (array ...$parts): string => (string) json_encode(array_map(fn (array $p): array => ['pk_from_m' => $p[0], 'pk_to_m' => $p[1], 'permille' => $p[2]], $parts));
+        foreach ([
+            ['v2', 'main', 'Voie V2', 'O', $profile([0, 800, -1.4], [800, 860, 5.5])],
+            ['v1', 'main', 'Voie V1', 'N', $profile([0, 800, -1.4], [800, 860, 5.5])],
+            ['v2bis', 'main', 'Voie V2BIS', 'O', $profile([0, 800, -1.5], [800, 860, 4.6])],
+            ['v1s', 'south', 'Voie V1S de Paris-13', 'B', $profile([0, 357, 0], [357, 628, -23.4], [628, 1363, 5])],
+            ['v2s', 'south', 'Voie V2S de Paris-13', 'B', $profile([0, 357, 0], [357, 634, -23.4], [634, 1363, 7])],
+        ] as [$id, $section, $ref, $dir, $grades]) {
+            DB::table('rinf_tracks')->insert(['uri' => 'http://data.europa.eu/949/track/'.$id, 'parent' => 'section',
+                'section_uri' => 'http://data.europa.eu/949/sectionOfLine/'.$section, 'rinf_class' => 'running', 'ref' => $ref,
+                'direction' => $dir, 'max_speed_kmh' => 60, 'gradient_profile' => $grades] + $meta);
+        }
+
+        $rest = $this->getJson('/api/v1/lines/rfn-579000/track-layout?kinds=gradients')->assertOk()->json('strip.gradients');
+        $row = fn (int $from, int $to, int|float $permille, ?array $tracks): array => ['pk_from_m' => $from, 'pk_to_m' => $to, 'permille' => $permille,
+            'tracks' => $tracks, 'source' => 'rinf', 'precision' => 'derived'];
+        // La section principale suit le profil de la voie V1 (sens de la section), partagé avec la voie 2 ; la voie V2BIS
+        // a le sien. Au sud, le profil de la première voie déclarée : 0 ‰ et -23,4 ‰ communs aux deux voies jusqu'au
+        // PK 0+628, puis celui de la voie V1S seule (JSON : 0 et 5 sans décimale).
+        $this->assertSame([
+            $row(0, 357, 0, ['V1S', 'V2S']),
+            $row(0, 800, -1.4, ['V1', 'V2']),
+            $row(357, 628, -23.4, ['V1S', 'V2S']),
+            $row(628, 1363, 5, ['V1S']),
+            $row(800, 860, 5.5, ['V1', 'V2']),
+        ], $rest);
+
+        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { track_layout(kinds: [GRADIENTS]) {
+            strip { gradients { pk_from_m pk_to_m permille tracks source precision } } } } }'])
+            ->assertOk()->assertJsonMissingPath('errors')->json('data.line.track_layout.strip.gradients');
+        $this->assertSame($rest, $gql);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_track_layout',
+                'arguments' => ['line' => '579000', 'kinds' => ['gradients']]]])
+            ->assertOk()->json('result');
+        $this->assertSame($rest, json_decode((string) $result['content'][0]['text'], true)['strip']['gradients']);
     }
 
     public function test_a_missing_table_never_breaks_the_endpoint(): void

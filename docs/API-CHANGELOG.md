@@ -17,6 +17,11 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 - Schéma des voies : `strip.speeds[].tracks`, voies auxquelles la vitesse s'applique (références courtes : `V1`, `V2`,
   `V1S`…), `null` quand la source ne le dit pas. Deux sections parallèles d'une même ligne au RINF ont chacune leur vitesse
   au même PK (Paris-Austerlitz : 90 km/h sur `V1`, `V2`, 60 km/h sur `V1S`, `V2S`) ; GraphQL `TrackLayoutSpeed.tracks`.
+- Schéma des voies : `strip.gradients[].tracks`, voies auxquelles la déclivité s'applique, `null` quand la source ne le dit
+  pas : les voies de la section dont le profil déclaré au RINF donne cette valeur sur toute la portion (Paris-Austerlitz,
+  PK 0 à 0+357 : -1,4 ‰ sur `V1`, `V2` et 0 ‰ sur `V1S`, `V2S`) ; GraphQL `TrackLayoutGradient.tracks`. La spécification
+  REST décrit désormais aussi `strip.speeds[].tracks`. Les voies d'une vitesse ou d'une déclivité sont rangées dans l'ordre
+  naturel (`V1`, `V2`, `V1S`), et non plus dans l'ordre de lecture de la base.
 
 ### Corrections
 

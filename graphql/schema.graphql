@@ -4512,6 +4512,8 @@ type TrackLayoutGradient {
     pk_to_m: Int!
     "Déclivité en ‰, positive en rampe dans le sens des PK croissants."
     permille: Float!
+    "Voies auxquelles cette déclivité s'applique (références courtes : V1, V2…), null quand la source ne le dit pas."
+    tracks: [String!]
     "Provenance : `rinf`, `osm` ou `vff`."
     source: String!
     "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."

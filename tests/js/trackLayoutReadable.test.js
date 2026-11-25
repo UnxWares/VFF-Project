@@ -252,7 +252,8 @@ describe('trackLayout : rangées et tableau', () => {
         expect(rows[0].kind).toBe('op');
         expect(rows.some((r) => r.kind === 'gradient')).toBe(false);
         const speeds = rows.filter((r) => r.kind === 'speed');
-        expect(speeds.map((r) => r.tracks ?? null)).toEqual([['V1', 'V2'], ['V1S'], null]);
+        // La troisième vitesse recouvre encore celle de la voie V1S (jusqu'au PK 1 300) : elle dit aussi sa voie.
+        expect(speeds.map((r) => r.tracks ?? null)).toEqual([['V1', 'V2'], ['V1S'], ['V1']]);
         const t = (k, o) =>
             k === 'tracks.switch_kind.simple' ? 'aiguillage simple' : `${k}:${o?.ref ?? ''}`;
         expect(

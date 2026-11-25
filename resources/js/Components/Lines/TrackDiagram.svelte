@@ -513,10 +513,13 @@
     // Bande des vitesses et des déclivités : portions sans chevauchement, les trop courtes regroupées en une case
     // marquée (moyenne pondérée des déclivités, plus petite et plus grande vitesse).
     const permille = (v) => formatPermille(v, lang);
+    // Bande sans chevauchement (voies principales d'abord) : cases, curseur.
+    const speedBand = $derived(flattenRanges(data.strip.speeds));
+    const gradientBand = $derived(flattenRanges(data.strip.gradients));
     // Largeur lisible d'une case : de quoi écrire « 140 » ou « ≈ -12,5 ».
     function cells(ranges, text, minPx, value) {
         // Portions voisines de même valeur : une seule case.
-        const joined = joinRanges(flattenRanges(ranges), (a, b) => value(a) === value(b));
+        const joined = joinRanges(ranges, (a, b) => value(a) === value(b));
         return bandCells(joined, X, { minPx })
             .filter((c) => nearSpan(c.x0, c.x1))
             .map((c) => {
@@ -526,7 +529,7 @@
     }
     const speedCells = $derived(
         cells(
-            data.strip.speeds,
+            speedBand,
             (c) => {
                 const v = c.items.map((r) => r.kmh);
                 const [lo, hi] = [Math.min(...v), Math.max(...v)];
@@ -540,7 +543,7 @@
     );
     const gradientCells = $derived(
         cells(
-            data.strip.gradients,
+            gradientBand,
             (c) =>
                 c.merged
                     ? `≈${NBSP}${permille(meanPermille(c.items))}`
@@ -562,8 +565,8 @@
     const cursorPk = $derived(cursor === null ? null : axis.pk((cursor - PAD_L) / zoom));
     const reading = $derived.by(() => {
         if (cursorPk === null) return null;
-        const v = valueAt(data.strip.speeds, cursorPk);
-        const g = valueAt(data.strip.gradients, cursorPk);
+        const v = valueAt(speedBand, cursorPk);
+        const g = valueAt(gradientBand, cursorPk);
         return {
             pk:
                 axisMode === 'route'

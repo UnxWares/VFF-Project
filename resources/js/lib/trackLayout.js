@@ -1179,21 +1179,57 @@ export function routeRows(data) {
     const order = (k) => ROW_KINDS.indexOf(k);
     kept.sort((a, b) => a.pk_m - b.pk_m || order(a.kind) - order(b.kind));
     const start = data.pk.start_m;
-    // Plusieurs vitesses au même PK (sections parallèles d'une ligne) : chacune dit à quelles voies elle s'applique.
-    const speedsAt = new Map();
-    for (const r of kept) {
-        if (r.kind === 'speed') speedsAt.set(r.pk_m, (speedsAt.get(r.pk_m) ?? 0) + 1);
-    }
+    // Vitesses ou déclivités qui se recouvrent (sections parallèles d'une ligne : V1 et V2, V1S et V2S) : chacune dit à
+    // quelles voies elle s'applique.
+    const parallel = new Set([
+        ...overlapping(data.strip.speeds),
+        ...overlapping(data.strip.gradients),
+    ]);
+    // Vitesse et déclivité d'une ligne : celles de la bande (voies principales d'abord, flattenRanges), et pour une ligne
+    // de vitesse ou de déclivité, la sienne (celle d'une voie V1S n'est pas remplacée par celle de la voie 1).
+    const speedBand = flattenRanges(data.strip.speeds);
+    const gradientBand = flattenRanges(data.strip.gradients);
     return kept.map((r) => ({
         ...r,
         km: (r.pk_m - start) / 1000,
-        kmh: valueAt(data.strip.speeds, r.pk_m)?.kmh ?? null,
-        permille: valueAt(data.strip.gradients, r.pk_m)?.permille ?? null,
+        kmh: r.kind === 'speed' ? r.item.kmh : (valueAt(speedBand, r.pk_m)?.kmh ?? null),
+        permille:
+            r.kind === 'gradient'
+                ? r.item.permille
+                : (valueAt(gradientBand, r.pk_m)?.permille ?? null),
         prov: provenance(r.item),
-        ...(r.kind === 'speed' && speedsAt.get(r.pk_m) > 1 && r.item.tracks?.length
+        ...((r.kind === 'speed' || r.kind === 'gradient') &&
+        parallel.has(r.item) &&
+        r.item.tracks?.length
             ? { tracks: r.item.tracks }
             : {}),
     }));
+}
+
+/**
+ * Tranches (vitesses ou déclivités) qui en recouvrent une autre sur une longueur non nulle : balayage par PK de début,
+ * la fin la plus lointaine des précédentes et le début de la suivante suffisent.
+ *
+ * @template {{ pk_from_m: number, pk_to_m: number }} T
+ * @param {T[]} ranges
+ * @returns {Set<T>}
+ */
+export function overlapping(ranges) {
+    const sorted = ranges.slice().sort((a, b) => a.pk_from_m - b.pk_from_m);
+    const out = new Set();
+    let reach = -Infinity;
+    for (let i = 0; i < sorted.length; i++) {
+        const r = sorted[i];
+        const next = sorted[i + 1];
+        if (
+            reach > r.pk_from_m ||
+            (next && next.pk_from_m < r.pk_to_m && r.pk_to_m > r.pk_from_m)
+        ) {
+            out.add(r);
+        }
+        reach = Math.max(reach, r.pk_to_m);
+    }
+    return out;
 }
 
 /**

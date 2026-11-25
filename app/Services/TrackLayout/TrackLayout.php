@@ -230,9 +230,12 @@ final class TrackLayout
             'crossings' => self::shape('crossings', $pointFilter($merged['crossings'])),
             'buffer_stops' => self::shape('buffer_stops', $pointFilter($merged['buffer_stops'])),
             'milestones' => self::shape('milestones', $pointFilter($merged['milestones'])),
-            // `tracks` : voies auxquelles la vitesse s'applique (références courtes), null quand la source ne le dit pas.
+            // `tracks` : voies auxquelles la vitesse ou la déclivité s'applique (références courtes), null quand la source
+            // ne le dit pas.
             'strip' => ['speeds' => array_map(fn (array $r): array => ['pk_from_m' => $r['pk_from_m'], 'pk_to_m' => $r['pk_to_m'], 'kmh' => $r['kmh'],
-                'tracks' => $r['tracks'] ?? null, 'source' => $r['source']], $rangeFilter($merged['speeds'])), 'gradients' => $rangeFilter($merged['gradients'])],
+                'tracks' => $r['tracks'] ?? null, 'source' => $r['source']], $rangeFilter($merged['speeds'])),
+                'gradients' => array_map(fn (array $r): array => ['pk_from_m' => $r['pk_from_m'], 'pk_to_m' => $r['pk_to_m'], 'permille' => $r['permille'],
+                    'tracks' => $r['tracks'] ?? null, 'source' => $r['source'], 'precision' => $r['precision'] ?? null], $rangeFilter($merged['gradients']))],
             'coverage' => self::coverage($start, $end, $covered, $coveredBy),
         ];
         // Nombre d'objets de chaque famille sur la portion servie, quelles que soient les familles demandées : un aperçu

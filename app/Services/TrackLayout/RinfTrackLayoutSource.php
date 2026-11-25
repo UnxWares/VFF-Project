@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\DB;
  *
  * - Sections de la ligne (rinf_sections dont `line_code` = lines.code, liaisons de longueur nulle écartées) :
  *   leurs voies (voie 1, voie 2, voie unique, troisième voie…) de PK à PK, position exacte ; la vitesse de la
- *   bande est la plus forte vitesse déclarée sur les voies de la section ; les déclivités viennent du profil
- *   déclaré de la voie qui suit le sens de la section (voir RinfGradients).
+ *   bande est la plus forte vitesse déclarée sur les voies de la section (`tracks` : les voies qui l'ont) ; les
+ *   déclivités viennent du profil déclaré de la voie qui suit le sens de la section (`tracks` : les voies de la
+ *   section dont le profil donne la même valeur sur la portion).
  * - Points d'exploitation aux extrémités des sections, PK exact ; leurs voies (voies de gare, voies de service,
  *   liaisons) n'ont pas de PK dans le RINF français : centrées sur le PK du point, sur leur longueur déclarée
  *   (quai, voie de service), position `approximate`.
@@ -98,6 +99,8 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
             $max = null;
             $fastest = [];
             $profile = null;
+            /** @var array<string, list<array<string, mixed>>> $profiles profil déclaré de chaque voie, par référence courte */
+            $profiles = [];
             foreach ($sectionTracks[$s->uri] ?? [] as $t) {
                 if (strtoupper((string) $t->ref) === 'VLINK') {
                     continue;
@@ -117,18 +120,23 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
                     $max = max($max ?? 0, $kmh);
                 }
                 // Profil de la voie qui suit le sens de la section (sinon celle des deux sens).
-                if ($t->gradient_profile !== null && ($profile === null || $t->direction === 'N')) {
-                    $profile = (array) json_decode((string) $t->gradient_profile, true);
+                if ($t->gradient_profile !== null) {
+                    $own = array_values(array_filter((array) json_decode((string) $t->gradient_profile, true), 'is_array'));
+                    $profiles[RinfDataset::shortTrackRef((string) $t->ref)] ??= $own;
+                    if ($profile === null || $t->direction === 'N') {
+                        $profile = $own;
+                    }
                 }
             }
             if ($max !== null) {
-                $speeds[] = ['pk_from_m' => $from, 'pk_to_m' => $to, 'kmh' => $max, 'tracks' => array_values(array_unique($fastest)), 'source' => 'rinf'];
+                $speeds[] = ['pk_from_m' => $from, 'pk_to_m' => $to, 'kmh' => $max, 'tracks' => self::sortedRefs($fastest), 'source' => 'rinf'];
             }
             foreach ($profile ?? [] as $g) {
                 $a = max($from, (int) $g['pk_from_m']);
                 $b = min($to, (int) $g['pk_to_m']);
                 if ($b > $a) {
-                    $gradients[] = ['pk_from_m' => $a, 'pk_to_m' => $b, 'permille' => (float) $g['permille'], 'source' => 'rinf', 'precision' => 'derived'];
+                    $gradients[] = ['pk_from_m' => $a, 'pk_to_m' => $b, 'permille' => (float) $g['permille'],
+                        'tracks' => self::tracksWithGradient($profiles, $a, $b, (float) $g['permille']), 'source' => 'rinf', 'precision' => 'derived'];
                 }
             }
         }
@@ -164,5 +172,45 @@ final class RinfTrackLayoutSource implements TrackLayoutSource
             gradients: $gradients,
             covered: ['tracks' => $covered, 'operational_points' => $covered, 'crossings' => []],
         );
+    }
+
+    /**
+     * Voies auxquelles une déclivité s'applique : celles de la section dont le profil déclaré donne la même valeur sur
+     * toute la portion (le RINF déclare un profil par voie ; voie 1 et voie 2 d'une même section le partagent souvent).
+     * Deux sections parallèles d'une ligne (Paris-Austerlitz : voies V1, V2 et voies V1S, V2S) ont chacune leurs
+     * déclivités au même PK : la voie les distingue.
+     *
+     * @param  array<string, list<array<string, mixed>>>  $profiles  profil de chaque voie de la section, par référence courte
+     * @return list<string>
+     */
+    public static function tracksWithGradient(array $profiles, int $from, int $to, float $permille): array
+    {
+        $refs = [];
+        foreach ($profiles as $ref => $profile) {
+            foreach ($profile as $g) {
+                if ((int) ($g['pk_from_m'] ?? 0) <= $from && (int) ($g['pk_to_m'] ?? 0) >= $to
+                    && abs((float) ($g['permille'] ?? 0) - $permille) < 1e-9) {
+                    $refs[] = (string) $ref;
+                    break;
+                }
+            }
+        }
+
+        return self::sortedRefs($refs);
+    }
+
+    /**
+     * Références de voies sans doublon, dans l'ordre naturel (V1, V2, V1S, V2S… plutôt que l'ordre de lecture de la
+     * base) : la réponse ne change pas d'une lecture à l'autre.
+     *
+     * @param  list<string>  $refs
+     * @return list<string>
+     */
+    private static function sortedRefs(array $refs): array
+    {
+        $refs = array_values(array_unique($refs));
+        sort($refs, SORT_NATURAL);
+
+        return $refs;
     }
 }
