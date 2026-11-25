@@ -287,7 +287,7 @@ final class LineMaterialLinker
     {
         usort($evidence, fn (array $a, array $b): int => self::rank($b) <=> self::rank($a));
         // Cinq preuves suffisent : les plus fortes d'abord.
-        $evidence = array_slice($evidence, 0, self::MAX_EVIDENCE);
+        $evidence = self::keepDated(array_slice($evidence, 0, self::MAX_EVIDENCE), array_slice($evidence, self::MAX_EVIDENCE));
         $hasWikidata = in_array(self::KIND_WIKIDATA, array_column($evidence, 'kind'), true);
         $best = self::rank($evidence[0]);
 
@@ -309,6 +309,37 @@ final class LineMaterialLinker
      * (ou phrase qui reprend un autre matériel pour dire qu'il est remplacé), 1 article partagé ou
      * preuve qui porte un doute (`doubt`).
      */
+    /**
+     * Preuves gardées, avec celles qui datent une relation : `vff:import-material-periods` (MaterialPeriodCollector)
+     * ne lit les périodes des relations que dans les preuves d'un lien. Une preuve datée au-delà des cinq prend la
+     * place de la dernière preuve sans date (jamais de la première, qui donne `source_url`) ; l'ordre reste du plus
+     * fort au plus faible. Sans cela, un lien qui gagne des relations sans date perd la période d'une autre (X 4200
+     * « Nîmes - Avignon (de 1982 à 1985) », Renault ADX « Carmaux - Albi - Toulouse (1952 - 1958) », import du 25/11/2026).
+     *
+     * @param  list<array<string, mixed>>  $kept  preuves gardées, triées
+     * @param  list<array<string, mixed>>  $rest  preuves au-delà, dans le même ordre
+     * @return list<array<string, mixed>>
+     */
+    private static function keepDated(array $kept, array $rest): array
+    {
+        $dated = fn (array $e): bool => isset($e['route']) && is_array($e['period'] ?? null);
+        foreach ($rest as $extra) {
+            if (! $dated($extra)) {
+                continue;
+            }
+            for ($i = count($kept) - 1; $i > 0; $i--) {
+                if (! $dated($kept[$i])) {
+                    array_splice($kept, $i, 1);
+                    $kept[] = $extra;
+
+                    break;
+                }
+            }
+        }
+
+        return $kept;
+    }
+
     private static function rank(array $evidence): int
     {
         if (($evidence['shared_article'] ?? false) === true || is_string($evidence['doubt'] ?? null)) {

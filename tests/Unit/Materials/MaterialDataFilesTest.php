@@ -274,5 +274,8 @@ class MaterialDataFilesTest extends TestCase
         foreach (['Paris-Montparnasse - Mantes-la-Jolie', 'Nancy - Pont-Saint-Vincent', 'Limoges - Agen', 'Lille - Don-Sainghin', 'Lille - Béthune', 'Lille - Saint-Pol-sur-Ternoise', 'Saint-Pol-sur-Ternoise - Étaples', 'Arras - Dunkerque'] as $relation) {
             $this->assertContains($relation, $relations);
         }
+        // Import du 25/11 : liens du XAT 1000 (et leurs quatre périodes de 1939) retirés par la règle des relations ambiguës.
+        $this->assertContains('Bordeaux - Périgueux', $relations);
+        $this->assertContains('Bordeaux - Bergerac', $relations);
     }
 }

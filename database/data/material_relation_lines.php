@@ -104,4 +104,16 @@ return [
         'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Arras_%C3%A0_Dunkerque-Locale&oldid=239736601',
         'reason' => 'article de la ligne d\'Arras à Dunkerque-Locale, section « Exploitation » : « plusieurs fréquences quotidiennes TGV reliant Paris-Nord à Dunkerque via Arras, Lens, Béthune et Hazebrouck depuis 1993 » ; d\'Arras à Dunkerque, c\'est cette ligne seule',
     ],
+    [
+        'relation' => ['Bordeaux', 'Périgueux'],
+        'lines' => ['570000', '621000'],
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=XAT_1000&oldid=225161637',
+        'reason' => 'article XAT 1000, section « Carrière et services » : « des trains Bordeaux - Périgueux et Bordeaux - Bergerac, en mode électrique entre Bordeaux et Coutras pour la première ligne ou Libourne pour la seconde » ; de Bordeaux à Coutras la ligne de Paris-Austerlitz à Bordeaux, puis la ligne de Coutras à Tulle jusqu\'à Périgueux (le graphe trouve un autre itinéraire 5 % plus long)',
+    ],
+    [
+        'relation' => ['Bordeaux', 'Bergerac'],
+        'lines' => ['570000', '629000'],
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=XAT_1000&oldid=225161637',
+        'reason' => 'article XAT 1000, même phrase : « en mode électrique entre Bordeaux et Coutras pour la première ligne ou Libourne pour la seconde » ; la relation Bordeaux - Bergerac est électrique jusqu\'à Libourne, par la ligne de Paris-Austerlitz à Bordeaux, puis suit la ligne de Libourne au Buisson jusqu\'à Bergerac (le graphe trouve un autre itinéraire 6 % plus long)',
+    ],
 ];
