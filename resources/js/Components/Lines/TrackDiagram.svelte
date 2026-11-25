@@ -453,7 +453,14 @@
         const first = new Map(
             [...paths]
                 .filter((p) => pieces.run.has(p.track.id) && fits(p))
-                .sort((x, y) => y.track.pk_from_m - x.track.pk_from_m)
+                // La dernière écrite l'emporte : la plus petite PK, et à PK égal la tête de la suite (deux voies V1 du RINF
+                // superposées à Paris-Nord ne prennent pas chacune un numéro).
+                .sort(
+                    (x, y) =>
+                        y.track.pk_from_m - x.track.pk_from_m ||
+                        Number(pieces.continued.has(y.track.id)) -
+                            Number(pieces.continued.has(x.track.id)),
+                )
                 .map((p) => [pieces.run.get(p.track.id), p.track.id]),
         );
         for (const p of paths) {

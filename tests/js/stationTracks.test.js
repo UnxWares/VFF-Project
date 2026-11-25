@@ -256,3 +256,87 @@ describe('stationTracks : dessin et tableau de parcours', () => {
         expect(station).not.toContain('href="/stations/poitiers"');
     });
 });
+
+describe('stationTracks : numéros des voies à quai de Paris-Nord', () => {
+    // Extrait de la réponse du 25/11/2026 (ligne 272000, RINF © ERA, OpenStreetMap ODbL) : deux voies V1 du RINF
+    // superposées, la voie 3 d'OSM en trois pièces (4 m devant le heurtoir, la partie à quai, la gorge), la voie 4, et le
+    // « Quai 3/4 » entre elles.
+    const tr = (id, ref, lane, from, to, source = 'osm') => ({
+        id,
+        ref,
+        kind: 'running',
+        lane,
+        pk_from_m: from,
+        pk_to_m: to,
+        source,
+        precision: source === 'rinf' ? 'exact' : 'derived',
+    });
+    const data = normalize({
+        pk: { start_m: -35, end_m: 600 },
+        tracks: [
+            tr('rinf:t:c53a984d4bcf', 'V1', 0, 0, 1115, 'rinf'),
+            tr('rinf:t:f84c0a6a17d9', 'V1', 0, 0, 1115, 'rinf'),
+            tr('rinf:t:e058a9bd6426', 'V2', 1, 0, 1115, 'rinf'),
+            tr('osm:way:73556237', '3', 2, -35, -31),
+            tr('osm:way:112596568', '3', 2, -31, 377),
+            tr('osm:way:402673032', '3', 2, 377, 426),
+            tr('osm:way:256877275', '4', 3, -35, -31),
+            tr('osm:way:256877274', '4', 3, -31, 378),
+        ],
+    });
+    const edge = (id, track, trackRef) => ({
+        id,
+        ref: 'Quai 3/4',
+        track_ref: trackRef,
+        line_code: '272000',
+        track,
+        pk_from_m: -31,
+        pk_to_m: 372,
+        length_m: 403,
+        height_mm: 580,
+        source: 'rinf',
+        pk_source: 'vff',
+        precision: 'approximate',
+    });
+
+    it('écrit chaque numéro une fois, au début de la première pièce assez longue, et jamais sur un quai', () => {
+        const { body } = render(TrackDiagram, {
+            props: {
+                data,
+                axis: buildAxis(data),
+                rows: routeRows(data),
+                zoom: 2,
+                printing: true,
+                label: 'Schéma',
+                helpId: 'aide',
+                lang: 'fr',
+                t,
+                onpick: () => {},
+                platforms: [
+                    edge('rinf:pe:3', 'osm:way:112596568', '3'),
+                    edge('rinf:pe:4', 'osm:way:256877274', '4'),
+                ],
+            },
+        });
+        const refs = [
+            ...body.matchAll(
+                /<text class="ref[^"]*" x="([\d.-]+)" y="([\d.-]+)"[^>]*>([^<]+)<\/text>/g,
+            ),
+        ].map((m) => ({ x: +m[1], y: +m[2], text: m[3] }));
+        expect(refs.map((r) => r.text).sort()).toEqual(['3', '4', 'V1', 'V2']);
+        const quai = [
+            ...body.matchAll(
+                /<rect class="platform[^"]*" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g,
+            ),
+        ].map((m) => ({ x0: +m[1], y0: +m[2], x1: +m[1] + +m[3], y1: +m[2] + +m[4] }));
+        expect(quai).toHaveLength(1);
+        // Le numéro de la voie 4, sous le quai central : écrit hors de lui.
+        const four = refs.find((r) => r.text === '4');
+        const inside =
+            four.x >= quai[0].x0 &&
+            four.x <= quai[0].x1 &&
+            four.y >= quai[0].y0 &&
+            four.y - 12 <= quai[0].y1;
+        expect(inside).toBe(false);
+    });
+});
