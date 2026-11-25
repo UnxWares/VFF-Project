@@ -7,6 +7,7 @@ return [
     'save' => 'Save',
     'close' => 'Close',
     'toc' => 'Contents',
+    'table_of' => 'Table: :title',
     'osm_attribution' => '© :link contributors',
 
     // Shared component texts (pagination, external links).

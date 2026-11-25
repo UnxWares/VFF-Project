@@ -11,6 +11,7 @@ return [
             'vff' => 'Voies Ferrées de France (vff-project.org), UnxWares, ODbL 1.0',
             'osm' => '© contributeurs OpenStreetMap, ODbL 1.0 (https://www.openstreetmap.org/copyright)',
             'sncf' => 'SNCF Open Data (SNCF Réseau, SNCF Voyageurs, SNCF Gares & Connexions), ODbL 1.0',
+            'rinf' => 'RINF, registre de l\'infrastructure, © Agence de l\'Union européenne pour les chemins de fer (graphe de connaissances de l\'ERA, EUPL 1.2)',
             'ohm' => 'OpenHistoricalMap, CC0 1.0',
             'ign' => 'IGN (BD TOPO, BD ORTHO historique), Licence Ouverte 2.0',
             'wikipedia' => 'Wikipédia, CC BY-SA 4.0 (textes) ; faits repris avec lien vers l’article',

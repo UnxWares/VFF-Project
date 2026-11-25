@@ -1,0 +1,1038 @@
+{
+  "head" : {
+    "vars" : [
+      "uopid",
+      "t",
+      "cls",
+      "ref",
+      "vmax",
+      "len",
+      "grad",
+      "ctype"
+    ]
+  },
+  "results" : {
+    "bindings" : [
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/086b91929a"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "28 - BEILLANT"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "289.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/0996a9ef0b"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "13 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "140.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/0fc0083c5e"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "5 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "370.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/11978c6a1f"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "17 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "302.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "5.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000008263"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/152aa58edd"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "T Pair - Tiroir Pair"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "45.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/15576e2ddc"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE Naviland"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/1f52cec544"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "9 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "400.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/23a4c8bdb0"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Accès ITE st Gobain - St Gobain"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/354a6bb0c7"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE SVE Chais"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007897"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/402a44988e"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE V B - V B"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/53ba65dc66"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Liaison BS83/84"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/59a58dee14"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "11 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "390.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "5.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000008263"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/5c64fd9ca1"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "6"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "200.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/667dd9709d"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE VSN"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/6e4a01b5ea"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Tiroir 2 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "100.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "5.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000005890"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/7935ffb91a"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE Grenier du Roy"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/93908821bc"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "4 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "530.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "4.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/9d798c0f82"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "3 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "413.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/a8ccf53624"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "7 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "380.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/ad06cb0a44"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "10 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "461.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "4.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/bed6ccbaac"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Liaison BS36/35"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/beeb360726"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "26 - BEILLANT"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "211.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/bf7d80148b"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "12 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "439.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/c4fa410037"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "T dépot - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "80.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/c5f62c8921"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Tiroir 1 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "340.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "5.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000006311"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/cb172b6581"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "15 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "274.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "5.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/d4d2c17aad"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "T impair - BEILLANT"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "20.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007897"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/d930fd4e9e"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "ITE V A - V A"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/db746e57d0"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "8 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "461.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "4.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/eb72613b93"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "T Pair - Tiroir Pair"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "0.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/f255ce3b39"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "5 - BEILLANT"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "186.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000007078"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/f544625987"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "3 - BEILLANT"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "349.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000009305"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/siding/faceeb0348"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "siding"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "6 - COGNAC"
+        },
+        "len" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "520.0"
+        },
+        "grad" : {
+          "datatype" : "http://www.w3.org/2001/XMLSchema#double",
+          "type" : "literal",
+          "value" : "4.0"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/163473fb85"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie 1"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2639ba0e75"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "D"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000004229"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/2c993a1d25"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie E de Châteauneuf-sur-Charente"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/3923d7e130"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie V1"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/3a19c4f1d6"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "2A"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/70ac4bdd1e"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "D"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/79cd6a9e78"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "1A"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003513"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/992a4eb540"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie E de Cognac"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000003470"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/9a5d22b588"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie 2"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/ab37e8820a"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie E de Jarnac-Charente"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR0000002507"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/ae13d2b6f2"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "D"
+        }
+      },
+      {
+        "uopid" : {
+          "type" : "literal",
+          "value" : "FR9900001730"
+        },
+        "t" : {
+          "type" : "uri",
+          "value" : "http://data.europa.eu/949/track/b7e64d24b7"
+        },
+        "cls" : {
+          "type" : "literal",
+          "value" : "running"
+        },
+        "ref" : {
+          "type" : "literal",
+          "value" : "Voie V2"
+        }
+      }
+    ]
+  }
+}

@@ -59,6 +59,9 @@ return [
             // Rosalis (Toulouse) et Pireneas (Pau), images IIIF de marque blanche Gallica (agent medias-4).
             'https://rosalis.bibliotheque.toulouse.fr',
             'https://www.pireneas.fr',
+            // Bibliothèque numérique du Limousin et L'Empreinte de Valence (agent fonds-images-seuil).
+            'https://bnl-bfm.limoges.fr',
+            'https://www.lempreinte.valenceromansagglo.fr',
             // Cartes postales et autochromes (agent medias-2) : Archives des Hauts-de-Seine (Albert-Kahn, 9 Fi,
             // Suresnes), Évry-Courcouronnes, Sèvres, musée Gadagne (Grand Lyon).
             'https://opendata.hauts-de-seine.fr',

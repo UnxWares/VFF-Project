@@ -1,0 +1,695 @@
+{
+ "line": {
+  "code": "999100",
+  "slug": "essai-voie-unique",
+  "name": "Ligne d’essai de Valmont à Rochebrune"
+ },
+ "pk": {
+  "start_m": 0,
+  "end_m": 32400
+ },
+ "sources": [
+  {
+   "key": "rinf",
+   "label": "RINF (ERA)",
+   "licence": "Conditions de réutilisation de l’ERA",
+   "dataset": "RINF France",
+   "fetched_at": "2026-11-24",
+   "url": "https://data-interop.era.europa.eu/"
+  },
+  {
+   "key": "osm",
+   "label": "OpenStreetMap",
+   "licence": "ODbL",
+   "attribution": "© les contributeurs d’OpenStreetMap",
+   "dataset": "france-261123.osm.pbf",
+   "fetched_at": "2026-11-23",
+   "url": "https://www.openstreetmap.org/copyright"
+  },
+  {
+   "key": "vff",
+   "label": "VFF",
+   "licence": "ODbL",
+   "dataset": "Vitesses SNCF Réseau, profil en long VFF (RGE ALTI)",
+   "fetched_at": "2026-11-24",
+   "url": "https://vff-project.org/data"
+  }
+ ],
+ "operational_points": [
+  {
+   "id": "op-val",
+   "name": "Valmont",
+   "kind": "station",
+   "pk_m": 420,
+   "uopid": "FR0000001",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-gr",
+   "name": "Les Granges",
+   "kind": "passing_loop",
+   "pk_m": 9600,
+   "uopid": "FR0000002",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-sp",
+   "name": "Saint-Pré",
+   "kind": "halt",
+   "pk_m": 14200,
+   "uopid": null,
+   "station_slug": null,
+   "source": "osm",
+   "precision": "approximate"
+  },
+  {
+   "id": "op-cb",
+   "name": "Col de Brame",
+   "kind": "passing_loop",
+   "pk_m": 21400,
+   "uopid": "FR0000004",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-rb",
+   "name": "Rochebrune",
+   "kind": "station",
+   "pk_m": 32050,
+   "uopid": "FR0000005",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  }
+ ],
+ "tracks": [
+  {
+   "id": "tr-val-1",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 0,
+   "pk_to_m": 900,
+   "lane": 0,
+   "op_id": "op-val",
+   "length_m": 900,
+   "electrified": false,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-val-2",
+   "ref": "2",
+   "kind": "loop",
+   "pk_from_m": 180,
+   "pk_to_m": 720,
+   "lane": 1,
+   "op_id": "op-val",
+   "length_m": 540,
+   "electrified": false,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-val-3",
+   "ref": "3",
+   "kind": "siding",
+   "pk_from_m": 260,
+   "pk_to_m": 640,
+   "lane": 2,
+   "op_id": "op-val",
+   "length_m": 380,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-s1",
+   "ref": null,
+   "kind": "running",
+   "pk_from_m": 900,
+   "pk_to_m": 8900,
+   "lane": 0,
+   "op_id": null,
+   "length_m": 8000,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-gr-1",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 8900,
+   "pk_to_m": 10300,
+   "lane": 0,
+   "op_id": "op-gr",
+   "length_m": 1400,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-gr-2",
+   "ref": "2",
+   "kind": "loop",
+   "pk_from_m": 9150,
+   "pk_to_m": 10050,
+   "lane": -1,
+   "op_id": "op-gr",
+   "length_m": 900,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-s2",
+   "ref": null,
+   "kind": "running",
+   "pk_from_m": 10300,
+   "pk_to_m": 20800,
+   "lane": 0,
+   "op_id": null,
+   "length_m": 10500,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-cb-1",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 20800,
+   "pk_to_m": 22000,
+   "lane": 0,
+   "op_id": "op-cb",
+   "length_m": 1200,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-cb-2",
+   "ref": "2",
+   "kind": "loop",
+   "pk_from_m": 21050,
+   "pk_to_m": 21750,
+   "lane": 1,
+   "op_id": "op-cb",
+   "length_m": 700,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-cb-3",
+   "ref": null,
+   "kind": "spur",
+   "pk_from_m": 21300,
+   "pk_to_m": 21600,
+   "lane": 2,
+   "op_id": "op-cb",
+   "length_m": 300,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "approximate"
+  },
+  {
+   "id": "tr-s3",
+   "ref": null,
+   "kind": "running",
+   "pk_from_m": 22000,
+   "pk_to_m": 31600,
+   "lane": 0,
+   "op_id": null,
+   "length_m": 9600,
+   "electrified": false,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-rb-1",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 31600,
+   "pk_to_m": 32400,
+   "lane": 0,
+   "op_id": "op-rb",
+   "length_m": 800,
+   "electrified": false,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-rb-2",
+   "ref": "2",
+   "kind": "loop",
+   "pk_from_m": 31750,
+   "pk_to_m": 32350,
+   "lane": 1,
+   "op_id": "op-rb",
+   "length_m": 600,
+   "electrified": false,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "tr-rb-3",
+   "ref": "3",
+   "kind": "yard",
+   "pk_from_m": 31800,
+   "pk_to_m": 32250,
+   "lane": 2,
+   "op_id": "op-rb",
+   "length_m": 450,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "switches": [
+  {
+   "id": "sw-val-1",
+   "ref": "1",
+   "pk_m": 150,
+   "kind": "simple",
+   "from_track": "tr-val-1",
+   "to_track": "tr-val-2",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-val-2",
+   "ref": "2",
+   "pk_m": 750,
+   "kind": "simple",
+   "from_track": "tr-val-1",
+   "to_track": "tr-val-2",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-val-3",
+   "ref": "3",
+   "pk_m": 680,
+   "kind": "simple",
+   "from_track": "tr-val-2",
+   "to_track": "tr-val-3",
+   "facing": "down",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gr-1",
+   "ref": "1",
+   "pk_m": 9100,
+   "kind": "simple",
+   "from_track": "tr-gr-1",
+   "to_track": "tr-gr-2",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gr-2",
+   "ref": "2",
+   "pk_m": 10100,
+   "kind": "simple",
+   "from_track": "tr-gr-1",
+   "to_track": "tr-gr-2",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-cb-1",
+   "ref": "1",
+   "pk_m": 21000,
+   "kind": "simple",
+   "from_track": "tr-cb-1",
+   "to_track": "tr-cb-2",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-cb-2",
+   "ref": "2",
+   "pk_m": 21800,
+   "kind": "simple",
+   "from_track": "tr-cb-1",
+   "to_track": "tr-cb-2",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-cb-3",
+   "ref": "3",
+   "pk_m": 21300,
+   "kind": "simple",
+   "from_track": "tr-cb-2",
+   "to_track": "tr-cb-3",
+   "facing": "up",
+   "source": "osm",
+   "precision": "approximate"
+  },
+  {
+   "id": "sw-rb-1",
+   "ref": "1",
+   "pk_m": 31700,
+   "kind": "simple",
+   "from_track": "tr-rb-1",
+   "to_track": "tr-rb-2",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-rb-2",
+   "ref": "2",
+   "pk_m": 31780,
+   "kind": "simple",
+   "from_track": "tr-rb-2",
+   "to_track": "tr-rb-3",
+   "facing": "up",
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "signals": [
+  {
+   "id": "sig-1",
+   "ref": "S 1",
+   "pk_m": 790,
+   "kind": "main",
+   "track": "tr-val-1",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-2",
+   "ref": "S 2",
+   "pk_m": 735,
+   "kind": "main",
+   "track": "tr-val-2",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-3",
+   "ref": "C 101",
+   "pk_m": 1250,
+   "kind": "main",
+   "track": "tr-s1",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-4",
+   "ref": "C 201",
+   "pk_m": 8700,
+   "kind": "main",
+   "track": "tr-s1",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-5",
+   "ref": "S 21",
+   "pk_m": 10080,
+   "kind": "main",
+   "track": "tr-gr-1",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-6",
+   "ref": "C 202",
+   "pk_m": 10500,
+   "kind": "main",
+   "track": "tr-s2",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-7",
+   "ref": "C 301",
+   "pk_m": 20650,
+   "kind": "main",
+   "track": "tr-s2",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-8",
+   "ref": "C 302",
+   "pk_m": 22150,
+   "kind": "main",
+   "track": "tr-s3",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-9",
+   "ref": "C 401",
+   "pk_m": 31450,
+   "kind": "main",
+   "track": "tr-s3",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-10",
+   "ref": "S 41",
+   "pk_m": 31720,
+   "kind": "main",
+   "track": "tr-rb-1",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  }
+ ],
+ "crossings": [
+  {
+   "id": "pn-3",
+   "pk_m": 3450,
+   "kind": "level_crossing",
+   "ref": "PN 3",
+   "source": "vff",
+   "precision": "exact"
+  },
+  {
+   "id": "pn-7",
+   "pk_m": 12880,
+   "kind": "level_crossing",
+   "ref": "PN 7",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "pn-12",
+   "pk_m": 25300,
+   "kind": "level_crossing",
+   "ref": "PN 12",
+   "source": "vff",
+   "precision": "exact"
+  }
+ ],
+ "buffer_stops": [
+  {
+   "id": "bs-val-3",
+   "pk_m": 260,
+   "track": "tr-val-3",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "bs-cb-3",
+   "pk_m": 21600,
+   "track": "tr-cb-3",
+   "source": "osm",
+   "precision": "approximate"
+  },
+  {
+   "id": "bs-rb-1",
+   "pk_m": 32400,
+   "track": "tr-rb-1",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "bs-rb-2",
+   "pk_m": 32350,
+   "track": "tr-rb-2",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "bs-rb-3",
+   "pk_m": 32250,
+   "track": "tr-rb-3",
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "strip": {
+  "speeds": [
+   {
+    "pk_from_m": 0,
+    "pk_to_m": 900,
+    "kmh": 60,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 900,
+    "pk_to_m": 8900,
+    "kmh": 100,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 8900,
+    "pk_to_m": 10300,
+    "kmh": 80,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 10300,
+    "pk_to_m": 20800,
+    "kmh": 100,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 20800,
+    "pk_to_m": 22000,
+    "kmh": 70,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 22000,
+    "pk_to_m": 31600,
+    "kmh": 90,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 31600,
+    "pk_to_m": 32400,
+    "kmh": 40,
+    "source": "vff",
+    "precision": "exact"
+   }
+  ],
+  "gradients": [
+   {
+    "pk_from_m": 0,
+    "pk_to_m": 1500,
+    "permille": 2.5,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 1500,
+    "pk_to_m": 6000,
+    "permille": 8.2,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 6000,
+    "pk_to_m": 9000,
+    "permille": 3,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 9000,
+    "pk_to_m": 10400,
+    "permille": 0,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 10400,
+    "pk_to_m": 17000,
+    "permille": 12.5,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 17000,
+    "pk_to_m": 21000,
+    "permille": 15,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 21000,
+    "pk_to_m": 22000,
+    "permille": 0,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 22000,
+    "pk_to_m": 28000,
+    "permille": -10.5,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 28000,
+    "pk_to_m": 32400,
+    "permille": -4,
+    "source": "vff",
+    "precision": "derived"
+   }
+  ]
+ },
+ "coverage": {
+  "total_m": 32400,
+  "rinf_m": 30000,
+  "osm_m": 2400,
+  "missing": [
+   {
+    "pk_from_m": 14000,
+    "pk_to_m": 20000,
+    "what": "signals"
+   }
+  ]
+ }
+}

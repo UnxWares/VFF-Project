@@ -1,5 +1,5 @@
 // Corrections d'accessibilité (RGAA) de Swagger UI, par son mécanisme de greffons (`wrapComponents`) :
-// le paquet swagger-ui-dist n'est pas modifié, seuls trois de ses composants sont enveloppés.
+// le paquet swagger-ui-dist n'est pas modifié, seuls quatre de ses composants sont enveloppés.
 // - BaseLayout : Swagger UI ouvre sa propre zone `<main id="operations">` alors que la page en a déjà
 //   une (resources/views/docs/swagger.blade.php, cible du lien d'évitement) : la sienne devient un
 //   `div` (RGAA 9.2, une seule zone principale) ;
@@ -7,11 +7,15 @@
 //   rangé dans le bouton qui déplie l'opération (RGAA 8.2). Le lien devient un simple texte ; l'adresse
 //   de la page suit toujours l'opération ouverte (option deepLinking), et chaque opération garde son
 //   bouton « copier le chemin » ;
+// - Servers : la liste des serveurs (`select#servers`) était rangée dans un `label` sans texte, donc sans
+//   nom : elle reçoit celui du titre « Servers » qui la précède (RGAA 11.1) ;
 // - FilterContainer : le champ « Filter by tag » n'avait qu'un texte indicatif ; il reçoit une
 //   étiquette visible (RGAA 11.1), en anglais comme le reste de l'interface.
 
 /** Identifiant du champ de filtre, relié à son étiquette. */
 export const FILTER_INPUT_ID = 'vff-swagger-filter';
+/** Nom de la liste des serveurs (le titre que Swagger UI affiche au-dessus). */
+export const SERVERS_LABEL = 'Servers';
 /** Texte de l'étiquette du filtre (celui du texte indicatif de Swagger UI). */
 export const FILTER_LABEL = 'Filter by tag';
 
@@ -113,6 +117,23 @@ export function withFilterLabel(tree, React) {
 }
 
 /**
+ * Nomme la liste des serveurs de l'API (`select#servers`), que Swagger UI laisse sans nom.
+ *
+ * @param {unknown} tree
+ * @param {ReactApi} React
+ */
+export function withServersLabel(tree, React) {
+    return mapElements(
+        tree,
+        (el) =>
+            el.type === 'select' && el.props.id === 'servers' && !el.props['aria-label']
+                ? React.cloneElement(el, { 'aria-label': SERVERS_LABEL })
+                : el,
+        React,
+    );
+}
+
+/**
  * Retire le lien profond du chemin d'une opération : l'élément DeepLink (propriétés `path` et `text`)
  * est remplacé par son texte. Rendu avec `enabled: false`, DeepLink garderait un `<a>` sans adresse.
  *
@@ -135,7 +156,8 @@ const isClassComponent = (type) =>
     typeof type === 'function' && typeof type.prototype?.render === 'function';
 
 /**
- * Enveloppe (pour `wrapComponents`) qui applique `transform` au rendu du composant d'origine.
+ * Enveloppe (pour `wrapComponents`) qui applique `transform` au rendu du composant d'origine (classe ou
+ * fonction).
  *
  * Swagger UI entoure déjà certains composants d'un garde-fou d'erreurs (greffon SafeRender) : le
  * composant reçu rend alors un seul élément, ErrorBoundary, qui contient le vrai composant. Dans ce cas,
@@ -164,6 +186,9 @@ export function transformRender(transform) {
 
     return (Original, system) => {
         const React = system.React;
+
+        // Composant fonction (ex. Servers) : on appelle le composant d'origine et on transforme son rendu.
+        if (!isClassComponent(Original)) return (props) => transform(Original(props), React);
 
         return class extends Original {
             render() {
@@ -195,7 +220,7 @@ export function transformRender(transform) {
 }
 
 /**
- * Greffon Swagger UI qui applique les trois corrections.
+ * Greffon Swagger UI qui applique les quatre corrections.
  *
  * @returns {{wrapComponents: Record<string, (Original: any, system: any) => any>}}
  */
@@ -204,6 +229,7 @@ export function accessibilityPlugin() {
         wrapComponents: {
             BaseLayout: transformRender(withoutMain),
             FilterContainer: transformRender(withFilterLabel),
+            Servers: transformRender(withServersLabel),
             OperationSummaryPath: transformRender(withoutDeepLink),
         },
     };

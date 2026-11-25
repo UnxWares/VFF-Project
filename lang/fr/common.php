@@ -7,6 +7,7 @@ return [
     'save' => 'Enregistrer',
     'close' => 'Fermer',
     'toc' => 'Sommaire',
+    'table_of' => 'Tableau : :title',
     'osm_attribution' => '© contributeurs :link',
 
     // Textes communs des composants partagés (pagination, liens externes).

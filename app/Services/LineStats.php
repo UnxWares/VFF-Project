@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Line;
 use App\Support\LineDataSignature;
+use App\Support\RedistributableDates;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +32,7 @@ final class LineStats
     private static function segmentFigures(int $lineId, int $eraId): array
     {
         $stats = DB::selectOne(
-            <<<'SQL'
+            sprintf(<<<'SQL'
             SELECT
                 SUM(ST_Length(geom::geography)) AS total_len_m,
                 SUM(CASE WHEN status IN ('in_service','single_track') THEN ST_Length(geom::geography) ELSE 0 END) AS active_len_m,
@@ -39,11 +40,12 @@ final class LineStats
                 MAX(max_speed_kmh) AS max_speed,
                 BOOL_OR(electrified) AS electrified,
                 MODE() WITHIN GROUP (ORDER BY gauge_mm) AS gauge_mm,
+                MODE() WITHIN GROUP (ORDER BY gauge_mm) FILTER (WHERE %s) AS gauge_mm_served,
                 MIN(dismantled_at) AS dismantled_at_min,
                 MAX(dismantled_at) AS dismantled_at_max
             FROM line_segments
             WHERE line_id = ? AND era_id = ?
-            SQL,
+            SQL, app(RedistributableDates::class)->gaugeKept('line_segments')),
             [$lineId, $eraId],
         );
         $voltages = array_map(fn ($r): array => ['v' => $r->v, 'm' => $r->m], DB::select(
@@ -62,9 +64,11 @@ final class LineStats
 
     /**
      * @param  list<int>  $segmentIds  tronçons de l'ère
+     * @param  bool  $offSite  API, GraphQL, MCP : écartement dominant sans ceux lus dans une source non commerciale
+     *                         (RedistributableDates::gaugeKept) ; le site garde l'écartement de tous les tronçons
      * @return array<string, mixed>
      */
-    public function forEra(Line $line, array $segmentIds, ?int $eraId, int $eventCount = 0): array
+    public function forEra(Line $line, array $segmentIds, ?int $eraId, int $eventCount = 0, bool $offSite = false): array
     {
         if (! $segmentIds || ! $eraId) {
             return [
@@ -80,7 +84,7 @@ final class LineStats
         // Longueurs géodésiques des tronçons de l'ère (60 à 90 ms sur une LGV) : gardées en cache tant que les
         // tronçons de la ligne ne changent pas (LineDataSignature). Les autres lectures restent faites à chaque fois.
         $geo = Cache::remember(
-            "line-stats:{$line->id}:{$eraId}:".LineDataSignature::segments((int) $line->id),
+            "line-stats:v2:{$line->id}:{$eraId}:".LineDataSignature::segments((int) $line->id),
             self::CACHE_TTL,
             fn (): array => self::segmentFigures((int) $line->id, $eraId),
         );
@@ -170,7 +174,7 @@ final class LineStats
             'electrified' => $electrifiedPct > 0,
             'electrified_pct' => $electrifiedPct,
             'voltage_v' => $voltageV,
-            'gauge_mm' => $stats->gauge_mm,
+            'gauge_mm' => $offSite ? $stats->gauge_mm_served : $stats->gauge_mm,
             'signalling' => $signallingCoverage ? implode(', ', array_column($signallingCoverage, 'code')) : null,
             'train_protection' => $trainProtection ? implode(', ', $trainProtection) : null,
             'kvb_equipped' => (bool) ($scalars->any_kvb ?? false),

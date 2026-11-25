@@ -36,6 +36,7 @@
     import FurtherReading from '$components/Sheet/FurtherReading.svelte';
     import LineSpeeds from '$components/Lines/LineSpeeds.svelte';
     import LineSchematic from '$components/Lines/LineSchematic.svelte';
+    import LineTrackLayout from '$components/Lines/LineTrackLayout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { Link } from '@inertiajs/svelte';
@@ -63,6 +64,7 @@
         stageNotes,
     } from '$lib/linePhases.js';
     import { withStationDetails } from '$lib/lineStationDetails.js';
+    import { routebookEndsOf, routebookHref } from '$lib/routebook.js';
 
     /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API). Les props
      * du bas de la page (LineSheet::PAGE_DEFERRED et sections de LineController::show) arrivent juste après
@@ -206,6 +208,8 @@
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
+    // Gares ouvertes aux voyageurs aujourd'hui aux deux bouts de la ligne : lien vers le livret de parcours.
+    const routebookEnds = $derived(routebookEndsOf(stations));
 
     // Sommaire collant : toutes les sections possibles, dans l'ordre de la page ; SheetToc n'affiche
     // que celles qui sont présentes.
@@ -220,6 +224,7 @@
         'heritage',
         'tech',
         'schematic',
+        'track-layout',
         'profile',
         'speeds',
         'electrification',
@@ -1444,6 +1449,22 @@
         {#if stations.length >= 2}
             <LineSchematic slug={line.slug} />
         {/if}
+        {#if routebookEnds}
+            <!-- Livret de parcours d'aujourd'hui entre les gares ouvertes des deux bouts de la ligne (page /routebook). -->
+            <p class="routebook-link">
+                <a
+                    class="vff-link"
+                    href={routebookHref(routebookEnds.from.slug, routebookEnds.to.slug)}
+                    >{t('routebook.from_line', {
+                        from: routebookEnds.from.name,
+                        to: routebookEnds.to.name,
+                    })}</a
+                >
+            </p>
+        {/if}
+
+        <!-- Schéma des voies (état actuel) : chargé à la demande (API dédiée), replié ; plein écran sur /lines/{slug}/voies. -->
+        <LineTrackLayout slug={line.slug} lineName={line.name} />
 
         {#if profile}
             <LineProfile {profile} structures={structures.items} />
@@ -1560,6 +1581,13 @@
 </Layout>
 
 <style>
+    /* Lien vers le livret de parcours, sous le schéma de ligne, aligné sur les sections. */
+    .routebook-link {
+        max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
+        margin: 0 auto;
+        padding: var(--vff-space-4) var(--vff-gutter) 0;
+        font-family: var(--vff-font-heading);
+    }
     main {
         padding-bottom: var(--vff-section-space);
         background-color: var(--vff-bg);

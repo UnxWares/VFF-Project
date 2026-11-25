@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\LineSegment;
 use App\Services\Api\Provenance;
 use App\Services\TraceExport\LineTraceExport;
+use App\Support\RedistributableDates;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +25,7 @@ class LineSegmentResource extends JsonResource
     {
         $withGeometry = $this->resource->getAttribute('geojson') !== null;
         $withheld = app(LineTraceExport::class)->withheldReason($this->source);
+        $gauge = app(RedistributableDates::class)->servesGauge($this->gauge_source);
 
         return [
             'id' => $this->id,
@@ -41,8 +43,9 @@ class LineSegmentResource extends JsonResource
             'electrification_source' => $this->electrification_source,
             'max_speed_kmh' => $this->max_speed_kmh,
             'max_speed_source' => $this->max_speed_source,
-            'gauge_mm' => $this->gauge_mm,
-            'gauge_class' => $this->gauge_class,
+            // Écartement lu dans une source non commerciale : nul hors du site (RedistributableDates::servesGauge).
+            'gauge_mm' => $gauge ? $this->gauge_mm : null,
+            'gauge_class' => $gauge ? $this->gauge_class : null,
             'signalling' => $this->signalling,
             'train_protection' => $this->train_protection,
             'operator' => $this->operator,

@@ -1,0 +1,1391 @@
+{
+ "line": {
+  "code": "999200",
+  "slug": "essai-grande-gare",
+  "name": "Ligne d’essai par Grand-Central"
+ },
+ "pk": {
+  "start_m": 0,
+  "end_m": 12000
+ },
+ "sources": [
+  {
+   "key": "rinf",
+   "label": "RINF (ERA)",
+   "licence": "Conditions de réutilisation de l’ERA",
+   "dataset": "RINF France",
+   "fetched_at": "2026-11-24",
+   "url": "https://data-interop.era.europa.eu/"
+  },
+  {
+   "key": "osm",
+   "label": "OpenStreetMap",
+   "licence": "ODbL",
+   "attribution": "© les contributeurs d’OpenStreetMap",
+   "dataset": "france-261123.osm.pbf",
+   "fetched_at": "2026-11-23",
+   "url": "https://www.openstreetmap.org/copyright"
+  },
+  {
+   "key": "vff",
+   "label": "VFF",
+   "licence": "ODbL",
+   "dataset": "Vitesses SNCF Réseau, profil en long VFF (RGE ALTI)",
+   "fetched_at": "2026-11-24",
+   "url": "https://vff-project.org/data"
+  }
+ ],
+ "operational_points": [
+  {
+   "id": "op-lp",
+   "name": "Les Pâtis",
+   "kind": "halt",
+   "pk_m": 2300,
+   "uopid": "FR0000011",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-gc",
+   "name": "Grand-Central",
+   "kind": "station",
+   "pk_m": 6100,
+   "uopid": "FR0000012",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-bif",
+   "name": "Bifurcation de Grand-Nord",
+   "kind": "junction",
+   "pk_m": 9800,
+   "uopid": "FR0000013",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "op-sl",
+   "name": "Saint-Loup",
+   "kind": "halt",
+   "pk_m": 11600,
+   "uopid": "FR0000014",
+   "station_slug": null,
+   "source": "rinf",
+   "precision": "exact"
+  }
+ ],
+ "tracks": [
+  {
+   "id": "v1-a",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 0,
+   "pk_to_m": 4600,
+   "lane": 0,
+   "op_id": null,
+   "length_m": 4600,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "v1-gc",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 4600,
+   "pk_to_m": 7600,
+   "lane": 0,
+   "op_id": "op-gc",
+   "length_m": 3000,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "v1-b",
+   "ref": "1",
+   "kind": "running",
+   "pk_from_m": 7600,
+   "pk_to_m": 12000,
+   "lane": 0,
+   "op_id": null,
+   "length_m": 4400,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "v2-a",
+   "ref": "2",
+   "kind": "running",
+   "pk_from_m": 0,
+   "pk_to_m": 4600,
+   "lane": 1,
+   "op_id": null,
+   "length_m": 4600,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "v2-gc",
+   "ref": "2",
+   "kind": "running",
+   "pk_from_m": 4600,
+   "pk_to_m": 7600,
+   "lane": 1,
+   "op_id": "op-gc",
+   "length_m": 3000,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "v2-b",
+   "ref": "2",
+   "kind": "running",
+   "pk_from_m": 7600,
+   "pk_to_m": 12000,
+   "lane": 1,
+   "op_id": null,
+   "length_m": 4400,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-3",
+   "ref": "3",
+   "kind": "loop",
+   "pk_from_m": 4970,
+   "pk_to_m": 7230,
+   "lane": -1,
+   "op_id": "op-gc",
+   "length_m": 2260,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-5",
+   "ref": "5",
+   "kind": "loop",
+   "pk_from_m": 5040,
+   "pk_to_m": 7160,
+   "lane": -2,
+   "op_id": "op-gc",
+   "length_m": 2120,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-7",
+   "ref": "7",
+   "kind": "loop",
+   "pk_from_m": 5110,
+   "pk_to_m": 7090,
+   "lane": -3,
+   "op_id": "op-gc",
+   "length_m": 1980,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-9",
+   "ref": "9",
+   "kind": "loop",
+   "pk_from_m": 5180,
+   "pk_to_m": 7020,
+   "lane": -4,
+   "op_id": "op-gc",
+   "length_m": 1840,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-11",
+   "ref": "11",
+   "kind": "loop",
+   "pk_from_m": 5250,
+   "pk_to_m": 6950,
+   "lane": -5,
+   "op_id": "op-gc",
+   "length_m": 1700,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-13",
+   "ref": "13",
+   "kind": "loop",
+   "pk_from_m": 5320,
+   "pk_to_m": 6880,
+   "lane": -6,
+   "op_id": "op-gc",
+   "length_m": 1560,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-15",
+   "ref": "15",
+   "kind": "loop",
+   "pk_from_m": 5390,
+   "pk_to_m": 6810,
+   "lane": -7,
+   "op_id": "op-gc",
+   "length_m": 1420,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-17",
+   "ref": "17",
+   "kind": "yard",
+   "pk_from_m": 5460,
+   "pk_to_m": 6740,
+   "lane": -8,
+   "op_id": "op-gc",
+   "length_m": 1280,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-19",
+   "ref": "19",
+   "kind": "yard",
+   "pk_from_m": 5530,
+   "pk_to_m": 6670,
+   "lane": -9,
+   "op_id": "op-gc",
+   "length_m": 1140,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-4",
+   "ref": "4",
+   "kind": "loop",
+   "pk_from_m": 4970,
+   "pk_to_m": 7230,
+   "lane": 2,
+   "op_id": "op-gc",
+   "length_m": 2260,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-6",
+   "ref": "6",
+   "kind": "loop",
+   "pk_from_m": 5040,
+   "pk_to_m": 7160,
+   "lane": 3,
+   "op_id": "op-gc",
+   "length_m": 2120,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-8",
+   "ref": "8",
+   "kind": "loop",
+   "pk_from_m": 5110,
+   "pk_to_m": 7090,
+   "lane": 4,
+   "op_id": "op-gc",
+   "length_m": 1980,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-10",
+   "ref": "10",
+   "kind": "loop",
+   "pk_from_m": 5180,
+   "pk_to_m": 7020,
+   "lane": 5,
+   "op_id": "op-gc",
+   "length_m": 1840,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-12",
+   "ref": "12",
+   "kind": "loop",
+   "pk_from_m": 5250,
+   "pk_to_m": 6950,
+   "lane": 6,
+   "op_id": "op-gc",
+   "length_m": 1700,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-14",
+   "ref": "14",
+   "kind": "loop",
+   "pk_from_m": 5320,
+   "pk_to_m": 6880,
+   "lane": 7,
+   "op_id": "op-gc",
+   "length_m": 1560,
+   "electrified": true,
+   "platform": true,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-16",
+   "ref": "16",
+   "kind": "loop",
+   "pk_from_m": 5390,
+   "pk_to_m": 6810,
+   "lane": 8,
+   "op_id": "op-gc",
+   "length_m": 1420,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-18",
+   "ref": "18",
+   "kind": "yard",
+   "pk_from_m": 5460,
+   "pk_to_m": 6740,
+   "lane": 9,
+   "op_id": "op-gc",
+   "length_m": 1280,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "gc-20",
+   "ref": "20",
+   "kind": "yard",
+   "pk_from_m": 5530,
+   "pk_to_m": 6670,
+   "lane": 10,
+   "op_id": "op-gc",
+   "length_m": 1140,
+   "electrified": false,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "x-1",
+   "ref": null,
+   "kind": "crossover",
+   "pk_from_m": 4700,
+   "pk_to_m": 4770,
+   "lane": 0,
+   "op_id": "op-gc",
+   "length_m": 70,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "x-2",
+   "ref": null,
+   "kind": "crossover",
+   "pk_from_m": 7430,
+   "pk_to_m": 7500,
+   "lane": 0,
+   "op_id": "op-gc",
+   "length_m": 70,
+   "electrified": true,
+   "platform": false,
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "bif-1",
+   "ref": null,
+   "kind": "running",
+   "pk_from_m": 9800,
+   "pk_to_m": 10700,
+   "lane": 2,
+   "op_id": "op-bif",
+   "length_m": 900,
+   "electrified": true,
+   "platform": false,
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "switches": [
+  {
+   "id": "sw-x1a",
+   "ref": "91",
+   "pk_m": 4700,
+   "kind": "simple",
+   "from_track": "v2-gc",
+   "to_track": "x-1",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-x1b",
+   "ref": "92",
+   "pk_m": 4770,
+   "kind": "simple",
+   "from_track": "v1-gc",
+   "to_track": "x-1",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-1",
+   "ref": "101",
+   "pk_m": 4970,
+   "kind": "simple",
+   "from_track": "v1-gc",
+   "to_track": "gc-3",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-18",
+   "ref": "118",
+   "pk_m": 4970,
+   "kind": "simple",
+   "from_track": "v2-gc",
+   "to_track": "gc-4",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-3",
+   "ref": "103",
+   "pk_m": 5040,
+   "kind": "simple",
+   "from_track": "gc-3",
+   "to_track": "gc-5",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-20",
+   "ref": "120",
+   "pk_m": 5040,
+   "kind": "simple",
+   "from_track": "gc-4",
+   "to_track": "gc-6",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-5",
+   "ref": "105",
+   "pk_m": 5110,
+   "kind": "simple",
+   "from_track": "gc-5",
+   "to_track": "gc-7",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-22",
+   "ref": "122",
+   "pk_m": 5110,
+   "kind": "simple",
+   "from_track": "gc-6",
+   "to_track": "gc-8",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-7",
+   "ref": "107",
+   "pk_m": 5180,
+   "kind": "simple",
+   "from_track": "gc-7",
+   "to_track": "gc-9",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-24",
+   "ref": "124",
+   "pk_m": 5180,
+   "kind": "simple",
+   "from_track": "gc-8",
+   "to_track": "gc-10",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-9",
+   "ref": "109",
+   "pk_m": 5250,
+   "kind": "simple",
+   "from_track": "gc-9",
+   "to_track": "gc-11",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-26",
+   "ref": "126",
+   "pk_m": 5250,
+   "kind": "simple",
+   "from_track": "gc-10",
+   "to_track": "gc-12",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-11",
+   "ref": "111",
+   "pk_m": 5320,
+   "kind": "simple",
+   "from_track": "gc-11",
+   "to_track": "gc-13",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-28",
+   "ref": "128",
+   "pk_m": 5320,
+   "kind": "simple",
+   "from_track": "gc-12",
+   "to_track": "gc-14",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-13",
+   "ref": "113",
+   "pk_m": 5390,
+   "kind": "simple",
+   "from_track": "gc-13",
+   "to_track": "gc-15",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-30",
+   "ref": "130",
+   "pk_m": 5390,
+   "kind": "simple",
+   "from_track": "gc-14",
+   "to_track": "gc-16",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-15",
+   "ref": "115",
+   "pk_m": 5460,
+   "kind": "simple",
+   "from_track": "gc-15",
+   "to_track": "gc-17",
+   "facing": "up",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-32",
+   "ref": "132",
+   "pk_m": 5460,
+   "kind": "simple",
+   "from_track": "gc-16",
+   "to_track": "gc-18",
+   "facing": "up",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-17",
+   "ref": "117",
+   "pk_m": 5530,
+   "kind": "simple",
+   "from_track": "gc-17",
+   "to_track": "gc-19",
+   "facing": "up",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-34",
+   "ref": "134",
+   "pk_m": 5530,
+   "kind": "simple",
+   "from_track": "gc-18",
+   "to_track": "gc-20",
+   "facing": "up",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-16",
+   "ref": "116",
+   "pk_m": 6740,
+   "kind": "simple",
+   "from_track": "gc-15",
+   "to_track": "gc-17",
+   "facing": "down",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-33",
+   "ref": "133",
+   "pk_m": 6740,
+   "kind": "simple",
+   "from_track": "gc-16",
+   "to_track": "gc-18",
+   "facing": "down",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-14",
+   "ref": "114",
+   "pk_m": 6810,
+   "kind": "simple",
+   "from_track": "gc-13",
+   "to_track": "gc-15",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-31",
+   "ref": "131",
+   "pk_m": 6810,
+   "kind": "simple",
+   "from_track": "gc-14",
+   "to_track": "gc-16",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-12",
+   "ref": "112",
+   "pk_m": 6880,
+   "kind": "simple",
+   "from_track": "gc-11",
+   "to_track": "gc-13",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-29",
+   "ref": "129",
+   "pk_m": 6880,
+   "kind": "simple",
+   "from_track": "gc-12",
+   "to_track": "gc-14",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-10",
+   "ref": "110",
+   "pk_m": 6950,
+   "kind": "simple",
+   "from_track": "gc-9",
+   "to_track": "gc-11",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-27",
+   "ref": "127",
+   "pk_m": 6950,
+   "kind": "simple",
+   "from_track": "gc-10",
+   "to_track": "gc-12",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-tjd",
+   "ref": "95",
+   "pk_m": 6950,
+   "kind": "double_slip",
+   "from_track": "v1-gc",
+   "to_track": "gc-3",
+   "facing": null,
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-8",
+   "ref": "108",
+   "pk_m": 7020,
+   "kind": "simple",
+   "from_track": "gc-7",
+   "to_track": "gc-9",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-25",
+   "ref": "125",
+   "pk_m": 7020,
+   "kind": "simple",
+   "from_track": "gc-8",
+   "to_track": "gc-10",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-6",
+   "ref": "106",
+   "pk_m": 7090,
+   "kind": "simple",
+   "from_track": "gc-5",
+   "to_track": "gc-7",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-23",
+   "ref": "123",
+   "pk_m": 7090,
+   "kind": "simple",
+   "from_track": "gc-6",
+   "to_track": "gc-8",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-4",
+   "ref": "104",
+   "pk_m": 7160,
+   "kind": "simple",
+   "from_track": "gc-3",
+   "to_track": "gc-5",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-21",
+   "ref": "121",
+   "pk_m": 7160,
+   "kind": "simple",
+   "from_track": "gc-4",
+   "to_track": "gc-6",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-2",
+   "ref": "102",
+   "pk_m": 7230,
+   "kind": "simple",
+   "from_track": "v1-gc",
+   "to_track": "gc-3",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-gc-19",
+   "ref": "119",
+   "pk_m": 7230,
+   "kind": "simple",
+   "from_track": "v2-gc",
+   "to_track": "gc-4",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-x2a",
+   "ref": "93",
+   "pk_m": 7430,
+   "kind": "simple",
+   "from_track": "v1-gc",
+   "to_track": "x-2",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-x2b",
+   "ref": "94",
+   "pk_m": 7500,
+   "kind": "simple",
+   "from_track": "v2-gc",
+   "to_track": "x-2",
+   "facing": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sw-bif",
+   "ref": "Bif 1",
+   "pk_m": 9800,
+   "kind": "simple",
+   "from_track": "v2-b",
+   "to_track": "bif-1",
+   "facing": "up",
+   "source": "rinf",
+   "precision": "exact"
+  }
+ ],
+ "signals": [
+  {
+   "id": "sig-b1-1500",
+   "ref": "S 16",
+   "pk_m": 1500,
+   "kind": "block",
+   "track": "v1-a",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b2-1500",
+   "ref": "S 17",
+   "pk_m": 1620,
+   "kind": "block",
+   "track": "v2-a",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b1-3000",
+   "ref": "S 31",
+   "pk_m": 3000,
+   "kind": "block",
+   "track": "v1-a",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b2-3000",
+   "ref": "S 32",
+   "pk_m": 3120,
+   "kind": "block",
+   "track": "v2-a",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-c1",
+   "ref": "C 1",
+   "pk_m": 4450,
+   "kind": "main",
+   "track": "v1-a",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-3-d",
+   "ref": "S 30",
+   "pk_m": 5010,
+   "kind": "main",
+   "track": "gc-3",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-4-d",
+   "ref": "S 40",
+   "pk_m": 5010,
+   "kind": "main",
+   "track": "gc-4",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-5-d",
+   "ref": "S 50",
+   "pk_m": 5080,
+   "kind": "main",
+   "track": "gc-5",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-6-d",
+   "ref": "S 60",
+   "pk_m": 5080,
+   "kind": "main",
+   "track": "gc-6",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-7-d",
+   "ref": "S 70",
+   "pk_m": 5150,
+   "kind": "main",
+   "track": "gc-7",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-8-d",
+   "ref": "S 80",
+   "pk_m": 5150,
+   "kind": "main",
+   "track": "gc-8",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-9-d",
+   "ref": "S 90",
+   "pk_m": 5220,
+   "kind": "main",
+   "track": "gc-9",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-10-d",
+   "ref": "S 100",
+   "pk_m": 5220,
+   "kind": "main",
+   "track": "gc-10",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-11-d",
+   "ref": "S 110",
+   "pk_m": 5290,
+   "kind": "main",
+   "track": "gc-11",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-12-d",
+   "ref": "S 120",
+   "pk_m": 5290,
+   "kind": "main",
+   "track": "gc-12",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-13-d",
+   "ref": "S 130",
+   "pk_m": 5360,
+   "kind": "main",
+   "track": "gc-13",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-14-d",
+   "ref": "S 140",
+   "pk_m": 5360,
+   "kind": "main",
+   "track": "gc-14",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-15-d",
+   "ref": "S 150",
+   "pk_m": 5430,
+   "kind": "main",
+   "track": "gc-15",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-16-d",
+   "ref": "S 160",
+   "pk_m": 5430,
+   "kind": "main",
+   "track": "gc-16",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-15-u",
+   "ref": "S 15",
+   "pk_m": 6770,
+   "kind": "main",
+   "track": "gc-15",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-16-u",
+   "ref": "S 16",
+   "pk_m": 6770,
+   "kind": "main",
+   "track": "gc-16",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-13-u",
+   "ref": "S 13",
+   "pk_m": 6840,
+   "kind": "main",
+   "track": "gc-13",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-14-u",
+   "ref": "S 14",
+   "pk_m": 6840,
+   "kind": "main",
+   "track": "gc-14",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-11-u",
+   "ref": "S 11",
+   "pk_m": 6910,
+   "kind": "main",
+   "track": "gc-11",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-12-u",
+   "ref": "S 12",
+   "pk_m": 6910,
+   "kind": "main",
+   "track": "gc-12",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-9-u",
+   "ref": "S 9",
+   "pk_m": 6980,
+   "kind": "main",
+   "track": "gc-9",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-10-u",
+   "ref": "S 10",
+   "pk_m": 6980,
+   "kind": "main",
+   "track": "gc-10",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-7-u",
+   "ref": "S 7",
+   "pk_m": 7050,
+   "kind": "main",
+   "track": "gc-7",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-8-u",
+   "ref": "S 8",
+   "pk_m": 7050,
+   "kind": "main",
+   "track": "gc-8",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-5-u",
+   "ref": "S 5",
+   "pk_m": 7120,
+   "kind": "main",
+   "track": "gc-5",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-6-u",
+   "ref": "S 6",
+   "pk_m": 7120,
+   "kind": "main",
+   "track": "gc-6",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-3-u",
+   "ref": "S 3",
+   "pk_m": 7190,
+   "kind": "main",
+   "track": "gc-3",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-gc-4-u",
+   "ref": "S 4",
+   "pk_m": 7190,
+   "kind": "main",
+   "track": "gc-4",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-c2",
+   "ref": "C 2",
+   "pk_m": 7780,
+   "kind": "main",
+   "track": "v2-b",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b1-9000",
+   "ref": "S 91",
+   "pk_m": 9000,
+   "kind": "block",
+   "track": "v1-b",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b2-9000",
+   "ref": "S 92",
+   "pk_m": 9120,
+   "kind": "block",
+   "track": "v2-b",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b1-10500",
+   "ref": "S 106",
+   "pk_m": 10500,
+   "kind": "block",
+   "track": "v1-b",
+   "direction": "up",
+   "source": "rinf",
+   "precision": "exact"
+  },
+  {
+   "id": "sig-b2-10500",
+   "ref": "S 107",
+   "pk_m": 10620,
+   "kind": "block",
+   "track": "v2-b",
+   "direction": "down",
+   "source": "rinf",
+   "precision": "exact"
+  }
+ ],
+ "crossings": [
+  {
+   "id": "xr-1",
+   "pk_m": 10900,
+   "kind": "railway_crossing",
+   "ref": null,
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "buffer_stops": [
+  {
+   "id": "bs-gc-19",
+   "pk_m": 6670,
+   "track": "gc-19",
+   "source": "osm",
+   "precision": "exact"
+  },
+  {
+   "id": "bs-gc-20",
+   "pk_m": 6670,
+   "track": "gc-20",
+   "source": "osm",
+   "precision": "exact"
+  }
+ ],
+ "strip": {
+  "speeds": [
+   {
+    "pk_from_m": 0,
+    "pk_to_m": 4500,
+    "kmh": 160,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 4500,
+    "pk_to_m": 7700,
+    "kmh": 60,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 7700,
+    "pk_to_m": 9500,
+    "kmh": 140,
+    "source": "vff",
+    "precision": "exact"
+   },
+   {
+    "pk_from_m": 9500,
+    "pk_to_m": 12000,
+    "kmh": 160,
+    "source": "vff",
+    "precision": "exact"
+   }
+  ],
+  "gradients": [
+   {
+    "pk_from_m": 0,
+    "pk_to_m": 3200,
+    "permille": 1.6,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 3200,
+    "pk_to_m": 4400,
+    "permille": -2.4,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 4400,
+    "pk_to_m": 7800,
+    "permille": 0,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 7800,
+    "pk_to_m": 10100,
+    "permille": 4.8,
+    "source": "vff",
+    "precision": "derived"
+   },
+   {
+    "pk_from_m": 10100,
+    "pk_to_m": 12000,
+    "permille": 2.1,
+    "source": "vff",
+    "precision": "derived"
+   }
+  ]
+ },
+ "coverage": {
+  "total_m": 12000,
+  "rinf_m": 12000,
+  "osm_m": 1800,
+  "missing": [
+   {
+    "pk_from_m": 10500,
+    "pk_to_m": 12000,
+    "what": "switches"
+   }
+  ]
+ }
+}

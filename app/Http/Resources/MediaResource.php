@@ -43,6 +43,8 @@ class MediaResource extends JsonResource
         'numistral' => 'Numistral',
         'rosalis' => 'Rosalis',
         'pireneas' => 'Pireneas',
+        'bnl-limousin' => 'Bibliothèque numérique du Limousin',
+        'lempreinte' => 'L\'Empreinte',
         'upload' => 'VFF',
     ];
 

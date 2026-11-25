@@ -26,6 +26,10 @@ use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
 use App\Services\Contributions\ContributionLimits;
 use App\Services\Reputation\ReputationLevels;
+use App\Services\TrackLayout\OsmTrackLayoutSource;
+use App\Services\TrackLayout\RinfTrackLayoutSource;
+use App\Services\TrackLayout\TrackLayout;
+use App\Services\TrackLayout\VffTrackLayoutSource;
 use App\Support\ApiAuthDocumentation;
 use App\Support\ApiCodeSamples;
 use App\Support\DatabaseGuard;
@@ -58,6 +62,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Niveaux de réputation : lus dans config/reputation.php à chaque résolution (pas de copie figée).
         $this->app->bind(ReputationLevels::class, fn (): ReputationLevels => ReputationLevels::fromConfig());
+
+        // Schéma des voies : sources étiquetées TrackLayout::TAG, lues dans l'ordre TrackLayout::PRIORITY (rinf, osm,
+        // vff). Une nouvelle source (OpenStreetMap) s'ajoute par une ligne : $this->app->tag([…::class], TrackLayout::TAG).
+        $this->app->tag([RinfTrackLayoutSource::class, OsmTrackLayoutSource::class, VffTrackLayoutSource::class], TrackLayout::TAG);
+        $this->app->bind(TrackLayout::class, fn ($app): TrackLayout => new TrackLayout($app->tagged(TrackLayout::TAG)));
     }
 
     public function boot(): void

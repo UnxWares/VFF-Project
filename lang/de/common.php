@@ -7,6 +7,7 @@ return [
     'save' => 'Speichern',
     'close' => 'Schließen',
     'toc' => 'Inhaltsverzeichnis',
+    'table_of' => 'Tabelle: :title',
     'osm_attribution' => '© :link-Mitwirkende',
 
     // Gemeinsame Texte der Komponenten (Seitennavigation, externe Links).

@@ -637,4 +637,116 @@ return [
         'clean_title' => 'dashes',
         'type' => 'photo',
     ],
+
+    // Bibliothèque numérique du Limousin (BFM de Limoges, agent fonds-images-seuil, 23/11/2026) : API publique d'Omeka S
+    // (`driver = omeka`, OmekaReader), une recherche par mot. Licence lue notice par notice : « Licence ouverte » (`dcterms:license`)
+    // ou « Domaine public » (`dcterms:rights`), jamais « Droits réservés » (fonds Boudeau, photographe mort en 1959 : refusé).
+    'bnl-limousin' => [
+        'provider' => 'bnl-limousin',
+        'name' => 'Bibliothèque numérique du Limousin (BFM de Limoges), images de chemins de fer, de gares et de viaducs',
+        'driver' => 'omeka',
+        'min_interval_ms' => 5000,
+        'resource' => 'https://bnl-bfm.limoges.fr/api/items',
+        'portal' => 'https://bnl-bfm.limoges.fr/s/bibliotheque-virtuelle',
+        'site_slug' => 'bibliotheque-virtuelle',
+        'searches' => ['gare', 'chemin de fer', 'tramway', 'locomotive', 'viaduc', 'train', 'voie ferrée', 'tunnel'],
+        'fields' => [
+            'id' => 'id',
+            'title' => 'title',
+            'date' => 'date',
+            'author' => 'author',
+            'inventory' => 'inventory',
+            'image' => 'image',
+            'thumb' => 'thumb',
+            'source' => 'link',
+            'repository' => 'repository',
+            'subjects' => 'subjects',
+            'commune' => 'commune',
+            'license' => 'rights',
+            'type' => 'type',
+        ],
+        'require_pattern' => ['type' => '/\b(?:image|photographie|carte postale|estampe|dessin)\b/iu'],
+        // Titre dont l'identification est douteuse (« Le train en gare de Nexon (?) ») : refusé, jamais rattaché sur une supposition.
+        'reject_pattern' => ['title' => '/\(\?\)/u'],
+        'rail' => ['fields' => ['title', 'subjects'], 'pattern' => '/\b(gares?|halte|chemins? de fer|viaducs?|tunnels?|locomotives?|trains?|voie ferr[ée]e|ferroviaires?|wagons?|tramways?)\b/iu'],
+        'license' => [
+            'kind' => 'per_record',
+            'map' => [
+                '/^(?!.*r[ée]serv[ée]s?)(?=.*domaine public)/isu' => [
+                    'license' => 'Domaine public',
+                    'license_url' => 'https://bnl-bfm.limoges.fr/s/bibliotheque-virtuelle',
+                    'rights_status' => 'public_domain',
+                    'commercial_ok' => true,
+                    'derivatives_ok' => true,
+                    'share_alike' => false,
+                ],
+                '/^(?!.*r[ée]serv[ée]s?)(?=.*licence ouverte)/isu' => [
+                    'license' => 'Licence Ouverte (Etalab)',
+                    'license_url' => 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/',
+                    'rights_status' => 'open_license',
+                    'commercial_ok' => true,
+                    'derivatives_ok' => true,
+                    'share_alike' => false,
+                ],
+            ],
+        ],
+        'credit' => 'Bibliothèque francophone multimédia, Ville de Limoges, Bibliothèque numérique du Limousin',
+        'source_url' => 'https://bnl-bfm.limoges.fr/s/bibliotheque-virtuelle/item/{id}',
+        'title_match' => true,
+        'tram_apart' => true,
+        'viewpoint_apart' => true,
+        'type' => 'photo',
+    ],
+
+    // L'Empreinte (médiathèques de Valence Romans Agglo, agent fonds-images-seuil, 23/11/2026) : entrepôt OAI-PMH Dublin Core
+    // (`driver = oai-pmh`, OaiPmhReader), ensemble « gares et chemins de fer ». L'adresse de l'image se compose avec
+    // l'identifiant de la notice. Licence lue notice par notice : « Domaine Public » (`dc:rights`), toute autre valeur refuse l'image.
+    'lempreinte' => [
+        'provider' => 'lempreinte',
+        'name' => 'L\'Empreinte, médiathèques de Valence Romans Agglo (cartes postales de gares et de chemins de fer)',
+        'driver' => 'oai-pmh',
+        'resource' => 'https://www.lempreinte.valenceromansagglo.fr/oai/oai2.php',
+        'portal' => 'https://www.lempreinte.valenceromansagglo.fr/mentions-legales.htm',
+        'set' => 'theme:gares-et-chemins-de-fer',
+        'image_template' => 'https://www.lempreinte.valenceromansagglo.fr/media/docs/1000/{id}/{id}_R.jpg',
+        'thumb_template' => 'https://www.lempreinte.valenceromansagglo.fr/media/docs/340/{id}/{id}_R.jpg',
+        'fields' => [
+            'id' => 'id',
+            'title' => 'title',
+            'date' => 'date',
+            'author' => 'author',
+            'inventory' => 'inventory',
+            'image' => 'image',
+            'thumb' => 'thumb',
+            'source' => 'link',
+            'repository' => 'repository',
+            'subjects' => 'subjects',
+            'commune' => 'commune',
+            'license' => 'rights',
+            'type' => 'type',
+        ],
+        'require_pattern' => ['type' => '/\bimage\b/iu'],
+        // Titre seul : les sujets de L'Empreinte rangent sous « Gare » ou « Chemin de fer » des passerelles, des tunnels et des places.
+        'rail' => ['fields' => ['title'], 'pattern' => '/\b(gares?|chemins? de fer|locomotives?|trains?)\b/iu'],
+        'license' => [
+            'kind' => 'per_record',
+            'map' => [
+                '/^(?:domaine public|public domain)$/iu' => [
+                    'license' => 'Domaine public',
+                    'license_url' => 'https://www.lempreinte.valenceromansagglo.fr/mentions-legales.htm',
+                    'rights_status' => 'public_domain',
+                    'commercial_ok' => true,
+                    'derivatives_ok' => true,
+                    'share_alike' => false,
+                ],
+            ],
+        ],
+        'credit' => 'Médiathèques Valence Romans Agglo, L\'Empreinte',
+        'credit_template' => '{repository}, L\'Empreinte',
+        'source_url' => 'https://www.lempreinte.valenceromansagglo.fr/{id}.htm',
+        'title_match' => true,
+        'tram_apart' => true,
+        'viewpoint_apart' => true,
+        'type' => 'photo',
+    ],
 ];

@@ -14,10 +14,12 @@ import {
     accessibilityPlugin,
     FILTER_INPUT_ID,
     FILTER_LABEL,
+    SERVERS_LABEL,
     transformRender,
     withFilterLabel,
     withoutDeepLink,
     withoutMain,
+    withServersLabel,
 } from '../../resources/js/docs/swaggerAccessibility.js';
 
 // Corrections RGAA des documentations de l'API : post-traitement de Magidoc (/docs/graphql) et greffon
@@ -199,6 +201,22 @@ describe('Swagger UI : greffon d’accessibilité', () => {
         expect(input.props.id).toBe(FILTER_INPUT_ID);
     });
 
+    it('nomme la liste des serveurs, rangée dans un label sans texte', () => {
+        const tree = h(
+            'div',
+            { className: 'servers' },
+            h('label', { htmlFor: 'servers' }, h('select', { id: 'servers', value: 'a' })),
+        );
+        const select = withServersLabel(tree, FakeReact).props.children.props.children;
+        expect(select.props['aria-label']).toBe(SERVERS_LABEL);
+        expect(select.props.id).toBe('servers');
+    });
+
+    it('ne touche pas aux autres listes déroulantes de Swagger UI', () => {
+        const tree = h('div', null, h('select', { id: 'content-type' }));
+        expect(withServersLabel(tree, FakeReact)).toBe(tree);
+    });
+
     it('remplace le lien profond du chemin par son texte', () => {
         const DeepLink = () => null;
         const tree = h(
@@ -247,11 +265,21 @@ describe('Swagger UI : greffon d’accessibilité', () => {
         expect(new Wrapped().render().type).toBe('div');
     });
 
-    it('enveloppe les trois composants corrigés', () => {
+    it('enveloppe aussi un composant fonction (Servers) en transformant son rendu', () => {
+        const Servers = (props) =>
+            h('label', null, h('select', { id: 'servers', value: props.value }));
+        const Wrapped = transformRender(withServersLabel)(Servers, { React: FakeReact });
+        const select = Wrapped({ value: 'a' }).props.children;
+        expect(select.props['aria-label']).toBe(SERVERS_LABEL);
+        expect(select.props.value).toBe('a');
+    });
+
+    it('enveloppe les quatre composants corrigés', () => {
         expect(Object.keys(accessibilityPlugin().wrapComponents).sort()).toEqual([
             'BaseLayout',
             'FilterContainer',
             'OperationSummaryPath',
+            'Servers',
         ]);
     });
 });

@@ -147,6 +147,20 @@ type Query {
   ): Route
 
   """
+  Livret de parcours entre deux gares sur le réseau d'aujourd'hui (ex. Rennes - Saint-Malo) : les lignes
+  traversées dans le sens de marche, avec leurs PK et le schéma des voies de chaque portion. Renvoie
+  `null` si une gare est inconnue ou ambiguë, ou si aucun chemin n'existe : l'API REST
+  `GET /api/v1/routebook` en donne le motif (code `error`) et les gares candidates.
+  """
+  routebook(
+    "Gare de départ : slug (ex. `rennes`), nom exact ou nom de ville."
+    from: String!
+
+    "Gare d'arrivée, mêmes formes que `from`."
+    to: String!
+  ): Routebook
+
+  """
   Un même trajet à deux époques (ex. Angoulême - Limoges en 1930 et aujourd'hui) : l'itinéraire
   de chacune, ou la raison de son absence, et les différences (longueur, lignes qui ne sont plus
   empruntées ou nouvelles, trajet devenu impossible). Renvoie `null` si une gare est inconnue ou
@@ -167,7 +181,7 @@ type Query {
     compare: Int!
   ): RouteComparison
 
-  "Un événement de ligne, par son identifiant."
+  "Un événement de ligne, par son identifiant ; nul pour un événement sans source redistribuable."
   lineEvent(
     "Identifiant de l'événement."
     id: ID!
@@ -443,7 +457,8 @@ type Query {
   page par page (25 par défaut, 100 au plus), du plus ancien au plus récent, filtrables par
   ligne, type, source, département et période. Pagination par curseur : lisez
   `pageInfo { hasNextPage endCursor }` et repassez `endCursor` dans `after`. Chaque événement
-  garde sa source, sa citation et la licence de sa source (`provenance`).
+  garde sa source, sa citation et la licence de sa source (`provenance`). Un événement sans source
+  redistribuable n'y figure pas.
   """
   lineEvents(
     "Filtres facultatifs, combinés (ET)."
@@ -720,7 +735,10 @@ type Line {
   "Présentation de la ligne, en français."
   description: String
 
-  "Autres noms de la ligne, anciens ou usuels."
+  """
+  Autres noms de la ligne, anciens ou usuels (noms successifs, sections nommées, titre de l'article Wikipédia),
+  comme `sheet.line.alt_names`. Un nom tiré d'une source à usage non commercial n'est pas servi.
+  """
   alt_names: [String!]
 
   """
@@ -733,7 +751,7 @@ type Line {
     era: Int
   ): [LineSegment!]!
 
-  "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
+  "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`), sans les événements dont aucune source n'est redistribuable."
   events: [LineEvent!]!
 
   "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus), sans la preuve : voir `material_links`."
@@ -827,6 +845,25 @@ type Line {
   Reprenez la mention de `LineInfrastructure.attribution`.
   """
   infrastructure: LineInfrastructure!
+
+  """
+  Schéma des voies de la ligne aujourd'hui, comme `GET /api/v1/lines/{line}/track-layout` : voies principales
+  numérotées, voies de gare, d'évitement et de service, liaisons, aiguillages, traversées, signaux et points
+  d'exploitation dans l'ordre des PK, bande des vitesses et des déclivités, couverture par source. Sources par
+  ordre de préférence : RINF de l'Agence de l'Union européenne pour les chemins de fer (`rinf`), OpenStreetMap
+  (`osm`), données de VFF (`vff`) ; provenance et précision sur chaque objet. Listes vides si aucune source ne
+  décrit la ligne. Reprenez la mention `attribution` de chaque source.
+  """
+  track_layout(
+    "Début de la portion, PK en mètres. Par défaut : début de la ligne."
+    from_pk_m: Int
+
+    "Fin de la portion, PK en mètres. Par défaut : fin de la ligne."
+    to_pk_m: Int
+
+    "Familles à servir. Par défaut : toutes."
+    kinds: [TrackLayoutKind!]
+  ): TrackLayout!
 
   """
   Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
@@ -1415,7 +1452,10 @@ type LineSegment {
   "Vitesse maximale autorisée, en km/h. Nul si inconnue."
   max_speed_kmh: Int
 
-  "Écartement des rails en millimètres : `1435` voie normale, `1000` voie métrique, `600` voie étroite… Nul si inconnu."
+  """
+  Écartement des rails en millimètres : `1435` voie normale, `1000` voie métrique, `600` voie étroite… Nul si inconnu,
+  ou s'il n'est donné que par une source à usage non commercial.
+  """
   gauge_mm: Int
 
   "Vrai si la portion est exploitée par une association à cette ère (train touristique, vélorail, musée)."
@@ -1464,7 +1504,7 @@ type LineSegment {
   "Source de la vitesse maximale."
   max_speed_source: String
 
-  "Classe d'écartement : `standard`, `metre`, `narrow`…"
+  "Classe d'écartement : `standard`, `metre`, `narrow`… Nulle comme `gauge_mm`."
   gauge_class: String
 
   "Reconversion de l'emprise après dépose : `greenway` (voie verte), `road`, `path`, `urban`, `other`."
@@ -2060,16 +2100,16 @@ type Station {
   "Code du département (INSEE, ex. `35`, `2A`)."
   department_code: String
 
-  "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01."
+  "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01. Nulle quand aucune source redistribuable ne la donne."
   opened_at: Date
 
-  "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr)."
+  "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr) ; nulle avec `opened_at`."
   opened_precision: String
 
   "Gare ouverte après cette année (précision `range` : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
   opened_after: Int
 
-  "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
+  "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte, si la date est inconnue ou si aucune source redistribuable ne la donne ; quand seule l'année est connue, jour et mois valent 01."
   closed_at: Date
 
   "Présentation de la gare, en français."
@@ -2081,7 +2121,7 @@ type Station {
   "Longitude WGS 84, en degrés décimaux."
   lng: Float
 
-  "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
+  "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement ; sans les événements dont aucune source n'est redistribuable, ni les dates déduites de tels événements."
   events: [StationEvent!]!
 
   """
@@ -4838,6 +4878,438 @@ type LineInfrastructure {
   provenance: Provenance!
 }
 
+"Famille d'objets du schéma des voies (`Line.track_layout`)."
+enum TrackLayoutKind {
+  "Points d'exploitation (gares, haltes, bifurcations…)."
+  OPERATIONAL_POINTS
+
+  "Voies."
+  TRACKS
+
+  "Aiguillages."
+  SWITCHES
+
+  "Signaux."
+  SIGNALS
+
+  "Passages à niveau et traversées."
+  CROSSINGS
+
+  "Heurtoirs."
+  BUFFER_STOPS
+
+  "Bornes kilométriques."
+  MILESTONES
+
+  "Bande des vitesses."
+  SPEEDS
+
+  "Bande des déclivités."
+  GRADIENTS
+}
+
+"Schéma des voies d'une ligne (`Line.track_layout`), même contenu que `GET /api/v1/lines/{line}/track-layout`."
+type TrackLayout {
+  "La ligne."
+  line: TrackLayoutLine!
+
+  "Étendue servie, PK en mètres (nuls sans donnée)."
+  pk: TrackLayoutExtent!
+
+  "Sources utilisées, par ordre de préférence, avec licence et mention à reproduire."
+  sources: [TrackLayoutSource!]!
+
+  "Points d'exploitation, dans l'ordre des PK."
+  operational_points: [TrackLayoutPoint!]!
+
+  "Voies, dans l'ordre des PK, avec leur rangée du schéma."
+  tracks: [TrackLayoutTrack!]!
+
+  "Aiguillages (aucun au RINF français : OpenStreetMap seulement)."
+  switches: [TrackLayoutSwitch!]!
+
+  "Signaux (aucun au RINF français : OpenStreetMap seulement)."
+  signals: [TrackLayoutSignal!]!
+
+  "Passages à niveau et traversées de voies."
+  crossings: [TrackLayoutCrossing!]!
+
+  "Heurtoirs (bouts de voie), avec la voie qu'ils ferment."
+  buffer_stops: [TrackLayoutBufferStop!]!
+
+  "Bornes kilométriques (poteaux), avec leur inscription."
+  milestones: [TrackLayoutMilestone!]!
+
+  "Bande des vitesses et des déclivités."
+  strip: TrackLayoutStrip!
+
+  "Couverture de la portion servie par source et portions sans donnée."
+  coverage: TrackLayoutCoverage!
+
+  "Nombre d'objets de chaque famille sur la portion servie, quelles que soient les familles demandées (`kinds`)."
+  counts: TrackLayoutCounts!
+}
+
+"Nombre d'objets de chaque famille d'un schéma des voies (aperçu d'une longue ligne sans ses objets)."
+type TrackLayoutCounts {
+  "Points d'exploitation."
+  operational_points: Int!
+
+  "Voies."
+  tracks: Int!
+
+  "Aiguillages."
+  switches: Int!
+
+  "Signaux."
+  signals: Int!
+
+  "Passages à niveau et traversées de voies."
+  crossings: Int!
+
+  "Heurtoirs."
+  buffer_stops: Int!
+
+  "Bornes kilométriques."
+  milestones: Int!
+}
+
+"Ligne d'un schéma des voies."
+type TrackLayoutLine {
+  "Code de ligne SNCF Réseau (6 chiffres), nul hors du réseau ferré national."
+  code: String
+
+  "Identifiant (slug) de la ligne."
+  slug: String!
+
+  "Nom de la ligne."
+  name: String!
+}
+
+"Étendue d'un schéma des voies, PK en mètres et en notation `km+mmm`."
+type TrackLayoutExtent {
+  "Début, PK en mètres."
+  start_m: Int
+
+  "Fin, PK en mètres."
+  end_m: Int
+
+  "Début, notation `km+mmm`."
+  start_label: String
+
+  "Fin, notation `km+mmm`."
+  end_label: String
+}
+
+"Source d'un schéma des voies."
+type TrackLayoutSource {
+  "Clé de provenance des objets : `rinf`, `osm`, `vff`."
+  key: String!
+
+  "Nom lisible."
+  label: String!
+
+  "Licence."
+  licence: String!
+
+  "Jeu lu (graphe et point SPARQL pour le RINF)."
+  dataset: String
+
+  "Date de lecture (AAAA-MM-JJ)."
+  fetched_at: String
+
+  "Page de la source."
+  url: String
+
+  "Mention à reproduire."
+  attribution: String
+
+  "Page de la licence."
+  licence_url: String
+}
+
+"Point d'exploitation d'un schéma des voies."
+type TrackLayoutPoint {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "Nom."
+  name: String!
+
+  "`station`, `halt`, `junction`, `passing_loop`, `siding`, `border` ou `other`."
+  kind: String!
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "Identifiant unique du point d'exploitation (RINF)."
+  uopid: String
+
+  "Gare de VFF rattachée."
+  station_slug: String
+
+  "Type RINF (concept op-types : 10 gare, 40 gare de fret, 50 faisceau ou atelier, 80 bifurcation, 110 changement technique, 130 installation terminale embranchée…)."
+  rinf_type: Int
+
+  "`rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact`, `derived` ou `approximate`."
+  precision: String!
+}
+
+"Voie d'un schéma des voies."
+type TrackLayoutTrack {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "Référence courte (`V1`, `V2`, `VU` pour la voie unique, numéro de voie de service)."
+  ref: String
+
+  "Identifiant complet du RINF."
+  rinf_ref: String
+
+  "Identifiant RINF de la voie qu'une voie d'une autre source remplace (même numéro)."
+  rinf_id: String
+
+  "`running`, `siding`, `loop`, `yard`, `crossover` ou `spur`."
+  kind: String!
+
+  "Début, PK en mètres."
+  pk_from_m: Int!
+
+  "Fin, PK en mètres."
+  pk_to_m: Int!
+
+  "Rangée du schéma : 0 voie 1 ou voie unique, 1 voie 2, négatives côté voie 1, au-delà côté voie 2."
+  lane: Int!
+
+  "Point d'exploitation de la voie."
+  op_id: String
+
+  "Gare de VFF de la voie (OpenStreetMap)."
+  station_slug: String
+
+  "Longueur déclarée, en mètres."
+  length_m: Int
+
+  "Voie électrifiée (nul : non dit)."
+  electrified: Boolean
+
+  "Voie bordée d'un quai (nul : non dit)."
+  platform: Boolean
+
+  "Sens normal : `up` (PK croissants), `down`, `both`."
+  direction: String
+
+  "Vitesse maximale déclarée, en km/h."
+  max_speed_kmh: Int
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Aiguillage d'un schéma des voies."
+type TrackLayoutSwitch {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "Référence (numéro, libellé)."
+  ref: String
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "`simple`, `single_slip`, `double_slip`, `three_way` ou `diamond` ; nul quand la source ne dit pas le type d'appareil."
+  kind: String
+
+  "Voie d'où part l'aiguillage (identifiant de `tracks`)."
+  from_track: String
+
+  "Voie où mène l'aiguillage."
+  to_track: String
+
+  "`up`, `down` ou nul."
+  facing: String
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Signal d'un schéma des voies."
+type TrackLayoutSignal {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "Référence (numéro, libellé)."
+  ref: String
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "Sorte."
+  kind: String!
+
+  "Forme du signal (OpenStreetMap : `light`, `semaphore`…)."
+  form: String
+
+  "Voie du signal (identifiant de `tracks`)."
+  track: String
+
+  "Sens : `up` (PK croissants), `down` ou nul."
+  direction: String
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Passage à niveau ou traversée de voies d'un schéma des voies."
+type TrackLayoutCrossing {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "`level_crossing` ou `railway_crossing`."
+  kind: String!
+
+  "Référence (numéro, libellé)."
+  ref: String
+
+  "Passage à niveau routier (`road`) ou piéton (`pedestrian`)."
+  use: String
+
+  "Voies qui se croisent (traversée de voies), identifiants de `tracks`."
+  tracks: [String!]
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact`, `derived` ou `approximate`."
+  precision: String
+}
+
+"Heurtoir d'un schéma des voies."
+type TrackLayoutBufferStop {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "Voie fermée par le heurtoir (identifiant de `tracks`)."
+  track: String
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Borne kilométrique d'un schéma des voies."
+type TrackLayoutMilestone {
+  "Identifiant stable, préfixé par la source (`rinf:`, `osm:`, `vff:`)."
+  id: String!
+
+  "PK en mètres."
+  pk_m: Int!
+
+  "Inscription de la borne, telle qu'écrite."
+  label: String
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Bande d'un schéma des voies."
+type TrackLayoutStrip {
+  "Vitesses maximales par portion."
+  speeds: [TrackLayoutSpeed!]!
+
+  "Déclivités par portion."
+  gradients: [TrackLayoutGradient!]!
+}
+
+"Vitesse maximale d'une portion."
+type TrackLayoutSpeed {
+  "Début, PK en mètres."
+  pk_from_m: Int!
+
+  "Fin, PK en mètres."
+  pk_to_m: Int!
+
+  "Vitesse maximale, en km/h."
+  kmh: Int!
+
+  "Voies auxquelles cette vitesse s'applique (références courtes : V1, V2…), null quand la source ne le dit pas."
+  tracks: [String!]
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+}
+
+"Déclivité d'une portion, en ‰ dans le sens des PK croissants."
+type TrackLayoutGradient {
+  "Début, PK en mètres."
+  pk_from_m: Int!
+
+  "Fin, PK en mètres."
+  pk_to_m: Int!
+
+  "Déclivité en ‰, positive en rampe dans le sens des PK croissants."
+  permille: Float!
+
+  "Provenance : `rinf`, `osm` ou `vff`."
+  source: String!
+
+  "`exact` (position déclarée), `derived` (calculée par VFF) ou `approximate` (placée à peu près)."
+  precision: String!
+}
+
+"Couverture d'un schéma des voies."
+type TrackLayoutCoverage {
+  "Longueur servie, en mètres."
+  total_m: Int!
+
+  "Longueur des voies décrites par le RINF."
+  rinf_m: Int!
+
+  "Longueur des voies décrites par OpenStreetMap."
+  osm_m: Int!
+
+  "Longueur des voies décrites par VFF."
+  vff_m: Int!
+
+  "Portions sans donnée par famille."
+  missing: [TrackLayoutMissing!]!
+}
+
+"Portion sans donnée d'une famille du schéma des voies."
+type TrackLayoutMissing {
+  "Début, PK en mètres."
+  pk_from_m: Int!
+
+  "Fin, PK en mètres."
+  pk_to_m: Int!
+
+  "`tracks`, `switches`, `signals`, `speeds` ou `gradients`."
+  what: String!
+}
+
 "Régime d'exploitation d'une ligne : nombre de voies principales par portion."
 type LineTracks {
   "Résumé : nombre de voies dominant en longueur. Nul sans portion au nombre établi (ligne absente du jeu, ou seulement en voie banalisée)."
@@ -5524,6 +5996,137 @@ type RouteEnd {
 
   "Nom de la gare."
   name: String!
+}
+
+"Un bout d'une portion du livret de parcours : une gare, ou un changement de ligne en pleine voie."
+type RoutebookEnd {
+  "`station` (gare) ou `junction` (changement de ligne en pleine voie)."
+  kind: String!
+
+  "Slug de la gare (nul pour un changement de ligne en pleine voie)."
+  slug: String
+
+  "Nom de la gare (nul pour un changement de ligne en pleine voie)."
+  name: String
+}
+
+"Une ligne du parcours, appelée portion : la ligne traversée entre deux bouts, dans le sens de marche."
+type RoutebookLeg {
+  "Rang de la portion dans le parcours (préfixe des identifiants de ses objets)."
+  index: Int!
+
+  "Code SNCF Réseau de la ligne, à 6 chiffres (nul hors du réseau ferré national)."
+  line_code: String
+
+  "Slug de la ligne."
+  line_slug: String!
+
+  "Nom de la ligne."
+  line_name: String!
+
+  "Début de la portion."
+  from: RoutebookEnd!
+
+  "Fin de la portion."
+  to: RoutebookEnd!
+
+  "Longueur parcourue sur la ligne, en mètres."
+  length_m: Int!
+
+  "Kilomètres parcourus depuis le départ au début de la portion."
+  route_from_km: Float!
+
+  "Kilomètres parcourus depuis le départ à la fin de la portion."
+  route_to_km: Float!
+
+  "PK de la ligne au début de la portion, en mètres (nul s'il est inconnu)."
+  pk_from_m: Int
+
+  "PK de la ligne à la fin de la portion, en mètres (nul s'il est inconnu)."
+  pk_to_m: Int
+
+  """
+  Précision des PK des deux bouts : `exact` (PK sourcé d'une gare), `derived` (PK projeté ou lu sur la
+  forme SNCF de la ligne), `approximate` (interpolé entre deux gares), nul si un PK manque.
+  """
+  pk_precision: String
+
+  "Sens de marche sur la ligne : `up` (PK croissants), `down` (décroissants), nul si les PK manquent."
+  direction: String
+
+  "Vrai si la portion a des voies ou des aiguillages détaillés."
+  has_detail: Boolean!
+}
+
+"Un changement de ligne sur le parcours."
+type RoutebookLineChange {
+  "Kilomètres parcourus depuis le départ."
+  route_km: Float!
+
+  "Slug de la ligne quittée."
+  from_line: String
+
+  "Slug de la ligne prise."
+  to_line: String
+
+  "Lieu du changement : une gare, ou la pleine voie."
+  at: RoutebookEnd!
+}
+
+"""
+Livret de parcours entre deux gares, sur le réseau d'aujourd'hui : les lignes traversées dans le sens
+de marche et le schéma des voies de chaque portion (même contenu que `GET /api/v1/routebook`). Les
+objets du schéma ont la forme de `GET /api/v1/lines/{line}/track-layout`, avec `leg`, `line_code`,
+`line_slug` et `route_km` en plus ; ils sont rendus en JSON, triés par kilomètre parcouru.
+"""
+type Routebook {
+  "Gare de départ."
+  from: RouteEnd!
+
+  "Gare d'arrivée."
+  to: RouteEnd!
+
+  "Année de l'ère dont le réseau a servi au calcul (2030 = réseau actuel)."
+  era_year: Int!
+
+  "Longueur du parcours, en mètres."
+  distance_m: Int!
+
+  "Longueur du parcours, en kilomètres (une décimale)."
+  distance_km: Float!
+
+  "Nombre d'objets du livret (points d'exploitation, voies, aiguillages, signaux, traversées)."
+  objects: Int!
+
+  "Lignes traversées, dans l'ordre."
+  legs: [RoutebookLeg!]!
+
+  "Changements de ligne, dans l'ordre."
+  line_changes: [RoutebookLineChange!]!
+
+  "Sources des objets (clé, nom, licence, lien)."
+  sources: JSON!
+
+  "Points d'exploitation (gares, haltes, bifurcations…)."
+  operational_points: JSON!
+
+  "Voies (principales, d'évitement, de service), avec leur rangée `lane` dans le schéma."
+  tracks: JSON!
+
+  "Aiguillages et traversées-jonctions."
+  switches: JSON!
+
+  "Signaux."
+  signals: JSON!
+
+  "Passages à niveau et traversées de voies."
+  crossings: JSON!
+
+  "Bande du schéma : vitesses (`speeds`) et déclivités dans le sens de marche (`gradients`)."
+  strip: JSON!
+
+  "Couverture : longueur totale, mètres de voies décrits par le RINF, OpenStreetMap et VFF, portions sans données (`missing`)."
+  coverage: JSON!
 }
 
 "Le trajet à l'une des deux époques comparées : l'itinéraire, ou la raison de son absence."

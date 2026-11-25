@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\LineStopsController;
 use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Controllers\Api\LineStructureController;
 use App\Http\Controllers\Api\LineTraceController;
+use App\Http\Controllers\Api\LineTrackLayoutController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MaterialTimelineController;
 use App\Http\Controllers\Api\MediaController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\Api\NetworkFiguresController;
 use App\Http\Controllers\Api\OnThisDayController;
 use App\Http\Controllers\Api\PreservedMaterialController;
 use App\Http\Controllers\Api\RailProjectController;
+use App\Http\Controllers\Api\RoutebookController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
@@ -179,6 +181,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/structures', [LineStructureController::class, 'index'])->name('api.lines.structures');
     // Voies (régime d'exploitation) et radio sol-train (GSM-R) de SNCF Réseau, ODbL : App\Services\Sncf\LineInfrastructure.
     Route::get('/v1/lines/{line:slug}/infrastructure', [LineInfrastructureController::class, 'index'])->name('api.lines.infrastructure');
+    // Schéma des voies (voies, aiguillages, signaux, points d'exploitation ; RINF de l'ERA, OSM, VFF) : App\Services\TrackLayout\TrackLayout.
+    Route::get('/v1/lines/{line:slug}/track-layout', [LineTrackLayoutController::class, 'show'])->name('api.lines.track-layout');
     // Schéma de ligne par PK (gares, bifurcations, PN, ouvrages, voies, courant, signalisation, vitesse) : App\Services\Lines\LineSchematic.
     Route::get('/v1/lines/{line:slug}/schematic', [LineSchematicController::class, 'show'])->name('api.lines.schematic');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
@@ -202,6 +206,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
     Route::get('/v1/route/compare', [RouteController::class, 'compare'])->name('api.route.compare');
+    // Livret de parcours : schéma des voies des lignes traversées, dans le sens de marche (App\Services\Routebook).
+    Route::get('/v1/routebook', [RoutebookController::class, 'show'])->name('api.routebook');
 
     // Événements datés et médias (lecture seule, pagination par curseur ; identifiants bornés comme ci-dessus).
     Route::get('/v1/events', [LineEventController::class, 'index'])->name('api.events.index');

@@ -64,6 +64,22 @@ class PathfindingService
      */
     public function route(string $from, string $to, ?int $year = null, array $options = []): array
     {
+        ['era' => $era, 'build' => $build, 'path' => $path, 'heritage' => $heritage, 'factor' => $factor] = $this->findPath($from, $to, $year, $options);
+
+        return $this->describe($era, $build, $path, $year, $heritage, $factor, (bool) ($options['display'] ?? false));
+    }
+
+    /**
+     * Plus court chemin brut (gares et arêtes gare à gare dans l'ordre du trajet), sans description : sert à
+     * route() et au livret de parcours (Routebook), qui relit lui-même les arêtes.
+     *
+     * @param  array{heritage?: bool, traffic?: string}  $options
+     * @return array{era: object, build: object, path: array{cost: float, stations: list<int>, edges: list<int>}, heritage: bool, factor: float}
+     *
+     * @throws RouteException
+     */
+    public function findPath(string $from, string $to, ?int $year = null, array $options = []): array
+    {
         $era = $this->resolveEra($year);
         $build = DB::table('network_graph_builds')->where('era_id', $era->id)->first();
         if (! $build) {
@@ -102,7 +118,7 @@ class PathfindingService
                 ['era_year' => (int) $era->year]);
         }
 
-        return $this->describe($era, $build, $path, $year, $heritage, $factor, (bool) ($options['display'] ?? false));
+        return ['era' => $era, 'build' => $build, 'path' => $path, 'heritage' => $heritage, 'factor' => $factor];
     }
 
     /**

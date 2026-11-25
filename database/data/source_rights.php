@@ -71,6 +71,28 @@ return [
             'domaines' => ['ign.fr', 'geopf.fr', 'cartes.gouv.fr'],
             'lu_le' => '2026-10-20',
         ],
+        'rinf' => [
+            'nom' => 'RINF, registre de l\'infrastructure (Agence de l\'Union européenne pour les chemins de fer, ERA)',
+            'statut' => 'sur',
+            'licence' => 'EUPL 1.2 (dump officiel du graphe de connaissances de l\'ERA) ; reproduction autorisée sous réserve de citer la source (mention de copyright de l\'ERA)',
+            'accord' => null,
+            'preuve' => [
+                'https://zenodo.org/records/16413403/latest',
+                'https://zenodo.org/api/records/16413403',
+                'https://www.era.europa.eu/content/disclaimer-and-copyright-notice',
+                'https://www.era.europa.eu/de/node/1665',
+                'https://graph.data.era.europa.eu/repositories/rinf-plus',
+            ],
+            'citation' => '« European Union Public License 1.2 » (Zenodo, « ERA Knowledge Graph », v11.0 du 31/10/2026, rinf-kg-20261031.nq, créateur « European Union Agency for Railways (ERA) (Data collector) ») ; '
+                .'« Reproduction is authorised, provided the source is acknowledged, save where otherwise stated. » (era.europa.eu, Disclaimer and copyright notice) ; les dumps de 2025 (v3.0.3) étaient sous CC BY 4.0.',
+            'obligations' => 'Mention « RINF data © European Union Agency for Railways » (RinfDataset::ATTRIBUTION) et lien vers la licence ; données modifiées par VFF signalées. EUPL 1.2 : '
+                .'partage à l\'identique d\'une œuvre dérivée diffusée, licences compatibles de son annexe admises (dont l\'ODbL et la CC BY-SA).',
+            'remarques' => 'Lu par vff:import-rinf au point SPARQL public (graphe 0087 de SNCF Réseau et six autres gestionnaires français), sans compte ni clé. '
+                .'L\'ERA ne publie aucune formule d\'attribution imposée ; sa page du graphe ne cite l\'EUPL que pour l\'ontologie, la licence des données est celle du dump officiel : confirmation écrite à demander par Baptiste (QUESTIONS.md). '
+                .'SNCF Réseau n\'y déclare ni aiguillage ni signal.',
+            'domaines' => ['era.europa.eu', 'data.europa.eu'],
+            'lu_le' => '2026-11-24',
+        ],
         'sncf' => [
             'nom' => 'SNCF Open Data (SNCF Réseau, Gares & Connexions, GTFS voyageurs)',
             'statut' => 'sur',
@@ -834,6 +856,31 @@ return [
             'domaines' => ['pireneas.fr'],
             'lu_le' => '2026-11-23',
         ],
+        // Bibliothèque numérique du Limousin et L'Empreinte (agent fonds-images-seuil, 23/11/2026) : vff:import-open-data-media.
+        'bnl-limousin' => [
+            'nom' => 'Bibliothèque numérique du Limousin (BFM de Limoges)',
+            'statut' => 'sur',
+            'licence' => 'Par image, lue sur la notice : « Licence ouverte » (dcterms:license) ou « Domaine public » (dcterms:rights) ; les images « Droits réservés » (fonds Boudeau, photographe mort en 1959) sont refusées',
+            'accord' => null,
+            'preuve' => ['https://bnl-bfm.limoges.fr/api/items?fulltext_search=chemin+de+fer'],
+            'citation' => 'Notice 94 : « dcterms:rights : Domaine public », « dcterms:license : Licence ouverte » ; notice 6773 : « dcterms:license : Droits réservés » (refusée).',
+            'obligations' => 'Crédit « Auteur, Bibliothèque francophone multimédia, Ville de Limoges (cote), Bibliothèque numérique du Limousin » et lien vers la notice.',
+            'remarques' => 'Lu le 23/11/2026 : API publique d\'Omeka S (/api/items), sans clé et sans robots.txt, User-Agent honnête, une requête toutes les 5 s. Les pages HTML du site renvoient un contrôle de navigateur : elles ne sont jamais lues ; le texte des conditions de réutilisation n\'a donc pas pu être lu (la licence repose sur le champ de chaque notice). Images en lien direct (/files/large et /files/medium), aucune copie.',
+            'domaines' => ['bnl-bfm.limoges.fr'],
+            'lu_le' => '2026-11-23',
+        ],
+        'lempreinte' => [
+            'nom' => 'L\'Empreinte, médiathèques de Valence Romans Agglo (documents du domaine public)',
+            'statut' => 'sur',
+            'licence' => 'Domaine public pour les documents dont la notice porte « Domaine Public » (dc:rights) ; notices sous « Licence ouverte/Open Licence »',
+            'accord' => null,
+            'preuve' => ['https://www.lempreinte.valenceromansagglo.fr/mentions-legales.htm'],
+            'citation' => '« des reproductions d\'originaux appartenant au domaine public [...] L\'impression, le partage et le téléchargement de ces ressources numériques est libre et gratuit. » ; « Les notices décrivant les documents sont publiées sous la licence « Licence ouverte/Open Licence » ».',
+            'obligations' => 'Provenance « Médiathèques Valence Romans Agglo, cote du document » (VFF écrit : établissement, L\'Empreinte, cote, avec lien vers la notice).',
+            'remarques' => 'Lu le 23/11/2026 : OAI-PMH oai2.php (ensemble theme:gares-et-chemins-de-fer, 68 notices, quatre requêtes), pas de robots.txt. Réserve : les mentions légales demandent que les pages du site ne soient pas imbriquées (i-frame) ; VFF affiche l\'image par un lien direct de la vignette, avec renvoi vers la notice, sans cadre. Les textes de l\'entrepôt sont de l\'UTF-8 encodé deux fois : réparés à la lecture.',
+            'domaines' => ['www.lempreinte.valenceromansagglo.fr'],
+            'lu_le' => '2026-11-23',
+        ],
         'panoramax' => [
             'nom' => 'Panoramax (photos de rue, instances IGN et OpenStreetMap France)',
             'statut' => 'sur',
@@ -953,6 +1000,8 @@ return [
             'numistral' => 'numistral',
             'rosalis' => 'rosalis',
             'pireneas' => 'pireneas',
+            'bnl-limousin' => 'bnl-limousin',
+            'lempreinte' => 'lempreinte',
             // Photos de rue des gares (vff:import-panoramax-media), lien direct vers l'instance d'origine.
             'panoramax' => 'panoramax',
         ],

@@ -43,7 +43,7 @@ class OpenDataNormalizerTest extends TestCase
     {
         foreach (self::datasets() as $key => $d) {
             $this->assertLessThanOrEqual(20, mb_strlen($d['provider']), "{$key} : provider trop long pour media.provider");
-            $this->assertContains($d['driver'], ['tabular', 'wfs', 'getty', 'iiif', 'oai-dc'], $key);
+            $this->assertContains($d['driver'], ['tabular', 'wfs', 'getty', 'iiif', 'oai-dc', 'omeka', 'oai-pmh'], $key);
             foreach (['id', 'title', 'image'] as $notion) {
                 $this->assertArrayHasKey($notion, $d['fields'], "{$key} : champ {$notion}");
             }
@@ -57,6 +57,8 @@ class OpenDataNormalizerTest extends TestCase
                 'getty' => '#^https://data\.getty\.edu/museum/collection/sparql$#',
                 'iiif' => '#^https://(heritage\.ecoledesponts\.fr/sitemap\.txt|numistral\.bnf\.fr/services/engine/search/sru)$#',
                 'oai-dc' => '#^https://[a-z.]+\.(fr|org)/services/engine/search/sru$#',
+                'omeka' => '#^https://bnl-bfm\.limoges\.fr/api/items$#',
+                'oai-pmh' => '#^https://www\.lempreinte\.valenceromansagglo\.fr/oai/oai2\.php$#',
             ][$d['driver']], $d['resource'], $key);
             // Jamais l'API Opendatasoft, la recherche de l'École des ponts (robots.txt) ni les fichiers de static.data.gouv.fr/resources (robots.txt).
             $this->assertStringNotContainsString('/api/explore', $d['resource'], $key);

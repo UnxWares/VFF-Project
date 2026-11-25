@@ -5,6 +5,89 @@ Les entrées sont datées, la plus récente en premier. Un champ n'est retiré q
 spécification OpenAPI, `@deprecated` dans le schéma GraphQL) et annoncé ici. Un test (`ApiContractTest`) compare l'API à un instantané
 versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un paramètre ou une valeur disparaît sans cette annonce.
 
+## 25/11/2026
+
+### Ajouts
+
+- Schéma des voies (REST `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout`, MCP `line_track_layout`) :
+  `counts`, nombre d'objets de chaque famille sur la portion servie (`operational_points`, `tracks`, `switches`, `signals`,
+  `crossings`, `buffer_stops`, `milestones`), quelles que soient les familles demandées. Un aperçu `kinds=operational_points`
+  (110 Ko au lieu de 3,9 Mo pour Paris - Marseille) dit ainsi ce qu'une longue ligne a avant d'en lire les objets par
+  portions (`from_pk_m`, `to_pk_m`) ; GraphQL : type `TrackLayoutCounts`.
+- Schéma des voies : `strip.speeds[].tracks`, voies auxquelles la vitesse s'applique (références courtes : `V1`, `V2`,
+  `V1S`…), `null` quand la source ne le dit pas. Deux sections parallèles d'une même ligne au RINF ont chacune leur vitesse
+  au même PK (Paris-Austerlitz : 90 km/h sur `V1`, `V2`, 60 km/h sur `V1S`, `V2S`) ; GraphQL `TrackLayoutSpeed.tracks`.
+
+### Corrections
+
+- Schéma des voies : une voie d'OpenStreetMap dont l'étendue en PK dépasse deux fois sa longueur plus 2 km (calage du PK
+  rompu : 496 voies de 40 lignes à l'import du 24/11/2026, dont une voie de 602 m placée du PK 1+516 au PK 523+044 de
+  Paris - Marseille) n'est plus servie.
+- Schéma des voies : une même voie décrite deux fois n'est plus servie qu'une fois. Une voie de ligne du RINF (identifiant
+  officiel) absorbe les voies d'OpenStreetMap de même numéro (`1bis` et `V1BIS`, `U` et `VU`) ou sans numéro au même endroit
+  (décalage latéral à 1,5 m près), et la voie de gare approchée du RINF de même numéro ; elle prend leur place latérale
+  (`lane`), et les aiguillages, signaux, heurtoirs et traversées qui citaient une voie absorbée citent la voie gardée. Les
+  pièces d'une même voie (voie du RINF coupée à chaque section) ont une seule `lane`. Paris - Bordeaux, PK 0 à 3 : 507
+  voies au lieu de 558. Un passage à niveau « PN 1 » de SNCF Réseau et « 1 » d'OpenStreetMap au même endroit n'en font
+  qu'un.
+
+## 24/11/2026
+
+### Ajouts
+
+- Livret de parcours entre deux gares (REST `GET /api/v1/routebook?from=&to=`, GraphQL `routebook(from:, to:)`, outil MCP
+  `routebook`) : le plus court chemin sur le réseau d'aujourd'hui (comme `GET /api/v1/route`), puis le schéma des voies de
+  chaque ligne traversée, mis bout à bout dans le sens de marche. `legs` : lignes traversées dans l'ordre, avec les PK de leurs
+  deux bouts (gare, ou changement de ligne en pleine voie), le sens (`up`, `down`) et la précision des PK ; `line_changes` ;
+  objets au format de `track-layout` avec `leg`, `line_code`, `line_slug` et `route_km` (ou `route_from_km`, `route_to_km`),
+  `route_lane` pour les voies, `travel` pour les signaux, `travel_facing` pour les aiguillages, déclivités dans le sens de
+  marche (`permille`, et `line_permille`) ; `coverage` en kilomètres parcourus (`what` = `all` pour une portion sans aucun
+  schéma). Départ et arrivée au centre de la gare (son PK sur la ligne). Erreurs de `GET /api/v1/route`. GraphQL rend les
+  objets en JSON.
+- Schéma des voies d'une ligne (REST `GET /api/v1/lines/{line}/track-layout`) : voies principales numérotées, voies de gare,
+  d'évitement et de service, liaisons, aiguillages, traversées, signaux et points d'exploitation dans l'ordre des PK, avec une
+  bande des vitesses et des déclivités et la couverture par source (`coverage`). Sources par ordre de préférence : RINF de
+  l'Agence de l'Union européenne pour les chemins de fer (`rinf`), OpenStreetMap (`osm`), données de VFF (`vff`) ; provenance
+  et précision (`exact`, `derived`, `approximate`) sur chaque objet, rangée du schéma (`lane`) calculée par le serveur.
+  Paramètres `from_pk`, `to_pk` (kilomètres, `17+500` à encoder `17%2B500`), `from_pk_m`, `to_pk_m` (mètres), `kinds`. Une
+  ligne sans donnée renvoie 200 et des listes vides. SNCF Réseau ne déclare au RINF ni aiguillage ni signal. Même contenu en
+  GraphQL (`Line.track_layout(from_pk_m, to_pk_m, kinds)`, types `TrackLayout…`, énumération `TrackLayoutKind`) et en MCP
+  (outil `line_track_layout`, avec le bloc d'attribution) ; fournisseur `rinf` ajouté à `sources_and_licences`. Chaque objet
+  a tous les champs de sa famille (nuls si la source ne les donne pas) ; une source dont une table manque est ignorée (200).
+  GraphQL et MCP servent aussi `buffer_stops` et `milestones` (types `TrackLayoutBufferStop`, `TrackLayoutMilestone`,
+  valeurs `BUFFER_STOPS`, `MILESTONES` de `TrackLayoutKind`), `form` des signaux, `use`, `tracks` et `precision` des
+  traversées, `station_slug` des voies.
+- Schéma des voies, suite : `buffer_stops` (heurtoirs : `id`, `pk_m`, `track`, `source`, `precision`) et `milestones`
+  (bornes kilométriques : `id`, `pk_m`, `label` tel qu'écrit sur la borne, `source`, `precision`), familles demandables
+  par `kinds` ; voies, aiguillages, signaux, traversées, heurtoirs et bornes d'OpenStreetMap (`osm`, ODbL, « ©
+  contributeurs OpenStreetMap ») là où le RINF n'en donne pas ; `form` (forme du signal), `use` (passage à niveau routier
+  ou piéton), `station_slug` et `max_speed_kmh` des voies OSM en plus ; `kind` d'un aiguillage vaut `null` quand OSM
+  montre trois voies qui se rejoignent sans dire le type d'appareil.
+
+### À vérifier dans votre client
+
+- Faits sans source redistribuable, suite du 23/11 (REST, GraphQL, MCP) : aucun fait, date, extrait ni lien d'une source dont
+  la réutilisation hors de VFF n'est pas permise n'est plus servi ; seul son crédit reste (`archeo_url` et `sources` de la fiche
+  d'une ligne, `GET /api/v1/sources`, `provenance` et `withheld` des tronçons). Aucun champ retiré : des valeurs deviennent
+  nulles ou des éléments de liste disparaissent.
+  - Histoire d'un événement (`GET /api/v1/lines/{line}/stories/{event}`) : `sources` ne liste plus un tel événement, `event`
+    devient la première source servie du fait (301 vers son adresse si besoin), et l'histoire répond 404 quand l'événement
+    demandé n'est pas servi (comme `GET /api/v1/events/{id}`) ou qu'aucune source du fait ne l'est (comme GraphQL
+    `LineEvent.story` et le MCP `line_stories`). `url` de `GET /api/v1/lines/{line}/stories` pointe vers l'événement servi.
+  - `GET /api/v1/lines/{line}/history` : `events` suit `GET /api/v1/events` (un tel événement n'y figure plus).
+  - Histoire de l'électrification (`GET /api/v1/lines/{line}/electrification-history`, GraphQL
+    `Line.electrification_history`, MCP `line_electrification_history`) : un événement qui ne cite qu'une telle source n'y
+    figure plus.
+  - Chronologie du réseau (`GET /api/v1/chronology`, `/chronology/{decade}`, MCP `network_chronology`) : un tel fait n'est
+    plus compté dans `hidden`.
+  - Autres noms d'une ligne (`names` de `GET /api/v1/lines/{line}`, GraphQL `sheet.line.names` et `alt_names`) : sans les
+    noms tirés d'une telle source. GraphQL `Line.alt_names`, qui échouait (la colonne est un objet de provenance), renvoie
+    désormais la liste des autres noms, comme `sheet.line.alt_names`.
+  - Écartement lu dans une telle source : `gauge_mm` et `gauge_class` sont nuls dans `GET /api/v1/lines/{line}/segments`,
+    `/geojson`, `GET /api/v1/eras/{year}/lines.geojson`, GraphQL `LineSegment`, `GET /api/v1/what-was-here` et le MCP
+    `what_was_here` ; l'écartement dominant d'une ligne (`key_figures.gauge_mm`, MCP `get_line`) ne le compte plus. Le site
+    garde ces écartements.
+
 ## 23/11/2026
 
 ### À vérifier dans votre client

@@ -305,6 +305,29 @@ que le régime d'exploitation.
 | `--cache-dir=` | Dossier du cache. |
 | `--csv=` | Rapport par ligne (km par système). |
 
+### `vff:import-rinf`
+
+Importe le RINF français (registre de l'infrastructure de l'Agence de l'Union européenne pour les chemins de fer, données
+déclarées par SNCF Réseau et six autres gestionnaires) depuis le point SPARQL public du graphe de connaissances de l'ERA
+(`https://graph.data.era.europa.eu/repositories/rinf-plus`, sans compte ni clé) : points d'exploitation
+(`rinf_operational_points`, UOPID, type, position, gare de VFF rattachée par le nom et la distance), sections de ligne et
+leurs PK (`rinf_sections`, code de ligne = `lines.code`), voies des sections et des points d'exploitation, voies de service
+et liaisons (`rinf_tracks`, sens, vitesse, profil de déclivités déclaré), quais (`rinf_platforms`). Six requêtes paginées,
+une toutes les 5 s, User-Agent du projet, budget de 80 requêtes (une trentaine pour la France) ; réponses gardées dans
+`storage/app/data/rinf/<portée>/` (dossier `.nobackup`, 84 Mo pour la France). Seules les tables `rinf_*` sont écrites, dans
+une transaction : toutes remplacées, ou seulement la ligne demandée. Source du schéma des voies
+(`GET /api/v1/lines/{line}/track-layout`). SNCF Réseau n'y déclare ni aiguillage ni signal. Licence : EUPL 1.2 (dump officiel),
+mention « RINF data © European Union Agency for Railways ».
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Mesure seulement : points, sections, km, lignes rattachées, voies, quais ; aucune écriture. |
+| `--offline` | N'utilise que le cache disque, aucune requête réseau (erreur si une réponse manque). |
+| `--refresh` | Relit le point SPARQL au lieu du cache. |
+| `--line=` | Une seule ligne nationale (code à 6 chiffres) ; seule cette ligne est remplacée. |
+| `--cache-dir=` | Dossier du cache (défaut `storage/app/data/rinf`). |
+| `--csv=` | Rapport par code de ligne (sections, km, voies, points, gares). |
+
 ### `vff:import-station-timetables`
 
 Calcule la desserte d'un jour ouvrable type des gares et des lignes d'après les horaires ouverts : GTFS SNCF (TER, Intercités, TGV INOUI,
@@ -389,6 +412,30 @@ plusieurs gares.
 | `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
 | `--cache-dir=` | Dossier du cache (défaut : `storage/app/sources/sncf-quais`). |
 | `--csv=` | Rapport détaillé par gare SNCF et ligne (quais, plus long, gare de VFF, rattachement, distance, note). |
+
+### `vff:import-osm-track-detail`
+
+Voies détaillées d'OpenStreetMap (ODbL) pour le schéma des voies (`GET /api/v1/lines/{line}/track-layout`, source
+`osm`) : chaque voie des lignes en service aujourd'hui (voies principales avec leur numéro tel qu'étiqueté, évitements,
+voies de service, faisceaux, liaisons, embranchements) avec sa plage de PK, ses aiguillages (voie d'où il part, voie où il
+mène, sens où il est pris en pointe), traversées, heurtoirs, passages à niveau, signaux et bornes kilométriques. Écrit
+seulement `osm_tracks`, `osm_track_nodes` et `osm_track_imports`, ligne par ligne ; ne lit la base qu'en lecture.
+
+Préparation, une fois (extrait France de Geofabrik, 5 Go, filtré par osmium en conteneur, `docker/osmium`) :
+`bin/osm-track-detail france-latest.osm.pbf <dossier>` écrit `<dossier>/track-detail.opl.gz` (37 Mo le 24/11/2026).
+
+| Option | Effet |
+|:-|:-|
+| `--file=` | Fichier OPL écrit par `bin/osm-track-detail` (brut ou `.gz`), obligatoire. |
+| `--line=` | Code ou slug d'une ligne, répétable ; toutes les lignes en service par défaut (les lignes voisines sont lues pour les voies partagées). |
+| `--dry-run` | Calcule et affiche le tableau par ligne sans rien écrire. |
+
+Rattachement : une voie qui porte le code d'une ligne (`ref`, `ref:FR:SNCF_Reseau`, relation `route=railway`) va à
+cette ligne seule ; les autres voies vont à la ligne dont le tracé de référence passe à moins de 30 m (voies principales
+parallèles seulement, lignes à moins de 8 m de la plus proche comprises) ou, pour les voies de service, à moins de 600 m
+d'une gare de la ligne. PK : tracé de référence de l'ère courante calé sur les PK sourcés (gares, passages à niveau de
+SNCF Réseau, PK portés par OSM, `TrackChainage`) ; une suite d'ancres d'une autre numérotation (aiguillages d'un faisceau numérotés depuis leur propre origine, gare d'une autre ligne) est écartée quand le PK de part et d'autre s'accorde, un changement de numérotation n'est jamais interpolé (PK nul au milieu de l'intervalle), chaque voie est placée d'un seul tenant sur la portion du tracé qui garde son PK continu (tracé qui revient sur lui-même, hélice de Tende) et coupée là où le PK saute encore ; un nœud qui porte le PK de sa ligne le garde (`exact`). Toute la France :
+environ 90 s et 1,7 Go de mémoire, à lancer par `agents-commun/lourd.sh`.
 
 ### `vff:build-line-references`
 

@@ -4,6 +4,7 @@ namespace App\GraphQL\Resolvers;
 
 use App\Models\LineSegment;
 use App\Services\TraceExport\LineTraceExport;
+use App\Support\RedistributableDates;
 use Illuminate\Support\Facades\DB;
 
 class LineSegmentResolver
@@ -29,5 +30,17 @@ class LineSegmentResolver
         );
 
         return $row?->gj;
+    }
+
+    /** Écartement en millimètres ; nul quand il est lu dans une source non commerciale (RedistributableDates::servesGauge). */
+    public function gaugeMm(LineSegment $segment): ?int
+    {
+        return app(RedistributableDates::class)->servesGauge($segment->gauge_source) ? $segment->gauge_mm : null;
+    }
+
+    /** Classe d'écartement ; nulle comme gaugeMm(). */
+    public function gaugeClass(LineSegment $segment): ?string
+    {
+        return app(RedistributableDates::class)->servesGauge($segment->gauge_source) ? $segment->gauge_class : null;
     }
 }

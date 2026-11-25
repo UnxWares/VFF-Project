@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-23T20:46:41Z</responseDate>
+  <request verb="ListRecords" metadataPrefix="oai_dc" set="theme:gares-et-chemins-de-fer">http://www.lempreinte.valenceromansagglo.fr/oai/oai2.php</request>
+  <ListRecords>
+    <record>
+      <header>
+        <identifier>B263626101_CP1547</identifier>
+        <datestamp>-0001-11-30T00:00:00Z</datestamp>
+        <setSpec/>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>http://www.lempreinte.valenceromansagglo.fr/valence-la-gare,B263626101_CP1547.htm</dc:identifier>
+          <dc:title>Valence - La Gare</dc:title>
+          <dc:date>1906</dc:date>
+          <dc:subject/>
+          <dc:subject>Chemin de fer</dc:subject>
+          <dc:subject>Gare</dc:subject>
+          <dc:subject>Train</dc:subject>
+          <dc:format>14x19 cm ; Noir et blanc</dc:format>
+          <dc:type>Image</dc:type>
+          <dc:source>MÃ©diathÃ¨que Publique et Universitaire de Valence</dc:source>
+          <dc:rights>Domaine Public</dc:rights>
+          <dc:description>CA 1906</dc:description>
+          <dc:coverage>Valence </dc:coverage>
+          <dc:publisher/>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+  </ListRecords>
+</OAI-PMH>

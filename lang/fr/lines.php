@@ -579,6 +579,7 @@ return [
         'heritage' => 'Train touristique',
         'tech' => 'Technique',
         'schematic' => 'Schéma',
+        'track-layout' => 'Voies',
         'profile' => 'Profil en long',
         'speeds' => 'Vitesses',
         'electrification' => 'Électrification',

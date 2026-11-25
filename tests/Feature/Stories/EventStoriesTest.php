@@ -541,6 +541,35 @@ class EventStoriesTest extends TestCase
     }
 
     /**
+     * L'histoire REST d'un événement ne sert jamais un fait d'une source non commerciale : ni comme événement, ni parmi
+     * les sources, ni par son identifiant ; tous les champs du contrat restent.
+     */
+    public function test_the_rest_story_never_serves_a_non_commercial_source(): void
+    {
+        $same = $this->event('opening', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez',
+            'source' => 'archeoferroviaire', 'confidence' => 'high', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article1']);
+        $alone = $this->event('closure', '1845-06-01', ['source' => 'manual', 'source_url' => 'http://archeoferroviaire.free.fr/v31/spip.php?article2']);
+        $this->assertNotNull(app(EventStories::class)->story($this->line, $alone), 'la fermeture a une histoire sur le site');
+
+        $show = $this->getJson('/api/v1/lines/rfn-340000/stories/'.$this->opening->id)->assertOk()
+            ->assertJsonStructure(['line', 'event', 'sources', 'window', 'images_total', 'images', 'documents', 'stations', 'rules', 'attribution', 'url']);
+        $this->assertSame($this->opening->id, $show->json('event.id'));
+        $this->assertSame([$this->opening->id], array_column($show->json('sources'), 'id'));
+        $this->assertSame('vernon-giverny', $show->json('stations.0.slug'));
+        $this->assertStringNotContainsString('archeoferroviaire', (string) $show->getContent());
+
+        // Par l'identifiant d'un événement écarté : ni histoire, ni redirection qui le confirmerait.
+        $this->getJson('/api/v1/lines/rfn-340000/stories/'.$same->id)->assertNotFound();
+        $this->getJson('/api/v1/lines/rfn-340000/stories/'.$alone->id)->assertNotFound()
+            ->assertJsonPath('message', 'No event '.$alone->id.' on line rfn-340000.');
+
+        $list = $this->getJson('/api/v1/lines/rfn-340000/stories')->assertOk();
+        $this->assertSame(1, $list->json('total'));
+        $this->assertStringEndsWith('/stories/'.$this->opening->id, $list->json('stories.0.url'));
+        $this->assertStringNotContainsString('archeoferroviaire', (string) $list->getContent());
+    }
+
+    /**
      * @param  array<string, mixed>  $arguments
      * @return array{0: array<string, mixed>, 1: bool}
      */

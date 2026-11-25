@@ -176,8 +176,10 @@ class PageQueryBudgetTest extends TestCase
         // Paris - Marseille), pour 75 Ko de moins au premier affichage ; une de plus pour le matériel (LineMaterialFacts).
         // 33 avec les corrections sourcées de la signalisation, repliées sous la frise (LineSignallingHistory::correctionsForSheet :
         // une lecture indexée par ligne). 34 avec le motif d'un profil absent (LineProfiles::unavailable : une requête,
-        // la ligne de test n'a pas de profil).
-        $this->assertLessThanOrEqual(34, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // la ligne de test n'a pas de profil). 35 avec l'état de la datation de la signalisation (SignallingDating::forLines,
+        // commit 494ce13d : une lecture par la clé primaire de la ligne, deux EXISTS indexés) qui permet à la fiche de dire
+        // qu'aucun document libre ne date la mise en service du cantonnement.
+        $this->assertLessThanOrEqual(35, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_line_sheet_sends_first_only_what_the_map_reads_of_each_station(): void

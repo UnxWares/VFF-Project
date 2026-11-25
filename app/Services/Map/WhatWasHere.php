@@ -17,6 +17,7 @@ use App\Services\Signalling\SignallingHistoryState;
 use App\Services\StationTimeline;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\EventText;
+use App\Support\RedistributableDates;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -96,9 +97,11 @@ class WhatWasHere
         $gridLng = (floor($lng * 1000) + 0.5) / 1000;
         $open = 'COALESCE('.$this->traces->sqlRedistributable('ls.source').', FALSE)';
         $withheldRadius = max($radius, self::WITHHELD_MIN_RADIUS_M);
+        // Écartement lu dans une source non commerciale : nul (RedistributableDates::gaugeKept).
+        $gaugeKept = app(RedistributableDates::class)->gaugeKept('ls');
         $segments = DB::select(
             "SELECT DISTINCT ON (ls.line_id) ls.line_id, ls.status, ls.traffic_type, ls.is_heritage, ls.heritage_kind, ls.electrified, ls.voltage_v,
-                    ls.max_speed_kmh, ls.gauge_mm, ls.source, ls.pk_start_m, ls.pk_end_m,
+                    ls.max_speed_kmh, CASE WHEN {$gaugeKept} THEN ls.gauge_mm END AS gauge_mm, ls.source, ls.pk_start_m, ls.pk_end_m,
                     ST_Distance(ls.geom::geography, (CASE WHEN {$open} THEN p.g ELSE q.g END)::geography) AS d,
                     ST_LineLocatePoint(ls.geom, CASE WHEN {$open} THEN p.g ELSE q.g END) AS f
              FROM line_segments ls, (SELECT {$point} AS g) p, (SELECT {$point} AS g) q

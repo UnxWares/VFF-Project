@@ -35,7 +35,7 @@ class DryRunCommandsTest extends TestCase
         'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-commons-stations', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:build-commune-rail', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:commons-allowlist', 'vff:compute-company-figures', 'vff:compute-coverage-figures', 'vff:compute-department-figures', 'vff:compute-line-profiles', 'vff:compute-network-chronology', 'vff:compute-network-figures',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-bibliography', 'vff:import-commons-candidates', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
-        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-line-speeds', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-open-data-media', 'vff:import-panoramax-media', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-attendance', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
+        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-line-speeds', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-open-data-media', 'vff:import-osm-track-detail', 'vff:import-panoramax-media', 'vff:import-rinf', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-attendance', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
         'vff:import-station-accessibility', 'vff:import-station-closures', 'vff:import-station-heritage', 'vff:import-station-names', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-structure-heritage', 'vff:import-structures', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology', 'vff:import-wikipedia-grades',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:neutralize-line-slugs', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:probe-aerial-coverage', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:refresh-stale-figures', 'vff:remind-expiring-api-tokens',
@@ -80,6 +80,9 @@ class DryRunCommandsTest extends TestCase
         'vff:import-sncf-track-regime' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
         'vff:audit-stations' => ['--no-bdtopo' => true],
         'vff:import-station-wikidata-dates' => ['--from-cache' => true],
+        // Extraits réels du dépôt : aucune requête réseau (RINF hors ligne, fichier OPL d'OpenStreetMap).
+        'vff:import-rinf' => ['--offline' => true, '--line' => '579000', '--cache-dir' => 'tests/Fixtures/rinf'],
+        'vff:import-osm-track-detail' => ['--file' => 'tests/Fixtures/Osm/track-detail-luzenac.opl'],
     ];
 
     /** Tables des sources, des comptes, du matériel et des accidents : hors du moteur, mais qu'un --dry-run ne doit pas toucher non plus. */
@@ -87,6 +90,7 @@ class DryRunCommandsTest extends TestCase
         'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'line_signalling_history_map', 'accidents', 'accident_lines', 'accident_sources', 'accident_references', 'accident_context_entries', 'accident_images',
         'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos', 'line_archive_documents', 'line_archive_records', 'bibliography_entries', 'bibliography_links',
         'station_audits', 'station_date_candidates', 'segment_audits', 'station_platforms', 'line_track_portions', 'line_radio_portions', 'station_attendances', 'station_accessibility', 'station_heritage',
+        'rinf_operational_points', 'rinf_sections', 'rinf_tracks', 'rinf_platforms', 'osm_track_imports', 'osm_tracks', 'osm_track_nodes',
     ];
 
     private Era $past;

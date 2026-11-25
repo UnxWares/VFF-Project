@@ -7,6 +7,7 @@ use App\Models\Era;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\Lgv;
 use App\Support\MapTiles;
+use App\Support\RedistributableDates;
 use App\Support\SpeedClass;
 use App\Support\TrackPriority;
 use Illuminate\Support\Facades\DB;
@@ -39,13 +40,16 @@ class GeoExporter
 
         $lgv = Lgv::sql('l', 'ls');
         $open = $this->traceRights->sqlRedistributable('ls.source');
+        $gaugeKept = app(RedistributableDates::class)->gaugeKept('ls');
         $cursor = DB::cursor(<<<SQL
             SELECT
                 ls.id, ls.line_id, l.slug AS line_slug, l.name AS line_name, l.code AS line_code,
                 {$lgv} AS is_lgv,
                 l.network,
                 ls.status, ls.traffic_type, ls.max_speed_kmh, ls.electrified,
-                ls.voltage_v, ls.gauge_mm, ls.is_heritage, ls.heritage_kind, ls.operator,
+                ls.voltage_v, ls.is_heritage, ls.heritage_kind, ls.operator,
+                -- Écartement lu dans une source non commerciale : nul (RedistributableDates::gaugeKept).
+                CASE WHEN {$gaugeKept} THEN ls.gauge_mm END AS gauge_mm,
                 ls.source, ls.source_trace_id,
                 CASE WHEN {$open} THEN ST_AsGeoJSON(ls.geom, 6) END AS geometry
             FROM line_segments ls

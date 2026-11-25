@@ -65,7 +65,8 @@ class GeoController extends Controller
      *   (`tourist_train` train touristique, `velorail` vélorail) ;
      * - `electrified`, `voltage_v` (tension en volts, ex. 1500 ou 25000),
      *   `max_speed_kmh` (vitesse maximale en km/h), `gauge_mm` (écartement en
-     *   millimètres : 1435 voie normale, 1000 voie métrique, 600 voie étroite) ;
+     *   millimètres : 1435 voie normale, 1000 voie métrique, 600 voie étroite ; nul quand seule une source
+     *   à usage non commercial le donne) ;
      * - `source` : provenance du tracé (`sncf` SNCF Réseau Open Data, ODbL ;
      *   `bdtopo` IGN BD TOPO, Licence Ouverte 2.0 ; `osm` OpenStreetMap, ODbL ;
      *   `ohm` OpenHistoricalMap, CC0 ; d'autres fournisseurs hors ODbL, à usage

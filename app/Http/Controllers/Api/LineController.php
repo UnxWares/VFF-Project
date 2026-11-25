@@ -309,7 +309,8 @@ class LineController extends Controller
      *   `museum`) pour une exploitation associative ;
      * - `electrified`, `voltage_v` (1500, 25000, 750, 3000…), `electrified_year`,
      *   `electrification_source` ; `max_speed_kmh` et `max_speed_source` ;
-     *   `gauge_mm` (1435 voie normale, 1000 voie métrique, 600…), `gauge_class` ;
+     *   `gauge_mm` (1435 voie normale, 1000 voie métrique, 600…), `gauge_class` (nuls quand seule une
+     *   source à usage non commercial donne l'écartement) ;
      *   `signalling`, `train_protection` ; `operator` ;
      * - `pk_start_m`, `pk_end_m`, `length_m` en mètres (`null` si inconnus) ;
      * - `dismantled_at` (`AAAA-MM-JJ`) ; `reuse` après dépose : `greenway`

@@ -26,6 +26,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LineStoryController;
+use App\Http\Controllers\LineTrackLayoutPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\PreservedMaterialController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RailProjectController;
+use App\Http\Controllers\RoutebookController;
 use App\Http\Controllers\SearchPageController;
 use App\Http\Controllers\SegmentAuditAdminController;
 use App\Http\Controllers\StationAuditAdminController;
@@ -73,6 +75,8 @@ Route::middleware('throttle:public-api')->group(function (): void {
 });
 Route::get('/lines', [LineController::class, 'index'])->name('lines.index');
 Route::get('/lines/{line:slug}', [LineController::class, 'show'])->name('lines.show');
+// Schéma des voies en plein écran (état actuel) : voies, aiguillages, signaux, tableau de parcours (API track-layout).
+Route::get('/lines/{line:slug}/voies', [LineTrackLayoutPageController::class, 'show'])->name('lines.tracks');
 // Histoire d'un événement de la ligne : images de l'époque et documents de Gallica (EventStories).
 Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])
     ->where('event', '[0-9]{1,18}')->name('lines.stories.show');
@@ -119,6 +123,7 @@ Route::get('/chronology', [ChronologyController::class, 'index'])->name('network
 Route::get('/on-this-day/{monthDay?}', [OnThisDayController::class, 'index'])->where('monthDay', '[0-9]{2}-[0-9]{2}')->name('network.on-this-day');
 // Autour de moi : lignes et gares autour de la position (arrondie dans le navigateur) ou d'une commune, sans carte lourde.
 Route::get('/nearby', [NearbyController::class, 'index'])->name('nearby');
+Route::get('/routebook', [RoutebookController::class, 'show'])->middleware('throttle:public-api')->name('routebook');
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 // Frise du matériel roulant : avant la fiche, dont l'adresse accepterait « timeline » comme identifiant.
 Route::get('/materials/timeline', [MaterialTimelineController::class, 'index'])->name('materials.timeline');

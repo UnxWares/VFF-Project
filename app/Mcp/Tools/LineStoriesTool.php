@@ -71,7 +71,7 @@ class LineStoriesTool extends VffTool
                     'source_event_ids' => $served['event_ids'] === [] ? [$id] : $served['event_ids'],
                     'images' => $served['images'],
                     'documents' => $served['documents'],
-                    'vff_url' => self::url('/lines/'.$line->slug.'/stories/'.$id),
+                    'vff_url' => self::url('/lines/'.$line->slug.'/stories/'.$served['event']->id),
                 ];
             }
 
