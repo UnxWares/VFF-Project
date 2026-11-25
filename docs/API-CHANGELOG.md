@@ -12,7 +12,8 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 - Signalisation d'une ligne (REST `GET /api/v1/lines/{line}/signalling`, GraphQL `LineSignallingRange.rg_troncon`) :
   `rg_troncon`, rang du tronçon de SNCF Réseau de la tranche (deux tronçons d'une ligne peuvent avoir des PK communs, deux
   endroits différents : 330000, 975900) ; null pour une tranche d'une autre source ou écrite avant la réimportation. Le KVB
-  d'un tronçon n'est plus posé sur les tranches de l'autre tronçon aux PK communs (890000, tronçon 2 de 60+215 à 75+559).
+  d'un tronçon n'est plus posé sur les tranches de l'autre tronçon aux PK communs (règle seule : aucune tranche ne change
+  avec les jeux de SNCF Réseau du 19/11/2026).
 - Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL, MCP `line_rinf_parameters`) :
   `electrification`, `radio` et `train_protection` suivent la règle de `max_speed` : comparés tronçon par tronçon
   (`rg_troncon` rempli) quand les tronçons du RINF correspondent à ceux de SNCF Réseau, sur toute la ligne sinon
