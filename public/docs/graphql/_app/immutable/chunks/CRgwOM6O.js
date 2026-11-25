@@ -4887,6 +4887,8 @@ type LineRinfPlatformSummary {
   vff_only: Int!
   "Écart de longueur toléré, en mètres."
   tolerance_m: Int!
+  "Rapprochés, longueur absente d'une des deux sources (aucun accord prouvé)."
+  length_unknown: Int!
 }
 
 
@@ -4902,7 +4904,7 @@ type LineRinfPlatform {
   ref: String!
   "Voie bordée, référence courte du RINF."
   track: String
-  "\`agree\`, \`disagree\`, \`rinf_only\` ou \`vff_only\`."
+  "\`agree\`, \`disagree\`, \`length_unknown\` (rapprochés, longueur absente d'un côté), \`rinf_only\` ou \`vff_only\`."
   status: String!
   "Quai au RINF."
   rinf: LineRinfPlatformRinf
