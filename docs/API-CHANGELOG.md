@@ -9,6 +9,9 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfPlatformSummary`, MCP
+  `line_rinf_parameters`) : statut de quai `length_unknown` (même gare, même nom de quai, longueur absente d'une des deux
+  sources) et son nombre `platforms.summary.length_unknown` ; GraphQL `LineRinfPlatformSummary.length_unknown`.
 - Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook`, MCP `routebook`) : `buffer_stops` (heurtoirs, avec
   la voie qu'ils ferment) et `milestones` (bornes kilométriques, avec leur inscription), comme le schéma des voies, placés
   au kilomètre parcouru (`route_km`) ; GraphQL `Routebook.buffer_stops` et `Routebook.milestones`, MCP `kinds` :
@@ -65,6 +68,10 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
   (`tracks[].op_id`, `crossings[].tracks`, `buffer_stops[].track`) ; la voie d'une gare de changement de ligne cite le point
   d'exploitation gardé (celui de la portion précédente). Jusqu'ici, `op_id` et les voies d'une traversée gardaient
   l'identifiant de leur ligne et ne désignaient aucun objet du livret (842 et 96 sur Lille-Flandres - Marseille-St-Charles).
+- Paramètres RINF d'une ligne : un quai rapproché dont une des deux longueurs manque n'est plus compté d'accord (`agree`)
+  mais `length_unknown` (77 quais sur la France le 25/11/2026). Les voies « Voie 1 BIS LAON », « Voie 2 QUATER », « Voie 2
+  ter », « Voie 1 SP de … », « Voie 1 RV de … », « Voie unique VMA de … » ne sont plus prises pour la voie 1, 2 ou unique de
+  leur section (une vingtaine de voies : le Crocodile de « Voie 1 BIS LAON » s'ajoutait au contrôle de vitesse de 261000).
 - Schéma des voies : une voie bis ou ter écrite avec une espace (« 2 bis » d'OpenStreetMap) n'est plus prise pour la voie 2
   elle-même : elle n'est plus absorbée par la voie 2 du RINF qu'elle longe.
 - MCP `routebook` : le bloc d'attribution crédite SNCF Réseau et l'IGN quand la source `vff` sert des vitesses, des passages

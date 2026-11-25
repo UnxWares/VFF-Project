@@ -90,12 +90,17 @@ final class RinfParameters
 
     /**
      * Voie principale d'une section : voie 1, voie 2 ou voie unique (« Voie V1 de Paris-12 à Marseille-01 »,
-     * « Voie 1 LGV SEA », « Voie UNIQUE de … », « 1 »), à l'exclusion des voies bis et des voies numérotées autrement
-     * (« Voie 1Bis », « Voie V1H », « Voie 12 », « Voie 7V de Plibou »).
+     * « Voie 1 LGV SEA », « Voie UNIQUE de … », « 1 »), à l'exclusion des voies bis, ter ou quater, des voies numérotées
+     * autrement (« Voie 1Bis », « Voie V1H », « Voie 12 », « Voie 7V de Plibou ») et des voies qu'un code court en
+     * capitales distingue avant le lieu (« Voie 1 SP de Bréauté-Beuzeville », « Voie 1 RV de Villognon », « Voie unique
+     * VMA de … » ; « Voie 1 LGV SEA » reste la voie 1).
      */
     public static function isMainTrack(string $ref): bool
     {
-        return preg_match('/^(?:voie\s+)?(?:v?[12]|unique|vu)(?![\p{L}\p{N}])/iu', trim($ref)) === 1;
+        $ref = trim($ref);
+
+        return preg_match('/^(?:voie\s+)?(?:v?[12]|unique|vu)(?![\p{L}\p{N}])/iu', $ref) === 1
+            && preg_match('/^(?i:voie\s+)?(?i:v?[12]|unique|vu)\s+(?:(?i:bis|ter|quater)(?![\p{L}\p{N}])|[A-Z]{1,3}\s+(?:de|d[\'’])(?![\p{L}\p{N}]))/u', $ref) !== 1;
     }
 
     /**

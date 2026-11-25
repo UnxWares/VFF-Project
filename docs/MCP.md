@@ -1068,7 +1068,8 @@ d'exploitation, nom du quai, voie, `status`, `rinf` avec `length_m` et `height_m
 vitesse de SNCF Réseau sur la section ; seuls KVB (KVBP compris), TVM 300, TVM 430, ETCS L1 et L2 sont confrontés (le RINF
 déclare aussi le KVB sur les lignes à grande vitesse, le jeu de SNCF Réseau non) ; une portion d'une ligne décrite par SNCF
 Réseau absente de son jeu des lignes électrifiées vaut `none` ; voies principales (1, 2, unique) seules quand la section en
-a ; quais d'accord à 5 m près. Raccourcissement : `sections`, `platforms.items`, `parameters.N.portions` (`truncated`).
+a (« Voie 1 BIS », « Voie 2 ter », « Voie 1 SP de … » n'en sont pas) ; quais d'accord à 5 m près, `length_unknown` quand une
+des deux sources ne donne pas la longueur. Raccourcissement : `sections`, `platforms.items`, `parameters.N.portions` (`truncated`).
 Mention à reproduire : « RINF data © European Union Agency for Railways » (EUPL 1.2), SNCF Réseau (ODbL).
 
 ```json

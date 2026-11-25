@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\DB;
  * GSM-R si une voie l'a ; électrification d'accord seulement si toutes les voies disent la même. Statuts : `agree`,
  * `disagree`, `rinf_only` (le RINF seul dit quelque chose), `vff_only` (l'autre source seule). Portions voisines de
  * mêmes valeurs et même statut réunies. Quais : rapprochés gare par gare (même gare de VFF, même nom de quai),
- * longueurs d'accord à PLATFORM_TOLERANCE_M m près. Tables absentes ou colonnes des paramètres pas encore créées :
+ * longueurs d'accord à PLATFORM_TOLERANCE_M m près, `length_unknown` quand une des deux longueurs manque. Tables absentes ou colonnes des paramètres pas encore créées :
  * réponse vide, jamais d'erreur.
  */
 final class RinfParameterComparison
@@ -52,6 +52,9 @@ final class RinfParameterComparison
 
     /** Écart de longueur de quai toléré (m) pour dire deux longueurs d'accord. */
     public const PLATFORM_TOLERANCE_M = 5;
+
+    /** Statut d'un quai rapproché (même gare, même nom) dont une des deux sources ne donne pas la longueur. */
+    public const PLATFORM_LENGTH_UNKNOWN = 'length_unknown';
 
     /** Bords d'une section écartés (m) pour y chercher la plus forte vitesse de SNCF Réseau. */
     public const SPEED_EDGE_M = 20;
@@ -551,9 +554,12 @@ final class RinfParameterComparison
             if ($match !== null) {
                 $used[$match->id] = true;
             }
+            // Une longueur absente d'un côté ne prouve aucun accord (317 quais du RINF sans longueur, 77 rapprochés d'un
+            // quai de SNCF Réseau, comptés d'accord jusqu'au 25/11/2026) : statut à part.
             $status = match (true) {
                 $match === null => 'rinf_only',
-                $r->length_m === null || $match->length_m === null || abs((int) $r->length_m - (int) $match->length_m) <= self::PLATFORM_TOLERANCE_M => 'agree',
+                $r->length_m === null || $match->length_m === null => self::PLATFORM_LENGTH_UNKNOWN,
+                abs((int) $r->length_m - (int) $match->length_m) <= self::PLATFORM_TOLERANCE_M => 'agree',
                 default => 'disagree',
             };
             $items[] = [
@@ -594,7 +600,7 @@ final class RinfParameterComparison
 
     /**
      * @param  list<array<string, mixed>>  $items
-     * @return array{rinf: int, vff: int, agree: int, disagree: int, rinf_only: int, vff_only: int, tolerance_m: int}
+     * @return array{rinf: int, vff: int, agree: int, disagree: int, rinf_only: int, vff_only: int, tolerance_m: int, length_unknown: int}
      */
     private static function platformSummary(array $items): array
     {
@@ -602,6 +608,6 @@ final class RinfParameterComparison
 
         return ['rinf' => count(array_filter($items, fn (array $i): bool => $i['rinf'] !== null)), 'vff' => count(array_filter($items, fn (array $i): bool => $i['vff'] !== null)),
             'agree' => $count('agree'), 'disagree' => $count('disagree'), 'rinf_only' => $count('rinf_only'), 'vff_only' => $count('vff_only'),
-            'tolerance_m' => self::PLATFORM_TOLERANCE_M];
+            'tolerance_m' => self::PLATFORM_TOLERANCE_M, self::PLATFORM_LENGTH_UNKNOWN => $count(self::PLATFORM_LENGTH_UNKNOWN)];
     }
 }

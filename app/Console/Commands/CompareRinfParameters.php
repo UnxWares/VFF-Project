@@ -53,7 +53,7 @@ class CompareRinfParameters extends Command
         }
 
         $total = [];
-        $platforms = ['rinf' => 0, 'vff' => 0, 'agree' => 0, 'disagree' => 0, 'rinf_only' => 0, 'vff_only' => 0];
+        $platforms = ['rinf' => 0, 'vff' => 0, 'agree' => 0, 'disagree' => 0, 'rinf_only' => 0, 'vff_only' => 0, RinfParameterComparison::PLATFORM_LENGTH_UNKNOWN => 0];
         $worst = [];
         /** @var array<string, array<string, int>> $systems système => '' (aucun des deux), r, v, rv => mètres */
         $systems = [];
@@ -123,8 +123,9 @@ class CompareRinfParameters extends Command
                 ($total[$key]['agree_m'] ?? 0) + ($total[$key]['disagree_m'] ?? 0) > 0
                     ? number_format(100 * ($total[$key]['agree_m'] ?? 0) / (($total[$key]['agree_m'] ?? 0) + ($total[$key]['disagree_m'] ?? 0)), 1, ',', ' ').' %' : '-',
             ], RinfParameterComparison::PARAMETERS));
-        $this->line(sprintf('Quais : RINF %d, SNCF Réseau %d ; d\'accord (longueur à %d m près) %d, en désaccord %d, RINF seul %d, SNCF seul %d.',
-            $platforms['rinf'], $platforms['vff'], RinfParameterComparison::PLATFORM_TOLERANCE_M, $platforms['agree'], $platforms['disagree'], $platforms['rinf_only'], $platforms['vff_only']));
+        $this->line(sprintf('Quais : RINF %d, SNCF Réseau %d ; d\'accord (longueur à %d m près) %d, en désaccord %d, longueur absente d\'un côté %d, RINF seul %d, SNCF seul %d.',
+            $platforms['rinf'], $platforms['vff'], RinfParameterComparison::PLATFORM_TOLERANCE_M, $platforms['agree'], $platforms['disagree'],
+            $platforms[RinfParameterComparison::PLATFORM_LENGTH_UNKNOWN], $platforms['rinf_only'], $platforms['vff_only']));
         $this->line('Contrôle de vitesse, système par système, là où les deux sources disent quelque chose (km) :');
         $this->table(['système', 'les deux', 'RINF seul', 'SNCF seule', 'aucun des deux'], array_map(fn (string $system): array => [$system,
             $km($systems[$system]['rv'] ?? 0), $km($systems[$system]['r'] ?? 0), $km($systems[$system]['v'] ?? 0), $km($systems[$system][''] ?? 0)],

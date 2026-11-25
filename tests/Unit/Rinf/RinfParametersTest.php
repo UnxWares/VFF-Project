@@ -78,6 +78,16 @@ class RinfParametersTest extends TestCase
         foreach (['Voie 1Bis de St-Pierre-des-Corps', 'Voie V1H de Varennes-sur-Seine à La Brosse-Montceaux', 'Voie V1B1 de Noisy-le-Sec', 'Voie 12', 'Voie 7V de Plibou', 'Voie E de Sireuil', 'Tiroir F de Nanterre-La folie'] as $ref) {
             $this->assertFalse(RinfParameters::isMainTrack($ref), $ref);
         }
+        // Real refs of section tracks (RINF of 24/11/2026): a bis, ter or quater track, or a short code before the place
+        // (« SP », « RV », « T », « VMA »), is another track than the main track of its number (« Voie 1 BIS LAON » added
+        // the Crocodile to 261000 from PK 4+934 to 5+143) ; « Voie 2 la rochelle », « Voie 1 Racc de Melun » stay main.
+        foreach (['Voie 2 QUATER de Paris-Gare-de-Lyon', 'Voie 1 BIS LAON de Longueau', 'Voie 2 ter de Maurois', 'Voie 1 SP de Bréauté-Beuzeville',
+            'Voie 1 RV de  Villognon', 'Voie 2 T de Le Mans', 'Voie unique VMA de Émerainville-Pontault-Combault'] as $ref) {
+            $this->assertFalse(RinfParameters::isMainTrack($ref), $ref);
+        }
+        foreach (['Voie 2 la rochelle', 'Voie 1 Racc de Melun', 'Voie 2 Raccordement de St-Florentin-Vergigny', 'Voie unique banalisée', "Voie unique d'Argentan à Granville", 'Voie 1 Courtine de Avignon'] as $ref) {
+            $this->assertTrue(RinfParameters::isMainTrack($ref), $ref);
+        }
 
         // KVBP compte comme KVB ; Crocodile, DAAT, KCVP ne sont pas confrontés (SNCF Réseau ne les publie pas).
         $this->assertSame(['KVB'], RinfParameters::comparedFromRinf(['KVBP', 'Crocodile', 'DAAT', 'KCVP'], 'none'));

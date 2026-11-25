@@ -51,7 +51,8 @@ class LineRinfParametersController extends Controller
      * **Sections** (`sections[]`) : sections du RINF de la ligne (URI, ligne nationale, PK, points d'exploitation
      * de début et de fin, voies). **Quais** (`platforms`) : bords de quai du RINF (longueur, hauteur) des points
      * d'exploitation de la ligne, rapprochés des quais de SNCF Réseau gare par gare (même gare, même nom de quai) ;
-     * `agree` quand les longueurs diffèrent de `tolerance_m` mètres au plus ; `pk_m` est le PK du quai chez SNCF
+     * `agree` quand les longueurs diffèrent de `tolerance_m` mètres au plus, `length_unknown` quand une des deux
+     * sources ne donne pas la longueur (`summary.length_unknown`) ; `pk_m` est le PK du quai chez SNCF
      * Réseau, sinon celui du point d'exploitation.
      *
      * **Licence** : RINF, © Agence de l'Union européenne pour les chemins de fer, dump officiel sous EUPL 1.2 ;
@@ -68,7 +69,7 @@ class LineRinfParametersController extends Controller
      *             rinf: ?array{key: string, values: array<string>, voltage_v: ?int, frequency_hz: ?float, speed_kmh: ?int, tracks: array<string>, source_label: ?string},
      *             vff: ?array{key: string, values: array<string>, voltage_v: ?int, frequency_hz: ?float, speed_kmh: ?int, tracks: array<string>, source_label: ?string}}>}>,
      *     platforms: array{
-     *         summary: array{rinf: int, vff: int, agree: int, disagree: int, rinf_only: int, vff_only: int, tolerance_m: int},
+     *         summary: array{rinf: int, vff: int, agree: int, disagree: int, rinf_only: int, vff_only: int, tolerance_m: int, length_unknown: int},
      *         items: array<array{pk_m: ?int, station: ?array{slug: string, name: string}, operational_point: ?array{uopid: string, name: string}, ref: string, track: ?string, status: string,
      *             rinf: ?array{length_m: ?int, height_mm: ?int}, vff: ?array{label: string, length_m: ?int, pk_start_m: ?int, pk_end_m: ?int}}>
      *     },
@@ -101,7 +102,7 @@ class LineRinfParametersController extends Controller
             ]],
         ]],
         'platforms' => [
-            'summary' => ['rinf' => 8, 'vff' => 2, 'agree' => 1, 'disagree' => 1, 'rinf_only' => 6, 'vff_only' => 0, 'tolerance_m' => 5],
+            'summary' => ['rinf' => 8, 'vff' => 2, 'agree' => 1, 'disagree' => 1, 'rinf_only' => 6, 'vff_only' => 0, 'tolerance_m' => 5, 'length_unknown' => 0],
             'items' => [[
                 'pk_m' => 17240, 'station' => ['slug' => 'cognac', 'name' => 'Cognac'], 'operational_point' => ['uopid' => 'FR0000003513', 'name' => 'Cognac'],
                 'ref' => 'Quai VE', 'track' => 'E', 'status' => 'disagree', 'rinf' => ['length_m' => 145, 'height_mm' => 300],

@@ -152,6 +152,28 @@ class RinfParametersComparisonTest extends TestCase
         $this->assertSame(['uopid' => 'FR0000003513', 'name' => 'Cognac'], collect((array) $json['sections'])->firstWhere('pk_start_m', 17277)['from']);
     }
 
+    /**
+     * A platform of the same station and name whose length one source does not give is not counted in agreement: no
+     * comparison was made (25/11/2026: 77 of the 317 RINF platforms without a length were matched and counted agreeing).
+     */
+    public function test_a_platform_without_length_on_one_side_has_its_own_status(): void
+    {
+        $this->import();
+        $this->seedSncf();
+        DB::table('station_platforms')->insert(['station_id' => Station::where('slug', 'cognac')->value('id'), 'sncf_station_name' => 'Cognac',
+            'code_ligne' => '579000', 'rg_troncon' => 1, 'label' => 'Quai VD', 'length_m' => null, 'pk_start_m' => 17260, 'pk_end_m' => null,
+            'source' => 'sncf', 'fetched_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+
+        $json = $this->getJson('/api/v1/lines/rfn-579000/rinf-parameters')->assertOk()->json('platforms');
+        $vd = collect((array) $json['items'])->first(fn (array $q): bool => $q['ref'] === 'Quai VD' && ($q['station']['slug'] ?? null) === 'cognac');
+        $this->assertSame([RinfParameterComparison::PLATFORM_LENGTH_UNKNOWN, 145, null], [$vd['status'], $vd['rinf']['length_m'], $vd['vff']['length_m']]);
+        $this->assertSame([1, 1], [$json['summary']['agree'], $json['summary']['length_unknown']]);
+
+        $gql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-579000") { rinf_parameters { platforms { summary { agree length_unknown } } } } }'])
+            ->assertOk()->assertJsonMissingPath('errors')->json('data.line.rinf_parameters.platforms.summary');
+        $this->assertSame(['agree' => 1, 'length_unknown' => 1], $gql);
+    }
+
     public function test_graphql_and_mcp_serve_the_same_content(): void
     {
         $this->import();
@@ -162,7 +184,7 @@ class RinfParametersComparisonTest extends TestCase
             sections { uri national_line rg_troncon pk_start_m pk_end_m pk_start_label pk_end_label length_m from { uopid name } to { uopid name } tracks }
             parameters { key compared_with summary { rinf_m vff_m agree_m disagree_m rinf_only_m vff_only_m }
                 portions { rg_troncon pk_start_m pk_end_m pk_start_label pk_end_label length_m status rinf '.$value.' vff '.$value.' } }
-            platforms { summary { rinf vff agree disagree rinf_only vff_only tolerance_m }
+            platforms { summary { rinf vff agree disagree rinf_only vff_only tolerance_m length_unknown }
                 items { pk_m station { slug name } operational_point { uopid name } ref track status rinf { length_m height_mm } vff { label length_m pk_start_m pk_end_m } } }
             sources { key label licence dataset fetched_at url attribution licence_url } } } }'])->assertOk()->assertJsonMissingPath('errors')->json('data.line.rinf_parameters');
         foreach (['sections', 'parameters', 'platforms', 'sources'] as $key) {
