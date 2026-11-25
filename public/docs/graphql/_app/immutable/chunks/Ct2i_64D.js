@@ -886,6 +886,14 @@ type Line {
     kinds: [TrackLayoutKind!]
   ): TrackLayout!
   """
+  Paramètres que le RINF de l'Agence de l'Union européenne pour les chemins de fer déclare pour les voies de la
+  ligne (électrification, vitesse maximale, contrôle de vitesse et ETCS, GSM-R, gabarits, catégorie de charge,
+  écartement, quais), par PK, côte à côte avec l'autre source de VFF (SNCF Réseau) et l'accord ou le désaccord des
+  deux, comme \`GET /api/v1/lines/{line}/rinf-parameters\`. Aucune donnée n'est remplacée. Listes vides si le RINF ne
+  décrit pas la ligne. Reprenez la mention \`attribution\` de chaque source.
+  """
+  rinf_parameters: LineRinfParameters!
+  """
   Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
   de la ligne, du plus ancien au plus récent (sans date en dernier), comme
   \`GET /api/v1/lines/{line}/archives\` : projets, plans et cartes du tracé, mémoires, guides,
@@ -4597,6 +4605,214 @@ type LineRadioPortion {
   system: String!
   "Libellé de SNCF Réseau tel quel, fautes comprises."
   label: String!
+}
+
+
+"Paramètres RINF d'une ligne comparés à l'autre source de VFF (\`Line.rinf_parameters\`), même contenu que \`GET /api/v1/lines/{line}/rinf-parameters\`."
+type LineRinfParameters {
+  "Sections du RINF de la ligne, dans l'ordre des PK."
+  sections: [LineRinfSection!]!
+  """
+  Les sept paramètres, dans l'ordre : \`electrification\`, \`max_speed\`, \`train_protection\`, \`radio\`, \`gauging\`,
+  \`load_capability\`, \`track_gauge\`.
+  """
+  parameters: [LineRinfParameter!]!
+  "Quais du RINF des points d'exploitation de la ligne, rapprochés des quais de SNCF Réseau gare par gare."
+  platforms: LineRinfPlatforms!
+  "Sources : RINF (\`rinf\`, EUPL 1.2) et, quand elle décrit la ligne, SNCF Réseau (\`sncf\`, ODbL 1.0)."
+  sources: [TrackLayoutSource!]!
+}
+
+
+"Section de ligne du RINF, d'un point d'exploitation au suivant."
+type LineRinfSection {
+  "URI de la section dans le graphe de l'ERA."
+  uri: String!
+  "Ligne nationale du RINF (\`579000-1\`)."
+  national_line: String!
+  "Rang du tronçon de la ligne chez SNCF Réseau (suffixe de la ligne nationale)."
+  rg_troncon: Int!
+  "PK de début déclaré, en mètres."
+  pk_start_m: Int!
+  "PK de fin déclaré, en mètres."
+  pk_end_m: Int!
+  "PK de début en notation \`km+mmm\`."
+  pk_start_label: String!
+  "PK de fin en notation \`km+mmm\`."
+  pk_end_label: String!
+  "Longueur entre les deux PK, en mètres."
+  length_m: Int!
+  "Point d'exploitation de début."
+  from: LineRinfOperationalPoint!
+  "Point d'exploitation de fin."
+  to: LineRinfOperationalPoint!
+  "Voies de la section, en référence courte (\`V1\`, \`V2\`, \`VU\`…)."
+  tracks: [String!]!
+}
+
+
+"Point d'exploitation du RINF."
+type LineRinfOperationalPoint {
+  "Identifiant unique du point (UOPID)."
+  uopid: String!
+  "Nom au RINF."
+  name: String
+}
+
+
+"Un paramètre du RINF le long de la ligne, comparé à l'autre source."
+type LineRinfParameter {
+  "\`electrification\`, \`max_speed\`, \`train_protection\`, \`radio\`, \`gauging\`, \`load_capability\` ou \`track_gauge\`."
+  key: String!
+  "Fournisseur de l'autre source (\`sncf\`), nul quand VFF n'en a pas."
+  compared_with: String
+  "Longueurs par statut."
+  summary: LineRinfParameterSummary!
+  "Portions dans l'ordre des PK."
+  portions: [LineRinfParameterPortion!]!
+}
+
+
+"Longueurs en mètres d'un paramètre comparé."
+type LineRinfParameterSummary {
+  "Longueur que le RINF décrit."
+  rinf_m: Int!
+  "Longueur que l'autre source décrit."
+  vff_m: Int!
+  "Longueur où les deux sont d'accord."
+  agree_m: Int!
+  "Longueur où elles diffèrent."
+  disagree_m: Int!
+  "Longueur décrite par le RINF seul."
+  rinf_only_m: Int!
+  "Longueur décrite par l'autre source seule."
+  vff_only_m: Int!
+}
+
+
+"Portion de PK de mêmes valeurs et de même statut."
+type LineRinfParameterPortion {
+  "Rang du tronçon de SNCF Réseau ; nul pour une comparaison sur toute la ligne (vitesses, signalisation)."
+  rg_troncon: Int
+  "PK de début, en mètres."
+  pk_start_m: Int!
+  "PK de fin, en mètres."
+  pk_end_m: Int!
+  "PK de début en notation \`km+mmm\`."
+  pk_start_label: String!
+  "PK de fin en notation \`km+mmm\`."
+  pk_end_label: String!
+  "Longueur, en mètres."
+  length_m: Int!
+  "\`agree\`, \`disagree\`, \`rinf_only\` (seul le RINF dit quelque chose) ou \`vff_only\` (seule l'autre source)."
+  status: String!
+  "Valeur du RINF, nulle s'il ne dit rien."
+  rinf: LineRinfParameterValue
+  "Valeur de l'autre source, nulle si elle ne dit rien."
+  vff: LineRinfParameterValue
+}
+
+
+"Valeur d'un paramètre sur une portion, d'une des deux sources."
+type LineRinfParameterValue {
+  """
+  Forme comparée : \`25000V-50Hz\`, \`1500V-DC\`, \`none\` (électrification) ; \`160\` (km/h) ; \`KVB+TVM 430\`, \`none\`
+  (systèmes que les deux sources savent nommer) ; \`gsm-r\`, \`none\` ; gabarits joints par « + » ; catégorie EN 15528 ;
+  écartement en mm.
+  """
+  key: String!
+  "Détail : type de ligne de contact, vitesses des voies, tous les systèmes déclarés, version GSM-R, gabarits, classe nationale."
+  values: [String!]!
+  "Tension, en volts."
+  voltage_v: Int
+  "Fréquence, en Hz (0 en courant continu)."
+  frequency_hz: Float
+  "Vitesse maximale, en km/h."
+  speed_kmh: Int
+  "Voies du RINF d'où vient la valeur (voies principales seules quand la section en a) ; vide pour l'autre source."
+  tracks: [String!]!
+  "Libellé de l'autre source tel quel."
+  source_label: String
+}
+
+
+"Quais du RINF et de SNCF Réseau d'une ligne."
+type LineRinfPlatforms {
+  "Nombres de quais par statut."
+  summary: LineRinfPlatformSummary!
+  "Quais dans l'ordre des PK."
+  items: [LineRinfPlatform!]!
+}
+
+
+"Nombres de quais comparés."
+type LineRinfPlatformSummary {
+  "Quais du RINF."
+  rinf: Int!
+  "Quais de SNCF Réseau."
+  vff: Int!
+  "Rapprochés, longueurs d'accord."
+  agree: Int!
+  "Rapprochés, longueurs différentes."
+  disagree: Int!
+  "Au RINF seul."
+  rinf_only: Int!
+  "Chez SNCF Réseau seul."
+  vff_only: Int!
+  "Écart de longueur toléré, en mètres."
+  tolerance_m: Int!
+}
+
+
+"Un bord de quai, au RINF, chez SNCF Réseau ou aux deux."
+type LineRinfPlatform {
+  "PK du quai chez SNCF Réseau, sinon celui du point d'exploitation, en mètres."
+  pk_m: Int
+  "Gare de VFF."
+  station: LineRinfPlatformStation
+  "Point d'exploitation du RINF."
+  operational_point: LineRinfOperationalPoint
+  "Nom du quai (RINF, sinon SNCF Réseau)."
+  ref: String!
+  "Voie bordée, référence courte du RINF."
+  track: String
+  "\`agree\`, \`disagree\`, \`rinf_only\` ou \`vff_only\`."
+  status: String!
+  "Quai au RINF."
+  rinf: LineRinfPlatformRinf
+  "Quai chez SNCF Réseau."
+  vff: LineRinfPlatformSncf
+}
+
+
+"Gare d'un quai."
+type LineRinfPlatformStation {
+  "Slug de la gare."
+  slug: String!
+  "Nom de la gare."
+  name: String!
+}
+
+
+"Quai déclaré au RINF."
+type LineRinfPlatformRinf {
+  "Longueur, en mètres."
+  length_m: Int
+  "Hauteur, en millimètres."
+  height_mm: Int
+}
+
+
+"Quai de SNCF Réseau (jeu \`liste-des-quais\`)."
+type LineRinfPlatformSncf {
+  "Nom du quai chez SNCF Réseau."
+  label: String!
+  "Longueur, en mètres."
+  length_m: Int
+  "PK de début, en mètres."
+  pk_start_m: Int
+  "PK de fin, en mètres."
+  pk_end_m: Int
 }
 
 

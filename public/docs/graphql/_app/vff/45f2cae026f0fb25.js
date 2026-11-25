@@ -1,17 +1,17 @@
 {
-					__sveltekit_1nh7w2e = {
+					__sveltekit_1l8k27p = {
 						base: new URL("..", location).pathname.slice(0, -1),
-						version: "1795568665531",
+						version: "1795569981734",
 						assets: "/docs/graphql"
 					};
 
 					const element = document.currentScript.parentElement;
 
 					import("/docs/graphql/_app/immutable/entry/start.CS_AtC9x.js").then(async (kit) => {
-						kit.init(__sveltekit_1nh7w2e);
-						const app = await import("/docs/graphql/_app/immutable/entry/app.BtLsK4eU.js");
+						kit.init(__sveltekit_1l8k27p);
+						const app = await import("/docs/graphql/_app/immutable/entry/app.Exa_-cFs.js");
 						kit.start(app, element, {
-							node_ids: [0, 5],
+							node_ids: [0, 7],
 							data: [null,null],
 							form: null,
 							error: null
