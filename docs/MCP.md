@@ -443,7 +443,10 @@ trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
 Le plus court chemin sur le réseau d'aujourd'hui (comme `historical_route` sans année), puis, ligne
 par ligne dans le sens de marche, le schéma des voies de chaque portion parcourue (comme
 `GET /api/v1/lines/{line}/track-layout`). Départ et arrivée au centre de leur point d'exploitation
-(PK de la gare sur sa ligne). Renvoie `from`, `to`, `era_year`, `distance_km`, `objects` (nombre
+(PK de la gare sur sa ligne). Le chemin ne prend que des voies ouvertes aux voyageurs : ni train de parc
+ou d'attraction, ni voie de fret seul ou des réseaux militaire et particulier, sauf quand il n'existe aucun
+autre chemin (`non_passenger_m` donne alors les mètres parcourus sur ces voies, 0 sinon). Renvoie `from`,
+`to`, `era_year`, `distance_km`, `non_passenger_m`, `objects` (nombre
 d'objets du livret), `legs` (`code`, `slug`, `name`, `from` et `to` : nom de la gare ou `junction`
 pour un changement de ligne en pleine voie, `pk_from_m`, `pk_to_m`, `direction` : `up` à PK
 croissants ou `down`, `pk_precision` : `exact`, `derived` ou `approximate`, `route_from_km`,

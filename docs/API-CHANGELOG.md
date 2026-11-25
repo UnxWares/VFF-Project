@@ -9,6 +9,12 @@ versionné (`tests/Fixtures/api-contract.json`) et échoue si un champ, un param
 
 ### Ajouts
 
+- Livret de parcours (REST `GET /api/v1/routebook`, GraphQL `Routebook.non_passenger_m`, MCP `routebook`) : `non_passenger_m`,
+  mètres parcourus sur des voies sans service voyageurs (fret seul, réseaux militaire ou particulier). Le livret ne prend plus
+  que les voies ouvertes aux voyageurs (0) et ne passe sur ces voies que s'il n'existe aucun autre chemin ; `GET /api/v1/route`
+  garde son mode voyageurs (voies sans voyageurs pénalisées). Un train de parc ou d'attraction sans ligne de VFF (« Petit Train
+  de la Tête d'Or ») n'est plus une gare du graphe : il n'apparaît plus dans les itinéraires (`/route`, livret) après le
+  prochain `vff:build-network-graph`.
 - Paramètres RINF d'une ligne (REST `GET /api/v1/lines/{line}/rinf-parameters`, GraphQL `LineRinfPlatformSummary`, MCP
   `line_rinf_parameters`) : statut de quai `length_unknown` (même gare, même nom de quai, longueur absente d'une des deux
   sources) et son nombre `platforms.summary.length_unknown` ; GraphQL `LineRinfPlatformSummary.length_unknown`.

@@ -21,6 +21,7 @@ class RoutebookController extends Controller
         'era_year' => 2030,
         'distance_m' => 80493,
         'distance_km' => 80.5,
+        'non_passenger_m' => 0,
         'objects' => 0,
         'legs' => [[
             'index' => 1,
@@ -56,8 +57,9 @@ class RoutebookController extends Controller
      * Livret de parcours entre deux gares.
      *
      * Le parcours d'aujourd'hui (réseau de l'ère courante, 2030) entre deux gares, ligne par ligne, à la manière
-     * d'un livret de parcours : le plus court chemin du graphe de VFF (comme `GET /api/v1/route`, mode voyageurs),
-     * puis le schéma des voies de chaque portion de ligne traversée (`GET /api/v1/lines/{line}/track-layout`),
+     * d'un livret de parcours : le plus court chemin du graphe de VFF sur les seules voies ouvertes aux voyageurs
+     * (`non_passenger_m` = 0 ; s'il n'y en a pas, celui de `GET /api/v1/route` en mode voyageurs, et `non_passenger_m`
+     * donne les mètres parcourus sur des voies de fret seul ou des réseaux militaire et particulier), puis le schéma des voies de chaque portion de ligne traversée (`GET /api/v1/lines/{line}/track-layout`),
      * mis bout à bout dans le sens de marche. Départ et arrivée au centre du point d'exploitation (PK de la gare
      * sur sa ligne).
      *
@@ -91,6 +93,7 @@ class RoutebookController extends Controller
      *     era_year: int,
      *     distance_m: int,
      *     distance_km: float,
+     *     non_passenger_m: int,
      *     objects: int,
      *     legs: array<array{index: int, line: array{code: ?string, slug: string, name: string},
      *         from: array{kind: string, slug: ?string, name: ?string}, to: array{kind: string, slug: ?string, name: ?string},

@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Livret de parcours (« routebook ») entre deux gares, sur le réseau d'aujourd'hui (ère courante, 2030) : le plus
- * court chemin du graphe gare à gare de VFF (PathfindingService, mode voyageurs, sans voies associatives), découpé
+ * court chemin du graphe gare à gare de VFF (PathfindingService, mode voyageurs strict : sans voies associatives ni
+ * voies sans service voyageurs, fret seul ou réseaux militaire et particulier ; ces dernières ne servent que s'il n'y
+ * a pas d'autre chemin, et `non_passenger_m` le dit), découpé
  * en morceaux de ligne (RouteLegs), chaque morceau calé sur les PK de sa ligne (LinePointPk) puis garni du schéma
  * des voies de la portion parcourue (TrackLayout, celui de `GET /api/v1/lines/{line}/track-layout`), le tout mis bout à
  * bout dans le sens de marche (RoutebookAssembler). Le départ et l'arrivée sont au centre de leur point
@@ -23,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 final class Routebook
 {
     /** Version du contenu : à changer quand la forme de la réponse ou le calcul change (clé du cache). */
-    public const FORMAT = 2;
+    public const FORMAT = 3;
 
     public const CACHE_TTL = 3600;
 
@@ -65,7 +67,16 @@ final class Routebook
      */
     public function build(string $from, string $to): array
     {
-        ['era' => $era, 'build' => $build, 'path' => $path] = $this->pathfinding->findPath($from, $to);
+        try {
+            ['era' => $era, 'build' => $build, 'path' => $path] = $this->pathfinding->findPath($from, $to, null, ['traffic' => PathfindingService::PASSENGER_ONLY]);
+        } catch (RouteException $e) {
+            if (! in_array($e->errorCode, ['no_path', 'station_not_in_network'], true)) {
+                throw $e;
+            }
+            // Pas de chemin sur les seules voies voyageurs (ou gare desservie seulement par une voie de fret) : chemin du
+            // mode voyageurs de `/route`, voies sans voyageurs pénalisées ; ses erreurs sont alors celles de `/route`.
+            ['era' => $era, 'build' => $build, 'path' => $path] = $this->pathfinding->findPath($from, $to);
+        }
         $stationIds = $path['stations'];
 
         $stations = [];
@@ -74,10 +85,11 @@ final class Routebook
             $stations[(int) $s->id] = $s;
         }
         $edgeRows = [];
-        foreach (DB::select('SELECT id, from_station_id, line_id, length_m, line_ids, line_lengths FROM station_edges WHERE id = ANY(?::bigint[])',
+        foreach (DB::select('SELECT id, from_station_id, line_id, length_m, non_passenger_m, line_ids, line_lengths FROM station_edges WHERE id = ANY(?::bigint[])',
             [self::pgArray($path['edges'])]) as $e) {
             $edgeRows[(int) $e->id] = $e;
         }
+        $nonPassengerM = array_sum(array_map(fn (object $e): int => (int) $e->non_passenger_m, $edgeRows));
 
         // Portions de ligne de chaque arête, dans le sens de marche.
         $steps = [];
@@ -172,6 +184,7 @@ final class Routebook
             'era_year' => (int) $era->year,
             'distance_m' => $distance,
             'distance_km' => round($distance / 1000, 1),
+            'non_passenger_m' => $nonPassengerM,
             'objects' => RoutebookAssembler::objectCount($book),
             'legs' => $legs,
             'line_changes' => self::lineChanges($legs),
