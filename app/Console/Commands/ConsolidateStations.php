@@ -757,23 +757,14 @@ class ConsolidateStations extends Command
 
         // Gares orphelines (plus aucune source) : supprimées.
         $orphans = array_diff(array_keys($existing), array_keys($keptIds));
+        // Gare orpheline dont les objets sources ont rejoint une gare conservée (doublon rapproché) : fondue dans la gare
+        // qui a reçu le plus de ses objets, comme une fusion (StationMerger) : médias, contributions, signalements,
+        // événements hors sources, bibliographie, patrimoine, quais et anciennes adresses passent à cette gare, et son
+        // adresse redirige vers elle. Supprimée sans cela, la fiche emportait ces données (clés étrangères en cascade,
+        // médias et contributions sans clé laissés vers un id disparu).
+        $this->mergeJoinedOrphans($merger, $built, $orphans, $existing);
         foreach (array_chunk($orphans, 1000) as $chunk) {
             DB::table('stations')->whereIn('id', $chunk)->delete();
-        }
-        // Gare orpheline dont les objets sources ont rejoint une gare conservée (doublon rapproché) : son adresse
-        // redirige vers cette gare.
-        $orphanSet = array_flip($orphans);
-        $redirects = [];
-        foreach ($built as $cid => $s) {
-            foreach ($s['id'] ? $this->clusters[$cid]['members'] : [] as $m) {
-                $old = $this->recs[$m]->station_id;
-                if ($old !== null && isset($orphanSet[$old]) && ! isset($redirects[$existing[$old]])) {
-                    $redirects[$existing[$old]] = ['old_slug' => $existing[$old], 'station_id' => (int) $s['id'], 'created_at' => $now, 'updated_at' => $now];
-                }
-            }
-        }
-        if ($redirects !== []) {
-            DB::table('station_redirects')->upsert(array_values($redirects), ['old_slug'], ['station_id', 'updated_at']);
         }
 
         $cols = ['name', 'alt_names', 'type', 'city', 'department_code', 'opened_at', 'closed_at', 'opened_precision',
@@ -842,7 +833,8 @@ class ConsolidateStations extends Command
         // Événements issus des sources (les événements déduits sont gérés par vff:build-station-eras).
         // Les fermetures lues par vff:import-station-closures (articles Wikipédia,
         // qualificatifs Wikidata, notes OSM) sont conservées : elles ne viennent pas
-        // de station_sources. Une gare supprimée (orpheline) les perd par cascade.
+        // de station_sources. Une gare supprimée (orpheline) les perd par cascade, sauf un doublon rejoint par ses
+        // sources, fondu avant (mergeJoinedOrphans).
         // Corrections sourcées (gares_corrections.php) : gardées aussi, réappliquées par vff:build-station-eras.
         DB::table('station_events')->where('is_inferred', false)
             ->whereNotIn('source', [...ImportStationClosures::SOURCES, StationTimeline::CORRECTION])->delete();
@@ -1171,6 +1163,48 @@ class ConsolidateStations extends Command
 
         return ($t['usage'] ?? null) === 'tourism' || ($t['tourism'] ?? null) === 'yes'
             || ($t['railway:preserved'] ?? null) === 'yes';
+    }
+
+    /**
+     * Gares orphelines dont des objets sources ont rejoint une gare conservée (doublon rapproché, Grignan - Chamaret
+     * 24778 et Chamaret-Grignan 23325) : chacune est fondue (StationMerger) dans la gare conservée qui a reçu le plus de
+     * ses objets, la plus ancienne à égalité, avant sa suppression. Les fiches déjà fondues par l'action « merge »
+     * (`absorbed_ids`) ne le sont pas deux fois.
+     *
+     * @param  array<int, array<string, mixed>>  $built  gare construite par groupe (`id` : fiche conservée, null : nouvelle)
+     * @param  array<int, int>  $orphans  fiches existantes qu'aucun groupe ne garde
+     * @param  array<int, string>  $existing  slug de chaque fiche existante
+     */
+    private function mergeJoinedOrphans(StationMerger $merger, array $built, array $orphans, array $existing): void
+    {
+        $orphanSet = array_flip($orphans);
+        $absorbed = [];
+        /** @var array<int, array<int, int>> $joined fiche orpheline => [fiche conservée => objets reçus] */
+        $joined = [];
+        foreach ($built as $cid => $s) {
+            if (! $s['id']) {
+                continue;
+            }
+            foreach ($this->clusters[$cid]['absorbed_ids'] ?? [] as $a) {
+                $absorbed[(int) $a] = true;
+            }
+            foreach ($this->clusters[$cid]['members'] as $m) {
+                $old = $this->recs[$m]->station_id;
+                if ($old !== null && isset($orphanSet[(int) $old])) {
+                    $joined[(int) $old][(int) $s['id']] = ($joined[(int) $old][(int) $s['id']] ?? 0) + 1;
+                }
+            }
+        }
+        foreach ($joined as $orphan => $targets) {
+            if (isset($absorbed[$orphan])) {
+                continue;
+            }
+            uksort($targets, fn (int $a, int $b): int => [$targets[$b], $a] <=> [$targets[$a], $b]);
+            $kept = (int) array_key_first($targets);
+            $moved = array_filter($merger->merge($orphan, $kept));
+            $this->line(sprintf('  fiche %d (%s) rejointe par ses sources, fondue dans %d : %s', $orphan, $existing[$orphan] ?? '?', $kept,
+                $moved === [] ? 'rien à reprendre' : implode(', ', array_map(fn ($k, $v) => "{$k} {$v}", array_keys($moved), $moved))));
+        }
     }
 
     /**

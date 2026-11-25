@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Console\Commands\ConsolidateStations;
+use App\Models\Station;
 use App\Support\StationNames;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,31 @@ class ConsolidateStationsNamesTest extends TestCase
         $this->assertFalse(DB::table('stations')->where('id', $dup)->exists());
         $this->assertSame('chamaret-grignan', DB::table('stations')->where('id', $old)->value('slug'));
         $this->assertSame($old, (int) DB::table('station_redirects')->where('old_slug', 'grignan-chamaret')->value('station_id'));
+    }
+
+    /**
+     * The duplicate that its sources leave is merged like an explicit merge (StationMerger), not only redirected: its
+     * photos, the closures read in articles and its older addresses go to the kept station instead of vanishing with it
+     * (cascade on the events and redirects, a media row left on a deleted id).
+     */
+    public function test_the_joined_duplicate_hands_its_own_data_to_the_kept_station(): void
+    {
+        $old = $this->station('chamaret-grignan', 'Chamaret-Grignan', 44.396584644564, 4.8903392470429);
+        $dup = $this->station('grignan-chamaret', 'Grignan - Chamaret', 44.394197, 4.886999);
+        $this->grignan($old, $dup);
+        $media = DB::table('media')->insertGetId(['mediable_type' => Station::class, 'mediable_id' => $dup, 'type' => 'photo', 'provider' => 'upload', 'file_path' => 'media/grignan-chamaret.jpg',
+            'title' => 'Le bâtiment voyageurs', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_events')->insert(['station_id' => $dup, 'type' => 'closure', 'event_date' => '1951-03-15', 'date_precision' => 'day',
+            'source' => 'wikipedia', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_redirects')->insert(['old_slug' => 'grignan-chamaret-26', 'station_id' => $dup, 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->artisan('vff:consolidate-stations')->assertSuccessful();
+
+        $this->assertFalse(DB::table('stations')->where('id', $dup)->exists());
+        $this->assertSame($old, (int) DB::table('media')->where('id', $media)->value('mediable_id'));
+        $this->assertSame([$old], DB::table('station_events')->where('source', 'wikipedia')->pluck('station_id')->map(fn ($id): int => (int) $id)->all());
+        $this->assertSame(['grignan-chamaret' => $old, 'grignan-chamaret-26' => $old],
+            DB::table('station_redirects')->orderBy('old_slug')->pluck('station_id', 'old_slug')->map(fn ($id): int => (int) $id)->all());
     }
 
     public function test_reversed_words_do_not_lift_the_distinct_wikidata_guard(): void
