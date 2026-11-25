@@ -346,6 +346,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] **Patrimoine ferroviaire protégé** (`/heritage`, `GET /api/v1/heritage`) : bâtiments et ouvrages classés ou inscrits, label « architecture contemporaine remarquable », architectes (142 graphies réduites à 79), dates, styles, carte légère et filtres ; filtre « patrimoine » de l'annuaire des gares
 - [x] **Glossaire** du vocabulaire ferroviaire (`/glossary`) : chaque terme vérifié à sa source et lié depuis les textes qui l'emploient ; quiz de culture ferroviaire (ouvertures, compagnies, plus longs tunnels, architectes, gares les plus fréquentées, premières séries) à réponses sourcées
 - [x] **Rames remarquables** : la rame TGV Sud-Est 01 « Patrick » (fiche de la série, section « Rames remarquables » en REST, GraphQL et MCP, recherche du site) et son clin d'œil sur toutes les pages (taper « patrick » hors d'un champ de saisie ; mouvement réduit respecté, rien envoyé ni stocké), redessinée en SVG à l'échelle
+- [x] **Schéma des voies de chaque ligne** (24/11, sur le modèle d'un livret de ligne) : toutes les voies numérotées, d'évitement et de service, aiguillages, traversées, heurtoirs, signaux et points d'exploitation, pleine ligne comprimée et gares dilatées, bande PK, vitesse et déclivité, tableau de parcours ; registre officiel de l'infrastructure de l'ERA (RINF, EUPL 1.2 : points d'exploitation, sections, voies, quais, déclivités) complété par OpenStreetMap (ODbL : aiguillages, signaux, géométrie des voies, calée sur les PK de la ligne), chaque objet avec sa source et sa précision ; page `/lines/{slug}/voies`, livret d'un parcours (`/routebook`), `GET /api/v1/lines/{line}/track-layout`, GraphQL `Line.track_layout` et `routebook`, outils MCP `line_track_layout` et `routebook`
 - [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (47 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation, matériel, vitesses et ouvrages par ligne, chronologie, « Ce jour-là », chemins de fer touristiques, patrimoine des gares, ce qui existait en un lieu (`what_was_here`), réseau dans une zone, arrêts d'une ligne et vues aériennes d'une gare ; 3 invites, lecture seule, aucun fait d'une source non commerciale, `docs/MCP.md`)
 
 ---
@@ -367,4 +368,4 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 *Cette roadmap est un document vivant. Toute proposition est bienvenue : ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues) avec le label `roadmap`.*
 
-*À jour : 2026-11-23.*
+*À jour : 2026-11-25.*
